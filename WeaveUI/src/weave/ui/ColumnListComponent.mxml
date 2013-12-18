@@ -164,6 +164,7 @@
 			
 			public function set hashMap(value:ILinkableHashMap):void
 			{
+				enabled = !!value;
 				controller.hashMap = value;
 				toolWatcher.target = AttributeSelectorPanel.getVisTool(value);
 				updateLabel();

@@ -36,7 +36,7 @@ package weave.services
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.reportError;
 	import weave.api.services.IAsyncService;
 	
@@ -340,7 +340,7 @@ package weave.services
 			if (!_fault)
 				_fault = new Fault(String(event.error.errorID), event.error.name, event.error.message);
 			
-			disposeObjects(this);
+			disposeObject(this);
 		}
 
 		private function handleStatus(event:StatusEvent):void
@@ -350,7 +350,7 @@ package weave.services
 				if (!_fault)
 					_fault = new Fault(StatusEvent.STATUS, 'Received LocalConnection error status');
 				
-				disposeObjects(this);
+				disposeObject(this);
 			}
 		}
 		

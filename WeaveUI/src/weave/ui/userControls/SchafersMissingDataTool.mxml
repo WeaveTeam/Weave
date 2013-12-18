@@ -127,7 +127,6 @@ SchafersMissingDataImputation
 			import weave.services.beans.RResult;
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.utils.ColumnUtils;
-			import weave.utils.VectorUtils;
 			import weave.visualization.tools.DataTableTool;
 			import weave.visualization.tools.SimpleVisTool;
 			
@@ -436,7 +435,7 @@ SchafersMissingDataImputation
 				 var RscriptAssignNames:String = assignTA.text;//as complete string
 				
 				//broken into individual variable names
-				 assignNames = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(assignTA.text));
+				 assignNames = WeaveAPI.CSVParser.parseCSVRow(assignTA.text) || [];
 				 
 				 
 				 if(assignNames.length > selectedColumns.length)
@@ -534,7 +533,7 @@ SchafersMissingDataImputation
 				var RscriptAssignNames:String = clusterTA.text;//as complete string
 				
 				//broken into individual variable names
-				assignNames = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(clusterTA.text));				
+				assignNames = WeaveAPI.CSVParser.parseCSVRow(clusterTA.text) || [];				
 				
 				
 				var showWarnings:Boolean = warningCB.selected;

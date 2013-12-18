@@ -21,9 +21,8 @@ package weave.core
 {
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -93,12 +92,12 @@ package weave.core
 			// update the type of object if necessary
 			if (newType == null)
 			{
-				disposeObjects(object);
+				disposeObject(object);
 				return null;
 			}
 			if (!(object is newType))
 			{
-				disposeObjects(object);
+				disposeObject(object);
 				object = new newType();
 				if (object is ILinkableObject)
 					registerLinkableChild(this, object as ILinkableObject);

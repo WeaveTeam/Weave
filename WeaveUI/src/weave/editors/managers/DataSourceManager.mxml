@@ -141,7 +141,7 @@
 				import weave.data.AttributeColumns.KeyColumn;
 				import weave.ui.CustomDataGrid.CustomDataGridColumn;
 				import weave.api.setSessionState;
-				import weave.api.disposeObjects;
+				import weave.api.disposeObject;
 				import weave.api.registerDisposableChild;
 				import weave.utils.PopUpUtils;
 				import weave.api.reportError;
@@ -166,6 +166,8 @@
 				
 				override protected function createChildren():void
 				{
+					if (createdChildren)
+						return;
 					super.createChildren();
 					browser.hierarchySelector.attributeVBox.addChild(columnDisplay);
 				}
@@ -251,7 +253,7 @@
 					
 					if (editor && editor.parent == container)
 						container.removeChild(editor as DisplayObject);
-					disposeObjects(editor);
+					disposeObject(editor);
 					editor = null;
 					
 					dataSource = newDataSource

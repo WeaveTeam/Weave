@@ -73,6 +73,8 @@
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				initSubMenu();
 			}
@@ -112,6 +114,9 @@
 					function():void {
 						for each (var lb:LinkableBoolean in allMenuToggles)
 							lb.value = true;
+						for each (var dp:DraggablePanel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
+							for each (lb in [dp.enableBorders, dp.enableMoveResize, dp.enableZOrder, dp.minimizable, dp.maximizable, dp.closeable])
+								lb.value = true;
 					},
 					null,
 					function():Boolean {

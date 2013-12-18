@@ -38,7 +38,7 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableOwner;
 	import weave.api.getSessionState;
@@ -354,7 +354,7 @@ package weave.data.DataSources
 					{
 						if (urlChanged)
 						{
-							disposeObjects(_servlet);
+							disposeObject(_servlet);
 							_servlet = registerLinkableChild(this, new AMF3Servlet(url.value));
 						}
 						var token:AsyncToken = _servlet.invokeAsyncMethod(
@@ -365,7 +365,7 @@ package weave.data.DataSources
 					}
 					else
 					{
-						disposeObjects(_servlet);
+						disposeObject(_servlet);
 						_servlet = null;
 						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
 					}

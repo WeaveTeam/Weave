@@ -27,7 +27,7 @@ package weave.data.KeySets
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
@@ -89,7 +89,8 @@ package weave.data.KeySets
 			// unlink from the old key set
 			if (_generatedKeySets)
 			{
-				disposeObjects.apply(null, _generatedKeySets);
+				for each (var keySet:IKeySet in _generatedKeySets)
+					disposeObject(keySet);
 				_generatedKeySets = null;
 			}
 			else

@@ -98,18 +98,7 @@
 	 * **/
 	override public function handleSliderChange():void
 	{
-		SecondaryKeyNumColumn.secondaryKeyFilter.value = values[dimensionSlider.value];
-	}
-	
-	
-	/**
-	 * This is specified in the HSlider above - called to get the tooltip that appears when 
-	 * the user probes over the slider.  Item is the index of the value that the user is hovering 
-	 * over.  
-	 **/
-	override protected function formatDataTip(item:Number):String 
-	{
-		return values[item];
+		SecondaryKeyNumColumn.secondaryKeyFilter.value = sliderValue;
 	}
 			
 			

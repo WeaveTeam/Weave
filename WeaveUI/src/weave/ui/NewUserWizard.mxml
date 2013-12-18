@@ -352,15 +352,16 @@
 				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
 				var extensionPosition:int = _fileLoader.name.length - 4;
 				
-				try{				
-					if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
+				try
+				{
+					if (_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition)
 					{
 						dataByteArray = _fileLoader.data;
 						delimiterBox.visible = false;
 						setRows(WeaveAPI.CSVParser.parseCSV(dataByteArray.toString()));						
-						
-					}else if(_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition ){
-						
+					}
+					else if (_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition)
+					{
 						delimiterBox.visible = false;
 						var xlsFile:ExcelFile = new ExcelFile();
 
@@ -401,8 +402,9 @@
 						if(lastRowEmpty)
 							xlsDataArray.pop();
 						setRows(xlsDataArray);
-					}else if(_fileLoader.name.search(".txt") == extensionPosition || _fileLoader.name.search(".TXT") == extensionPosition ){
-						
+					}
+					else if (_fileLoader.name.search(".txt") == extensionPosition || _fileLoader.name.search(".TXT") == extensionPosition)
+					{
 						dataByteArray = _fileLoader.data;
 						delimiterBox.visible = true;
 						var fileDataString:String = dataByteArray.toString();
@@ -416,11 +418,10 @@
 					_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
 					this.next();
 				}
-					catch(e:Error){
-					uploadMessage.text = lang("Error uploading file: ")+e.message.toString();
+				catch(e:Error)
+				{
+					reportError(e);
 				}
-				
-				
 			}
 			
 			public function CSVFileDrop(data:ByteArray):void

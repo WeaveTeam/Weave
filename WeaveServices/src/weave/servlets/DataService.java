@@ -236,17 +236,48 @@ public class DataService extends GenericServlet
  		return connInfo;
 	}
 	
-	public AttributeColumnData getColumn(int columnId, double minParam, double maxParam, String[] sqlParams)
+	
+	/**
+	 * This retrieves the data and the public metadata for a single attribute column.
+	 * @param columnId Either an entity ID (int) or a Map specifying public metadata values that uniquely identify a column. 
+	 * @param minParam Used for filtering numeric data
+	 * @param maxParam Used for filtering numeric data
+	 * @param sqlParams Specifies parameters to be used in place of '?' placeholders that appear in the SQL query for the column.
+	 * @return The column data.
+	 * @throws RemoteException
+	 */
+	public AttributeColumnData getColumn(Object columnId, double minParam, double maxParam, String[] sqlParams)
 		throws RemoteException
 	{
-		DataEntity entity = getColumnEntity(columnId);
+		DataEntity entity = null;
+		
+		if (columnId instanceof Number)
+		{
+			entity = getColumnEntity(((Number)columnId).intValue());
+		}
+		else if (columnId instanceof Map)
+		{
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			int[] ids = getEntityIdsByMetadata((Map)columnId, DataEntity.TYPE_COLUMN);
+			if (ids.length == 0)
+				throw new RemoteException("No column with id " + columnId);
+			if (ids.length > 1)
+				throw new RemoteException(String.format(
+					"The specified metadata does not uniquely identify a column (%s matching columns found): %s",
+					ids.length,
+					columnId
+				));
+			entity = getColumnEntity(ids[0]);
+		}
+		else
+			throw new RemoteException("columnId must either be an Integer or a Map of public metadata values.");
 		
 		// if it's a geometry column, just return the metadata
 		if (assertStreamingGeometryColumn(entity, false))
 		{
 			GeometryStreamMetadata gsm = (GeometryStreamMetadata) getGeometryData(entity, GeomStreamComponent.TILE_DESCRIPTORS, null);
 			AttributeColumnData result = new AttributeColumnData();
-			result.id = columnId;
+			result.id = entity.id;
 			result.metadata = entity.publicMetadata;
 			result.metadataTileDescriptors = gsm.metadataTileDescriptors;
 			result.geometryTileDescriptors = gsm.geometryTileDescriptors;
@@ -408,7 +439,7 @@ public class DataService extends GenericServlet
 		}
 
 		AttributeColumnData result = new AttributeColumnData();
-		result.id = columnId;
+		result.id = entity.id;
 		result.metadata = entity.publicMetadata;
 		result.keys = keys.toArray(new String[keys.size()]);
 		if (numericData != null)

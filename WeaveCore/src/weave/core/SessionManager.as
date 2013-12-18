@@ -274,7 +274,7 @@ package weave.core
 						childObject = object[name];
 					if (!childObject)
 						continue;
-					if (/* object is ILinkableDynamicObject ||  */childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
+					if (childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
 					{
 						// don't include duplicate siblings
 						if (ignoreList[childObject] != undefined)
@@ -335,7 +335,7 @@ package weave.core
 				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
 				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
 				{
-					lv.setSessionState(applyDiff(lv.getSessionState(), newState));
+					lv.setSessionState(applyDiff(ObjectUtil.copy(lv.getSessionState()), newState));
 				}
 				else
 				{
@@ -851,7 +851,7 @@ package weave.core
 			var objectCC:ICallbackCollection = linkableObjectToCallbackCollectionMap[linkableObject] as ICallbackCollection;
 			if (objectCC == null)
 			{
-				objectCC = new CallbackCollection();
+				objectCC = registerDisposableChild(linkableObject, new CallbackCollection());
 				if (CallbackCollection.debug)
 					(objectCC as CallbackCollection)._linkableObject = linkableObject;
 				linkableObjectToCallbackCollectionMap[linkableObject] = objectCC;
@@ -935,7 +935,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function disposeObjects(object:Object, ...moreObjects):void
+		public function disposeObject(object:Object):void
 		{
 			if (object != null && !_disposedObjectsMap[object])
 			{
@@ -969,7 +969,7 @@ package weave.core
 					// this removes all callbacks, including the one that triggers parent callbacks.
 					var objectCC:ICallbackCollection = getCallbackCollection(linkableObject);
 					if (objectCC != linkableObject)
-						disposeObjects(objectCC);
+						disposeObject(objectCC);
 					
 					// unregister from parents
 					if (childToParentDictionaryMap[linkableObject] !== undefined)
@@ -1010,7 +1010,7 @@ package weave.core
 						delete parentToChildDictionaryMap[linkableObject];
 						// dispose of the children this object owned
 						for (var child:Object in children)
-							disposeObjects(child);
+							disposeObject(child);
 					}
 					
 					// FOR DEBUGGING PURPOSES
@@ -1052,10 +1052,6 @@ package weave.core
 						(displayObject as UIComponent).mx_internal::cancelAllCallLaters();
 				}
 			}
-			
-			// dispose of the remaining specified objects
-			for each (object in moreObjects)
-				disposeObjects(object);
 		}
 		
 		// FOR DEBUGGING PURPOSES
@@ -1192,6 +1188,9 @@ package weave.core
 			if (linkFunctionCache.get(primary, secondary) is Function)
 				return; // already linked
 			
+			if (CallbackCollection.debug)
+				var stackTrace:String = new Error().getStackTrace();
+				
 			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
 			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			

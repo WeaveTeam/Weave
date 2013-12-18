@@ -35,14 +35,15 @@ package weave.data.DataSources
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -60,7 +61,6 @@ package weave.data.DataSources
 	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * WeaveDataSource is an interface for retrieving columns from Weave data servlets.
@@ -78,6 +78,16 @@ package weave.data.DataSources
 
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
+		
+		/**
+		 * This is an Array of public metadata field names that should be used to uniquely identify columns when querying the server.
+		 */		
+		public const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
+		
+		private function verifyStringArray(array:Array):Boolean
+		{
+			return StandardLib.getArrayType(array) == String;
+		}
 
 		public function getRows(keys:Array):AsyncToken
 		{
@@ -102,7 +112,7 @@ package weave.data.DataSources
 				url.value += defaultServletName;
 			
 			// replace old dataService
-			disposeObjects(dataService);
+			disposeObject(dataService);
 			dataService = registerLinkableChild(this, new WeaveDataServlet(url.value));
 			
 			url.resumeCallbacks();
@@ -506,29 +516,22 @@ package weave.data.DataSources
 			proxyColumn.setMetadata(leafNode.copy());
 			
 			// get metadata properties from XML attributes
-			var params:Object = new Object();
 			const SQLPARAMS:String = 'sqlParams';
-			var queryProperties:Array = [
-				ENTITY_ID, SQLPARAMS,
-				ColumnMetadata.DATA_TYPE, ColumnMetadata.MIN, ColumnMetadata.MAX,
-				'dataTable', 'name', 'year'
-			]; // use only these properties for querying
-			for each (var attr:String in queryProperties)
-			{
-				var value:String = leafNode.attribute(attr);
-				if (value)
-					params[attr] = value;
-			}
-			
+			var params:Object = getAttrs(leafNode, [ENTITY_ID, ColumnMetadata.MIN, ColumnMetadata.MAX, SQLPARAMS], false);
 			var columnRequestToken:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
 			var query:AsyncToken;
-			if (params[ENTITY_ID])
+			var _idFields:Array = idFields.getSessionState() as Array;
+			
+			if (_idFields || params[ENTITY_ID])
 			{
-				var sqlParams:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(params[SQLPARAMS]));
-				query = dataService.getColumn(params[ENTITY_ID], params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
+				var id:Object = _idFields ? getAttrs(leafNode, _idFields, true) : StandardLib.asNumber(params[ENTITY_ID]);
+				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
+				query = dataService.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
 			{
+				getAttrs(leafNode, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
+				// dataType is only used for backwards compatibility with geometry collections
 				if (params[ColumnMetadata.DATA_TYPE] != DataTypes.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
 				
@@ -536,6 +539,34 @@ package weave.data.DataSources
 			}
 			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, columnRequestToken);
 			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn);
+		}
+		
+		/**
+		 * @param node An XML node
+		 * @param attrNames A list of attribute names
+		 * @param forUniqueId Set this to true when these attributes are the ones specified by idFields to uniquely identify a column.
+		 * @param output An object to store the values.
+		 * @return An object containing the attribute values.  Empty strings will be omitted, unless all values were empty and forUniqueId == true.
+		 */
+		private function getAttrs(node:XML, attrNames:Array, forUniqueId:Boolean, output:Object = null):Object
+		{
+			var attrName:String;
+			var found:Boolean = false;
+			var result:Object = output || {};
+			for each (attrName in attrNames)
+			{
+				// ignore missing values
+				var attr:String = node.attribute(attrName);
+				if (attr)
+				{
+					found = true;
+					result[attrName] = attr;
+				}
+			}
+			if (!found && forUniqueId)
+				for each (attrName in attrNames)
+					result[attrName] = '';
+			return result;
 		}
 		
 		private function handleGetAttributeColumnFault(event:FaultEvent, request:ColumnRequestToken):void

@@ -57,7 +57,6 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -65,6 +64,7 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
+			import weave.api.registerDisposableChild;
 			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.data.CSVParser;
@@ -199,7 +199,7 @@
 				return csvRows;
 			}
 			
-			private const csvParser:CSVParser = new CSVParser(true);
+			private const csvParser:CSVParser = registerDisposableChild(this, new CSVParser(true));
 			[Bindable] private var csvRows:Array = [];
 			//this will hold the header columns as was loaded when the data is initially loaded.
 			//This is done so that the data gird shows the columns in the same order it was uploaded.

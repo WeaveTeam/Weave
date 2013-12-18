@@ -27,6 +27,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -220,6 +221,9 @@
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
+				
 				super.createChildren();
 				
 				WindowSettingsEditor; // work around compiler error
@@ -230,10 +234,15 @@
 //				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
 //				windowEditor.addChild(backgroundImageCheck);
 				
-				windowEditor.removeChild(windowEditor.titleControls);
-				windowEditor.addChildAt(axesEditor.titleControls, 0);
-				
-				axesEditor.parent.removeChild(axesEditor);
+				windowEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:Event):* {
+					if (windowEditor.titleControls.parent)
+						windowEditor.titleControls.parent.removeChild(windowEditor.titleControls);
+					windowEditor.addChildAt(axesEditor.titleControls, 0);
+				});
+				axesEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:Event):* {
+					if (axesEditor.parent)
+						axesEditor.parent.removeChild(axesEditor);
+				});
 			}
 			
 			override protected function childrenCreated():void

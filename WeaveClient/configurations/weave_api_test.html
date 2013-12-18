@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
     <!--
     Smart developers always View Source.
@@ -100,7 +101,6 @@
 	<!-- <img id="img_tag"/><br/> -->
 	<textarea id="resultTextArea" width="100%" cols="70" rows="10"></textarea>
 </td></tr></table>
-<script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
 // Disable caching of AJAX responses
@@ -189,12 +189,20 @@ function getImage()
 	 }
     });
 }
-// this function gets called when the weave instance is ready.
+
+resultTextArea.value = '';
+
+//this function gets called when the Weave API is ready, before any session state is loaded.
+function weaveApiReady(weave)
+{
+	resultTextArea.value = 'weaveApiReady(weave) called (id="' + weave.id + '")\n';
+	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
+}
+// this function gets called after Weave's initial session state has loaded.
 function weaveReady(weave)
 {
 	disableButtons(false);
-	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
-	resultTextArea.value = 'Weave JavaScript API is ready (id="'+(weave && weave.id)+'").';
+	resultTextArea.value += 'weaveReady(weave) called (id="' + weave.id + '")\n';
 }
 // this function will enable or disable the api test buttons.
 function disableButtons(disabled)

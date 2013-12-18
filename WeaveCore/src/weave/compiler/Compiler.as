@@ -31,6 +31,8 @@ package weave.compiler
 	
 	import weave.utils.fixErrorMessage;
 	
+	use namespace flash_proxy;
+	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
 	 * 
@@ -49,7 +51,7 @@ package weave.compiler
 		 * Set this to true to enable trace statements for debugging.
 		 */
 		public var debug:Boolean = false;
-		
+
 		private static const INDEX_METHOD:int = -1;
 		private static const INDEX_CONDITION:int = 0;
 		private static const INDEX_TRUE:int = 1;
@@ -336,11 +338,31 @@ package weave.compiler
 		{
 			return libraries.concat(); // make a copy
 		}
+		
 		/**
 		 * This function will initialize the operators and constants.
 		 */
 		private function initialize():void
 		{
+			// add global support for function binding if not already added
+			if (!Function.prototype.bind)
+			{
+				try
+				{
+					Function.prototype.bind = function(that:*, ...args):* {
+						var func:Function = this;
+						if (args.length)
+							return function():*{ return func.apply(that, args.concat(arguments)); };
+						else
+							return function():*{ return func.apply(that, arguments); };
+					};
+				}
+				catch (e:Error)
+				{
+					trace("Compiler.initialize(): ", e.getStackTrace());
+				}
+			}
+			
 			if (!statements)
 			{
 				statements = {};
@@ -361,9 +383,7 @@ package weave.compiler
 				constants[String(_const)] = _const;
 			
 			// global classes
-			var _QName:* = getDefinitionByName('QName'); // workaround to avoid asdoc error
-			var _XML:* = getDefinitionByName('XML'); // workaround to avoid asdoc error
-			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, _QName, String, uint, _XML])
+			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, QName_Class, String, uint, XML_Class])
 				globals[getQualifiedClassName(_class)] = _class;
 			// global functions
 			for each (var _funcName:String in 'decodeURI,decodeURIComponent,encodeURI,encodeURIComponent,escape,isFinite,isNaN,isXMLName,parseFloat,parseInt,trace,unescape'.split(','))
@@ -416,8 +436,10 @@ package weave.compiler
 				return object;
 			};
 			operators[".."] = function(object:*, propertyName:*):* {
-				if (typeof(object) == 'xml')
-					return object.descendants(propertyName);
+				if (object is XML_Class)
+					return (object as XML_Class).descendants(propertyName);
+				if (object is Proxy)
+					return (object as Proxy).getDescendants(propertyName);
 				return object.flash_proxy::getDescendants(propertyName);
 			};
 			operators['in'] = function(...args):* {
@@ -888,7 +910,7 @@ package weave.compiler
 					break;
 				if (i == 0 || i + 1 == tokens.length)
 					throw new Error("Misplaced '" + tokens[i] + "'");
-				tokens.splice(i - 1, 3, compileVariableAssignment.apply(null, tokens.slice(i - 1, i + 2)));
+				tokens.splice(i - 1, 3, compileVariableAssignment(tokens[i - 1], tokens[i], tokens[i + 1]));
 			}
 			
 			// next step: commas
@@ -2199,6 +2221,9 @@ package weave.compiler
 			// check globals last
 			allSymbolTables.push(globals);
 			
+			// this flag is set to useThisScope when the compiledObject is a function definition
+			var cascadeThisScope:Boolean = false;
+			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
 			{
@@ -2457,17 +2482,17 @@ package weave.compiler
 								funcParams[FUNCTION_CODE],
 								_symbolTables,
 								errorHandler,
-								useThisScope,
+								cascadeThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES]
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
 						{
-							// use Proxy.flash_proxy::callProperty
+							// use Proxy.callProperty
 							var proxyParams:Array = call.evaluatedParams.concat();
 							proxyParams.unshift(call.evaluatedMethodName);
-							result = (call.evaluatedHost as Proxy).flash_proxy::callProperty.apply(call.evaluatedHost, proxyParams);
+							result = (call.evaluatedHost as Proxy).callProperty.apply(call.evaluatedHost, proxyParams);
 						}
 						else
 						{
@@ -2538,7 +2563,10 @@ package weave.compiler
 			
 			// if the compiled object is a function definition, return that function definition instead of the wrapper.
 			if (compiledObjectIsFunctionDefinition(compiledObject))
+			{
+				cascadeThisScope = useThisScope;
 				return wrapperFunction() as Function;
+			}
 			
 			return wrapperFunction;
 		}

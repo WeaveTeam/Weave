@@ -26,7 +26,7 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.api.objectWasDisposed;
@@ -504,7 +504,7 @@ package weave.core
 			_locked = false;
 			removeObject();
 			_internalObject = null;
-			disposeObjects(_localHashMap); // just in case this function is called directly
+			disposeObject(_localHashMap); // just in case this function is called directly
 			_locked = true;
 		}
 		

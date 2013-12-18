@@ -19,7 +19,6 @@
 
 package weave.services.wms
 {
-	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;

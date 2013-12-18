@@ -76,6 +76,8 @@ package weave.visualization.tools
 		
 		override protected function createChildren():void
 		{
+			if (createdChildren)
+				return;
 			super.createChildren();
 			addChild(canvas);
 			canvas.percentWidth = 100;

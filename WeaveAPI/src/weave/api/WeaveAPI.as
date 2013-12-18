@@ -190,9 +190,9 @@ package weave.api
 		}
 		
 		/**
-		 * This function will initialize the external interfaces so calls can be made from JavaScript to Weave.
-		 * After initializing, this will call an external function weaveReady(weave) if it exists, where the
-		 * 'weave' parameter is a pointer to the instance of Weave that is ready.
+		 * This function will initialize the external API so calls can be made from JavaScript to Weave.
+		 * After initializing, this will call an external function weave.apiReady(weave) if it exists, where
+		 * 'weave' is a pointer to the instance of Weave that was initialized.
 		 */
 		public static function initializeExternalInterface():void
 		{
@@ -201,6 +201,7 @@ package weave.api
 			
 			try
 			{
+				// initialize Direct API
 				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
 				for each (var theInterface:Class in interfaces)
 				{
@@ -210,26 +211,78 @@ package weave.api
 					for each (var methodInfo:Object in classInfo.traits.methods)
 						generateExternalInterfaceCallback(instance, methodInfo);
 				}
+
 				var prev:Boolean = ExternalInterface.marshallExceptions;
 				ExternalInterface.marshallExceptions = false;
-				ExternalInterface.call(
-					'function(){' +
-						JS_var_weave +
-						'if (window && window.weaveReady) { window.weaveReady(weave); }' +
-						'else if (weaveReady) { weaveReady(weave); }' +
-					'}'
-				);
-				ExternalInterface.marshallExceptions = prev;
 				
+				// initialize WeavePath API
+				executeJavaScript(new WeavePath());
+				
+				// set flag before calling external apiReady()
 				_externalInterfaceInitialized = true;
+				
+				// call external weaveApiReady(weave)
+				executeJavaScript(
+					'if (weave.hasOwnProperty("weaveApiReady")) { weave.weaveApiReady(weave); }',
+					'if (window && window.weaveApiReady) { window.weaveApiReady(weave); }',
+					'else if (weaveApiReady) { weaveApiReady(weave); }'
+				);
+				
+				ExternalInterface.marshallExceptions = prev;
 			}
 			catch (e:Error)
 			{
-				if (e.errorID == 2060)
-					ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
-				else
-					ErrorManager.reportError(e);
+				handleExternalError(e);
 			}
+		}
+
+		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
+		private static const WeavePath:Class;
+
+		/**
+		 * Calls external function(s) weave.weaveReady(weave) and/or window.weaveReady(weave).
+		 */		
+		public static function callExternalWeaveReady():void
+		{
+			initializeExternalInterface();
+			
+			if (!ExternalInterface.available)
+				return;
+			
+			try
+			{
+				var prev:Boolean = ExternalInterface.marshallExceptions;
+				ExternalInterface.marshallExceptions = false;
+				executeJavaScript(
+					'if (weave.hasOwnProperty("weaveReady")) { weave.weaveReady(weave); }',
+					'if (window && window.weaveReady) { window.weaveReady(weave); }',
+					'else if (weaveReady) { weaveReady(weave); }'
+				);
+				ExternalInterface.marshallExceptions = prev;
+			}
+			catch (e:Error)
+			{
+				handleExternalError(e);
+			}
+		}
+		
+		/**
+		 * This will execute JavaScript code that uses a 'weave' variable.
+		 */		
+		private static function executeJavaScript(...lines):void
+		{
+			lines.unshift('function(){', JS_var_weave);
+			lines.push('}');
+			var script:String = lines.join('\n');
+			ExternalInterface.call(script);
+		}
+		
+		private static function handleExternalError(e:Error):void
+		{
+			if (e.errorID == 2060)
+				ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
+			else
+				ErrorManager.reportError(e);
 		}
 		
 		/**

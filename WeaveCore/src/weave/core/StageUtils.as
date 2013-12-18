@@ -321,7 +321,7 @@ package weave.core
 			// The variables countdown and lastPriority are used to avoid running newly-added tasks immediately.
 			// This avoids wasting time on async tasks that do nothing and return early, adding themselves back to the queue.
 
-			var args:Array;
+			var args:Array, args2:Array;
 			var stackTrace:String;
 			var now:int;
 			var allStop:int = _currentFrameStartTime + maxComputationTime;
@@ -341,7 +341,7 @@ package weave.core
 				if (now > allStop)
 					return;
 				
-				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
+				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
 				args = queue.shift();
 				stackTrace = _stackTraceMap[args];
 				
@@ -349,7 +349,13 @@ package weave.core
 				
 				// don't call the function if the relevantContext was disposed.
 				if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
-					(args[1] as Function).apply(null, args[2]);
+				{
+					args2 = args[2] as Array;
+					if (args2 != null && args2.length > 0)
+						(args[1] as Function).apply(null, args2);
+					else
+						(args[1] as Function)();
+				}
 				
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
@@ -427,8 +433,11 @@ package weave.core
 				{
 					// TODO: PROFILING: check how long this function takes to execute.
 					// if it takes a long time (> 1000 ms), something's wrong...
-					
-					(args[1] as Function).apply(null, args[2]);
+					args2 = args[2] as Array;
+					if (args2 != null && args2.length > 0)
+						(args[1] as Function).apply(null, args2);
+					else
+						(args[1] as Function)();
 				}
 				
 				if (debug_callLater)
@@ -546,9 +555,9 @@ package weave.core
 			{
 				// perform the next iteration of the task
 				if (useTimeParameter)
-					progress = task.call(null, _currentTaskStopTime) as Number;
+					progress = task(_currentTaskStopTime) as Number;
 				else
-					progress = task.apply() as Number;
+					progress = task() as Number;
 				
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
@@ -558,9 +567,9 @@ package weave.core
 						trace(stackTrace);
 						// this is incorrect behavior, but we can put a breakpoint here
 						if (useTimeParameter)
-							progress = task.call(null, _currentTaskStopTime) as Number;
+							progress = task(_currentTaskStopTime) as Number;
 						else
-							progress = task.apply() as Number;
+							progress = task() as Number;
 					}
 					progress = 1;
 				}
@@ -569,9 +578,9 @@ package weave.core
 					trace(getTimer() - time, stackTrace);
 					// this is incorrect behavior, but we can put a breakpoint here
 					if (useTimeParameter)
-						progress = task.call(null, _currentTaskStopTime) as Number;
+						progress = task(_currentTaskStopTime) as Number;
 					else
-						progress = task.apply() as Number;
+						progress = task() as Number;
 				}
 				if (progress == 1)
 				{

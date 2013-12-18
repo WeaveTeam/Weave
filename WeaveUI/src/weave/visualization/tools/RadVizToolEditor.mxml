@@ -21,8 +21,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
 <!---
-
 @author spurushe
+@author fkamayou
 -->
 <mx:TabNavigator xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -36,6 +36,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.events.FlexEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -44,26 +45,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
+			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.radviz.ClassInfoObject;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
-			
+			import weave.utils.ColumnUtils;
 			
 			
 			[Bindable] public var _target:RadVizTool = null;
 				
 			
 			[Bindable] 
-			public var columnNames:Array  = new Array();
 			public var selectedColumnName:String;
 			public var selectedAlgoOption:String;
 			private var thrValue:Number; private var layoutMeasure:String = new String();
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-			
+
 			 override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -71,14 +73,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				(size as DynamicColumnComponent).dynamicObject = _target._plotter.radiusColumn ;
 				(colorComponent as DynamicColumnComponent).columnWrapper = _target._plotter.fillStyle.color;
 				columnList.hashMap = _target._plotter.columns;
+
+				// this will set the columns for the point sensitivity
+				//poinstSensitivityColumnList.hashMap = _target._plotter.pointSensitivityColumns;
 				(classDis as DynamicColumnComponent).dynamicObject = _target.classDiscriminatorColumn;
 				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
 				linkBindableProperty(_target._plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_target._plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_target._plotter.jitterLevel, jitterSlider, "value" );
-				
 				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, handleGlobalNamesChange, true);
+				_target._plotter.columns.childListCallbacks.addImmediateCallback(this, function():void { pointSensitivityChecklist.dataProvider = _target._plotter.columns.getObjects(); }, true);
+				_target._plotter.columns.childListCallbacks.addImmediateCallback(this, function():void { pointSensitivityChecklist.labelFunction = ColumnUtils.getColumnListLabel; }, true);
+				linkBindableProperty(_target._plotter.pointSensitivitySelection, pointSensitivityChecklist, 'selection');
 			} 
+			
 			
 			private function handleGlobalNamesChange():void
 			{
@@ -307,7 +315,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(!useThresholdCB.selected){ thresholdValue.enabled = false; thrValLabel.enabled = false;}
 				
 			}
-			
 			
 		]]>
 	</mx:Script>
@@ -551,6 +558,61 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 		</mx:VBox>
 			
+	</mx:VBox>
+	<mx:VBox id="pointsensitivity" label="Point Sensitivity" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox width="100%">
+			<mx:HBox width="100%">
+				
+				<mx:CheckBox id="barycenterCheckBox" label="Show Barycenter" labelPlacement="left" toolTip="Enabling this will show the DAs barycenter"
+							 creationComplete="linkBindableProperty(_target._anchorPlotter.showBarycenter, event.target, 'selected')"
+							 paddingLeft="40"/>
+			
+				<mx:CheckBox id="voronoiCheckBox" label="Draw Voronoi Diagram" labelPlacement="left" toolTip="Enabling this will draw the DAs voronoi diagram"
+							 creationComplete="linkBindableProperty(_target._anchorPlotter.showVoronoi, event.target, 'selected')"
+							 paddingLeft="40"/>
+				
+				<mx:CheckBox id="convexhullCheckBox" label="Draw Convex Hull" labelPlacement="left" toolTip="Enabling this will draw the DAs convex hull"
+							 creationComplete="linkBindableProperty(_target._anchorPlotter.showConvexHull, event.target, 'selected')"
+							 paddingLeft="40"/>
+				
+			</mx:HBox>
+			
+			<ui:Indent label="Barycenter point radius" width="100%">
+				<mx:HSlider width="100%"
+							alpha="1.0"
+							tickInterval="1" 
+							minimum="1" maximum="10" 
+							creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterRadius, event.target, 'value')"/>
+				
+			</ui:Indent>
+			
+			
+			<ui:Indent label="Barycenter point opacity">
+				<mx:HSlider id="barycennterOpacitySlider" width="100%" value="0.0"
+							creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterFillStyle.alpha.defaultValue, event.target, 'value')"
+							minimum="0" maximum="1" snapInterval="0.1" liveDragging="true"
+							tickInterval="0.1"/>
+				
+			</ui:Indent>
+			
+			<ui:Indent label="Barycenter point color">
+				<mx:ColorPicker id="barycenterColorPicker"
+								selectedColor="0xFFFFFF"
+								creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterFillStyle.color.defaultValue, event.target, 'selectedColor')" />
+			</ui:Indent>
+			
+			
+				
+			<mx:CheckBox id="annulusCenterCheckBox" label="Show Annulus Center" labelPlacement="left"
+							 creationComplete="linkBindableProperty(_target._plotter.showAnnulusCenter, event.target, 'selected')"
+							 paddingLeft="40"/>
+			
+			<ui:Indent label="Point Sensitivity Columns"/>
+			
+			<ui:CheckBoxList id="pointSensitivityChecklist"/>
+
+			
+		</mx:VBox>
 	</mx:VBox>
 		
 	

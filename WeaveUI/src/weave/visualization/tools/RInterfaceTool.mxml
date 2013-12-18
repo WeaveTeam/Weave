@@ -305,14 +305,11 @@
 			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
-			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
-			
-			import org.igniterealtime.xiff.data.IQ;
 			
 			import spark.components.Image;
 			
@@ -328,7 +325,6 @@
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.services.WeaveRServlet;
@@ -341,7 +337,6 @@
 			import weave.ui.DataMiningEditors.PamClusteringEditor;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.utils.VectorUtils;
 
 			//WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
 			
@@ -606,7 +601,7 @@
 					script = script.replace("\r","\n");
 				}				
 				//Script to get output from R
-				var outputNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(outputTA.text));
+				var outputNames:Array = WeaveAPI.CSVParser.parseCSVRow(outputTA.text) || [];
 				
 				//Query is created from runScript with same signature from Jave side
 				

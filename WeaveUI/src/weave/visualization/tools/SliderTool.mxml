@@ -31,7 +31,8 @@
 	>
 	<mx:ViewStack id="viewStack" width="100%" height="100%" selectedIndex="{layoutCombo.selectedIndex}" minHeight="0">
 		<mx:HBox width="100%" label="{lang('Horizontal slider')}" minWidth="50">
-			<mx:VBox horizontalAlign="center" paddingTop="4">
+			<mx:VBox id="playControls" horizontalAlign="center" paddingTop="4"
+					 visible="{togglePlayControls.selected}" includeInLayout="{togglePlayControls.selected}">
 				<mx:Button
 					id="playButton" label=">" alpha="1.0"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
@@ -53,15 +54,17 @@
 				/>
 		</mx:HBox>
 		<mx:Box width="100%" height="100%" label="{lang('List')}" verticalScrollPolicy="off">
-			<mx:List id="dimensionList" width="100%" height="100%" dataProvider="{values}" minHeight="0"/>
+			<mx:List id="dimensionList" width="100%" height="100%" minHeight="0"/>
 		</mx:Box>
 		<mx:Box width="100%" height="100%" label="{lang('Combo box')}">
-			<ui:CustomComboBox id="dimensionCombo" width="100%" height="100%" dataProvider="{values}" minHeight="0"/>
+			<ui:CustomComboBox id="dimensionCombo" width="100%" height="100%" minHeight="0"/>
 		</mx:Box>
 	</mx:ViewStack>
 <mx:Script>
 <![CDATA[
+	import mx.binding.utils.BindingUtils;
 	import mx.collections.ArrayCollection;
+	import mx.collections.ICollectionView;
 	import mx.core.Container;
 	
 	import spark.collections.Sort;
@@ -76,6 +79,8 @@
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IVisTool;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
@@ -94,20 +99,23 @@
 	private static const layoutChoices:Array = ['HSlider', 'List', 'Combo']
 	
 	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
-	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
+	
+	public const filterValues:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray, []), handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
-	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array));
+	public const linkGlobalColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray, []));
 	public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString('HSlider', verifyLayout));
+	public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 	
 	private function verifyLayout(value:String):Boolean { return layoutChoices.indexOf(value) >= 0; }
-	
+	private function verifyStringArray(array:Array):Boolean { return (array && !array.length) || StandardLib.getArrayType(array) == String; }
 	
 	private var _timer:Timer;
 	[Bindable] protected var showLinkControls:Boolean = false;
-	[Bindable] protected var values:Array = []; // the values from labelsLinkableString
 	
-	internal function getUnlinkedTools():Array { return VectorUtils.flatten(unlinkedTools.getSessionState() as Array); }
+	internal function getFilterValues():Array { return filterValues.getSessionState() as Array; }
+	internal function getUnlinkedTools():Array { return unlinkedTools.getSessionState() as Array; }
 	
 	//constructor
 	
@@ -157,9 +165,15 @@
 			}
 		}
 		
+		linkBindableProperty(showPlayButton, togglePlayControls, 'selected');
 		linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
-		linkBindableProperty(labelsLinkableString, labelsInput, 'text');
-		getCallbackCollection(WeaveAPI.globalHashMap).addGroupedCallback(this, updateLinkingControls, true);
+		
+		labelsInput.addEventListener(Event.CHANGE, function(e:Event):void {
+			filterValues.setSessionState(WeaveAPI.CSVParser.parseCSVRow(labelsInput.text));
+		});
+		filterValues.addImmediateCallback(this, function():void {
+			labelsInput.text = WeaveAPI.CSVParser.createCSVRow(getFilterValues());
+		});
 	}
 	
 	/**
@@ -173,18 +187,6 @@
 			_timer.removeEventListener(TimerEvent.TIMER, moveSlider);
 		}
 		super.dispose();
-	}
-
-	private function updateLinkingControls():void
-	{
-		var sliders:Array = WeaveAPI.globalHashMap.getNames(SliderTool);
-		var lineCharts:Array = WeaveAPI.globalHashMap.getNames(LineChartTool);
-		var result:Array = WeaveAPI.globalHashMap.getNames(IVisTool);
-		AsyncSort.sortImmediately(result);
-		for each (var names:Array in [sliders, lineCharts])
-			for each (var name:String in names)
-				result.splice(result.indexOf(name), 1);
-		toolCheckboxList.dataProvider = result;
 	}
 
 	////abstract functions that must be overridden by subclasses of this class
@@ -215,30 +217,34 @@
 		//   changed and the values are still passed into the column request
 		if (!parent)
 			return callLater(handleLabelChange);
-		var labelsString:String = labelsLinkableString.value || '';
-		var newValues:Array = labelsString.split(',');
-		if (newValues.length <= maxLabelCount.value)
-			dimensionSlider.labels = newValues;
+		
+		var values:Array = getFilterValues();
+		if (values.length <= maxLabelCount.value)
+		{
+			dimensionSlider.labels = values;
+		}
 		else
 		{
-			dimensionSlider.labels = new Array();
+			dimensionSlider.labels = [];
 			
-			var interval:int = Math.ceil(newValues.length / maxLabelCount.value);
-			for (var i:int = 0; i < newValues.length; ++i)
+			var interval:int = Math.ceil(values.length / maxLabelCount.value);
+			for (var i:int = 0; i < values.length; ++i)
 			{
 				if (i % interval == 0)
-					dimensionSlider.labels.push(newValues[i]);
+					dimensionSlider.labels.push(values[i]);
 				else
 					dimensionSlider.labels.push('');
 			}			
 		}
-		values = newValues;
 		
 		dimensionSlider.minimum = 0;
-		dimensionSlider.maximum = newValues.length - 1;
+		dimensionSlider.maximum = values.length - 1;
 		
 		//set tick interval 
 		dimensionSlider.tickInterval = 1;
+		
+		dimensionList.dataProvider = values;
+		dimensionCombo.dataProvider = values;
 	}	
 
 	/** 
@@ -253,9 +259,9 @@
 	 * the user probes over the slider.  Item is the index of the value that the user is hovering 
 	 * over.  
 	 **/
-	protected function formatDataTip(item:Number):String 
+	private function formatDataTip(index:int):String
 	{
-		return null;
+		return getFilterValues()[index];
 	}
 	
 	public function addCallbacks():void { }
@@ -264,19 +270,17 @@
 			
 	public function get sliderValue():String
 	{
-		if (dimensionSlider.value == -1)
-			return null;
-		return dimensionSlider.labels[dimensionSlider.value];
+		return getFilterValues()[dimensionSlider.value];
 	}
 	
 	private function initializeLabels(callingLater:Boolean = false):void
 	{
 		//we'll run through the dimensions to set the defaults
 		//intialize the labels (a list of years concatenated, separated by commas)
-		if (!labelsLinkableString.value)
+		if (!getFilterValues().length)
 		{
 			getValuesFromCurrentDimensions();
-			if (!labelsLinkableString.value)
+			if (!getFilterValues().length)
 			{
 				if (!callingLater || WeaveAPI.ProgressIndicator.getTaskCount() > 0)
 				{
@@ -319,7 +323,7 @@
 		//step one - just get first one
 		var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root, HierarchyColumnReference);
 		var len:int = descendants.length;
-		var newLabels:Array = [];
+		var newValues:Array = [];
 		var lookingForLabels:Boolean = true;
 		var countOfYearsFound:Number = 0;
 		for (var i:int = 0; i < len; i++)
@@ -330,11 +334,11 @@
 			// the user/admin can change which dimension is used, but this is a best guess at a first default
 			if (years.length > countOfYearsFound)
 			{
-				newLabels = years;
+				newValues = years;
 				countOfYearsFound = years.length;
 			}
 		}
-		labelsLinkableString.value = newLabels.join(',');
+		filterValues.setSessionState(newValues);
 		handleSliderChange();
 	}
 	
@@ -347,8 +351,7 @@
 		if (index >= dimensionsRefs.length)
 			return;
 		var ref:HierarchyColumnReference = dimensionsRefs.getItemAt(index) as HierarchyColumnReference;
-		var times:Array = getValuesFromColHier(ref);
-		labelsLinkableString.value = times.join(',');
+		filterValues.setSessionState(getValuesFromColHier(ref));
 	}
 
 	
@@ -372,7 +375,7 @@
 		
 		// add to list
 		dimensionsRefs.addItem(ref);
-		if (!labelsLinkableString.value)
+		if (!getFilterValues().length)
 			dimensionChange();
 	}
 	
@@ -442,6 +445,11 @@
 		else
 			currentSliderPosition.value = dimensionSlider.minimum;
 	}
+	
+	[Deprecated] public function set labelsLinkableString(str:String):void
+	{
+		filterValues.setSessionState(str.split(','));
+	}
 ]]>
 </mx:Script>
 	<ui:ControlPanel>
@@ -456,6 +464,9 @@
 						}
 					}</ui:labelFunction>
 				</ui:CustomComboBox>
+				<ui:CustomCheckBox id="togglePlayControls" label="{lang('Show play button')}"
+								   visible="{layoutCombo.selectedItem == 'HSlider'}"
+								   includeInLayout="{layoutCombo.selectedItem == 'HSlider'}"/>
 			</ui:Indent>
 			<ui:Indent label="{lang('Time slider labels:')}">
 				<mx:TextInput id="labelsInput" 
@@ -469,43 +480,55 @@
 			<mx:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
 			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
 			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
-			<mx:VBox height="100%" width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
+			<mx:VBox width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
+				<ui:CustomCheckBox label="{lang('Link global columns')}" creationComplete="linkBindableProperty(linkGlobalColumns, event.target, 'selected')"/>
 				<mx:Label text="Linked visualization tools"/>
-				<ui:Indent height="100%" width="100%">
-					<mx:List id="toolCheckboxList" height="100%" width="100%" borderStyle="none" selectable="false">
-						<mx:itemRenderer>
-							<mx:Component>
-								<mx:CheckBox change="onChange()">
-									<mx:Script>
-										<![CDATA[
-											import weave.api.WeaveAPI;
-											import weave.ui.DraggablePanel;
-											import weave.utils.AsyncSort;
-											override public function set data(value:Object):void
-											{
-												super.data = value;
-												var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
-												selected = _unlinkedTools.indexOf(value) < 0;
-												var tool:DraggablePanel = WeaveAPI.globalHashMap.getObject(String(value)) as DraggablePanel;
-												label = tool ? tool.title : String(value);
+				<ui:Indent>
+					<ui:CheckBoxList id="toolCheckboxList" defaultSelectedState="true">
+						<ui:creationComplete>
+							<![CDATA[
+								toolCheckboxList.labelFunction = function(name:String):String {
+									var dp:DraggablePanel = WeaveAPI.globalHashMap.getObject(name) as DraggablePanel;
+									return dp ? dp.title : name;
+								};
+								getCallbackCollection(WeaveAPI.globalHashMap.childListCallbacks).addImmediateCallback(
+									this,
+									function():void {
+										toolCheckboxList.dataProvider = WeaveAPI.globalHashMap.getNames(IVisTool).filter(
+											function(n:String, i:int, a:Array):Boolean {
+												var o:* = WeaveAPI.globalHashMap.getObject(n);
+												return !(o is SliderTool || o is LineChartTool);
 											}
-											private function onChange():void
-											{
-												var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
-												var i:int = _unlinkedTools.indexOf(data);
-												if (i >= 0)
-													_unlinkedTools.splice(i, 1);
-												if (!selected)
-													_unlinkedTools.push(data);
-												AsyncSort.sortImmediately(_unlinkedTools);
-												outerDocument.unlinkedTools.setSessionState(_unlinkedTools);
+										);
+									},
+									true
+								);
+								unlinkedTools.addImmediateCallback(
+									this,
+									function():void {
+										var names:Array = VectorUtils.getArrayFromCollection(toolCheckboxList.dataProvider as ICollectionView);
+										toolCheckboxList.selection = names.map(
+											function(s:String, i:int, a:Array):Boolean {
+												return getUnlinkedTools().indexOf(s) < 0;
 											}
-										]]>
-									</mx:Script>
-								</mx:CheckBox>
-							</mx:Component>
-						</mx:itemRenderer>
-					</mx:List>
+										);
+									}
+								);
+								BindingUtils.bindSetter(
+									function(selection:Array):void {
+										var names:Array = VectorUtils.getArrayFromCollection(toolCheckboxList.dataProvider as ICollectionView);
+										var newUnlinkedNames:Array = names.filter(
+											function(s:String, i:int, a:Array):Boolean { return !selection[i]; }
+										);
+										StandardLib.sort(newUnlinkedNames); // sort to avoid superfluous updates
+										unlinkedTools.setSessionState(newUnlinkedNames);
+									},
+									toolCheckboxList,
+									'selection'
+								);
+							]]>
+						</ui:creationComplete>
+					</ui:CheckBoxList>
 				</ui:Indent>
 			</mx:VBox>
 		</mx:VBox>

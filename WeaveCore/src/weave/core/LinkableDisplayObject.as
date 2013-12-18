@@ -22,23 +22,20 @@ package weave.core
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
-	import flash.external.ExternalInterface;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
-	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
-	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
+	import weave.api.ui.ILinkableContainer;
 	import weave.compiler.Compiler;
 
 	/**
@@ -111,7 +108,7 @@ package weave.core
 				if (_parent && _parent == _displayObject.parent)
 					_parent.removeChild(_displayObject);
 				removeEventListeners();
-				disposeObjects(_displayObject);
+				disposeObject(_displayObject);
 				_displayObject = null;
 			}
 			// create new component

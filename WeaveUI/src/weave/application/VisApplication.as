@@ -44,7 +44,6 @@ package weave.application
 	import flash.utils.getTimer;
 	
 	import mx.collections.ArrayCollection;
-	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
@@ -59,6 +58,8 @@ package weave.application
 	import mx.managers.ToolTipManager;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	
+	import spark.components.Group;
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
@@ -77,7 +78,6 @@ package weave.application
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
-	import weave.core.StageUtils;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SingleImagePlotterEditor;
@@ -107,7 +107,6 @@ package weave.application
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
-	import weave.ui.TranslationPanel;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
@@ -126,6 +125,8 @@ package weave.application
 	internal class VisApplication extends VBox implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		
+		SessionStateEditor.initialize; // adds keyboard shortcut & upper-left click shortcut
 
 		/**
 		 * Constructor.
@@ -199,11 +200,13 @@ package weave.application
 			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
-			getCallbackCollection(WeaveAPI.globalHashMap.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
-			getCallbackCollection(WeaveAPI.globalHashMap.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
+			getCallbackCollection(Weave.savedSelectionKeySets).addGroupedCallback(this, setupSelectionsMenu);
+			getCallbackCollection(Weave.savedSubsetsKeyFilters).addGroupedCallback(this, setupSubsetsMenu);
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
-			
+
+			WeaveAPI.initializeExternalInterface();
+
 			getFlashVars();
 			handleFlashVarPresentation();
 			handleFlashVarAllowDomain();
@@ -287,7 +290,7 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			initJavaScript();
+			handleWeaveReady();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
@@ -301,7 +304,7 @@ package weave.application
 				// if not opened from admin console, enable interface now
 				if (!getFlashVarAdminConnectionName())
 					this.enabled = true;
-				initJavaScript();
+				handleWeaveReady();
 			}
 			else
 			{
@@ -310,12 +313,12 @@ package weave.application
 					Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 			}
 		}
-		private function initJavaScript():void
+		private function handleWeaveReady():void
 		{
 			// enable JavaScript API after initial session state has loaded.
 			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
-			Weave.initWeavePathAPI();
-			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
+			Weave.initExternalDragDrop();
+			WeaveAPI.callExternalWeaveReady();
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
 		
@@ -517,7 +520,7 @@ package weave.application
 			else
 				this.height = this.parent.height;
 			
-			var workspace:Canvas = visDesktop.internalCanvas;
+			var workspace:Group = visDesktop.workspace;
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
 			var scale:Number = 1 / multiplier;
 			workspace.scaleX = scale;
@@ -536,7 +539,6 @@ package weave.application
 					handleRemoveScreenshot();
 					return;
 				}
-				var workspace:Canvas = visDesktop.internalCanvas;
 				_screenshot.width = this.width;
 				_screenshot.height = this.height;
 			}
@@ -1255,12 +1257,12 @@ package weave.application
 			
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 
-			// Minimize All Windows: Get a list of all panels and call minimizePanel() on each sequentially
 			if (Weave.properties.enableMinimizeAllWindows.value)
 			{
 				click = function():void {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						panel.minimizePanel();
+						if (panel.minimizable.value && !panel.minimized.value)
+							panel.minimizePanel();
 				};
 				enable = function():Boolean {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
@@ -1271,12 +1273,12 @@ package weave.application
 				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Minimize all windows"), click, null, enable));
 			}
 			
-			// Restore all minimized windows: Get a list of all panels and call restorePanel() on each sequentially
 			if (Weave.properties.enableRestoreAllMinimizedWindows.value)
 			{
 				click = function():void {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						panel.restorePanel();
+						if (panel.minimized.value)
+							panel.restorePanel();
 				};
 				enable = function():Boolean {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
@@ -1287,12 +1289,12 @@ package weave.application
 				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Restore all minimized windows"), click, null, enable));
 			}
 			
-			// Close All Windows: Get a list of all panels and call removePanel() on each sequentially
 			if (Weave.properties.enableCloseAllWindows.value)
 			{
 				click = function():void {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						panel.removePanel();
+						if (panel.closeable.value)
+							panel.removePanel();
 				};
 				enable = function():Boolean {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
@@ -1629,7 +1631,7 @@ package weave.application
 		{
 			if (event.confirm)
 			{
-				var plugins:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(event.textInput), []);
+				var plugins:Array = WeaveAPI.CSVParser.parseCSVRow(event.textInput) || [];
 				Weave.setPluginList(plugins, null);
 			}
 		}
@@ -1681,7 +1683,7 @@ package weave.application
 		{
 			if (event.currentTarget == _printToolMenuItem)
    			{
-   				printOrExportImage(visDesktop.internalCanvas);
+   				printOrExportImage(visDesktop.workspace);
    			}
    			
 		}

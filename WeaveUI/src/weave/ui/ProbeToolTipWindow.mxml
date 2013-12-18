@@ -32,6 +32,8 @@
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				var button:Button = new Button();
 				button.label = lang("Open mouseover info editor");

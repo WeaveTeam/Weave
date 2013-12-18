@@ -74,7 +74,7 @@ package weave.core
 				
 				// if we own the previous target, dispose it
 				if (WeaveAPI.SessionManager.getLinkableOwner(_target) == this)
-					WeaveAPI.SessionManager.disposeObjects(_target);
+					WeaveAPI.SessionManager.disposeObject(_target);
 				else
 					(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _target);
 			}

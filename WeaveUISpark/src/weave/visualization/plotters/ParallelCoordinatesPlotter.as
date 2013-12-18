@@ -43,7 +43,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.LinkableWatcher;
-	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -148,7 +147,7 @@ package weave.visualization.plotters
 			// if session state is defined, use that. otherwise, get the values from xData
 			if (xValues.value)
 			{
-				return VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xValues.value));
+				return WeaveAPI.CSVParser.parseCSVRow(xValues.value) || [];
 			}
 			else
 			{

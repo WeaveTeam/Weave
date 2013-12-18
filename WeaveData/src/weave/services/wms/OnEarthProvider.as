@@ -20,8 +20,6 @@
 package weave.services.wms
 {
 	import flash.display.Bitmap;
-	import flash.events.MouseEvent;
-	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
@@ -30,17 +28,13 @@ package weave.services.wms
 	
 	import org.openscales.proj4as.ProjConstants;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
-	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
-	import weave.services.URLRequestUtils;
 	import weave.utils.AsyncSort;
 
 	/**
