@@ -24,6 +24,8 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -52,7 +54,7 @@ package weave.core
 		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
 			super(StandardLib.unIndent(defaultValue));
-			_allLinkableFunctions[this] = true; // register this instance so the callbacks will trigger when the libraries change
+			macroLibraries.addImmediateCallback(this, triggerCallbacks, false, true);
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
 			_paramNames = paramNames && paramNames.concat();
@@ -84,6 +86,10 @@ package weave.core
 				
 				if (_macroProxy == null)
 					_macroProxy = new ProxyObject(_hasMacro, _getMacro, null, evaluateMacro); // allows evaluating macros but not setting them
+				
+				if (detectLinkableObjectChange(_getNewCompiler, macroLibraries))
+					_compiler = _getNewCompiler(true);
+				
 				var object:ICompiledObject = _compiler.compileToObject(value);
 				_isFunctionDefinition = _compiler.compiledObjectIsFunctionDefinition(object);
 				_compiledMethod = _compiler.compileObjectToFunction(object, _macroProxy, errorHandler, _useThisScope, _paramNames);
@@ -184,7 +190,7 @@ package weave.core
 		/**
 		 * This is a list of libraries to include in the static compiler for macros.
 		 */
-		public static const macroLibraries:LinkableString = new LinkableString();
+		public static const macroLibraries:LinkableString = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableString(getQualifiedClassName(WeaveAPI)));
 		
 		/**
 		 * This function will add a library to the static list of macro libraries if it is not already added.
@@ -200,37 +206,11 @@ package weave.core
 			macroLibraries.value = WeaveAPI.CSVParser.createCSV(rows);
 		}
 		
-		staticInit();
-		
-		/**
-		 * This function will initialize static variables.
-		 */
-		private static function staticInit():void
-		{
-			// when the libraries change, we need to update the compiler
-			macroLibraries.addImmediateCallback(null, handleLibrariesChange);
-			macroLibraries.value = getQualifiedClassName(WeaveAPI);
-		}
-		
 		/**
 		 * This is the static compiler to be used by every LinkableFunction.
 		 */
 		private static var _compiler:Compiler = null;
 		private static var _allLinkableFunctions:Dictionary = new Dictionary(true); // the keys in this are LinkableFunction instances
-		
-		/**
-		 * This function will update the static compiler when the static libraries change.
-		 */
-		private static function handleLibrariesChange():void
-		{
-			_compiler = _getNewCompiler(true);
-			for (var linkableFunction:Object in _allLinkableFunctions)
-			{
-				var lf:LinkableFunction = linkableFunction as LinkableFunction;
-				if (!lf.wasDisposed)
-					lf.triggerCallbacks();
-			}
-		}
 		
 		/**
 		 * This function returns a new compiler initialized with the libraries specified by the public static libraries variable.
