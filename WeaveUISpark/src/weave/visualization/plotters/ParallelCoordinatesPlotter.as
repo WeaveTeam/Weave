@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -79,6 +80,10 @@ package weave.visualization.plotters
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			xColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
 			
+			linkSessionState(_filteredXData.filter, filteredKeySet.keyFilter);
+			linkSessionState(_filteredYData.filter, filteredKeySet.keyFilter);
+			registerLinkableChild(this, xData, updateFilterEquationColumns);
+			registerLinkableChild(this, yData, updateFilterEquationColumns);
 			
 			lineStyle.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateFilterEquationColumns, true);
@@ -123,10 +128,12 @@ package weave.visualization.plotters
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
-		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
-		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public function get xData():DynamicColumn { return _filteredXData.internalDynamicColumn; }
+		public function get yData():DynamicColumn { return _filteredYData.internalDynamicColumn; }
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
+		private const _filteredXData:FilteredColumn = newSpatialProperty(FilteredColumn);
+		private const _filteredYData:FilteredColumn = newSpatialProperty(FilteredColumn);
 		private const _keySet_groupBy:KeySet = newDisposableChild(this, KeySet);
 		
 		private var _yColumns:Array = [];
@@ -233,8 +240,8 @@ package weave.visualization.plotters
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
 				col.variables.requestObjectCopy("keyCol", groupBy);
-				col.variables.requestObjectCopy("filterCol", xData);
-				col.variables.requestObjectCopy("dataCol", yData);
+				col.variables.requestObjectCopy("filterCol", _filteredXData);
+				col.variables.requestObjectCopy("dataCol", _filteredYData);
 				
 				col.setMetadata(ColumnMetadata.TITLE, value);
 				col.setMetadata(ColumnMetadata.MIN, '{ getMin(dataCol) }');
