@@ -349,10 +349,10 @@
 			{
 				var children:Array = equationStringContainer.getChildren();
 				for each (var child:UIComponent in children)
+				{
 					child.validateNow(); // prevents application from crashing inside call to callLaterDispatcher().
-				
-				if (children.length > 0)
-					(disposeObject as Function).apply(null, children);
+					disposeObject(child);
+				}
 				equationStringContainer.removeAllChildren();
 			}
 		]]>

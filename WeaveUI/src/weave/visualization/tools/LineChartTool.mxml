@@ -278,14 +278,14 @@
 				if (_plotter.enableGroupBy.value)
 					return [lang("X values"), lang("Y values"), lang("Group by"), lang("Group color"), lang("Group label"), ];
 				else
-					return [lang("Color"), lang("Label"), lang("Y Columns"), lang("X Columns")];
+					return [lang("Color"), lang("Label"), lang("Y Columns")];
 			}
 			override public function getSelectableAttributes():Array
 			{
 				if (_plotter.enableGroupBy.value)
 					return [_plotter.xData, _plotter.yData, _plotter.groupBy, _plotter.lineStyle.color, labelPlotter.text];
 				else
-					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns, _plotter.xColumns];
+					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns];
 			}
 			
 			private function getColumnObjects():Array

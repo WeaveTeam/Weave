@@ -32,6 +32,7 @@
 	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}"
 				thumbCount="2"
 				liveDragging="true"
+				mouseDown="event.target.setFocus(); event.stopPropagation()"
 				change="handleSliderChange(event);"
 				width="100%" minWidth="22"/>
 	<mx:Script>

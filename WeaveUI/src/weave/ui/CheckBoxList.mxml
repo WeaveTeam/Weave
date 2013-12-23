@@ -27,7 +27,7 @@ automatically be updated to correspond to changes in dataProvider item order.
 -->
 <mx:List xmlns:mx="http://www.adobe.com/2006/mxml"
 		 width="100%" borderThickness="0" selectable="false"
-		 rowCount="{dataProvider.length}"
+		 rowCount="{dataProvider.length || 1}"
 		 paddingLeft="0" paddingRight="0"
 		 paddingTop="{getStyle('verticalGap')/2}" paddingBottom="{getStyle('verticalGap')/2}" xmlns:ui="weave.ui.*">
 	<mx:Script>
