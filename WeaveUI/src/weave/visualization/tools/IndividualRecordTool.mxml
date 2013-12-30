@@ -5,7 +5,13 @@
 				   width="400" height="300"
 				   implements="weave.api.ui.IVisToolWithSelectableAttributes" layout="absolute"
 				   title="{lang('Individual Record View')}">
+	<mx:VBox height="100%" width="100%">
+		<mx:HBox width="100%" height="20%">
+			<mx:TextArea height="100%" width="50%"/>
+			<ui:ProbeToolTipWindow id="probeBox" height="100%" width="50%" />
+		</mx:HBox>
 	<CustomDataGrid:CustomDataGrid id="dataGrid" width="100%" height="100%"/>
+</mx:VBox>
 	
 	<mx:Script>
 		<![CDATA[
@@ -42,6 +48,8 @@
 				super.childrenCreated();
 				
 				dimensionsList.hashMap = columns;
+				probeBox.enableMoveResize.value = false;
+				probeBox.enableBorders.value = false;
 			}
 			
 			override protected function get defaultPanelTitle():String
@@ -132,6 +140,8 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox label="{lang('Columns')}">
+		<ui:DynamicColumnComponent label="Information Line 2" id="line2"/>
+		<ui:DynamicColumnComponent label="Information Line 3" id="line3"/>
 			<ui:ColumnListComponent id="dimensionsList" width="100%" height="100%"
 									label="{lang('Columns')}" backgroundAlpha="0.7"/>
 		</mx:VBox>			
