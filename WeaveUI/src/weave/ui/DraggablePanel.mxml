@@ -1335,6 +1335,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						titleBar.removeChild(button);
 				}
 				updateBorders();
+				layoutChrome(unscaledWidth, unscaledHeight);
 			}
 			
 			override protected function layoutChrome(unscaledWidth:Number, unscaledHeight:Number):void
