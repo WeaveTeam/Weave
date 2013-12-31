@@ -147,7 +147,7 @@ package weave.data.AttributeColumns
 				return;
 			
 			// don't bother downloading if we know the result will be empty
-			if (dataBounds.isUndefined() || dataBounds.isEmpty())
+			if (dataBounds.isEmpty())
 				return;
 			
 			var metaRequestBounds:IBounds2D;
