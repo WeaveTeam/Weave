@@ -34,6 +34,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColorController;
@@ -211,7 +212,7 @@
 			<ui:DynamicColumnComponent id="xColumnComponent" label="{lang('X Column')}"/>
 			<ui:DynamicColumnComponent id="yColumnComponent" label="{lang('Y Column')}"/>
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
 				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
