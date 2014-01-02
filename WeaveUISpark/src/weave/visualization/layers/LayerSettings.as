@@ -55,6 +55,11 @@ package weave.visualization.layers
 		public const selectable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
+		 * Specifies whether selection/probe should be rendered anyway, even if selectable is set to false.
+		 */
+		public const alwaysRenderSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
+		/**
 		 * Sets the minimum scale at which the layer should be rendered. Scale is defined by pixels per data unit.
 		 */
 		public const minVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyVisibleScaleValue));
