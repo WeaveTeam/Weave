@@ -55,6 +55,7 @@ package weave.services
 		public var parameters:Object;
 		public var resultCastFunction:Function;
 		public var handleErrorMessageObjects:Boolean;
+		public var eventReceived:Event = null; // for debugging
 		
 		// the token associated with the call, null until query is performed	
 		private var internalAsyncToken:AsyncToken = null;
@@ -124,6 +125,8 @@ package weave.services
 		 */
 		private function handleResult(event:ResultEvent, token:Object = null):void
 		{
+			eventReceived = event;
+			
 			// cast result if result cast function is given
 			if (resultCastFunction != null)
 			{
@@ -156,6 +159,8 @@ package weave.services
 		 */
 		private function handleFault(event:FaultEvent, token:Object = null):void
 		{
+			eventReceived = event;
+			
 			// broadcast fault to responders in the order they were added
 			if (responders != null)
 				for (var i:int = 0; i < responders.length; i++)

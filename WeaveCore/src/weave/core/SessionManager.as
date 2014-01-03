@@ -668,6 +668,23 @@ package weave.core
 		}
 		
 		/**
+		 * Returns a mapping from owner debugId to an Array of debugIds for its busy tasks.
+		 */
+		public function debugBusyObjects():Object
+		{
+			var result:Object = {};
+			for (var owner:* in _d2dOwnerTask.dictionary)
+			{
+				var tasks:Array = [];
+				for (var task:* in _d2dOwnerTask.dictionary[owner])
+					tasks.push(debugId(task));
+				
+				result[debugId(owner)] = tasks;
+			}
+			return result;
+		}
+		
+		/**
 		 * @inheritDoc
 		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
