@@ -118,7 +118,7 @@
 				_filterWatcher.target = filter;
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				if (filterColumn)
 					return lang('Filter for {0}', ColumnUtils.getTitle(filterColumn));

@@ -330,7 +330,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * The panel title will be set when handlePanelTitleChange() is called.
 			 * If you need the panel title to be updated, you can call handlePanelTitleChange() directly or as a callback.
 			 */
-			protected function get defaultPanelTitle():String
+			public function get defaultPanelTitle():String
 			{
 				return getQualifiedClassName(this).split(':').pop();
 			}

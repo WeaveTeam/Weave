@@ -114,7 +114,7 @@
 			
 			
 			// Get called in handleScatterPlotChange
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{				
 				if (scatterPlot == null || !scatterPlot.plotter.enabledSizeBy.value)
 					return lang("Color legend of " + ColumnUtils.getTitle(colorColumn));

@@ -212,7 +212,7 @@
 					visualization.additionalProbeColumns = null;
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				// hack
 				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(Weave.defaultColorColumn);

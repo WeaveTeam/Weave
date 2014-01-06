@@ -351,7 +351,7 @@
 				yAxisPlotter.updateLabels();			
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects();
 				if (columns.length == 0)

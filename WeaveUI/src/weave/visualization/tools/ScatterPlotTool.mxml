@@ -333,7 +333,7 @@
 				visualization.additionalProbeColumns = columns;
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Scatter Plot of {0} -vs- {1}", ColumnUtils.getTitle(plotter.dataX), ColumnUtils.getTitle(plotter.dataY));
 			}

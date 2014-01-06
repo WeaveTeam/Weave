@@ -374,7 +374,7 @@
 				dataGrid.styleChanged('alternatingItemColors');
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return "Data Table";
 			}

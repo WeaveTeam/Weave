@@ -175,7 +175,7 @@
 				}
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("2D Histogram of {0} vs {1}", ColumnUtils.getTitle(plotter.xColumn), ColumnUtils.getTitle(plotter.yColumn));
 			}

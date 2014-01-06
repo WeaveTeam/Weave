@@ -149,7 +149,7 @@
 			[Bindable]
 			private var rpToolTitle:String ="";
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Ramachandran Plot {0}", rpToolTitle);
 			}

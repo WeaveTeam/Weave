@@ -166,7 +166,7 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Bar Chart Legend");
 			}

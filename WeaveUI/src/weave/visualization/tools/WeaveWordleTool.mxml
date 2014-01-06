@@ -47,7 +47,7 @@
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange);
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Wordle visualization");
 			}

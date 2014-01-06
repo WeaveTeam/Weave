@@ -415,7 +415,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [_plotter.radiusColumn, _plotter.fillStyle.color, _plotter.columns, classDiscriminatorColumn];
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects(IAttributeColumn);
 				for (var i:int = 0; i < columns.length; i++)
