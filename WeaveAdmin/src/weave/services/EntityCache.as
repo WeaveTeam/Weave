@@ -19,26 +19,26 @@ package weave.services
     {
 		public static const ROOT_ID:int = -1;
 		
-		private var cache_dirty:Object = {}; // id -> Boolean
-        private var cache_entity:Object = {}; // id -> Array <Entity>
-		private var delete_later:Object = {}; // id -> Boolean
+		private var idsToFetch:Object = {}; // id -> Boolean
+        private var entityCache:Object = {}; // id -> Array <Entity>
+		private var idsToDelete:Object = {}; // id -> Boolean
 		private var _idsByType:Object = {}; // entityType -> Array of id
 		private var _infoLookup:Object = {}; // id -> EntityHierarchyInfo
-		private var pending_invalidate:Object = {}; // id -> Boolean; used to remember which ids to invalidate the next time the entity is requested
+		private var idsDirty:Object = {}; // id -> Boolean; used to remember which ids to invalidate the next time the entity is requested
 		
         public function EntityCache()
         {
-			callbacks.addGroupedCallback(this, fetchDirtyEntities);
+			callbacks.addGroupedCallback(this, groupedCallback);
 			registerLinkableChild(this, Admin.service);
-			Admin.service.addHook(Admin.service.authenticate, null, fetchDirtyEntities);
+			Admin.service.addHook(Admin.service.authenticate, null, groupedCallback);
         }
 		
 		public function hasCachedRelationship(parentId:int, childId:int):Boolean
 		{
-			if (cache_entity[parentId] && (!cache_dirty[parentId] || !cache_entity[childId]))
-				return (cache_entity[parentId] as Entity).hasChild(childId);
-			if (cache_entity[childId])
-				return (cache_entity[childId] as Entity).hasParent(parentId);
+			if (entityCache[parentId] && (!idsToFetch[parentId] || !entityCache[childId]))
+				return (entityCache[parentId] as Entity).hasChild(childId);
+			if (entityCache[childId])
+				return (entityCache[childId] as Entity).hasParent(parentId);
 			return false;
 		}
 		
@@ -46,21 +46,22 @@ package weave.services
 		{
 			callbacks.delayCallbacks();
 			
-			if (!cache_dirty[id])
+			// trigger callbacks if we haven't previously decided to fetch this id
+			if (!idsToFetch[id])
 				callbacks.triggerCallbacks();
 			
-			pending_invalidate[id] = false;
-			cache_dirty[id] = true;
+			idsDirty[id] = false;
+			idsToFetch[id] = true;
 			
-			if (!cache_entity[id])
+			if (!entityCache[id])
 			{
 				var entity:Entity = new Entity();
-				cache_entity[id] = entity;
+				entityCache[id] = entity;
 			}
 			
 			if (alsoInvalidateParents)
 			{
-				var parents:Array = (cache_entity[id] as Entity).parentIds;
+				var parents:Array = (entityCache[id] as Entity).parentIds;
 				if (parents && parents.length)
 				{
 					for each (var parentId:* in parents)
@@ -81,13 +82,18 @@ package weave.services
 		public function getEntity(id:int):Entity
 		{
 			// if there is no cached value, call invalidate() to create a placeholder.
-			if (!cache_entity[id] || pending_invalidate[id])
+			if (!entityCache[id] || idsDirty[id])
 				invalidate(id);
 			
-            return cache_entity[id];
+            return entityCache[id] as Entity;
 		}
 		
-		private function fetchDirtyEntities(..._):void
+		public function entityIsCached(id:int):Boolean
+		{
+			return entityCache[id] is Entity;
+		}
+		
+		private function groupedCallback(..._):void
 		{
 			if (!Admin.instance.userHasAuthenticated)
 				return;
@@ -97,23 +103,23 @@ package weave.services
 			// delete marked entities
 			var deleted:Boolean = false;
 			var idsToRemove:Array = [];
-			for (id in delete_later)
+			for (id in idsToDelete)
 				idsToRemove.push(id);
 			
 			if (idsToRemove.length)
 			{
 				addAsyncResponder(Admin.service.removeEntities(idsToRemove), handleRemoveEntities);
-				delete_later = {};
+				idsToDelete = {};
 			}
 			
 			// request invalidated entities
 			var ids:Array = [];
-			for (id in cache_dirty)
+			for (id in idsToFetch)
 			{
 				// when requesting root, also request data table list
 				if (id == ROOT_ID)
 				{
-					delete cache_dirty[id];
+					delete idsToFetch[id];
 					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.TABLE), handleEntityHierarchyInfo, null, EntityType.TABLE);
 					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.HIERARCHY), handleEntityHierarchyInfo, null, EntityType.HIERARCHY);
 				}
@@ -122,7 +128,7 @@ package weave.services
 			}
 			if (ids.length > 0)
 			{
-				cache_dirty = {};
+				idsToFetch = {};
 				addAsyncResponder(Admin.service.getEntitiesById(ids), getEntityHandler, null, ids);
 			}
         }
@@ -146,19 +152,19 @@ package weave.services
 			for each (id in requestedIds)
 			{
 				// this entity doesn't exist, so make sure its cached object is empty
-				entity = cache_entity[id] || new Entity();
+				entity = entityCache[id] || new Entity();
 				if (entity.id != ROOT_ID)
 					entity = new Entity();
-				cache_entity[id] = entity;
-				pending_invalidate[id] = false;
+				entityCache[id] = entity;
+				idsDirty[id] = false;
 			}
 				
 			for each (var result:Object in event.result)
 			{
 				id = Entity.getEntityIdFromResult(result);
-				entity = cache_entity[id] || new Entity();
+				entity = entityCache[id] || new Entity();
 				entity.copyFromResult(result);
-	            cache_entity[id] = entity;
+	            entityCache[id] = entity;
 				
 				var info:EntityHierarchyInfo = _infoLookup[id];
 				if (info)
@@ -204,18 +210,18 @@ package weave.services
 			
 			if (purge)
 			{
-				cache_dirty = {};
-				cache_entity = {};
-				delete_later = {};
+				idsToFetch = {};
+				entityCache = {};
+				idsToDelete = {};
 				_idsByType = {};
 				_infoLookup = {};
-				pending_invalidate = {};
+				idsDirty = {};
 			}
 			else
 			{
 				// we don't want to delete the cache because we can still use the cached values for display in the meantime.
-				for (var id:* in cache_entity)
-					pending_invalidate[id] = true;
+				for (var id:* in entityCache)
+					idsDirty[id] = true;
 			}
 			callbacks.triggerCallbacks();
 			
@@ -227,26 +233,26 @@ package weave.services
 			Admin.service.updateEntity(id, diff);
 			invalidate(id);
         }
-        public function add_category(label:String, parentId:int, index:int):void
+        public function add_category(title:String, parentId:int, index:int):void
         {
 			var type:int = parentId == ROOT_ID ? EntityType.HIERARCHY : EntityType.CATEGORY;
             var em:EntityMetadata = new EntityMetadata();
-			em.publicMetadata[ColumnMetadata.TITLE] = label;
+			em.publicMetadata[ColumnMetadata.TITLE] = title;
 			Admin.service.newEntity(type, em, parentId, index);
 			invalidate(parentId);
         }
         public function delete_entity(id:int):void
         {
             /* Entity deletion should usually impact root, so we'll invalidate root's cache entry and refetch. */
-			delete_later[id] = true;
+			idsToDelete[id] = true;
 			invalidate(id, true);
         }
         public function add_child(parent_id:int, child_id:int, index:int):void
         {
-			if (parent_id == ROOT_ID && delete_later[child_id])
+			if (parent_id == ROOT_ID && idsToDelete[child_id])
 			{
 				// prevent hierarchy-dragged-to-root from removing the hierarchy
-				delete delete_later[child_id];
+				delete idsToDelete[child_id];
 				return;
 			}
 			Admin.service.addParentChildRelationship(parent_id, child_id, index);
@@ -257,7 +263,7 @@ package weave.services
 			// remove from root not supported, but invalidate root anyway in case the child is added via add_child later
 			if (parent_id == ROOT_ID)
 			{
-				delete_later[child_id] = true;
+				idsToDelete[child_id] = true;
 				invalidate(ROOT_ID);
 			}
 			else
