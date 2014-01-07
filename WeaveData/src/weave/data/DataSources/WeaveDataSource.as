@@ -224,23 +224,21 @@ package weave.data.DataSources
 				var _geometryEntities:Array = null;
 				
 				addAsyncResponder(
-					dataService.getEntityIdsByMetadata(null, EntityType.TABLE),
+					dataService.getEntityIds({"entityType": EntityType.TABLE}),
 					handleRootIds,
 					handleFault,
 					EntityType.TABLE
 				);
 				
 				// get all geometry columns
-				var param:Object = {};
-				param[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
 				addAsyncResponder(
-					dataService.getEntityIdsByMetadata(param, EntityType.COLUMN),
+					dataService.getEntityIds({"dataType": DataTypes.GEOMETRY, "entityType": EntityType.COLUMN}),
 					handleRootIds,
 					handleFault,
 					EntityType.COLUMN
 				);
 				
-				function handleRootIds(event:ResultEvent, entityType:int):void
+				function handleRootIds(event:ResultEvent, entityType:String):void
 				{
 					if (!event.result)
 					{
@@ -258,7 +256,7 @@ package weave.data.DataSources
 						reportError(NO_RESULT_ERROR);
 						return;
 					}
-					var entityType:int = entityType_entityIds[0];
+					var entityType:String = entityType_entityIds[0];
 					var entityIds:Array = entityType_entityIds[1];
 					var orderLookup:Object = createLookup(entityIds);
 					
@@ -300,7 +298,7 @@ package weave.data.DataSources
 					// backwards compatibility - get columns with matching dataTable metadata
 					var dataTableName:String = subtreeNode.attribute("name");
 					addAsyncResponder(
-						dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN),
+						dataService.getEntityIds({"dataTable": dataTableName, "entityType": EntityType.COLUMN}),
 						function(event:ResultEvent, subtreeNode:XML):void
 						{
 							if (!event.result)

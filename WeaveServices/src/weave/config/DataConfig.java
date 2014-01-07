@@ -33,14 +33,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.tables.HierarchyTable;
-import weave.config.tables.ManifestTable;
 import weave.config.tables.MetadataTable;
 import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
+import weave.utils.Strings;
 
 
 /**
@@ -53,14 +52,12 @@ public class DataConfig
 {
 	static private final String SUFFIX_META_PRIVATE = "_meta_private";
 	static private final String SUFFIX_META_PUBLIC = "_meta_public";
-	static private final String SUFFIX_MANIFEST = "_manifest";
 	static private final String SUFFIX_HIERARCHY = "_hierarchy";
 	
 	static public final int NULL = -1;
 
 	private MetadataTable public_metadata;
 	private MetadataTable private_metadata;
-	private ManifestTable manifest;
 	private HierarchyTable hierarchy;
 	private ConnectionConfig connectionConfig;
 	private long lastModified = -1L;
@@ -73,6 +70,7 @@ public class DataConfig
 //			deleteTables();
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void detectChange() throws RemoteException
 	{
 		long lastMod = connectionConfig.getLastModified();
@@ -102,13 +100,13 @@ public class DataConfig
 				String tablePrefix = "weave";
 				String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
 				String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
-				String table_manifest = tablePrefix + SUFFIX_MANIFEST;
 				String table_hierarchy = tablePrefix + SUFFIX_HIERARCHY;
 
-				manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
-				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_hierarchy, manifest);
-				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private, manifest);
-				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public, manifest);
+				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_hierarchy);
+				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public, PublicMetadata.ENTITYTYPE);
+				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private, null);
+				
+				weave.config.DeprecatedConfig.migrateManifestData(conn, dbInfo.schema, table_meta_public);
 			}
 			catch (SQLException e)
 			{
@@ -122,7 +120,7 @@ public class DataConfig
 	public boolean isEmpty() throws RemoteException
 	{
 		detectChange();
-		return manifest.getByType().size() == 0;
+		return public_metadata.isEmpty() && private_metadata.isEmpty();
 	}
 
 //	private void deleteTables() throws RemoteException
@@ -130,7 +128,6 @@ public class DataConfig
 //		String tablePrefix = "weave";
 //		String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
 //		String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
-//		String table_manifest = tablePrefix + SUFFIX_MANIFEST;
 //		String table_hierarchy = tablePrefix + SUFFIX_HIERARCHY;
 //		
 //		try
@@ -140,7 +137,6 @@ public class DataConfig
 //			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_meta_private);
 //			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_meta_public);
 //			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_hierarchy);
-//			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_manifest);
 //		}
 //		catch (SQLException e)
 //		{
@@ -156,38 +152,38 @@ public class DataConfig
     	detectChange();
         try 
         {
-        	manifest.flushInserts();
         	hierarchy.flushInserts();
+        	public_metadata.flushInserts();
             private_metadata.flushInserts();
-            public_metadata.flushInserts();
         }
         catch (SQLException e)
         {
             throw new RemoteException("Failed flushing inserts.", e);
         }
     }
-
-    public int newEntity(int type_id, DataEntityMetadata properties, int parent_id, int insert_at_index) throws RemoteException
+    
+    public int newEntity(DataEntityMetadata properties, int parent_id, int insert_at_index) throws RemoteException
     {
     	detectChange();
     	
     	if (!connectionConfig.migrationPending())
     	{
-	    	int parentType = manifest.getEntryType(parent_id);
-	    	if (!DataEntity.parentChildRelationshipAllowed(parentType, type_id))
+	    	String parentType = getEntityType(parent_id);
+	    	String childType = properties.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+	    	if (!DataEntity.parentChildRelationshipAllowed(parentType, childType))
 	    	{
 	    		throw new RemoteException(String.format(
 	    				"Invalid parent-child relationship (parent#%s=%s, child=%s).",
 	    				parent_id,
-	    				DataEntity.getTypeString(parentType),
-	    				DataEntity.getTypeString(type_id)
+	    				parentType,
+	    				childType
 	    			));
 	    	}
     	}
     	
-        int id = manifest.newEntry(type_id);
-        if (properties != null)
-            updateEntity(id, properties);
+        int id = public_metadata.setProperties(NULL, properties.publicMetadata);
+    	private_metadata.setProperties(id, properties.privateMetadata);
+    	
         if (parent_id != NULL)
         	hierarchy.addChild(parent_id, id, insert_at_index);
         return id;
@@ -196,66 +192,73 @@ public class DataConfig
     {
     	detectChange();
     	Collection<Integer> removed = new LinkedList<Integer>(ids);
-    	detectChange();
+    	Map<Integer, String> entityTypes = getEntityTypes(ids);
     	for (int id : ids)
     	{
+    		if (Strings.isEmpty(entityTypes.get(id)))
+    			throw new RemoteException("Entity #" + id + " does not exist");
     		// remove all children
-	        if (manifest.getEntryType(id) == DataEntity.TYPE_DATATABLE)
+	        if (Strings.equal(entityTypes.get(id), EntityType.TABLE))
 	            removed.addAll( removeEntities( hierarchy.getChildren(id) ) );
-	        manifest.removeEntry(id);
 	        hierarchy.purge(id);
 	        public_metadata.removeAllProperties(id);
 	        private_metadata.removeAllProperties(id);
     	}
     	return removed;
     }
+    /**
+	 * @param id The id of an existing entity.
+	 * @param diff The properties to set.
+     */
     public void updateEntity(int id, DataEntityMetadata diff) throws RemoteException
     {
+    	if (id == NULL)
+    		throw new RemoteException("id parameter cannot be " + NULL);
     	detectChange();
+    	if (Strings.isEmpty(getEntityType(id)))
+    	{
+    		if (diff.publicMetadata == null || Strings.isEmpty(diff.publicMetadata.get(PublicMetadata.ENTITYTYPE)))
+	    		throw new RemoteException("Unable to update entity #" + id + " because it does not exist.");
+    	}
     	public_metadata.setProperties(id, diff.publicMetadata);
     	private_metadata.setProperties(id, diff.privateMetadata);
     }
-    public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata query, int type_id) throws RemoteException
+    public Collection<Integer> getEntityIds(DataEntityMetadata query) throws RemoteException
     {
     	detectChange();
         Set<Integer> idsMatchingPublicMetadata = null;
         Set<Integer> idsMatchingPrivateMetadata = null;
-        Collection<Integer> idsMatchingAllMetadata = null;
+        boolean allPublic = query == null || query.publicMetadata == null || query.publicMetadata.size() == 0;
+        boolean allPrivate = query == null || query.privateMetadata == null || query.privateMetadata.size() == 0;
+        Collection<Integer> ids = null;
 
-        if (query != null && query.publicMetadata != null && query.publicMetadata.size() > 0)
+        if (!allPublic || allPrivate)
             idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata);
-        if (query != null && query.privateMetadata != null && query.privateMetadata.size() > 0)
+        if (!allPrivate || allPublic)
             idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata);
         if ((idsMatchingPublicMetadata != null) && (idsMatchingPrivateMetadata != null))
         {
-        	// intersection
-            idsMatchingPublicMetadata.retainAll(idsMatchingPrivateMetadata);
-            idsMatchingAllMetadata = idsMatchingPublicMetadata;
+        	if (allPrivate && allPublic) // union
+        		idsMatchingPublicMetadata.addAll(idsMatchingPrivateMetadata);
+        	else // intersection
+        		idsMatchingPublicMetadata.retainAll(idsMatchingPrivateMetadata);
+            ids = idsMatchingPublicMetadata;
         }
         else if (idsMatchingPublicMetadata != null)
-            idsMatchingAllMetadata = idsMatchingPublicMetadata;
+            ids = idsMatchingPublicMetadata;
         else if (idsMatchingPrivateMetadata != null)
-            idsMatchingAllMetadata = idsMatchingPrivateMetadata;
-        else
-        	idsMatchingAllMetadata = manifest.getByType(type_id); // all
+            ids = idsMatchingPrivateMetadata;
 
-        if (idsMatchingAllMetadata == null || idsMatchingAllMetadata.size() < 1)
-        {
+        if (ids == null || ids.size() < 1)
             return Collections.emptyList();
-        }
-        else
-        {
-        	// filter by type
-            if (type_id != NULL)
-                idsMatchingAllMetadata.retainAll(manifest.getByType(type_id));
-            return idsMatchingAllMetadata;
-        }
+
+        return ids;
     }
     
     public DataEntity getEntity(int id) throws RemoteException
     {
     	detectChange();
-    	for (DataEntity result : getEntitiesById(Arrays.asList(id)))
+    	for (DataEntity result : getEntities(Arrays.asList(id)))
     		return result;
     	return null;
     }
@@ -264,22 +267,20 @@ public class DataConfig
      * @param ids A collection of entity ids.
      * @return A collection of DataEntity objects for the entities in the supplied list of ids that actually exist.
      */
-    public Collection<DataEntity> getEntitiesById(Collection<Integer> ids) throws RemoteException
+    public Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException
     {
     	detectChange();
         List<DataEntity> results = new LinkedList<DataEntity>();
-        Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
+        Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
         
         // only proceed with the ids that actually exist
-        ids = typeresults.keySet();
-        
-        Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
+        ids = publicresults.keySet();
+
         Map<Integer,Map<String,String>> privateresults = private_metadata.getProperties(ids);
         for (int id : ids)
         {
             DataEntity entity = new DataEntity();
             entity.id = id;
-           	entity.type = typeresults.get(id);
             entity.publicMetadata = publicresults.get(id);
             entity.privateMetadata = privateresults.get(id);
             results.add(entity);
@@ -298,22 +299,23 @@ public class DataConfig
 		detectChange();
 		
 		int newChildId;
-		Map<Integer,Integer> types = manifest.getEntryTypes(Arrays.asList(parentId, childId));
-		int parentType = types.containsKey(parentId) ? types.get(parentId) : DataEntity.TYPE_UNSPECIFIED;
-		int childType = types.containsKey(childId) ? types.get(childId) : DataEntity.TYPE_UNSPECIFIED;
+		Map<Integer,String> types = getEntityTypes(Arrays.asList(parentId, childId));
+		String parentType = types.get(parentId);
+		String childType = types.get(childId);
 
 		if (parentId == NULL) // parent is root
 		{
-			if (childType == DataEntity.TYPE_COLUMN)
+			if (Strings.equal(childType, EntityType.COLUMN))
 			{
 				// create a new blank hierarchy to contain the child
-				parentType = DataEntity.TYPE_HIERARCHY;
-				parentId = newEntity(parentType, null, NULL, NULL);
+				DataEntityMetadata dem = new DataEntityMetadata();
+				dem.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
+				parentId = newEntity(dem, NULL, NULL);
 				// recursive call with new parent id
 				buildHierarchy(parentId, childId, 0);
 				return; // done
 			}
-			else if (childType == DataEntity.TYPE_HIERARCHY)
+			else if (Strings.equal(childType, EntityType.HIERARCHY))
 			{
 				// hierarchies are always at root, so do nothing.
 				return;
@@ -321,18 +323,19 @@ public class DataConfig
 			else // child is not a column or a hierarchy
 			{
 				// copy the child as a hierarchy
-				childType = DataEntity.TYPE_HIERARCHY;
-				newChildId = newEntity(childType, getEntity(childId), NULL, NULL);
+				DataEntityMetadata dem = getEntity(childId);
+				dem.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
+				newChildId = newEntity(dem, NULL, NULL);
 			}
 		}
 		else // parent is not root
         {
-			if (childType == DataEntity.TYPE_COLUMN) // child is a column
+			if (Strings.equal(childType, EntityType.COLUMN)) // child is a column
 			{
 				// columns can be added directly to new parents
 				newChildId = childId;
 			}
-			else if (childType == DataEntity.TYPE_CATEGORY && hierarchy.getParents(Arrays.asList(childId)).size() == 0)
+			else if (Strings.equal(childType, EntityType.CATEGORY) && hierarchy.getParents(Arrays.asList(childId)).size() == 0)
 			{
 				// ok to use existing child category since it has no parents
 				newChildId = childId;
@@ -340,8 +343,9 @@ public class DataConfig
 			else // need to make a copy
 			{
 				// copy as a new category
-				childType = DataEntity.TYPE_CATEGORY;
-				newChildId = newEntity(childType, getEntity(childId), parentId, insertAtIndex);
+				DataEntityMetadata dem = getEntity(childId);
+				dem.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.CATEGORY);
+				newChildId = newEntity(dem, parentId, insertAtIndex);
 			}
 		}
 		
@@ -367,8 +371,8 @@ public class DataConfig
 			{
 				throw new RemoteException(String.format(
 						"Invalid parent-child relationship (parent#%s=%s, child#%s=%s).",
-						parentId, DataEntity.getTypeString(parentType),
-						childId, DataEntity.getTypeString(childType)
+						parentId, parentType,
+						childId, childType
 				));
 			}
 			hierarchy.addChild(parentId, newChildId, insertAtIndex);
@@ -378,16 +382,21 @@ public class DataConfig
     public void removeChild(int parent_id, int child_id) throws RemoteException
     {
     	detectChange();
-        if (manifest.getEntryType(parent_id) == DataEntity.TYPE_DATATABLE)
+        if (Strings.equal(getEntityType(parent_id), EntityType.TABLE))
         {
             throw new RemoteException("Can't remove children from a datatable.", null);
         }
         hierarchy.removeChild(parent_id, child_id);
     }
     
-    public Map<Integer,Integer> getEntityTypes(Collection<Integer> ids) throws RemoteException
+    public Map<Integer,String> getEntityTypes(Collection<Integer> ids) throws RemoteException
     {
-    	return manifest.getEntryTypes(ids);
+    	return public_metadata.getPropertyMap(ids, PublicMetadata.ENTITYTYPE);
+    }
+    
+    private String getEntityType(int entityId) throws RemoteException
+    {
+    	return getEntityTypes(Arrays.asList(entityId)).get(entityId);
     }
     
     public Collection<Integer> getParentIds(Collection<Integer> childIds) throws RemoteException
@@ -399,11 +408,6 @@ public class DataConfig
     public List<Integer> getChildIds(int id) throws RemoteException
     {
     	detectChange();
-    	// if id is NULL, we want ids of all entities without parents
-        if (id == NULL)
-        {
-        	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY));
-        }
         return hierarchy.getChildren(id);
     }
     public Collection<String> getUniquePublicValues(String property) throws RemoteException
@@ -411,10 +415,10 @@ public class DataConfig
     	detectChange();
     	return new HashSet<String>(public_metadata.getPropertyMap(null, property).values());
     }
-    public EntityHierarchyInfo[] getEntityHierarchyInfo(int entityType) throws RemoteException
+    public EntityHierarchyInfo[] getEntityHierarchyInfo(String entityType) throws RemoteException
     {
     	detectChange();
-    	Collection<Integer> ids = manifest.getByType(entityType);
+    	Collection<Integer> ids = public_metadata.filter(MapUtils.<String,String>fromPairs(PublicMetadata.ENTITYTYPE, entityType));
     	EntityHierarchyInfo[] result = new EntityHierarchyInfo[ids.size()];
     	if (result.length == 0)
     		return result;
@@ -474,6 +478,7 @@ public class DataConfig
 	
 	static public class PublicMetadata
 	{
+		static public final String ENTITYTYPE = "entityType";
 		static public final String TITLE = "title";
 		static public final String KEYTYPE = "keyType";
 		static public final String DATATYPE = "dataType";
@@ -482,6 +487,27 @@ public class DataConfig
 		static public final String MAX = "max";
 		static public final String NUMBER = "number";
 		static public final String STRING = "string";
+	}
+	
+	static public class EntityType
+	{
+		public static final String TABLE = "table";
+		public static final String COLUMN = "column";
+		public static final String HIERARCHY = "hierarchy";
+		public static final String CATEGORY = "category";
+		
+		@Deprecated public static String fromInt(int type)
+		{
+			switch (type)
+			{
+				case NULL: return "UNSPECIFIED";
+				case 0: return TABLE;
+				case 1: return COLUMN;
+				case 2: return HIERARCHY;
+				case 3: return CATEGORY;
+			}
+			throw new InvalidParameterException("Invalid type: " + type);
+		}
 	}
 	
 	static public class DataType
@@ -552,7 +578,6 @@ public class DataConfig
 			if (base != null)
 			{
 				this.id = base.id;
-				this.type = base.type;
 				this.publicMetadata = base.publicMetadata;
 				this.privateMetadata = base.privateMetadata;
 			}
@@ -576,48 +601,31 @@ public class DataConfig
 	 */
 	static public class DataEntity extends DataEntityMetadata
 	{
-		public int id = TYPE_UNSPECIFIED;
-		public int type;
+		public int id = NULL;
 		
-		public static final int TYPE_UNSPECIFIED = NULL;
-		public static final int TYPE_DATATABLE = 0;
-		public static final int TYPE_COLUMN = 1;
-		public static final int TYPE_HIERARCHY = 2;
-		public static final int TYPE_CATEGORY = 3;
-		
-	    public static boolean parentChildRelationshipAllowed(int parentType, int childType)
-	    {
-	    	return (parentType == TYPE_UNSPECIFIED && childType == TYPE_DATATABLE)
-	    		|| (parentType == TYPE_UNSPECIFIED && childType == TYPE_HIERARCHY)
-	    		|| (parentType == TYPE_DATATABLE && childType == TYPE_COLUMN)
-		    	|| (parentType == TYPE_HIERARCHY && childType == TYPE_CATEGORY)
-		    	|| (parentType == TYPE_HIERARCHY && childType == TYPE_COLUMN)
-		    	|| (parentType == TYPE_CATEGORY && childType == TYPE_CATEGORY)
-		    	|| (parentType == TYPE_CATEGORY && childType == TYPE_COLUMN);
-	    }
-	    
-		public static String getTypeString(int type)
+		private static boolean equalPairs(String a1, String a2, String b1, String b2)
 		{
-			switch (type)
-			{
-				case TYPE_UNSPECIFIED: return "UNSPECIFIED";
-				case TYPE_HIERARCHY: return "HIERARCHY";
-				case TYPE_DATATABLE: return "DATATABLE";
-				case TYPE_CATEGORY: return "CATEGORY";
-				case TYPE_COLUMN: return "COLUMN";
-			}
-			throw new InvalidParameterException("Invalid type: " + type);
+			return Strings.equal(a1, a2) && Strings.equal(b1, b2);
 		}
 		
+	    public static boolean parentChildRelationshipAllowed(String parentType, String childType)
+	    {
+	    	return (Strings.isEmpty(parentType) && Strings.equal(childType, EntityType.TABLE))
+	    		|| (Strings.isEmpty(parentType) && Strings.equal(childType, EntityType.HIERARCHY))
+	    		|| equalPairs(parentType, EntityType.TABLE, childType, EntityType.COLUMN)
+		    	|| equalPairs(parentType, EntityType.HIERARCHY, childType, EntityType.CATEGORY)
+		    	|| equalPairs(parentType, EntityType.HIERARCHY, childType, EntityType.COLUMN)
+		    	|| equalPairs(parentType, EntityType.CATEGORY, childType, EntityType.CATEGORY)
+		    	|| equalPairs(childType, EntityType.CATEGORY, childType, EntityType.COLUMN);
+	    }
+	    
 		public String toString()
 		{
-			return String.format("(%s%s)",
-					MapUtils.fromPairs(
-							"id", id,
-							"type", DataEntity.getTypeString(type)
-						).toString(),
-					super.toString()
-				);
+			return MapUtils.fromPairs(
+					"id", id,
+					"publicMetadata", publicMetadata,
+					"privateMetadata", privateMetadata
+				).toString();
 		}
 	}
 	

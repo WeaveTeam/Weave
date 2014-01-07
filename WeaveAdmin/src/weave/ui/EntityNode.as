@@ -20,12 +20,12 @@ package weave.ui
 		/**
 		 * @param filterType To be used by root node only.
 		 */
-		public function EntityNode(rootFilterType:int = -1)
+		public function EntityNode(rootFilterType:String = null)
 		{
 			_rootFilterType = rootFilterType;
 		}
 		
-		private var _rootFilterType:int = -1;
+		private var _rootFilterType:String = null;
 		
 		public var id:int = -1;
 		
@@ -63,10 +63,10 @@ package weave.ui
 			
 			if (!title)
 			{
-				if (entity.id == -1)
-					title = '...';
+				if (entity.initialized)
+					title = lang("{0}#{1}", entity.getEntityType(), entity.id);
 				else
-					title = lang("{0}#{1}", entity.getTypeString(), entity.id);
+					title = '...';
 			}
 			
 			if (debug)
@@ -74,11 +74,11 @@ package weave.ui
 				if (!title)
 					title = '[untitled]';
 				
-				var typeStr:String = entity.getTypeString();
+				var entityType:String = entity.getEntityType();
 				var childrenStr:String = '';
-				if (entity.type != EntityType.COLUMN)
+				if (entityType != EntityType.COLUMN)
 					childrenStr = '; ' + children.length + ' children';
-				var idStr:String = '(' + typeStr + "#" + id + childrenStr + ') ' + debugId(this);
+				var idStr:String = '(' + entityType + "#" + id + childrenStr + ') ' + debugId(this);
 				title = idStr + ' ' + title;
 			}
 			
@@ -88,7 +88,7 @@ package weave.ui
 		public function isBranch():Boolean
 		{
 			// root is a branch
-			if (_rootFilterType >= 0)
+			if (_rootFilterType)
 				return true;
 			
 			if (Admin.entityCache.getBranchInfo(id))
@@ -97,7 +97,7 @@ package weave.ui
 			var entity:Entity = Admin.entityCache.getEntity(id);
 			
 			// columns are leaf nodes
-			if (entity.type == EntityType.COLUMN)
+			if (entity.getEntityType() == EntityType.COLUMN)
 				return false;
 			
 			// treat entities that haven't downloaded yet as leaf nodes
@@ -107,7 +107,7 @@ package weave.ui
 		public function get children():ICollectionView
 		{
 			var childIds:Array;
-			if (_rootFilterType >= 0)
+			if (_rootFilterType)
 			{
 				childIds = Admin.entityCache.getIdsByType(_rootFilterType);
 			}
@@ -115,7 +115,7 @@ package weave.ui
 			{
 				var entity:Entity = Admin.entityCache.getEntity(id);
 				childIds = entity.childIds;
-				if (entity.type == EntityType.COLUMN)
+				if (entity.getEntityType() == EntityType.COLUMN)
 					return null; // leaf node
 			}
 			

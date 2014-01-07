@@ -413,7 +413,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(removeParentChildRelationship, arguments);
 		}
-		public function newEntity(entityType:int, metadata:EntityMetadata, parentId:int, index:int):AsyncToken
+		public function newEntity(metadata:EntityMetadata, parentId:int, index:int):AsyncToken
 		{
 			return invokeAdminWithLogin(newEntity, arguments);
 		}
@@ -425,7 +425,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(updateEntity, arguments);
 		}
-		public function getEntityIdsByMetadata(metadata:EntityMetadata, entityType:int):AsyncToken
+		public function getEntityIdsByMetadata(metadata:EntityMetadata):AsyncToken
 		{
 			return invokeAdminWithLogin(getEntityIdsByMetadata, arguments);
 		}
@@ -433,7 +433,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(getEntitiesById, arguments);
 		}
-		public function getEntityHierarchyInfo(entityType:int):AsyncToken
+		public function getEntityHierarchyInfo(entityType:String):AsyncToken
 		{
 			return invokeAdminWithLogin(getEntityHierarchyInfo, arguments);
 		}

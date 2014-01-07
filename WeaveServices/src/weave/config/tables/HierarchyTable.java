@@ -55,22 +55,17 @@ public class HierarchyTable extends AbstractTable
 	
 	private static final int NULL = -1;
 	
-	private ManifestTable manifest = null;
 	private int migrationOrder = 0;
     
-	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
+	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{
 		super(connectionConfig, schemaName, tableName, FIELD_PARENT, FIELD_CHILD, FIELD_ORDER);
-		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
 	}
 
 	protected void initTable() throws RemoteException
 	{
-		if (manifest == null)
-			return;
-		
 		Connection conn;
 		try
 		{
@@ -85,9 +80,6 @@ public class HierarchyTable extends AbstractTable
 					Arrays.asList(FIELD_PARENT, FIELD_CHILD)
 			);
 
-//			addForeignKey(FIELD_PARENT, manifest, ManifestTable.FIELD_ID);
-//			addForeignKey(FIELD_CHILD, manifest, ManifestTable.FIELD_ID);
-			
 			// index speeds up purgeByChild()
 			SQLUtils.createIndex(conn, schemaName, tableName, new String[]{FIELD_CHILD});
 		}

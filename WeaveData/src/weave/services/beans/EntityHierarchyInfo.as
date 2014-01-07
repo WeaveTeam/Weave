@@ -22,23 +22,23 @@ package weave.services.beans
 	public class EntityHierarchyInfo
 	{
 		public var id:int;
-		public var type:int;
+		public var entityType:String;
 		public var title:String;
 		public var numChildren:int;
 		
 		public function getLabel(debug:Boolean = false):String
 		{
-			var typeStr:String = EntityType.getTypeString(type) || lang('Entity');
-			var tableTitle:String = this.title || lang("Untitled {0}#{1}", typeStr, this.id);
+			var branchInfo:EntityHierarchyInfo = this;
+			var tableTitle:String = branchInfo.title || lang("Untitled {0}#{1}", entityType, branchInfo.id);
 			
 			// this is a table node, so avoid calling getEntity()
 			var str:String = tableTitle;
 			
-			if (type == EntityType.TABLE)
-				str = lang("{0} ({1})", str, this.numChildren);
+			if (entityType == EntityType.TABLE)
+				str = lang("{0} ({1})", str, branchInfo.numChildren);
 			
 			if (debug)
-				str = lang("({0}#{1}) {2}", typeStr, this.id, str);
+				str = lang("({0}#{1}) {2}", entityType, branchInfo.id, str);
 			
 			return str;
 		}

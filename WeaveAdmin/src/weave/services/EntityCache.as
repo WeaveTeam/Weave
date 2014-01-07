@@ -42,7 +42,7 @@ package weave.services
 			return false;
 		}
 		
-		public function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
+		public function invalidate(id:int, alsoInvalidateRelatives:Boolean = false):void
 		{
 			callbacks.delayCallbacks();
 			
@@ -54,13 +54,16 @@ package weave.services
 			idsToFetch[id] = true;
 			
 			if (!entityCache[id])
+				entityCache[id] = new Entity();
+
+			if (alsoInvalidateRelatives)
 			{
-				var entity:Entity = new Entity();
-				entityCache[id] = entity;
-			}
-			
-			if (alsoInvalidateParents)
-			{
+				var children:Array = (entityCache[id] as Entity).childIds;
+				if (children && children.length)
+				{
+					for each (var childId:* in children)
+						invalidate(childId);
+				}
 				var parents:Array = (entityCache[id] as Entity).parentIds;
 				if (parents && parents.length)
 				{
@@ -90,7 +93,8 @@ package weave.services
 		
 		public function entityIsCached(id:int):Boolean
 		{
-			return entityCache[id] is Entity;
+			var entity:Entity = entityCache[id] as Entity;
+			return entity && entity.initialized;
 		}
 		
 		private function groupedCallback(..._):void
@@ -119,13 +123,13 @@ package weave.services
 				// when requesting root, also request data table list
 				if (id == ROOT_ID)
 				{
-					delete idsToFetch[id];
 					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.TABLE), handleEntityHierarchyInfo, null, EntityType.TABLE);
 					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.HIERARCHY), handleEntityHierarchyInfo, null, EntityType.HIERARCHY);
 				}
 				else
 					ids.push(int(id));
 			}
+			delete idsToFetch[ROOT_ID];
 			if (ids.length > 0)
 			{
 				idsToFetch = {};
@@ -148,43 +152,50 @@ package weave.services
 			var id:int;
 			var entity:Entity;
 			
-			// unmark all requested ids in case they do not appear in the results
+			// reset all requested entities in case they do not appear in the results
 			for each (id in requestedIds)
 			{
-				// this entity doesn't exist, so make sure its cached object is empty
+				// make sure cached object is empty
 				entity = entityCache[id] || new Entity();
-				if (entity.id != ROOT_ID)
-					entity = new Entity();
+				entity.reset();
 				entityCache[id] = entity;
-				idsDirty[id] = false;
+				idsDirty[id] = true;
 			}
-				
+			
 			for each (var result:Object in event.result)
 			{
 				id = Entity.getEntityIdFromResult(result);
 				entity = entityCache[id] || new Entity();
 				entity.copyFromResult(result);
 	            entityCache[id] = entity;
+				idsDirty[id] = false;
 				
 				var info:EntityHierarchyInfo = _infoLookup[id];
 				if (info)
 				{
-					info.type = entity.type;
+					info.entityType = entity.publicMetadata[ColumnMetadata.ENTITY_TYPE];
 					info.title = entity.publicMetadata[ColumnMetadata.TITLE];
 					info.numChildren = entity.childIds.length;
 				}
 			}
 			
+			// for each id not appearing in result, delete _infoLookup[id]
+			for each (id in requestedIds)
+			{
+				if (idsDirty[id])
+					delete _infoLookup[id];
+			}
+			
 			callbacks.triggerCallbacks();
         }
 		
-		private function handleEntityHierarchyInfo(event:ResultEvent, entityType:int):void
+		private function handleEntityHierarchyInfo(event:ResultEvent, entityType:String):void
 		{
 			var items:Array = event.result as Array;
 			for (var i:int = 0; i < items.length; i++)
 			{
 				var item:EntityHierarchyInfo = EntityHierarchyInfo(items[i]);
-				item.type = entityType; // type is not provided by the server
+				item.entityType = entityType; // entityType is not provided by the server
 				_infoLookup[item.id] = item;
 				items[i] = item.id; // overwrite item with its id
 			}
@@ -193,7 +204,11 @@ package weave.services
 			callbacks.triggerCallbacks();
 		}
 		
-		public function getIdsByType(entityType:int):Array
+		/**
+		 * @param entityType Either 'table' or 'hierarchy'
+		 * @return An Array of Entity objects with the given type
+		 */		
+		public function getIdsByType(entityType:String):Array
 		{
 			getEntity(ROOT_ID);
 			return _idsByType[entityType] = (_idsByType[entityType] || []);
@@ -202,7 +217,20 @@ package weave.services
 		public function getBranchInfo(id:int):EntityHierarchyInfo
 		{
 			getEntity(ROOT_ID);
-			return _infoLookup[id];
+			var info:EntityHierarchyInfo = _infoLookup[id];
+			
+//			if (!info && entityIsCached(id))
+//			{
+//				var entity:Entity = entityCache[id];
+//				info = new EntityHierarchyInfo(null);
+//				info.id = id;
+//				info.entityType = entity.publicMetadata[ColumnMetadata.ENTITY_TYPE];
+//				info.title = entity.publicMetadata[ColumnMetadata.TITLE];
+//				info.numChildren = entity.childIds.length;
+//				_infoLookup[id] = info;
+//			}
+			
+			return info;
 		}
         
 		public function invalidateAll(purge:Boolean = false):void
@@ -220,6 +248,7 @@ package weave.services
 			}
 			else
 			{
+				invalidate(ROOT_ID);
 				// we don't want to delete the cache because we can still use the cached values for display in the meantime.
 				for (var id:* in entityCache)
 					idsDirty[id] = true;
@@ -236,15 +265,15 @@ package weave.services
         }
         public function add_category(title:String, parentId:int, index:int):void
         {
-			var type:int = parentId == ROOT_ID ? EntityType.HIERARCHY : EntityType.CATEGORY;
+			var entityType:String = parentId == ROOT_ID ? EntityType.HIERARCHY : EntityType.CATEGORY;
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata[ColumnMetadata.TITLE] = title;
-			Admin.service.newEntity(type, em, parentId, index);
+			em.publicMetadata[ColumnMetadata.ENTITY_TYPE] = entityType;
+			Admin.service.newEntity(em, parentId, index);
 			invalidate(parentId);
         }
         public function delete_entity(id:int):void
         {
-            /* Entity deletion should usually impact root, so we'll invalidate root's cache entry and refetch. */
 			idsToDelete[id] = true;
 			invalidate(id, true);
         }

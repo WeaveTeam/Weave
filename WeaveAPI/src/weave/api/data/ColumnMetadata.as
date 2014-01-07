@@ -22,6 +22,7 @@ package weave.api.data
 	 */
 	public class ColumnMetadata
 	{
+		public static const ENTITY_TYPE:String = 'entityType';
 		public static const TITLE:String = "title";
 		public static const NUMBER:String = "number";
 		public static const STRING:String = "string";

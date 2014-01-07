@@ -59,25 +59,21 @@
 	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>
 <![CDATA[
-	import mx.controls.TextInput;
 	import mx.events.ListEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.services.Admin;
 	import weave.services.addAsyncResponder;
-	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	import weave.services.beans.EntityType;
 	import weave.ui.EntityNode;
 	import weave.ui.EntityTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
-	import weave.utils.VectorUtils;
 	
 	private function categoryOrHierarchyLabel(hierarchyTreeSelectedItems:Array):String
 	{
@@ -162,9 +158,10 @@
 		}
 		
 		var em:EntityMetadata = new EntityMetadata();
+		em.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
 		em.publicMetadata[ColumnMetadata.TITLE] = columnSearch.text;
 		addAsyncResponder(
-			Admin.service.getEntityIdsByMetadata(em, EntityType.COLUMN),
+			Admin.service.getEntityIdsByMetadata(em),
 			function(event:ResultEvent, search:String):void
 			{
 				if (search != columnSearch.text)
@@ -221,16 +218,21 @@
     {
 		var foundTable:Boolean = false;
 		var foundColumn:Boolean = false;
+		var foundOther:Boolean = false;
 		for each (var item:Object in tableTree.selectedItems)
 		{
-			var entity:Entity = (item as EntityNode).getEntity();
-			if (entity.type == EntityType.TABLE)
+			var entityType:String = (item as EntityNode).getEntity().getEntityType();
+			if (entityType == EntityType.TABLE)
 				foundTable = true;
-			else if (entity.type == EntityType.COLUMN)
+			else if (entityType == EntityType.COLUMN)
 				foundColumn = true;
+			else
+				foundOther = true;
 		}
 		var typeStr:String = lang("tables and columns");
-		if (foundTable != foundColumn)
+		if (foundOther)
+			typeStr = lang("items");
+		else if (foundTable != foundColumn)
 			typeStr = foundTable ? lang("tables") : lang("columns");
 			
         PopUpUtils.confirm(
@@ -268,7 +270,7 @@
         
 		var index:int = -1;
 		// if user selected a column, use its parent node and insert at the column's position
-		if (node.getEntity().type == EntityType.COLUMN)
+		if (node.getEntity().getEntityType() == EntityType.COLUMN)
 		{
 			var parent:EntityNode = hierarchyTree.getParentItem(node);
 			index = parent.getEntity().childIds.indexOf(node.id);
@@ -297,7 +299,7 @@
     {
 		for each (var item:EntityNode in hierarchyTree.selectedItems)
 		{
-			if (item.getEntity().type == EntityType.HIERARCHY)
+			if (item.getEntity().getEntityType() == EntityType.HIERARCHY)
 			{
 	            PopUpUtils.confirm(
 					this,
@@ -317,13 +319,12 @@
 	{
 		for each (var item:EntityNode in hierarchyTree.selectedItems)
 		{
-	        var type:int = item.getEntity().type;
 	        var parent:EntityNode = hierarchyTree.getParentItem(item);
 	        if (parent)
 	        {
 				Admin.entityCache.remove_child(parent.id, item.id);
 	        }
-	        else if (type == EntityType.HIERARCHY)
+	        else if (item.getEntity().getEntityType() == EntityType.HIERARCHY)
 	        {
 				Admin.entityCache.delete_entity(item.id);
 	        }

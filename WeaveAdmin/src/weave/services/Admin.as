@@ -28,7 +28,10 @@ package weave.services
 	import weave.api.data.DataTypes;
 	import weave.compiler.StandardLib;
 	import weave.services.beans.DatabaseConfigInfo;
+	import weave.services.beans.Entity;
 	import weave.services.beans.EntityHierarchyInfo;
+	import weave.services.beans.EntityMetadata;
+	import weave.services.beans.EntityType;
 
 	public class Admin
 	{
@@ -94,6 +97,7 @@ package weave.services
 		[Bindable] public var weaveFileNames:Array = [];
 		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
+		[Bindable] private var entityTypes:Array = [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
 		[Bindable] private var dataTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 		
@@ -314,12 +318,12 @@ package weave.services
 			service.addHook(
 				service.newEntity,
 				null,
-				function(event:ResultEvent, user0_pass1_type2_meta3_parent4_index5:Array):void
+				function(event:ResultEvent, user0_pass1_meta2_parent3_index4:Array):void
 				{
 					var id:int = int(event.result);
 					focusEntityId = id;
 					entityCache.invalidate(id);
-					var parentId:int = user0_pass1_type2_meta3_parent4_index5[4];
+					var parentId:int = user0_pass1_meta2_parent3_index4[3];
 					entityCache.invalidate(parentId);
 				}
 			);
@@ -330,9 +334,23 @@ package weave.services
 		private function handleTableImportResult(event:ResultEvent, token:Object):void
 		{
 			var tableId:int = int(event.result);
+			var exists:Boolean = false;
+			var title:String;
 			var info:EntityHierarchyInfo = entityCache.getBranchInfo(tableId);
 			if (info)
-				weaveTrace(lang('Existing data table "{0}" was updated successfully.', info.title));
+			{
+				exists = true;
+				title = info.title;
+			}
+			else if (entityCache.entityIsCached(tableId))
+			{
+				exists = true;
+				var entity:Entity = entityCache.getEntity(tableId);
+				title = entity.publicMetadata[ColumnMetadata.TITLE];
+			}
+			
+			if (exists)
+				weaveTrace(lang('Existing data table "{0}" was updated successfully.', title));
 			else
 				weaveTrace(lang("New data table created successfully."));
 			
@@ -428,6 +446,9 @@ package weave.services
 			{
 				case 'connection':
 					return connectionNames;
+					
+				case ColumnMetadata.ENTITY_TYPE:
+					return entityTypes;
 				
 				case ColumnMetadata.KEY_TYPE:
 					return keyTypes;

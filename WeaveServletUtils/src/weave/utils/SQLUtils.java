@@ -334,7 +334,7 @@ public class SQLUtils
 	
 	/**
 	 * @param colName
-	 * @return colName with special characters replaced and truncated to 64 characters.
+	 * @return colName with special characters replaced and truncated to 30 characters.
 	 */
 	public static String fixColumnName(String colName, String suffix)
 	{
@@ -807,14 +807,7 @@ public class SQLUtils
 		return result;
 	}
 	
-
-	/**
-	 * @param connection An SQL Connection
-	 * @param query An SQL query
-	 * @return A SQLResult object containing the result of the query
-	 * @throws SQLException
-	 */
-	public static int getRowCountFromUpdateQuery(Connection connection, String query)
+	public static int executeUpdate(Connection connection, String query)
 		throws SQLException
 	{
 		Statement stmt = null;
@@ -838,7 +831,48 @@ public class SQLUtils
 		// return the copy of the query result
 		return result;
 	}
+	
+	public static int executeUpdate(Connection conn, String query, Object[] params)
+		throws SQLException
+	{
+		PreparedStatement stmt = null;
+		int result = 0;
+		
+		try
+		{
+			stmt = conn.prepareStatement(query);
+			constrainQueryParams(conn, params);
+			setPreparedStatementParams(stmt, params);
+			result = stmt.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			throw e;
+		}
+		finally
+		{
+			// close everything in reverse order
+			SQLUtils.cleanup(stmt);
+		}
+		
+		// return the copy of the query result
+		return result;
+	}
 
+	public static int getSingleIntFromQuery(Connection conn, String query, int defaultValue) throws SQLException
+	{
+		Statement stmt = null;
+		try
+		{
+			stmt = conn.createStatement();
+			return getSingleIntFromQuery(stmt, query, defaultValue);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}
+	
 	public static int getSingleIntFromQuery(Statement stmt, String query, int defaultValue) throws SQLException
 	{
 		ResultSet resultSet = null;
@@ -855,6 +889,26 @@ public class SQLUtils
 		}
 	}
 
+	public static int getSingleIntFromQuery(Connection conn, String query, Object[] params, int defaultValue) throws SQLException
+	{
+		PreparedStatement pstmt = null;
+		ResultSet resultSet = null;
+		try
+		{
+			pstmt = conn.prepareStatement(query);
+			setPreparedStatementParams(pstmt, params);
+			resultSet = pstmt.executeQuery();
+			if (resultSet.next())
+				return resultSet.getInt(1);
+			return defaultValue;
+		}
+		finally
+		{
+			SQLUtils.cleanup(resultSet);
+			SQLUtils.cleanup(pstmt);
+		}
+	}
+	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @return A List of schema names
@@ -1206,13 +1260,13 @@ public class SQLUtils
 			param = (T)(Float)((Double) param).floatValue();
 		return param;
 	}
-	protected static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, List<TYPE> params) throws SQLException
+	public static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, List<TYPE> params) throws SQLException
 	{
 		int i = 1;
 		for (TYPE param : params)
 			cstmt.setObject(i++, param);
 	}
-	protected static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, TYPE[] params) throws SQLException
+	public static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, TYPE[] params) throws SQLException
 	{
 		int i = 1;
 		for (TYPE param : params)
@@ -1309,7 +1363,17 @@ public class SQLUtils
 			cleanup(stmt);
 		}
 	}
-	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
+	/**
+	 * Generates a new id manually using MAX(idField)+1.
+	 * @param conn
+	 * @param schemaName
+	 * @param tableName
+	 * @param data
+	 * @param idField
+	 * @return
+	 * @throws SQLException
+	 */
+	public static int insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
 	{
 		String dbms = getDbmsFromConnection(conn);
 		boolean isOracle = dbms.equals(ORACLE);
@@ -1319,79 +1383,65 @@ public class SQLUtils
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
-		List<Object> values = new LinkedList<Object>();
+		LinkedList<Object> values = new LinkedList<Object>();
 		for (Entry<String,Object> entry : data.entrySet())
 		{
 			columns.add(quoteSymbol(conn, entry.getKey()));
 			values.add(entry.getValue());
 		}
-		String column_string = Strings.join(",", columns);
-		String qmark_string = Strings.mult(",", "?", values.size());
 		
 		String quotedIdField = quoteSymbol(conn, idField);
 		String quotedTable = quoteSchemaTable(conn, schemaName, tableName);
 		
-		if (isPostGreSQL)
-		{
-			column_string = String.format("%s,%s", quotedIdField, column_string);
-			qmark_string = String.format("GREATEST(1, (SELECT MAX(%s)+1 FROM %s)),", quotedIdField, quotedTable) + qmark_string;
-		}
+		String newIdClause = String.format(
+				"GREATEST(1, (SELECT MAX(%s)+1 FROM %s))",
+				quotedIdField,
+				quotedTable
+			);
+		String fields_string = quotedIdField + "," + Strings.join(",", columns);
+		String values_string;
+		if (isMySQL || isOracle)
+			values_string = Strings.mult(",", "?", values.size() + 1);
+		else
+			values_string = newIdClause + "," + Strings.mult(",", "?", values.size());
 		
-		query = String.format("INSERT INTO %s (%s)", quotedTable, column_string);
+		query = String.format("INSERT INTO %s (%s)", quotedTable, fields_string);
 		
 		if (isSQLServer)
 			query += String.format(" OUTPUT INSERTED.%s", quotedIdField);
 		
-		query += String.format(" VALUES (%s)", qmark_string);
+		query += String.format(" VALUES (%s)", values_string);
 		
 		if (isPostGreSQL)
 			query += String.format(" RETURNING %s", quotedIdField);
 		
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		try
 		{
-			
-			stmt = prepareStatement(conn, query, values);
+			int id;
 			synchronized (conn)
 			{
-			    if (isSQLServer || isPostGreSQL)
-			    {
-			    	rs = stmt.executeQuery();
-			    }
-			    else
-			    {
-			    	stmt.executeUpdate();
-			    	cleanup(stmt);
-			    	
-			    	if (isOracle)
-			    	{
-			    		String quotedSequenceName = getQuotedSequenceName(dbms, schemaName, tableName);
-			    		query = String.format("select %s.currval from dual", quotedSequenceName);
-			    	}
-			    	else if (isMySQL)
-			    	{
-			    		query = "select last_insert_id()";
-			    	}
-			    	else
-			    	{
-			    		throw new SQLException("insertRowReturnID: dbms not supported: " + dbms);
-			    	}
-			    	stmt = conn.prepareStatement(query);
-			    	rs = stmt.executeQuery();
-			    }
+				if (isMySQL || isOracle)
+				{
+					String nextQuery = query;
+					
+					query = String.format("SELECT %s from %s", newIdClause, quotedTable);
+					id = getSingleIntFromQuery(conn, query, 1);
+					
+					values.addFirst(id);
+					
+					query = nextQuery;
+					executeUpdate(conn, query, values.toArray());
+				}
+				else
+				{
+					id = getSingleIntFromQuery(conn, query, values.toArray(), -1);
+				}
 			}
-		    rs.next();
-		    return rs.getInt(1);
+			return id;
 		}
 		catch (SQLException e)
 		{
 			throw new SQLExceptionWithQuery(query, e);
-		}
-		finally
-		{
-			cleanup(rs);
-			cleanup(stmt);
 		}
 	}
 	

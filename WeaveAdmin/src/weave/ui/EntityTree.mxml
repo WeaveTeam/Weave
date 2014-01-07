@@ -50,9 +50,9 @@
 			
 			private const cacheWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, EventUtils.generateDelayedCallback(this, refresh, 100));
 			
-			public function set rootFilterType(type:int):void
+			public function set rootFilterType(entityType:String):void
 			{
-				dataProvider = _rootNode = new EntityNode(type);
+				dataProvider = _rootNode = new EntityNode(entityType);
 				dataDescriptor = new EntityTreeDataDescriptor();
 				nodeFilterFunction = _nodeFilterFunction;
 			}

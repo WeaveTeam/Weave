@@ -24,6 +24,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import weave.config.ConnectionConfig;
+import weave.config.DataConfig;
 import weave.utils.MapUtils;
 import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
@@ -55,74 +57,108 @@ public class MetadataTable extends AbstractTable
 	
 	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_NAME, FIELD_VALUE));
 	
-	private ManifestTable manifest = null;
+	private final String requiredMetadataName;
 	
-	public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
+	/**
+	 * @param connectionConfig
+	 * @param schemaName
+	 * @param tableName
+	 * @param requiredMetadataName The name of a metadata field that is required for entities.
+	 */
+	public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName, String requiredMetadataName) throws RemoteException
 	{
 		super(connectionConfig, schemaName, tableName, FIELD_ID, FIELD_NAME, FIELD_VALUE);
-		this.manifest = manifest;
-		if (!tableExists())
-			initTable();
+		this.requiredMetadataName = requiredMetadataName;
+		initTable();
 	}
 	
-    protected void initTable() throws RemoteException
+	protected void initTable() throws RemoteException
 	{
-		if (manifest == null)
-			return;
-		
 		Connection conn;
 		
 		try
 		{
 			conn = connectionConfig.getAdminConnection();
 			
-			// primary key is (id,property) for indexing and because
-			// we don't want duplicate properties for the same id
-			SQLUtils.createTable(
-				conn, schemaName, tableName,
-				Arrays.asList(fieldNames),
-				Arrays.asList(
-					SQLUtils.getBigIntTypeString(conn),
-					SQLUtils.getVarcharTypeString(conn, 255),
-					SQLUtils.getVarcharTypeString(conn, 2048)
-				),
-				Arrays.asList(FIELD_ID, FIELD_NAME)
-			);
-			
-//			addForeignKey(FIELD_ID, manifest, ManifestTable.FIELD_ID);
-			
-			/* Index of (property) */
-			SQLUtils.createIndex(
+			if (!tableExists())
+			{
+				// primary key is (id,property) for indexing and because
+				// we don't want duplicate properties for the same id
+				SQLUtils.createTable(
 					conn, schemaName, tableName,
-					new String[]{FIELD_NAME},
-					null
-			);
-			/* Index of (Property, Value), important for finding ids with metadata criteria */
-			SQLUtils.createIndex(
-					conn, schemaName, tableName,
-					new String[]{FIELD_NAME, FIELD_VALUE},
-					new Integer[]{32,32}
-			);
+					Arrays.asList(fieldNames),
+					Arrays.asList(
+						SQLUtils.getBigIntTypeString(conn),
+						SQLUtils.getVarcharTypeString(conn, 255),
+						SQLUtils.getVarcharTypeString(conn, 2048)
+					),
+					Arrays.asList(FIELD_ID, FIELD_NAME)
+				);
+				
+				/* Index of (property) */
+				SQLUtils.createIndex(
+						conn, schemaName, tableName,
+						new String[]{FIELD_NAME},
+						null
+				);
+				/* Index of (Property, Value), important for finding ids with metadata criteria */
+				SQLUtils.createIndex(
+						conn, schemaName, tableName,
+						new String[]{FIELD_NAME, FIELD_VALUE},
+						new Integer[]{32,32}
+				);
+			}
 		} 
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to initialize metadata table.", e);
 		}
 	}
-	public void setProperties(Integer id, Map<String,String> diff) throws RemoteException
+    
+	/**
+	 * @param id Either the id of an existing entity or -1 to create a new one.
+	 * @param diff The properties to set.
+	 * @return The id that was specified, or the id of a new entity if id was specified as DataConfig.NULL.
+	 */
+	public int setProperties(int id, Map<String,String> diff) throws RemoteException
 	{
-		if (diff == null)
-			return;
 		try
 		{
-			if (!connectionConfig.migrationPending())
+			Map<String,Object> record;
+			boolean newId = (id == DataConfig.NULL);
+			
+			if (connectionConfig.migrationPending())
+			{
+				if (newId)
+					throw new RemoteException("id cannot be unspecified during migration");
+			}
+			else
 			{
 				// remove any existing values for the specified properties
 				Connection conn = connectionConfig.getAdminConnection();
+				
+				if (newId)
+				{
+					if (requiredMetadataName != null && Strings.isEmpty(diff.get(requiredMetadataName)))
+						throw new RemoteException(String.format("Missing required metadata field \"%s\"", requiredMetadataName));
+					
+					record = MapUtils.fromPairs(
+						FIELD_NAME, requiredMetadataName,
+						FIELD_VALUE, diff.get(requiredMetadataName)
+					);
+					id = SQLUtils.insertRowReturnID(conn, schemaName, tableName, record, FIELD_ID);
+				}
+				else if (requiredMetadataName != null && diff.containsKey(requiredMetadataName) && Strings.isEmpty(diff.get(requiredMetadataName)))
+				{
+					throw new RemoteException(String.format("Cannot remove required metadata field \"%s\"", requiredMetadataName));
+				}
+				
 				List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
 				for (String property : diff.keySet())
 				{
-					Map<String,Object> record = MapUtils.fromPairs(FIELD_ID, id, FIELD_NAME, property);
+					if (newId && property.equals(requiredMetadataName))
+						continue;
+					record = MapUtils.fromPairs(FIELD_ID, id, FIELD_NAME, property);
 					records.add(record);
 				}
 				WhereClause<Object> where = new WhereClause<Object>(conn, records, caseSensitiveFields, false);
@@ -131,11 +167,18 @@ public class MetadataTable extends AbstractTable
 			
 			for (Entry<String,String> entry : diff.entrySet())
 			{
+				String key = entry.getKey();
 				String value = entry.getValue();
+				
+				if (newId && key.equals(requiredMetadataName))
+					continue;
+				
 				// ignore null values and empty strings (has the effect of deleting the property)
 				if (value != null && value.length() > 0)
 					insertRecord(id, entry.getKey(), value);
 			}
+			
+			return id;
 		} 
 		catch (SQLException e)
 		{
@@ -143,7 +186,7 @@ public class MetadataTable extends AbstractTable
 		}
 	}
 
-	public void removeAllProperties(Integer id) throws RemoteException
+	public void removeAllProperties(int id) throws RemoteException
 	{
 		try 
 		{
@@ -164,8 +207,11 @@ public class MetadataTable extends AbstractTable
 		String query = null;
 		try
 		{
-			Connection conn = connectionConfig.getAdminConnection();
 			Map<Integer,String> result = new HashMap<Integer,String>();
+			if (ids != null && ids.size() == 0)
+				return result;
+			
+			Connection conn = connectionConfig.getAdminConnection();
 			
 			// build query
 			String quotedIdField = SQLUtils.quoteSymbol(conn, FIELD_ID);
@@ -210,9 +256,6 @@ public class MetadataTable extends AbstractTable
 			if (ids.size() == 0)
 				return result;
 			
-			for (int id : ids)
-				result.put(id, new HashMap<String,String>());
-			
 			Connection conn = connectionConfig.getAdminConnection();
 			String query = String.format(
 					"SELECT * FROM %s WHERE %s IN (%s)",
@@ -229,6 +272,9 @@ public class MetadataTable extends AbstractTable
 				String property = rs.getString(FIELD_NAME);
 				String value = rs.getString(FIELD_VALUE);
 				
+				if (!result.containsKey(id))
+					result.put(id, new HashMap<String,String>());
+				
 				result.get(id).put(property, value);
 			}
 			
@@ -244,6 +290,11 @@ public class MetadataTable extends AbstractTable
 			SQLUtils.cleanup(stmt);
 		}
 	}
+	/**
+	 * Finds IDs of entities having metadata matching a set of constraints. 
+	 * @param constraints Name-value pairs to be used as search criteria.
+	 * @return A set of entity IDs.
+	 */
 	public Set<Integer> filter(Map<String,String> constraints) throws RemoteException
 	{
 		try
@@ -266,6 +317,26 @@ public class MetadataTable extends AbstractTable
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to get ids given a set of property/value pairs.", e);
+		}
+	}
+	public boolean isEmpty() throws RemoteException
+	{
+		String query = null;
+		Statement stmt = null;
+		try
+		{
+			Connection conn = connectionConfig.getAdminConnection();
+			stmt = conn.createStatement();
+			query = String.format("SELECT COUNT(*) FROM %s", SQLUtils.quoteSchemaTable(conn, schemaName, tableName));
+			return SQLUtils.getSingleIntFromQuery(stmt, query, 0) > 0;
+		}
+		catch (SQLException cause)
+		{
+			throw new RemoteException("Unable to get row count", new SQLExceptionWithQuery(query, cause));
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
 		}
 	}
 }

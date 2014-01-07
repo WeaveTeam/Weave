@@ -19,6 +19,8 @@
 
 package weave.services.beans
 {
+	import weave.api.data.ColumnMetadata;
+
 	/**
 	 * @author adufilie
 	 */
@@ -27,23 +29,43 @@ package weave.services.beans
 		public function Entity()
 		{
 			_id = -1;
-			_type = EntityType.ANY;
 		}
 		
 		private var _id:int;
-		private var _type:int;
 		private var _parentIds:Array;
 		private var _childIds:Array;
 		private var _hasParent:Object;
 		private var _hasChild:Object;
 		
+		/**
+		 * Resets this object so it does not contain any information.
+		 */		
+		public function reset():void
+		{
+			_id = -1;
+			_parentIds = null;
+			_childIds = null;
+			_hasParent = null;
+			_hasChild = null;
+			publicMetadata = {};
+			privateMetadata = {};
+		}
+		
+		/**
+		 * Tests if this object has been initialized.
+		 */		
+		public function get initialized():Boolean
+		{
+			return _id != -1;
+		}
+		
 		public function get id():int
 		{
 			return _id;
 		}
-		public function get type():int
+		public function getEntityType():String
 		{
-			return _type;
+			return publicMetadata[ColumnMetadata.ENTITY_TYPE];
 		}
 		public function get parentIds():Array
 		{
@@ -52,11 +74,6 @@ package weave.services.beans
 		public function get childIds():Array
 		{
 			return _childIds;
-		}
-		
-		public function getTypeString():String
-		{
-			return EntityType.getTypeString(_type);
 		}
 		
 		public function hasParent(parentId:int):Boolean
@@ -72,7 +89,6 @@ package weave.services.beans
 		public function copyFromResult(result:Object):void
 		{
 			_id = getEntityIdFromResult(result);
-			_type = result.type;
 			privateMetadata = result.privateMetadata || {};
 			publicMetadata = result.publicMetadata || {};
 			_parentIds = result.parentIds;

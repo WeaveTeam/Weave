@@ -458,7 +458,7 @@
 			currentSliderPosition.value = dimensionSlider.minimum;
 	}
 	
-	[Deprecated] public function set labelsLinkableString(str:String):void
+	[Deprecated(replacement="filterValues")] public function set labelsLinkableString(str:String):void
 	{
 		filterValues.setSessionState(str.split(','));
 	}

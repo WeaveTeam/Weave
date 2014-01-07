@@ -143,9 +143,9 @@ package weave.services
 			return invoke(getEntityChildIds, arguments);
 		}
 		
-		public function getEntityIdsByMetadata(publicMetadata:Object, entityType:int):AsyncToken // returns int[]
+		public function getEntityIds(publicMetadata:Object):AsyncToken // returns int[]
 		{
-			return invoke(getEntityIdsByMetadata, arguments);
+			return invoke(getEntityIds, arguments);
 		}
 		
 		public function getEntitiesById(ids:Array):AsyncToken // returns DataEntity[]
