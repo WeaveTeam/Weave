@@ -528,8 +528,7 @@
 					return;
 				
 				// set defaults
-				plotter.enabledSizeBy.value = true;
-				copySessionState(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color), plotter.screenRadius);
+				copySessionState(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color), plotter.sizeBy);
 				
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)

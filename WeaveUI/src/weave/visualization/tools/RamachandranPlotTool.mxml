@@ -24,13 +24,12 @@
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			   layout = "absolute" >
+			   layout = "absolute" xmlns:editors="weave.editors.*" >
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.textClasses.TextRange;
-			import mx.events.SliderEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -39,14 +38,12 @@
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
-			import weave.api.unlinkBindableProperty;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
@@ -64,7 +61,6 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.HierarchyUtils;
-			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
@@ -120,17 +116,10 @@
 			{
 				super.childrenCreated();
 				
-				_plotter.enabledSizeBy.value = true;
-				
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginTop.value    = "10";
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "10";
-				
-				linkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
-				linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
-				_plotter.minScreenRadius.addImmediateCallback(this, updateSizeSlider);
-				_plotter.maxScreenRadius.addImmediateCallback(this, updateSizeSlider, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -139,7 +128,7 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.dataX,_plotter.dataY,_plotter.fill.color,_plotter.screenRadius,histogramColumn];
+				return [_plotter.dataX,_plotter.dataY,_plotter.fill.color,_plotter.sizeBy,histogramColumn];
 			}
 			private function invalidateAxes():void
 			{
@@ -190,10 +179,8 @@
 				//var keySet:KeySet = histo.visualization.getMainLayerSettings().subsetFilter.requestLocalObject(KeySet, false)
 				copySessionState(Weave.defaultSelectionKeySet, keySet);
 			}
-			public const histogramColumn:DynamicColumn = new DynamicColumn();
+			public const histogramColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 			
-			public const xRcolumn:DynamicColumn = new DynamicColumn();
-			public const yRcolumn:DynamicColumn = new DynamicColumn();
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			private var _sessionFileLoader:FileReference = null;
 			private var _defaultsFilename:String = null;
@@ -210,8 +197,8 @@
 				var attributeColumns:Array = new Array();
 				//Use as Attribute column as joinColumns takes mebers of IAttributeColumn
 				
-				attributeColumns.push(xRcolumn as IAttributeColumn);
-				attributeColumns.push(yRcolumn as IAttributeColumn);
+				attributeColumns.push(_plotter.dataX);
+				attributeColumns.push(_plotter.dataY);
 				
 				//joinColumns Called only When columns are added to ColumnListComponent
 				
@@ -299,52 +286,6 @@
 				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
 				var result:Array = ColumnUtils.joinColumns(columns, Number, false, keys);
 				return [result.shift(), result];
-			}
-			
-			override public function dispose():void
-			{
-				unlinkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
-				unlinkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
-			}
-			
-			private function updateSizeSlider():void
-			{
-				sizeBySlider.values = [_plotter.minScreenRadius.value, _plotter.maxScreenRadius.value];
-			}
-			
-			private function handleSizeSliderChange(event:SliderEvent):void
-			{
-				if(event.thumbIndex == 0)
-				{
-					_plotter.minScreenRadius.value = event.value;
-				}
-				else
-				{
-					//_plotter.defaultScreenRadius.value = event.value;
-					_plotter.maxScreenRadius.value = event.value;
-				}
-			}
-			
-			private function handleSizeByTextChange(event:Event):void
-			{
-				if (sizeByCheck.selected)
-				{ 
-					sizeByCheck.label = lang("Size by: {0}", ColumnUtils.getTitle(_plotter.screenRadius));
-					sizeByCheck.setStyle("textRollOverColor", "0x339900");
-					sizeByCheck.setStyle("textSelectedColor", "0x339900");
-					sizeByCheck.setStyle("color", "0x339900");
-					sizeBySlider.enabled = true;
-					
-				}
-				else{
-					sizeByCheck.label = lang("Size by: DISABLED");
-					sizeByCheck.setStyle("textRollOverColor", "0xCC3300");
-					sizeByCheck.setStyle("textSelectedColor", "0xCC3300");
-					sizeByCheck.setStyle("color", "0xCC3300");
-					
-					sizeBySlider.enabled = false;
-				}
-				
 			}
 			
 			private var pdbService:WeavePDBServlet = new WeavePDBServlet(Weave.properties.pdbServiceURL.value);
@@ -541,56 +482,8 @@
 					 verticalGap="0">
 				<mx:VBox width="100%" 
 						 id="scatterplotControls">
-					<mx:HBox width="100%" 
-							 borderStyle="inset" 
-							 backgroundColor="0xFFFFFF" 
-							 backgroundAlpha="0.7">
-						<mx:Label text="{lang('Point Opacity:')}" 
-								  color="0x000000" fontSize="12" 
-								  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
-						
-						<mx:HSlider id="alphaSlider" 
-									width="100%" 
-									alpha="1.0"
-									dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
-									minimum="0.3" maximum="1.0" value="1.0"
-									liveDragging="true"/>
-					</mx:HBox>
-					<mx:VBox borderStyle="inset"
-							 backgroundColor="0xFFFFFF" 
-							 backgroundAlpha="0.7"
-							 width="100%">
-						<mx:HBox width="100%"> 
-							<mx:CheckBox id="sizeByCheck" 
-										 fontSize="12" 
-										 label="{lang('Size by: ENABLED')}" 
-										 color="{sizeByCheck.selected? 0x339900 : 0xCC3300}"
-										 textRollOverColor="0x339900"
-										 selected="true" 
-										 click="handleSizeByTextChange(event)"/>
-							<mx:Label id="sizeByColumnLabel" enabled="{sizeByCheck.selected}" color="0xffffff" width="100%"  fontSize="9"/>
-						</mx:HBox>
-						
-						<mx:HBox width="100%"> 
-							<mx:Label text="{lang('Point Size:')}" 
-									  color="0x000000" 
-									  fontSize="12"/>
-							<mx:HSlider id="sizeBySlider"
-										liveDragging="true"
-										width="100%"
-										thumbCount="2" 
-										snapInterval="1"
-										minimum="1" 
-										tickInterval="1"
-										change="handleSizeSliderChange(event)"
-										mouseDown="event.stopImmediatePropagation();"/>
-						</mx:HBox>
-						<ui:DynamicColumnComponent label="{lang('x column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
-						<ui:DynamicColumnComponent label="{lang('y column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
-						<ui:DynamicColumnComponent label="{lang('color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-						<ui:DynamicColumnComponent label="{lang('size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.screenRadius"/>
-						<ui:DynamicColumnComponent label="{lang('Histogram Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
-					</mx:VBox>
+					<editors:ScatterPlotPlotterEditor id="plotEditor" width="100%" creationComplete="plotEditor.setTarget(_plotter);"/>
+					<ui:DynamicColumnComponent label="{lang('Histogram Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
 				</mx:VBox>
 				<mx:HBox width="100%">
 				</mx:HBox>
