@@ -15,11 +15,7 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
 			ComputationEngine : "R"
 	};    		
     
-	this.dataObject = {
-	       // listOfScripts : [],
-	       // scriptMetadata : {}
-	                   
-	};
+	this.dataObject = {};
 	/**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...

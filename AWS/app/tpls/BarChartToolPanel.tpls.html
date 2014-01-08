@@ -6,18 +6,18 @@
 		
 	<input type="checkbox" ng-model="enabled"/> Bar Chart Tool</br>
 	Height Column(s)<br>
-	<select ui-select2 multiple ng-model="heightSelection" data-placeholder="Choose Height Column(s)">
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt.param}}</option>
+	<select ui-select2 multiple ng-model="heights" data-placeholder="Choose Height Column(s)">
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 	</select>
 	<br>Sort Column<br>
-	<select ui-select2 ng-model="sortSelection" data-placeholder="Choose Sort Column">
+	<select ui-select2 ng-model="sort" data-placeholder="Choose Sort Column">
 		<option></option>
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt.param}}</option>
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 	</select>
 	<br>Label Column<br>
-	<select ui-select2 ng-model="labelSelection" data-placeholder="Choose Label Column">
+	<select ui-select2 ng-model="label" data-placeholder="Choose Label Column">
 		<option></option>
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt.param}}</option>
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 	</select>
 </div>
 </div>

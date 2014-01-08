@@ -5,9 +5,9 @@
 <div class="portlet-content">
 
 	<input type="checkbox" name="enableMapTool" ng-model="enabled"/> Map Tool</br>
-	<select ui-select2 ng-model="selection" data-placeholder="Choose Map">
+	<select ui-select2 ng-model="selected" data-placeholder="Choose Map">
 					<option></option>
-					<option value="{{opt}}"  ng-repeat="opt in options">{{opt.publicMetadata.title}}</option>
+					<option value="{{id}}"  ng-repeat="id in ids">{{getTitleFromId(id)}}</option>
 	</select>
 	
 </div>

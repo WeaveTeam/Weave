@@ -224,227 +224,320 @@ angular.module("aws.panelControllers", [])
 		}
 	}, true);
 })
+
+// MAP TOOL CONTROLLER
 .controller("MapToolPanelCtrl", function($scope, queryService){
 	
-	$scope.options = queryService.getGeometryDataColumnsEntities();
+	queryService.queryObject.MapTool = {
+											enabled : "false",
+											id : "",
+											title : "",
+											keyType : ""
+									   };
+	
+	queryService.getGeometryDataColumnsEntities();
+	$scope.ids = [];
+	
+	$scope.$watch(function() {
+		return queryService.dataObject.geometryColumns;
+	}, function () {
+		if(queryService.dataObject.hasOwnProperty('geometryColumns')){
+			var geometryColumns = queryService.dataObject.geometryColumns;
+			for (var i = 0; i < geometryColumns.length; i++) {
+				$scope.ids.push(geometryColumns[i].id);
+			}
+		}
+	});
 
 	$scope.$watch('enabled', function() {
-		if ($scope.enabled == true) {
-			queryService.queryObject['MapTool'] = {};
-			if($scope.selection != "") {
-				var metadata = angular.fromJson($scope.selection);
-				if(metadata != "" && metadata != undefined) {
-					if ($scope.enabled) {	
-						queryService.queryObject['MapTool'] = {
-								id : metadata.id,
-								title : metadata.publicMetadata.title,
-								keyType : metadata.publicMetadata.keyType
-						};
-					}
-				}
-			}
-		} else {
-			delete queryService.queryObject['MapTool'];
-			$scope.selection = "";
+		if($scope.enabled != undefined) {
+			queryService.queryObject.MapTool.enabled = $scope.enabled;
 		}
+	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.MapTool.enabled;
+	}, function() {
+		$scope.enabled = queryService.queryObject.MapTool.enabled;
+	});
 		
+	$scope.$watch('selected', function() {
+		queryService.queryObject.MapTool.id = $scope.selected;
+		queryService.queryObject.MapTool.title = getTitleFromId($scope.selected);
+		queryService.queryObject.MapTool.keyType = getKeyTypeFromId($scope.selected);
 	});
 	
-	$scope.$watch('selection', function() {
-		if($scope.selection != "") {
-			var metadata = angular.fromJson($scope.selection);
-			if(metadata != "" && metadata != undefined) {
-				if ($scope.enabled) {	
-					queryService.queryObject['MapTool'] = {
-							weaveEntityId : metadata.id,
-							title : metadata.publicMetadata.title,
-							keyType : metadata.publicMetadata.keyType
-					};
+	$scope.$watch(function(){
+		return queryService.queryObject.MapTool.id;
+	}, function() {
+		$scope.id = queryService.queryObject.MapTool.id;	
+	});
+	
+	var getTitleFromId = function(id) {
+		id = 1076;
+		if(queryService.dataObject.hasOwnProperty("geometryColumns")) {
+			for(var i = 0; i < queryService.dataObject.geometryColumns.length; i++) {
+				var column = queryService.dataObject.geometryColumns[i];
+				if (column.id == id) {
+					return column.publicMetadata.title;
 				}
 			}
 		}
-	});
+	}
 	
+	var getKeyTypeFromId = function(id) {
+		if(queryService.dataObject.hasOwnProperty("geometryColumns")) {
+			for(var i = 0; i < queryService.dataObject.geometryColumns.length; i++) {
+				var column = queryService.dataObject.geometryColumns[i];
+				if (column.id == id) {
+					return column.publicMetadata.keyType;
+				}
+			}
+		}
+	}
 })
 
+// BARCHART CONTROLLER
 .controller("BarChartToolPanelCtrl", function($scope, queryService){
 
+	queryService.queryObject.BarChartTool = { 
+											 enabled : false,
+											 heights : [],
+											 sort : "",
+											 label : ""
+											};
+
+	$scope.options = [];
+	
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			$scope.options = queryService.dataObject.scriptMetadata.outputs;
+	}, function() {
+		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
+				var outputs = queryService.dataObject.scriptMetadata.outputs;
+				for( var i = 0; i < outputs.length; i++) {
+					$scope.options.push(outputs[i].param);
+				}
+			}
 		}
-	});
-		
+	});		
 	
 	$scope.$watch('enabled', function() {
-		queryService.queryObject['BarChartTool'] = {};
-		if ($scope.enabled == true) {
-			if($scope.sortSelection != "" && $scope.sortSelection != undefined) {
-					queryService.queryObject['BarChartTool']['sort'] = angular.fromJson($scope.sortSelection).param;
-			}
-			if($scope.heightSelection != "" && $scope.heightSelection != undefined) {
-				queryService.queryObject['BarChartTool']['heights'] =  $.map($scope.heightSelection, function(item){
-					return angular.fromJson(item).param;
-				});
-			}
-			if($scope.labelSelection != "" && $scope.labelSelection != undefined) {
-				queryService.queryObject['BarChartTool']['label'] = angular.fromJson($scope.labelSelection).param;
-			}
-		} else {
-			delete queryService.queryObject['BarChartTool'];
-			$scope.sortSelection = "";
-			$scope.heightSelection = "";
-			$scope.labelSelection = "";
+		if($scope.enabled != undefined) {
+			queryService.queryObject.BarChartTool.enabled = $scope.enabled;
+		}
+	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.BarChartTool.enabled;
+	}, function() {
+		$scope.enabled = queryService.queryObject.BarChartTool.enabled;
+	});
+	
+	$scope.$watch('heights', function() {
+
+		if($scope.heights != undefined) {
+			queryService.queryObject.BarChartTool.heights = $scope.heights;
 		}
 		
 	});
 	
-	$scope.$watch('sortSelection', function() {
-		if($scope.sortSelection != "" && $scope.sortSelection != undefined) {
-			if ($scope.enabled) {	
-				queryService.queryObject['BarChartTool']['sort'] = angular.fromJson($scope.sortSelection).param;
-			}
+	$scope.$watch(function(){
+		return queryService.queryObject.BarChartTool.heights;
+	}, function() {
+		$scope.heights = queryService.queryObject.BarChartTool.heights;	
+	});
+
+	$scope.$watch('sort', function() {
+		if($scope.sort != undefined) {
+			queryService.queryObject.BarChartTool.sort = $scope.sort;
 		}
+		
 	});
 	
-	$scope.$watch('heightSelection', function() {
-		if($scope.heightSelection != "" && $scope.heightSelection != undefined) {
-			if ($scope.enabled) {	
-				queryService.queryObject['BarChartTool']['heights'] =  $.map($scope.heightSelection, function(item){
-					return angular.fromJson(item).param;
-				});
-			}
-		}
+	$scope.$watch(function(){
+		return queryService.queryObject.BarChartTool.sort;
+	}, function() {
+		$scope.sort = queryService.queryObject.BarChartTool.sort;	
 	});
 	
-	$scope.$watch('labelSelection', function() {
-		if($scope.labelSelection != "" && $scope.labelSelection != undefined) {
-			if ($scope.enabled) {	
-				queryService.queryObject['BarChartTool']['label'] = angular.fromJson($scope.labelSelection).param;
-			}
+	$scope.$watch('label', function() {
+		if($scope.label != undefined) {
+			queryService.queryObject.BarChartTool.label = $scope.label;
 		}
+		
 	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.BarChartTool.label;
+	}, function() {
+		$scope.label = queryService.queryObject.BarChartTool.label;	
+	});
+	
 })
+
+// DATA TABLE CONTROLLER
 .controller("DataTablePanelCtrl", function($scope, queryService){
-	$scope.options= [];
-	$scope.selection = [];
+	queryService.queryObject.DataTableTool = { 
+											 enabled : false,
+											 selected : []
+											};
 
+	$scope.options = [];
+	
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			$scope.options = queryService.dataObject.scriptMetadata.outputs;
+	}, function() {
+		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
+				var outputs = queryService.dataObject.scriptMetadata.outputs;
+				for( var i = 0; i < outputs.length; i++) {
+					$scope.options.push(outputs[i].param);
+				}
+			}
 		}
 	});
 
+	
 	$scope.$watch('enabled', function() {
-		queryService.queryObject['DataTable'] = {};
-		if ($scope.enabled == true) {
-			if($scope.selection != "" && $scope.selection != undefined) {
-				queryService.queryObject['DataTable']['columns'] =  $.map($scope.selection, function(item){
-					return angular.fromJson(item).param;
-				});
-			}
-		} else {
-			delete queryService.queryObject['DataTable'];
-			$scope.selection = [];
-			//$scope.$digest(); need to kick off a digest cycle somehow here to update the model
+		if($scope.enabled != undefined) {
+			queryService.queryObject.DataTableTool.enabled = $scope.enabled;
 		}
-		$scope.updateselections();
 	});
 	
-	$scope.$watch('selection', function() {
-		if($scope.enabled){
-			if($scope.selection != "" && $scope.selection != undefined) {
-				queryService.queryObject['DataTable']['columns'] =  $.map($scope.selection, function(item){
-					return angular.fromJson(item).param;
-				});
-				$scope.updateselections();
-			}
-		}
-	});
-})
-.controller("ScatterPlotToolPanelCtrl", function($scope, queryService) {
 	$scope.$watch(function(){
-		return queryService.dataObject.scriptMetadata;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			$scope.options = queryService.dataObject.scriptMetadata.outputs;
-		}
+		return queryService.queryObject.DataTableTool.enabled;
+	}, function() {
+		$scope.enabled = queryService.queryObject.DataTableTool.enabled;
 	});
-
-	$scope.$watch('enabled', function() {
-		queryService.queryObject['ScatterPlotTool'] = {};
-		if ($scope.enabled == true) {
-			if($scope.XSelection != "" && $scope.XSelection != undefined) {
-					queryService.queryObject['ScatterPlotTool']['X'] = angular.fromJson($scope.XSelection).param;
-			}
-			if($scope.YSelection != "" && $scope.YSelection != undefined) {
-				queryService.queryObject['ScatterPlotTool']['Y'] = angular.fromJson($scope.YSelection).param;
-			}
-		} else {
-			delete queryService.queryObject['ScatterPlotTool'];
-			$scope.XSelection = "";
-			$scope.YSelection = "";
+	
+	$scope.$watch('selected', function() {
+		if($scope.selected != undefined) {
+			queryService.queryObject.DataTableTool.selected = $scope.selected;
 		}
 		
 	});
 	
-	$scope.$watch('XSelection', function() {
-		if($scope.XSelection != "" && $scope.XSelection != undefined) {
-			if ($scope.enabled) {	
-				queryService.queryObject['ScatterPlotTool']['X'] = angular.fromJson($scope.XSelection).param;
-			}
-		}
-	});
-	
-	$scope.$watch('YSelection', function() {
-		if($scope.YSelection != "" && $scope.YSelection != undefined) {
-			if ($scope.enabled) {	
-				queryService.queryObject['ScatterPlotTool']['Y'] = angular.fromJson($scope.YSelection).param;
-			}
-		}
+	$scope.$watch(function(){
+		return queryService.queryObject.DataTableTool.selected;
+	}, function() {
+		$scope.selected = queryService.queryObject.DataTableTool.selected;	
 	});
 })
+
+// SCATTERPLOT CONTROLLER
+.controller("ScatterPlotToolPanelCtrl", function($scope, queryService) {
+	queryService.queryObject.ScatterPlotTool = { 
+											 enabled : false,
+											 X : "",
+											 Y : "" 
+											};
+
+	$scope.options = [];
+	
+	$scope.$watch(function(){
+		return queryService.dataObject.scriptMetadata;
+	}, function() {
+		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
+				var outputs = queryService.dataObject.scriptMetadata.outputs;
+				for( var i = 0; i < outputs.length; i++) {
+					$scope.options.push(outputs[i].param);
+				}
+			}
+		}
+	});
+
+	
+	$scope.$watch('enabled', function() {
+		if($scope.enabled != undefined){
+			queryService.queryObject.ScatterPlotTool.enabled = $scope.enabled;
+		}
+		
+	});
+	$scope.$watch(function(){
+		return queryService.queryObject.ScatterPlotTool.enabled;
+	}, function() {
+		$scope.enabled = queryService.queryObject.ScatterPlotTool.enabled;	
+	});
+
+	
+
+	$scope.$watch('XSelection', function() {
+		if($scope.XSelection != undefined){
+			queryService.queryObject.ScatterPlotTool.X = $scope.XSelection;
+		}
+		
+	});
+	$scope.$watch(function(){
+		return queryService.queryObject.ScatterPlotTool.XSelection;
+	}, function() {
+		$scope.XSelection = queryService.queryObject.ScatterPlotTool.XSelection;	
+	});
+
+	
+
+	$scope.$watch('YSelection', function() {
+		if($scope.YSelection != undefined){
+			queryService.queryObject.ScatterPlotTool.Y = $scope.YSelection;
+		}
+	});
+	$scope.$watch(function(){
+		return queryService.queryObject.ScatterPlotTool.YSelection;
+	}, function() {
+		$scope.YSelection = queryService.queryObject.ScatterPlotTool.YSelection;	
+	});
+})
+
+
+// COLOR CONTROLLER
 .controller("ColorColumnPanelCtrl", function($scope, queryService){
 
-	$scope.$watch(function(){
-		return queryService.dataObject.scriptMetadata;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			$scope.options = queryService.dataObject.scriptMetadata.outputs;
-			console.log($scope.options);
-		}
-	});
-	
-	/***********************/
-		
-	/*** UI selections *****/
 	queryService.queryObject.ColorColumn = { 
 											 enabled : false,
 											 selected : ""
 											};
+
+	$scope.options = [];
 	
+	$scope.$watch(function(){
+		return queryService.dataObject.scriptMetadata;
+	}, function() {
+		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
+				var outputs = queryService.dataObject.scriptMetadata.outputs;
+				for( var i = 0; i < outputs.length; i++) {
+					$scope.options.push(outputs[i].param);
+				}
+			}
+		}
+	});
+	
+		
+	/*** double binding *****/
 	$scope.$watch('enabled', function() {
 		if($scope.enabled != undefined) {
 			queryService.queryObject.ColorColumn.enabled = $scope.enabled;
 		}
 	});
 	
+	$scope.$watch(function(){
+		return queryService.queryObject.ColorColumn.enabled;
+	}, function() {
+		$scope.enabled = queryService.queryObject.ColorColumn.enabled;
+	});
+
 	$scope.$watch('selected', function() {
-		if($scope.selected != "" && $scope.selected != undefined) {
-			$scope.enabled = true;
-			queryService.queryObject.ColorColumn.selected = angular.fromJson($scope.selected);
+		if($scope.selected != undefined) {
+			queryService.queryObject.ColorColumn.selected = $scope.selected;
 		}
+		
 	});
 	
 	$scope.$watch(function(){
-		return queryService.queryObject.ColorColumn;
+		return queryService.queryObject.ColorColumn.selected;
 	}, function() {
-		$scope.enabled = queryService.queryObject.ColorColumn.enabled;
-		$scope.selected = angular.toJson(queryService.queryObject.ColorColumn.selected);
-	}, true);
+		$scope.selected = queryService.queryObject.ColorColumn.selected;	
+	});
 	/**************************/
 });
