@@ -38,7 +38,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
-			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.core.UIUtils;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
@@ -127,7 +127,7 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [plotter.dataX, plotter.dataY, plotter.fill.color, plotter.screenRadius];
+				return [plotter.dataX, plotter.dataY, plotter.fill.color, plotter.sizeBy];
 			}
 		
 			[Bindable]
@@ -177,9 +177,8 @@
 					var _plotter:ScatterPlotPlotter = vis.getMainPlotter() as ScatterPlotPlotter;
 					linkSessionState(plotter.fill.color, _plotter.fill.color);
 					linkSessionState(plotter.fill.alpha, _plotter.fill.alpha);
-					linkSessionState(plotter.screenRadius, _plotter.screenRadius);					
+					linkSessionState(plotter.sizeBy, _plotter.sizeBy);					
 					linkSessionState(plotter.defaultScreenRadius, _plotter.defaultScreenRadius);
-					linkSessionState(plotter.enabledSizeBy, _plotter.enabledSizeBy);
 					linkSessionState(plotter.maxScreenRadius, _plotter.maxScreenRadius);
 					linkSessionState(plotter.minScreenRadius, _plotter.minScreenRadius);
 					
@@ -326,14 +325,14 @@
 				if (plotter.fill.color.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
 					columns.push(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
 				
-				var sizeColIndex:int = attributes.indexOf(plotter.screenRadius);
-				if(plotter.screenRadius.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
-					columns.push(plotter.screenRadius.getInternalColumn());
+				var sizeColIndex:int = attributes.indexOf(plotter.sizeBy);
+				if(plotter.sizeBy.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
+					columns.push(plotter.sizeBy.getInternalColumn());
 				
 				visualization.additionalProbeColumns = columns;
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Scatter Plot of {0} -vs- {1}", ColumnUtils.getTitle(plotter.dataX), ColumnUtils.getTitle(plotter.dataY));
 			}
@@ -497,7 +496,7 @@
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
 				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}"/>
 			</ui:CheckBoxWithNestedOptions>
 			

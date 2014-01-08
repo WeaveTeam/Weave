@@ -163,7 +163,7 @@
 				}
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Color Legend");
 			}

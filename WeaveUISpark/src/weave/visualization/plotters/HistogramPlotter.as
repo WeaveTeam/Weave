@@ -98,6 +98,7 @@ package weave.visualization.plotters
 		public const drawPartialBins:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const columnToAggregate:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const aggregationMethod:LinkableString = registerSpatialProperty(new LinkableString(AG_COUNT, verifyAggregationMethod));
+		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		private static function verifyAggregationMethod(value:String):Boolean { return ENUM_AGGREGATION_METHODS.indexOf(value) >= 0; }
 		public static const ENUM_AGGREGATION_METHODS:Array = [AG_COUNT, AG_SUM, AG_MEAN];
@@ -138,11 +139,16 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
+			output.reset();
+			
 			var binCol:BinnedColumn = internalBinnedColumn;
 			if (binCol)
-				output.setBounds(-0.5, NaN, Math.max(1, binCol.numberOfBins) - 0.5, NaN);
-			else
-				output.reset();
+			{
+				if (horizontalMode.value)
+					output.setYRange(-0.5, Math.max(1, binCol.numberOfBins) - 0.5);
+				else
+					output.setXRange(-0.5, Math.max(1, binCol.numberOfBins) - 0.5);
+			}
 		}
 		
 		/**
@@ -168,7 +174,10 @@ package weave.visualization.plotters
 			var agCol:IAttributeColumn = columnToAggregate.getInternalColumn();
 			var binHeight:Number = agCol ? getAggregateValue(keysInBin) : keysInBin.length;
 			
-			initBoundsArray(output).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
+			if (horizontalMode.value)
+				initBoundsArray(output).setBounds(0, binIndex - 0.5, binHeight, binIndex + 0.5);
+			else
+				initBoundsArray(output).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
 		}
 		
 		/**
@@ -221,15 +230,18 @@ package weave.visualization.plotters
 				var binIndex:int = allBinNames.indexOf(binName);
 				var binHeight:Number = agCol ? getAggregateValue(keys) : keys.length;
 				
-				// project data coords to screen coords
-				tempPoint.x = binIndex - 0.5; // center of rectangle will be binIndex, width 1
-				tempPoint.y = 0;
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-				tempBounds.setMinPoint(tempPoint);
-				tempPoint.x = binIndex + 0.5; // center of rectangle will be binIndex, width 1
-				tempPoint.y = binHeight;
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-				tempBounds.setMaxPoint(tempPoint);
+				// bars are centered at their binIndex values and have width=1
+				if (horizontalMode.value)
+				{
+					tempBounds.setXRange(0, binHeight);
+					tempBounds.setCenteredYRange(binIndex, 1);
+				}
+				else
+				{
+					tempBounds.setYRange(0, binHeight);
+					tempBounds.setCenteredXRange(binIndex, 1);
+				}
+				dataBounds.projectCoordsTo(tempBounds, screenBounds);
 	
 				// draw rectangle for bin
 				graphics.clear();
@@ -245,7 +257,6 @@ package weave.visualization.plotters
 			// END template code
 		}
 		
-		private const tempPoint:Point = new Point();
 		private const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 
 		//------------------------

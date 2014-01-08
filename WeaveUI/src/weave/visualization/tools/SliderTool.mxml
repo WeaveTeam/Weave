@@ -54,10 +54,16 @@
 				/>
 		</mx:HBox>
 		<mx:Box width="100%" height="100%" label="{lang('List')}" verticalScrollPolicy="off">
-			<mx:List id="dimensionList" width="100%" height="100%" minHeight="0"/>
+			<mx:List id="dimensionList"
+				width="100%" height="100%" minHeight="0"
+				selectedIndex="{dimensionSlider.value}"
+				change="if (UIUtils.hasFocus(dimensionList)) currentSliderPosition.value = dimensionList.selectedIndex;"/>
 		</mx:Box>
 		<mx:Box width="100%" height="100%" label="{lang('Combo box')}">
-			<ui:CustomComboBox id="dimensionCombo" width="100%" height="100%" minHeight="0"/>
+			<ui:CustomComboBox id="dimensionCombo"
+				width="100%" height="100%" minHeight="0"
+				selectedIndex="{dimensionSlider.value}"
+				change="if (UIUtils.hasFocus(dimensionCombo)) currentSliderPosition.value = dimensionCombo.selectedIndex;"/>
 		</mx:Box>
 	</mx:ViewStack>
 <mx:Script>
@@ -84,6 +90,7 @@
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.utils.AsyncSort;
@@ -168,12 +175,18 @@
 		linkBindableProperty(showPlayButton, togglePlayControls, 'selected');
 		linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 		
-		labelsInput.addEventListener(Event.CHANGE, function(e:Event):void {
+		labelsInput.addEventListener(Event.CHANGE, writeFilterValues);
+		labelsInput.addEventListener(FocusEvent.FOCUS_OUT, readFilterValues);
+		filterValues.addImmediateCallback(this, readFilterValues, true);
+		
+		function writeFilterValues(e:Event):void {
 			filterValues.setSessionState(WeaveAPI.CSVParser.parseCSVRow(labelsInput.text));
-		});
-		filterValues.addImmediateCallback(this, function():void {
-			labelsInput.text = WeaveAPI.CSVParser.createCSVRow(getFilterValues());
-		});
+		}
+		
+		function readFilterValues(..._):void {
+			if (!UIUtils.hasFocus(labelsInput))
+				labelsInput.text = WeaveAPI.CSVParser.createCSVRow(getFilterValues());
+		}
 	}
 	
 	/**
@@ -291,8 +304,6 @@
 		}
 		updateLabelProperties();
 		linkBindableProperty(currentSliderPosition, dimensionSlider, 'value');
-		linkBindableProperty(currentSliderPosition, dimensionList, 'selectedIndex');
-		linkBindableProperty(currentSliderPosition, dimensionCombo, 'selectedIndex');
 		handleSliderChange();
 	}
 

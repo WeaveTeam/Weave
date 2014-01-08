@@ -30,10 +30,12 @@ package weave.services
 	
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncToken;
+	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
 	import weave.api.services.IAsyncService;
 	
 	/**
@@ -41,7 +43,7 @@ package weave.services
 	 * 
 	 * @author adufilie
 	 */	
-	public class Servlet implements IAsyncService
+	public class Servlet implements IAsyncService, IDisposableObject
 	{
 		public static const REQUEST_FORMAT_VARIABLES:String = URLLoaderDataFormat.VARIABLES;
 		public static const REQUEST_FORMAT_BINARY:String = URLLoaderDataFormat.BINARY;
@@ -228,14 +230,33 @@ package weave.services
 				
 		private function resultHandler(event:ResultEvent, token:AsyncToken):void
 		{
-			token.mx_internal::applyResult(event);
-			delete _asyncTokenData[token];
+			if (_asyncTokenData[token] !== undefined)
+			{
+				token.mx_internal::applyResult(event);
+				delete _asyncTokenData[token];
+			}
 		}
 		
 		private function faultHandler(event:FaultEvent, token:AsyncToken):void
 		{
-			token.mx_internal::applyFault(event);
-			delete _asyncTokenData[token];
+			if (_asyncTokenData[token] !== undefined)
+			{
+				token.mx_internal::applyFault(event);
+				delete _asyncTokenData[token];
+			}
+		}
+		
+		public function dispose():void
+		{
+			var token:Object;
+			var tokens:Array = [];
+			for (token in _asyncTokenData)
+				tokens.push(token);
+			
+			var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, new Fault('Error', 'Context was disposed', null));
+			
+			for each (token in tokens)
+				faultHandler(event, token as AsyncToken);
 		}
 	}
 }

@@ -219,7 +219,7 @@ package weave.compiler
 				// commit changes
 				lines[i] = spaces + line.substr(t);
 			}
-			return lines.join('\n') + '\n';
+			return lines.join('\n');
 		}
 
 		/**

@@ -90,10 +90,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.
 			 */
-			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString(getDefaultRandomCoord(), NumberUtils.verifyNumberOrPercentage));
-			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString(getDefaultRandomCoord(), NumberUtils.verifyNumberOrPercentage));
-			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
-			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
+			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString(null, NumberUtils.verifyNumberOrPercentage));
+			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString(null, NumberUtils.verifyNumberOrPercentage));
+			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString(null, NumberUtils.verifyNumberOrPercentage));
+			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString(null, NumberUtils.verifyNumberOrPercentage));
 			
 			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMaximized), handleMaximizedChange, true);
 			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMinimized), handleMinimizedChange, true);
@@ -178,6 +178,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!_constructorCalled) // avoid calling constructor twice
 				{
 					_constructorCalled = true;
+					reposition();
 					constructor();
 				}
 			}
@@ -325,19 +326,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
-			 * Used to generate default panelX, panelY session states.
-			 */
-			protected function getDefaultRandomCoord():String
-			{
-				return '' + int(2 + Math.random() * 6) + "%"
-			}
-			
-			/**
 			 * Override this function to provide a default panel title when the panelTitle session state is undefined.
 			 * The panel title will be set when handlePanelTitleChange() is called.
 			 * If you need the panel title to be updated, you can call handlePanelTitleChange() directly or as a callback.
 			 */
-			protected function get defaultPanelTitle():String
+			public function get defaultPanelTitle():String
 			{
 				return getQualifiedClassName(this).split(':').pop();
 			}
@@ -490,7 +483,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * This function copies the values for x,y,width,height from the corresponding sessioned properties.
 			 * @param singleProperty Set this to one of panelX,panelY,panelWidth,panelHeight to only update that property.
 			 */
-			private function copyCoordinatesFromSessionedProperties(singleProperty:LinkableString = null):void
+			internal function copyCoordinatesFromSessionedProperties(singleProperty:LinkableString = null):void
 			{
 				if (!parent)
 					return;
@@ -578,13 +571,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			protected function constrainAndSaveCoordinates():void
 			{
-				// keep window on screen
-				if (parent.width - x < minWidth)
+				// keep left side of panel on screen
+				if (x + minWidth > parent.width)
 					x = parent.width - minWidth;
-				if (parent.height - y < minHeight)
+				// keep top of panel on screen
+				if (y + minHeight > parent.height)
 					y = parent.height - minHeight;
+				// keep right side of panel on screen
 				if (x + width < minWidth)
 					x = minWidth - width;
+				// keep titlebar on screen
 				if (y < 0)
 					y = 0;
 				
@@ -1048,9 +1044,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				sendWindowToForeground();
-				updatePanelZOrder();
-				
-				updateBorders();
 				
 				_initialTitleBarMouseDownPoint = globalToLocal(new Point(stage.mouseX, stage.mouseY));
 				
@@ -1173,6 +1166,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						PopUpManager.addPopUp(_controlPanel, WeaveAPI.topLevelApplication as UIComponent);
 					_controlPanel.sendWindowToForeground();
 					_controlPanel.reposition();
+					_controlPanel.copyCoordinatesFromSessionedProperties();
 				}
 				else
 				{
@@ -1181,12 +1175,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
-			 * This will reposition the window at default random coordinates.
+			 * This will reposition the window with default coordinates.
 			 */
 			public function reposition():void
 			{
-				panelX.value = getDefaultRandomCoord();
-				panelY.value = getDefaultRandomCoord();
+				panelX.value = '' + int(2 + Math.random() * 6) + "%";
+				panelY.value = '' + int(2 + Math.random() * 6) + "%";
+				panelWidth.value = "50%";
+				panelHeight.value = "50%";
 			}
 			
 			private function setupButtonIcons(button:Button, iconClassOrArray_0icon_1over_2down:Object):void
@@ -1339,6 +1335,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						titleBar.removeChild(button);
 				}
 				updateBorders();
+				layoutChrome(unscaledWidth, unscaledHeight);
 			}
 			
 			override protected function layoutChrome(unscaledWidth:Number, unscaledHeight:Number):void
@@ -1423,7 +1420,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					minimizedComponentVersion = null;
 					copyCoordinatesFromSessionedProperties();
 					
-					// this fixes the display bugs that occurs when restoring a minimized window
+					// this fixes the display bugs that occur when restoring a minimized window
 					updateBorders();
 				}
 			}
@@ -1562,7 +1559,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				instance.restorePanel();
 				
 				var xSpace:Number = instance.parent.width - instance.width;
-				var ySpace:Number = instance.parent.height- instance.height;
+				var ySpace:Number = instance.parent.height - instance.height;
 				var xSpread:Number = Math.min(100, xSpace / 4);
 				var ySpread:Number = Math.min(100, ySpace / 4);
 				instance.panelX.value = String(int(xSpace/2 - xSpread/2 + xSpread * Math.random()));

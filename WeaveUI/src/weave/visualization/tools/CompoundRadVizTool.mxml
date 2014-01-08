@@ -200,7 +200,7 @@
 				return [_plotter.radiusColumn, _plotter.fillStyle.color, _plotter.columns];
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects(IAttributeColumn);
 				for (var i:int = 0; i < columns.length; i++)

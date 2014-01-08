@@ -40,6 +40,7 @@
 			import weave.api.setSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -278,14 +279,14 @@
 				if (_plotter.enableGroupBy.value)
 					return [lang("X values"), lang("Y values"), lang("Group by"), lang("Group color"), lang("Group label"), ];
 				else
-					return [lang("Color"), lang("Label"), lang("Y Columns"), lang("X Columns")];
+					return [lang("Color"), lang("Label"), lang("Y Columns")];
 			}
 			override public function getSelectableAttributes():Array
 			{
 				if (_plotter.enableGroupBy.value)
 					return [_plotter.xData, _plotter.yData, _plotter.groupBy, _plotter.lineStyle.color, labelPlotter.text];
 				else
-					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns, _plotter.xColumns];
+					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns];
 			}
 			
 			private function getColumnObjects():Array
@@ -350,7 +351,7 @@
 				yAxisPlotter.updateLabels();			
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects();
 				if (columns.length == 0)
@@ -521,7 +522,7 @@
 		</mx:VBox>
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
 				<ui:CheckBoxList id="probeChecklist"/>
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>

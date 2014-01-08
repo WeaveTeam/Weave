@@ -207,13 +207,15 @@ package weave.core
 		
 		private function encodeJSON(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
 		{
-			var str:String;
+			var str:String = null;
+			
 			var json:Object = ClassUtils.getClassDefinition('JSON');
-			if (!json)
+			if (json)
 				str = json.stringify(obj, null, 2);
 			else if (ExternalInterface.available)
 				str = ExternalInterface.call('JSON.stringify', obj, null, 2);
-			else
+			
+			if (str == null)
 				return null;
 			
 			var node:XMLNode = super.encodeValue(str, qname, parentNode);

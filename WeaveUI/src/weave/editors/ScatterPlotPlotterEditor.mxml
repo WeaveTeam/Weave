@@ -28,7 +28,6 @@
 				if(_plotter)
 				{
 					unlinkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
-					unlinkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
 					unlinkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
 					unlinkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
 					unlinkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
@@ -49,7 +48,6 @@
 					if (!initialized)
 						initialize();
 					linkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
-					linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
 					linkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
 					linkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
 					linkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
@@ -60,7 +58,7 @@
 					dataXCol.dynamicObject = _plotter.dataX;
 					dataYCol.dynamicObject = _plotter.dataY;
 					colorCol.columnWrapper = _plotter.fill.color;
-					sizeCol.dynamicObject = _plotter.screenRadius;
+					sizeCol.dynamicObject = _plotter.sizeBy;
 				}
 			}
 			
@@ -83,7 +81,7 @@
 					sizeBySlider.thumbCount = 1;
 					sizeBySlider.value = _plotter.maxScreenRadius.value;
 				}
-				else if (_plotter.enabledSizeBy.value)
+				else if (_plotter.sizeBy.internalObject)
 				{
 					sizeBySlider.thumbCount = 2;
 					sizeBySlider.values = [_plotter.minScreenRadius.value, _plotter.maxScreenRadius.value];
@@ -104,7 +102,7 @@
 				{
 					_plotter.maxScreenRadius.value = event.value;
 				}
-				else if (_plotter.enabledSizeBy.value)
+				else if (_plotter.sizeBy.internalObject)
 				{
 					if(event.thumbIndex == 0)
 					{
@@ -147,16 +145,8 @@
 	</mx:Script>
 	<ui:DynamicColumnComponent id="dataXCol" label="{lang('X')}"/>
 	<ui:DynamicColumnComponent id="dataYCol" label="{lang('Y')}"/>
-	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false" enabled="{!overrideColorCheckBox.selected}"/>
-	<ui:CustomCheckBox id="sizeByCheck" label="{lang('Size')}" textAlign="right"/>
-	<ui:DynamicColumnComponent id="sizeCol">
-		<ui:creationComplete>
-			<![CDATA[
-			sizeCol.addChildAt(sizeByCheck, 0);
-			sizeCol.useFirstChildAsLabel = true;
-			]]>
-		</ui:creationComplete>
-	</ui:DynamicColumnComponent>
+	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
+	<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}"/>
 	<ui:Indent label="{lang('Point size')}">
 		<mx:HSlider id="sizeBySlider"
 					liveDragging="true"

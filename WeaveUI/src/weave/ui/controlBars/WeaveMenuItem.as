@@ -19,10 +19,8 @@
 package weave.ui.controlBars
 {
 	import mx.collections.ArrayCollection;
-	import mx.controls.menuClasses.MenuBarItem;
-	import mx.utils.StringUtil;
 		
-	public class WeaveMenuItem extends MenuBarItem
+	public class WeaveMenuItem
 	{	
 		public function WeaveMenuItem(labelStringOrFunction:Object, clickFunction:Function=null, clickFunctionParameters:Array = null, enabledBooleanOrFunction:*=true)
 		{	
@@ -96,16 +94,17 @@ package weave.ui.controlBars
 		public function set toggled(value:Boolean):void { _toggled = value; }
 		
 
-		override public function set enabled(value:Boolean):void
+		private var _enabled:Boolean = true;
+		public function set enabled(value:Boolean):void
 		{
-			super.enabled = value;
+			_enabled = value;
 		}
-		override public function get enabled():Boolean
+		public function get enabled():Boolean
 		{
 			if(enabledFunction != null)
-				super.enabled = enabledFunction();
+				_enabled = enabledFunction();
 			
-			return super.enabled;
+			return _enabled;
 		}
 
 		//Specifies the type of menu item. Meaningful values are separator, check, or radio. Flex treats all other values, 
