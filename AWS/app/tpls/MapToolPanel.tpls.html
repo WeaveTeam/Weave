@@ -7,7 +7,7 @@
 	<input type="checkbox" name="enableMapTool" ng-model="enabled"/> Map Tool</br>
 	<select ui-select2 ng-model="selected" data-placeholder="Choose Map">
 					<option></option>
-					<option value="{{id}}"  ng-repeat="id in ids">{{getTitleFromId(id)}}</option>
+					<option value="{{gt}}"  ng-repeat="gt in geomTables">{{dt.title}}</option>
 	</select>
 	
 </div>

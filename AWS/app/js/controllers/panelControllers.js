@@ -36,6 +36,7 @@ angular.module("aws.panelControllers", [])
 			if($scope.scriptSelected != ""){
 				queryService.queryObject.scriptSelected = $scope.scriptSelected;
 				queryService.getScriptMetadata($scope.scriptSelected);			// reinitialize and apply to model
+				console.log("getting new script metadata");
 			}
 		}
 		// reset these values when the script changes
@@ -50,8 +51,8 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.$watch(function() {
 		return queryService.queryObject.scriptSelected;
-	}, function(newVal, oldVal) {
-		$scope.scriptSelected = newVal;
+	}, function() {
+		$scope.scriptSelected = queryService.queryObject.scriptSelected;
 		
 		// reset these values when the script changes
 		$scope.selection = []; 
@@ -65,9 +66,9 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
-	}, function(newVal, oldVal) {
-		if(newVal) {
-			$scope.inputs = newVal.inputs;
+	}, function() {
+		if (queryService.dataObject.hasOwnProperty('scriptMetadata')) {
+			$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
 		}
 	});
 	
@@ -230,13 +231,15 @@ angular.module("aws.panelControllers", [])
 	
 	queryService.queryObject.MapTool = {
 											enabled : "false",
-											id : "",
-											title : "",
-											keyType : ""
+											selected : { 
+												id : "",
+												title : "",
+												keyType : ""
+											}
 									   };
 	
 	queryService.getGeometryDataColumnsEntities();
-	$scope.ids = [];
+	$scope.geomTables = [];
 	
 	$scope.$watch(function() {
 		return queryService.dataObject.geometryColumns;
@@ -244,7 +247,11 @@ angular.module("aws.panelControllers", [])
 		if(queryService.dataObject.hasOwnProperty('geometryColumns')){
 			var geometryColumns = queryService.dataObject.geometryColumns;
 			for (var i = 0; i < geometryColumns.length; i++) {
-				$scope.ids.push(geometryColumns[i].id);
+				$scope.geomTables.push( {
+											id : geometryColumns[i].id,
+											title : geometryColumns[i].publicMetadata.title,
+											keyType : geometryColumns[i].publicMetadata.keyType
+				});
 			}
 		}
 	});
@@ -262,39 +269,16 @@ angular.module("aws.panelControllers", [])
 	});
 		
 	$scope.$watch('selected', function() {
-		queryService.queryObject.MapTool.id = $scope.selected;
-		queryService.queryObject.MapTool.title = getTitleFromId($scope.selected);
-		queryService.queryObject.MapTool.keyType = getKeyTypeFromId($scope.selected);
+		if($scope.selected != undefined && $scope.selected != "") {
+			queryService.queryObject.selected = angular.fromJson($scope.selected);;
+		}
 	});
 	
 	$scope.$watch(function(){
-		return queryService.queryObject.MapTool.id;
+		return queryService.queryObject.MapTool.selected;
 	}, function() {
-		$scope.id = queryService.queryObject.MapTool.id;	
+		$scope.selected = angular.toJson(queryService.queryObject.MapTool.selected);	
 	});
-	
-	var getTitleFromId = function(id) {
-		id = 1076;
-		if(queryService.dataObject.hasOwnProperty("geometryColumns")) {
-			for(var i = 0; i < queryService.dataObject.geometryColumns.length; i++) {
-				var column = queryService.dataObject.geometryColumns[i];
-				if (column.id == id) {
-					return column.publicMetadata.title;
-				}
-			}
-		}
-	}
-	
-	var getKeyTypeFromId = function(id) {
-		if(queryService.dataObject.hasOwnProperty("geometryColumns")) {
-			for(var i = 0; i < queryService.dataObject.geometryColumns.length; i++) {
-				var column = queryService.dataObject.geometryColumns[i];
-				if (column.id == id) {
-					return column.publicMetadata.keyType;
-				}
-			}
-		}
-	}
 })
 
 // BARCHART CONTROLLER
@@ -503,6 +487,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
 	}, function() {
+		console.log("new metadata");
 		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
 			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
 				var outputs = queryService.dataObject.scriptMetadata.outputs;
@@ -511,7 +496,7 @@ angular.module("aws.panelControllers", [])
 				}
 			}
 		}
-	});
+	}, true);
 	
 		
 	/*** double binding *****/
