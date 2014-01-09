@@ -29,4 +29,10 @@
 				<input type="number"/>
 			</div>
 		</div>
+		
+		<div ng-repeat="input in inputs"> <b>{{input.param}}:</b></div>
+			<select ng-if="input.type == column" ui-select2 ng-model= >
+					<option></option>
+					<option value="{{ col }}" ng-repeat="col in $parent.columns[input.columnType]"> {{col.publicMetadata.title}}</option> 
+			</select>
 </div>

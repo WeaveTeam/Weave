@@ -51,11 +51,12 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.getScriptMetadata = function(scriptName) {
+    this.getScriptMetadata = function(scriptName, forceUpdate) {
         var deferred = $q.defer();
-        
-        if (this.dataObject.scriptMetadata) {
-        	return this.dataObject.scriptMetadata;
+        if (!forceUpdate) {
+        	if (this.dataObject.scriptMetadata) {
+        		return this.dataObject.scriptMetadata;
+        	}
         }
         
         aws.RClient.getScriptMetadata(scriptName, function(result) {

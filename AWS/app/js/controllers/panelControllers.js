@@ -35,8 +35,7 @@ angular.module("aws.panelControllers", [])
 		if($scope.scriptSelected != undefined) {
 			if($scope.scriptSelected != ""){
 				queryService.queryObject.scriptSelected = $scope.scriptSelected;
-				queryService.getScriptMetadata($scope.scriptSelected);			// reinitialize and apply to model
-				console.log("getting new script metadata");
+				queryService.getScriptMetadata($scope.scriptSelected, true);
 			}
 		}
 		// reset these values when the script changes
@@ -64,11 +63,18 @@ angular.module("aws.panelControllers", [])
 		$scope.enabled = [];
 	});
 	
+	$scope.inputs;
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
 	}, function() {
-		if (queryService.dataObject.hasOwnProperty('scriptMetadata')) {
-			$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
+		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			$scope.inputs = [];
+			if(queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
+				var inputs = queryService.dataObject.scriptMetadata.inputs;
+				for( var i = 0; i < inputs.length; i++) {
+					$scope.inputs.push(inputs[i].param);
+				}
+			}
 		}
 	});
 	
@@ -296,6 +302,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
 	}, function() {
+		$scope.options = [];
 		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
 			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
 				var outputs = queryService.dataObject.scriptMetadata.outputs;
@@ -372,6 +379,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
 	}, function() {
+		$scope.options = [];
 		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
 			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
 				var outputs = queryService.dataObject.scriptMetadata.outputs;
@@ -423,6 +431,7 @@ angular.module("aws.panelControllers", [])
 		return queryService.dataObject.scriptMetadata;
 	}, function() {
 		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			$scope.options = [];
 			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
 				var outputs = queryService.dataObject.scriptMetadata.outputs;
 				for( var i = 0; i < outputs.length; i++) {
@@ -487,8 +496,8 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
 	}, function() {
-		console.log("new metadata");
 		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			$scope.options = [];
 			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
 				var outputs = queryService.dataObject.scriptMetadata.outputs;
 				for( var i = 0; i < outputs.length; i++) {
@@ -496,7 +505,7 @@ angular.module("aws.panelControllers", [])
 				}
 			}
 		}
-	}, true);
+	});
 	
 		
 	/*** double binding *****/
