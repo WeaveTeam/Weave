@@ -493,6 +493,8 @@ package weave.data.DataSources
 		}
 		private function handleFault(event:FaultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(dataService))
+				return;
 			reportError(event);
 			trace('async token',ObjectUtil.toString(token));
 		}
