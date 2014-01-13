@@ -55,50 +55,13 @@ package weave.services
 		public var parameters:Object;
 		public var resultCastFunction:Function;
 		public var handleErrorMessageObjects:Boolean;
+		public var eventReceived:Event = null; // for debugging
 		
 		// the token associated with the call, null until query is performed	
 		private var internalAsyncToken:AsyncToken = null;
 
 		// used to keep track of the time spent running responder functions
 		private var processingTime:int = 0;
-		
-		/**
-		 * This function will create a new AsyncResponder object and pass it to the addResponder function.
-		 */
-		public function addAsyncResponder(resultFunc:Function, faultFunc:Function = null, token:Object = null):void
-		{
-			if (resultFunc == null)
-				resultFunc = emptyResultOrFaultFunction;
-			if (faultFunc == null)
-				faultFunc = emptyResultOrFaultFunction;
-
-			// put a wrapper function around result & fault functions to keep track of processing time
-			var faultWrapperFunc:Function = function(event:FaultEvent, token:Object = null):void
-			{
-				if (token == null)
-					faultFunc(event);
-				else
-					faultFunc(event, token);
-			}
-			var resultWrapperFunc:Function = function(event:ResultEvent, token:Object = null):void
-			{
-				if (token == null)
-					resultFunc(event);
-				else
-					resultFunc(event, token);
-			}
-			
-			addResponder(new DelayedAsyncResponder(resultWrapperFunc, faultWrapperFunc, token));
-		}
-		
-		/**
-		 * This function does nothing.
-		 * It can be used in place of a result or fault function when no function is desired.
-		 */
-		private static function emptyResultOrFaultFunction(event:Event, token:Object = null):void
-		{
-			// does nothing
-		} 
 		
 		/**
 		 * This function will invoke the async method using the parameters previously specified.
@@ -124,6 +87,8 @@ package weave.services
 		 */
 		private function handleResult(event:ResultEvent, token:Object = null):void
 		{
+			eventReceived = event;
+			
 			// cast result if result cast function is given
 			if (resultCastFunction != null)
 			{
@@ -156,6 +121,8 @@ package weave.services
 		 */
 		private function handleFault(event:FaultEvent, token:Object = null):void
 		{
+			eventReceived = event;
+			
 			// broadcast fault to responders in the order they were added
 			if (responders != null)
 				for (var i:int = 0; i < responders.length; i++)

@@ -89,7 +89,7 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Thermometer of {0}", ColumnUtils.getTitle(plotter.meterColumn));
 			}

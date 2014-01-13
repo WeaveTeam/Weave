@@ -212,7 +212,7 @@
 					visualization.additionalProbeColumns = null;
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				// hack
 				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(Weave.defaultColorColumn);
@@ -528,8 +528,7 @@
 					return;
 				
 				// set defaults
-				plotter.enabledSizeBy.value = true;
-				copySessionState(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color), plotter.screenRadius);
+				copySessionState(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color), plotter.sizeBy);
 				
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)

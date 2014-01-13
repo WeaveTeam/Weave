@@ -46,15 +46,9 @@ package weave.data.DataSources
 	{
 		public function MultiDataSource()
 		{
-			var sources:Array = _root.getObjects(IDataSource);
-			
-			for each(var source:IDataSource in sources)
-			{
-				if(!(source is MultiDataSource))
-				{
-					getCallbackCollection(source.attributeHierarchy).addImmediateCallback(this, handleHierarchyChange);
-				}
-			}
+			var dependencies:Array = _root.getObjects(IDataSource).concat(_root.getObjects(EquationColumn), _root.getObjects(CSVColumn));
+			for each (var obj:ILinkableObject in dependencies)
+				addDependency(obj);
 			
 			_root.childListCallbacks.addImmediateCallback(this, handleWeaveChildListChange);
 			handleHierarchyChange();
@@ -78,20 +72,21 @@ package weave.data.DataSources
 			return _attributeHierarchy;
 		}
 		
-		
+		private function addDependency(obj:ILinkableObject):void
+		{
+			if (!(obj is MultiDataSource) && (obj is IDataSource || obj is IAttributeColumn))
+			{
+				if (obj is IDataSource)
+					obj = (obj as IDataSource).attributeHierarchy;
+				
+				registerLinkableChild(this, obj);
+				getCallbackCollection(obj).addGroupedCallback(this, handleHierarchyChange);
+			}
+		}
 		private function handleWeaveChildListChange():void
 		{
 			// add callback to new IDataSource or IAttributeColumn so we refresh the hierarchy when it changes
-			var newObj:ILinkableObject = _root.childListCallbacks.lastObjectAdded;
-			if (!(newObj is MultiDataSource))
-			{
-				if (newObj is IDataSource || newObj is IAttributeColumn)
-				{
-					registerLinkableChild(this, newObj);
-					getCallbackCollection(newObj).addImmediateCallback(this, handleHierarchyChange);
-				}
-			}
-			
+			addDependency(_root.childListCallbacks.lastObjectAdded);
 			handleHierarchyChange();
 		}
 		

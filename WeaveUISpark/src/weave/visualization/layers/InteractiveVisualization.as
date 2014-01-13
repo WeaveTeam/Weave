@@ -813,8 +813,8 @@ package weave.visualization.layers
 				var keys:Array = null;
 				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 				{
-					// if user has probed something and not dragged the mouse during selection, select only the probed shapes 
-					if (!_lastProbedQKeys || !queryBounds.isEmpty())
+					// if user has probed something and not dragged the mouse during selection, select only the probed shapes
+					if (!(_lastProbedQKeys && queryBounds.getWidth() == 0 && queryBounds.getHeight() == 0))
 						keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				}
 				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)

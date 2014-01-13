@@ -222,7 +222,7 @@ package weave.visualization.layers
 					trace(this, 'visible=false');
 				visible = false;
 			}
-			else if (!_layerSettings.selectable.value && _taskType != TASK_TYPE_SUBSET)
+			else if (!_layerSettings.selectable.value && _taskType != TASK_TYPE_SUBSET && !_layerSettings.alwaysRenderSelection.value)
 			{
 				if (debug)
 					trace(this, 'selection disabled');
@@ -253,9 +253,9 @@ package weave.visualization.layers
 		
 		private function asyncStart():void
 		{
+			asyncInit();
 			if (shouldBeRendered())
 			{
-				asyncInit();
 				if (debug)
 					trace(this, 'begin async rendering');
 				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
@@ -282,24 +282,23 @@ package weave.visualization.layers
 			_progress = 0;
 			_iteration = 0;
 			_iPendingKey = 0;
-			_pendingKeys = _plotter.filteredKeySet.keys;
-			_recordKeys = [];
-			_zoomBounds.getDataBounds(_dataBounds);
-			_zoomBounds.getScreenBounds(_screenBounds);
-			if (_taskType == TASK_TYPE_SUBSET)
-			{
-				// TEMPORARY SOLUTION until we start using VisToolGroup
-				_keyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
-				//_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
-			}
-			else if (_taskType == TASK_TYPE_SELECTION)
-				_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
-			else if (_taskType == TASK_TYPE_PROBE)
-				_keyFilter = _layerSettings.probeFilter.getInternalKeyFilter();
-			
-			// stop immediately if we shouldn't be rendering
 			if (shouldBeRendered())
 			{
+				_pendingKeys = _plotter.filteredKeySet.keys;
+				_recordKeys = [];
+				_zoomBounds.getDataBounds(_dataBounds);
+				_zoomBounds.getScreenBounds(_screenBounds);
+				if (_taskType == TASK_TYPE_SUBSET)
+				{
+					// TEMPORARY SOLUTION until we start using VisToolGroup
+					_keyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
+					//_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
+				}
+				else if (_taskType == TASK_TYPE_SELECTION)
+					_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
+				else if (_taskType == TASK_TYPE_PROBE)
+					_keyFilter = _layerSettings.probeFilter.getInternalKeyFilter();
+			
 				if (debug)
 					trace(this, 'clear');
 				// clear bitmap and resize if necessary
@@ -307,10 +306,13 @@ package weave.visualization.layers
 			}
 			else
 			{
+				// clear graphics if not already cleared
 				PlotterUtils.emptyBitmapData(bufferBitmap);
 				PlotterUtils.emptyBitmapData(completedBitmap);
 				completedDataBounds.reset();
 				completedScreenBounds.reset();
+				_pendingKeys = null;
+				_recordKeys = null;
 			}
 		}
 		
@@ -421,7 +423,10 @@ package weave.visualization.layers
 					// if we get here it means the plotter draw function triggered callbacks
 					// and we need to restart the async task.
 					asyncInit();
-					return asyncIterate(stopTime);
+					if (shouldBeRendered())
+						return asyncIterate(stopTime);
+					else
+						return 1;
 				}
 				else
 					_iteration++; // prepare for next iteration

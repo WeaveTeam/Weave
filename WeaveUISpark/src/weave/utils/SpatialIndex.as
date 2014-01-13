@@ -140,13 +140,9 @@ package weave.utils
 			clear();
 			_plotter = plotter;
 
+			// make a copy of the keys vector
 			if (plotter)
-			{
-				plotter.getBackgroundDataBounds(collectiveBounds);
-				
-				// make a copy of the keys vector
 				VectorUtils.copy(plotter.filteredKeySet.keys, _keysArray);			
-			}
 			
 			// if auto-balance is disabled, randomize insertion order
 			if (!_kdTree.autoBalance)

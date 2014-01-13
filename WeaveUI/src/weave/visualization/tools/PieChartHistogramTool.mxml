@@ -32,6 +32,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
@@ -133,7 +134,7 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("[Pie Chart Histogram] of {0}", ColumnUtils.getTitle(_plotter.unfilteredData));
 			}
@@ -148,7 +149,7 @@
 		</mx:VBox>
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
 				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>

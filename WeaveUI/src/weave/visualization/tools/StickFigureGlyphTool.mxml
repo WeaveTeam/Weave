@@ -84,7 +84,7 @@
 				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang(
 					"Stick Figure Plot of {0} -vs- {1}, with angles of {2}, {3}, {4}, {5}",
