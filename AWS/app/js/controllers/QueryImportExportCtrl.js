@@ -16,9 +16,7 @@ angular.module("aws.QueryImportExport", []).controller("QueryImportExportCtrl", 
 			
 			$scope.$on('newQueryLoaded', function(e) {
                 $scope.$safeApply(function() {
-                     if ($scope.queryObject) {
-                                queryService.queryObject = $scope.queryObject;
-                     }
+                  queryService.queryObject = e.targetScope.jsonText;
                 });
 			});
 });

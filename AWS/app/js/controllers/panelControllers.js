@@ -31,12 +31,11 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.scriptList = queryService.getListOfScripts();
 	
+	
 	$scope.$watch('scriptSelected', function() {
-		if($scope.scriptSelected != undefined) {
-			if($scope.scriptSelected != ""){
+		if($scope.scriptSelected != undefined && $scope.scriptSelected != "") {
 				queryService.queryObject.scriptSelected = $scope.scriptSelected;
 				queryService.getScriptMetadata($scope.scriptSelected, true);
-			}
 		}
 		// reset these values when the script changes
 		$scope.selection = []; 
@@ -70,10 +69,7 @@ angular.module("aws.panelControllers", [])
 		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
 			$scope.inputs = [];
 			if(queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
-				var inputs = queryService.dataObject.scriptMetadata.inputs;
-				for( var i = 0; i < inputs.length; i++) {
-					$scope.inputs.push(inputs[i].param);
-				}
+					$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
 			}
 		}
 	});
@@ -83,64 +79,83 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.queryObject.dataTable;
 	}, function(){
-			if(queryService.queryObject.hasOwnProperty("dataTable")) {
-				if(queryService.queryObject.dataTable.hasOwnProperty("id")) {
-					$scope.columns = queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id).then(function(result){
-						var orderedColumns = {};
-						for(var i = 0; i  < result.length; i++) {
-							if (result[i].publicMetadata.hasOwnProperty("aws_metadata")) {
-								var aws_metadata = angular.fromJson(result[i].publicMetadata.aws_metadata);
-								if(aws_metadata.hasOwnProperty("columnType")) {
-									var key = aws_metadata.columnType;
-									if(!orderedColumns.hasOwnProperty(key)) {
-										orderedColumns[key] = [result[i]];
-									} else {
-										orderedColumns[key].push(result[i]);
-									}
-								}
-							}
+		queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
+		// reset these values when the data table changes
+		$scope.selection = []; 
+		$scope.filterType = [];
+		$scope.show = [];
+		$scope.sliderOptions = [];
+		$scope.categoricalOptions = [];
+		$scope.filterValues = [];
+		$scope.enabled = [];
+	});
+	
+
+	$scope.$watch(function(){
+		return queryService.dataObject.columns;
+	}, function(){
+		if ( queryService.dataObject.columns != undefined ) {
+			var columns = queryService.dataObject.columns;
+			var orderedColumns = {};
+			orderedColumns.all = [];
+			for(var i = 0; i  < columns.length; i++) {
+				if (columns[i].publicMetadata.hasOwnProperty("aws_metadata")) {
+					var column = columns[i];
+					orderedColumns.all.push({ id : column.id , title : column.publicMetadata.title } );
+					var aws_metadata = angular.fromJson(column.publicMetadata.aws_metadata);
+					if(aws_metadata.hasOwnProperty("columnType")) {
+						var key = aws_metadata.columnType;
+						if(!orderedColumns.hasOwnProperty(key)) {
+							orderedColumns[key] = [ { id : column.id, title : column.publicMetadata.title }];
+						} else {
+							orderedColumns[key].push({
+														id : column.id,
+														title : column.publicMetadata.title
+							});
 						}
-						orderedColumns['any'] = result;
-						return orderedColumns;
-					});
+					}
 				}
 			}
-			// reset these values when the data table changes
-			$scope.selection = []; 
-			$scope.filterType = [];
-			$scope.show = [];
-			$scope.sliderOptions = [];
-			$scope.categoricalOptions = [];
-			$scope.filterValues = [];
-			$scope.enabled = [];
-	}, true);
-		
+			$scope.columns = orderedColumns;
+			console.log($scope.columns);
+		}
+	});
+			
 	$scope.$watch('selection', function(){
 		queryService.queryObject['FilteredColumnRequest'] = [];
 		for(var i = 0; i < $scope.selection.length; i++) {
 			queryService.queryObject['FilteredColumnRequest'][i] = {};
 			if($scope.selection != undefined) {
+				console.log($scope.selection);
 				if ($scope.selection[i] != ""){
 					var selection = angular.fromJson($scope.selection[i]);
 					
 					queryService.queryObject['FilteredColumnRequest'][i] = {
-																			id : selection,
+																			column : selection,
 																			filters : []
 																		};
 
-					var column = angular.fromJson($scope.selection[i]);
+					var columnSelected = angular.fromJson($scope.selection[i]);
+					// find the column metadata
+					var allColumns = $scope.columns.all;
+					var column;
+					for (var i = 0; i < allColumns.length; i++) {
+						if (columnSelected.id = allColumns[i].id) {
+							column = allColumns[i];
+						}
+					}
 					
 					if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
 						var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
 						if (metadata.hasOwnProperty("varType")) {
 							if (metadata.varType == "continuous") {
-								$scope.filterType[i] = "continuous"; // false for continuous, true for categorical
+								$scope.filterType[i] = "continuous";
 								if(metadata.hasOwnProperty("varRange")) {
 									$scope.show[i] = true;
 									$scope.sliderOptions[i] = { range:true, min: metadata.varRange[0], max: metadata.varRange[1]};
 								}
 							} else if (metadata.varType == "categorical") {
-								$scope.filterType[i] = "categorical"; // false for continuous, true for categorical
+								$scope.filterType[i] = "categorical";
 								if(metadata.hasOwnProperty("varValues")) {
 									$scope.show[i] = true;
 									$scope.categoricalOptions[i] = metadata.varValues;
@@ -276,7 +291,7 @@ angular.module("aws.panelControllers", [])
 		
 	$scope.$watch('selected', function() {
 		if($scope.selected != undefined && $scope.selected != "") {
-			queryService.queryObject.selected = angular.fromJson($scope.selected);;
+			queryService.queryObject.MapTool.selected = angular.fromJson($scope.selected);
 		}
 	});
 	

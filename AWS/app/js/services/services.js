@@ -26,6 +26,7 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
     		return this.dataObject.listOfScripts;
     	}
     	
+    	
     	var deferred = $q.defer();
 
         aws.RClient.getListOfScripts(function(result) {
@@ -80,10 +81,12 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
     	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
     	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
     	  */
-    	this.getDataColumnsEntitiesFromId = function(id) {
+    	this.getDataColumnsEntitiesFromId = function(id, forceUpdate) {
             
-    		if (this.dataObject.columns) {
-    			return this.dataObject.columns;
+    		if(!forceUpdate) {
+	    		if (this.dataObject.columns) {
+	    			return this.dataObject.columns;
+	    		}
     		}
 
     		var deferred = $q.defer();

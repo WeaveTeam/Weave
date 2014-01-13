@@ -4,7 +4,7 @@
 angular.module('aws.DataTable', []).controller('DataTableCtrl', function($scope, queryService) {
 
 	queryService.queryObject.dataTable = {
-			id : "",
+			id : -1,
 			title : ""
 	};
 	
@@ -29,7 +29,7 @@ angular.module('aws.DataTable', []).controller('DataTableCtrl', function($scope,
     	if ($scope.dataTable != undefined && $scope.dataTable != "") {
     		var dataTable = angular.fromJson($scope.dataTable);
     		queryService.queryObject.dataTable = dataTable; 
-    		if(dataTable.hasOwnProperty('id') && dataTable.id != "") {
+    		if(dataTable.hasOwnProperty('id') && dataTable.id != null) {
     			queryService.getDataColumnsEntitiesFromId(dataTable.id);
     		}
     	}
