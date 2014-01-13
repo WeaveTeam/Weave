@@ -90,6 +90,8 @@ package weave.visualization.plotters
 					for (var ix:int = 0, x:Number = xStart; x < xMax; x = xStart + dx * ++ix)
 						drawLine(x, yMin, x, yMax, graphics, dataBounds, screenBounds);
 				}
+				else if (isFinite(xOffset.value) && xMin < x0 && x0 < xMax)
+					drawLine(x0, yMin, x0, yMax, graphics, dataBounds, screenBounds);
 				
 				if (xMin <= xMax && ((xMax - x0) % dx == 0 || dx == 0))
 					drawLine(xMax, yMin, xMax, yMax, graphics, dataBounds, screenBounds);
@@ -113,6 +115,8 @@ package weave.visualization.plotters
 					for (var iy:int = 0, y:Number = yStart; y < yMax; y = yStart + dy * ++iy)
 						drawLine(xMin, y, xMax, y, graphics, dataBounds, screenBounds);
 				}
+				else if (isFinite(yOffset.value) && yMin < y0 && y0 < yMax)
+					drawLine(xMin, y0, xMax, y0, graphics, dataBounds, screenBounds);
 				
 				if (yMin <= yMax && ((yMax - y0) % dy == 0 || dy == 0))
 					drawLine(xMin, yMax, xMax, yMax, graphics, dataBounds, screenBounds);
