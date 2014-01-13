@@ -543,10 +543,7 @@ public class AWSRService extends RService
 			e.printStackTrace();
 			System.out.println("printing error");
 			System.out.println(e.getMessage());
-			String errorStatement = e.getMessage();
-			// to send error from R to As3 side results is created with one
-			// object			
-			resultVector.add(new RResult("Error Statement state", errorStatement));
+			throw new RemoteException("Unable to run script", e);
 		}
 		finally
 		{

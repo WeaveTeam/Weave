@@ -117,10 +117,10 @@ angular.module("aws.panelControllers", [])
 				}
 			}
 			$scope.columns = orderedColumns;
-			console.log($scope.columns);
 		}
 	});
-			
+	
+
 	$scope.$watch('selection', function(){
 		queryService.queryObject['FilteredColumnRequest'] = [];
 		for(var i = 0; i < $scope.selection.length; i++) {
@@ -130,15 +130,15 @@ angular.module("aws.panelControllers", [])
 				if ($scope.selection[i] != ""){
 					var selection = angular.fromJson($scope.selection[i]);
 					
-					queryService.queryObject['FilteredColumnRequest'][i] = {
-																			column : selection,
-																			filters : []
-																		};
+					queryService.queryObject['FilteredColumnRequest'][i].column = selection;
+					queryService.queryObject.FilteredColumnRequest[i].filters = [];
 
-					var columnSelected = angular.fromJson($scope.selection[i]);
+					var columnSelected = selection;
+					
 					// find the column metadata
+					console.log($scope.columns);
 					var allColumns = $scope.columns.all;
-					var column;
+					var column = {};
 					for (var i = 0; i < allColumns.length; i++) {
 						if (columnSelected.id = allColumns[i].id) {
 							column = allColumns[i];
