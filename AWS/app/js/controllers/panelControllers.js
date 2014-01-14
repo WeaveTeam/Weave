@@ -122,9 +122,9 @@ angular.module("aws.panelControllers", [])
 	
 
 	$scope.$watch('selection', function(){
-		queryService.queryObject['FilteredColumnRequest'] = [];
+		queryService.queryObject.FilteredColumnRequest = [];
 		for(var i = 0; i < $scope.selection.length; i++) {
-			queryService.queryObject['FilteredColumnRequest'][i] = {};
+			queryService.queryObject.FilteredColumnRequest[i] = {};
 			if($scope.selection != undefined) {
 				console.log($scope.selection);
 				if ($scope.selection[i] != ""){
@@ -134,14 +134,14 @@ angular.module("aws.panelControllers", [])
 					queryService.queryObject.FilteredColumnRequest[i].filters = [];
 
 					var columnSelected = selection;
-					
-					// find the column metadata
-					console.log($scope.columns);
-					var allColumns = $scope.columns.all;
-					var column = {};
-					for (var i = 0; i < allColumns.length; i++) {
-						if (columnSelected.id = allColumns[i].id) {
-							column = allColumns[i];
+
+					var allColumns = queryService.dataObject.columns;
+					var column;
+					for (var j = 0; j < allColumns.length; j++) {
+						if(columnSelected != undefined && columnSelected != "") {
+							if (columnSelected.id == allColumns[j].id) {
+								column = allColumns[j];
+							}
 						}
 					}
 					
@@ -245,6 +245,16 @@ angular.module("aws.panelControllers", [])
 			} 
 		}
 	}, true);
+	
+	$scope.$watch(function() {
+		return queryService.queryObject.FilteredColumnRequest;
+	}, function() {
+		for (var i = 0; i < queryService.queryObject.FilteredColumnRequest.length; i++) {
+			$scope.selection[i] = angular.toJson(queryService.queryObject.FilteredColumnRequest[i].column);
+			$scope.filterValues = angular.toJson(queryService.queryObject.FilteredColumnRequest[i].column);
+		}
+		
+	})
 })
 
 // MAP TOOL CONTROLLER
