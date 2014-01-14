@@ -37,29 +37,12 @@ angular.module("aws.panelControllers", [])
 				queryService.queryObject.scriptSelected = $scope.scriptSelected;
 				queryService.getScriptMetadata($scope.scriptSelected, true);
 		}
-		// reset these values when the script changes
-		$scope.selection = []; 
-		$scope.filterType = [];
-		$scope.show = [];
-		$scope.sliderOptions = [];
-		$scope.categoricalOptions = [];
-		$scope.filterValues = [];
-		$scope.enabled = [];
 	});
 	
 	$scope.$watch(function() {
 		return queryService.queryObject.scriptSelected;
 	}, function() {
 		$scope.scriptSelected = queryService.queryObject.scriptSelected;
-		
-		// reset these values when the script changes
-		$scope.selection = []; 
-		$scope.filterType = [];
-		$scope.show = [];
-		$scope.sliderOptions = [];
-		$scope.categoricalOptions = [];
-		$scope.filterValues = [];
-		$scope.enabled = [];
 	});
 	
 	$scope.inputs;
@@ -81,13 +64,6 @@ angular.module("aws.panelControllers", [])
 	}, function(){
 		queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
 		// reset these values when the data table changes
-		$scope.selection = []; 
-		$scope.filterType = [];
-		$scope.show = [];
-		$scope.sliderOptions = [];
-		$scope.categoricalOptions = [];
-		$scope.filterValues = [];
-		$scope.enabled = [];
 	});
 	
 
@@ -120,141 +96,137 @@ angular.module("aws.panelControllers", [])
 		}
 	});
 	
+	queryService.queryObject.FilteredColumnRequest = [];
 
-	$scope.$watch('selection', function(){
-		queryService.queryObject.FilteredColumnRequest = [];
+	$scope.$watchCollection('selection', function(newVal, oldVal){
 		for(var i = 0; i < $scope.selection.length; i++) {
-			queryService.queryObject.FilteredColumnRequest[i] = {};
-			if($scope.selection != undefined) {
-				console.log($scope.selection);
-				if ($scope.selection[i] != ""){
-					var selection = angular.fromJson($scope.selection[i]);
-					
-					queryService.queryObject['FilteredColumnRequest'][i].column = selection;
-					queryService.queryObject.FilteredColumnRequest[i].filters = [];
-
-					var columnSelected = selection;
-
-					var allColumns = queryService.dataObject.columns;
-					var column;
-					for (var j = 0; j < allColumns.length; j++) {
-						if(columnSelected != undefined && columnSelected != "") {
-							if (columnSelected.id == allColumns[j].id) {
-								column = allColumns[j];
-							}
+				if($scope.selection != undefined) {
+					if ($scope.selection[i] != undefined && $scope.selection[i] != ""){
+						var selection = angular.fromJson($scope.selection[i]);
+						if(queryService.queryObject.FilteredColumnRequest[i]){
+							queryService.queryObject.FilteredColumnRequest[i].column = selection;
+						} else {
+							queryService.queryObject.FilteredColumnRequest[i] = {column : selection};
 						}
-					}
-					
-					if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
-						var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
-						if (metadata.hasOwnProperty("varType")) {
-							if (metadata.varType == "continuous") {
-								$scope.filterType[i] = "continuous";
-								if(metadata.hasOwnProperty("varRange")) {
-									$scope.show[i] = true;
-									$scope.sliderOptions[i] = { range:true, min: metadata.varRange[0], max: metadata.varRange[1]};
-								}
-							} else if (metadata.varType == "categorical") {
-								$scope.filterType[i] = "categorical";
-								if(metadata.hasOwnProperty("varValues")) {
-									$scope.show[i] = true;
-									$scope.categoricalOptions[i] = metadata.varValues;
+						var columnSelected = selection;
+						var allColumns = queryService.dataObject.columns;
+						var column;
+						for (var j = 0; j < allColumns.length; j++) {
+							if(columnSelected != undefined && columnSelected != "") {
+								if (columnSelected.id == allColumns[j].id) {
+									column = allColumns[j];
 								}
 							}
 						}
-					} else {
-						// disable these when there is no aws_metadata
-						$scope.show[i] = false;
-						$scope.sliderOptions[i] = [];
-						$scope.categoricalOptions[i] = [];
-					}
-					
-				} // end if ""
-			} // end if undefined
-			if($scope.filterValues != undefined) {
-				if(($scope.filterValues != undefined) && $scope.filterValues != "") {
-					if($scope.filterValues[i] != undefined) {
-						var temp = $.map($scope.filterValues[i],function(item){
-							if (angular.fromJson(item).hasOwnProperty("value")) {
-								return angular.fromJson(item).value;
-							}
-							else {
-								return angular.fromJson(item);
-							}
-						});
 						
-						if ($scope.filterType[i] == "categorical") { 
-							queryService.queryObject.FilteredColumnRequest[i].filters = temp;
-						} else if ($scope.filterType[i] == "continuous") { // continuous, we want arrays of ranges
-							queryService.queryObject.FilteredColumnRequest[i].filters = [temp];
+						if(column != undefined) {
+							if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
+								$scope.show[i] = true;
+								var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
+								if (metadata.hasOwnProperty("varType")) {
+									if (metadata.varType == "continuous") {
+										$scope.filterType[i] = "continuous";
+										if(metadata.hasOwnProperty("varRange")) {
+											$scope.sliderOptions[i] = { range:true, min: metadata.varRange[0], max: metadata.varRange[1]};
+										}
+									} else if (metadata.varType == "categorical") {
+										$scope.filterType[i] = "categorical";
+										if(metadata.hasOwnProperty("varValues")) {
+											$scope.categoricalOptions[i] = metadata.varValues;
+										}
+									}
+								}
+							} 
 						}
+					} // end if ""
+				} // end if undefined
+			}
+	});
+		
+	$scope.$watchCollection(function(){
+			return queryService.queryObject.FilteredColumnRequest;
+	}, function() {
+		if(queryService.queryObject.FilteredColumnRequest != undefined) {
+			for(var i = 0; i < queryService.queryObject.FilteredColumnRequest.length; i++) {
+				if (queryService.queryObject.FilteredColumnRequest[i] != undefined && queryService.queryObject.FilteredColumnRequest[i] != "") {
+					if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("column")) {
+						$scope.selection[i] = angular.toJson(queryService.queryObject.FilteredColumnRequest[i].column);
 					}
+					if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
+						$scope.show[i] = true;
+						if(queryService.queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterType")) {
+							$scope.filterType[i] = queryService.queryObject.FilteredColumnRequest[i].filters.filterType;
+						}
+						
+						if(queryService.queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterValues")) {
+							if (queryService.queryObject.FilteredColumnRequest[i].filters.filterType == "categorical") { 
+								var temp =  $.map(queryService.queryObject.FilteredColumnRequest[i].filters.filterValues, function(item){
+									return angular.toJson(item);
+								});
+								$scope.filterValues[i] = temp;
+							} else if (queryService.queryObject.FilteredColumnRequest[i].filters.filterType == "continuous") { // continuous, we want arrays of ranges
+								$scope.filterValues[i] = queryService.queryObject.FilteredColumnRequest[i].filters.filterValues[0];
+							}
+						} 
+						
+						if(queryService.queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("enabled")) {
+							$scope.enabled[i] = queryService.queryObject.FilteredColumnRequest[i].filters.enabled;
+						} 
+
+					} 
 				}
 			}
-		} // end for
-	}, true);
-
-	$scope.$watch('filterValues', function(){
-		for(var i = 0; i < $scope.selection.length; i++) {
+		}
+	});
+	
+	$scope.$watchCollection('filterType', function(){
+		if($scope.filterType != undefined) {
+			for(var i = 0; i < $scope.filterType.length; i++) {
+				if($scope.filterType[i] != undefined) {
+					if(!queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
+						queryService.queryObject.FilteredColumnRequest[i].filters = {};
+					}
+					queryService.queryObject.FilteredColumnRequest[i].filters.filterType = $scope.filterType[i];
+				}
+			}
+		}
+	});
+	
+	$scope.$watchCollection('filterValues', function(){
+		for(var i = 0; i < $scope.filterValues.length; i++) {
 			if(($scope.filterValues != undefined) && $scope.filterValues != "") {
 				if($scope.filterValues[i] != undefined && $scope.filterValues[i] != []) {
 					
 					var temp = $.map($scope.filterValues[i],function(item){
-						if (angular.fromJson(item).hasOwnProperty("value")) {
-							return angular.fromJson(item).value;
-						}
-						else {
 							return angular.fromJson(item);
-						}					
 					});
 					
+					if(!queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
+						queryService.queryObject.FilteredColumnRequest[i].filters = {};
+					}
+					
 					if ($scope.filterType[i] == "categorical") { 
-						queryService.queryObject.FilteredColumnRequest[i].filters = temp;
+						queryService.queryObject.FilteredColumnRequest[i].filters.filterValues = temp;
 					} else if ($scope.filterType[i] == "continuous") { // continuous, we want arrays of ranges
-						queryService.queryObject.FilteredColumnRequest[i].filters = [temp];
+						queryService.queryObject.FilteredColumnRequest[i].filters.filterValues = [temp];
 					}
+				} 
+			}
+		}
+	});
+	$scope.$watchCollection('enabled', function(){
+		if($scope.enabled != undefined) {
+			for(var i = 0; i < $scope.enabled.length; i++) {
+				if(!queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
+					queryService.queryObject.FilteredColumnRequest[i].filters = {};
+				}
 				
-				} else {
-					if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("id")) {
-						queryService.queryObject.FilteredColumnRequest[i].filters = [];
-					}
+				if($scope.enabled[i] != undefined) {
+					queryService.queryObject.FilteredColumnRequest[i].filters.enabled = $scope.enabled[i];
 				}
 			}
 		}
-	}, true);
-	$scope.$watch('enabled', function(){
-		for(var i = 0; i < $scope.selection.length; i++) {
-			if(($scope.enabled != undefined) && $scope.enabled != []) {
-				if($scope.enabled[i] != undefined && $scope.enabled == true) {
-					var temp = $.map($scope.filterValues[i],function(item){
-						if (angular.fromJson(item).hasOwnProperty("value")) {
-							return angular.fromJson(item).value;
-						}
-						else {
-							return angular.fromJson(item);
-						}					
-					});
-					queryService.queryObject.FilteredColumnRequest[i].filters = temp;
-				} else if($scope.enabled[i] == undefined || $scope.enabled[i] == false) {
-						if(queryService.queryObject.FilteredColumnRequest[i]) {
-							if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("id")) {
-								$scope.filterValues[i] = null;
-							}
-						}
-				 }
-			} 
-		}
-	}, true);
-	
-	$scope.$watch(function() {
-		return queryService.queryObject.FilteredColumnRequest;
-	}, function() {
-		for (var i = 0; i < queryService.queryObject.FilteredColumnRequest.length; i++) {
-			$scope.selection[i] = angular.toJson(queryService.queryObject.FilteredColumnRequest[i].column);
-			$scope.filterValues = angular.toJson(queryService.queryObject.FilteredColumnRequest[i].column);
-		}
-		
-	})
+	});
 })
 
 // MAP TOOL CONTROLLER
