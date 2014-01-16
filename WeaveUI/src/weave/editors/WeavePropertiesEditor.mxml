@@ -48,6 +48,9 @@
 	<WeavePropertiesSelectionEditor label="{lang('Selection')}"/>
 	
 	<mx:VBox label="{lang('Advanced')}" width="100%" height="100%">
+		<ui:CustomCheckBox label="{lang('Show error log when an error is caught')}"
+						   creationComplete="linkBindableProperty(Weave.properties.showErrors, event.target, 'selected');"/>
+		
 		<ui:Indent label="{lang('Streaming geometry bounding box request mode')}">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
 			<ui:HelpComponent>
