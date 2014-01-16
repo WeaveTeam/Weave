@@ -28,6 +28,7 @@
 		borderColor="#939178"
 		title="{lang('Translations')}"
 		addedToStage="refresh()"
+		escapeKeyClosesPanel="true"
 		>
 	<mx:VBox width="100%" height="100%"
 			paddingLeft="8"
