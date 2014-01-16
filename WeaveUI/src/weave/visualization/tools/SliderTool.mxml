@@ -111,6 +111,7 @@
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
 	public const linkGlobalColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+	public const linkLineCharts:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray, []));
 	public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString('HSlider', verifyLayout));
 	public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
@@ -493,6 +494,7 @@
 			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
 			<mx:VBox width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
 				<ui:CustomCheckBox label="{lang('Link global columns')}" creationComplete="linkBindableProperty(linkGlobalColumns, event.target, 'selected')"/>
+				<ui:CustomCheckBox label="{lang('Allow linking to Line Charts')}" creationComplete="linkBindableProperty(linkLineCharts, event.target, 'selected')"/>
 				<mx:Label text="Linked visualization tools"/>
 				<ui:Indent>
 					<ui:CheckBoxList id="toolCheckboxList" defaultSelectedState="true">
@@ -502,18 +504,20 @@
 									var dp:DraggablePanel = WeaveAPI.globalHashMap.getObject(name) as DraggablePanel;
 									return dp ? dp.title : name;
 								};
-								getCallbackCollection(WeaveAPI.globalHashMap.childListCallbacks).addImmediateCallback(
-									this,
-									function():void {
-										toolCheckboxList.dataProvider = WeaveAPI.globalHashMap.getNames(IVisTool).filter(
-											function(n:String, i:int, a:Array):Boolean {
-												var o:* = WeaveAPI.globalHashMap.getObject(n);
-												return !(o is SliderTool || o is LineChartTool);
-											}
-										);
-									},
-									true
-								);
+								linkLineCharts.addImmediateCallback(this, updateToolList);
+								getCallbackCollection(WeaveAPI.globalHashMap.childListCallbacks).addImmediateCallback(this, updateToolList, true);
+								function updateToolList():void {
+									toolCheckboxList.dataProvider = WeaveAPI.globalHashMap.getNames(IVisTool).filter(
+										function(n:String, i:int, a:Array):Boolean {
+											var o:* = WeaveAPI.globalHashMap.getObject(n);
+											if (o is SliderTool)
+												return false;
+											if (o is LineChartTool && !linkLineCharts.value)
+												return false;
+											return true;
+										}
+									);
+								}
 								unlinkedTools.addImmediateCallback(
 									this,
 									function():void {
