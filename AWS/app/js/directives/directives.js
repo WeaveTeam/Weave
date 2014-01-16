@@ -16,9 +16,6 @@ angular
 				reader.onload = function(e) {
 					$scope.jsonText =  $.parseJSON(e.target.result);
 					$scope.$broadcast('newQueryLoaded');
-					console.log(e.target.result);
-					//var qh = new aws.QueryHandler(importedobjectfromjson);
-					//qh.runQuery();
 				}
 				reader.readAsText(file);
 				

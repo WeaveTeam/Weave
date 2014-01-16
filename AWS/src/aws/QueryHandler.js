@@ -120,7 +120,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		$("#LogBox").append('<p>' + "Data Load Time: " + result.times[0]/1000 + " seconds.\n" + '</p>');
 		$("#LogBox").append("R Script Computation Time: " + result.times[1] / 1000 + " seconds." + '</p>');
 
-		newWeaveWindow.workOnData.call(that, result.data[0].value);
+		newWeaveWindow.workOnData(that, result.data[0].value);
 		
 		// step 2
 		//var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
@@ -144,7 +144,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 aws.QueryHandler.prototype.clearWeave = function () {
 	//$("#LogBox").html('');
 	if(newWeaveWindow) {
-		newWeaveWindow.clearWeave().call(this);
+		newWeaveWindow.clearWeave(this);
 	}
 };
 
@@ -187,5 +187,5 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 				}
 		);
 	}
-	newWeaveWindow.updateVisualizations.call(this);
+	newWeaveWindow.updateVisualizations(this);
 };

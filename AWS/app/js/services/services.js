@@ -9,7 +9,7 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
     
 	var that = this;
 	this.queryObject = {
-			title : "AlphaQueryObject",
+			title : "Beta Query Object",
 			date : new Date(),
     		author : "",
 			ComputationEngine : "R"

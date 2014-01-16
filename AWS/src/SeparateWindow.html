@@ -30,16 +30,16 @@
 			    client = new aws.WeaveClient(weave);
 			    console.log("got weave client");
 			   
-			    log.call("Running Query in R...");
+			    log("Running Query in R...");
 			    
 			    // this will call WorkOnData if the results are available
 			   if(responseResults) {
-				   console.log("calling from weave ready", responseResults);
+				   console.log("Calling from weave ready", responseResults);
 				   workOnData(responseResults);
 			   }
 			}
 			
-			function workOnData(input)
+			function workOnData(queryHandler, input)
 			{
 
 				//testing
@@ -50,44 +50,44 @@
 				{
 						   log("Displaying results in Weave...");
 						   //Todo parameterize keyColumnName ; here "fips"
-						   dataSourceName = client.addCSVDataSource(responseResults,"", this.keyType, "");
+						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "");
 						   var toolName;
 						    //creating the visualizations
-							for (var i in this.visualizations) {
-								toolName = client.newVisualization(this.visualizations[i], dataSourceName);
-								this.currentVisualizations[this.visualizations[i].type] = toolName;
-								//console.log(this.visualizations[i]);
-								//aws.timeLogString = aws.reportTime(this.visualizations[i].type + ' added');
+							for (var i in queryHandler.visualizations) {
+								toolName = client.newVisualization(queryHandler.visualizations[i], dataSourceName);
+								queryHandler.currentVisualizations[queryHandler.visualizations[i].type] = toolName;
+								//console.log(queryHandler.visualizations[i]);
+								//aws.timeLogString = aws.reportTime(queryHandler.visualizations[i].type + ' added');
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 							}
 								    
 						   // var colColumn = aws.QueryHandler.prototype.returnColorcolumn();
-						    if (this.ColorColumn) {
-						    	colorColumn = this.ColorColumn;
-								client.setColorAttribute(this.ColorColumn, dataSourceName);
+						    if (queryHandler.ColorColumn) {
+						    	colorColumn = queryHandler.ColorColumn;
+								client.setColorAttribute(queryHandler.ColorColumn, dataSourceName);
 								//aws.timeLogString = aws.reportTime('color column added');
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 							}	
 				}
 			}
 			
-			function updateVisualizations(){
+			function updateVisualizations(queryHandler){
 				
 				var toolName;
-				console.log(this);
-				for(var i in this.visualizations){
-					if (this.currentVisualizations.hasOwnProperty(this.visualizations[i].type)) {
-						console.log(this.visualizations[i].type);
-						this.visualizations[i].toolName = this.currentVisualizations[this.visualizations[i].type];
+
+				for(var i in queryHandler.visualizations){
+					if (queryHandler.currentVisualizations.hasOwnProperty(queryHandler.visualizations[i].type)) {
+						console.log(queryHandler.visualizations[i].type);
+						queryHandler.visualizations[i].toolName = queryHandler.currentVisualizations[queryHandler.visualizations[i].type];
 					}
 					
-					toolName = client.updateVisualization(this.visualizations[i], dataSourceName);
-					this.currentVisualizations[this.visualizations[i].type] = toolName;
+					toolName = client.updateVisualization(queryHandler.visualizations[i], dataSourceName);
+					queryHandler.currentVisualizations[queryHandler.visualizations[i].type] = toolName;
 				}
 				
-				 if (this.ColorColumn) {
-				    	colorColumn = this.ColorColumn;
-						client.setColorAttribute(this.ColorColumn, dataSourceName);
+				 if (queryHandler.ColorColumn) {
+				    	colorColumn = queryHandler.ColorColumn;
+						client.setColorAttribute(queryHandler.ColorColumn, dataSourceName);
 				 }
 			}
 			
