@@ -143,7 +143,7 @@
 				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
 				if (tool)
 				{
-					var selectedIndex:int = Math.max(dimensionTypeLinks.selectedIndex, 0);
+					var selectedIndex:int = dimensionTypeLinks.selectedIndex;
 					var attrs:Array = tool.getSelectableAttributes();
 					var names:Array = tool.getSelectableAttributeNames();
 					
@@ -155,7 +155,8 @@
 					selectableAttributes = attrs;
 					selectableAttributeNames = names;
 					title = ControlPanel.getControlPanelTitle(tool, TITLE_FORMAT);
-					linkToObject(selectableAttributes[selectedIndex]);
+					if (selectedIndex >= 0)
+						linkToObject(selectableAttributes[selectedIndex]);
 				}
 				else
 				{
