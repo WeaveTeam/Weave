@@ -64,44 +64,6 @@ package weave.services
 		private var processingTime:int = 0;
 		
 		/**
-		 * This function will create a new AsyncResponder object and pass it to the addResponder function.
-		 */
-		public function addAsyncResponder(resultFunc:Function, faultFunc:Function = null, token:Object = null):void
-		{
-			if (resultFunc == null)
-				resultFunc = emptyResultOrFaultFunction;
-			if (faultFunc == null)
-				faultFunc = emptyResultOrFaultFunction;
-
-			// put a wrapper function around result & fault functions to keep track of processing time
-			var faultWrapperFunc:Function = function(event:FaultEvent, token:Object = null):void
-			{
-				if (token == null)
-					faultFunc(event);
-				else
-					faultFunc(event, token);
-			}
-			var resultWrapperFunc:Function = function(event:ResultEvent, token:Object = null):void
-			{
-				if (token == null)
-					resultFunc(event);
-				else
-					resultFunc(event, token);
-			}
-			
-			addResponder(new DelayedAsyncResponder(resultWrapperFunc, faultWrapperFunc, token));
-		}
-		
-		/**
-		 * This function does nothing.
-		 * It can be used in place of a result or fault function when no function is desired.
-		 */
-		private static function emptyResultOrFaultFunction(event:Event, token:Object = null):void
-		{
-			// does nothing
-		} 
-		
-		/**
 		 * This function will invoke the async method using the parameters previously specified.
 		 */
 		public function invoke():void

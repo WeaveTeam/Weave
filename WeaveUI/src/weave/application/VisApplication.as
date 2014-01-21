@@ -189,11 +189,7 @@ package weave.application
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
 			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
 			
-			// special case - if an error occurred already
-			if (WeaveAPI.ErrorManager.errors.length > 0)
-				ErrorLogPanel.openErrorLog();
-			
-			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
+			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, handleError, WeaveAPI.ErrorManager.errors.length > 0);
 			WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
@@ -248,6 +244,12 @@ package weave.application
 			{
 				downloadConfigFile();
 			}
+		}
+
+		private function handleError():void
+		{
+			if (Weave.properties.showErrors.value)
+				ErrorLogPanel.openErrorLog();
 		}
 		
 		private function downloadConfigFile():void

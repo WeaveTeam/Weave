@@ -186,15 +186,19 @@ package weave.core
 				return false;
 			
 			var parentPath:Array = objectPath.concat();
-			var childName:String = parentPath.pop();
+			var childName:Object = parentPath.pop();
 			var parent:ILinkableObject = getObject(parentPath);
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 			var child:Object = null;
 			if (hashMap)
-				child = hashMap.requestObject(childName, classDef, false);
+			{
+				if (childName is Number)
+					childName = hashMap.getNames()[childName];
+				child = hashMap.requestObject(childName as String, classDef, false);
+			}
 			else if (dynamicObject)
-				child = dynamicObject.requestGlobalObject(childName, classDef, false);
+				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
 			else
 				child = getObject(objectPath);
 			return child is classDef;
@@ -208,12 +212,16 @@ package weave.core
 			if (!objectPath || !objectPath.length)
 				return false;
 			objectPath = objectPath.concat();
-			var childName:String = objectPath.pop();
+			var childName:Object = objectPath.pop();
 			var object:ILinkableObject = getObject(objectPath);
 			var hashMap:ILinkableHashMap = object as ILinkableHashMap;
 			var dynamicObject:ILinkableDynamicObject = object as ILinkableDynamicObject;
 			if (hashMap)
-				hashMap.removeObject(childName);
+			{
+				if (childName is Number)
+					childName = hashMap.getNames()[childName];
+				hashMap.removeObject(childName as String);
+			}
 			else if (dynamicObject)
 				dynamicObject.removeObject();
 			else

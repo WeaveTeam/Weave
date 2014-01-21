@@ -37,6 +37,7 @@ package weave.services
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.services.IAsyncService;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * This is an IAsyncService interface for a servlet that takes its parameters from URL variables.
@@ -227,7 +228,7 @@ package weave.services
 		 * This mapping is necessary so a client with an AsyncToken can cancel the loader. 
 		 */		
 		private const _asyncTokenData:Dictionary = new Dictionary();
-				
+		
 		private function resultHandler(event:ResultEvent, token:AsyncToken):void
 		{
 			if (_asyncTokenData[token] !== undefined)
@@ -248,15 +249,12 @@ package weave.services
 		
 		public function dispose():void
 		{
-			var token:Object;
-			var tokens:Array = [];
-			for (token in _asyncTokenData)
-				tokens.push(token);
-			
-			var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, new Fault('Error', 'Context was disposed', null));
-			
-			for each (token in tokens)
-				faultHandler(event, token as AsyncToken);
+			var fault:Fault = new Fault('Notification', 'Servlet was disposed', null);
+			for each (var token:AsyncToken in VectorUtils.getKeys(_asyncTokenData))
+			{
+				var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, fault, token);
+				faultHandler(event, token);
+			}
 		}
 	}
 }

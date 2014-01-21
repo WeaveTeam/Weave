@@ -171,6 +171,10 @@ package weave.visualization.layers
 				
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
 				fullDataBounds.includeBounds(spatialIndex.collectiveBounds);
+				
+				var plotter:IPlotter = plotters.getObject(name) as IPlotter;
+				plotter.getBackgroundDataBounds(tempDataBounds);
+				fullDataBounds.includeBounds(tempDataBounds);
 			}
 			// ----------------- hack --------------------
 			if (hack_adjustFullDataBounds != null)

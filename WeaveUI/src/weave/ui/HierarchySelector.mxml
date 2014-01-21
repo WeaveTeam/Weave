@@ -66,7 +66,7 @@ Displays catoegories in a tree view and the attributes in a list.
 			public const categoryFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull), handleHierarchyChange);
 			
 			// the currently selected path to an attribute or category
-			public const selectedPath:LinkableXML = registerLinkableChild(this, new LinkableXML(false), handleSelectedPathChange);
+			public const selectedPath:LinkableXML = registerLinkableChild(this, new LinkableXML(false), refresh);
 
 			/*************************/
 			private function isNonNull(value:String):Boolean { return value != null; }
@@ -134,7 +134,7 @@ Displays catoegories in a tree view and the attributes in a list.
 				else
 				{
 					categoriesView.dataProvider = getTree(attributeHierarchy.value); 
-					handleSelectedPathChange();
+					refresh();
 				}
 				attributesView.verticalScrollPosition = Math.min(vsp, attributesView.maxVerticalScrollPosition);
 				attributesView.horizontalScrollPosition = hsp;
@@ -173,11 +173,11 @@ Displays catoegories in a tree view and the attributes in a list.
 			/**
 			 * called when selectedPath linkable variable changes
 			 */
-			private function handleSelectedPathChange():void
+			public function refresh():void
 			{
 				if (!parent)
 				{
-					callLater(handleSelectedPathChange);
+					callLater(refresh);
 					return;
 				}
 				if (selectedPath.value != null)

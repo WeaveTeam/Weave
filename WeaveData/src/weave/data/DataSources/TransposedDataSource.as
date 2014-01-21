@@ -355,7 +355,7 @@ internal class TransposedRecord implements IAttributeColumn, IDisposableObject, 
 		{
 			// metadata for transposed metadata columns
 			if (propertyName == ColumnMetadata.TITLE)
-				return propertyName;
+				return sourceMetadataName;
 			if (propertyName == ColumnMetadata.DATA_TYPE)
 				return DataTypes.STRING;
 			return null;
