@@ -167,7 +167,9 @@ aws.QueryHandler.prototype.runQuery = function() {
 			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 	}
 	
-	newWeaveWindow.log("Running Query in R...");
+	if(newWeaveWindow.log) {
+		newWeaveWindow.log("Running Query in R...");
+	};
 	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";

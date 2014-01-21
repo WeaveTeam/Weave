@@ -297,7 +297,7 @@ aws.WeaveClient.prototype.updateRadviz = function(toolName, columnNames, dataSou
  * @return the name of the created bar chart.
  * 		   
  */
-aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSourceName) {
+aws.WeaveClient.prototype.newBarChart = function (sort, label, heights, dataSourceName) {
 	
 	var toolName = this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
 	
@@ -332,7 +332,7 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
  * @return the name of the created bar chart.
  * 		   
  */
-aws.WeaveClient.prototype.updateBarChart = function (toolName, label, sort, heights, dataSourceName) {
+aws.WeaveClient.prototype.updateBarChart = function (toolName, sort, label, heights, dataSourceName) {
 	
 	/** @type {string} */
 	if(toolName == undefined)
