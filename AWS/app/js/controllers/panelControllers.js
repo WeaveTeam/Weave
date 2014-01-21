@@ -144,7 +144,7 @@ angular.module("aws.panelControllers", [])
 	});
 		
 	$scope.$watchCollection('filterValues', function(){
-		console.log($scope.filterValues);
+		//console.log($scope.filterValues);
 		for(var i = 0; i < $scope.filterValues.length; i++) {
 			if(($scope.filterValues != undefined) && $scope.filterValues != "") {
 				if($scope.filterValues[i] != undefined && $scope.filterValues[i] != []) {
@@ -177,9 +177,9 @@ angular.module("aws.panelControllers", [])
 					queryService.queryObject.FilteredColumnRequest[i].filters.enabled = $scope.enabled[i];
 				}
 				
-				console.log($scope.enabled);
-				console.log($scope.filterType);
-				console.log($scope.show);
+//				console.log($scope.enabled);
+//				console.log($scope.filterType);
+//				console.log($scope.show);
 			}
 		}
 	});

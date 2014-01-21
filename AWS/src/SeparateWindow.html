@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 	<head>
 		<meta charset="UTF-8" />
 		<script src="lib/jquery/jquery.js"></script>
@@ -24,7 +25,7 @@
 			function weaveReady(weave)
 			{
 				//console.log( "Weave Ready" );
-				// resultTextArea.value = "Running Query on R ...";
+				log("Running Query on R ...");
 				
 				//console.log("got weave instance");
 			    client = new aws.WeaveClient(weave);
@@ -49,6 +50,7 @@
 						   log("Displaying visualizations in Weave...");
 						   //Todo parameterize keyColumnName ; here "fips"
 						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "");
+						   console.log(queryHanler.keyType);
 						   var toolName;
 						    //creating the visualizations
 							for (var i in queryHandler.visualizations) {
@@ -67,7 +69,6 @@
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 							}	
 				}
-				log("...");
 			}
 			
 			function updateVisualizations(queryHandler){
@@ -88,7 +89,6 @@
 				    	colorColumn = queryHandler.ColorColumn;
 						client.setColorAttribute(queryHandler.ColorColumn, dataSourceName);
 				 }
-				 log("...");
 			}
 			
 			function clearWeave() {

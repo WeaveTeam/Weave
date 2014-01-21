@@ -81,7 +81,7 @@ aws.QueryHandler = function(queryObject)
 	
 	if (queryObject.hasOwnProperty("MapTool")) {
 		if(queryObject.MapTool.enabled == true) {
-			this.keyType = queryObject.MapTool.keyType;
+			this.keyType = queryObject.MapTool.selected.keyType;
 			this.visualizations.push(
 					{
 						type : "MapTool",
@@ -138,7 +138,7 @@ aws.QueryHandler = function(queryObject)
 	// computation client
 	this.ComputationEngine = null;
 	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {
-		console.log(this.rRequestObject);
+		//console.log(this.rRequestObject);
 		this.ComputationEngine = new aws.RClient(this.rRequestObject);
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();
@@ -167,7 +167,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 	}
 	
-	//newWeaveWindow.log("Running Query in R...");
+	newWeaveWindow.log("Running Query in R...");
 	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
