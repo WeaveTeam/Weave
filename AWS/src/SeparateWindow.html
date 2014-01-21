@@ -23,15 +23,13 @@
 		    
 			function weaveReady(weave)
 			{
-				console.log( "Weave Ready" );
+				//console.log( "Weave Ready" );
 				// resultTextArea.value = "Running Query on R ...";
 				
-				console.log("got weave instance");
+				//console.log("got weave instance");
 			    client = new aws.WeaveClient(weave);
-			    console.log("got weave client");
+			    //console.log("got weave client");
 			   
-			    log("Running Query in R...");
-			    
 			    // this will call WorkOnData if the results are available
 			   if(responseResults) {
 				   console.log("Calling from weave ready", responseResults);
@@ -48,7 +46,7 @@
 				console.log(responseResults);
 				if(client)
 				{
-						   log("Displaying results in Weave...");
+						   log("Displaying visualizations in Weave...");
 						   //Todo parameterize keyColumnName ; here "fips"
 						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "");
 						   var toolName;
@@ -69,12 +67,13 @@
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 							}	
 				}
+				log("...");
 			}
 			
 			function updateVisualizations(queryHandler){
 				
 				var toolName;
-
+				log("Updating visualizations...");
 				for(var i in queryHandler.visualizations){
 					if (queryHandler.currentVisualizations.hasOwnProperty(queryHandler.visualizations[i].type)) {
 						console.log(queryHandler.visualizations[i].type);
@@ -89,6 +88,7 @@
 				    	colorColumn = queryHandler.ColorColumn;
 						client.setColorAttribute(queryHandler.ColorColumn, dataSourceName);
 				 }
+				 log("...");
 			}
 			
 			function clearWeave() {
@@ -121,6 +121,7 @@
 			
 			function log (string)
 			{
+				console.log("logging ", string);
 				resultTextArea.value = string;
 			}
 			

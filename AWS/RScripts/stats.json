@@ -1,0 +1,28 @@
+{
+        "scriptType": "inputs",
+        
+        "inputs" : [
+
+                {
+                 "type" : "table",
+                 "param" : "columns",
+                 "description" : "columns for statistics"
+                }
+       ],
+        "outputs" : [
+
+                {"param" : "Means",
+                 "description" : "mean results"
+                },
+                {
+                  "param" : "Median",
+                  "description" : "median results"
+                },
+                 {"param" : "Min",
+                 "description" : "result 3"
+                },
+                 {"param" : "Max",
+                 "description" : "result 3"
+                }
+        ]
+}

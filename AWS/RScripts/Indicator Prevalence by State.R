@@ -3,6 +3,7 @@ runbrfss <- function(dataset)
 {
     time1 <- Sys.time()
     dataset <- data.frame(dataset)
+    
 	#l.state<-sort(unique(dataset$"_STATE"))
     tempState <- unique(dataset[,1])
 	tempState <- as.numeric(tempState)
@@ -56,6 +57,7 @@ runbrfss <- function(dataset)
     #print(prev.data)
     time2 <- Sys.time()
     print(paste0("Analysis time: ", round(difftime(time2, time1, units=c("secs")))," seconds"))
+    print(prev.data)
     return(prev.data)
     
 }# end of function

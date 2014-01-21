@@ -23,57 +23,109 @@ aws.QueryHandler = function(queryObject)
 	this.dateGenerated = queryObject.date;
 	this.author = queryObject.author;
 	
-	if(queryObject.hasOwnProperty("FilteredColumnRequest") &&
-	   queryObject.hasOwnProperty("scriptSelected") ) {
-		this.rRequestObject = {
-				FilteredColumnRequest : queryObject.FilteredColumnRequest,
-				scriptName : queryObject.scriptSelected
-		};			
+	this.rRequestObject = {};
+	this.rRequestObject.scriptName = "";
+	this.rRequestObject.FilteredColumnRequest = [];
 
+	if(queryObject.hasOwnProperty("scriptSelected")) {
+		if (queryObject.scriptSelected != "") {
+			this.rRequestObject.scriptName = queryObject.scriptSelected;
+		} else {
+			console.log("no script selected");
+		}
 	}
 	
-	if(queryObject.hasOwnProperty("ColorColumn")) {
-		this.ColorColumn = queryObject.ColorColumn;
-	}
-
+	if(queryObject.hasOwnProperty("FilteredColumnRequest")) {
+		for( var i = 0; i < queryObject.FilteredColumnRequest.length; i++) {
+			this.rRequestObject.FilteredColumnRequest[i] = {
+					id : -1,
+					filters : []
+			};
+			
+			if (queryObject.FilteredColumnRequest[i].hasOwnProperty("column")) {
+				this.rRequestObject.FilteredColumnRequest[i].id = queryObject.FilteredColumnRequest[i].column.id;
+			}
+			
+			if (queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
+				if(queryObject.FilteredColumnRequest[i].filters.hasOwnProperty('enabled')) {
+					if (queryObject.FilteredColumnRequest[i].filters.enabled == true) {
+						var temp = [];
+						if(queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
+							temp =  $.map(queryObject.FilteredColumnRequest[i].filters.filterValues, function(item){
+								return item.value;
+							});
+						}
+						this.rRequestObject.FilteredColumnRequest[i].filters = temp;
+					} else if (queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Array) {
+						temp = [];
+						if(queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
+							temp =  $.map(queryObject.FilteredColumnRequest[i].filters.filterValues, function(item){
+								return item;
+							});
+						}
+						this.rRequestObject.FilteredColumnRequest[i].filters = temp;
+					}
+				}
+			}
+		}
+	}	
 	this.keyType = "";
 	
+	if(queryObject.hasOwnProperty("ColorColumn")) {
+		if(queryObject.ColorColumn.enabled == true) {
+			this.ColorColumn = queryObject.ColorColumn.selected;
+		}
+	}
+
 	this.visualizations = [];
 	
 	if (queryObject.hasOwnProperty("MapTool")) {
-		this.keyType = queryObject.MapTool.keyType;
-		this.visualizations.push(
-				{
-					type : "MapTool",
-					parameters : queryObject.MapTool
-				}
-		);
+		if(queryObject.MapTool.enabled == true) {
+			this.keyType = queryObject.MapTool.keyType;
+			this.visualizations.push(
+					{
+						type : "MapTool",
+						parameters : queryObject.MapTool.selected
+					}
+			);
+		}
 	}	
 	
 	if (queryObject.hasOwnProperty("ScatterPlotTool")) {
-		this.visualizations.push(
-				{
-					type : "ScatterPlotTool",
-					parameters : queryObject.ScatterPlotTool
-				}
-		);
-	}	
-	if (queryObject.hasOwnProperty("BarChartTool")) {
-		this.visualizations.push(
-				{
-					type : "BarChartTool",
-					parameters : queryObject.BarChartTool
-				}
-		);
+		if(queryObject.ScatterPlotTool.enabled == true) {
+			this.visualizations.push(
+					{
+						type : "ScatterPlotTool",
+						parameters : { X : queryObject.ScatterPlotTool.X, Y : queryObject.ScatterPlotTool.Y }
+					}
+			);
+		}
 	}	
 	
-	if (queryObject.hasOwnProperty("DataTable")) {
-		this.visualizations.push(
-				{
-					type : "DataTable",
-					parameters : queryObject.DataTable
-				}
-		);
+	if (queryObject.hasOwnProperty("BarChartTool")) {
+		if(queryObject.BarChartTool.enabled == true) {
+			this.visualizations.push(
+					{
+						type : "BarChartTool",
+						parameters : { 
+									   heights : queryObject.BarChartTool.heights, 
+									   sort : queryObject.BarChartTool.sort, 
+									   label : queryObject.BarChartTool.label 
+									  }
+					}
+			);
+		}
+	}	
+	
+	if (queryObject.hasOwnProperty("DataTableTool")) {
+		if(queryObject.DataTableTool.enabled == true) {
+			this.visualizations.push(
+					{
+						type : "DataTable",
+						parameters : queryObject.DataTableTool.selected
+					}
+			);
+		}
 	}
 	
 	this.currentVisualizations = {};
@@ -86,6 +138,7 @@ aws.QueryHandler = function(queryObject)
 	// computation client
 	this.ComputationEngine = null;
 	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {
+		console.log(this.rRequestObject);
 		this.ComputationEngine = new aws.RClient(this.rRequestObject);
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();
@@ -113,6 +166,8 @@ aws.QueryHandler.prototype.runQuery = function() {
 		newWeaveWindow = window.open("SeparateWindow.html",
 			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 	}
+	
+	//newWeaveWindow.log("Running Query in R...");
 	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
@@ -152,40 +207,61 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 	
 	this.visualizations = [];
 	
+	if(queryObject.hasOwnProperty("ColorColumn")) {
+		if(queryObject.ColorColumn.enabled == true) {
+			this.ColorColumn = queryObject.ColorColumn.selected;
+		}
+	}
+
+	this.visualizations = [];
+	
 	if (queryObject.hasOwnProperty("MapTool")) {
-		this.keyType = queryObject.MapTool.keyType;
-		this.visualizations.push(
-				{
-					type : "MapTool",
-					parameters : queryObject.MapTool
-				}
-		);
+		if(queryObject.MapTool.enabled == true) {
+			this.keyType = queryObject.MapTool.keyType;
+			this.visualizations.push(
+					{
+						type : "MapTool",
+						parameters : queryObject.MapTool.selected
+					}
+			);
+		}
 	}	
 	
 	if (queryObject.hasOwnProperty("ScatterPlotTool")) {
-		this.visualizations.push(
-				{
-					type : "ScatterPlotTool",
-					parameters : queryObject.ScatterPlotTool
-				}
-		);
-	}	
-	if (queryObject.hasOwnProperty("BarChartTool")) {
-		this.visualizations.push(
-				{
-					type : "BarChartTool",
-					parameters : queryObject.BarChartTool
-				}
-		);
+		if(queryObject.MapTool.enabled == true) {
+			this.visualizations.push(
+					{
+						type : "ScatterPlotTool",
+						parameters : { X : queryObject.ScatterPlotTool.X, Y : queryObject.ScatterPlotTool.Y }
+					}
+			);
+		}
 	}	
 	
-	if (queryObject.hasOwnProperty("DataTable")) {
-		this.visualizations.push(
-				{
-					type : "DataTable",
-					parameters : queryObject.DataTable
-				}
-		);
+	if (queryObject.hasOwnProperty("BarChartTool")) {
+		if(queryObject.BarChartTool.enabled == true) {
+			this.visualizations.push(
+					{
+						type : "BarChartTool",
+						parameters : { 
+									   heights : queryObject.BarChartTool.heights, 
+									   sort : queryObject.BarChartTool.sort, 
+									   label : queryObject.BarChartTool.label 
+									  }
+					}
+			);
+		}
+	}	
+	
+	if (queryObject.hasOwnProperty("DataTableTool")) {
+		if(queryObject.DataTableTool.enabled == true) {
+			this.visualizations.push(
+					{
+						type : "DataTable",
+						parameters : queryObject.DataTableTool.selected
+					}
+			);
+		}
 	}
 	newWeaveWindow.updateVisualizations(this);
 };

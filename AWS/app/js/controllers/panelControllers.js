@@ -199,7 +199,6 @@ angular.module("aws.panelControllers", [])
 						if(queryService.queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterValues")) {
 
 							$scope.show[i] = true;
-							console.log(queryService.dataObject.columns);
 							
 							if(queryService.queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
 								

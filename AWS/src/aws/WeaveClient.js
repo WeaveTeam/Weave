@@ -28,7 +28,7 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 	var toolName;
 	switch(visualization.type) {
 		case 'MapTool':
-			toolName = this.newMap(parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
+			toolName = this.newMap(parameters["id"], parameters["title"], parameters["keyType"]);
 			this.setPosition(toolName, "0%", "0%");
 			return toolName;
 		case 'ScatterPlotTool':
@@ -36,7 +36,7 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 			this.setPosition(toolName, "50%", "50%");
 			return toolName;
 		case 'DataTable':
-			toolName = this.newDatatable(parameters["columns"], dataSourceName);
+			toolName = this.newDatatable(parameters, dataSourceName);
 			this.setPosition(toolName, "50%", "0%");
 			return toolName;
 		case 'BarChartTool' :
@@ -61,7 +61,7 @@ aws.WeaveClient.prototype.updateVisualization = function (visualization, dataSou
 	var toolName;
 	switch(visualization.type) {
 		case 'MapTool':
-			toolName = this.updateMap(visualization.toolName, parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
+			toolName = this.updateMap(visualization.toolName, parameters["id"], parameters["title"], parameters["keyType"]);
 			this.setPosition(toolName, "0%", "0%");
 			return toolName;
 		case 'ScatterPlotTool':
@@ -69,7 +69,7 @@ aws.WeaveClient.prototype.updateVisualization = function (visualization, dataSou
 			this.setPosition(toolName, "50%", "50%");
 			return toolName;
 		case 'DataTable':
-			toolName = this.updateDatatable(visualization.toolName, parameters["columns"], dataSourceName);
+			toolName = this.updateDatatable(visualization.toolName, parameters, dataSourceName);
 			this.setPosition(toolName, "50%", "0%");
 			return toolName;
 		case 'BarChartTool' :
@@ -310,6 +310,8 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
    	this.setCSVColumn(dataSourceName,labelPath, label);
     this.setCSVColumn(dataSourceName, sortColumnPath, sort);
 
+    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state(null);
+    
     for (var i in heights)
 	{
 		var heightColumnPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();

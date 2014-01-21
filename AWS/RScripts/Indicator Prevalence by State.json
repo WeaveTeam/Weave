@@ -1,32 +1,36 @@
 {
-        "scriptType": "columns",
         "inputs" : [
 
                 {
+                 "type" : "column",
 		 "param" : "state",
                  "description" : "State variable",
 		 "columnType" : "geography"
                 },
 
                 {
+                 "type" : "column",
 		 "param" : "PSU",
                  "description" : "PSU variable",
 		 "columnType" : "analytic"
                 },
 
                 {
+                 "type" : "column",
 		 "param" : "FinalWt",
                  "description" : "State variable",
 		 "columnType" : "analytic"
                 },
 
                 {
+                 "type" : "column",
 		 "param" : "StStr",
                  "description" : "StStr variable",
 		 "columnType" : "analytic"
                 },
 
                 {
+                 "type" : "column",
 		 "param" : "indicator",
                  "description" : "indicator variable",
 		 "columnType" : "indicator"

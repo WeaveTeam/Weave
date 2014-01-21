@@ -21,7 +21,7 @@
 						<option ng-repeat="dt in dataTableList" value="{{dt}}">{{dt.title}}</option>
 					</select>
 				</div>
-				                         v0.5b0116
+				                         v0.5b0121
 				<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float: right;">
 					<button ng-click="exportQueryObject()" class="btn btn-primary">Export Query</button>
 						<div class="file-upload">
@@ -43,14 +43,14 @@
 					<button ng-click="clearWeave()" class="btn btn-primary">Clear</button>
 				</div>
 				<!--div id="weavePanel" ng-include src="weaveInstancePanel"></div-->
-<!-- 				<div id="Log"> -->
-<!-- 					<h4>Log Box for errors and timing</h4> -->
-<!-- 					<div id="LogBox"></div> -->
-<!-- 				</div> -->
 			</div>
 
 		</div>
 
+		<div id="Log">
+			<h4>Log:</h4>
+			<div id="LogBox"></div>
+		</div>
 
 	</div>
 

@@ -1,0 +1,27 @@
+{
+        "scriptType": "inputs",
+        
+        "inputs" : [
+
+                {
+                 "type" : "column",
+                 "param" : " X Column",
+                 "description" : "column to perform regression",
+                  "columnType" : "all"
+                },
+
+                {
+                 "type" : "column",
+                 "param" : "Y Column",
+                 "description" : "column to perform regression",
+                  "columnType" : "all"    
+                }
+
+        ],
+        "outputs" : [
+
+                {"param" : "regression Results",
+                 "description" : "result 1"
+                }
+        ]
+}
