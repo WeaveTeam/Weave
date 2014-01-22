@@ -234,7 +234,7 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 	}	
 	
 	if (queryObject.hasOwnProperty("ScatterPlotTool")) {
-		if(queryObject.MapTool.enabled == true) {
+		if(queryObject.ScatterPlotTool.enabled == true) {
 			this.visualizations.push(
 					{
 						type : "ScatterPlotTool",
