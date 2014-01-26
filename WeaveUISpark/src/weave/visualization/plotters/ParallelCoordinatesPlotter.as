@@ -78,7 +78,7 @@ package weave.visualization.plotters
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
-			xColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
+			xColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			
 			linkSessionState(_filteredXData.filter, filteredKeySet.keyFilter);
 			linkSessionState(_filteredYData.filter, filteredKeySet.keyFilter);
@@ -94,13 +94,13 @@ package weave.visualization.plotters
 		{
 			// When a new column is created, register the stats to trigger callbacks and affect busy status.
 			// This will be cleaned up automatically when the column is disposed.
-			    var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 			
-				var newtestColumn:IAttributeColumn = xColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
-			if (newtestColumn)
-				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newtestColumn));
+			var newXColumn:IAttributeColumn = xColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newXColumn)
+				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newXColumn));
 			
 			_yColumns = columns.getObjects();
 			_xColumns = xColumns.getObjects();
@@ -111,9 +111,6 @@ package weave.visualization.plotters
 				if (_yColumns.length == 1)
 					_yColumns.push(_yColumns[0]);
 			}
-			
-//			if (_xColumns.length == 1)
-//				_xColumns.push(_xColumns[0]);
 			
 			updateFilterEquationColumns();
 		}

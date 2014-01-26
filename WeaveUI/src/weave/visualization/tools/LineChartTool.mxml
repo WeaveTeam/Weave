@@ -303,17 +303,10 @@
 				
 				var columns:Array = _plotter.columns.getObjects();
 			
-				// get bounds for y axis
-				visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
-				tempBounds.xMax = tempBounds.xMin;
-				
-				yAxisPlotter.axisLineMinValue.value = tempBounds.yMin;
-				yAxisPlotter.axisLineMaxValue.value = tempBounds.yMax;
-			
-				yAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
-				
 				if(_plotter.usingXAttributes)
 				{
+					visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
+					tempBounds.yMax = tempBounds.yMin;
 					xAxisPlotter.axisLineMinValue.value = tempBounds.xMin;
 					xAxisPlotter.axisLineMaxValue.value = tempBounds.xMax;
 					xAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
@@ -324,8 +317,13 @@
 				{
 					xAxisPlotter.tickCountRequested.value = Math.max(2, columns.length);
 					xAxisPlotter.forceTickCount.value = true;
-				
 				}
+				
+				visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
+				tempBounds.xMax = tempBounds.xMin;
+				yAxisPlotter.axisLineMinValue.value = tempBounds.yMin;
+				yAxisPlotter.axisLineMaxValue.value = tempBounds.yMax;
+				yAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				
 				var xAxisName:String = '';
 				var yAxisName:String = '';
