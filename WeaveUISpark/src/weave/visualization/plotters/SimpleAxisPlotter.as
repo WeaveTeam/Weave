@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import flash.display.LineScaleMode;
 	import flash.geom.Point;
 	import flash.text.TextFormatAlign;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.NumberFormatter;
 	
@@ -117,8 +118,9 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText(); // for drawing text
 		private var _xDataTickDelta:Number; // x distance between ticks
 		private var _yDataTickDelta:Number; // y distance between ticks
-		private const MIN_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(null, 'minLabel');
-		private const MAX_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(null, 'maxLabel');
+		private const KEY_TYPE:String = getQualifiedClassName(SimpleAxisPlotter);
+		private const MIN_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(KEY_TYPE, 'minLabel');
+		private const MAX_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(KEY_TYPE, 'maxLabel');
 		private const _numberFormatter:NumberFormatter = new NumberFormatter();
 		
 		public var showRealMinAndMax:Boolean = false;
@@ -150,7 +152,7 @@ package weave.visualization.plotters
 				// only include tick marks that are between min,max values
 				var tickValue:Number = StandardLib.roundSignificant(_axisDescription.tickMin + i * _axisDescription.tickDelta);
 				if (axisLineMinValue.value <= tickValue && tickValue <= axisLineMaxValue.value)
-					newKeys.push(WeaveAPI.QKeyManager.getQKey(null, String(i)));
+					newKeys.push(WeaveAPI.QKeyManager.getQKey(KEY_TYPE, String(i)));
 			}
 			if (showRealMinAndMax)
 				newKeys.push(MAX_LABEL_KEY);
@@ -233,7 +235,7 @@ package weave.visualization.plotters
 						// everything below is in screen coordinates
 			
 						// get the angle of the axis line (relative to real screen coordinates, positive Y in downward direction)
-						axisAngle = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());			
+						axisAngle = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());
 						// ticks are perpendicular to axis line
 						tickAngle = axisAngle + Math.PI / 2;
 						// label angle is relative to axis angle
@@ -273,7 +275,7 @@ package weave.visualization.plotters
 		
 						// get screen coordinates of tick mark
 						var tickValue:Number = getTickValueAndDataCoords(key, tempPoint);
-										
+						
 						_axisLineDataBounds.projectPointTo(tempPoint, _axisLineScreenBounds);
 						var xTick:Number = tempPoint.x;
 						var yTick:Number = tempPoint.y;
