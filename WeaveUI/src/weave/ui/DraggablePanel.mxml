@@ -238,8 +238,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
 				zOrderSubMenu.addSubMenuItem(lang('Reset'), function():void { zOrder.value = 0; }, null, function():Boolean { return zOrder.value != 0; });
-				zOrderSubMenu.addSubMenuItem(lang('Always above'), function():void { zOrder.value = Infinity; }, null, function():Boolean { return zOrder.value <= 0; });
-				zOrderSubMenu.addSubMenuItem(lang('Always below'), function():void { zOrder.value = -Infinity; }, null, function():Boolean { return zOrder.value >= 0; });
+				zOrderSubMenu.addSubMenuItem(lang('Always above'), function():void { zOrder.value = 1; }, null, function():Boolean { return zOrder.value <= 0; });
+				zOrderSubMenu.addSubMenuItem(lang('Always below'), function():void { zOrder.value = -1; }, null, function():Boolean { return zOrder.value >= 0; });
 
 				/*
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
