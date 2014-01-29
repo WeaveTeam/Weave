@@ -174,5 +174,18 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
                 
             return deferred.promise;
 
-        };        
+        };
+        
+        this.updateEntity = function(user, password, entityId, diff) {
+
+        	var deferred = $q.defer();
+            
+            aws.AdminClient.updateEntity(user, password, entityId, diff, function(){
+                
+            	scope.$safeApply(function(){
+                    deferred.resolve();
+                });
+            });
+            return deferred.promise;
+        };
 }]);
