@@ -1,5 +1,4 @@
 <CustomTree xmlns:mx="http://www.adobe.com/2006/mxml"
-    xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     creationComplete="handleCreationComplete()"
     openDuration="0" dragEnabled="true"
@@ -12,9 +11,9 @@
 			import mx.collections.ArrayCollection;
 			import mx.events.ListEvent;
 			
+			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableWatcher;
-			import weave.services.Admin;
 			import weave.services.EntityCache;
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
@@ -43,18 +42,35 @@
 				});
 			}
 			
+			public function get entityCache():EntityCache
+			{
+				return cacheWatcher.target as EntityCache;
+			}
+			
 			public function set entityCache(cache:EntityCache):void
 			{
 				cacheWatcher.target = cache;
+				if (_rootFilterType)
+					rootFilterType = _rootFilterType;
 			}
 			
 			private const cacheWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, EventUtils.generateDelayedCallback(this, refresh, 100));
+			private var _rootFilterType:String;
+			
+			public function get rootFilterType():String
+			{
+				return _rootFilterType;
+			}
 			
 			public function set rootFilterType(entityType:String):void
 			{
-				dataProvider = _rootNode = new EntityNode(entityType);
-				dataDescriptor = new EntityTreeDataDescriptor();
-				nodeFilterFunction = _nodeFilterFunction;
+				_rootFilterType = entityType;
+				if (cacheWatcher.target)
+				{
+					dataProvider = _rootNode = new EntityNode(entityCache, entityType);
+					dataDescriptor = new EntityTreeDataDescriptor();
+					nodeFilterFunction = _nodeFilterFunction;
+				}
 			}
 			
 			private var _nodeFilterFunction:Function;
@@ -74,13 +90,13 @@
 			
 			private function handleCreationComplete():void
 			{
-				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
+//				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
 			}
 			
 			private function connectionReady(userHasAuthenticated:Boolean):void
 			{
-			    if (userHasAuthenticated == true)
-					refreshDataProvider();
+//			    if (userHasAuthenticated == true)
+//					refreshDataProvider();
 			}
 			
 			public function refresh():void

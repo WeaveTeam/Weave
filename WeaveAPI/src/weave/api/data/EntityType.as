@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services.beans
+package weave.api.data
 {
 	public class EntityType
 	{

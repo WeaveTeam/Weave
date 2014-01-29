@@ -24,23 +24,19 @@
 			<mx:Button label="{lang('Refresh')}" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
     </mx:VBox>
-    <mx:VBox id="hierarchyDiv" minWidth="{plusButton.width}" height="100%" width="{plusButton.height}"
+    <mx:VBox id="hierarchyDiv" minWidth="{plusButton.width}" height="100%" width="100%"
 			 resize="minusButton.includeInLayout = minusButton.visible = !(plusButton.includeInLayout = plusButton.visible = (hierarchyDiv.width == plusButton.height));"
 			 enabled="{!metadataEditor.isChanged &amp;&amp; !editTablesButton.selected}">
         <mx:HBox width="100%" horizontalGap="0">
 			<mx:HBox width="100%" minWidth="0" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}" horizontalScrollPolicy="off">
 				<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
-				<ui:HelpComponent>
-					The Weave client does not read these hierarchies yet, but it will in a future version.
-					Check for an update soon.
-				</ui:HelpComponent>
 				<mx:Spacer width="100%"/>
 			</mx:HBox>
-			<mx:Button id="minusButton" width="{minusButton.height}" visible="false"
+			<mx:Button id="minusButton" width="{minusButton.height}"
 					   toolTip="{lang('Hide Custom Hierarchies')}"
 					   click="hierarchyDiv.width = plusButton.height;"
 					   icon="@Embed(source='/weave/resources/images/minus.png')"/>
-			<mx:Button id="plusButton" width="{plusButton.height}"
+			<mx:Button id="plusButton" width="{plusButton.height}" visible="false"
 					   toolTip="{lang('Show Custom Hierarchies')}"
 					   click="hierarchyDiv.width = hierarchyDiv.parent.width / 3"
 					   icon="@Embed(source='/weave/resources/images/plus.png')"/>
@@ -63,13 +59,13 @@
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.services.Admin;
 	import weave.services.addAsyncResponder;
-	import weave.services.beans.EntityMetadata;
-	import weave.services.beans.EntityType;
+	import weave.api.services.beans.EntityMetadata;
 	import weave.ui.EntityNode;
 	import weave.ui.EntityTree;
 	import weave.utils.EventUtils;
@@ -161,7 +157,7 @@
 		em.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
 		em.publicMetadata[ColumnMetadata.TITLE] = columnSearch.text;
 		addAsyncResponder(
-			Admin.service.getEntityIdsByMetadata(em),
+			Admin.service.findEntityIds(em),
 			function(event:ResultEvent, search:String):void
 			{
 				if (search != columnSearch.text)

@@ -5,12 +5,11 @@ package weave.ui
     import mx.collections.ICollectionView;
     
     import weave.api.data.ColumnMetadata;
+    import weave.api.data.EntityType;
     import weave.api.reportError;
-    import weave.services.Admin;
+    import weave.api.services.beans.Entity;
+    import weave.api.services.beans.EntityHierarchyInfo;
     import weave.services.EntityCache;
-    import weave.services.beans.Entity;
-    import weave.services.beans.EntityHierarchyInfo;
-    import weave.services.beans.EntityType;
 
 	[RemoteClass]
     public class EntityNode
@@ -20,18 +19,25 @@ package weave.ui
 		/**
 		 * @param filterType To be used by root node only.
 		 */
-		public function EntityNode(rootFilterType:String = null)
+		public function EntityNode(entityCache:EntityCache, rootFilterType:String = null)
 		{
-			_rootFilterType = rootFilterType;
+			this.entityCache = entityCache;
+			this._rootFilterType = rootFilterType;
 		}
 		
+		private var entityCache:EntityCache = null;
 		private var _rootFilterType:String = null;
 		
 		public var id:int = -1;
 		
+		public function getEntityCache():EntityCache
+		{
+			return entityCache;
+		}
+		
 		public function getEntity():Entity
 		{
-			return Admin.entityCache.getEntity(id);
+			return entityCache.getEntity(id);
 		}
 		
 		// the node can re-use the same children array
@@ -44,10 +50,7 @@ package weave.ui
 		
 		public function get label():String
 		{
-			if (!Admin.instance.userHasAuthenticated)
-				return lang('Not logged in');
-			
-			var branchInfo:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(id);
+			var branchInfo:EntityHierarchyInfo = entityCache.getBranchInfo(id);
 			if (branchInfo != null)
 				return branchInfo.getLabel(debug);
 			
@@ -91,10 +94,10 @@ package weave.ui
 			if (_rootFilterType)
 				return true;
 			
-			if (Admin.entityCache.getBranchInfo(id))
+			if (entityCache.getBranchInfo(id))
 				return true;
 			
-			var entity:Entity = Admin.entityCache.getEntity(id);
+			var entity:Entity = entityCache.getEntity(id);
 			
 			// columns are leaf nodes
 			if (entity.getEntityType() == EntityType.COLUMN)
@@ -109,17 +112,17 @@ package weave.ui
 			var childIds:Array;
 			if (_rootFilterType)
 			{
-				childIds = Admin.entityCache.getIdsByType(_rootFilterType);
+				childIds = entityCache.getIdsByType(_rootFilterType);
 			}
 			else
 			{
-				var entity:Entity = Admin.entityCache.getEntity(id);
+				var entity:Entity = entityCache.getEntity(id);
 				childIds = entity.childIds;
 				if (entity.getEntityType() == EntityType.COLUMN)
 					return null; // leaf node
 			}
 			
-			if (!childIds || !Admin.instance.userHasAuthenticated)
+			if (!childIds)
 			{
 				_childNodes.length = 0;
 				return isBranch() ? _childCollectionView : null;
@@ -132,7 +135,7 @@ package weave.ui
 				var child:EntityNode = _childNodeCache[childId] as EntityNode;
 				if (!child)
 				{
-					child = new EntityNode();
+					child = new EntityNode(entityCache);
 					child.id = childId;
 					_childNodeCache[childId] = child;
 				}
@@ -154,15 +157,6 @@ package weave.ui
 		public function toString():String
 		{
 			return label;
-		}
-		
-		public static function addChildAt(parent:EntityNode, child:EntityNode, index:int):void
-		{
-			Admin.entityCache.add_child(parent ? parent.id : EntityCache.ROOT_ID, child.id, index);
-		}
-		public static function removeChild(parent:EntityNode, child:EntityNode):void
-		{
-			Admin.entityCache.remove_child(parent ? parent.id : EntityCache.ROOT_ID, child.id);
 		}
     }
 }

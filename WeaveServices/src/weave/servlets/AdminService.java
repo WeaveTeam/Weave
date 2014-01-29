@@ -86,8 +86,7 @@ import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.Strings;
 
-public class AdminService
-		extends WeaveServlet
+public class AdminService extends WeaveServlet implements IWeaveEntityManagementService
 {
 	private static final long serialVersionUID = 1L;
 	private RemoteException initializationError = null;
@@ -602,21 +601,15 @@ public class AdminService
 		getDataConfig().updateEntity(entityId, diff);
 	}
 	
-	public EntityHierarchyInfo[] getEntityHierarchyInfo(String user, String password, String entityType) throws RemoteException
+	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, String entityType) throws RemoteException
 	{
-		authenticate(user, password);
+		authenticate(user, pass);
 		return getDataConfig().getEntityHierarchyInfo(entityType);
 	}
 
-	public int[] getEntityIdsByMetadata(String user, String password, DataEntityMetadata meta) throws RemoteException
+	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException
 	{
-		authenticate(user, password);
-		return ListUtils.toIntArray( getDataConfig().getEntityIds(meta) );
-	}
-
-	public DataEntityWithRelationships[] getEntitiesById(String user, String password, int[] ids) throws RemoteException
-	{
-		authenticate(user, password);
+		authenticate(user, pass);
 		DataConfig config = getDataConfig();
 		Set<Integer> idSet = new HashSet<Integer>();
 		for (int id : ids)
@@ -632,6 +625,18 @@ public class AdminService
 		return Arrays.copyOf(result, result.length, DataEntityWithRelationships[].class);
 	}
 
+	public int[] findEntityIds(String user, String pass, DataEntityMetadata metadata) throws RemoteException
+	{
+		authenticate(user, pass);
+		return ListUtils.toIntArray( getDataConfig().getEntityIds(metadata) );
+	}
+	
+	public String[] findPublicFieldValues(String user, String pass, String fieldName, String valueSearch) throws RemoteException
+	{
+		authenticate(user, pass);
+		throw new RemoteException("Not implemented yet");
+	}
+	
 	///////////////////////
 	// SQL info retrieval
 	

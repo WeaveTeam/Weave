@@ -112,7 +112,7 @@
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
 			import weave.services.addAsyncResponder;
-			import weave.services.beans.EntityMetadata;
+			import weave.api.services.beans.EntityMetadata;
 			import weave.ui.BusyIndicator;
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;

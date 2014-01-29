@@ -30,12 +30,15 @@ package weave.data.DataSources
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
+	import weave.api.data.EntityType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
@@ -44,6 +47,7 @@ package weave.data.DataSources
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -54,10 +58,10 @@ package weave.data.DataSources
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.QKeyManager;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.services.EntityCache;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnData;
-	import weave.services.beans.EntityType;
 	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
@@ -74,8 +78,11 @@ package weave.data.DataSources
 		public function WeaveDataSource()
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
+			getCallbackCollection(attributeHierarchy).addImmediateCallback(this, handleAttributeHierarchy, true);
 		}
-
+		
+		private var _service:WeaveDataServlet = null;
+		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
 		
@@ -84,14 +91,32 @@ package weave.data.DataSources
 		 */		
 		public const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
 		
+		public function get entityCache():EntityCache
+		{
+			return _entityCache;
+		}
+		
 		private function verifyStringArray(array:Array):Boolean
 		{
 			return StandardLib.getArrayType(array) == String;
 		}
+		
+		private function handleAttributeHierarchy():void
+		{
+			if (getSessionState(attributeHierarchy) == null || hierarchyURL.value)
+			{
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, attributeHierarchy);
+			}
+			else
+			{
+				(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, attributeHierarchy);
+				registerLinkableChild(this, attributeHierarchy);
+			}
+		}
 
 		public function getRows(keys:Array):AsyncToken
 		{
-			return dataService.getRows(keys);
+			return _service.getRows(keys);
 		}
 		/**
 		 * This function prevents url.value from being null.
@@ -103,7 +128,7 @@ package weave.data.DataSources
 			var defaultBaseURL:String = '/WeaveServices';
 			var defaultServletName:String = '/DataService';
 			
-			var deprecatedBaseURL:String = '/OpenIndicatorsDataServices';
+			var deprecatedBaseURL:String = '/OpenIndicatorsDataService';
 			if (!url.value || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + defaultServletName)
 				url.value = defaultBaseURL + defaultServletName;
 			
@@ -111,9 +136,10 @@ package weave.data.DataSources
 			if (url.value.split('/').pop() == defaultBaseURL.split('/').pop())
 				url.value += defaultServletName;
 			
-			// replace old dataService
-			disposeObject(dataService);
-			dataService = registerLinkableChild(this, new WeaveDataServlet(url.value));
+			// replace old service
+			disposeObject(_service);
+			_service = registerLinkableChild(this, new WeaveDataServlet(url.value));
+			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
 			
 			url.resumeCallbacks();
 		}
@@ -186,8 +212,6 @@ package weave.data.DataSources
 			return super.getAttributeColumn(columnReference);
 		}
 		
-		private var dataService:WeaveDataServlet = null;
-		
 		/**
 		 * This function must be implemented by classes which extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the hierarchy.
@@ -201,147 +225,11 @@ package weave.data.DataSources
 
 			if (!subtreeNode || subtreeNode == _attributeHierarchy.value)
 			{
-				if (hierarchyURL.value != "" && hierarchyURL.value != null)
+				if (hierarchyURL.value)
 				{
 					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError, hierarchyURL.value);
 					trace("hierarchy url "+hierarchyURL.value);
 					return;
-				}
-				if (_attributeHierarchy.value != null)
-				{
-					// stop if hierarchy is defined
-					return;
-				}
-				
-				_attributeHierarchy.value = <hierarchy/>;
-				
-				//trace("getDataServiceMetadata()");
-
-				// temporary solution
-				
-				// get all dataTables and all geometry columns
-				var _tableEntities:Array = null;
-				var _geometryEntities:Array = null;
-				
-				addAsyncResponder(
-					dataService.getEntityIds({"entityType": EntityType.TABLE}),
-					handleRootIds,
-					handleFault,
-					EntityType.TABLE
-				);
-				
-				// get all geometry columns
-				addAsyncResponder(
-					dataService.getEntityIds({"dataType": DataTypes.GEOMETRY, "entityType": EntityType.COLUMN}),
-					handleRootIds,
-					handleFault,
-					EntityType.COLUMN
-				);
-				
-				function handleRootIds(event:ResultEvent, entityType:String):void
-				{
-					if (!event.result)
-					{
-						reportError(NO_RESULT_ERROR);
-						return;
-					}
-					var ids:Array = event.result as Array;
-					var query:AsyncToken = dataService.getEntitiesById(ids);
-					addAsyncResponder(query, handleRootEntities, handleFault, [entityType, ids]);
-				}
-				function handleRootEntities(event:ResultEvent, entityType_entityIds:Array):void
-				{
-					if (!event.result)
-					{
-						reportError(NO_RESULT_ERROR);
-						return;
-					}
-					var entityType:String = entityType_entityIds[0];
-					var entityIds:Array = entityType_entityIds[1];
-					var orderLookup:Object = createLookup(entityIds);
-					
-					var entities:Array = event.result as Array;
-					AsyncSort.sortImmediately(
-						entities,
-						function(entity1:Object, entity2:Object):int
-						{
-							return ObjectUtil.numericCompare(orderLookup[entity1.id], orderLookup[entity2.id]);
-						}
-					);
-					
-					if (entityType == EntityType.TABLE)
-						_tableEntities = entities;
-					else
-						_geometryEntities = entities;
-					
-					// only proceed when we have both
-					if (!_tableEntities || !_geometryEntities)
-						return;
-					
-					generateRootHierarchy(_tableEntities, _geometryEntities);
-				}
-			}
-			else
-			{
-				var idStr:String = subtreeNode.attribute(ENTITY_ID);
-				if (idStr)
-				{
-					addAsyncResponder(
-						dataService.getEntityChildIds(int(idStr)),
-						handleColumnIds,
-						handleFault,
-						subtreeNode
-					);
-				}
-				else
-				{
-					// backwards compatibility - get columns with matching dataTable metadata
-					var dataTableName:String = subtreeNode.attribute("name");
-					addAsyncResponder(
-						dataService.getEntityIds({"dataTable": dataTableName, "entityType": EntityType.COLUMN}),
-						function(event:ResultEvent, subtreeNode:XML):void
-						{
-							if (!event.result)
-							{
-								reportError(NO_RESULT_ERROR);
-								return;
-							}
-							var ids:Array = event.result as Array;
-							addAsyncResponder(
-								dataService.getParents(ids[0]),
-								function(event:ResultEvent, subtreeNode:XML):void
-								{
-									if (!event.result)
-									{
-										reportError(NO_RESULT_ERROR);
-										return;
-									}
-									var ids:Array = event.result as Array;
-									addAsyncResponder(
-										dataService.getEntityChildIds(ids[0]),
-										handleColumnIds,
-										handleFault,
-										subtreeNode
-									);
-								},
-								handleFault,
-								subtreeNode
-							);
-						},
-						handleFault,
-						subtreeNode
-					);
-				}
-				function handleColumnIds(event:ResultEvent, subtreeNode:XML):void
-				{
-					if (!event.result)
-					{
-						reportError(NO_RESULT_ERROR);
-						return;
-					}
-					var ids:Array = event.result as Array;
-					var query:AsyncToken = dataService.getEntitiesById(ids);
-					addAsyncResponder(query, handleColumnEntities, handleFault, [subtreeNode, ids]);
 				}
 			}
 		}
@@ -401,8 +289,6 @@ package weave.data.DataSources
 				AsyncSort.sortImmediately(tables, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
 				AsyncSort.sortImmediately(geoms, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
 	
-				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
-
 				if (!_attributeHierarchy.value)
 					_attributeHierarchy.value = <hierarchy/>;
 				
@@ -495,7 +381,7 @@ package weave.data.DataSources
 		}
 		private function handleFault(event:FaultEvent, token:Object = null):void
 		{
-			if (objectWasDisposed(dataService))
+			if (objectWasDisposed(_service))
 				return;
 			reportError(event);
 			trace('async token',ObjectUtil.toString(token));
@@ -530,7 +416,7 @@ package weave.data.DataSources
 			{
 				var id:Object = _idFields ? getAttrs(leafNode, _idFields, true) : StandardLib.asNumber(params[ENTITY_ID]);
 				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
-				query = dataService.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
+				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
 			{
@@ -539,7 +425,7 @@ package weave.data.DataSources
 				if (params[ColumnMetadata.DATA_TYPE] != DataTypes.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
 				
-				query = dataService.getColumnFromMetadata(params);
+				query = _service.getColumnFromMetadata(params);
 			}
 			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, columnRequestToken);
 			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn);
@@ -629,7 +515,7 @@ package weave.data.DataSources
 				var isGeom:Boolean = ObjectUtil.stringCompare(dataType, DataTypes.GEOMETRY, true) == 0;
 				if (isGeom && result.data == null)
 				{
-					var tileService:IWeaveGeometryTileService = dataService.createTileService(result.id);
+					var tileService:IWeaveGeometryTileService = _service.createTileService(result.id);
 					proxyColumn.setInternalColumn(new StreamedGeometryColumn(result.metadataTileDescriptors, result.geometryTileDescriptors, tileService, hierarchyNode));
 					return;
 				}

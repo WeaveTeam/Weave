@@ -17,8 +17,10 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services.beans
+package weave.api.services.beans
 {
+	import weave.api.data.EntityType;
+
 	public class EntityHierarchyInfo
 	{
 		public var id:int;

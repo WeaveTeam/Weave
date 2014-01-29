@@ -36,7 +36,8 @@ package weave.api.data
 		public static function getAllMetadata(column:IAttributeColumn):Object
 		{
 			var meta:Object = {};
-			column.getMetadataPropertyNames().forEach(function(n:*):*{ meta[n] = column.getMetadata(n); });
+			for each (var name:String in column.getMetadataPropertyNames())
+				meta[name] = column.getMetadata(name);
 			return meta;
 		}
 	}

@@ -215,6 +215,9 @@ public class WeaveServlet extends HttpServlet
     	{
     		ExposedMethod m = methodMap.get(methodName);
     		if (m != null)
+    		{
+    			if (m.method.getAnnotation(Deprecated.class) != null)
+    				continue;
     			output += String.format(
 	    				"Exposed servlet method: %s.%s\n",
 	    				m.instance.getClass().getName(),
@@ -224,6 +227,7 @@ public class WeaveServlet extends HttpServlet
 	    						m.paramNames
 	    					)
 	    			);
+    		}
     		else
     			output += "Not exposed: "+methodName;
     	}

@@ -3,6 +3,8 @@ package weave.ui
     import mx.collections.ICollectionView;
     import mx.controls.treeClasses.ITreeDataDescriptor;
     
+    import weave.services.EntityCache;
+    
 	/**
 	 * @author adufilie
 	 */
@@ -10,17 +12,27 @@ package weave.ui
     {
         public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
-			if (newChild is EntityNode)
+			var parentNode:EntityNode = parent as EntityNode;
+			var childNode:EntityNode = newChild as EntityNode;
+			if (childNode)
 			{
-				EntityNode.addChildAt(parent as EntityNode, newChild as EntityNode, index);
+				if (parentNode && parentNode.getEntityCache() != childNode.getEntityCache())
+					return false;
+				childNode.getEntityCache().add_child(parentNode ? parentNode.id : EntityCache.ROOT_ID, childNode.id, index);
 				return true;
 			}
 			return false;
         }
         public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
-			if (child is EntityNode)
-				EntityNode.removeChild(parent as EntityNode, child as EntityNode);
+			var parentNode:EntityNode = parent as EntityNode;
+			var childNode:EntityNode = child as EntityNode;
+			if (childNode)
+			{
+				if (parentNode && parentNode.getEntityCache() != childNode.getEntityCache())
+					return false;
+				childNode.getEntityCache().remove_child(parentNode ? parentNode.id : EntityCache.ROOT_ID, childNode.id);
+			}
 			return true;
         }
         public function getChildren(node:Object, model:Object = null):ICollectionView

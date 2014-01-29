@@ -75,7 +75,7 @@ import weave.utils.Strings;
  * 
  * @author Andy Dufilie
  */
-public class DataService extends WeaveServlet
+public class DataService extends WeaveServlet implements IWeaveEntityService
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -140,23 +140,39 @@ public class DataService extends WeaveServlet
 	////////////////////
 	// DataEntity info
 	
-	public EntityHierarchyInfo[] getDataTableList() throws RemoteException
+	public EntityHierarchyInfo[] getHierarchyInfo(String entityType) throws RemoteException
 	{
-		return getDataConfig().getEntityHierarchyInfo(EntityType.TABLE);
+		return getDataConfig().getEntityHierarchyInfo(entityType);
 	}
 
-	public int[] getEntityChildIds(int parentId) throws RemoteException
+	public DataEntityWithRelationships[] getEntities(int[] ids) throws RemoteException
 	{
-		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
-	}
+		DataConfig config = getDataConfig();
+		Set<Integer> idSet = new HashSet<Integer>();
+		for (int id : ids)
+			idSet.add(id);
+		DataEntity[] entities = config.getEntities(idSet).toArray(new DataEntity[0]);
+		DataEntityWithRelationships[] result = new DataEntityWithRelationships[entities.length];
+		for (int i = 0; i < entities.length; i++)
+		{
+			// prevent user from receiving private metadata
+			entities[i].privateMetadata = null;
 
+			int id = entities[i].id;
+			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
+			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
+			result[i] = new DataEntityWithRelationships(entities[i], parentIds, childIds);
+		}
+		return result;
+	}
+	
 	/**
 	 * This searches for entities matching a set of public metadata values.
 	 * @param publicMetadata A mapping from public metadata property names to values.
 	 * @return A list of entity IDs with matching public metadata.
 	 * @throws RemoteException
 	 */
-	public int[] getEntityIds(Map<String,String> publicMetadata) throws RemoteException
+	public int[] findEntityIds(Map<String,String> publicMetadata) throws RemoteException
 	{
 		DataEntityMetadata dem = new DataEntityMetadata();
 		dem.publicMetadata = publicMetadata;
@@ -164,45 +180,12 @@ public class DataService extends WeaveServlet
 		Arrays.sort(ids);
 		return ids;
 	}
-	
-	/**
-	 * Use getEntityIds() instead. This function is provided for backwards compatibility only.
-	 * @deprecated
-	 */
-	@Deprecated
-	public int[] getEntityIdsByMetadata(Map<String,String> publicMetadata, int entityType) throws RemoteException
+
+	public String[] findPublicFieldValues(String fieldName, String valueSearch) throws RemoteException
 	{
-		publicMetadata.put(PublicMetadata.ENTITYTYPE, EntityType.fromInt(entityType));
-		return getEntityIds(publicMetadata);
+		throw new RemoteException("Not implemented yet");
 	}
 
-	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
-	{
-		DataConfig config = getDataConfig();
-		Set<Integer> idSet = new HashSet<Integer>();
-		for (int id : ids)
-			idSet.add(id);
-		DataEntity[] result = config.getEntities(idSet).toArray(new DataEntity[0]);
-		for (int i = 0; i < result.length; i++)
-		{
-			int id = result[i].id;
-			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
-			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
-			result[i] = new DataEntityWithRelationships(result[i], parentIds, childIds);
-			
-			// prevent user from receiving private metadata
-			result[i].privateMetadata = null;
-		}
-		return result;
-	}
-	
-	public int[] getParents(int childId) throws RemoteException
-	{
-		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(Arrays.asList(childId)) );
-		Arrays.sort(ids);
-		return ids;
-	}
-	
 	////////////
 	// Columns
 	
@@ -243,7 +226,7 @@ public class DataService extends WeaveServlet
 			@SuppressWarnings({ "rawtypes" })
 			Map metadata = (Map)columnId;
 			metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
-			int[] ids = getEntityIds(metadata);
+			int[] ids = findEntityIds(metadata);
 			if (ids.length == 0)
 				throw new RemoteException("No column with id " + columnId);
 			if (ids.length > 1)
@@ -896,6 +879,57 @@ public class DataService extends WeaveServlet
 
 	/////////////////////////////
 	// backwards compatibility
+	
+	
+	/**
+	 * Use getHierarchyInfo() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated public EntityHierarchyInfo[] getDataTableList() throws RemoteException
+	{
+		return getDataConfig().getEntityHierarchyInfo(EntityType.TABLE);
+	}
+
+	/**
+	 * Use getEntities() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated public int[] getEntityChildIds(int parentId) throws RemoteException
+	{
+		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
+	}
+	
+	/**
+	 * Use getEntities() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated public int[] getParents(int childId) throws RemoteException
+	{
+		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(Arrays.asList(childId)) );
+		Arrays.sort(ids);
+		return ids;
+	}
+	
+	/**
+	 * Use findEntityIds() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated
+	public int[] getEntityIdsByMetadata(Map<String,String> publicMetadata, int entityType) throws RemoteException
+	{
+		publicMetadata.put(PublicMetadata.ENTITYTYPE, EntityType.fromInt(entityType));
+		return findEntityIds(publicMetadata);
+	}
+	
+	/**
+	 * Use getEntities() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated
+	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
+	{
+		return getEntities(ids);
+	}
 	
 	/**
 	 * @param metadata The metadata query.

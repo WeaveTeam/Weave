@@ -39,12 +39,13 @@ package weave.services
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import weave.api.core.ILinkableObject;
 	import weave.api.registerLinkableChild;
+	import weave.api.services.IWeaveEntityManagementService;
+	import weave.api.services.beans.EntityMetadata;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
+	import weave.core.LinkableBoolean;
 	import weave.services.beans.ConnectionInfo;
-	import weave.services.beans.EntityMetadata;
 	
 	/**
 	 * The functions in this class correspond directly to Weave servlet functions written in Java.
@@ -53,7 +54,7 @@ package weave.services
 	 * @see WeaveServices/src/weave/servlets/AdminService.java
 	 * @see WeaveServices/src/weave/servlets/DataService.java
 	 */	
-	public class WeaveAdminService implements ILinkableObject
+	public class WeaveAdminService implements IWeaveEntityManagementService
 	{
 		public static const messageLog:Array = new Array();
 		public static const messageLogCallbacks:CallbackCollection = new CallbackCollection();
@@ -110,6 +111,16 @@ package weave.services
 		private var methodHooks:Object = {}; // methodName -> Array (of MethodHook)
         [Bindable] public var initialized:Boolean = false;
 		[Bindable] public var migrationProgress:String = '';
+		
+		public function get entityServiceInitialized():Boolean
+		{
+			return authenticated.value;
+		}
+		
+		//TODO - move hooks from Admin.as to here, and automatically set these user/pass/authenticated settings
+		public const authenticated:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		[Bindable] public var user:String = '';
+		[Bindable] public var pass:String = '';
 		
 		//////////////////////////////
 		// Initialization
@@ -425,17 +436,21 @@ package weave.services
 		{
 			return invokeAdminWithLogin(updateEntity, arguments);
 		}
-		public function getEntityIdsByMetadata(metadata:EntityMetadata):AsyncToken
+		public function getHierarchyInfo(entityType:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getEntityIdsByMetadata, arguments);
+			return invokeAdminWithLogin(getHierarchyInfo, arguments);
 		}
-		public function getEntitiesById(entityIds:Array):AsyncToken
+		public function getEntities(entityIds:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(getEntitiesById, arguments);
+			return invokeAdminWithLogin(getEntities, arguments);
 		}
-		public function getEntityHierarchyInfo(entityType:String):AsyncToken
+		public function findEntityIds(metadata:EntityMetadata):AsyncToken
 		{
-			return invokeAdminWithLogin(getEntityHierarchyInfo, arguments);
+			return invokeAdminWithLogin(findEntityIds, arguments);
+		}
+		public function findPublicFieldValues(fieldName:String, valueSearch:String):AsyncToken
+		{
+			return invokeAdminWithLogin(findPublicFieldValues, arguments);
 		}
 		
 		///////////////////////

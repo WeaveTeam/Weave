@@ -7,18 +7,23 @@ package weave.services
     import weave.api.core.ICallbackCollection;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
+    import weave.api.data.EntityType;
     import weave.api.getCallbackCollection;
     import weave.api.registerLinkableChild;
-    import weave.services.beans.Entity;
-    import weave.services.beans.EntityHierarchyInfo;
-    import weave.services.beans.EntityMetadata;
-    import weave.services.beans.EntityType;
+    import weave.api.reportError;
+    import weave.api.services.IWeaveEntityManagementService;
+    import weave.api.services.IWeaveEntityService;
+    import weave.api.services.beans.Entity;
+    import weave.api.services.beans.EntityHierarchyInfo;
+    import weave.api.services.beans.EntityMetadata;
     import weave.utils.Dictionary2D;
 
     public class EntityCache implements ILinkableObject
     {
 		public static const ROOT_ID:int = -1;
 		
+		private var service:IWeaveEntityService = null;
+		private var adminService:IWeaveEntityManagementService = null; // service as IWeaveEntityManagementService
 		private var idsToFetch:Object = {}; // id -> Boolean
         private var entityCache:Object = {}; // id -> Array <Entity>
 		private var idsToDelete:Object = {}; // id -> Boolean
@@ -26,11 +31,12 @@ package weave.services
 		private var _infoLookup:Object = {}; // id -> EntityHierarchyInfo
 		private var idsDirty:Object = {}; // id -> Boolean; used to remember which ids to invalidate the next time the entity is requested
 		
-        public function EntityCache()
+        public function EntityCache(service:IWeaveEntityService)
         {
+			this.service = service;
+			this.adminService = service as IWeaveEntityManagementService;
+			registerLinkableChild(this, service);
 			callbacks.addGroupedCallback(this, groupedCallback);
-			registerLinkableChild(this, Admin.service);
-			Admin.service.addHook(Admin.service.authenticate, null, groupedCallback);
         }
 		
 		public function hasCachedRelationship(parentId:int, childId:int):Boolean
@@ -99,7 +105,7 @@ package weave.services
 		
 		private function groupedCallback(..._):void
 		{
-			if (!Admin.instance.userHasAuthenticated)
+			if (!service.entityServiceInitialized)
 				return;
 			
 			var id:*;
@@ -110,9 +116,9 @@ package weave.services
 			for (id in idsToDelete)
 				idsToRemove.push(id);
 			
-			if (idsToRemove.length)
+			if (adminService && idsToRemove.length)
 			{
-				addAsyncResponder(Admin.service.removeEntities(idsToRemove), handleRemoveEntities);
+				addAsyncResponder(adminService.removeEntities(idsToRemove), handleRemoveEntities);
 				idsToDelete = {};
 			}
 			
@@ -123,8 +129,8 @@ package weave.services
 				// when requesting root, also request data table list
 				if (id == ROOT_ID)
 				{
-					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.TABLE), handleEntityHierarchyInfo, null, EntityType.TABLE);
-					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.HIERARCHY), handleEntityHierarchyInfo, null, EntityType.HIERARCHY);
+					addAsyncResponder(service.getHierarchyInfo(EntityType.TABLE), handleEntityHierarchyInfo, null, EntityType.TABLE);
+					addAsyncResponder(service.getHierarchyInfo(EntityType.HIERARCHY), handleEntityHierarchyInfo, null, EntityType.HIERARCHY);
 				}
 				else
 					ids.push(int(id));
@@ -133,7 +139,7 @@ package weave.services
 			if (ids.length > 0)
 			{
 				idsToFetch = {};
-				addAsyncResponder(Admin.service.getEntitiesById(ids), getEntityHandler, null, ids);
+				addAsyncResponder(service.getEntities(ids), getEntityHandler, null, ids);
 			}
         }
 		
@@ -260,16 +266,26 @@ package weave.services
 		
 		public function update_metadata(id:int, diff:EntityMetadata):void
         {
-			Admin.service.updateEntity(id, diff);
+			if (!adminService)
+			{
+				reportError("Unable to update metadata (Not an admin service)");
+				return;
+			}
+			adminService.updateEntity(id, diff);
 			invalidate(id);
         }
         public function add_category(title:String, parentId:int, index:int):void
         {
+			if (!adminService)
+			{
+				reportError("Unable to create entities (Not an admin service)");
+				return;
+			}
 			var entityType:String = parentId == ROOT_ID ? EntityType.HIERARCHY : EntityType.CATEGORY;
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata[ColumnMetadata.TITLE] = title;
 			em.publicMetadata[ColumnMetadata.ENTITY_TYPE] = entityType;
-			Admin.service.newEntity(em, parentId, index);
+			adminService.newEntity(em, parentId, index);
 			invalidate(parentId);
         }
         public function delete_entity(id:int):void
@@ -279,17 +295,29 @@ package weave.services
         }
         public function add_child(parent_id:int, child_id:int, index:int):void
         {
+			if (!adminService)
+			{
+				reportError("Unable to modify hierarchy (Not an admin service)");
+				return;
+			}
+
 			if (parent_id == ROOT_ID && idsToDelete[child_id])
 			{
 				// prevent hierarchy-dragged-to-root from removing the hierarchy
 				delete idsToDelete[child_id];
 				return;
 			}
-			Admin.service.addParentChildRelationship(parent_id, child_id, index);
+			adminService.addParentChildRelationship(parent_id, child_id, index);
 			invalidate(parent_id);
         }
         public function remove_child(parent_id:int, child_id:int):void
         {
+			if (!adminService)
+			{
+				reportError("Unable to remove entities (Not an admin service)");
+				return;
+			}
+			
 			// remove from root not supported, but invalidate root anyway in case the child is added via add_child later
 			if (parent_id == ROOT_ID)
 			{
@@ -298,7 +326,7 @@ package weave.services
 			}
 			else
 			{
-				Admin.service.removeParentChildRelationship(parent_id, child_id);
+				adminService.removeParentChildRelationship(parent_id, child_id);
 			}
 			invalidate(child_id, true);
         }

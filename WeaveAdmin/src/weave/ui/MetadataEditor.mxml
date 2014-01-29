@@ -60,10 +60,10 @@
 	import weave.core.UIUtils;
 	import weave.services.Admin;
 	import weave.services.EntityCache;
-	import weave.services.beans.Entity;
-	import weave.services.beans.EntityHierarchyInfo;
-	import weave.services.beans.EntityMetadata;
-	import weave.services.beans.EntityType;
+	import weave.api.services.beans.Entity;
+	import weave.api.services.beans.EntityHierarchyInfo;
+	import weave.api.services.beans.EntityMetadata;
+	import weave.api.data.EntityType;
 	import weave.utils.AsyncSort;
 	
 	override protected function createChildren():void

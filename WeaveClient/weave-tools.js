@@ -81,11 +81,11 @@ function queryDataService(method, params, resultHandler, queryId)
  */
 function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
 {
-	queryDataService("getEntityIdsByMetadata", [{"title": dataTableTitle}, 0], function(tableIds) {
+	queryDataService("findEntityIds", [{"title": dataTableTitle}, 0], function(tableIds) {
 		if (tableIds.length == 0)
 			return fail();
-		queryDataService("getEntityChildIds", [tableIds.pop()], function(columnIds) {
-			queryDataService("getEntitiesById", [columnIds], function(entities) {
+		queryDataService("getEntities", [tableIds.pop()], function(tables) {
+			queryDataService("getEntities", [tables[0].childIds], function(entities) {
 				entities = entities.filter(function (entity) { return entity.publicMetadata['title'] == columnTitle; });
 				if (entities.length == 0)
 					return fail();

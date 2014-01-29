@@ -26,12 +26,12 @@ package weave.services
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
+	import weave.api.data.EntityType;
+	import weave.api.linkBindableProperty;
+	import weave.api.services.beans.Entity;
+	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.compiler.StandardLib;
 	import weave.services.beans.DatabaseConfigInfo;
-	import weave.services.beans.Entity;
-	import weave.services.beans.EntityHierarchyInfo;
-	import weave.services.beans.EntityMetadata;
-	import weave.services.beans.EntityType;
 
 	public class Admin
 	{
@@ -56,7 +56,10 @@ package weave.services
 		public function get service():WeaveAdminService
 		{
 			if (!_service)
+			{
 				_service = new WeaveAdminService("/WeaveServices");
+				linkBindableProperty(_service.authenticated, this, 'userHasAuthenticated');
+			}
 			return _service;
 		}
 
@@ -83,7 +86,7 @@ package weave.services
 		public function get entityCache():EntityCache
 		{
 			if (!_entityCache)
-				_entityCache = new EntityCache();
+				_entityCache = new EntityCache(service);
 			return _entityCache;
 		}
 		
@@ -100,16 +103,8 @@ package weave.services
 		[Bindable] private var entityTypes:Array = [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
 		[Bindable] private var dataTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
-		
-		// values the user has currently selected
-		[Bindable] public var activePassword:String = '';
-		
 		[Bindable] public var uploadedCSVFiles:Array = [];
 		[Bindable] public var uploadedShapeFiles:Array = [];
-		
-		private var _activeConnectionName:String = '';
-		
-
 		
 		public function Admin()
 		{
@@ -365,13 +360,13 @@ package weave.services
 			
 		[Bindable] public function get activeConnectionName():String
 		{
-			return _activeConnectionName;
+			return service.user;
 		}
 		public function set activeConnectionName(value:String):void
 		{
-			if (_activeConnectionName == value)
+			if (service.user == value)
 				return;
-			_activeConnectionName = value;
+			service.user = value;
 			
 			// log out and prevent the user from seeing anything while logged out.
 			userHasAuthenticated = false;
@@ -383,8 +378,14 @@ package weave.services
 			dataTypes = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
-		
-		
+		[Bindable] public function get activePassword():String
+		{
+			return service.pass;
+		}
+		public function set activePassword(value:String):void
+		{
+			service.pass = value;
+		}
 
 		//////////////////////////////////////////
 		// LocalConnection Code
