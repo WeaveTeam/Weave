@@ -118,7 +118,15 @@
 				}
 			}
 			treeSource = root;
+			tree.selectedItemsCompareFunction = compareFlatTreeItems;
 			search();
+		}
+		
+		private function compareFlatTreeItems(itemInDataProvider:Object, itemInSelectedItems:Object):Boolean
+		{
+			if (!itemInDataProvider || !itemInSelectedItems)
+				return itemInDataProvider == itemInSelectedItems;
+			return itemInDataProvider.label == itemInSelectedItems.label;
 		}
 		
 		private function search():void
