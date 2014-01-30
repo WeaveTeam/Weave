@@ -115,7 +115,9 @@ package weave.visualization.plotters
 				for (var i:int = 0, number:Number = first; number < _end; number = first + _interval * ++i)
 					drawLabel(number, dataBounds, screenBounds, destination);
 			}
-			
+			else if (isFinite(offset.value) && _begin < _offset && _offset < _end)
+				drawLabel(_offset, dataBounds, screenBounds, destination);
+
 			if (_begin <= _end && ((_end - _offset) % _interval == 0 || _interval == 0))
 				drawLabel(_end, dataBounds, screenBounds, destination);
 		}
