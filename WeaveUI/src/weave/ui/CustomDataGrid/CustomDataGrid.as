@@ -38,6 +38,8 @@ package weave.ui.CustomDataGrid
 	 * 
 	 * Added getColumn().
 	 * 
+	 * destroyItemEditor() no longer calls setFocus().
+	 * 
 	 * @author kmonico
 	 * @author adufilie
 	 */	
@@ -49,6 +51,18 @@ package weave.ui.CustomDataGrid
 			// add this event listener before the one in super()
 			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
 			super();
+		}
+		private var in_destroyItemEditor:Boolean = false;
+		override public function destroyItemEditor():void
+		{
+			in_destroyItemEditor = true;
+			super.destroyItemEditor();
+			in_destroyItemEditor = false;
+		}
+		override public function setFocus():void
+		{
+			if (!in_destroyItemEditor)
+				super.setFocus();
 		}
 		
 		protected var _columns:Array = [];

@@ -25,10 +25,10 @@ package weave.visualization.tools
 	
 	import mx.containers.Canvas;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
@@ -39,10 +39,10 @@ package weave.visualization.tools
 	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
+	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
-	import weave.utils.ColumnUtils;
 	import weave.utils.GraphicsBuffer;
 	import weave.utils.PlotterUtils;
 	import weave.utils.TextGraphics;
@@ -50,6 +50,13 @@ package weave.visualization.tools
 	public class CustomGraphicsTool extends DraggablePanel implements IVisToolWithSelectableAttributes
 	{
 		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
+		
+		override protected function constructor():void
+		{
+			super.constructor();
+			
+			filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+		}
 		
 		public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 		public const drawScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(defaultScript, false, true));
@@ -62,8 +69,13 @@ package weave.visualization.tools
 		public function get bitmapData():BitmapData { return bitmap.bitmapData; }
 		public const textGraphics:TextGraphics = new TextGraphics();
 		public const canvas:Canvas = new Canvas();
-		public var keys:Array;
 		public var locals:Object; // for use inside scripts
+		private const filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
+		
+		public function get keys():Array
+		{
+			return filteredKeySet.keys;
+		}
 		
 		public function getSelectableAttributes():Array
 		{
@@ -76,6 +88,8 @@ package weave.visualization.tools
 		
 		override protected function createChildren():void
 		{
+			if (createdChildren)
+				return;
 			super.createChildren();
 			addChild(canvas);
 			canvas.percentWidth = 100;
@@ -106,6 +120,8 @@ package weave.visualization.tools
 			var newColumn:IAttributeColumn = vars.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
 				registerLinkableChild(vars, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+			
+			filteredKeySet.setColumnKeySources(vars.getObjects(IAttributeColumn));
 		}
 		
 		// remembers previous unscaled width,height
@@ -119,17 +135,18 @@ package weave.visualization.tools
 		}
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
-			super.updateDisplayList.apply(this,arguments);
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
+			var keysChanged:Boolean = detectLinkableObjectChange(updateDisplayList, filteredKeySet);
 			var varsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, vars);
 			var scriptChanged:Boolean = detectLinkableObjectChange(updateDisplayList, drawScript)
 				
-			// do nothing if nothing changed (script, vars, size)
-			if (!scriptChanged && !varsChanged && _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
+			// do nothing if nothing changed (keys, script, vars, size)
+			if (!keysChanged && !scriptChanged && !varsChanged && _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
 				return;
 			
 			// wait until vars are not busy
-			if (linkableObjectIsBusy(vars))
+			if (linkableObjectIsBusy(vars) || linkableObjectIsBusy(filteredKeySet))
 				return;
 			
 			// remember current size for next time
@@ -156,10 +173,6 @@ package weave.visualization.tools
 				if (!locals || scriptChanged)
 					locals = {};
 				
-				// when the vars hash map changes, get the keys from all the columns in it
-				if (varsChanged)
-					keys = ColumnUtils.getAllKeys(vars.getObjects(IKeySet));
-				
 				// run the custom script
 				drawScript.apply(this);
 				
@@ -174,11 +187,8 @@ package weave.visualization.tools
 		
 		public static const defaultScript:String = <![CDATA[
 			import 'flash.utils.Dictionary';
-			import 'weave.api.detectLinkableObjectChange';
-			import 'weave.api.data.IAttributeColumn';
 			import 'weave.compiler.GlobalLib';
 			import 'weave.data.AttributeColumns.DynamicColumn';
-			import 'weave.data.KeySets.SortedKeySet';
 			
 			var getStats = WeaveAPI.StatisticsCache.getColumnStatistics;
 			var getColumn = locals.getColumn || (locals.getColumn = function(name) { return vars.requestObject(name, DynamicColumn, false); });
@@ -196,14 +206,6 @@ package weave.visualization.tools
 				d = locals.d || (locals.d = new Dictionary(true));
 			
 			ccol.globalName = 'defaultColorColumn';
-			
-			var varsChanged = detectLinkableObjectChange(this, vars);
-			if (varsChanged)
-			{
-				// sort keys by the first column
-				var compare = SortedKeySet.generateCompareFunction([xcol]);
-				StandardLib.sort(keys, compare);
-			}
 			
 			db.setBounds(xstat.getMin(), ystat.getMin(), xstat.getMax(), ystat.getMax());
 			sb.setBounds(margin, canvas.height-margin, canvas.width-margin, margin); // bottom to top

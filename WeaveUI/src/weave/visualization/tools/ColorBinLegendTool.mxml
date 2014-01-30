@@ -29,15 +29,14 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
-			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
@@ -87,32 +86,19 @@
 				visualization.topMarginColumn = _plotter.dynamicColorColumn;
 			}
 			
-			private var _prevBinnedColumn:BinnedColumn;
 			private function colorColumnCallback():void
 			{
-				if (!parent)
-					callLater(colorColumnCallback);
-				
-				if (_prevBinnedColumn != internalBinnedColumn)
-				{
-					if (_prevBinnedColumn)
-						unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-
-					_prevBinnedColumn = internalBinnedColumn;
-
-					if (_prevBinnedColumn)
-						linkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-				}
-				
-				if (_plotter.getInternalColorColumn() == null)
-				{
-					cRampEditor.colorRamp = null;
-				}
-				else
-				{
-					cRampEditor.colorRamp = _plotter.getInternalColorColumn().ramp;
-				}
+				binEditor.setTarget(internalBinnedColumn);
+				cRampEditor.colorRamp = internalColorRamp;
 				updateProbeColumns();
+			}
+			
+			private function get internalColorRamp():ColorRamp
+			{
+				var cc:ColorColumn = _plotter.getInternalColorColumn();
+				if (cc)
+					return cc.ramp;
+				return null;
 			}
 			
 			private function get internalBinnedColumn():BinnedColumn
@@ -125,11 +111,10 @@
 
 			private function get internalDataColumn():DynamicColumn
 			{
-				try
-				{
-					return (internalBinnedColumn.getInternalColumn() as FilteredColumn).internalDynamicColumn;
-				}
-				catch (e:Error) { } // do nothing if there is no data column
+				var bc:BinnedColumn = internalBinnedColumn;
+				var fc:FilteredColumn = bc.getInternalColumn() as FilteredColumn;
+				if (fc)
+					return fc.internalDynamicColumn;
 				return null;
 			}
 
@@ -178,7 +163,7 @@
 				}
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Color Legend");
 			}

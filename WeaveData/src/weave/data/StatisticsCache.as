@@ -234,9 +234,8 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @param key
-	 * @return A number between 0 and 1, or NaN 
-	 */		
+	 * @inheritDoc
+	 */
 	public function getNorm(key:IQualifiedKey):Number
 	{
 		var min:Number = validateCache(getMin);
@@ -248,7 +247,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The minimum numeric value defined in the column.
+	 * @inheritDoc
 	 */
 	public function getMin():Number
 	{
@@ -256,7 +255,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The maximum numeric value defined in the column.
+	 * @inheritDoc
 	 */
 	public function getMax():Number
 	{
@@ -264,7 +263,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The count of the records having numeric values defined in the column.
+	 * @inheritDoc
 	 */
 	public function getCount():Number
 	{
@@ -272,7 +271,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The sum of all the numeric values defined in the column.
+	 * @inheritDoc
 	 */
 	public function getSum():Number
 	{
@@ -280,7 +279,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The sum of the squared numeric values defined in the column.
+	 * @inheritDoc
 	 */
 	public function getSquareSum():Number
 	{
@@ -288,7 +287,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The mean value of all the numeric values defined in the column.
+	 * @inheritDoc
 	 */
 	public function getMean():Number
 	{
@@ -296,7 +295,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The variance of the numeric values defined in the column.
+	 * @inheritDoc
 	 */
 	public function getVariance():Number
 	{
@@ -304,7 +303,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return The standard deviation of the numeric values defined in the column.
+	 * @inheritDoc
 	 */
 	public function getStandardDeviation():Number
 	{
@@ -312,7 +311,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
-	 * @return A Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.
+	 * Gets a Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.
 	 */
 	public function getRunningTotals():Dictionary
 	{
@@ -450,6 +449,8 @@ internal class ColumnStatistics implements IColumnStatistics
 		cache[getVariance] = variance;
 		cache[getStandardDeviation] = standardDeviation;
 		cache[getRunningTotals] = runningTotals;
+		
+		//trace('stats calculated', debugId(this), debugId(column), String(column));
 		
 		// trigger callbacks when we are done
 		getCallbackCollection(this).triggerCallbacks();

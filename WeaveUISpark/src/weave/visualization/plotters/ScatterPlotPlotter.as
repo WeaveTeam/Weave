@@ -67,14 +67,10 @@ package weave.visualization.plotters
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 		}
 		
-		/**
-		 * This is the radius of the circle, in screen coordinates.
-		 */
-		public const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
-		public const enabledSizeBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
@@ -87,7 +83,7 @@ package weave.visualization.plotters
 		private var prevPoint:Point;
 		
 		// delare dependency on statistics (for norm values)
-		private const _screenRadiusStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius));
+		private const _sizeByStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(sizeBy));
 		public var hack_horizontalBackgroundLineStyle:Array;
 		public var hack_verticalBackgroundLineStyle:Array;
 		
@@ -114,7 +110,7 @@ package weave.visualization.plotters
 		
 		private function updateKeySources():void
 		{
-			var columns:Array = [screenRadius];
+			var columns:Array = [sizeBy];
 			if (colorDataWatcher.target)
 				columns.push(colorDataWatcher.target)
 			columns.push(dataX, dataY);
@@ -181,22 +177,21 @@ package weave.visualization.plotters
 			var radius:Number;
 			if (colorBySize.value)
 			{
-				var sizeData:Number = screenRadius.getValueFromKey(recordKey, Number);
+				var sizeData:Number = sizeBy.getValueFromKey(recordKey, Number);
 				var alpha:Number = fill.alpha.getValueFromKey(recordKey, Number);
 				if( sizeData < 0 )
 					graphics.beginFill(colorNegative.value, alpha);
 				else if( sizeData > 0 )
 					graphics.beginFill(colorPositive.value, alpha);
-				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius);
-				var min:Number = stats.getMin();
-				var max:Number = stats.getMax();
+				var min:Number = _sizeByStats.getMin();
+				var max:Number = _sizeByStats.getMax();
 				var absMax:Number = Math.max(Math.abs(min), Math.abs(max));
 				var normRadius:Number = StandardLib.normalize(Math.abs(sizeData), 0, absMax);
 				radius = normRadius * maxScreenRadius.value;
 			}
-			else if (enabledSizeBy.value)
+			else if (sizeBy.internalObject)
 			{
-				radius = minScreenRadius.value + (_screenRadiusStats.getNorm(recordKey) *(maxScreenRadius.value - minScreenRadius.value));
+				radius = minScreenRadius.value + (_sizeByStats.getNorm(recordKey) * (maxScreenRadius.value - minScreenRadius.value));
 			}
 			else
 			{
@@ -216,7 +211,7 @@ package weave.visualization.plotters
 				{
 					// draw nothing
 				}
-				else if (enabledSizeBy.value)
+				else if (sizeBy.internalObject)
 				{
 					// draw square
 					radius = defaultScreenRadius.value;
@@ -255,7 +250,7 @@ package weave.visualization.plotters
 		[Deprecated] public function set yColumn(value:Object):void { setSessionState(dataY, value); }
 		[Deprecated] public function set alphaColumn(value:Object):void { setSessionState(fill.alpha, value); }
 		[Deprecated] public function set colorColumn(value:Object):void { setSessionState(fill.color, value); }
-		[Deprecated] public function set radiusColumn(value:Object):void { setSessionState(screenRadius, value); }
+		[Deprecated] public function set radiusColumn(value:Object):void { setSessionState(sizeBy, value); }
 		[Deprecated] public function set fillStyle(value:Object):void
 		{
 			try
@@ -267,6 +262,20 @@ package weave.visualization.plotters
 				reportError(e);
 			}
 		}
+		[Deprecated(replacement="sizeBy")] public function set screenRadius(value:Object):void
+		{
+			if (_deprecatedEnabledSizeBy)
+				setSessionState(sizeBy, value);
+			else
+				sizeBy.removeObject();
+			_deprecatedEnabledSizeBy = true;
+		}
+		[Deprecated(replacement="sizeBy")] public function set enabledSizeBy(value:Boolean):void
+		{
+			_deprecatedEnabledSizeBy = value;
+			if (!value)
+				sizeBy.removeObject();
+		}
+		private var _deprecatedEnabledSizeBy:Boolean = true;
 	}
 }
-

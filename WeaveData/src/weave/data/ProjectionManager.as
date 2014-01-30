@@ -21,7 +21,6 @@ package weave.data
 {
 	import flash.geom.Point;
 	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
 	
 	import org.openscales.proj4as.Proj4as;
 	import org.openscales.proj4as.ProjConstants;
@@ -33,9 +32,11 @@ package weave.data
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
 	import weave.api.newDisposableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.Bounds2D;
+	import weave.utils.Dictionary2D;
 	
 	/**
 	 * An interface for reprojecting columns of geometries and individual coordinates.
@@ -80,10 +81,9 @@ package weave.data
 
 
 		/**
-		 * This is a multi-dimensional lookup:   unprojectedColumn -> Object, destinationSRS -> ProxyColumn
-		 * Example: _reprojectedColumnCache[column][destinationSRS] is a ProxyColumn containing geometries reprojected to the given SRS.
+		 * This is a multi-dimensional lookup for ProxyColumn objects containing reprojected geometries:   (unprojectedColumn, destinationSRS) -> ProxyColumn
 		 */		
-		private const _reprojectedColumnCache:Dictionary = new Dictionary(true); // weak links to be gc-friendly
+		private const _reprojectedColumnCache_d2d_col_srs:Dictionary2D = new Dictionary2D(true); // weak links to be gc-friendly
 		
 		/**
 		 * @inheritDoc
@@ -98,26 +98,16 @@ package weave.data
 				return geometryColumn;
 			
 			// check the cache
-			var srsCache:Object = _reprojectedColumnCache[geometryColumn] as Object;
-			if (srsCache == null)
+			var worker:WorkerThread = _reprojectedColumnCache_d2d_col_srs.get(geometryColumn, destinationProjectionSRS);
+			
+			// if worker doesn't exist yet or was disposed, (re)create it
+			if (!worker || objectWasDisposed(worker))
 			{
-				srsCache = new Object(); // destinationSRS -> ProxyColumn
-				_reprojectedColumnCache[geometryColumn] = srsCache;
+				worker = new WorkerThread(this, geometryColumn, destinationProjectionSRS);
+				_reprojectedColumnCache_d2d_col_srs.set(geometryColumn, destinationProjectionSRS, worker);
 			}
-			var reprojectedColumn:ProxyColumn = srsCache[destinationProjectionSRS] as ProxyColumn;
 
-			// if reprojected column is cached, return it
-			if (reprojectedColumn)
-				return reprojectedColumn;
-
-			// otherwise, create a proxy that will provide the reprojected shapes and save it in the cache
-			reprojectedColumn = newDisposableChild(this, ProxyColumn);
-			srsCache[destinationProjectionSRS] = reprojectedColumn;
-			
-			// create a WorkerThread that will reproject the geometries
-			new WorkerThread(this, geometryColumn, reprojectedColumn, destinationProjectionSRS);
-			
-			return reprojectedColumn;
+			return worker.reprojectedColumn;
 		}
 		
 		/**
@@ -315,12 +305,15 @@ import org.openscales.proj4as.ProjPoint;
 import org.openscales.proj4as.ProjProjection;
 
 import weave.api.WeaveAPI;
+import weave.api.core.IDisposableObject;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.DataTypes;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IProjector;
 import weave.api.data.IQualifiedKey;
+import weave.api.newDisposableChild;
+import weave.api.registerDisposableChild;
 import weave.data.AttributeColumns.GeometryColumn;
 import weave.data.AttributeColumns.ProxyColumn;
 import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -331,21 +324,32 @@ import weave.primitives.GeometryType;
 import weave.utils.BLGTreeUtils;
 import weave.utils.ColumnUtils;
 	
-internal class WorkerThread
+internal class WorkerThread implements IDisposableObject
 {
-	public function WorkerThread(projectionManager:ProjectionManager, unprojectedColumn:IAttributeColumn, reprojectedColumn:ProxyColumn, destinationProjectionSRS:String)
+	public function WorkerThread(projectionManager:ProjectionManager, unprojectedColumn:IAttributeColumn, destinationProjectionSRS:String)
 	{
+		registerDisposableChild(unprojectedColumn, this);
 		this.projectionManager = projectionManager;
 		this.unprojectedColumn = unprojectedColumn;
-		this.reprojectedColumn = reprojectedColumn;
 		this.destinationProjSRS = destinationProjectionSRS;
+		this.reprojectedColumn = newDisposableChild(this, ProxyColumn);
 		unprojectedColumn.addImmediateCallback(this, asyncStart, true);
 	}
+	
+	public function dispose():void
+	{
+		projectionManager = null;
+		unprojectedColumn = null;
+		reprojectedColumn = null;
+		destinationProjSRS = null;
+	}
+	
+	// provides access to reprojected geometries
+	public var reprojectedColumn:ProxyColumn;
 	
 	// values passed to the constructor -- these will not change.
 	private var projectionManager:ProjectionManager;
 	private var unprojectedColumn:IAttributeColumn;
-	private var reprojectedColumn:ProxyColumn;
 	private var destinationProjSRS:String;
 	
 	// these values may change as the geometries are processed.

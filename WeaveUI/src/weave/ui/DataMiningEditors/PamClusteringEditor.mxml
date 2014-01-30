@@ -93,6 +93,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				pamClusterInput = new NumberInputComponent("pamClusterNumber", "5");
 				pamClusterInput.label = "Enter the number of clusters";

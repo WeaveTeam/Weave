@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -43,7 +44,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.LinkableWatcher;
-	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -78,8 +78,12 @@ package weave.visualization.plotters
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
-			xColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
+			xColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			
+			linkSessionState(_filteredXData.filter, filteredKeySet.keyFilter);
+			linkSessionState(_filteredYData.filter, filteredKeySet.keyFilter);
+			registerLinkableChild(this, xData, updateFilterEquationColumns);
+			registerLinkableChild(this, yData, updateFilterEquationColumns);
 			
 			lineStyle.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateFilterEquationColumns, true);
@@ -90,13 +94,13 @@ package weave.visualization.plotters
 		{
 			// When a new column is created, register the stats to trigger callbacks and affect busy status.
 			// This will be cleaned up automatically when the column is disposed.
-			    var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 			
-				var newtestColumn:IAttributeColumn = xColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
-			if (newtestColumn)
-				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newtestColumn));
+			var newXColumn:IAttributeColumn = xColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newXColumn)
+				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newXColumn));
 			
 			_yColumns = columns.getObjects();
 			_xColumns = xColumns.getObjects();
@@ -107,9 +111,6 @@ package weave.visualization.plotters
 				if (_yColumns.length == 1)
 					_yColumns.push(_yColumns[0]);
 			}
-			
-//			if (_xColumns.length == 1)
-//				_xColumns.push(_xColumns[0]);
 			
 			updateFilterEquationColumns();
 		}
@@ -124,10 +125,12 @@ package weave.visualization.plotters
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
-		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
-		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public function get xData():DynamicColumn { return _filteredXData.internalDynamicColumn; }
+		public function get yData():DynamicColumn { return _filteredYData.internalDynamicColumn; }
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
+		private const _filteredXData:FilteredColumn = newSpatialProperty(FilteredColumn);
+		private const _filteredYData:FilteredColumn = newSpatialProperty(FilteredColumn);
 		private const _keySet_groupBy:KeySet = newDisposableChild(this, KeySet);
 		
 		private var _yColumns:Array = [];
@@ -148,7 +151,7 @@ package weave.visualization.plotters
 			// if session state is defined, use that. otherwise, get the values from xData
 			if (xValues.value)
 			{
-				return VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xValues.value));
+				return WeaveAPI.CSVParser.parseCSVRow(xValues.value) || [];
 			}
 			else
 			{
@@ -234,8 +237,8 @@ package weave.visualization.plotters
 				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
 				col.delayCallbacks();
 				col.variables.requestObjectCopy("keyCol", groupBy);
-				col.variables.requestObjectCopy("filterCol", xData);
-				col.variables.requestObjectCopy("dataCol", yData);
+				col.variables.requestObjectCopy("filterCol", _filteredXData);
+				col.variables.requestObjectCopy("dataCol", _filteredYData);
 				
 				col.setMetadata(ColumnMetadata.TITLE, value);
 				col.setMetadata(ColumnMetadata.MIN, '{ getMin(dataCol) }');

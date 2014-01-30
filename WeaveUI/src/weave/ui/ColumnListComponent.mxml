@@ -66,6 +66,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.core.LinkableWatcher;
+			import weave.ui.CustomDataGrid.CustomDataGrid;
 			import weave.utils.ColumnUtils;
 			
 			[Bindable] public var helpContent:*;
@@ -116,7 +117,7 @@
 			public function set showVariableNames(value:Boolean):void
 			{
 				_internalList = value
-					? controller.view as DataGrid || new DataGrid()
+					? controller.view as DataGrid || new CustomDataGrid()
 					: controller.view as List || new List();
 				
 				if (controller.view != _internalList)
@@ -164,6 +165,7 @@
 			
 			public function set hashMap(value:ILinkableHashMap):void
 			{
+				enabled = !!value;
 				controller.hashMap = value;
 				toolWatcher.target = AttributeSelectorPanel.getVisTool(value);
 				updateLabel();

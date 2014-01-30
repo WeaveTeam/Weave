@@ -106,7 +106,23 @@
 			</mx:Array>
 		</ui:CustomGrid>
 	</ui:CheckBoxWithNestedOptions>
-	
+	<mx:VBox paddingLeft="{enableBitmapFilters.indent}"
+			 visible="{!enableBitmapFilters.selected}"
+			 includeInLayout="{!enableBitmapFilters.selected}">
+		<ui:Indent label="{lang('Shadow Color')}">
+			<ui:CustomColorPicker id="shadowColor"
+								  creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
+								  />
+		</ui:Indent> 
+		<ui:Indent label="{lang('Shadow Alpha')}">
+			<mx:NumericStepper id="shadowAlpha"
+							   maximum="1"
+							   stepSize="0.1"
+							   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
+							   />
+		</ui:Indent> 
+	</mx:VBox>
+
 	<mx:Script>
 		<![CDATA[
 			import mx.core.IToolTip;

@@ -50,7 +50,11 @@
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
+				
+				controlPanel.initialize();
 				controlPanel.tabNavigator.removeChild(axesEditor);
 				LayerListComponent; // work around compile error
 				layersEditor.addChildAt(axesEditor.titleControls, 0);

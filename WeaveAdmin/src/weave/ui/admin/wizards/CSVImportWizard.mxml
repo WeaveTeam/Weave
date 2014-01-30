@@ -333,7 +333,7 @@
 						var tableId:int = int(event.result);
 						
 						const SUBJECT:String = 'subject';
-						const DESCRIPTION:String = 'subject';
+						const DESCRIPTION:String = 'description';
 						var em:EntityMetadata = new EntityMetadata();
 						em.publicMetadata[SUBJECT] = dcSubjectTextInput.text;
 						em.publicMetadata[DESCRIPTION] = dcDescriptionTextInput.text;

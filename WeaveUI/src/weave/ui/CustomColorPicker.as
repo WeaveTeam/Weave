@@ -23,6 +23,8 @@ package weave.ui
 	import mx.core.mx_internal;
 	import mx.events.DropdownEvent;
 	
+	import weave.core.UIUtils;
+	
 	use namespace mx_internal;
 
 	/**
@@ -37,6 +39,11 @@ package weave.ui
 			super.childrenCreated();
 			
 			addEventListener(DropdownEvent.OPEN, handleOpen);
+		}
+		
+		public function get hasFocus():Boolean
+		{
+			return UIUtils.hasFocus(this) || UIUtils.hasFocus(dropdown);
 		}
 		
 		private function handleOpen(event:DropdownEvent):void

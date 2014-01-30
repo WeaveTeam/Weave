@@ -40,6 +40,7 @@
 			import weave.api.setSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -278,14 +279,14 @@
 				if (_plotter.enableGroupBy.value)
 					return [lang("X values"), lang("Y values"), lang("Group by"), lang("Group color"), lang("Group label"), ];
 				else
-					return [lang("Color"), lang("Label"), lang("Y Columns"), lang("X Columns")];
+					return [lang("Color"), lang("Label"), lang("Y Columns")];
 			}
 			override public function getSelectableAttributes():Array
 			{
 				if (_plotter.enableGroupBy.value)
 					return [_plotter.xData, _plotter.yData, _plotter.groupBy, _plotter.lineStyle.color, labelPlotter.text];
 				else
-					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns, _plotter.xColumns];
+					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns];
 			}
 			
 			private function getColumnObjects():Array
@@ -302,17 +303,10 @@
 				
 				var columns:Array = _plotter.columns.getObjects();
 			
-				// get bounds for y axis
-				visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
-				tempBounds.xMax = tempBounds.xMin;
-				
-				yAxisPlotter.axisLineMinValue.value = tempBounds.yMin;
-				yAxisPlotter.axisLineMaxValue.value = tempBounds.yMax;
-			
-				yAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
-				
 				if(_plotter.usingXAttributes)
 				{
+					visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
+					tempBounds.yMax = tempBounds.yMin;
 					xAxisPlotter.axisLineMinValue.value = tempBounds.xMin;
 					xAxisPlotter.axisLineMaxValue.value = tempBounds.xMax;
 					xAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
@@ -323,8 +317,13 @@
 				{
 					xAxisPlotter.tickCountRequested.value = Math.max(2, columns.length);
 					xAxisPlotter.forceTickCount.value = true;
-				
 				}
+				
+				visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
+				tempBounds.xMax = tempBounds.xMin;
+				yAxisPlotter.axisLineMinValue.value = tempBounds.yMin;
+				yAxisPlotter.axisLineMaxValue.value = tempBounds.yMax;
+				yAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				
 				var xAxisName:String = '';
 				var yAxisName:String = '';
@@ -350,7 +349,7 @@
 				yAxisPlotter.updateLabels();			
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects();
 				if (columns.length == 0)
@@ -486,6 +485,7 @@
 			}
 			
 			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
+			private static const HELP_DT_GROUP:String = HELP_KT_XYGB + " The values in the 'Group by' column are used as foreign keys. The dataType of the 'Group by' column specifies the foreign keyType used by the 'Group color' and 'Group label' columns.";
 			private static const HELP_KT_COLOR:String = "The keyType of the color column must equal the dataType of the 'Group by' column.";
 			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the dataType of the 'Group by' column.";
 		]]>
@@ -497,7 +497,7 @@
 										  label="{lang('Group records by column values (Advanced)')}">
 				<ui:DynamicColumnComponent id="xDataSelector" creationComplete="initDynamicColumnComponent(xDataSelector, HELP_KT_XYGB)"/>
 				<ui:DynamicColumnComponent id="yDataSelector" creationComplete="initDynamicColumnComponent(yDataSelector, HELP_KT_XYGB)"/>
-				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_DT_GROUP)"/>
 				<ui:DynamicColumnComponent id="groupColorSelector" showLinkControl="false" creationComplete="initDynamicColumnComponent(groupColorSelector, HELP_KT_COLOR)"/>
 				<ui:DynamicColumnComponent id="groupLabelSelector" creationComplete="initDynamicColumnComponent(groupLabelSelector, HELP_KT_LABEL)"/>
 				<ui:Indent id="generateReverseLookupControls">
@@ -521,7 +521,7 @@
 		</mx:VBox>
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
 				<ui:CheckBoxList id="probeChecklist"/>
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>

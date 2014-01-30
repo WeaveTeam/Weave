@@ -29,6 +29,7 @@
 							width="100%" height="100%" minHeight="0"
 							labelFunction="choiceLabelFunction"
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
+							change="if (alwaysShowPrompt.value) choiceCombo.selectedIndex = -1;"
 							/>
 		</mx:Canvas>
 		<mx:Canvas label="{lang('List')}">
@@ -80,17 +81,24 @@
 				<HelpComponent>
 					Select the layout for the attribute menu.
 				</HelpComponent>
-				<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
-						 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
-					<mx:CheckBox id="showPlayButtonCheck" label="{lang('Show play button')}"
-								 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
-					<mx:CheckBox id="autoPlayRepeatCheck" label="{lang('Loop')}"
-								 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
-				</mx:HBox>
-				<IndentTextInput visible="{layoutCombo.selectedItem == 'ComboBox'}"
-								 includeInLayout="{layoutCombo.selectedItem == 'ComboBox'}"
-								 label="{lang('Prompt')}"
-								 creationComplete="linkBindableProperty(prompt, event.target, 'text')"/>
+			</Indent>
+			<Indent label="Layout options" translate="true"
+					visible="{layoutCombo.selectedItem == 'HSlider'}"
+					includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
+				<mx:CheckBox id="showPlayButtonCheck" label="{lang('Show play button')}"
+							 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
+				<mx:CheckBox id="autoPlayRepeatCheck" label="{lang('Loop')}"
+							 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
+			</Indent>
+			<Indent label="Layout options" translate="true"
+					visible="{layoutCombo.selectedItem == 'ComboBox'}"
+					includeInLayout="{layoutCombo.selectedItem == 'ComboBox'}">
+				<Indent label="Prompt" translate="true">
+					<mx:TextInput width="100%"
+								  creationComplete="linkBindableProperty(prompt, event.target, 'text')"/>
+					<CustomCheckBox label="{lang('Always show')}"
+									creationComplete="linkBindableProperty(alwaysShowPrompt, event.target, 'selected')"/>
+				</Indent>
 			</Indent>
 			<ColumnListComponent id="choicesComponent" label="{lang('Attributes to appear in the menu')}" />
 			<Indent label="{lang('Label function')}">
@@ -185,6 +193,7 @@
 			};
 			
 			public const prompt:LinkableString = registerLinkableChild(this, new LinkableString(lang('Select an attribute...')));
+			public const alwaysShowPrompt:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleSelectedAttributeChange);
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
 			public const targetAttributeNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-1, isFinite));
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -263,7 +272,8 @@
 			
 			private function stopPlay():void
 			{
-				playButton.selected = false;
+				if (playButton)
+					playButton.selected = false;
 			}
 			
 			private function handleLayoutMode():void
@@ -443,7 +453,7 @@
 				
 				var names:Array = choices.getNames();
 				var selectedIndex:int = names.indexOf(selectedAttribute.value);
-				choiceCombo.selectedIndex = selectedIndex;
+				choiceCombo.selectedIndex = alwaysShowPrompt.value ? -1 : selectedIndex;
 				choiceList.selectedIndex = selectedIndex;
 				if (selectedIndex >= 0)
 				{
@@ -464,6 +474,7 @@
 			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void
 			{
+				panelTitle.value = StandardLib.replace(panelTitle.value || '', "targetAttribute.value", "targetAttributeName");
 				validateToolWatcherTarget();
 				handleToolChange();
 				if (_attrNames.length == 0)

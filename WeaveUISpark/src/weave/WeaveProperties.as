@@ -214,7 +214,9 @@ package weave
 				return StandardLib.asNumber(value.substr(0, -1)) > 0;
 			return StandardLib.asNumber(value) >= 1;
 		}
-
+		
+		public const showErrors:LinkableBoolean = new LinkableBoolean(true);
+		
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
 		public const windowSnapGridSize:LinkableString = new LinkableString("1%", verifyWindowSnapGridSize); // window snap grid size in pixels

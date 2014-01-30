@@ -494,7 +494,7 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (loader && !WeaveAPI.SessionManager.objectWasDisposed(this))
 			loader.removeResponder(this);
-		WeaveAPI.SessionManager.disposeObjects(this);
+		WeaveAPI.SessionManager.disposeObject(this);
 	}
 	
 	override public function result(data:Object):void

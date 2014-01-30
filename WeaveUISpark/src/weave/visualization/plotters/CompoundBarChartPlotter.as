@@ -124,13 +124,9 @@ package weave.visualization.plotters
 			
 			// get the sorted keys
 			var sortedKeys:Array = _sortedIndexColumn.keys;
-			
-			// cast the input value from the axis to an int (not ideal at all, need to make this more robust)
-			var sortedKeyIndex:int = int(value);
-			
-			// if this key is out of range, we have a problem
-			if (sortedKeyIndex < 0 || sortedKeyIndex > sortedKeys.length-1)
-				return "Invalid tick mark value: "+value.toString();
+			var sortedKeyIndex:int = Math.round(value);
+			if (sortedKeyIndex != value || sortedKeyIndex < 0 || sortedKeyIndex > sortedKeys.length - 1)
+				return '';
 			
 			// if the labelColumn doesn't have any data, use default label
 			if (labelColumn.getInternalColumn() == null)
@@ -167,7 +163,7 @@ package weave.visualization.plotters
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const zoomToSubsetBars:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
-		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
+		public const barSpacing:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const groupingMode:LinkableString = registerSpatialProperty(new LinkableString(STACK, verifyGroupingMode));
 		public static const GROUP:String = 'group';
 		public static const STACK:String = 'stack';
@@ -704,7 +700,8 @@ package weave.visualization.plotters
 				sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 			else
 				sortedIndex = _sortedIndexColumn.getValueFromKey(recordKey, Number);
-			var spacing:Number = StandardLib.constrain(barSpacing.value, 0, 1) / 2; // max distance between bar groups is 0.5 in data coordinates
+			//var spacing:Number = StandardLib.constrain(barSpacing.value, 0, 1) / 2; // max distance between bar groups is 0.5 in data coordinates
+			var spacing:Number = 0;
 			var minPos:Number = sortedIndex - 0.5 + spacing / 2;
 			var maxPos:Number = sortedIndex + 0.5 - spacing / 2;
 			var recordWidth:Number = maxPos - minPos;

@@ -237,13 +237,10 @@ package weave.visualization.layers
 			// if axes are enabled, make sure width and height are not zero
 			if ((getXAxisPlotter() || getYAxisPlotter()) && plotManager.enableAutoZoomToExtent.value)
 			{
-				if (tempBounds.isEmpty())
-				{
-					if (tempBounds.getWidth() == 0)
-						tempBounds.setWidth(1);
-					if (tempBounds.getHeight() == 0)
-						tempBounds.setHeight(1);
-				}
+				if (tempBounds.getWidth() == 0)
+					tempBounds.setWidth(1);
+				if (tempBounds.getHeight() == 0)
+					tempBounds.setHeight(1);
 			}
 			fullDataBounds.copyFrom(tempBounds);
 		}

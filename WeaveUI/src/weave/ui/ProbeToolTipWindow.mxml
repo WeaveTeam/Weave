@@ -23,7 +23,7 @@
 				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Mouseover Information");
 			}
@@ -32,6 +32,8 @@
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				var button:Button = new Button();
 				button.label = lang("Open mouseover info editor");

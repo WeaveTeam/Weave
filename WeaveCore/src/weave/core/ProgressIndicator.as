@@ -39,6 +39,17 @@ package weave.core
 		public static var debug:Boolean = true;
 		
 		/**
+		 * For debugging, returns debugIds for active tasks.
+		 */
+		public function debugTasks():Array
+		{
+			var result:Array = [];
+			for (var task:Object in _taskToProgressMap)
+				result.push(debugId(task));
+			return result;
+		}
+		
+		/**
 		 * @inheritDoc
 		 */
 		public function getTaskCount():int

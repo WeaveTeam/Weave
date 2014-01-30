@@ -488,7 +488,7 @@
 						if (attr.length() > 0)
 							delete attr[0];
 					}
-					path.triggerCallbacks(); // always trigger so refresh occurs
+					hierarchySelector.refresh();
 				}
 			}
 			public function hasPendingChanges():Boolean { return false; }

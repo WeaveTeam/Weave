@@ -219,7 +219,7 @@ package weave.compiler
 				// commit changes
 				lines[i] = spaces + line.substr(t);
 			}
-			return lines.join('\n') + '\n';
+			return lines.join('\n');
 		}
 
 		/**
@@ -603,7 +603,7 @@ package weave.compiler
 		 */
 		public static function getArrayType(a:Array):Class
 		{
-			if (a.length == 0 || a[0] == null)
+			if (a == null || a.length == 0 || a[0] == null)
 				return null;
 			var type:Class = Object(a[0]).constructor;
 			for each (var item:Object in a)

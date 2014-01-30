@@ -96,15 +96,12 @@ package weave.visualization.tools
 		protected var axesEditor:SimpleAxisEditor;
 		protected var windowEditor:WindowSettingsEditor;
 		
-		private var createdChildren:Boolean = false;
 		override protected function createChildren():void
 		{
-			super.createChildren();
-			
 			if (createdChildren)
 				return;
 			
-			createdChildren = true;
+			super.createChildren();
 			
 			toolVBox = new VBox()
 			toolVBox.percentHeight = 100;

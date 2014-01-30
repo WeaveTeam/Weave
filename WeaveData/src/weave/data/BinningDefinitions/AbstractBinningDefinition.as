@@ -33,7 +33,6 @@ package weave.data.BinningDefinitions
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
-	import weave.utils.VectorUtils;
 
 	/**
 	 * Extend this class and implement <code>generateBinClassifiersForColumn()</code>, which should store its results in the
@@ -93,7 +92,7 @@ package weave.data.BinningDefinitions
 		protected function getOverrideNames():Array
 		{
 			if (detectLinkableObjectChange(getOverrideNames, overrideBinNames))
-				names = VectorUtils.flatten( WeaveAPI.CSVParser.parseCSV(overrideBinNames.value) );
+				names = WeaveAPI.CSVParser.parseCSVRow(overrideBinNames.value) || [];
 			return names;
 		}
 	}

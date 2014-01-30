@@ -63,6 +63,8 @@
 			import weave.api.getLinkableOwner;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
@@ -86,10 +88,12 @@
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 
-				registerLinkableChild(this, editor, hideIfUnlinked, true);
-				registerLinkableChild(this, columnList, hideIfUnlinked, true);
+				registerLinkableChild(this, editor);
+				registerLinkableChild(this, columnList);
 				columnList.titleHBox.addChild(addColumnControls);
 				
 				Weave.properties.showAddAllButton.addImmediateCallback(this, function():void {
@@ -102,22 +106,8 @@
 				super.dispose();
 			}
 			
-			private function hideIfUnlinked():Boolean
-			{
-				if (_targetObjects && _targetObjects.length && !editor.target && !columnList.hashMap)
-				{
-					linkToObject(null);
-					removePanel();
-					return true;
-				}
-				return false;
-			}
-			
 			private function addAll():void
 			{
-				if (hideIfUnlinked())
-					return;
-				
 				getCallbackCollection(columnList.hashMap).delayCallbacks();
 				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
 				if( editor.hierarchySelector.attributesView.dataProvider != null )
@@ -136,15 +126,48 @@
 			
 			private function addSelected():void
 			{
-				if (hideIfUnlinked())
-					return;
-				
 				var newColumn:ILinkableObject = columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
 				columnList.beginEditVariableName(newColumn);
 			}
 			
 			private var selectableAttributes:Array = [];
 			[Bindable] private var selectableAttributeNames:Array = [];
+			
+			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IVisToolWithSelectableAttributes), handleTool, true);
+			
+			private function handleTool():void
+			{
+				if (!parent)
+					toolWatcher.target = null;
+				
+				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
+				if (tool)
+				{
+					var selectedIndex:int = dimensionTypeLinks.selectedIndex;
+					var attrs:Array = tool.getSelectableAttributes();
+					var names:Array = tool.getSelectableAttributeNames();
+					
+					// do nothing if nothing changed
+					if (!StandardLib.arrayCompare(attrs, selectableAttributes)
+						&& !StandardLib.arrayCompare(names, selectableAttributeNames))
+						return;
+						
+					selectableAttributes = attrs;
+					selectableAttributeNames = names;
+					title = ControlPanel.getControlPanelTitle(tool, TITLE_FORMAT);
+					if (selectedIndex >= 0)
+						linkToObject(selectableAttributes[selectedIndex]);
+				}
+				else
+				{
+					selectableAttributes = [];
+					selectableAttributeNames = [];
+				}
+				showOrHideParamSelector(tool != null);
+				
+				if (!columnList.hashMap && verticalDividedBox == columnList.parent)
+					verticalDividedBox.removeChild(columnList);
+			}
 			
 			private function showOrHideParamSelector(show:Boolean):void
 			{
@@ -154,31 +177,30 @@
 					outerVBox.removeChild(paramSelector);
 			}
 			
+			private static const DEFAULT_TITLE:String = "Attribute selector";
+			private static const TITLE_FORMAT:String = DEFAULT_TITLE + " for {0}";
+			
 			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
 			{
 				editor.setTarget(ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
 
-				var titleFormat:String = "Attribute selector for {0}";
 				var tool:IVisToolWithSelectableAttributes = getVisTool(columnOrHashMap);
+				toolWatcher.target = tool;
+				handleTool();
 				if (tool)
 				{
-					targets = selectableAttributes = tool.getSelectableAttributes();
-					selectableAttributeNames = tool.getSelectableAttributeNames();
+					targets = tool.getSelectableAttributes();
 					
-					title = ControlPanel.getControlPanelTitle(tool, titleFormat);
-					dimensionTypeLinks.selectedIndex = selectableAttributes.indexOf(columnOrHashMap);
-					showOrHideParamSelector(true);
+					dimensionTypeLinks.selectedIndex = tool.getSelectableAttributes().indexOf(columnOrHashMap);
 				}
 				else
 				{
 					targets = columnOrHashMap ? [columnOrHashMap] : [];
-					selectableAttributeNames = selectableAttributes = [];
 					
 					if (objectTitle)
-						title = lang(titleFormat, objectTitle);
+						title = lang(TITLE_FORMAT, objectTitle);
 					else
-						title = lang("Attribute selector");
-					showOrHideParamSelector(false);
+						title = lang(DEFAULT_TITLE);
 				}
 				
 				if (columnOrHashMap is ILinkableHashMap)

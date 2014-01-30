@@ -13,17 +13,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api
+package
 {
+	import flash.utils.getDefinitionByName;
+
 	/**
-	 * Shortcut for WeaveAPI.SessionManager.disposeObjects()
-	 * @copy weave.api.core.ISessionManager#disposeObjects()
+	 * Use this in place of QName class pointer to fix ASDOC build error "Property is write-only"
 	 */
-	public function disposeObjects(object:Object, ...moreObjects):void
-	{
-		if (object != null)
-			(moreObjects as Array).unshift(object);
-		if (moreObjects.length > 0)
-			(WeaveAPI.SessionManager.disposeObjects as Function).apply(null, moreObjects);
-	}
+	public const QName_Class:Class = getDefinitionByName('QName') as Class;
 }

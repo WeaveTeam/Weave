@@ -196,6 +196,10 @@
 				
 				var dp:ArrayCollection = (colorsList.dataProvider as ArrayCollection);
 				dp.removeAll();
+				
+				if (!colorRamp)
+					return;
+				
 				var colors:Array = colorRamp.getColors();
 				for (var i:int = 0; i < colors.length; i++)
 				{

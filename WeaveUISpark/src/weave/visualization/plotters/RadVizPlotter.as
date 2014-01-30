@@ -36,7 +36,7 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
@@ -868,7 +868,7 @@ package weave.visualization.plotters
 			if (newAlgorithm == null) 
 				return;
 			
-			disposeObjects(_algorithm); // clean up previous algorithm
+			disposeObject(_algorithm); // clean up previous algorithm
 			
 			_algorithm = newSpatialProperty(newAlgorithm);
 			var array:Array = _algorithm.run(columns.getObjects(IAttributeColumn), keyNumberMap);

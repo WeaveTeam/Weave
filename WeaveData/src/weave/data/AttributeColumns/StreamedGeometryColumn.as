@@ -147,7 +147,7 @@ package weave.data.AttributeColumns
 				return;
 			
 			// don't bother downloading if we know the result will be empty
-			if (dataBounds.isUndefined() || dataBounds.isEmpty())
+			if (dataBounds.isEmpty())
 				return;
 			
 			var metaRequestBounds:IBounds2D;
@@ -200,13 +200,15 @@ package weave.data.AttributeColumns
 		
 		private function handleMetadataDownloadFault(event:FaultEvent, token:Object = null):void
 		{
-			reportError(event);
+			if (!wasDisposed)
+				reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_metadataStreamDownloadCounter--;
 		}
 		private function handleGeometryDownloadFault(event:FaultEvent, token:Object = null):void
 		{
-			reportError(event);
+			if (!wasDisposed)
+				reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_geometryStreamDownloadCounter--;
 		}

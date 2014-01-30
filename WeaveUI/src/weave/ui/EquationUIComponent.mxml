@@ -48,7 +48,7 @@
 			import mx.managers.DragManager;
 			
 			import weave.api.core.ILinkableObject;
-			import weave.api.disposeObjects;
+			import weave.api.disposeObject;
 			import weave.api.newLinkableChild;
 			import weave.compiler.CompiledFunctionCall;
 			import weave.compiler.ICompiledObject;
@@ -349,10 +349,10 @@
 			{
 				var children:Array = equationStringContainer.getChildren();
 				for each (var child:UIComponent in children)
+				{
 					child.validateNow(); // prevents application from crashing inside call to callLaterDispatcher().
-				
-				if (children.length > 0)
-					(disposeObjects as Function).apply(null, children);
+					disposeObject(child);
+				}
 				equationStringContainer.removeAllChildren();
 			}
 		]]>

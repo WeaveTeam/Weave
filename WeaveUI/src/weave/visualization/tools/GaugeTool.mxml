@@ -29,7 +29,6 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
-			import weave.api.linkSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
@@ -92,7 +91,7 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Gauge of {0}", ColumnUtils.getTitle(plotter.meterColumn));
 			}

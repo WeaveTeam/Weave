@@ -70,6 +70,7 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
+			import mx.controls.Tree;
 			
 			import weave.services.Admin;
 			import weave.utils.EventUtils;
@@ -78,16 +79,26 @@
 			
 			private function handleCreationComplete():void
 			{
-				BindingUtils.bindSetter(sharedTreeWithSearch.generateFlatTreeFromLabels, Admin.instance, "weaveFileNames");
-				BindingUtils.bindSetter(userFolderTreeWithSearch.generateFlatTreeFromLabels, Admin.instance, "privateWeaveFileNames");
-				
-				function clearPreview(..._):void { weaveFileInfo.clearPreview(); }
-				BindingUtils.bindSetter(clearPreview, Admin.instance, "weaveFileNames");
-				BindingUtils.bindSetter(clearPreview, Admin.instance, "privateWeaveFileNames");
+				BindingUtils.bindSetter(function(files:Array):void {
+					sharedTreeWithSearch.generateFlatTreeFromLabels(files);
+					previewSelectedFile(sharedTreeWithSearch, false);
+				}, Admin.instance, "weaveFileNames");
+				BindingUtils.bindSetter(function(files:Array):void {
+					userFolderTreeWithSearch.generateFlatTreeFromLabels(files);
+					previewSelectedFile(userFolderTreeWithSearch, false);
+				}, Admin.instance, "privateWeaveFileNames");
 				
 				var delay:int = 100;
 				var preview:Function = function(event:Event):void {
-						previewSelectedFile(event.currentTarget.owner as TreeWithSearch);
+						var tree:Tree = event.currentTarget as Tree;
+						if (tree.selectedItem)
+						{
+							if (tree == sharedTreeWithSearch.tree)
+								userFolderTreeWithSearch.tree.selectedItem = null;
+							else
+								sharedTreeWithSearch.tree.selectedItem = null;
+						}
+						previewSelectedFile(tree.owner as TreeWithSearch);
 					};
 				preview = EventUtils.generateDelayedCallback(this, preview, delay, true);
 				userFolderTreeWithSearch.tree.addEventListener(Event.CHANGE, preview);
@@ -101,11 +112,13 @@
 					Admin.instance.openWeavePopup(item.label);
 			}
 			
-			private function previewSelectedFile(component:TreeWithSearch):void
+			private function previewSelectedFile(component:TreeWithSearch, clearIfNoSelection:Boolean = true):void
 			{
 				var item:Object = component.tree.selectedItem;
 				if (item)
 					weaveFileInfo.updatePreview(item.label);
+				else if (clearIfNoSelection)
+					weaveFileInfo.clearPreview();
 			}
 			
 			private function createFile():void

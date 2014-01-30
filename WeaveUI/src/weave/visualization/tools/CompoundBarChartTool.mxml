@@ -261,7 +261,7 @@
 					AttributeSelectorPanel.open(_plotter.heightColumns);
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
 				for (var i:int = 0; i < columns.length; i++)
@@ -567,7 +567,7 @@
 		</mx:VBox>
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-										  change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+										  change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
 				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>

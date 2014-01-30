@@ -74,6 +74,8 @@
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				
 				subMenu.addSubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]);
@@ -116,7 +118,7 @@
 				_filterWatcher.target = filter;
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				if (filterColumn)
 					return lang('Filter for {0}', ColumnUtils.getTitle(filterColumn));

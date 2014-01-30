@@ -29,7 +29,7 @@
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 width="100%"
-		 implements="weave.api.core.ILinkableObject"
+		 implements="weave.api.core.ILinkableObject,weave.api.ui.ILinkableObjectEditor"
 		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
 				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
@@ -55,7 +55,7 @@
 				<mx:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
 				<ui:HelpComponent label="{customRadio.label}">
 					Enter comma-separated custom break values for dividing the data into bins.
-					Example: "0,50,100" will create two bins: [0,50] and [50,100]
+					Example: 0,50,100 will create two bins: [0,50] and [50,100]
 				</ui:HelpComponent>
 			</mx:HBox>
 			
@@ -136,6 +136,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableString;
+			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.BinningDefinitions.AbstractBinningDefinition;
 			import weave.data.BinningDefinitions.CategoryBinningDefinition;
@@ -146,7 +147,16 @@
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
 			
-			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn);
+			public function setTarget(object:ILinkableObject):void
+			{
+				_binnedColumnWatcher.target = object as BinnedColumn;
+			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
+			
+			private const _binnedColumnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleBinnedColumnChange, true);
+			
+			private function get binnedColumn():BinnedColumn { return _binnedColumnWatcher.target as BinnedColumn; }
 			
 			private const indent:int = 120;
 			private const inputWidth:int = 64;
@@ -161,6 +171,8 @@
 			
 			private function get overrideBinNames():LinkableString
 			{
+				if (!binnedColumn)
+					return null;
 				var abstractDef:AbstractBinningDefinition = binnedColumn.binningDefinition.internalObject as AbstractBinningDefinition;;
 				if (abstractDef)
 					return abstractDef.overrideBinNames;
@@ -171,8 +183,6 @@
 			{
 				super.childrenCreated();
 				
-				binnedColumn.addGroupedCallback(this, handleBinnedColumnChange, true);
-
 				var delay:int = 500;
 				linkBindableProperty(_simple.numberOfBins, numOfBins, 'value', delay);
 				linkBindableProperty(_customSplit.splitValues, splitValues, 'text', delay);
@@ -187,7 +197,8 @@
 				// from the selected radio button, get the local binning definition
 				var localDef:IBinningDefinition = typeGroup.selection.data as IBinningDefinition;
 				// create a copy of the selected local binning definition
-				binnedColumn.binningDefinition.requestLocalObjectCopy(localDef);
+				if (binnedColumn)
+					binnedColumn.binningDefinition.requestLocalObjectCopy(localDef);
 			}
 			
 			// called when the binned column changes
@@ -198,6 +209,9 @@
 					callLater(handleBinnedColumnChange);
 					return;
 				}
+
+				if (!binnedColumn)
+					return;
 				
 				// find the radio button with the same binning definition type
 				var def:IBinningDefinition = binnedColumn.binningDefinition.internalObject as IBinningDefinition;
@@ -247,6 +261,9 @@
 				input.errorString = '';
 				
 				if (input.text == event.itemRenderer.data as String)
+					return;
+				
+				if (!binnedColumn)
 					return;
 				
 				if (binnedColumn.binningDefinition.getBinNames().indexOf(input.text) >= 0)

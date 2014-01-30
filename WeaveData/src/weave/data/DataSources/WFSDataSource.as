@@ -31,7 +31,7 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -73,7 +73,7 @@ package weave.data.DataSources
 		{
 			if (url.value == null)
 				url.value = '/geoserver/wfs';
-			disposeObjects(wfsDataService);
+			disposeObject(wfsDataService);
 			
 			//TODO: dispose of all old columns, too
 			
