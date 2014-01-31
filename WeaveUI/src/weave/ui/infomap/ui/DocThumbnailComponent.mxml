@@ -238,7 +238,6 @@ so that it can be moved, selected, handle filters.
 				
 				if(_imageURL && checkIfValidURL(_imageURL))
 				{
-					trace("requesting " + _imageURL);					
 					token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
 				}
 				
@@ -278,7 +277,6 @@ so that it can be moved, selected, handle filters.
 					return;
 				
 				token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest,_imageURL);
-				trace("requesting " + _imageURL);
 			}
 			
 			public function dispose():void
@@ -298,7 +296,6 @@ so that it can be moved, selected, handle filters.
 			
 			private function handleImageRequest(event:ResultEvent,token:Object=null):void
 			{
-				trace("got " + token);
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
 				try{
@@ -313,7 +310,6 @@ so that it can be moved, selected, handle filters.
 			private var _noImage:Class;
 			private function handleImageFaultRequest(event:FaultEvent,token:Object=null):void
 			{
-				trace("did not get " + token);
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
 				img.source = _noImage;
