@@ -186,8 +186,9 @@ function WeavePath(path)
 		return null;
 	}
 	/**
-	 * Calls weave.evaluateExpression() using the current path, vars, and libs and returns the resulting value.
-	 * First parameter is the script to be evaluated by Weave at the current path, or simply a variable name.
+	 * Returns the value of an ActionScript expression or variable using the current path, vars, and libs.
+	 * The 'this' context within the script will be set to the object at the current path.
+	 * First parameter is the script to be evaluated by Weave, or simply a variable name.
 	 */
 	this.getValue = function(script_or_variableName)
 	{
@@ -230,7 +231,7 @@ function WeavePath(path)
 	/**
 	 * Requests that an object be created if it doesn't already exist at (or relative to) the current path.
 	 * Accepts an optional list of names relative to the current path.
-	 * The final parameter should be the object type to be passed to weave.requestObject().
+	 * The final parameter should be the name of an ActionScript class in Weave.
 	 */
 	this.request = function(/*...relativePath, objectType*/)
 	{
@@ -256,7 +257,7 @@ function WeavePath(path)
 		return this;
 	};
 	/**
-	 * Calls weave.setChildNameOrder() for the current path.
+	 * Reorders the children of an ILinkableHashMap at the current path.
 	 * Accepts an Array or a list of ordered child names.
 	 */
 	this.reorder = function(/*...orderedNames*/)
@@ -362,8 +363,9 @@ function WeavePath(path)
 		return this;
 	};
 	/**
-	 * Calls weave.evaluateExpression() using the current path, vars, and libs.
-	 * First parameter is the script to be evaluated by Weave at the current path.
+	 * Evaluates an ActionScript expression using the current path, vars, and libs.
+	 * The 'this' context within the script will be the object at the current path.
+	 * First parameter is the script to be evaluated by Weave using the object at the current path as the 'this' context.
 	 * Second parameter is an optional callback or variable name.
 	 * - If given a callback function, the function will be passed the result of
 	 *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
