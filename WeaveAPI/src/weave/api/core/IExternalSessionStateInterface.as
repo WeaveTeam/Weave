@@ -140,9 +140,10 @@ package weave.api.core
 		/**
 		 * This function will add a grouped callback to an ILinkableObject.
 		 * @param objectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
-		 * @param callback The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
+		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
+		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
-		 * @return true if objectPath refers to an existing object in the session state.
+		 * @return true if successful.
 		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
 		function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean;
@@ -150,8 +151,9 @@ package weave.api.core
 		/**
 		 * This function will remove a callback that was previously added.
 		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
-		 * @param callback The function to remove from the list of callbacks, which must be specified as a String.
-		 * @return true if objectPath refers to an existing object in the session state.
+		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
+		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
+		 * @return true if successful.
 		 */
 		function removeCallback(scopeObjectPathOrVariableName:Object, callback:String):Boolean;
 	}

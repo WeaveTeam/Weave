@@ -1,4 +1,4 @@
-// This code assumes the weave variable has already been set.
+// This code assumes it is being executed within a function(){} where the 'weave' variable is defined.
 
 if (!weave.id)
 	weave.id = 'weave';
@@ -18,8 +18,61 @@ weave.path = function(/*...basePath*/)
 {
 	return new WeavePath(A(arguments, 1));
 };
-weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with two properties: callback and name
 weave.path.vars = {}; // used with exec() and getVar()
+weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with properties: callback, name, path, getState
+
+// enhance weave.addCallback() to support function pointers
+var _addCallback = weave.addCallback;
+weave.addCallback = function(target, callback, triggerNow)
+{
+	if (typeof callback == 'function')
+		callback = callbackToString(callback);
+	return _addCallback.call(this, target, callback, triggerNow);
+};
+// enhance weave.removeCallback() to support function pointers
+var _removeCallback = weave.removeCallback;
+weave.removeCallback = function(target, callback)
+{
+	if (typeof callback == 'function')
+		callback = callbackToString(callback);
+	return _removeCallback.call(this, target, callback);
+};
+
+/**
+ * Private function for internal use with weave.addCallback() and weave.removeCallback().
+ */
+function callbackToString(callback, path, getState)
+{
+	var list = weave.path.callbacks;
+	for (var i in list)
+	{
+		if (list[i].callback == callback)
+		{
+			if (path)
+			{
+				// keep existing entry, but update params
+				list[i]['path'] = path;
+				list[i]['getState'] = getState;
+			}
+			return list[i]['string'];
+		}
+	}
+	
+	var list = weave.path.callbacks;
+	var idStr = JSON && JSON.stringify ? JSON.stringify(weave.id) : '"' + weave.id + '"';
+	var string = 'function(){' +
+			'var weave = document.getElementById('+idStr+');' +
+			'var obj = weave.path.callbacks['+list.length+'];' +
+			'obj.callback.call(obj.path, obj.path && obj.getState ? obj.path.getState() : null);' +
+		'}';
+	list.push({
+		"callback": callback,
+		"string": string,
+		"path": path,
+		"getState": getState
+	});
+	return string;
+}
 
 /**
  * Private function for internal use.
@@ -259,12 +312,14 @@ function WeavePath(path)
 	 * Second parameter is a Boolean, when set to true will trigger the callback now.
 	 * Third parameter is a Boolean, when set to true means the callback will receive the session state as a parameter.
 	 * Since this adds a grouped callback, the callback will not run immediately when addCallback() is called.
+	 * If the same callback is added to multiple paths, only the last path will be used as the 'this' context.
 	 */
 	this.addCallback = function(callback, triggerCallbackNow, callbackReceivesState)
 	{
 		if (assertParams('addCallback', arguments))
 		{
-			weave.addCallback(path, callbackToString(callback, callbackReceivesState), triggerCallbackNow)
+			callback = callbackToString(callback, weave.path(path.concat()), callbackReceivesState);
+			weave.addCallback(path, callback, triggerCallbackNow)
 				|| failObject('addCallback');
 		}
 		return this;
@@ -276,7 +331,7 @@ function WeavePath(path)
 	{
 		if (assertParams('removeCallback', arguments))
 		{
-			weave.removeCallback(path, callbackToString(callback))
+			weave.removeCallback(path, callback)
 				|| failObject('removeCallback');
 		}
 		return this;
@@ -358,31 +413,6 @@ function WeavePath(path)
 		return this;
 	};
 	
-	// private functions
-	function callbackToString(callback, callbackReceivesState)
-	{
-		var list = weave.path.callbacks;
-		for (var i in list)
-			if (list[i].callback == callback)
-				return list[i].name;
-		
-		var idStr = JSON && JSON.stringify ? JSON.stringify(weave.id) : '"' + weave.id + '"';
-		
-		var name = 'function(){' +
-				'var weave = document.getElementById('+idStr+');' +
-				'var obj = weave.path.callbacks['+list.length+'];' +
-				'obj.callback.call(obj.path, obj.getState ? obj.path.getState() : null);' +
-			'}';
-		
-		list.push({
-			"callback": callback,
-			"name": name,
-			"path": weave.path(path.concat()),
-			"getState": callbackReceivesState
-		});
-		
-		return name;
-	}
 	function assertParams(methodName, args, minLength)
 	{
 		if (!minLength)
