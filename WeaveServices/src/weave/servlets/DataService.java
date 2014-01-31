@@ -485,12 +485,16 @@ public class DataService extends GenericServlet
 	public byte[] getGeometryStreamMetadataTiles(int columnId, int[] tileIDs) throws RemoteException
 	{
 		DataEntity entity = getColumnEntity(columnId);
+		if (tileIDs == null || tileIDs.length == 0)
+			throw new RemoteException("At least one tileID must be specified.");
 		return (byte[]) getGeometryData(entity, GeomStreamComponent.METADATA_TILES, tileIDs);
 	}
 	
 	public byte[] getGeometryStreamGeometryTiles(int columnId, int[] tileIDs) throws RemoteException
 	{
 		DataEntity entity = getColumnEntity(columnId);
+		if (tileIDs == null || tileIDs.length == 0)
+			throw new RemoteException("At least one tileID must be specified.");
 		return (byte[]) getGeometryData(entity, GeomStreamComponent.GEOMETRY_TILES, tileIDs);
 	}
 	
