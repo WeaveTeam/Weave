@@ -236,8 +236,11 @@ so that it can be moved, selected, handle filters.
 				
 				img.source = _noImage;
 				
-				if(_imageURL)
+				if(_imageURL && checkIfValidURL(_imageURL))
+				{
+					trace("requesting " + _imageURL);					
 					token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
+				}
 				
 				if(docURL.value)
 				{
@@ -252,18 +255,30 @@ so that it can be moved, selected, handle filters.
 				}
 			}
 			
+			/**
+			 * if the imgName tag from Solr is empty, the url return was "http://129.63.16.86:8080/thumbnails/"
+			 * While this has been fixed, this function is added for old session states.
+			 * So if a request for an above URL is made, it is ignored
+			 * 
+			 * @returns true if URL has a valid image extension
+			 **/
+			private function checkIfValidURL(imageurl:String):Boolean
+			{
+				var matchArray:Array = imageurl.match(/(.jpg|.jpeg|.png)$/g);
+				return (matchArray.length >0); 
+			}
+			
 			private function handleImageURLFromColumn():void
 			{
 				var source:InfoMapsDataSource = Weave.root.getObject("InfoMaps Data Source") as InfoMapsDataSource;
 				
 				//if URL is already set don't do anything. This is to avoid callbacks for csv sources
 				_imageURL = source.getImageURLForURL(docURL.value);
-				if(_imageURL == null)
-					return;
-				if(_imageURL.indexOf("ERROR")>-1)
+				if(_imageURL == null || !checkIfValidURL(_imageURL))
 					return;
 				
-				token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
+				token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest,_imageURL);
+				trace("requesting " + _imageURL);
 			}
 			
 			public function dispose():void
@@ -283,6 +298,7 @@ so that it can be moved, selected, handle filters.
 			
 			private function handleImageRequest(event:ResultEvent,token:Object=null):void
 			{
+				trace("got " + token);
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
 				try{
@@ -297,6 +313,7 @@ so that it can be moved, selected, handle filters.
 			private var _noImage:Class;
 			private function handleImageFaultRequest(event:FaultEvent,token:Object=null):void
 			{
+				trace("did not get " + token);
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
 				img.source = _noImage;

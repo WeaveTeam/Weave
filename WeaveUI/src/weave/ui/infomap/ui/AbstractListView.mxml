@@ -42,7 +42,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.disposeObjects;
+			import weave.api.disposeObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -87,7 +87,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			{
 				if(_keys != null)
 				{
-					disposeObjects(_keys);
+					disposeObject(_keys);
 				}
 
 				_keys = registerLinkableChild(this,new KeySet());

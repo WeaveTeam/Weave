@@ -6,7 +6,7 @@ package weave.ui.infomap.ui
 	import mx.states.OverrideBase;
 	
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.data.KeySets.KeySet;
@@ -75,7 +75,7 @@ package weave.ui.infomap.ui
 		override public function set keys(value:Array):void {
 			if(_keys != null)
 			{
-				disposeObjects(_keys);
+				disposeObject(_keys);
 			}
 			
 			_keys = registerLinkableChild(this,new KeySet());

@@ -1544,10 +1544,15 @@ public class AdminService extends GenericServlet {
 				if (doc.getFieldValue("imgName") != null)
 				{
 					String imageURL = (String)doc.getFieldValue("imgName");
-					if (imageURL.contains("http"))
+					if(imageURL.length() == 0 || imageURL == null || imageURL.equals("ERROR"))
+					{
+					    docArray[2] = "";
+					}
+					else if (imageURL.contains("http"))
 					{
 						docArray[2] = imageURL;
-					}else
+					}
+					else
 					{
 						docArray[2] = serverURL + "thumbnails/"
 						+ (String) doc.getFieldValue("imgName");

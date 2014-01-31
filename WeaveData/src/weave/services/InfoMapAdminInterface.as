@@ -63,7 +63,7 @@ package weave.services
 				// we want to use a queue so the admin functions will execute in the correct order.
 				queue.addToQueue(query);
 				// automatically display FaultEvent error messages as alert boxes
-				query.addAsyncResponder(null, alertFault, query);
+				addAsyncResponder(query,null, alertFault, query);
 				return query;
 			}
 			
@@ -104,7 +104,7 @@ package weave.services
 			public function getRssFeeds():void
 			{
 				rssFeeds = []
-				generateQueryAndAddToQueue("getRssFeeds",[]).addAsyncResponder(handleGetRssFeeds);
+				addAsyncResponder(generateQueryAndAddToQueue("getRssFeeds",[]),handleGetRssFeeds);
 				function handleGetRssFeeds(event:ResultEvent,token:Object=null):void
 				{
 					if (event.result != null)
@@ -115,7 +115,7 @@ package weave.services
 			
 			public function addRssFeed(title:String,url:String):void
 			{
-				generateQueryAndAddToQueue("addRssFeed",[title,url]).addAsyncResponder(handler);
+				addAsyncResponder(generateQueryAndAddToQueue("addRssFeed",[title,url]),handler);
 				function handler(event:ResultEvent, token:Object=null):void
 				{
 					Alert.show(event.result.toString());
@@ -125,7 +125,7 @@ package weave.services
 			
 			public function deleteRssFeed(url:String):void
 			{
-				generateQueryAndAddToQueue("deleteRssFeed",[url]).addAsyncResponder(handler);
+				addAsyncResponder(generateQueryAndAddToQueue("deleteRssFeed",[url]),handler);
 				function handler(event:ResultEvent, token:Object=null):void
 				{
 					Alert.show(event.result.toString());
@@ -135,7 +135,7 @@ package weave.services
 			
 			public function deleteRssFeedWithTitle(title:String):void
 			{
-				generateQueryAndAddToQueue("deleteRssFeedWithTitle",[title]).addAsyncResponder(handler);
+				addAsyncResponder(generateQueryAndAddToQueue("deleteRssFeedWithTitle",[title]),handler);
 				function handler(event:ResultEvent, token:Object=null):void
 				{
 					Alert.show(event.result.toString());
@@ -151,7 +151,7 @@ package weave.services
 			
 			public function renameFile(filePath:String,newFileName:String,overwrite:Boolean=false):void
 			{
-				generateQueryAndAddToQueue("renameFile",[filePath,newFileName,overwrite]).addAsyncResponder(handler);
+				addAsyncResponder(generateQueryAndAddToQueue("renameFile",[filePath,newFileName,overwrite]),handler);
 				function handler(event:ResultEvent, token:Object=null):void
 				{
 					Alert.show(event.result.toString());
@@ -166,7 +166,7 @@ package weave.services
 			
 			public function addDocumentToSolr(username:String,file:FileReference):void
 			{
-				generateQueryAndAddToQueue("addTextDocument",[username,file.name,file.data]).addAsyncResponder(resultHandler,errorHandler);
+				addAsyncResponder(generateQueryAndAddToQueue("addTextDocument",[username,file.name,file.data]),resultHandler,errorHandler);
 				function resultHandler(event:ResultEvent, token:Object = null):void
 				{
 //					Alert.show(event.result.toString());

@@ -79,7 +79,6 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
-			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
@@ -611,11 +610,11 @@
 					handleEmptyResultSet();
 					return;
 				}
-				if(isQueryDifferent || _firstLoad)
-				{
-					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
-						_currentRelatedKeywords);
-				}
+//				if(isQueryDifferent || _firstLoad)
+//				{
+//					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
+//						_currentRelatedKeywords);
+//				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
 					_currentQueryString,currentQuery.dateFilter,currentQuery.sources.value);
