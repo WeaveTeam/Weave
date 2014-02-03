@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html  lang="en" ng-app="MetadataManager">
+	<head>
+		<meta charset="UTF-8" />
+		<title> Metadata Manager Interface</title>
+		<script src="lib/jquery/jquery.js"></script>
+		<script src="aws.js"></script>
+		<script src='lib/angular/angular.js'></script>
+	</head>
+	<body ng-controller = "MetadataManagerController" >
+			
+		Data Table: <select ng-model="dataTable" style=width:200px; ng-options="dt.title for dt in dataTableList"></select><br>
+		
+		Columns: <select ng-model="columnSelected" ng-options="column.title for column in columnList" style="width:40%"></select><br>
+		
+		<textarea  ng-model="aws_metadataTextArea" width="100%" cols="100" rows="10"></textarea><br>
+		<input type="button" value="Update" ng-click="update()">
+		<input type="button" value="Refresh" ng-click="refresh()">
+		<div id="log"></div>
+		<br><br>
+		Paste Metadata CSV here:<br>
+		<textarea ng-model="aws_metadataCSV" width="100%" cols="100" rows="10"></textarea><br>
+		<input type="button" value="Update" ng-click="updateFromCSV()">
+		
+		<script>
+			var MetadataManager =  angular.module('MetadataManager', []);
+			
+			MetadataManager.service("queryService", ['$q', '$rootScope', function($q, scope) {
+				
+				var that = this;
+				
+				this.dataObject = {};
+				
+				/**
+		    	  * This function makes nested async calls to the aws function getEntityChildIds and
+		    	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
+		    	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
+		    	  */
+		    	this.getDataColumnsEntitiesFromId = function(id, forceUpdate) {
+		            
+		    		if(!forceUpdate) {
+			    		if (this.dataObject.columns) {
+			    			return this.dataObject.columns;
+			    		}
+		    		}
+
+		    		var deferred = $q.defer();
+		    		
+		            aws.DataClient.getEntityChildIds(id, function(idsArray) {
+		                scope.$apply(function() {
+		                    deferred.resolve(idsArray);
+		                });
+		            });
+		            
+		            var deferred2 = $q.defer();
+		            
+		            deferred.promise.then(function(idsArray) {
+		            	
+		            	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
+		            		
+		            		that.dataObject.columns = dataEntityArray;
+		            		
+		            		scope.$apply(function() {
+		                    	deferred2.resolve(dataEntityArray);
+		                    });
+		                });
+		            });
+		            
+		            return deferred2.promise;
+
+		        };
+		        
+		        /**
+		         * This function wraps the async aws getDataTableList to get the list of all data tables
+		         * again angular defer/promise so that the UI asynchronously wait for the data to be available...
+		         */
+		        this.getDataTableList = function(){
+		            
+		        	if (this.dataObject.dataTableList) {
+		        		return this.dataObject.dataTableList;
+		        	}
+		        	
+		        	var deferred = $q.defer();
+		            
+		            aws.DataClient.getDataTableList(function(EntityHierarchyInfoArray){
+		                
+		            	that.dataObject.dataTableList = EntityHierarchyInfoArray;
+		            	
+		            	scope.$apply(function(){
+		                    deferred.resolve(EntityHierarchyInfoArray);
+		                });
+		            });
+		                
+		            return deferred.promise;
+
+		        };
+		        
+		        this.getEntityChildIds = function(ids) {
+					
+		        	var deferred = $q.defer();
+		            
+		            aws.DataClient.getEntityChildIds(ids, function(DataEntity){
+		                
+		            	scope.$apply(function(){
+		                    deferred.resolve(DataEntity);
+		                });
+		            });
+		                
+		            return deferred.promise;
+		        }
+		        
+		        this.updateEntity = function(user, password, entityId, diff) {
+
+		        	var deferred = $q.defer();
+		            
+		            aws.AdminClient.updateEntity(user, password, entityId, diff, function(){
+		                
+		            	scope.$apply(function(){
+		                    deferred.resolve();
+		                });
+		            });
+		            return deferred.promise;
+		        };
+		        
+		        
+			     // Source: http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
+			     // This will parse a delimited string into an array of
+			     // arrays. The default delimiter is the comma, but this
+			     // can be overriden in the second argument.
+		     
+		     
+		        this.CSVToArray = function(strData, strDelimiter) {
+		            // Check to see if the delimiter is defined. If not,
+		            // then default to comma.
+		            strDelimiter = (strDelimiter || ",");
+		            // Create a regular expression to parse the CSV values.
+		            var objPattern = new RegExp((
+		            // Delimiters.
+		            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+		            // Quoted fields.
+		            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+		            // Standard fields.
+		            "([^\"\\" + strDelimiter + "\\r\\n]*))"), "gi");
+		            // Create an array to hold our data. Give the array
+		            // a default empty first row.
+		            var arrData = [[]];
+		            // Create an array to hold our individual pattern
+		            // matching groups.
+		            var arrMatches = null;
+		            // Keep looping over the regular expression matches
+		            // until we can no longer find a match.
+		            while (arrMatches = objPattern.exec(strData)) {
+		                // Get the delimiter that was found.
+		                var strMatchedDelimiter = arrMatches[1];
+		                // Check to see if the given delimiter has a length
+		                // (is not the start of string) and if it matches
+		                // field delimiter. If id does not, then we know
+		                // that this delimiter is a row delimiter.
+		                if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
+		                    // Since we have reached a new row of data,
+		                    // add an empty row to our data array.
+		                    arrData.push([]);
+		                }
+		                // Now that we have our delimiter out of the way,
+		                // let's check to see which kind of value we
+		                // captured (quoted or unquoted).
+		                if (arrMatches[2]) {
+		                    // We found a quoted value. When we capture
+		                    // this value, unescape any double quotes.
+		                    var strMatchedValue = arrMatches[2].replace(
+		                    new RegExp("\"\"", "g"), "\"");
+		                } else {
+		                    // We found a non-quoted value.
+		                    var strMatchedValue = arrMatches[3];
+		                }
+		                // Now that we have our value string, let's add
+		                // it to the data array.
+		                arrData[arrData.length - 1].push(strMatchedValue);
+		            }
+		            // Return the parsed data.
+		            return (arrData);
+		        }
+			}]);
+			
+			MetadataManager.controller("MetadataManagerController", function($scope, queryService){
+				
+				var dataTableList = [];
+				
+				queryService.getDataTableList();
+				
+				$scope.$watch(function() {
+					return queryService.dataObject.dataTableList;
+				}, function() {
+					$scope.dataTableList = queryService.dataObject.dataTableList;
+				});
+				
+				$scope.columnList = [];
+				
+				$scope.$watch('dataTable', function() {
+					if($scope.dataTable){
+						queryService.getDataColumnsEntitiesFromId($scope.dataTable.id, true);
+						$('#log').html('');
+					};
+				});
+				
+				$scope.$watch(function() {
+					return queryService.dataObject.columns;
+				}, function(){
+					if(queryService.dataObject.columns) {
+						$scope.columnList = $.map(queryService.dataObject.columns, function(item){
+								return {
+									id : item.id,
+									title : item.publicMetadata.title,
+									aws_metadata : item.publicMetadata.aws_metadata
+								};
+						});
+					}					
+				});
+				
+				$scope.$watch('columnSelected', function(){
+					if($scope.columnSelected){
+						$scope.aws_metadataTextArea = JSON.stringify(JSON.parse($scope.columnSelected.aws_metadata), null, 2);
+						$('#log').html('');
+					} else {
+						$scope.aws_metadataTextArea = "";
+					}
+				})
+				
+				$scope.update = function() {
+					queryService.updateEntity("mysql", 
+												"pass", 
+												$scope.columnSelected.id, { 
+																			publicMetadata : { 
+																								aws_metadata : JSON.stringify(JSON.parse($scope.aws_metadataTextArea)) 
+																							}
+																			}
+											 ).then(function() {
+												$scope.refresh();
+												$('#log').html(" metadata updated...");
+											 });
+				} 
+				
+				$scope.refresh = function() {
+					queryService.getDataColumnsEntitiesFromId($scope.dataTable.id, true);
+					$scope.aws_metadataTextArea = "";
+				}
+				
+				$scope.updateFromCSV = function() {
+					var metadataArray = queryService.CSVToArray($scope.aws_metadataCSV);
+					
+					if($scope.dataTable) {
+						for (var i = 1; i < metadataArray.length; i++) {
+							var metadata = metadataArray[i][1];
+							var title = metadataArray[i][0];
+							var progress = 0;
+							var end = $scope.columnList.length;
+							var id = -1;
+							var j = 0;
+							for(j = 0; j < $scope.columnList.length; j++) {
+								if($scope.columnList[j].title == title) {
+									id = $scope.columnList[j].id;
+									break; // we assume there is only one match
+								}
+							}
+							
+							if(id != -1) {
+								queryService.updateEntity("mysql", 
+										"pass", 
+										 id, { 
+																	publicMetadata : { 
+																						aws_metadata : metadata
+																					}
+																	}
+									 ).then(function() {
+										 progress++;
+										 $('#log').html(progress);
+										 $('#log').append(" of ");
+										 $('#log').append(end);
+										 $('#log').append(" metadata updated...");
+									 });								
+							}
+						}						
+					} else {
+						$('#log').html("select a data table..");
+					}
+				}
+			});
+			
+		</script>	
+	</body>
+</html>

@@ -28,6 +28,14 @@ aws.ConnectionInfo;
 aws.EntityHierarchyInfo;
 
 /**
+ * @typedef {{
+ * 	publicMetadata: object,
+ *  privateMetadata: object
+ *  }}
+ */
+aws.DataEntityMetadata;
+
+/**
  * @typedef {*}
  */
 aws.Visualization;
