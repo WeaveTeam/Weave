@@ -118,9 +118,10 @@ angular
                             bindevents();
                             refreshselects();
                             updatesselectionstates();
-                            elem.html(box);
-                            $compile(elem.contents())(scope);
-                            console.log(elem);
+                            //elem.html(box);
+                            $compile(box)(scope);
+                            //$compile(elem.contents())(scope);
+                            //console.log(elem);
 
                         }
                         init();
