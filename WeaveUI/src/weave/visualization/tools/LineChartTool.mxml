@@ -485,6 +485,7 @@
 			}
 			
 			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
+			private static const HELP_DT_GROUP:String = HELP_KT_XYGB + " The values in the 'Group by' column are used as foreign keys. The dataType of the 'Group by' column specifies the foreign keyType used by the 'Group color' and 'Group label' columns.";
 			private static const HELP_KT_COLOR:String = "The keyType of the color column must equal the dataType of the 'Group by' column.";
 			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the dataType of the 'Group by' column.";
 		]]>
@@ -496,7 +497,7 @@
 										  label="{lang('Group records by column values (Advanced)')}">
 				<ui:DynamicColumnComponent id="xDataSelector" creationComplete="initDynamicColumnComponent(xDataSelector, HELP_KT_XYGB)"/>
 				<ui:DynamicColumnComponent id="yDataSelector" creationComplete="initDynamicColumnComponent(yDataSelector, HELP_KT_XYGB)"/>
-				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_DT_GROUP)"/>
 				<ui:DynamicColumnComponent id="groupColorSelector" showLinkControl="false" creationComplete="initDynamicColumnComponent(groupColorSelector, HELP_KT_COLOR)"/>
 				<ui:DynamicColumnComponent id="groupLabelSelector" creationComplete="initDynamicColumnComponent(groupLabelSelector, HELP_KT_LABEL)"/>
 				<ui:Indent id="generateReverseLookupControls">

@@ -93,6 +93,7 @@
 <mx:Script>
 	<![CDATA[
 		import mx.collections.ArrayCollection;
+		import mx.utils.ObjectUtil;
 		[Bindable]
 		public var treeSource:Object = null;
 		
@@ -108,17 +109,38 @@
 		 */
 		public function generateFlatTreeFromLabels(labels:Array):void
 		{
+			var item:Object;
+			var items:Array = [];
 			var root:Object = null;
+			var vsp:int = tree.verticalScrollPosition;
+			var isSelected:Object = {};
+			for each (item in tree.selectedItems)
+				isSelected[item.label] = true;
+				
 			if (labels.length > 0)
 			{
 				root = {label: "", object: "", children: []};
 				for (var i:int = 0; i < labels.length; i++)
 				{
-					root.children.push({label: labels[i], object: labels[i], children: null});
+					item = {label: labels[i], object: labels[i], children: null};
+					root.children.push(item);
+					if (isSelected[labels[i]])
+						items.push(item);
 				}
 			}
 			treeSource = root;
+			tree.selectedItemsCompareFunction = compareFlatTreeItems;
 			search();
+			tree.validateNow();
+			tree.selectedItems = items;
+			tree.verticalScrollPosition = vsp;
+		}
+		
+		private function compareFlatTreeItems(itemInDataProvider:Object, itemInSelectedItems:Object):Boolean
+		{
+			if (!itemInDataProvider || !itemInSelectedItems)
+				return itemInDataProvider == itemInSelectedItems;
+			return itemInDataProvider.label == itemInSelectedItems.label;
 		}
 		
 		private function search():void
