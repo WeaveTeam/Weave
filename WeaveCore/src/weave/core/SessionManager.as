@@ -1542,6 +1542,7 @@ package weave.core
 				var i:int;
 				var typedState:Object;
 				var changeDetected:Boolean = false;
+				var orderChanged:Boolean = false;
 				
 				// create oldLookup
 				var oldLookup:Object = {};
@@ -1558,7 +1559,7 @@ package weave.core
 					oldLookup[objectName || ''] = typedState;
 				}
 				if (oldState.length != newState.length)
-					changeDetected = true;
+					orderChanged = changeDetected = true;
 				
 				// create new Array with new DynamicState objects
 				var result:Array = [];
@@ -1579,6 +1580,10 @@ package weave.core
 					// Replace the sessionState in the new DynamicState object with the diff.
 					if (oldTypedState != null && oldTypedState[DynamicState.CLASS_NAME] == className)
 					{
+						// check if order changed
+						if (!orderChanged && oldState[i][DynamicState.OBJECT_NAME] != objectName)
+							orderChanged = changeDetected = true;
+						
 						className = null; // no change
 						diffValue = computeDiff(oldTypedState[DynamicState.SESSION_STATE], sessionState);
 						if (diffValue === undefined)
@@ -1587,12 +1592,13 @@ package weave.core
 							// we only need to specify that this name is still present.
 							result.push(objectName);
 							
-							if (!changeDetected && oldState[i][DynamicState.OBJECT_NAME] != objectName)
-								changeDetected = true;
-							
 							continue;
 						}
 						sessionState = diffValue;
+					}
+					else
+					{
+						orderChanged = true;
 					}
 					
 					// save in new array and remove from lookup
@@ -1605,11 +1611,31 @@ package weave.core
 				for (objectName in oldLookup)
 				{
 					result.push(new DynamicState(objectName || null, DIFF_DELETE)); // convert empty string to null
-					changeDetected = true;
+					orderChanged = changeDetected = true;
 				}
 				
 				if (changeDetected)
+				{
 					return result;
+					
+					//------------------------------
+					
+					// NOTE: the behavior below will not work with combineDiff because we won't know
+					// how to combine an Array of Strings with an Object unless we know the linkable object type.
+					
+					if (orderChanged)
+						return result;
+					
+					// change detected, but order did not change, so we can return an Object instead of an Array
+					for (typedState in result)
+					{
+						if (typedState is String)
+							continue;
+						objectName = typedState[DynamicState.OBJECT_NAME];
+						oldLookup[objectName] = typedState[DynamicState.SESSION_STATE];
+					}
+					return oldLookup;
+				}
 				
 				return undefined; // no diff
 			}
