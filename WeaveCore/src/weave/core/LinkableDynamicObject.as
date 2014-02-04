@@ -210,6 +210,11 @@ package weave.core
 							break;
 						}
 					}
+					else if (item is String)
+					{
+						globalName = item as String;
+						return;
+					}
 					else
 					{
 						// not a typed state
@@ -224,10 +229,6 @@ package weave.core
 					return;
 				}
 				
-				// keep only one object
-				if (newState.length > 1)
-					newState = [dynamicState];
-				
 				objectName = dynamicState[DynamicState.OBJECT_NAME];
 				if (objectName)
 				{
@@ -235,10 +236,15 @@ package weave.core
 				}
 				else
 				{
-					// set name temporarily
 					try
 					{
+						// keep only one object
+						if (newState.length > 1)
+							newState = [dynamicState];
+						
+						// set name temporarily
 						dynamicState[DynamicState.OBJECT_NAME] = LOCAL_OBJECT_NAME;
+						
 						_localHashMap.setSessionState(newState, removeMissingDynamicObjects);
 					}
 					finally

@@ -345,6 +345,17 @@ package weave.core
 			}
 			if (linkableObject is ILinkableCompositeObject)
 			{
+				if (newState is String)
+					newState = [newState];
+				
+				if (newState != null && !(newState is Array))
+				{
+					var array:Array = [];
+					for (var key:String in newState)
+						array.push(new DynamicState(key, null, newState[key]));
+					newState = array;
+				}
+				
 				(linkableObject as ILinkableCompositeObject).setSessionState(newState as Array, removeMissingDynamicObjects);
 				return;
 			}
