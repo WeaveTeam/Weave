@@ -132,7 +132,8 @@ angular.module("aws.panelControllers", [])
 										$scope.show[i] = true;
 										$scope.filterType[i] = "categorical";
 										if(metadata.hasOwnProperty("varValues")) {
-											$scope.categoricalOptions[i] = metadata.varValues;
+											console.log(metadata.varValues);
+											$scope.categoricalOptions[i] = queryService.getDataMapping(metadata.varValues);
 										}
 									}
 								}

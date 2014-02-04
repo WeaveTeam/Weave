@@ -268,7 +268,7 @@
 										"pass", 
 										 id, { 
 																	publicMetadata : { 
-																						aws_metadata : metadata
+																						aws_metadata : metadata.replace(/\s/g, '')
 																					}
 																	}
 									 ).then(function() {
