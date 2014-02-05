@@ -19,41 +19,38 @@ weave.path = function(/*...basePath*/)
 	return new WeavePath(A(arguments, 1));
 };
 weave.path.vars = {}; // used with exec() and getVar()
-weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with properties: callback, name, path, getState
+weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with properties: callback, name, path
 
 // enhance weave.addCallback() to support function pointers
 var _addCallback = weave.addCallback;
-weave.addCallback = function(target, callback, triggerNow)
+weave.addCallback = function(target, callback, triggerNow, immediateMode)
 {
 	if (typeof callback == 'function')
-		callback = callbackToString(callback);
-	return _addCallback.call(this, target, callback, triggerNow);
+		callback = callbackToString(callback, Array.isArray(target) ? weave.path(target) : weave.path());
+	return _addCallback.call(this, target, callback, triggerNow, immediateMode);
 };
 // enhance weave.removeCallback() to support function pointers
 var _removeCallback = weave.removeCallback;
 weave.removeCallback = function(target, callback)
 {
 	if (typeof callback == 'function')
-		callback = callbackToString(callback);
+		callback = callbackToString(callback); // don't update path when removing callback
 	return _removeCallback.call(this, target, callback);
 };
 
 /**
  * Private function for internal use with weave.addCallback() and weave.removeCallback().
  */
-function callbackToString(callback, path, getState)
+function callbackToString(callback, path)
 {
 	var list = weave.path.callbacks;
 	for (var i in list)
 	{
 		if (list[i].callback == callback)
 		{
+			// update path if specified
 			if (path)
-			{
-				// keep existing entry, but update params
 				list[i]['path'] = path;
-				list[i]['getState'] = getState;
-			}
 			return list[i]['string'];
 		}
 	}
@@ -63,13 +60,12 @@ function callbackToString(callback, path, getState)
 	var string = 'function(){' +
 			'var weave = document.getElementById('+idStr+');' +
 			'var obj = weave.path.callbacks['+list.length+'];' +
-			'obj.callback.call(obj.path, obj.path && obj.getState ? obj.path.getState() : null);' +
+			'obj.callback.apply(obj.path);' +
 		'}';
 	list.push({
 		"callback": callback,
 		"string": string,
-		"path": path,
-		"getState": getState
+		"path": path
 	});
 	return string;
 }
@@ -307,20 +303,19 @@ function WeavePath(path)
 		return this;
 	};
 	/**
-	 * Adds a grouped callback to the object at the current path.
+	 * Adds a callback to the object at the current path.
 	 * When the callback is called, a WeavePath object initialized at the current path will be used as the 'this' context.
 	 * First parameter is the callback function.
 	 * Second parameter is a Boolean, when set to true will trigger the callback now.
-	 * Third parameter is a Boolean, when set to true means the callback will receive the session state as a parameter.
-	 * Since this adds a grouped callback, the callback will not run immediately when addCallback() is called.
+	 * Third parameter is a Boolean, when set to true will use an immediate callback instead of a grouped callback.
 	 * If the same callback is added to multiple paths, only the last path will be used as the 'this' context.
 	 */
-	this.addCallback = function(callback, triggerCallbackNow, callbackReceivesState)
+	this.addCallback = function(callback, triggerCallbackNow, immediateMode)
 	{
 		if (assertParams('addCallback', arguments))
 		{
-			callback = callbackToString(callback, weave.path(path.concat()), callbackReceivesState);
-			weave.addCallback(path, callback, triggerCallbackNow)
+			callback = callbackToString(callback, weave.path(path.concat()));
+			weave.addCallback(path, callback, triggerCallbackNow, immediateMode)
 				|| failObject('addCallback');
 		}
 		return this;

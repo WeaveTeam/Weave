@@ -357,13 +357,15 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean
+		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
 		{
 			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
-			// always use a grouped callback to avoid messy situations with javascript alert boxes
-			getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+			if (immediateMode)
+				getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+			else
+				getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
 			return true;
 		}
 		

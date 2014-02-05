@@ -138,15 +138,16 @@ package weave.api.core
 		function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, libraries:Array = null, assignVariableName:String = null):*;
 		
 		/**
-		 * This function will add a grouped callback to an ILinkableObject.
+		 * This function will add a callback to an ILinkableObject.
 		 * @param objectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
 		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
 		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
-		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
+		 * @param triggerCallbackNow If this is set to true, the callback will be triggered after it is added.
+		 * @param immediateMode If this is set to true, addImmediateCallback() will be used.  Otherwise, addGroupedCallback() will be used.
 		 * @return true if successful.
 		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
-		function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean;
+		function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.
