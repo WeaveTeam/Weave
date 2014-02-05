@@ -123,6 +123,10 @@ package weave.core
 		 */
 		public function set globalName(newGlobalName:String):void
 		{
+			// change empty string to null
+			if (!newGlobalName)
+				newGlobalName = null;
+			
 			if (_globalName == newGlobalName || _locked)
 				return;
 			
