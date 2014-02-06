@@ -312,7 +312,7 @@ package weave
 		{
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 			var output:WeaveArchive = new WeaveArchive();
-			var component:UIComponent = WeaveAPI.topLevelApplication.visApp;
+			var component:UIComponent = WeaveAPI.topLevelApplication['visApp'];
 			// screenshot thumbnail
 			try
 			{
@@ -422,7 +422,7 @@ package weave
 		
 		public static function loadDraggedCSV(content:Object):void
 		{
-			WeaveAPI.topLevelApplication.visApp.CSVWizardWithData(content);
+			WeaveAPI.topLevelApplication['visApp'].CSVWizardWithData(content);
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
@@ -515,7 +515,7 @@ package weave
 				catch (e:Error)
 				{
 					if (e.errorID == 2060 && e.getStackTrace() == null)
-						e.message = StandardLib.substitute("ExternalInterface caller {0} cannot access the current JavaScript security domain.", WeaveAPI.topLevelApplication.url);
+						e.message = StandardLib.substitute("ExternalInterface caller {0} cannot access the current JavaScript security domain.", WeaveAPI.topLevelApplication['url']);
 					reportError(e);
 				}
 			}
