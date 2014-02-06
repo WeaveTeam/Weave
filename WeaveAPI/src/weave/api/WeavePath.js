@@ -316,7 +316,7 @@ function WeavePath(path)
 		{
 			callback = callbackToString(callback, weave.path(path.concat()));
 			weave.addCallback(path, callback, triggerCallbackNow, immediateMode)
-				|| failObject('addCallback');
+				|| failObject('addCallback', path);
 		}
 		return this;
 	};
@@ -328,7 +328,7 @@ function WeavePath(path)
 		if (assertParams('removeCallback', arguments))
 		{
 			weave.removeCallback(path, callback)
-				|| failObject('removeCallback');
+				|| failObject('removeCallback', path);
 		}
 		return this;
 	};
@@ -424,12 +424,12 @@ function WeavePath(path)
 	}
 	function failPath(methodName, path)
 	{
-		var msg = 'command failed (path: ' + (path || this.path) + ')';
+		var msg = 'command failed (path: ' + path + ')';
 		failMessage(methodName, msg);
 	}
 	function failObject(methodName, path)
 	{
-		var msg = 'object does not exist (path: ' + (path || this.path) + ')';
+		var msg = 'object does not exist (path: ' + path + ')';
 		failMessage(methodName, msg);
 	}
 	function failMessage(methodName, message)
