@@ -481,7 +481,7 @@
 				{
 					WeaveAPI.StageUtils.callLater(this, function():void{
 						targetAttribute = value;
-					}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					}, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 					return;
 				}
 				targetAttributeNumber.value = _attrNames.indexOf(value);

@@ -653,7 +653,7 @@ package weave.data.DataSources
 							proxyColumn.setInternalColumn(newGeometricColumn);
 						};
 						var pgGeomTask:Function = PGGeomUtil.newParseTask(result.data, geometriesVector);
-						WeaveAPI.StageUtils.startTask(proxyColumn, pgGeomTask, WeaveAPI.TASK_PRIORITY_PARSING, createGeomColumn);
+						WeaveAPI.StageUtils.startTask(proxyColumn, pgGeomTask, WeaveAPI.TASK_PRIORITY_3_PARSING, createGeomColumn);
 					}
 					else if (result.thirdColumn != null)
 					{

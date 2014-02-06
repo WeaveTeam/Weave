@@ -130,7 +130,7 @@ package weave.core
 		 * There are four nested Arrays corresponding to the four priorities (0, 1, 2, 3) defined by static constants in WeaveAPI.
 		 */
 		private const _priorityCallLaterQueues:Array = [[], [], [], []];
-		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1; // task priority that is currently being processed
+		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_0_IMMEDIATE + 1; // task priority that is currently being processed
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
 		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivated:Boolean = true; // true when application is deactivated
@@ -329,7 +329,7 @@ package weave.core
 			_currentTaskStopTime = allStop; // make sure _iterateTask knows when to stop
 
 			// first run the functions that should be called before anything else.
-			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
+			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_0_IMMEDIATE] as Array;
 			var countdown:int;
 			for (countdown = queue.length; countdown > 0; countdown--)
 			{
@@ -363,7 +363,7 @@ package weave.core
 			
 //			trace('-------');
 			
-			var minPriority:int = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1;
+			var minPriority:int = WeaveAPI.TASK_PRIORITY_0_IMMEDIATE + 1;
 			var lastPriority:int = _activePriority == minPriority ? _priorityCallLaterQueues.length - 1 : _activePriority - 1;
 			var pStart:int = getTimer();
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
@@ -455,7 +455,7 @@ package weave.core
 			if (priority >= _priorityCallLaterQueues.length)
 			{
 				reportError("Invalid priority value: " + priority);
-				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
+				priority = WeaveAPI.TASK_PRIORITY_2_BUILDING;
 			}
 			//trace("call later @",currentFrameElapsedTime);
 			_priorityCallLaterQueues[priority].push(arguments);
@@ -514,7 +514,7 @@ package weave.core
 			if (priority >= _priorityCallLaterQueues.length)
 			{
 				reportError("Invalid priority value: " + priority);
-				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
+				priority = WeaveAPI.TASK_PRIORITY_2_BUILDING;
 			}
 			
 			if (debug_async_stack)

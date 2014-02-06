@@ -50,19 +50,19 @@ package weave.api
 		 * For use with StageUtils.startTask(); this priority is used for things that must be done before anything else.
 		 * Tasks having this priority will take over the scheduler and prevent any other asynchronous task from running until it is completed.
 		 */
-		public static const TASK_PRIORITY_IMMEDIATE:uint = 0;
+		public static const TASK_PRIORITY_0_IMMEDIATE:uint = 0;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with rendering.
 		 */
-		public static const TASK_PRIORITY_RENDERING:uint = 1;
+		public static const TASK_PRIORITY_1_RENDERING:uint = 1;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with data manipulation tasks such as building an index.
 		 */
-		public static const TASK_PRIORITY_BUILDING:uint = 2;
+		public static const TASK_PRIORITY_2_BUILDING:uint = 2;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with parsing raw data.
 		 */
-		public static const TASK_PRIORITY_PARSING:uint = 3;
+		public static const TASK_PRIORITY_3_PARSING:uint = 3;
 		
 		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.

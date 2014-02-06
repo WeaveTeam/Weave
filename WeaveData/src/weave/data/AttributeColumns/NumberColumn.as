@@ -116,7 +116,7 @@ package weave.data.AttributeColumns
 			_numericData = numericData;
 			_reportedDuplicate = false;
 			
-			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
+			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, _asyncComplete);
 		}
 		
 		private function errorHandler(e:*):void

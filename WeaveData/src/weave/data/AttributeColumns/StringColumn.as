@@ -152,7 +152,7 @@ package weave.data.AttributeColumns
 			}
 			
 			_iterateAll(-1); // restart from first task
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_3_PARSING, _asyncComplete);
 		}
 		
 		private function errorHandler(e:*):void

@@ -312,7 +312,7 @@
 				edgeLabelComponent.dynamicObject = edgeLabelColumn;
 				edgeWeightComponent.dynamicObject = edgeWeightColumn;
 				
-				_probe.addGroupedCallback(this, function ():void { WeaveAPI.StageUtils.startTask(this, handleProbeChange, WeaveAPI.TASK_PRIORITY_BUILDING)});
+				_probe.addGroupedCallback(this, function ():void { WeaveAPI.StageUtils.startTask(this, handleProbeChange, WeaveAPI.TASK_PRIORITY_2_BUILDING)});
 				_selection.addGroupedCallback(this, handleSelectionChange);
 				_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
 			}

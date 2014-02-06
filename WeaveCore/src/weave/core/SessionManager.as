@@ -747,7 +747,7 @@ package weave.core
 				
 				// when there are no more tasks, check later to see if callbacks trigger
 				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
-				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{
@@ -1400,7 +1400,7 @@ package weave.core
 				// if the linkable variable's callbacks are delayed, delay synchronization
 				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
 				{
-					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 					return;
 				}
 				
