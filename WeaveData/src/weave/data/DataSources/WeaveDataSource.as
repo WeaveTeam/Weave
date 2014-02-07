@@ -458,6 +458,10 @@ package weave.data.DataSources
 			var entityIds:Array = hierarcyNode_entityIds[1] as Array; // ordered list of ids
 			var orderLookup:Object = createLookup(entityIds);
 
+			hierarchyNode = _attributeHierarchy.getNodeFromPath(_attributeHierarchy.getPathFromNode(hierarchyNode));
+			if (!hierarchyNode)
+				return;
+			
 			try
 			{
 				var entities:Array = event.result as Array;
