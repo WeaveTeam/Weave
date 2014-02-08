@@ -25,14 +25,20 @@ package weave.ui
 	import mx.collections.IList;
 	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
+	import mx.controls.treeClasses.TreeListData;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
 	import mx.utils.ObjectUtil;
 	
 	import weave.utils.EventUtils;
 	
+	use namespace mx_internal;
+	
 	/**
-	 * This class features a correctly behaving auto scroll policy and scrollToIndex().
+	 * This class features:<br>
+	 * - correctly behaving auto scroll policy and scrollToIndex()<br>
+	 * - fixes folder arrow visibility bug<br>
+	 * - useful functions like refreshDataProvider()
 	 * @author adufilie
 	 */	
 	public class CustomTree extends Tree
@@ -41,6 +47,15 @@ package weave.ui
 		{
 			super();
 			addEventListener("scroll", updateHScrollLater);
+		}
+		
+		override protected function initListData(item:Object, treeListData:TreeListData):void
+		{
+			super.initListData(item, treeListData);
+
+			// this makes the folder arrow hide when there are no children
+			// This is a bug fix - Tree is supposed to do this but instead it uses isBranch()
+			treeListData.hasChildren = item != null && _dataDescriptor.hasChildren(item, iterator.view);
 		}
 		
 		///////////////////////////////////////////////////////////////////////////////
