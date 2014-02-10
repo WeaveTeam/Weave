@@ -1,10 +1,11 @@
 <div ng-controller="ScatterPlotToolPanelCtrl">
 <div class="portlet-header">
-	<span>{{panelTitle}}</span>
+	 <span> <input type="checkbox" ng-model="enabled"/> {{panelTitle}}</span>
 </div>
 <div class="portlet-content">
 		
-	<input type="checkbox" ng-model="enabled"/> Scatter Plot Tool
+	<input type="checkbox" ng-model="enableTitle"/> Title:
+	<input type="text" placeholder="Default" ng-model='title'>
 	<br>X Column<br>
 	<select ui-select2 ng-model="XSelection" data-placeholder="Choose X Column">
 		<option></option>
