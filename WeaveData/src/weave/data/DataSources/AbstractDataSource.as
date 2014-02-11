@@ -30,6 +30,7 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -161,12 +162,13 @@ package weave.data.DataSources
 			// TODO: check each column previously provided by getAttributeColumn()
 
 			// initialize hierarchy if it is null
-			if (_attributeHierarchy.value == null)
+			if (_attributeHierarchy.value == null && detectLinkableObjectChange(_requestedHierarchySubtreeStringMap, _attributeHierarchy))
 			{
 				// Clear the list of requested hierarchy subtrees.
 				// This will allow the hierarchy to be filled in automatically
 				// if its contents were cleared with that intention.
-				_requestedHierarchySubtreeStringMap = new Object();
+				_requestedHierarchySubtreeStringMap = {};
+				detectLinkableObjectChange(_requestedHierarchySubtreeStringMap, _attributeHierarchy);
 				initializeHierarchySubtree(null);
 			}
 			
