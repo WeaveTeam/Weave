@@ -3,8 +3,7 @@
                 xmlns:ui="weave.ui.*"
                 xmlns:aci="weave.services.beans.*"
                 xmlns="weave.ui.admin.managers.*"
-                label="{lang('Data Hierarchies')}{metadataEditor.isChanged?'*':''}"
-                creationComplete="handleCreated()">
+                label="{lang('Data Hierarchies')}{metadataEditor.isChanged?'*':''}">
     <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
 		<ui:Indent label="{lang('Data Tables')}" labelFontWeight="bold">
 			<ui:TextInputWithPrompt id="tableSearch" prompt="{lang('Search tables')}" width="100%"/>
@@ -14,9 +13,9 @@
 				Column title search currently only supports exact matches.
 			</ui:HelpComponent>
 		</ui:Indent>
-        <ui:EntityTree id="tableTree" rootFilterType="{EntityType.TABLE}" nodeFilterFunction="{filterTables}"
-			entityCache="{Admin.entityCache}"
-            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
+        <ui:EntityTree id="tableTree" width="100%" height="100%"
+					   rootNode="{new EntityNode(Admin.entityCache, EntityType.TABLE, filterTables)}"
+					   dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
 			<mx:Button toggle="true" label="Edit tables" id="editTablesButton" visible="false" includeInLayout="false"/>
@@ -42,9 +41,9 @@
 					   icon="@Embed(source='/weave/resources/images/plus.png')"/>
 		</mx:HBox>
 		<mx:VBox height="100%" width="100%" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}">
-	        <ui:EntityTree id="hierarchyTree" rootFilterType="{EntityType.HIERARCHY}"
-	            width="100%" height="100%" entityCache="{Admin.entityCache}"
-	            dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
+	        <ui:EntityTree id="hierarchyTree" width="100%" height="100%"
+						   rootNode="{new EntityNode(Admin.entityCache, EntityType.HIERARCHY)}"
+						   dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
 	        <mx:HBox width="100%">
 		        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
 	            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
@@ -61,12 +60,13 @@
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
+	import weave.api.registerLinkableChild;
+	import weave.api.services.beans.EntityMetadata;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.services.Admin;
 	import weave.services.addAsyncResponder;
-	import weave.api.services.beans.EntityMetadata;
-	import weave.ui.EntityNode;
+	import weave.data.hierarchy.EntityNode;
 	import weave.ui.EntityTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
@@ -78,9 +78,12 @@
 
     [Bindable] public var selectedItems:Array = [];
 	
-    public function handleCreated():void
-    {
-		debugId(this);
+	override protected function childrenCreated():void
+	{
+		super.childrenCreated();
+		
+		registerLinkableChild(tableTree, Admin.entityCache);
+		registerLinkableChild(hierarchyTree, Admin.entityCache);
 		
         tableTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
         hierarchyTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
@@ -262,7 +265,7 @@
 		if (hierarchyTree.selectedItems.length == 1)
 			node = hierarchyTree.selectedItem as EntityNode;
 		else
-			node = hierarchyTree.rootNode;
+			node = hierarchyTree.rootNode as EntityNode;
         
 		var index:int = -1;
 		// if user selected a column, use its parent node and insert at the column's position

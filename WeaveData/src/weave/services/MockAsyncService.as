@@ -82,7 +82,7 @@ package weave.services
 			else
 			{
 				token = new AsyncToken();
-				WeaveAPI.StageUtils.callLater(this, callLater, [method, params, token], WeaveAPI.TASK_PRIORITY_PARSING);
+				WeaveAPI.StageUtils.callLater(this, callLater, [method, params, token], WeaveAPI.TASK_PRIORITY_3_PARSING);
 			}
 			return token;
 		}

@@ -291,7 +291,7 @@
 						{
 							editor.applyChanges();
 							if (refreshCheck.selected)
-								setSessionState(dataSource.attributeHierarchy, null);
+								dataSource.refreshHierarchy();
 							tabNav.selectedChild = browseTab;
 						}
 					}

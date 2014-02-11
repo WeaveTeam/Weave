@@ -1,20 +1,40 @@
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	This tree will display a hierarchy comprised of IEntityTreeNode objects.
+	To make this tree automatically refresh, register dependencies of the rootNode as linkable children of the EntityTree.
+-->
 <CustomTree xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns="weave.ui.*"
-    creationComplete="handleCreationComplete()"
     openDuration="0" dragEnabled="true"
 	allowMultipleSelection="true"
     showRoot="false"
 	implements="weave.api.core.ILinkableObject">
 	<mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.events.ListEvent;
 			
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
-			import weave.core.LinkableWatcher;
-			import weave.services.EntityCache;
+			import weave.api.getCallbackCollection;
+			import weave.api.data.IEntityTreeNode;
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
 			
@@ -22,81 +42,53 @@
 			{
 				super.childrenCreated();
 				
+				dataDescriptor = new EntityTreeDataDescriptor();
+				getCallbackCollection(this).addImmediateCallback(this, EventUtils.generateDelayedCallback(this, refresh, 100), true);
+				labelFunction = getNodeLabel;
+				dataTipFunction = getNodeLabel;
+				
 				setupContextMenu();
 			}
+			
+			private function getNodeLabel(node:IEntityTreeNode):String
+			{
+				return node.getLabel();
+			}
+			
 			private function setupContextMenu():void
 			{
 				contextMenu = new ContextMenu();
 				var selectChildren:ContextMenuItem = new ContextMenuItem("Select all child nodes");
 				contextMenu.customItems = [selectChildren];
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, function(event:*):void {
-					var node:EntityNode = selectedItem as EntityNode;
-					selectChildren.enabled = node && node.children && node.children.length;
+					var node:IEntityTreeNode = selectedItem as IEntityTreeNode;
+					selectChildren.enabled = node && node.getChildren() && node.getChildren().length;
 				});
 				selectChildren.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event:*):void {
-					selectedItems = VectorUtils.flatten(selectedItems.map(function(node:EntityNode, i:int, a:Array):*{
+					selectedItems = VectorUtils.flatten(selectedItems.map(function(node:IEntityTreeNode, i:int, a:Array):*{
 						expandItem(node, true);
-						return node.children ? ArrayCollection(node.children).source : [];
+						return node.getChildren() ? ArrayCollection(node.getChildren()).source : [];
 					}));
 					dispatchEvent(new ListEvent(ListEvent.CHANGE));
 				});
 			}
 			
-			public function get entityCache():EntityCache
+			private var _rootNode:IEntityTreeNode;
+			
+			override public function set dataProvider(value:Object):void
 			{
-				return cacheWatcher.target as EntityCache;
+				_rootNode = value as IEntityTreeNode;
+				super.dataProvider = value;
 			}
 			
-			public function set entityCache(cache:EntityCache):void
+			public function set rootNode(node:IEntityTreeNode):void
 			{
-				cacheWatcher.target = cache;
-				if (_rootFilterType)
-					rootFilterType = _rootFilterType;
+				dataProvider = _rootNode = node;
 			}
 			
-			private const cacheWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, EventUtils.generateDelayedCallback(this, refresh, 100));
-			private var _rootFilterType:String;
-			
-			public function get rootFilterType():String
-			{
-				return _rootFilterType;
-			}
-			
-			public function set rootFilterType(entityType:String):void
-			{
-				_rootFilterType = entityType;
-				if (cacheWatcher.target)
-				{
-					dataProvider = _rootNode = new EntityNode(entityCache, entityType);
-					dataDescriptor = new EntityTreeDataDescriptor();
-					nodeFilterFunction = _nodeFilterFunction;
-				}
-			}
-			
-			private var _nodeFilterFunction:Function;
-			private var _rootNode:EntityNode;
-			public function get rootNode():EntityNode
+			public function get rootNode():IEntityTreeNode
 			{
 				return _rootNode;
-			}
-			
-			public function set nodeFilterFunction(filter:Function):void
-			{
-				if (_rootNode)
-					_rootNode.children.filterFunction = filter;
-				else
-					_nodeFilterFunction = filter;
-			}
-			
-			private function handleCreationComplete():void
-			{
-//				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
-			}
-			
-			private function connectionReady(userHasAuthenticated:Boolean):void
-			{
-//			    if (userHasAuthenticated == true)
-//					refreshDataProvider();
 			}
 			
 			public function refresh():void
@@ -104,7 +96,7 @@
 				// Because we are not rendering the root node, we need to explicitly request the children from
 				// the root so that the children will be fetched.
 				if (_rootNode)
-					_rootNode.children.refresh();
+					_rootNode.getChildren();
 				
 				refreshDataProvider();
 				

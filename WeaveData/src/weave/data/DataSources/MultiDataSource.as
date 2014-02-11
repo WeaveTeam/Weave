@@ -20,6 +20,7 @@
 package weave.data.DataSources
 {
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
@@ -27,6 +28,7 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IEntityTreeNode;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
@@ -34,6 +36,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.hierarchy.DataSourceTreeNode;
 	import weave.primitives.AttributeHierarchy;
 	import weave.utils.HierarchyUtils;
 
@@ -62,6 +65,38 @@ package weave.data.DataSources
 			return _instance;
 		}
 		private var _root:ILinkableHashMap = WeaveAPI.globalHashMap;
+		
+		public function refreshHierarchy():void
+		{
+			var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
+			for each (var source:IDataSource in sources)
+				source.refreshHierarchy();
+		}
+		
+		protected const _rootNode:IEntityTreeNode = new DataSourceTreeNode();
+		
+		/**
+		 * Gets the root node of the attribute hierarchy.
+		 */
+		public function getHierarchyRoot():IEntityTreeNode
+		{
+			return _rootNode;
+		}
+		
+		/**
+		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
+		 */
+		public function getColumnReference(node:IEntityTreeNode, output:ILinkableDynamicObject):void
+		{
+			var ds:IDataSource = node.getSource() as IDataSource;
+			if (!ds)
+			{
+				output.removeObject();
+				return;
+			}
+			
+			ds.getColumnReference(node, output);
+		}
 		
 		/**
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.

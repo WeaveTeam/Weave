@@ -26,10 +26,12 @@ package weave.data.DataSources
 	import weave.api.copySessionState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IEntityTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
@@ -37,6 +39,8 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.ProxyColumn;
+	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.hierarchy.XMLEntityNode;
 	import weave.primitives.AttributeHierarchy;
 	
 	/**
@@ -192,6 +196,43 @@ package weave.data.DataSources
 		 * @param A ProxyColumn object that will be updated when the column data is ready.
 		 */
 		/* abstract */ protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void { }
+
+		public function refreshHierarchy():void
+		{
+			_attributeHierarchy.setSessionState(null);
+		}
+
+		protected var _rootNode:IEntityTreeNode;
+		
+		/**
+		 * Gets the root node of the attribute hierarchy.
+		 */
+		public function getHierarchyRoot():IEntityTreeNode
+		{
+			if (!(_rootNode is XMLEntityNode))
+				_rootNode = new XMLEntityNode();
+			(_rootNode as XMLEntityNode).dataSourceName = WeaveAPI.globalHashMap.getName(this);
+			(_rootNode as XMLEntityNode).xml = _attributeHierarchy.value;
+			return _rootNode;
+		}
+		
+		/**
+		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
+		 */
+		public function getColumnReference(node:IEntityTreeNode, output:ILinkableDynamicObject):void
+		{
+			var xmlnode:XMLEntityNode = node as XMLEntityNode;
+			if (xmlnode && node.getSource() == this)
+			{
+				getCallbackCollection(output).delayCallbacks();
+				var hcr:HierarchyColumnReference = output.requestLocalObject(HierarchyColumnReference, false);
+				hcr.dataSourceName.value = xmlnode.dataSourceName;
+				hcr.hierarchyPath.value = _attributeHierarchy.getPathFromNode(xmlnode.xml);
+				getCallbackCollection(output).resumeCallbacks();
+			}
+			else
+				output.removeObject();
+		}
 
 		/**
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.

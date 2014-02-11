@@ -54,16 +54,17 @@
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.reportError;
-	import weave.core.UIUtils;
-	import weave.services.Admin;
-	import weave.services.EntityCache;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
-	import weave.api.data.EntityType;
+	import weave.core.UIUtils;
+	import weave.data.hierarchy.EntityNode;
+	import weave.services.Admin;
+	import weave.services.EntityCache;
 	import weave.utils.AsyncSort;
 	
 	override protected function createChildren():void

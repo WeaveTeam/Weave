@@ -151,7 +151,7 @@ package weave.services
 		
 		public function findEntityIds(metadata:EntityMetadata):AsyncToken // returns int[]
 		{
-			return invoke(findEntityIds, arguments);
+			return invoke(findEntityIds, [metadata.publicMetadata]);
 		}
 		
 		public function findPublicFieldValues(fieldName:String, valueSearch:String):AsyncToken // returns String[]

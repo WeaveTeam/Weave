@@ -786,7 +786,7 @@ package weave.application
 							function ():void {
 								var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
 								for each (var source:IDataSource in sources)
-									(source.attributeHierarchy as AttributeHierarchy).value = null;
+									source.refreshHierarchy();
 							}
 						)
 					);

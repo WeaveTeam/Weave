@@ -139,7 +139,10 @@ public class MetadataTable extends AbstractTable
 				
 				if (newId)
 				{
-					if (requiredMetadataName != null && Strings.isEmpty(diff.get(requiredMetadataName)))
+					if (requiredMetadataName == null)
+						throw new RemoteException(String.format("The \"%s\" table cannot be used to generate new ids because it has no requiredMetadataName.", tableName));
+					
+					if (diff == null || Strings.isEmpty(diff.get(requiredMetadataName)))
 						throw new RemoteException(String.format("Missing required metadata field \"%s\"", requiredMetadataName));
 					
 					record = MapUtils.fromPairs(
@@ -147,6 +150,11 @@ public class MetadataTable extends AbstractTable
 						FIELD_VALUE, diff.get(requiredMetadataName)
 					);
 					id = SQLUtils.insertRowReturnID(conn, schemaName, tableName, record, FIELD_ID);
+				}
+				else if (diff == null)
+				{
+					// do nothing
+					return id;
 				}
 				else if (requiredMetadataName != null && diff.containsKey(requiredMetadataName) && Strings.isEmpty(diff.get(requiredMetadataName)))
 				{

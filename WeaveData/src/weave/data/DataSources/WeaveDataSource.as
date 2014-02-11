@@ -28,6 +28,7 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.EntityType;
@@ -35,19 +36,20 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IEntityTreeNode;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
-	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
+	import weave.api.services.beans.Entity;
+	import weave.api.services.beans.EntityMetadata;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -57,12 +59,12 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.QKeyManager;
+	import weave.data.hierarchy.EntityNode;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.services.EntityCache;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnData;
-	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	
@@ -78,7 +80,6 @@ package weave.data.DataSources
 		public function WeaveDataSource()
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
-			getCallbackCollection(attributeHierarchy).addImmediateCallback(this, handleAttributeHierarchy, true);
 		}
 		
 		private var _service:WeaveDataServlet = null;
@@ -91,6 +92,14 @@ package weave.data.DataSources
 		 */		
 		public const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
 		
+		/**
+		 * @private
+		 */
+		public function __getService():WeaveDataServlet
+		{
+			return _service;
+		}
+		
 		public function get entityCache():EntityCache
 		{
 			return _entityCache;
@@ -101,19 +110,47 @@ package weave.data.DataSources
 			return StandardLib.getArrayType(array) == String;
 		}
 		
-		private function handleAttributeHierarchy():void
+		override public function refreshHierarchy():void
 		{
-			if (getSessionState(attributeHierarchy) == null || hierarchyURL.value)
+			super.refreshHierarchy();
+			entityCache.invalidateAll();
+		}
+		
+		/**
+		 * Gets the root node of the attribute hierarchy.
+		 */
+		override public function getHierarchyRoot():IEntityTreeNode
+		{
+			if (_attributeHierarchy.value === null)
 			{
-				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, attributeHierarchy);
+				if (!(_rootNode is RootNode_TablesAndGeoms))
+					_rootNode = new RootNode_TablesAndGeoms(this);
+				return _rootNode;
 			}
 			else
 			{
-				(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, attributeHierarchy);
-				registerLinkableChild(this, attributeHierarchy);
+				return super.getHierarchyRoot();
 			}
 		}
-
+		
+		/**
+		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
+		 */
+		override public function getColumnReference(node:IEntityTreeNode, output:ILinkableDynamicObject):void
+		{
+			var entityNode:EntityNode = node as EntityNode;
+			if (entityNode && node.getSource() == this)
+			{
+				getCallbackCollection(output).delayCallbacks();
+				var hcr:HierarchyColumnReference = output.requestLocalObject(HierarchyColumnReference, false);
+				hcr.dataSourceName.value = WeaveAPI.globalHashMap.getName(this);
+				hcr.hierarchyPath.value = _attributeHierarchy.getPathFromNode(<attribute weaveEntityId={ entityNode.id }/>);
+				getCallbackCollection(output).resumeCallbacks();
+			}
+			else
+				super.getColumnReference(node, output);
+		}
+		
 		public function getRows(keys:Array):AsyncToken
 		{
 			return _service.getRows(keys);
@@ -229,8 +266,60 @@ package weave.data.DataSources
 				{
 					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError, hierarchyURL.value);
 					trace("hierarchy url "+hierarchyURL.value);
-					return;
 				}
+				return;
+			}
+			
+			var idStr:String = subtreeNode.attribute(ENTITY_ID);
+			if (idStr)
+			{
+				addAsyncResponder(
+					_service.getEntities([int(idStr)]),
+					function(event:ResultEvent, subtreeNode:XML):void
+					{
+						var entities:Array = event.result as Array;
+						if (entities && entities.length)
+						{
+							var entity:Entity = new Entity();
+							entity.copyFromResult(entities[0]);
+							getChildNodes(subtreeNode, entity.childIds);
+						}
+						else
+						{
+							reportError(lang('WeaveDataSource: No entity exists with id={0}', idStr));
+						}
+					},
+					handleFault,
+					subtreeNode
+				);
+			}
+			else
+			{
+				// backwards compatibility - get columns with matching dataTable metadata
+				var dataTableName:String = subtreeNode.attribute("name");
+				var em:EntityMetadata = new EntityMetadata();
+				em.publicMetadata = {"dataTable": dataTableName, "entityType": EntityType.COLUMN};
+				addAsyncResponder(
+					_service.findEntityIds(em),
+					function(event:ResultEvent, subtreeNode:XML):void
+					{
+						var ids:Array = event.result as Array;
+						StandardLib.sort(ids);
+						getChildNodes(subtreeNode, ids);
+					},
+					handleFault,
+					subtreeNode
+				);
+			}
+			function getChildNodes(subtreeNode:XML, childIds:Array):void
+			{
+				if (childIds && childIds.length)
+					addAsyncResponder(
+						_service.getEntities(childIds),
+						handleColumnEntities,
+						handleFault,
+						[subtreeNode, childIds]
+					);
 			}
 		}
 		
@@ -258,89 +347,15 @@ package weave.data.DataSources
 		
 		public static const ENTITY_ID:String = 'weaveEntityId';
 		
-		private function generateRootHierarchy(tables:Array, geoms:Array):void
-		{
-			if (objectWasDisposed(this) || !(_attributeHierarchy.value == <hierarchy/> || !_attributeHierarchy.value))
-				return;
-
-			var tag:XML;
-			var attrName:String;
-			var i:int;
-			var parent:XML;
-			var metadata:Object;
-			var entityObj:Object;
-
-//			try
-//			{
-				for (i = 0; i < tables.length; i++)
-				{
-					metadata = tables[i].publicMetadata;
-					metadata[ENTITY_ID] = tables[i].id;
-					tables[i] = metadata;
-				}
-				
-				for (i = 0; i < geoms.length; i++)
-				{
-					metadata = geoms[i].publicMetadata;
-					metadata[ENTITY_ID] = geoms[i].id;
-					geoms[i] = metadata;
-				}
-				
-				AsyncSort.sortImmediately(tables, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
-				AsyncSort.sortImmediately(geoms, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
-	
-				if (!_attributeHierarchy.value)
-					_attributeHierarchy.value = <hierarchy/>;
-				
-				// add each missing category
-				parent = <category name="Data Tables"/>;
-				_attributeHierarchy.value.appendChild(parent);
-				for (i = 0; i < tables.length; i++)
-				{
-					metadata = tables[i];
-					tag = <category/>;
-					for (attrName in metadata)
-						tag['@'+attrName] = metadata[attrName];
-					parent.appendChild(tag);
-				}
-				
-				parent = <category name="Geometry Collections"/>;
-				_attributeHierarchy.value.appendChild(parent);
-				for (i = 0; i < geoms.length; i++)
-				{
-					metadata = geoms[i];
-					tag = <attribute/>;
-					for (attrName in metadata)
-						tag['@'+attrName] = metadata[attrName];
-					parent.appendChild(tag);
-				}
-				
-				_attributeHierarchy.detectChanges();
-//			}
-//			catch (e:Error)
-//			{
-//				reportError(e, "Unable to generate hierarchy");
-//			}
-		}
-		
-		/**
-		 * Creates a lookup from item to index.
-		 */
-		private function createLookup(items:Array):Object
-		{
-			var lookup:Dictionary = new Dictionary(true);
-			items.forEach(function(id:*, index:*, array:*):void { lookup[id] = index; });
-			return lookup;
-		}
-
 		private function handleColumnEntities(event:ResultEvent, hierarcyNode_entityIds:Array):void
 		{
 			if (objectWasDisposed(this))
 				return;
 
+			var i:int;
+			var entity:Entity;
 			var hierarchyNode:XML = hierarcyNode_entityIds[0] as XML; // the node to add the list of columns to
 			var entityIds:Array = hierarcyNode_entityIds[1] as Array; // ordered list of ids
-			var orderLookup:Object = createLookup(entityIds);
 
 			hierarchyNode = _attributeHierarchy.getNodeFromPath(_attributeHierarchy.getPathFromNode(hierarchyNode));
 			if (!hierarchyNode)
@@ -349,19 +364,32 @@ package weave.data.DataSources
 			try
 			{
 				var entities:Array = event.result as Array;
-				AsyncSort.sortImmediately(
+				// convert each Object to Entity
+				for (i = 0; i < entities.length; i++)
+				{
+					entity = new Entity();
+					entity.copyFromResult(entities[i]);
+					entities[i] = entity;
+				}
+				
+				// sort entities by preferred id order
+				var idOrder:Object = new Dictionary(true); // id -> index
+				for (i = 0; i < entityIds.length; i++)
+					idOrder[entityIds[i]] = i;
+				StandardLib.sort(
 					entities,
-					function(entity1:Object, entity2:Object):int
+					function(entity1:Entity, entity2:Entity):int
 					{
-						return ObjectUtil.numericCompare(orderLookup[entity1.id], orderLookup[entity2.id]);
+						return ObjectUtil.numericCompare(idOrder[entity1.id], idOrder[entity2.id]);
 					}
 				);
 				
 				// append list of attributes
-				for (var i:int = 0; i < entities.length; i++)
+				for (i = 0; i < entities.length; i++)
 				{
-					var metadata:Object = entities[i].publicMetadata;
-					metadata[ENTITY_ID] = entities[i].id;
+					entity = entities[i];
+					var metadata:Object = entity.publicMetadata;
+					metadata[ENTITY_ID] = entity.id;
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
 						if (metadata[property])
@@ -588,9 +616,22 @@ package weave.data.DataSources
 
 import flash.utils.getTimer;
 
+import mx.rpc.events.ResultEvent;
+
+import weave.api.WeaveAPI;
+import weave.api.data.ColumnMetadata;
+import weave.api.data.DataTypes;
+import weave.api.data.EntityType;
+import weave.api.data.IEntityTreeNode;
+import weave.api.getCallbackCollection;
+import weave.api.services.beans.EntityMetadata;
 import weave.data.AttributeColumns.ProxyColumn;
+import weave.data.DataSources.WeaveDataSource;
+import weave.data.hierarchy.EntityNode;
 import weave.primitives.GeneralizedGeometry;
 import weave.primitives.GeometryType;
+import weave.services.EntityCache;
+import weave.services.addAsyncResponder;
 import weave.utils.BLGTreeUtils;
 
 /**
@@ -650,4 +691,95 @@ internal class PGGeomUtil
 	 * The name of the xyCoords property in a PGGeom bean
 	 */
 	private static const XYCOORDS:String = 'xyCoords';
+}
+
+/**
+ * Has two children: "Data Tables" and "Geometry Collections"
+ */
+internal class RootNode_TablesAndGeoms implements IEntityTreeNode
+{
+	private var source:WeaveDataSource;
+	private var tableList:EntityNode;
+	private var geomList:GeomListNode;
+	private var children:Array;
+	public function RootNode_TablesAndGeoms(source:WeaveDataSource)
+	{
+		this.source = source;
+		tableList = new EntityNode(null, EntityType.TABLE);
+		geomList = new GeomListNode(source);
+		children = [tableList, geomList];
+	}
+	public function getSource():Object { return source; }
+	public function getLabel():String
+	{
+		return WeaveAPI.globalHashMap.getName(source);
+	}
+	public function isBranch():Boolean { return true; }
+	public function hasChildBranches():Boolean { return true; }
+	public function getChildren():Array
+	{
+		tableList.setEntityCache(source.entityCache);
+		
+		var str:String = lang("Data Tables");
+		if (tableList.getChildren().length)
+			str = lang("{0} ({1})", str, tableList.getChildren().length);
+		tableList._overrideLabel = str;
+		
+		return children;
+	}
+	public function addChildAt(newChild:IEntityTreeNode, index:int):Boolean { throw new Error("Not implemented"); }
+	public function removeChild(child:IEntityTreeNode):Boolean { throw new Error("Not implemented"); }
+}
+
+/**
+ * Makes an RPC to find geometry columns for its children
+ */
+internal class GeomListNode implements IEntityTreeNode
+{
+	private var source:WeaveDataSource;
+	private var cache:EntityCache;
+	internal var children:Array;
+	public function GeomListNode(source:WeaveDataSource)
+	{
+		this.source = source;
+	}
+	public function getSource():Object { return source; }
+	public function getLabel():String
+	{
+		var label:String = lang("Geometry Collections");
+		if (children && children.length)
+			return lang("{0} ({1})", label, children.length);
+		return label;
+	}
+	public function isBranch():Boolean { return true; }
+	public function hasChildBranches():Boolean { return false; }
+	public function getChildren():Array
+	{
+		if (cache != source.entityCache)
+		{
+			cache = source.entityCache;
+			children = [];
+			var em:EntityMetadata = new EntityMetadata();
+			em.publicMetadata = {};
+			em.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
+			em.publicMetadata[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
+			addAsyncResponder(source.__getService().findEntityIds(em), handleIds, null, children);
+		}
+		return children;
+	}
+	private function handleIds(event:ResultEvent, children:Array):void
+	{
+		if (this.children != children)
+			return;
+		
+		var ids:Array = event.result as Array;
+		ids.forEach(function(id:int, index:int, a:Array):void {
+			var node:EntityNode = new EntityNode(source.entityCache);
+			node.id = id;
+			children[index] = node;
+			getCallbackCollection(source).triggerCallbacks();
+		});
+	}
+	public function addChildAt(newChild:IEntityTreeNode, index:int):Boolean { throw new Error("Not implemented"); }
+	public function removeChild(child:IEntityTreeNode):Boolean { throw new Error("Not implemented"); }
 }

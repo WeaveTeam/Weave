@@ -20,9 +20,7 @@ package weave.ui
 {
 	import flash.events.Event;
 	
-	import mx.collections.CursorBookmark;
 	import mx.collections.ICollectionView;
-	import mx.collections.IList;
 	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
 	import mx.controls.treeClasses.TreeListData;
@@ -41,7 +39,7 @@ package weave.ui
 	 * - fixes folder arrow visibility bug<br>
 	 * - useful functions like refreshDataProvider()
 	 * @author adufilie
-	 */	
+	 */
 	public class CustomTree extends Tree
 	{
 		public function CustomTree()

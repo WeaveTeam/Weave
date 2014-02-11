@@ -166,6 +166,8 @@ public class DataConfig
     {
     	detectChange();
     	
+    	properties.notNull();
+    	
     	if (!connectionConfig.migrationPending())
     	{
 	    	String parentType = getEntityType(parent_id);
@@ -283,6 +285,7 @@ public class DataConfig
             entity.id = id;
             entity.publicMetadata = publicresults.get(id);
             entity.privateMetadata = privateresults.get(id);
+            entity.notNull();
             results.add(entity);
         }
         return results;
@@ -542,6 +545,17 @@ public class DataConfig
 		public Map<String,String> publicMetadata = new HashMap<String, String>();
 		
 		/**
+		 * Makes sure privateMetadata and publicMetadata are not null.
+		 */
+		public void notNull()
+		{
+			if (privateMetadata == null)
+				privateMetadata = new HashMap<String, String>();
+			if (publicMetadata == null)
+				publicMetadata = new HashMap<String, String>();
+		}
+		
+		/**
 		 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
 		 */
 		public void setPublicMetadata(String ...pairs)
@@ -616,7 +630,7 @@ public class DataConfig
 		    	|| equalPairs(parentType, EntityType.HIERARCHY, childType, EntityType.CATEGORY)
 		    	|| equalPairs(parentType, EntityType.HIERARCHY, childType, EntityType.COLUMN)
 		    	|| equalPairs(parentType, EntityType.CATEGORY, childType, EntityType.CATEGORY)
-		    	|| equalPairs(childType, EntityType.CATEGORY, childType, EntityType.COLUMN);
+		    	|| equalPairs(parentType, EntityType.CATEGORY, childType, EntityType.COLUMN);
 	    }
 	    
 		public String toString()

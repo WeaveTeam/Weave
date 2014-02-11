@@ -1,7 +1,5 @@
 package weave.services
 {
-    import flash.utils.Dictionary;
-    
     import mx.rpc.events.ResultEvent;
     
     import weave.api.core.ICallbackCollection;
@@ -16,7 +14,6 @@ package weave.services
     import weave.api.services.beans.Entity;
     import weave.api.services.beans.EntityHierarchyInfo;
     import weave.api.services.beans.EntityMetadata;
-    import weave.utils.Dictionary2D;
 
     public class EntityCache implements ILinkableObject
     {
@@ -30,9 +27,15 @@ package weave.services
 		private var _idsByType:Object = {}; // entityType -> Array of id
 		private var _infoLookup:Object = {}; // id -> EntityHierarchyInfo
 		private var idsDirty:Object = {}; // id -> Boolean; used to remember which ids to invalidate the next time the entity is requested
+		private var purgeMissingEntities:Boolean = false;
 		
-        public function EntityCache(service:IWeaveEntityService)
+		/**
+		 * @param service The entity service, which may or may not implement IWeaveEntityManagementService.
+		 * @param purgeMissingEntities Set this to true when entities may be deleted or created and ids previously deleted may be reused.
+		 */
+        public function EntityCache(service:IWeaveEntityService, purgeMissingEntities:Boolean = false)
         {
+			this.purgeMissingEntities = purgeMissingEntities;
 			this.service = service;
 			this.adminService = service as IWeaveEntityManagementService;
 			registerLinkableChild(this, service);
@@ -157,6 +160,7 @@ package weave.services
         {
 			var id:int;
 			var entity:Entity;
+			var info:EntityHierarchyInfo;
 			
 			// reset all requested entities in case they do not appear in the results
 			for each (id in requestedIds)
@@ -176,7 +180,7 @@ package weave.services
 	            entityCache[id] = entity;
 				idsDirty[id] = false;
 				
-				var info:EntityHierarchyInfo = _infoLookup[id];
+				info = _infoLookup[id];
 				if (info)
 				{
 					info.entityType = entity.publicMetadata[ColumnMetadata.ENTITY_TYPE];
@@ -189,7 +193,22 @@ package weave.services
 			for each (id in requestedIds)
 			{
 				if (idsDirty[id])
-					delete _infoLookup[id];
+				{
+					if (purgeMissingEntities)
+					{
+						delete _infoLookup[id];
+					}
+					else
+					{
+						// display an error and stop requesting the missing entity
+						info = _infoLookup[id] || new EntityHierarchyInfo(null);
+						info.id = id;
+						info.numChildren = 0;
+						info.title = lang("[Error: Entity #{0} does not exist]", id);
+						_infoLookup[id] = info;
+						idsDirty[id] = false;
+					}
+				}
 			}
 			
 			callbacks.triggerCallbacks();

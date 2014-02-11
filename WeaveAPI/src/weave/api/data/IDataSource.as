@@ -15,6 +15,7 @@
 
 package weave.api.data
 {
+	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableObject;
 	
 	/**
@@ -24,6 +25,21 @@ package weave.api.data
 	 */
 	public interface IDataSource extends ILinkableObject
 	{
+		/**
+		 * Refreshes the attribute hierarchy.
+		 */
+		function refreshHierarchy():void
+		
+		/**
+		 * Gets the root node of the attribute hierarchy.
+		 */
+		function getHierarchyRoot():IEntityTreeNode;
+		
+		/**
+		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
+		 */
+		function getColumnReference(node:IEntityTreeNode, output:ILinkableDynamicObject):void;
+
 		/**
 		 * TODO: Instead of XML, this should be a hierarchy of IColumnReference objects
 		 *       that can be passed to getAttributeColumn().
@@ -37,7 +53,7 @@ package weave.api.data
 		 * @param subtreeNode A node in the hierarchy representing the root of the subtree to initialize, or null to initialize the root of the hierarchy.
 		 */
 		function initializeHierarchySubtree(subtreeNode:XML = null):void;
-
+		
 		/**
 		 * The parameter to this function used to be pathInHierarchy because old implementations use XML path objects.
 		 * The parameter type is now temporarily Object during this transitional phase.

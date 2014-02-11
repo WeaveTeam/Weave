@@ -86,7 +86,7 @@ package weave.services
 		public function get entityCache():EntityCache
 		{
 			if (!_entityCache)
-				_entityCache = new EntityCache(service);
+				_entityCache = new EntityCache(service, true);
 			return _entityCache;
 		}
 		

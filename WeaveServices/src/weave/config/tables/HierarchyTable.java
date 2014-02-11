@@ -248,7 +248,7 @@ public class HierarchyTable extends AbstractTable
 			if (ids.size() == 0)
 				return result;
 			
-			// build query
+			// Note: This query is built dynamically based on the ids.  This is ok as long as they are Integers and not Strings.
 			String quotedParentField = SQLUtils.quoteSymbol(conn, FIELD_PARENT);
 			query = String.format(
 					"SELECT %s,count(*) FROM %s WHERE %s IN (%s) GROUP BY %s",
