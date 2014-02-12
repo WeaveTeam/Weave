@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:HDividedBox
+	xmlns:ui ="weave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="weave.api.core.ILinkableObject"
+	width="100%" height="100%"
+	>
+
+	<mx:VBox id="folderVBox" width="100%" height="100%"
+			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<ui:WeaveTree id="folderView" width="100%" height="100%"
+					   showDataTips="true"
+					   allowMultipleSelection="false"
+					   itemClose="handleFolderCollapse(event)"
+					   doubleClickEnabled="true" doubleClick="handleFolderDoubleClick()"/>
+	</mx:VBox>
+	<mx:VBox id="fileVBox" width="100%" height="100%"
+			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<ui:WeaveTree id="fileView" width="100%" height="100%"
+					   showDataTips="true"
+					   disclosureClosedIcon="{null}" disclosureOpenIcon="{null}"
+					   doubleClickEnabled="true" doubleClick="handleFileDoubleClick()"/>
+	</mx:VBox>
+
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.Tree;
+			import mx.events.TreeEvent;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IWeaveTreeNode;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableString;
+			import weave.core.LinkableWatcher;
+			import weave.utils.EventUtils;
+			
+//			public const folderFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull));
+			public const fileFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull));
+			private const rootWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+			
+			private function isNonNull(value:String):Boolean { return value != null; }
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				registerLinkableChild(folderView, rootWatcher);
+				registerLinkableChild(fileView, rootWatcher);
+				
+				folderView.dataDescriptor = new WeaveTreeDataDescriptor(1);
+//				folderFilter.addGroupedCallback(this, refreshFolders);
+				// using a delayed callback to avoid clearing the file list during an update
+				BindingUtils.bindSetter(EventUtils.generateDelayedCallback(this, refreshFiles, 0, true), folderView, 'selectedItem');
+				
+				fileView.dataDescriptor = new WeaveTreeDataDescriptor(2);
+				fileFilter.addGroupedCallback(this, refreshFiles);
+			}
+			
+			public function set rootNode(node:IWeaveTreeNode):void
+			{
+				rootWatcher.target = node ? (node as ILinkableObject || node.getSource() as ILinkableObject) : null;
+				folderView.rootNode = node;
+			}
+			
+			private var _prevFolder:IWeaveTreeNode;
+			
+			private function refreshFiles(folder:IWeaveTreeNode = null):void
+			{
+				if (!folder)
+					folder = folderView.selectedItem as IWeaveTreeNode;
+				
+				fileVBox.visible = fileVBox.includeInLayout = !!folder;
+				
+				if (_prevFolder != folder)
+				{
+					_prevFolder = folder;
+					if (folder && folder.hasChildBranches())
+						folderView.expandItem(folder, true);
+					fileFilter.value = '';
+				}
+				
+				var files:Array;
+				if (folder)
+				{
+					files = folder.getChildren();
+					if (files)
+						files = files.filter(fileFilterFunction);
+				}
+				fileView.refreshDataProvider(files || []);
+			}
+
+//			private function folderFilterFunction(node:IWeaveTreeNode):Boolean
+//			{
+//				return node.getLabel().toLowerCase().search(folderFilter.value.toLowerCase()) >= 0;
+//			}
+
+			private function fileFilterFunction(node:IWeaveTreeNode, i:int, a:Array):Boolean
+			{
+				return node.getLabel().toLowerCase().search(fileFilter.value.toLowerCase()) >= 0;
+			}
+
+			private function handleFolderCollapse(event:TreeEvent):void
+			{
+				// if collapsing a node would make the current selection disappear, select the collapsing node
+				if (selectionWouldDisappear(folderView, event.item as IWeaveTreeNode, folderView.selectedItem as IWeaveTreeNode))
+					folderView.selectedItem = _prevFolder = event.item as IWeaveTreeNode;
+			}
+			
+			private function selectionWouldDisappear(tree:Tree, collapsing:IWeaveTreeNode, selected:IWeaveTreeNode):Boolean
+			{
+				if (!collapsing || !selected)
+					return false;
+				
+				var children:Array = collapsing.getChildren();
+				if (children.indexOf(selected) >= 0)
+					return true;
+				
+				// first test if child item is open before requesting children with the recursive call
+				for each (var child:IWeaveTreeNode in children)
+					if (tree.isItemOpen(child) && selectionWouldDisappear(tree, child, selected))
+						return true;
+				
+				return false;
+			}
+			
+			private function handleFolderDoubleClick():void
+			{
+				// Toggle expanded state.
+				// Note that this will toggle the folder icon whether or not the node has child branches.
+				// Also note that the same behavior occurs when using the left and right arrow keys.
+				// We could check node.hasChildBranches() before toggling expanded state, but the user may find marking the folder icons useful.
+				var node:IWeaveTreeNode = folderView.selectedItem as IWeaveTreeNode;
+				if (node)
+					folderView.expandItem(node, !folderView.isItemOpen(node));
+			}
+			private function handleFileDoubleClick():void
+			{
+				var node:IWeaveTreeNode = fileView.selectedItem as IWeaveTreeNode;
+				if (node && node.isBranch())
+				{
+					// expand parent, scroll to, and select
+					folderView.expandItem(folderView.selectedItem, true);
+					folderView.scrollToAndSelectMatchingItem(
+						function(folder:IWeaveTreeNode):Boolean {
+							return folder == node;
+						}
+					);
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:HDividedBox>

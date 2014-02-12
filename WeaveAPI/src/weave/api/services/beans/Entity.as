@@ -27,9 +27,15 @@ package weave.api.services.beans
 	 */
 	public class Entity extends EntityMetadata
 	{
-		public function Entity()
+		public function Entity(info:EntityHierarchyInfo = null)
 		{
 			_id = -1;
+			if (info)
+			{
+				_id = info.id;
+				publicMetadata[ColumnMetadata.TITLE] = info.title;
+				publicMetadata[ColumnMetadata.ENTITY_TYPE] = info.entityType;
+			}
 		}
 		
 		private var _id:int;

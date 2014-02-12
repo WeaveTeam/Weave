@@ -1,5 +1,6 @@
 package weave.services
 {
+    import mx.rpc.AsyncToken;
     import mx.rpc.events.ResultEvent;
     
     import weave.api.core.ICallbackCollection;
@@ -14,6 +15,7 @@ package weave.services
     import weave.api.services.beans.Entity;
     import weave.api.services.beans.EntityHierarchyInfo;
     import weave.api.services.beans.EntityMetadata;
+    import weave.utils.VectorUtils;
 
     public class EntityCache implements ILinkableObject
     {
@@ -63,7 +65,7 @@ package weave.services
 			idsToFetch[id] = true;
 			
 			if (!entityCache[id])
-				entityCache[id] = new Entity();
+				entityCache[id] = new Entity(_infoLookup[id]);
 
 			if (alsoInvalidateRelatives)
 			{
@@ -132,8 +134,13 @@ package weave.services
 				// when requesting root, also request data table list
 				if (id == ROOT_ID)
 				{
-					addAsyncResponder(service.getHierarchyInfo(EntityType.TABLE), handleEntityHierarchyInfo, null, EntityType.TABLE);
-					addAsyncResponder(service.getHierarchyInfo(EntityType.HIERARCHY), handleEntityHierarchyInfo, null, EntityType.HIERARCHY);
+					var tableMetadata:Object = {};
+					tableMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.TABLE;
+					addAsyncResponder(service.getHierarchyInfo(tableMetadata), handleEntityHierarchyInfo, null, tableMetadata);
+					
+					var hierarchyMetadata:Object = {};
+					hierarchyMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.HIERARCHY;
+					addAsyncResponder(service.getHierarchyInfo(hierarchyMetadata), handleEntityHierarchyInfo, null, hierarchyMetadata);
 				}
 				else
 					ids.push(int(id));
@@ -201,7 +208,7 @@ package weave.services
 					else
 					{
 						// display an error and stop requesting the missing entity
-						info = _infoLookup[id] || new EntityHierarchyInfo(null);
+						info = _infoLookup[id] || new EntityHierarchyInfo();
 						info.id = id;
 						info.numChildren = 0;
 						info.title = lang("[Error: Entity #{0} does not exist]", id);
@@ -214,17 +221,36 @@ package weave.services
 			callbacks.triggerCallbacks();
         }
 		
-		private function handleEntityHierarchyInfo(event:ResultEvent, entityType:String):void
+		/**
+		 * Calls getHierarchyInfo() in the IWeaveEntityService that was passed to the constructor and caches
+		 * the results when they come back.
+		 * @param publicMetadata Search criteria.
+		 * @return An AsyncToken to which you can add a responder for handling the results. 
+		 * 
+		 */		
+		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{
-			var items:Array = event.result as Array;
-			for (var i:int = 0; i < items.length; i++)
+			var token:AsyncToken = service.getHierarchyInfo(publicMetadata);
+			addAsyncResponder(token, handleEntityHierarchyInfo, null, publicMetadata);
+			return token;
+		}
+		
+		private function handleEntityHierarchyInfo(event:ResultEvent, publicMetadata:Object):void
+		{
+			var entityType:String = publicMetadata[ColumnMetadata.ENTITY_TYPE];
+			var infos:Array = event.result as Array;
+			var ids:Array = new Array(infos.length);
+			for (var i:int = 0; i < infos.length; i++)
 			{
-				var item:EntityHierarchyInfo = EntityHierarchyInfo(items[i]);
-				item.entityType = entityType; // entityType is not provided by the server
-				_infoLookup[item.id] = item;
-				items[i] = item.id; // overwrite item with its id
+				var info:EntityHierarchyInfo = EntityHierarchyInfo(infos[i]);
+				info.entityType = entityType; // entityType is not provided by the server
+				_infoLookup[info.id] = info;
+				ids[i] = info.id;
 			}
-			_idsByType[entityType] = items; // now an array of ids
+			// if there is only one metadata property and it's entityType, save the list of ids
+			var keys:Array = VectorUtils.getKeys(publicMetadata);
+			if (keys.length == 1 && keys[0] == ColumnMetadata.ENTITY_TYPE)
+				_idsByType[entityType] = ids;
 			
 			callbacks.triggerCallbacks();
 		}

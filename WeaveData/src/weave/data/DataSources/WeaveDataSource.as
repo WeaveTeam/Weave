@@ -36,8 +36,8 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
-	import weave.api.data.IEntityTreeNode;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -92,14 +92,6 @@ package weave.data.DataSources
 		 */		
 		public const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
 		
-		/**
-		 * @private
-		 */
-		public function __getService():WeaveDataServlet
-		{
-			return _service;
-		}
-		
 		public function get entityCache():EntityCache
 		{
 			return _entityCache;
@@ -114,12 +106,14 @@ package weave.data.DataSources
 		{
 			super.refreshHierarchy();
 			entityCache.invalidateAll();
+			if (_rootNode is RootNode_TablesAndGeoms)
+				(_rootNode as RootNode_TablesAndGeoms).refresh();
 		}
 		
 		/**
 		 * Gets the root node of the attribute hierarchy.
 		 */
-		override public function getHierarchyRoot():IEntityTreeNode
+		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (_attributeHierarchy.value === null)
 			{
@@ -136,19 +130,31 @@ package weave.data.DataSources
 		/**
 		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
 		 */
-		override public function getColumnReference(node:IEntityTreeNode, output:ILinkableDynamicObject):void
+		override public function getColumnReference(node:IWeaveTreeNode, output:ILinkableDynamicObject):Boolean
 		{
+			if (node.getSource() != this || node.isBranch())
+				return false;
+			
 			var entityNode:EntityNode = node as EntityNode;
-			if (entityNode && node.getSource() == this)
+			if (entityNode)
 			{
 				getCallbackCollection(output).delayCallbacks();
 				var hcr:HierarchyColumnReference = output.requestLocalObject(HierarchyColumnReference, false);
+				
 				hcr.dataSourceName.value = WeaveAPI.globalHashMap.getName(this);
-				hcr.hierarchyPath.value = _attributeHierarchy.getPathFromNode(<attribute weaveEntityId={ entityNode.id }/>);
+				
+				var xml:XML = <attribute/>;
+				var meta:Object = entityNode.getEntity().publicMetadata;
+				for (var key:String in meta)
+					xml['@' + key] = meta[key];
+				xml['@' + ENTITY_ID] = entityNode.id;
+				hcr.hierarchyPath.value = xml;
+				
 				getCallbackCollection(output).resumeCallbacks();
+				return true;
 			}
-			else
-				super.getColumnReference(node, output);
+			
+			return super.getColumnReference(node, output);
 		}
 		
 		public function getRows(keys:Array):AsyncToken
@@ -357,7 +363,7 @@ package weave.data.DataSources
 			var hierarchyNode:XML = hierarcyNode_entityIds[0] as XML; // the node to add the list of columns to
 			var entityIds:Array = hierarcyNode_entityIds[1] as Array; // ordered list of ids
 
-			hierarchyNode = _attributeHierarchy.getNodeFromPath(_attributeHierarchy.getPathFromNode(hierarchyNode));
+			hierarchyNode = HierarchyUtils.findEquivalentNode(_attributeHierarchy.value, hierarchyNode);
 			if (!hierarchyNode)
 				return;
 			
@@ -622,8 +628,9 @@ import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.DataTypes;
 import weave.api.data.EntityType;
-import weave.api.data.IEntityTreeNode;
+import weave.api.data.IWeaveTreeNode;
 import weave.api.getCallbackCollection;
+import weave.api.services.beans.EntityHierarchyInfo;
 import weave.api.services.beans.EntityMetadata;
 import weave.data.AttributeColumns.ProxyColumn;
 import weave.data.DataSources.WeaveDataSource;
@@ -696,7 +703,7 @@ internal class PGGeomUtil
 /**
  * Has two children: "Data Tables" and "Geometry Collections"
  */
-internal class RootNode_TablesAndGeoms implements IEntityTreeNode
+internal class RootNode_TablesAndGeoms implements IWeaveTreeNode
 {
 	private var source:WeaveDataSource;
 	private var tableList:EntityNode;
@@ -709,7 +716,12 @@ internal class RootNode_TablesAndGeoms implements IEntityTreeNode
 		geomList = new GeomListNode(source);
 		children = [tableList, geomList];
 	}
+	public function refresh():void
+	{
+		geomList.children = null;
+	}
 	public function getSource():Object { return source; }
+	public function equals(other:IWeaveTreeNode):Boolean { return other == this; }
 	public function getLabel():String
 	{
 		return WeaveAPI.globalHashMap.getName(source);
@@ -727,14 +739,14 @@ internal class RootNode_TablesAndGeoms implements IEntityTreeNode
 		
 		return children;
 	}
-	public function addChildAt(newChild:IEntityTreeNode, index:int):Boolean { throw new Error("Not implemented"); }
-	public function removeChild(child:IEntityTreeNode):Boolean { throw new Error("Not implemented"); }
+	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { throw new Error("Not implemented"); }
+	public function removeChild(child:IWeaveTreeNode):Boolean { throw new Error("Not implemented"); }
 }
 
 /**
  * Makes an RPC to find geometry columns for its children
  */
-internal class GeomListNode implements IEntityTreeNode
+internal class GeomListNode implements IWeaveTreeNode
 {
 	private var source:WeaveDataSource;
 	private var cache:EntityCache;
@@ -744,6 +756,7 @@ internal class GeomListNode implements IEntityTreeNode
 		this.source = source;
 	}
 	public function getSource():Object { return source; }
+	public function equals(other:IWeaveTreeNode):Boolean { return other == this; }
 	public function getLabel():String
 	{
 		var label:String = lang("Geometry Collections");
@@ -755,31 +768,30 @@ internal class GeomListNode implements IEntityTreeNode
 	public function hasChildBranches():Boolean { return false; }
 	public function getChildren():Array
 	{
-		if (cache != source.entityCache)
+		if (!children || cache != source.entityCache)
 		{
 			cache = source.entityCache;
 			children = [];
-			var em:EntityMetadata = new EntityMetadata();
-			em.publicMetadata = {};
-			em.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
-			em.publicMetadata[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
-			addAsyncResponder(source.__getService().findEntityIds(em), handleIds, null, children);
+			var meta:Object = {};
+			meta[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
+			meta[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
+			addAsyncResponder(cache.getHierarchyInfo(meta), handleInfo, null, children);
 		}
 		return children;
 	}
-	private function handleIds(event:ResultEvent, children:Array):void
+	private function handleInfo(event:ResultEvent, children:Array):void
 	{
 		if (this.children != children)
 			return;
 		
-		var ids:Array = event.result as Array;
-		ids.forEach(function(id:int, index:int, a:Array):void {
+		var infos:Array = event.result as Array;
+		infos.forEach(function(obj:Object, index:int, a:Array):void {
 			var node:EntityNode = new EntityNode(source.entityCache);
-			node.id = id;
+			node.id = EntityHierarchyInfo.getEntityIdFromResult(obj);
 			children[index] = node;
 			getCallbackCollection(source).triggerCallbacks();
 		});
 	}
-	public function addChildAt(newChild:IEntityTreeNode, index:int):Boolean { throw new Error("Not implemented"); }
-	public function removeChild(child:IEntityTreeNode):Boolean { throw new Error("Not implemented"); }
+	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { throw new Error("Not implemented"); }
+	public function removeChild(child:IWeaveTreeNode):Boolean { throw new Error("Not implemented"); }
 }

@@ -16,6 +16,7 @@
 package weave.servlets;
 
 import java.rmi.RemoteException;
+import java.util.Map;
 
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithRelationships;
@@ -28,11 +29,11 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 public interface IWeaveEntityManagementService
 {
 	/**
-	 * Gets EntityHierarchyInfo objects containing basic information on hierarchy roots.
-	 * @param entityType Either 'table' or 'hierarchy'.
-	 * @return An Array of EntityHierarchyInfo objects.
+	 * Gets EntityHierarchyInfo objects containing basic information on entities matching public metadata.
+	 * @param publicMetadata EntityMetadata containing values to match.
+	 * @return An Array of EntityHierarchyInfo objects, sorted by title.
 	 */
-	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, String entityType) throws RemoteException;
+	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, Map<String,String> publicMetadata) throws RemoteException;
 	/**
 	 * Gets an Array of Entity objects.
 	 * @param ids A list of entity IDs.

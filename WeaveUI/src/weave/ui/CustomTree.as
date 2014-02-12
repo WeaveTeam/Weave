@@ -48,6 +48,12 @@ package weave.ui
 			addEventListener("scroll", updateHScrollLater);
 		}
 		
+		override protected function addDragData(dragSource:Object):void
+		{
+			dragSource.addHandler(copySelectedItems, "items");
+			super.addDragData(dragSource);
+		}
+		
 		override protected function initListData(item:Object, treeListData:TreeListData):void
 		{
 			super.initListData(item, treeListData);
@@ -175,15 +181,16 @@ package weave.ui
 		/**
 		 * This function must be called whenever the hierarchical data changes.
 		 * Otherwise, the Tree will not display properly.
+		 * @param newDataProvider Optionally specifies a new dataProvider.  If not specified, previous dataProvider will be used.
 		 */
-		public function refreshDataProvider():void
+		public function refreshDataProvider(newDataProvider:Object = null):void
 		{
 			var _firstVisibleItem:Object = firstVisibleItem;
 			var _selectedItems:Array = selectedItems;
 			var _openItems:Array = openItems.concat();
 			
 			// use value previously passed to "set dataProvider" in order to create a new collection wrapper.
-			dataProvider = _dataProvider;
+			dataProvider = newDataProvider || _dataProvider;
 			// commitProperties() behaves as desired when both dataProvider and openItems are set.
 			openItems = _openItems;
 			

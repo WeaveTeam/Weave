@@ -13,7 +13,7 @@
 				Column title search currently only supports exact matches.
 			</ui:HelpComponent>
 		</ui:Indent>
-        <ui:EntityTree id="tableTree" width="100%" height="100%"
+        <ui:WeaveTree id="tableTree" width="100%" height="100%"
 					   rootNode="{new EntityNode(Admin.entityCache, EntityType.TABLE, filterTables)}"
 					   dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
         <mx:HBox width="100%">
@@ -41,7 +41,7 @@
 					   icon="@Embed(source='/weave/resources/images/plus.png')"/>
 		</mx:HBox>
 		<mx:VBox height="100%" width="100%" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}">
-	        <ui:EntityTree id="hierarchyTree" width="100%" height="100%"
+	        <ui:WeaveTree id="hierarchyTree" width="100%" height="100%"
 						   rootNode="{new EntityNode(Admin.entityCache, EntityType.HIERARCHY)}"
 						   dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
 	        <mx:HBox width="100%">
@@ -64,10 +64,10 @@
 	import weave.api.services.beans.EntityMetadata;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
+	import weave.data.hierarchy.EntityNode;
 	import weave.services.Admin;
 	import weave.services.addAsyncResponder;
-	import weave.data.hierarchy.EntityNode;
-	import weave.ui.EntityTree;
+	import weave.ui.WeaveTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
 	
@@ -85,6 +85,9 @@
 		registerLinkableChild(tableTree, Admin.entityCache);
 		registerLinkableChild(hierarchyTree, Admin.entityCache);
 		
+		tableTree.setupContextMenu();
+		hierarchyTree.setupContextMenu();
+		
         tableTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
         hierarchyTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
 		
@@ -96,7 +99,7 @@
 	
 	private function handleTreeChange(event:ListEvent):void
 	{
-		var tree:EntityTree = event.currentTarget as EntityTree;
+		var tree:WeaveTree = event.currentTarget as WeaveTree;
 		var id:int = Admin.instance.getFocusEntityId();
 		if (id >= 0)
 		{
@@ -282,8 +285,8 @@
     }
     public function selectionsChanged(event:ListEvent):void
     {
-		var tree:EntityTree = event.currentTarget as EntityTree;
-		var otherTree:EntityTree = tree === tableTree ? hierarchyTree : tableTree;
+		var tree:WeaveTree = event.currentTarget as WeaveTree;
+		var otherTree:WeaveTree = tree === tableTree ? hierarchyTree : tableTree;
 		
 		// if both trees have something selected, prefer the tree that just selected something.
 		if (tree.selectedItem && otherTree.selectedItem)

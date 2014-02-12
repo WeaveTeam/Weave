@@ -220,5 +220,14 @@ package weave.utils
 			}
 			return null;
 		}
+		
+		/**
+		 * Finds a node in a hierarchy which corresponds to a foreign node from a foreign hierarchy.
+		 * Useful when you saved a node from a previous version of a hierarchy which may have been modified since then.
+		 */
+		public static function findEquivalentNode(hierarchy:XML, foreignNode:XML):XML
+		{
+			return getNodeFromPath(hierarchy, getPathFromNode(hierarchy, foreignNode));
+		}
 	}
 }

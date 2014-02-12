@@ -44,5 +44,10 @@ package weave.api.services.beans
 			
 			return str;
 		}
+		
+		public static function getEntityIdFromResult(result:Object):int
+		{
+			return result.id;
+		}
 	}
 }

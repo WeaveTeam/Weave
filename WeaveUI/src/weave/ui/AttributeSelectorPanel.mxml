@@ -41,8 +41,7 @@
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button id="addAllButton" label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
-				<mx:Button label="Add selected" click="addSelected()"/>
+				<mx:Button label="Add selected" click="addSelected()" enabled="{editor.explorer.fileView.selectedItem}"/>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
 		</mx:VDividedBox>
@@ -55,6 +54,7 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
@@ -95,10 +95,6 @@
 				registerLinkableChild(this, editor);
 				registerLinkableChild(this, columnList);
 				columnList.titleHBox.addChild(addColumnControls);
-				
-				Weave.properties.showAddAllButton.addImmediateCallback(this, function():void {
-					addAllButton.visible = Weave.properties.showAddAllButton.value;
-				}, true);
 			}
 			
 			override public function dispose():void
@@ -106,28 +102,11 @@
 				super.dispose();
 			}
 			
-			private function addAll():void
-			{
-				getCallbackCollection(columnList.hashMap).delayCallbacks();
-				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
-				if( editor.hierarchySelector.attributesView.dataProvider != null )
-				{
-					var attrs:Array = (editor.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
-					for (var i:int = 0; i < attrs.length; i++)
-					{
-						var attr:XML = attrs[i];
-						var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
-						var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-						editor.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
-					}
-				}
-				getCallbackCollection(columnList.hashMap).resumeCallbacks();
-			}
-			
 			private function addSelected():void
 			{
-				var newColumn:ILinkableObject = columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
-				columnList.beginEditVariableName(newColumn);
+				var columns:Array = editor.addMultipleColumns(columnList.hashMap, true);
+				if (columns.length)
+					columnList.beginEditVariableName(columns[0]);
 			}
 			
 			private var selectableAttributes:Array = [];
@@ -203,23 +182,20 @@
 						title = lang(DEFAULT_TITLE);
 				}
 				
+				editor.explorer.fileView.allowMultipleSelection = columnOrHashMap is ILinkableHashMap;
 				if (columnOrHashMap is ILinkableHashMap)
 				{
-
-					// set path to first column.
-					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(DynamicColumn);
-					if (columns.length > 0)
+					// copy the session state from the first ReferencedColumn we find.
+					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
+					for each (var column:IAttributeColumn in columns)
 					{
-						var columnToCopy:IAttributeColumn = columns[0] is DynamicColumn
-							? (columns[0] as DynamicColumn).getInternalColumn()
-							: columns[0];
-						editor.dynamicColumn.requestLocalObjectCopy(columnToCopy);
-					}
-					else
-					{
-						columns = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
-						if (columns.length > 0)
-							editor.dynamicColumn.requestLocalObjectCopy(columns[0]);
+						if (column is DynamicColumn)
+							column = (column as DynamicColumn).getInternalColumn();
+						if (column is ReferencedColumn)
+						{
+							copySessionState(column, editor.referencedColumn);
+							break;
+						}
 					}
 					
 					var child:DisplayObject = columnList.selectorControls;

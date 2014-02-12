@@ -139,7 +139,7 @@ package weave.services
 			return true;
 		}
 		
-		public function getHierarchyInfo(entityType:String):AsyncToken // returns EntityHierarchyInfo[]
+		public function getHierarchyInfo(publicMetadata:Object):AsyncToken // returns EntityHierarchyInfo[]
 		{
 			return invoke(getHierarchyInfo, arguments, EntityHierarchyInfo);
 		}

@@ -32,11 +32,11 @@ package weave.api.services
 		function get entityServiceInitialized():Boolean;
 
 		/**
-		 * Gets EntityHierarchyInfo objects containing basic information on hierarchy roots.
-		 * @param entityType Either 'table' or 'hierarchy'.
+		 * Gets EntityHierarchyInfo objects containing basic information on entities matching public metadata.
+		 * @param publicMetadata EntityMetadata containing values to match.
 		 * @return RPC token for an Array of EntityHierarchyInfo objects.
 		 */
-		function getHierarchyInfo(entityType:String):AsyncToken;
+		function getHierarchyInfo(publicMetadata:Object):AsyncToken;
 		
 		/**
 		 * Gets an Array of Entity objects.

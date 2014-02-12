@@ -13,17 +13,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.data
+package weave.data.DataSources
 {
-	import weave.api.core.ILinkableObject;
+	import weave.api.data.IDataSource;
+	import weave.core.LinkableXML;
 	
 	/**
-	 * TODO: Instead of XML, this should be a hierarchy of IColumnReference
-	 *       objects that can be passed to IDataSource.getAttributeColumn().
+	 * This is a simple and generic interface for getting columns of data from a source.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IAttributeHierarchy extends ILinkableObject
+	public interface IDataSource_old extends IDataSource
 	{
+		function get attributeHierarchy():LinkableXML;
+		function initializeHierarchySubtree(subtreeNode:XML = null):void;
 	}
 }

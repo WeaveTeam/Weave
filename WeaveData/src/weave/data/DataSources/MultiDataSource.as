@@ -23,21 +23,16 @@ package weave.data.DataSources
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
-	import weave.api.data.IEntityTreeNode;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.hierarchy.DataSourceTreeNode;
-	import weave.primitives.AttributeHierarchy;
 	import weave.utils.HierarchyUtils;
 
 	/**
@@ -51,10 +46,9 @@ package weave.data.DataSources
 		{
 			var dependencies:Array = _root.getObjects(IDataSource).concat(_root.getObjects(EquationColumn), _root.getObjects(CSVColumn));
 			for each (var obj:ILinkableObject in dependencies)
-				addDependency(obj);
+				registerLinkableChild(this, obj);
 			
-			_root.childListCallbacks.addImmediateCallback(this, handleWeaveChildListChange);
-			handleHierarchyChange();
+			_root.childListCallbacks.addImmediateCallback(this, handleWeaveChildListChange, true);
 		}
 		
 		private static var _instance:MultiDataSource;
@@ -73,12 +67,12 @@ package weave.data.DataSources
 				source.refreshHierarchy();
 		}
 		
-		protected const _rootNode:IEntityTreeNode = new DataSourceTreeNode();
+		protected const _rootNode:IWeaveTreeNode = new DataSourceTreeNode();
 		
 		/**
 		 * Gets the root node of the attribute hierarchy.
 		 */
-		public function getHierarchyRoot():IEntityTreeNode
+		public function getHierarchyRoot():IWeaveTreeNode
 		{
 			return _rootNode;
 		}
@@ -86,114 +80,20 @@ package weave.data.DataSources
 		/**
 		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
 		 */
-		public function getColumnReference(node:IEntityTreeNode, output:ILinkableDynamicObject):void
+		public function getColumnReference(node:IWeaveTreeNode, output:ILinkableDynamicObject):Boolean
 		{
 			var ds:IDataSource = node.getSource() as IDataSource;
-			if (!ds)
-			{
-				output.removeObject();
-				return;
-			}
-			
-			ds.getColumnReference(node, output);
+			if (ds)
+				return ds.getColumnReference(node, output);
+			return false;
 		}
 		
-		/**
-		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
-		 */
-		private const _attributeHierarchy:AttributeHierarchy = newLinkableChild(this, AttributeHierarchy);
-		public function get attributeHierarchy():IAttributeHierarchy
-		{
-			return _attributeHierarchy;
-		}
-		
-		private function addDependency(obj:ILinkableObject):void
-		{
-			if (!(obj is MultiDataSource) && (obj is IDataSource || obj is IAttributeColumn))
-			{
-				if (obj is IDataSource)
-					obj = (obj as IDataSource).attributeHierarchy;
-				
-				registerLinkableChild(this, obj);
-				getCallbackCollection(obj).addGroupedCallback(this, handleHierarchyChange);
-			}
-		}
 		private function handleWeaveChildListChange():void
 		{
 			// add callback to new IDataSource or IAttributeColumn so we refresh the hierarchy when it changes
-			addDependency(_root.childListCallbacks.lastObjectAdded);
-			handleHierarchyChange();
-		}
-		
-		private function handleHierarchyChange():void
-		{
-			var rootNode:XML = <hierarchy name="DataSources"/>;
-			
-			// add category for each IDataSource
-			var sources:Array = _root.getObjects(IDataSource);
-			for each(var source:IDataSource in sources)
-			{
-				if(!(source is MultiDataSource))
-				{
-					var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
-					if (xml != null)
-					{
-						var category:XML = xml.copy();
-						category.setName("category");
-						category.@dataSourceName = _root.getName(source);
-						rootNode.appendChild(category);
-					}
-				}
-			}
-			
-			// add category for global column objects
-			// TEMPORARY SOLUTION -- only allow EquationColumn and CSVColumn
-			var eqCols:Array = _root.getObjects(EquationColumn).concat(_root.getObjects(CSVColumn));
-			if (eqCols.length > 0)
-			{
-				var globalCategory:XML = <category title="Equations"/>;
-				for each(var col:IAttributeColumn in eqCols)
-				{
-					globalCategory.appendChild(<attribute name={ _root.getName(col) } title={ col.getMetadata(ColumnMetadata.TITLE) }/>);
-				}
-				rootNode.appendChild(globalCategory);
-			}
-			
-			_attributeHierarchy.value = rootNode;
-			
-		}
-		
-		
-		/**
-		 * @param subtreeNode A node in the hierarchy representing the root of the subtree to initialize, or null to initialize the root of the hierarchy.
-		 */
-		public function initializeHierarchySubtree(subtreeNode:XML = null):void
-		{
-			
-			var path:XML = _attributeHierarchy.getPathFromNode(subtreeNode);
-			if (path == null)
-				return;
-			
-			if (path.category.length() == 0)
-				return;
-			path = path.category[0];
-			
-			path.setName("hierarchy");
-			
-			var sourceName:String = path.@dataSourceName;
-			
-			var source:IDataSource = _root.getObject(sourceName) as IDataSource;
-			
-			if (source == null)
-				return;
-				
-			
-			delete path.@dataSourceName;
-			
-			var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
-			var currentSubTreeNode:XML = HierarchyUtils.getNodeFromPath(xml, path);
-			
-			source.initializeHierarchySubtree(currentSubTreeNode);
+			var obj:ILinkableObject = _root.childListCallbacks.lastObjectAdded
+			if (obj is IDataSource || obj is IAttributeColumn)
+				registerLinkableChild(this, obj);
 		}
 		
 		public function getAttributeColumn(columnReference:IColumnReference):IAttributeColumn

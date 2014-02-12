@@ -601,10 +601,10 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		getDataConfig().updateEntity(entityId, diff);
 	}
 	
-	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, String entityType) throws RemoteException
+	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, Map<String,String> publicMetadata) throws RemoteException
 	{
 		authenticate(user, pass);
-		return getDataConfig().getEntityHierarchyInfo(entityType);
+		return getDataConfig().getEntityHierarchyInfo(publicMetadata);
 	}
 
 	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException

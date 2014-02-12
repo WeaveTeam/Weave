@@ -21,27 +21,36 @@ package weave.data.hierarchy
     import flash.utils.Dictionary;
     
     import weave.api.WeaveAPI;
+    import weave.api.core.ILinkableHashMap;
     import weave.api.core.ILinkableObject;
-    import weave.api.data.EntityType;
+    import weave.api.data.ColumnMetadata;
+    import weave.api.data.IAttributeColumn;
     import weave.api.data.IDataSource;
+    import weave.api.data.IWeaveTreeNode;
     import weave.api.detectLinkableObjectChange;
     import weave.api.registerLinkableChild;
-    import weave.api.data.IEntityTreeNode;
-    import weave.data.DataSources.WeaveDataSource;
-    import weave.primitives.AttributeHierarchy;
+    import weave.data.AttributeColumns.CSVColumn;
+    import weave.data.AttributeColumns.EquationColumn;
 
 	[RemoteClass]
-    public class DataSourceTreeNode implements IEntityTreeNode, ILinkableObject
+    public class DataSourceTreeNode implements IWeaveTreeNode, ILinkableObject
     {
 		public function DataSourceTreeNode()
 		{
 			registerLinkableChild(this, WeaveAPI.globalHashMap.childListCallbacks);
 		}
 		
+		//weave.path('ct').libs('weave.api.WeaveAPI').request('CustomTool').push('children','tree').request('EntityHierarchySelector').exec("percentWidth=percentHeight=100; rootNode = new 'weave.data.hierarchy.DataSourceTreeNode';")
+		
 		private var _dataSourceToNode:Dictionary = new Dictionary(true);
 		
 		// the node can re-use the same children array
 		private const _childNodes:Array = [];
+		
+		public function equals(other:IWeaveTreeNode):Boolean
+		{
+			return other is DataSourceTreeNode;
+		}
 		
 		public function getSource():Object
 		{
@@ -50,7 +59,7 @@ package weave.data.hierarchy
 		
 		public function getLabel():String
 		{
-			return "Data Sources";
+			return lang("Data Sources");
 		}
 		
 		public function isBranch():Boolean
@@ -65,6 +74,7 @@ package weave.data.hierarchy
 		
 		public function getChildren():Array
 		{
+			// data sources
 			var dataSources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
 			for (var i:int = 0; i < dataSources.length; i++)
 			{
@@ -80,15 +90,29 @@ package weave.data.hierarchy
 			}
 			_childNodes.length = dataSources.length;
 			
+			// global columns
+			var _root:ILinkableHashMap = WeaveAPI.globalHashMap;
+			var eqCols:Array = _root.getObjects(EquationColumn).concat(_root.getObjects(CSVColumn));
+			if (eqCols.length)
+			{
+				var eqCategory:XML = <category title={ lang("Equations") }/>;
+				for each (var col:IAttributeColumn in eqCols)
+					eqCategory.appendChild(<attribute name={ _root.getName(col) } title={ col.getMetadata(ColumnMetadata.TITLE) }/>);
+				_globalColumnNode.xml = eqCategory;
+				_childNodes.push(_globalColumnNode);
+			}
+			
 			return _childNodes;
 		}
 		
-		public function addChildAt(newChild:IEntityTreeNode, index:int):Boolean
+		private var _globalColumnNode:XMLEntityNode = new XMLEntityNode();
+		
+		public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean
 		{
 			throw new Error("Not implemented");
 		}
 		
-		public function removeChild(child:IEntityTreeNode):Boolean
+		public function removeChild(child:IWeaveTreeNode):Boolean
 		{
 			throw new Error("Not implemented");
 		}

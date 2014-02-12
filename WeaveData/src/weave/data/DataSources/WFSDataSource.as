@@ -194,6 +194,10 @@ package weave.data.DataSources
 		 */
 		private function handleDescribeFeature(event:ResultEvent, node:XML):void
 		{
+			node = HierarchyUtils.findEquivalentNode(_attributeHierarchy.value, node);
+			if (!node)
+				return;
+
 			try
 			{
 				var result:XML = new XML(event.result);

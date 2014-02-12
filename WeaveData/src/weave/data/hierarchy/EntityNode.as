@@ -25,7 +25,7 @@ package weave.data.hierarchy
     import weave.api.data.ColumnMetadata;
     import weave.api.data.EntityType;
     import weave.api.data.IDataSource;
-    import weave.api.data.IEntityTreeNode;
+    import weave.api.data.IWeaveTreeNode;
     import weave.api.getLinkableOwner;
     import weave.api.reportError;
     import weave.api.services.beans.Entity;
@@ -33,7 +33,7 @@ package weave.data.hierarchy
     import weave.services.EntityCache;
 
 	[RemoteClass]
-    public class EntityNode implements IEntityTreeNode
+    public class EntityNode implements IWeaveTreeNode
     {
 		/**
 		 * Dual lookup: (EntityCache -> int) and (int -> EntityCache)
@@ -102,6 +102,16 @@ package weave.data.hierarchy
 		// We cache child nodes to avoid creating unnecessary objects.
 		// Each node must have its own child cache (not static) because we can't have the same node in two places in a Tree.
 		private const _childNodeCache:Object = {}; // id -> EntityNode
+		
+		public function equals(other:IWeaveTreeNode):Boolean
+		{
+			if (other == this)
+				return true;
+			var node:EntityNode = other as EntityNode;
+			return !!node
+				&& this._cacheId == node._cacheId
+				&& this.id == node.id;
+		}
 		
 		public function getSource():Object
 		{
@@ -173,7 +183,8 @@ package weave.data.hierarchy
 			
 			var cache:EntityCache = getEntityCache();
 			
-			if (cache.getBranchInfo(id))
+			var info:EntityHierarchyInfo = cache.getBranchInfo(id);
+			if (info && info.entityType != EntityType.COLUMN)
 				return true;
 			
 			var entity:Entity = cache.getEntity(id);
@@ -257,7 +268,7 @@ package weave.data.hierarchy
 			return _childNodes;
 		}
 		
-		public function addChildAt(child:IEntityTreeNode, index:int):Boolean
+		public function addChildAt(child:IWeaveTreeNode, index:int):Boolean
 		{
 			var childNode:EntityNode = child as EntityNode;
 			if (childNode)
@@ -271,7 +282,7 @@ package weave.data.hierarchy
 			return false;
 		}
 		
-		public function removeChild(child:IEntityTreeNode):Boolean
+		public function removeChild(child:IWeaveTreeNode):Boolean
 		{
 			var childNode:EntityNode = child as EntityNode;
 			if (childNode)

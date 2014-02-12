@@ -19,17 +19,28 @@
 package weave.api.data
 {
 	/**
-	 * Interface for a node for use with EntityTreeDataDescriptor and EntityTree.
-	 * When implementing this interface as a wrapper for remote objects,
-	 * make sure to avoid making excess RPC calls wherever possible.
-	 * 
+	 * Interface for a node for use with WeaveTreeDataDescriptor and WeaveTree.
+	 * Implementations should have [RemoteClass] metadata in front of the class definition
+	 * and should make it possible for drag+drop to make a fully-functional copy of a node by
+	 * copying all public properties, which should have simple types.
+	 * When implementing this interface as a wrapper for remote objects, make sure to avoid
+	 * making excess RPC calls wherever possible.
 	 * @author adufilie 
 	 */	
-    public interface IEntityTreeNode
+    public interface IWeaveTreeNode
     {
+		/**
+		 * Checks if this node is equivalent to another.
+		 * Note that the following should return true:  node.equals(ObjectUtil.copy(node))
+		 * @param other Another node to compare.
+		 * @return true if this node is equivalent to the other node.
+		 */
+		function equals(other:IWeaveTreeNode):Boolean;
+		
 		/**
 		 * Gets a pointer to the object which is responsible for managing this node.
 		 * The source object should have additional functions to make use of the node.
+		 * The type of object returned depends on the implementation of the node.
 		 * @return The object responsible for managing this node.
 		 */
 		function getSource():Object;
@@ -54,7 +65,7 @@ package weave.api.data
 		
 		/**
 		 * Gets children for this node.
-		 * @return A list of children or null if this node has no children
+		 * @return A list of children implementing IWeaveTreeNode or null if this node has no children.
 		 */
 		function getChildren():Array;
 		
@@ -64,13 +75,13 @@ package weave.api.data
 		 * @param index The new child index.
 		 * @return true if successful.
 		 */
-		function addChildAt(newChild:IEntityTreeNode, index:int):Boolean;
+		function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean;
 		
 		/**
 		 * Removes a child node.
 		 * @param child The child to remove.
 		 * @return true if successful.
 		 */
-		function removeChild(child:IEntityTreeNode):Boolean;
+		function removeChild(child:IWeaveTreeNode):Boolean;
     }
 }

@@ -28,11 +28,11 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 public interface IWeaveEntityService
 {
 	/**
-	 * Gets EntityHierarchyInfo objects containing basic information on hierarchy roots.
-	 * @param entityType Either 'table' or 'hierarchy'.
-	 * @return An Array of EntityHierarchyInfo objects.
+	 * Gets EntityHierarchyInfo objects containing basic information on entities matching public metadata.
+	 * @param publicMetadata EntityMetadata containing values to match.
+	 * @return An Array of EntityHierarchyInfo objects, sorted by title.
 	 */
-	public EntityHierarchyInfo[] getHierarchyInfo(String entityType) throws RemoteException;
+	public EntityHierarchyInfo[] getHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException;
 	
 	/**
 	 * Gets an Array of Entity objects, minus the private metadata.
@@ -43,7 +43,7 @@ public interface IWeaveEntityService
 	
 	/**
 	 * Gets an Array of entity IDs with matching public metadata. 
-	 * @param metadata EntityMetadata containing values to match.
+	 * @param publicMetadata EntityMetadata containing values to match.
 	 * @return An Array of IDs.
 	 */		
 	public int[] findEntityIds(Map<String,String> publicMetadata) throws RemoteException;

@@ -436,7 +436,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(updateEntity, arguments);
 		}
-		public function getHierarchyInfo(entityType:String):AsyncToken
+		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{
 			return invokeAdminWithLogin(getHierarchyInfo, arguments);
 		}

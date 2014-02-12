@@ -83,7 +83,6 @@ package weave.application
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.editors.managers.DataSourceManager;
-	import weave.primitives.AttributeHierarchy;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.AlertTextBox;

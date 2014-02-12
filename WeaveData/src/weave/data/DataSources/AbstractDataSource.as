@@ -28,30 +28,29 @@ package weave.data.DataSources
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
-	import weave.api.data.IDataSource;
-	import weave.api.data.IEntityTreeNode;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
+	import weave.core.LinkableXML;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.hierarchy.XMLEntityNode;
-	import weave.primitives.AttributeHierarchy;
+	import weave.utils.HierarchyUtils;
 	
 	/**
-	 * This is a base class to make it easier to develope a new class that implements IDataSource.
+	 * This is a base class to make it easier to develope a new class that implements IDataSource_old.
 	 * To extend this class, the minimum functions to override are:
 	 *         initialize(), requestHierarchyFromSource() and requestColumnFromSource().
 	 * Optionally, initializationComplete() can also be overridden to control how long column requests are delayed.
 	 * 
 	 * @author adufilie
 	 */
-	public class AbstractDataSource implements IDataSource, IDisposableObject
+	public class AbstractDataSource implements IDataSource_old, IDisposableObject
 	{
 		public function AbstractDataSource()
 		{
@@ -202,12 +201,12 @@ package weave.data.DataSources
 			_attributeHierarchy.setSessionState(null);
 		}
 
-		protected var _rootNode:IEntityTreeNode;
+		protected var _rootNode:IWeaveTreeNode;
 		
 		/**
 		 * Gets the root node of the attribute hierarchy.
 		 */
-		public function getHierarchyRoot():IEntityTreeNode
+		public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!(_rootNode is XMLEntityNode))
 				_rootNode = new XMLEntityNode();
@@ -219,31 +218,34 @@ package weave.data.DataSources
 		/**
 		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
 		 */
-		public function getColumnReference(node:IEntityTreeNode, output:ILinkableDynamicObject):void
+		public function getColumnReference(node:IWeaveTreeNode, output:ILinkableDynamicObject):Boolean
 		{
+			if (node.getSource() != this || node.isBranch())
+				return false;
+			
 			var xmlnode:XMLEntityNode = node as XMLEntityNode;
-			if (xmlnode && node.getSource() == this)
+			if (xmlnode)
 			{
 				getCallbackCollection(output).delayCallbacks();
 				var hcr:HierarchyColumnReference = output.requestLocalObject(HierarchyColumnReference, false);
 				hcr.dataSourceName.value = xmlnode.dataSourceName;
-				hcr.hierarchyPath.value = _attributeHierarchy.getPathFromNode(xmlnode.xml);
+				hcr.hierarchyPath.value = HierarchyUtils.getPathFromNode(_attributeHierarchy.value, xmlnode.xml);
 				getCallbackCollection(output).resumeCallbacks();
+				return true;
 			}
-			else
-				output.removeObject();
+			return false
 		}
 
 		/**
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
 		 */
-		public function get attributeHierarchy():IAttributeHierarchy
+		public function get attributeHierarchy():LinkableXML
 		{
 			return _attributeHierarchy;
 		}
 
 		// this is returned by a public getter
-		protected const _attributeHierarchy:AttributeHierarchy = newLinkableChild(this, AttributeHierarchy, handleHierarchyChange);
+		protected const _attributeHierarchy:LinkableXML = newLinkableChild(this, LinkableXML, handleHierarchyChange);
 
 		/**
 		 * This is a list of DelayedColumnRequest objects.
@@ -271,7 +273,7 @@ package weave.data.DataSources
 			}
 			else
 			{
-				var path:XML = _attributeHierarchy.getPathFromNode(subtreeNode);
+				var path:XML = HierarchyUtils.getPathFromNode(_attributeHierarchy.value, subtreeNode);
 				// do nothing if path does not exist or node already has children
 				if (path == null || subtreeNode.children().length() > 0)
 					return;

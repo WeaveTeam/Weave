@@ -24,14 +24,14 @@ package weave.ui
     import mx.collections.ICollectionView;
     import mx.controls.treeClasses.ITreeDataDescriptor;
     
-    import weave.api.data.IEntityTreeNode;
+    import weave.api.data.IWeaveTreeNode;
     
 	/**
-	 * Tells a Tree control how to work with IEntityTreeNode objects.
+	 * Tells a Tree control how to work with IWeaveTreeNode objects.
 	 * 
 	 * @author adufilie
 	 */
-    public class EntityTreeDataDescriptor implements ITreeDataDescriptor
+    public class WeaveTreeDataDescriptor implements ITreeDataDescriptor
     {
 		public static const FILTER_MODE_ALL:uint = 0;
 		public static const FILTER_MODE_BRANCHES:uint = 1;
@@ -40,25 +40,23 @@ package weave.ui
 		/**
 		 * @param filterMode One of [FILTER_MODE_ALL, FILTER_MODE_BRANCHES, FILTER_MODE_LEAVES]. Default is FILTER_MODE_ALL.
 		 */
-		public function EntityTreeDataDescriptor(filterMode:uint = 0)
+		public function WeaveTreeDataDescriptor(filterMode:uint = 0)
 		{
 			this._filterMode = filterMode;
 		}
 		
 		private var _childViews:Dictionary = new Dictionary(true);
 		private var _filterMode:uint;
-		private function filterChildren(node:IEntityTreeNode):Boolean
+		private function filterChildren(node:IWeaveTreeNode):Boolean
 		{
 			if (_filterMode == FILTER_MODE_ALL)
 				return true;
 			return (_filterMode == FILTER_MODE_BRANCHES) == node.isBranch();
 		}
 		
-		//weave.path('ct').libs('weave.api.WeaveAPI').request('CustomTool').push('children','tree').request('EntityHierarchySelector').exec("percentWidth=percentHeight=100;")
-		
         public function getChildren(node:Object, model:Object = null):ICollectionView
         {
-			var childArray:Array = (node as IEntityTreeNode).getChildren();
+			var childArray:Array = (node as IWeaveTreeNode).getChildren();
 			if (!childArray)
 				return null;
 			
@@ -89,12 +87,12 @@ package weave.ui
 				return isBranch(node, model);
 			
 			return (_filterMode == FILTER_MODE_BRANCHES)
-				&& (node as IEntityTreeNode).hasChildBranches();
+				&& (node as IWeaveTreeNode).hasChildBranches();
 		}
 		
 		public function isBranch(node:Object, model:Object = null):Boolean
         {
-			return (node as IEntityTreeNode).isBranch();
+			return (node as IWeaveTreeNode).isBranch();
         }
 		
 		/**
@@ -105,13 +103,13 @@ package weave.ui
 		 */		
         public function getData(node:Object, model:Object = null):Object
         {
-			return node as IEntityTreeNode;
+			return node as IWeaveTreeNode;
         }
         
 		public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
-			var parentNode:IEntityTreeNode = parent as IEntityTreeNode;
-			var childNode:IEntityTreeNode = newChild as IEntityTreeNode;
+			var parentNode:IWeaveTreeNode = parent as IWeaveTreeNode;
+			var childNode:IWeaveTreeNode = newChild as IWeaveTreeNode;
 			if (parentNode && childNode)
 				return parentNode.addChildAt(childNode, index);
 			return false;
@@ -119,8 +117,8 @@ package weave.ui
         
 		public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
-			var parentNode:IEntityTreeNode = parent as IEntityTreeNode;
-			var childNode:IEntityTreeNode = child as IEntityTreeNode;
+			var parentNode:IWeaveTreeNode = parent as IWeaveTreeNode;
+			var childNode:IWeaveTreeNode = child as IWeaveTreeNode;
 			if (parentNode && childNode)
 				return parentNode.removeChild(childNode);
 			return false;

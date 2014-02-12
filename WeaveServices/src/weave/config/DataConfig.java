@@ -418,10 +418,10 @@ public class DataConfig
     	detectChange();
     	return new HashSet<String>(public_metadata.getPropertyMap(null, property).values());
     }
-    public EntityHierarchyInfo[] getEntityHierarchyInfo(String entityType) throws RemoteException
+    public EntityHierarchyInfo[] getEntityHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
     {
     	detectChange();
-    	Collection<Integer> ids = public_metadata.filter(MapUtils.<String,String>fromPairs(PublicMetadata.ENTITYTYPE, entityType));
+    	Collection<Integer> ids = public_metadata.filter(publicMetadata);
     	EntityHierarchyInfo[] result = new EntityHierarchyInfo[ids.size()];
     	if (result.length == 0)
     		return result;

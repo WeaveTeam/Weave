@@ -21,11 +21,13 @@ package weave.data.hierarchy
     import weave.api.WeaveAPI;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.IDataSource;
-    import weave.api.data.IEntityTreeNode;
+    import weave.api.data.IWeaveTreeNode;
+    import weave.data.DataSources.IDataSource_old;
+    import weave.data.DataSources.MultiDataSource;
     import weave.data.DataSources.WeaveDataSource;
 
 	[RemoteClass]
-    public class XMLEntityNode implements IEntityTreeNode
+    public class XMLEntityNode implements IWeaveTreeNode
     {
 		public function XMLEntityNode(dataSourceName:String = null, xml:XML = null)
 		{
@@ -53,9 +55,19 @@ package weave.data.hierarchy
 			return String(_xml['@' + property]);
 		}
 		
+		public function equals(other:IWeaveTreeNode):Boolean
+		{
+			if (other == this)
+				return true;
+			var node:XMLEntityNode = other as XMLEntityNode;
+			return !!node
+				&& this.dataSourceName == node.dataSourceName
+				&& this.xml == node.xml;
+		}
+		
 		public function getSource():Object
 		{
-			return WeaveAPI.globalHashMap.getObject(dataSourceName);
+			return WeaveAPI.globalHashMap.getObject(dataSourceName) || MultiDataSource.instance;
 		}
 		
 		public function getLabel():String
@@ -101,19 +113,18 @@ package weave.data.hierarchy
 				return null;
 			
 			var ds:IDataSource = getSource() as IDataSource;
-			var wds:WeaveDataSource = ds as WeaveDataSource;
 			
 			var children:XMLList = _xml.children();
 			for (var i:int = 0; i < children.length(); i++)
 			{
 				var child:XML = children[i];
 				var idStr:String = child.attribute(WeaveDataSource.ENTITY_ID);
-				if (wds && idStr)
+				if (ds is WeaveDataSource && idStr)
 				{
 					if (!(_childNodes[i] is EntityNode))
 						_childNodes[i] = new EntityNode();
 					
-					(_childNodes[i] as EntityNode).setEntityCache(wds.entityCache);
+					(_childNodes[i] as EntityNode).setEntityCache((ds as WeaveDataSource).entityCache);
 					(_childNodes[i] as EntityNode).id = int(idStr);
 				}
 				else
@@ -130,19 +141,19 @@ package weave.data.hierarchy
 			
 			if (_childNodes.length == 0)
 			{
-				if (ds)
-					ds.initializeHierarchySubtree(_xml);
+				if (ds is IDataSource_old)
+					(ds as IDataSource_old).initializeHierarchySubtree(_xml);
 			}
 			
 			return _childNodes;
 		}
 		
-		public function addChildAt(newChild:IEntityTreeNode, index:int):Boolean
+		public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean
 		{
 			throw new Error("Not implemented");
 		}
 		
-		public function removeChild(child:IEntityTreeNode):Boolean
+		public function removeChild(child:IWeaveTreeNode):Boolean
 		{
 			throw new Error("Not implemented");
 		}
