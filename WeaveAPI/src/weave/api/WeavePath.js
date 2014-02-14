@@ -75,7 +75,7 @@ function WeavePath(args)
 {
 	// private variables
 	var stack = []; // stack of argument counts from push() calls, used with pop()
-	var reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all parameters
+	var reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all Object parameters
 	var path = A(args, 1);
 	
 	/**
@@ -90,21 +90,32 @@ function WeavePath(args)
 	function A(args, option)
 	{
 		var array;
+		var value;
 		var n = args.length;
 		if (n && n == option && args[0] && Array.isArray(args[0]))
 		{
 			array = [].concat(args[0]);
 			for (var i = 1; i < n; i++)
-				array.push(args[i]);
+			{
+				value = args[i];
+				if (reconstructArgs && typeof value == 'object')
+					array.push(JSON.parse(JSON.stringify(value)));
+				else
+					array.push(value);
+			}
 		}
 		else
 		{
 			array = [];
 			while (n--)
-				array[n] = args[n];
+			{
+				value = args[n];
+				if (reconstructArgs && typeof value == 'object')
+					array[n] = JSON.parse(JSON.stringify(value));
+				else
+					array[n] = value;
+			}
 		}
-		if (reconstructArgs)
-			array = JSON.parse(JSON.stringify(array));
 		return array;
 	}
 	
@@ -340,11 +351,15 @@ function WeavePath(args)
 	 */
 	this.vars = function(newVars)
 	{
-		if (reconstructArgs)
-			newVars = JSON.parse(JSON.stringify(newVars));
 		var vars = weave.path.vars;
 		for (var key in newVars)
-			vars[key] = newVars[key];
+		{
+			var value = newVars[key];
+			if (reconstructArgs && typeof value == 'object')
+				vars[key] = JSON.parse(JSON.stringify(value));
+			else
+				vars[key] = value;
+		}
 		return this;
 	};
 	/**
