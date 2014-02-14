@@ -52,7 +52,7 @@ package weave.utils
 						'function(){ try{' +
 							WeaveAPI.JS_var_weave +
 							'return weave.children.wmode.value != "transparent";' +
-						'} catch (e) { return true; }'
+						'} catch (e) { return true; }}'
 					);
 				}
 				_initialized = true;
