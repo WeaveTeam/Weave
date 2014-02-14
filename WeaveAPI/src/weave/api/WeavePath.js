@@ -16,7 +16,7 @@ if (!Array.isArray)
  */
 weave.path = function(/*...basePath*/)
 {
-	return new WeavePath(A(arguments, 1));
+	return new WeavePath(arguments);
 };
 weave.path.vars = {}; // used with exec() and getVar()
 weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with properties: callback, name, path
@@ -70,42 +70,43 @@ function callbackToString(callback, path)
 	return string;
 }
 
-/**
- * Private function for internal use.
- * 
- * Converts an arguments object to an Array.
- * The first parameter is an arguments object.
- * The second parameter is an integer flag for special behavior.
- *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
- *   - If set to 2, it handles arguments like (...LIST, REQUIRED_PARAM) where LIST can be either an Array or multiple arguments.
- */
-function A(args, option)
-{
-	var array;
-	var n = args.length;
-	if (n && n == option && args[0] && Array.isArray(args[0]))
-	{
-		array = args[0].concat();
-		for (var i = 1; i < n; i++)
-			array.push(args[i]);
-	}
-	else
-	{
-		array = [];
-		while (n--)
-			array[n] = args[n];
-	}
-	return array;
-}
-
 // constructor, accepts a single parameter - the base path Array
-function WeavePath(path)
+function WeavePath(args)
 {
-	if (!path)
-		path = [];
-	
 	// private variables
 	var stack = []; // stack of argument counts from push() calls, used with pop()
+	var reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all parameters
+	var path = A(args, 1)[0] || [];
+	
+	/**
+	 * Private function for internal use.
+	 * 
+	 * Converts an arguments object to an Array, and then reconstructs the Array using JSON if natualize() was previously called.
+	 * The first parameter is an arguments object.
+	 * The second parameter is an integer flag for special behavior.
+	 *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
+	 *   - If set to 2, it handles arguments like (...LIST, REQUIRED_PARAM) where LIST can be either an Array or multiple arguments.
+	 */
+	function A(args, option)
+	{
+		var array;
+		var n = args.length;
+		if (n && n == option && args[0] && Array.isArray(args[0]))
+		{
+			array = args[0].concat();
+			for (var i = 1; i < n; i++)
+				array.push(args[i]);
+		}
+		else
+		{
+			array = [];
+			while (n--)
+				array[n] = args[n];
+		}
+		if (reconstructArgs)
+			array = JSON.parse(JSON.stringify(array));
+		return array;
+	}
 	
 	// public variables and non-chainable methods
 	
@@ -339,6 +340,8 @@ function WeavePath(path)
 	 */
 	this.vars = function(newVars)
 	{
+		if (reconstructArgs)
+			newVars = JSON.parse(JSON.stringify(newVars));
 		var vars = weave.path.vars;
 		for (var key in newVars)
 			vars[key] = newVars[key];
@@ -409,6 +412,18 @@ function WeavePath(path)
 		}
 		return this;
 	};
+	
+	/**
+	 * Enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
+	 * Only the WeavePath object you are currently working with will be affected by this call.
+	 * Note that if you use this mode, any occurrences of NaN and Infinity will be converted to null
+	 * because this mode uses JSON.parse(JSON.stringify(...)) and those values are not supported by JSON.
+	 */
+	this.naturalize = function()
+	{
+		reconstructArgs = true;
+		return this;
+	}
 	
 	function assertParams(methodName, args, minLength)
 	{
