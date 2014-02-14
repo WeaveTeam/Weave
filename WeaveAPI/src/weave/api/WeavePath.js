@@ -93,7 +93,7 @@ function WeavePath(args)
 		var n = args.length;
 		if (n && n == option && args[0] && Array.isArray(args[0]))
 		{
-			array = args[0].concat();
+			array = [].concat(args[0]);
 			for (var i = 1; i < n; i++)
 				array.push(args[i]);
 		}
