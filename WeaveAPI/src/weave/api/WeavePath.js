@@ -76,7 +76,7 @@ function WeavePath(args)
 	// private variables
 	var stack = []; // stack of argument counts from push() calls, used with pop()
 	var reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all parameters
-	var path = A(args, 1)[0] || [];
+	var path = A(args, 1);
 	
 	/**
 	 * Private function for internal use.
