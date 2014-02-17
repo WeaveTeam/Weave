@@ -683,6 +683,7 @@ package weave.core
 			var isActivateEvent:Boolean = eventType == Event.ACTIVATE;
 			var isDeactivateEvent:Boolean = eventType == Event.DEACTIVATE;
 			var isMouseDownEvent:Boolean = eventType == MouseEvent.MOUSE_DOWN;
+			var isMouseUpEvent:Boolean = eventType == MouseEvent.MOUSE_UP;
 			var isClickEvent:Boolean = eventType == MouseEvent.CLICK;
 			var isMouseMoveEvent:Boolean = eventType == MouseEvent.MOUSE_MOVE;
 			var tmmc:ICallbackCollection = _callbackCollections[THROTTLED_MOUSE_MOVE_EVENT] as ICallbackCollection;
@@ -754,7 +755,7 @@ package weave.core
 						_lastMouseDownPoint.x = mouseEvent.stageX;
 						_lastMouseDownPoint.y = mouseEvent.stageY;
 					}
-					if (isClickEvent)
+					if (isClickEvent || isMouseUpEvent)
 						_pointClicked = mouseEvent.stageX == _lastMouseDownPoint.x && mouseEvent.stageY == _lastMouseDownPoint.y;
 					
 					// Always handle throttled mouse move prior to a non-move mouse event so throttled
