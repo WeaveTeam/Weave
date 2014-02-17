@@ -95,9 +95,26 @@
 			</ui:HelpComponent>
 		</mx:HBox>
 	</mx:VBox>
+	<mx:VBox label="{lang('Startup script')}" width="100%" height="100%" id="startup">
+		<mx:HBox width="100%" verticalAlign="middle">
+			<mx:Label text="{lang('Enter JavaScript code below.')}"/>
+			<ui:HelpComponent>
+				The JavaScript code you enter below will run once on startup.
+				A pointer to Weave can be accessed by using the "weave" variable in your script.
+				See the JavaScript API documentation for examples.
+			</ui:HelpComponent>
+			<mx:Spacer width="100%"/>
+			<mx:Button label="{lang('View documentation')}" click="navigateToURL(new URLRequest('http://info.oicweave.org/projects/weave/wiki/JavaScript_API'), '_blank')"/>
+			<!-- <mx:Button label="{lang('Run now')}" click="Weave.properties.runStartupJavaScript()"/> -->
+			<mx:Button label="{lang('Restart Weave')}" click="Weave.externalReload()"/>
+		</mx:HBox>
+		<ui:CodeEditor creationComplete="linkBindableProperty(Weave.properties.startupJavaScript, event.target, 'text', 500)"/>
+	</mx:VBox>
 	
 	<mx:Script>
 		<![CDATA[
+			import flash.net.navigateToURL;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
@@ -119,6 +136,9 @@
 				renderAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_1_RENDERING);
 				buildAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_2_BUILDING);
 				parseAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_3_PARSING);
+				
+				if (!ExternalInterface.available)
+					startup.visible = startup.includeInLayout = false;
 			}
 			
 			private function setAlloc(event:Event):void
