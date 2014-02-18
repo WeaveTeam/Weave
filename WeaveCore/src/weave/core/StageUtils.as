@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.display.Stage;
 	import flash.events.Event;
+	import flash.events.EventPhase;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -692,6 +693,10 @@ package weave.core
 			// this function is responsible for setting all event-related static variables and determining when to trigger meta events
 			var captureListener:Function = function (event:Event):void
 			{
+				// avoid handling redundant, unsolicited events from SystemManager
+				if (event.cancelable)
+					return;
+				
 				// detect deactivated framerate (when app is hidden)
 				if (_deactivated && isEnterFrameEvent)
 				{
