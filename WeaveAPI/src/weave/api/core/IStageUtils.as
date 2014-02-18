@@ -199,7 +199,7 @@ package weave.api.core
 		function get mouseButtonDown():Boolean;
 		
 		/**
-		 * Use this to test if the mouse was pressed & released at the same coordinate.
+		 * Use this to test if the mouse was pressed and released at the same coordinate.
 		 * @return true if the mouse was clicked without moving
 		 */
 		function get pointClicked():Boolean;

@@ -32,9 +32,9 @@ package weave.utils
 		
 		for each (var item:* in args)
 		{
-			if (item is XML)
+			if (item is XML_Class)
 			{
-				traceStr += (item as XML).toXMLString();
+				traceStr += (item as XML_Class).toXMLString();
 			}
 			else
 			{
