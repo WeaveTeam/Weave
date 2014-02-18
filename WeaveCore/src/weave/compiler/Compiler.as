@@ -340,6 +340,17 @@ package weave.compiler
 		}
 		
 		/**
+		 * Provides functionality equivalent to ECMAScript's Function.prototype.bind().
+		 */
+		public static function bind(func:Function, that:*, ...args):Function
+		{
+			if (args.length)
+				return function():*{ return func.apply(that, args.concat(arguments)); };
+			else
+				return function():*{ return func.apply(that, arguments); };
+		}
+		
+		/**
 		 * This function will initialize the operators and constants.
 		 */
 		private function initialize():void
@@ -525,7 +536,12 @@ package weave.compiler
 			pureOperators['void'] = function(..._):void { };
 			pureOperators['typeof'] = function(value:*):* { return typeof(value); };
 			pureOperators['as'] = function(a:*, b:*):Object { return a as b; };
-			pureOperators['is'] = pureOperators['instanceof'] = function(a:*, b:*):Boolean { return a is b; };
+			pureOperators['is'] = pureOperators['instanceof'] = function(a:*, classOrQName:*):Boolean {
+				var classDef:Class = classOrQName as Class;
+				if (!classDef && classOrQName)
+					classDef = getDefinitionByName(String(classOrQName)) as Class;
+				return a is classDef;
+			};
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
