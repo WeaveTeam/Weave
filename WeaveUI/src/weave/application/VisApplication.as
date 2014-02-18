@@ -292,7 +292,7 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			handleWeaveReady();
+			WeaveAPI.callExternalWeaveReady();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
@@ -306,7 +306,7 @@ package weave.application
 				// if not opened from admin console, enable interface now
 				if (!getFlashVarAdminConnectionName())
 					this.enabled = true;
-				handleWeaveReady();
+				WeaveAPI.callExternalWeaveReady();
 			}
 			else
 			{
@@ -314,14 +314,6 @@ package weave.application
 				if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
 					Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 			}
-		}
-		private function handleWeaveReady():void
-		{
-			// enable JavaScript API after initial session state has loaded.
-			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
-			Weave.initExternalDragDrop();
-			WeaveAPI.callExternalWeaveReady();
-			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void

@@ -409,7 +409,10 @@ package weave
 			getCallbackCollection(Weave.properties).triggerCallbacks();
 			
 			if (WeaveAPI.externalInterfaceInitialized)
+			{
+				Weave.initExternalDragDrop();
 				properties.runStartupJavaScript();
+			}
 		}
 		
 		/**
@@ -563,14 +566,15 @@ package weave
 		
 		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
 		private static const WeaveStartup:Class;
-
+		private static var _startupComplete:Boolean = false;
 		public static function initExternalDragDrop():void
 		{
-			if (!ExternalInterface.available)
+			if (_startupComplete || !ExternalInterface.available)
 				return;
 			try
 			{
 				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeaveStartup()) + '}');
+				_startupComplete = true;
 			}
 			catch (e:Error)
 			{
