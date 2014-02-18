@@ -622,13 +622,18 @@ package weave.compiler
 		 */
 		public function isValidSymbolName(expression:String):Boolean
 		{
-			var tokens:Array = getTokens(expression);
-			if (tokens.length != 1 || expression != tokens[0])
-				return false;
-			var str:String = tokens[0];
-			if (operators.hasOwnProperty(str.charAt(0)))
-				return false;
-			return !numberRegex.exec(str);
+			try
+			{
+				var tokens:Array = getTokens(expression);
+				if (tokens.length != 1 || expression != tokens[0])
+					return false;
+				var str:String = tokens[0];
+				if (operators.hasOwnProperty(str.charAt(0)))
+					return false;
+				return !numberRegex.exec(str);
+			}
+			catch (e:Error) { }
+			return false;
 		}
 
 		/**
