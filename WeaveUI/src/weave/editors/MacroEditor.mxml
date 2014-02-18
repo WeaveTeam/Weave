@@ -32,20 +32,18 @@
 			<mx:Button label="{lang('Delete')}" click="controller.hashMap.removeObject(selectedMacroName);" enabled="{macroList.selectedItem}"/>
 		</mx:HBox>
 		<mx:HDividedBox width="100%" height="100%">
-			<mx:VBox width="20%" height="100%">
+			<mx:VBox width="15%" height="100%">
 				<mx:List id="macroList" width="100%" height="100%" change="setSelectedMacro(macroList.selectedItem as LinkableFunction)"/>
 			</mx:VBox>
-			<mx:VDividedBox width="80%" height="100%" visible="{macroList.selectedItem}" includeInLayout="{macroList.selectedItem}">
+			<mx:VDividedBox width="85%" height="100%" visible="{macroList.selectedItem}" includeInLayout="{macroList.selectedItem}">
 				<ui:CodeEditor id="editor" change="handleMacroInput()"/>
-				<mx:VBox width="100%">
-					<mx:HBox width="100%">
+				<mx:HBox width="100%">
+					<mx:VBox>
 						<mx:Button id="testButton" label="{lang('Test macro')}" click="testMacro(true)"/>
-						<ui:CustomCheckBox id="autoTest" label="{lang('Test automatically')}"/>
-					</mx:HBox>
-					<ui:Indent label="{lang('Macro result:')}" height="100%">
-						<mx:TextArea id="result" width="100%" height="100%" minHeight="22" editable="false"/>
-					</ui:Indent>
-				</mx:VBox>
+						<ui:CustomCheckBox id="autoTest" label="{lang('Auto test')}"/>
+					</mx:VBox>
+					<mx:TextArea id="result" width="100%" height="100%" minHeight="22" editable="false"/>
+				</mx:HBox>
 			</mx:VDividedBox>
 		</mx:HDividedBox>
 	</mx:VBox>
