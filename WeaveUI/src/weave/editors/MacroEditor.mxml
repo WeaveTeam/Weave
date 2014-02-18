@@ -32,10 +32,10 @@
 			<mx:Button label="{lang('Delete')}" click="controller.hashMap.removeObject(selectedMacroName);" enabled="{macroList.selectedItem}"/>
 		</mx:HBox>
 		<mx:HDividedBox width="100%" height="100%">
-			<mx:VBox width="25%" height="100%">
+			<mx:VBox width="20%" height="100%">
 				<mx:List id="macroList" width="100%" height="100%" change="setSelectedMacro(macroList.selectedItem as LinkableFunction)"/>
 			</mx:VBox>
-			<mx:VDividedBox width="75%" height="100%" visible="{macroList.selectedItem}" includeInLayout="{macroList.selectedItem}">
+			<mx:VDividedBox width="80%" height="100%" visible="{macroList.selectedItem}" includeInLayout="{macroList.selectedItem}">
 				<ui:CodeEditor id="editor" change="handleMacroInput()"/>
 				<mx:VBox width="100%">
 					<mx:HBox width="100%">
