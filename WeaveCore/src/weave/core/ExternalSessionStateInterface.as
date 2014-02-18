@@ -286,23 +286,12 @@ package weave.core
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				var compiledObject:ICompiledObject = _compiler.compileToObject(expression);
 				var isFuncDef:Boolean = _compiler.compiledObjectIsFunctionDefinition(compiledObject);
-				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [_variables, variables], null, thisObject != null);
+				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [_variables, variables], reportError, thisObject != null);
 				var result:*;
 				if (isAssignment && isFuncDef)
 				{
-					// bind 'this' scope and wrap in try/catch
-					result = function(...args):*
-					{
-						try
-						{
-							return compiledMethod.apply(thisObject, args);
-						}
-						catch (e:Error)
-						{
-							reportError(e);
-						}
-						return undefined;
-					};
+					// bind 'this' scope
+					result = Compiler.bind(compiledMethod, thisObject);
 				}
 				else
 				{
