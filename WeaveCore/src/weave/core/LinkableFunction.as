@@ -234,6 +234,16 @@ package weave.core
 			}
 			return compiler;
 		}
+		
+		/**
+		 * Tests if an expression is a single, valid symbol name.
+		 */
+		public static function isValidSymbolName(expression:String):Boolean
+		{
+			if (!_compiler)
+				_compiler = _getNewCompiler(true);
+			return _compiler.isValidSymbolName(expression);
+		}
 
 //		/**
 //		 * This function returns a new compiler initialized with the libraries specified by the public static libraries variable.
