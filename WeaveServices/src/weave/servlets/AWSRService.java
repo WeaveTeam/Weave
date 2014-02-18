@@ -485,6 +485,7 @@ public class AWSRService extends RService
 		
 		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequests, null).recordData;
 		Object[][] columnData = transpose(recordData);
+		recordData = null;
 		
 		long endTime = System.currentTimeMillis();
 		
@@ -501,7 +502,7 @@ public class AWSRService extends RService
 		startTime = System.currentTimeMillis();
 		returnedColumns = runAWSScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false);
 		endTime = System.currentTimeMillis();
-		
+		columnData = null;
 		long time2 = endTime - startTime;
 		MyResult result = new MyResult();
 		result.data = returnedColumns;
