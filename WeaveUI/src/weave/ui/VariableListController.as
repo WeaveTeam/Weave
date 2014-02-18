@@ -198,6 +198,9 @@ package weave.ui
 			if (!_editor)
 				return;
 			
+			var vsp:int = _editor.verticalScrollPosition;
+			var selectedItems:Array = _editor.selectedItems;
+		
 			if (dynamicObject)
 			{
 				_editor.dataProvider = dynamicObject.internalObject;
@@ -216,6 +219,14 @@ package weave.ui
 			var view:ICollectionView = _editor.dataProvider as ICollectionView;
 			if (view)
 				view.refresh();
+			
+			if (selectedItems && selectedItems.length)
+			{
+				_editor.validateProperties();
+				if (vsp >= 0 && vsp <= _editor.maxVerticalScrollPosition)
+					_editor.verticalScrollPosition = vsp;
+				_editor.selectedItems = selectedItems;
+			}
 			
 			getCallbackCollection(this).triggerCallbacks();
 		}
