@@ -345,7 +345,7 @@ function WeavePath(args)
 		return this;
 	};
 	/**
-	 * Specifies additional variables to be used in subsequent calls to exec().
+	 * Specifies additional variables to be used in subsequent calls to exec() and getValue().
 	 * The variables will be made globally available for any WeavePath object created from the same Weave instance.
 	 * The first parameter should be an object mapping variable names to values.
 	 */
@@ -363,7 +363,7 @@ function WeavePath(args)
 		return this;
 	};
 	/**
-	 * Specifies additional libraries to be included in subsequent calls to exec().
+	 * Specifies additional libraries to be included in subsequent calls to exec() and getValue().
 	 */
 	this.libs = function(/*...libraries*/)
 	{
@@ -466,7 +466,7 @@ function WeavePath(args)
 	{
 		var str = 'WeavePath.' + methodName + '(): ' + message;
 		
-		//TODO - mode where error is logged instead of thrown
+		//TODO - mode where error is logged instead of thrown?
 		//console.log(str);
 		
 		throw new Error(str);
