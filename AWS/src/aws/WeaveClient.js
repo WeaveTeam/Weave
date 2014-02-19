@@ -461,6 +461,21 @@ aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataS
 	this.setCSVColumn(csvDataSource, colorPath, colorColumnName);
 	};
 
+/**
+ * This function accesses the weave instance and sets the title of a visualization tool given the tool name
+ * 
+ * @param {string} toolName
+ * @param {boolean} enableTitle
+ * @param {string} title // TODO specify the type
+ * 
+ * @return void
+ */
+aws.WeaveClient.prototype.setVisualizationTitle = function(toolName, enableTitle, title) {
+	
+	this.weave.path(toolName, 'enableTitle').state(enableTitle);
+	this.weave.path(toolName, 'panelTitle').state(title);
+	
+};
 
 /**
  * This function clears the visualizations before any new query is run

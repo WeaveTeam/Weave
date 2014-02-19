@@ -101,7 +101,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watchCollection('selection', function(newVal, oldVal){
 		for(var i = 0; i < $scope.selection.length; i++) {
 				if($scope.selection != undefined) {
-					if ($scope.selection[i] != undefined && $scope.selection[i] != ""){
+					if ($scope.selection[i] != undefined){
 						var selection = angular.fromJson($scope.selection[i]);
 						if(queryService.queryObject.FilteredColumnRequest[i]){
 							queryService.queryObject.FilteredColumnRequest[i].column = selection;
@@ -112,7 +112,7 @@ angular.module("aws.panelControllers", [])
 						var allColumns = queryService.dataObject.columns;
 						var column;
 						for (var j = 0; j < allColumns.length; j++) {
-							if(columnSelected != undefined && columnSelected != "") {
+							if(columnSelected != undefined) {
 								if (columnSelected.id == allColumns[j].id) {
 									column = allColumns[j];
 								}
@@ -132,7 +132,7 @@ angular.module("aws.panelControllers", [])
 										$scope.show[i] = true;
 										$scope.filterType[i] = "categorical";
 										if(metadata.hasOwnProperty("varValues")) {
-											console.log(metadata.varValues);
+											//console.log(metadata.varValues);
 											$scope.categoricalOptions[i] = queryService.getDataMapping(metadata.varValues);
 										}
 									}
@@ -601,4 +601,98 @@ angular.module("aws.panelControllers", [])
 		$scope.selected = queryService.queryObject.ColorColumn.selected;	
 	});
 	/**************************/
+})
+.controller("GeographyPanelCtrl", function($scope, queryService){
+	
+	queryService.queryObject.Geography = {
+			state : {},
+			counties : {}
+	};
+	
+	var metadata = [ {
+		value : "01",
+		label : "Alabama",
+		counties : [
+		            {
+		            	value : 001,
+		            	label : "Autauga"
+		            },
+		            {
+		            	value : 003,
+		            	label : "Baldwin"
+		            },
+		            {
+		            	value : 005,
+		            	label : "Barbour"
+		            }
+		            
+		            ]
+		},
+		{
+			value : "02",
+			label : "Alaska",
+			counties : [
+			            {
+			            	value : 013,
+			            	label : "Aleutians East"
+			            },
+			            {
+			            	value : 016,
+			            	label : "Aleutians West"
+			            },
+			            {
+			            	value : 020,
+			            	label : "Anchorage"
+			            }
+			            
+			            ]
+			},
+			{
+				value : "04",
+				label : "Arizona",
+				counties : [
+				            {
+				            	value : 001,
+				            	label : "Apache"
+				            },
+				            {
+				            	value : 003,
+				            	label : "Chochise"
+				            },
+				            {
+				            	value : 005,
+				            	label : "Coconino"
+				            }
+				            
+				            ]
+				}
+		
+	
+	];
+	
+	$scope.stateOptions = $.map(metadata, function(item){
+		return {value : item.value, label : item.label};
+	});
+	
+	$scope.$watch('stateSelection', function() {
+		if($scope.stateSelection != undefined && $scope.stateSelection != "") {
+			var state = angular.fromJson($scope.stateSelection);
+			queryService.queryObject.Geography.state = state;
+			console.log(state);
+			for(var i in metadata) {
+				if(metadata[i].value == state.value) {
+					$scope.countyOptions =  metadata[i].counties;
+					break;
+				}
+			}
+		}
+	});
+	
+	$scope.$watch('countySelection', function() {
+		if($scope.countySelection != undefined && $scope.countySelection != "") {
+			queryService.queryObject.Geography.counties = $.map($scope.countySelection, function(item){
+				return angular.fromJson(item);
+			});
+		};
+	});
 });

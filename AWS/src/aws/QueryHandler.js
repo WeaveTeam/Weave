@@ -89,7 +89,9 @@ aws.QueryHandler = function(queryObject)
 			this.visualizations.push(
 					{
 						type : "MapTool",
-						parameters : queryObject.MapTool.selected
+						parameters : queryObject.MapTool.selected,
+						title : queryObject.MapTool.title,
+						enableTitle : queryObject.MapTool.enableTitle
 					}
 			);
 		}
@@ -100,7 +102,9 @@ aws.QueryHandler = function(queryObject)
 			this.visualizations.push(
 					{
 						type : "ScatterPlotTool",
-						parameters : { X : queryObject.ScatterPlotTool.X, Y : queryObject.ScatterPlotTool.Y }
+						parameters : { X : queryObject.ScatterPlotTool.X, Y : queryObject.ScatterPlotTool.Y },
+						title : queryObject.ScatterPlotTool.title,
+						enableTitle : queryObject.ScatterPlotTool.enableTitle
 					}
 			);
 		}
@@ -115,7 +119,9 @@ aws.QueryHandler = function(queryObject)
 									   heights : queryObject.BarChartTool.heights, 
 									   sort : queryObject.BarChartTool.sort, 
 									   label : queryObject.BarChartTool.label 
-									  }
+									  },
+						title : queryObject.BarChartTool.title,
+						enableTitle : queryObject.ScatterPlotTool.enableTitle
 					}
 			);
 		}
@@ -227,7 +233,9 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 			this.visualizations.push(
 					{
 						type : "MapTool",
-						parameters : queryObject.MapTool.selected
+						parameters : queryObject.MapTool.selected,
+						title : queryObject.MapTool.title,
+						enableTitle : queryObject.MapTool.enableTitle
 					}
 			);
 		}
@@ -238,7 +246,9 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 			this.visualizations.push(
 					{
 						type : "ScatterPlotTool",
-						parameters : { X : queryObject.ScatterPlotTool.X, Y : queryObject.ScatterPlotTool.Y }
+						parameters : { X : queryObject.ScatterPlotTool.X, Y : queryObject.ScatterPlotTool.Y },
+						title : queryObject.ScatterPlotTool.title,
+						enableTitle : queryObject.ScatterPlotTool.enableTitle
 					}
 			);
 		}
@@ -253,7 +263,9 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 									   heights : queryObject.BarChartTool.heights, 
 									   sort : queryObject.BarChartTool.sort, 
 									   label : queryObject.BarChartTool.label 
-									  }
+									  },
+						title : queryObject.BarChartTool.title,
+						enableTitle : queryObject.ScatterPlotTool.enableTitle
 					}
 			);
 		}
