@@ -176,6 +176,18 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
 
         };
         
+        this.getDataMapping = function(varValues){
+        	var deferred = $q.defer();
+            
+            aws.DataClient.getDataMapping(varValues, function(result){
+                
+            	scope.$safeApply(function(){
+                    deferred.resolve(result);
+                });
+            });
+            return deferred.promise;
+        };
+        
         this.updateEntity = function(user, password, entityId, diff) {
 
         	var deferred = $q.defer();

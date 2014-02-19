@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.postgresql.util.Base64;
 
 import weave.beans.JsonRpcErrorModel;
 import weave.beans.JsonRpcRequestModel;
@@ -50,7 +52,14 @@ import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.heatonresearch.httprecipes.html.PeekableInputStream;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
@@ -380,7 +389,24 @@ public class GenericServlet extends HttpServlet
 	}
 	
 	public static final String JSONRPC_VERSION = "2.0";
-
+	
+	private static final Gson GSON = new GsonBuilder()
+		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
+		.disableHtmlEscaping()
+		.create();
+	// Base64 adapter modified from GsonHelper.java, https://gist.github.com/orip/3635246
+	private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]>
+	{
+		public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+		{
+			return Base64.decode(json.getAsString());
+		}
+		public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context)
+		{
+			return new JsonPrimitive(Base64.encodeBytes(src, Base64.DONT_BREAK_LINES));
+		}
+	}
+	
     private void handleArrayOfJsonRequests(PeekableInputStream inputStream,HttpServletResponse response) throws IOException
     {
     	try
@@ -393,13 +419,13 @@ public class GenericServlet extends HttpServlet
     		if (streamString.charAt(0) == '{')
     		{
     			//TODO:CHeck parse error for this
-    			JsonRpcRequestModel req = (new Gson()).fromJson(streamString, JsonRpcRequestModel.class);
+    			JsonRpcRequestModel req = GSON.fromJson(streamString, JsonRpcRequestModel.class);
     			jsonRequests = new JsonRpcRequestModel[] { req };
     			info.isBatchRequest = false;
     		}
     		else
     		{
-    			jsonRequests = (new Gson()).fromJson(streamString, JsonRpcRequestModel[].class);
+    			jsonRequests = GSON.fromJson(streamString, JsonRpcRequestModel[].class);
     			info.isBatchRequest = true;
     		}
     		
@@ -465,11 +491,11 @@ public class GenericServlet extends HttpServlet
     		}
     		if (!info.isBatchRequest)
     		{
-   				result = (new Gson()).toJson(info.jsonResponses.get(0));
+   				result = GSON.toJson(info.jsonResponses.get(0));
     		}
     		else
     		{
-    			result = (new Gson()).toJson(info.jsonResponses);
+    			result = GSON.toJson(info.jsonResponses);
     		}
     		
     		PrintWriter writer = new PrintWriter(info.getOutputStream());

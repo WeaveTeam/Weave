@@ -96,7 +96,9 @@ function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
  * This will create or update a DynamicColumn to refer to an attribute column on a Weave data server.
  * @param {Weave} weave A Weave instance.
  * @param {Array|WeavePath} path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
- * @param {number} columnId The id of an attribute column on a Weave server (visible through the Admin Console and in its configuration tables).
+ * @param {number} columnId The id of an attribute column on a Weave server (visible through the Admin Console and in its configuration tables)
+ *                          or a set of metadata used to uniquely identify the column.  If a metadata object is used, the idFields property of
+ *                          the WeaveDataSource must be set accordingly to specify which fields will be used to uniquely identify columns.
  * @param {string=} dataSourceName The name of an existing WeaveDataSource object in the Weave session state.
  * @param {Array=} sqlParams optional set of parameters to use that correspond to the '?' placeholders in the SQL query on the server.
  */
@@ -111,15 +113,17 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
     		.libs('weave.data.DataSources::WeaveDataSource')
     		.getValue('getNames(WeaveDataSource)[0]');
     
-    var sqlParamsStr = '';
+    var metadata = {};
+    if (typeof columnId == 'object')
+    	for (var k in columnId)
+    		metadata[k] = columnId[k];
+    else
+    	metadata['weaveEntityId'] = columnId;
+    
     if (sqlParams)
-    {
-    	var esc = {'&':'&amp;', '"':'&quot;', '<':'&lt;', '>':'&gt;'}; // for xml encoding
-    	sqlParamsStr = ' sqlParams="' + sqlParams.map(function(value) {
-    		value = '"' + String(value).replace(/(")/g, function(str, item) { return '""'; }) + '"'; // csv encoding
-    		return value.replace(/([\&"<>])/g, function(str, item) { return esc[item]; }); // xml encoding
-    	}).join(',') + '"';
-    }
+    	metadata['sqlParams'] = path.libs('weave.api.WeaveAPI')
+    		.vars({"_arr": sqlParams})
+    		.getValue('WeaveAPI.CSVParser.createCSVRow(_arr)');
     
     // make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
     path.request('DynamicColumn')
@@ -129,7 +133,9 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 				.request('HierarchyColumnReference')
 				.state({
 					"dataSourceName": dataSourceName,
-					"hierarchyPath": '<attribute weaveEntityId="'+columnId+'"' + sqlParamsStr + '/>'
+					"hierarchyPath": path.libs("mx.utils.ObjectUtil")
+						.vars({"_obj": metadata})
+				    	.getValue("var x = XML('<attribute/>'); for (var k in _obj) x['@'+k] = _obj[k]; return ObjectUtil.toString(x);")
 				})
 			.pop()
 		.pop();

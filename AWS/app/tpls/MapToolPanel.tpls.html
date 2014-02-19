@@ -1,10 +1,11 @@
 <div ng-controller="MapToolPanelCtrl">
 <div class="portlet-header">
-	<span>{{panelTitle}}</span>
+	<span><input type="checkbox" name="enableMapTool" ng-model="enabled"/> {{panelTitle}}</span>
 </div>
 <div class="portlet-content">
 
-	<input type="checkbox" name="enableMapTool" ng-model="enabled"/> Map Tool</br>
+	<input type="checkbox" ng-model="enableTitle"/> Title:
+	<input type="text" placeholder="Default" ng-model='title'>
 	<select ui-select2 ng-model="selected" data-placeholder="Choose Map">
 					<option></option>
 					<option value="{{gt}}"  ng-repeat="gt in geomTables">{{gt.title}}</option>
