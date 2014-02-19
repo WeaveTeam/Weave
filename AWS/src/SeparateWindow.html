@@ -44,7 +44,7 @@
 				//testing
 				responseResults = input || responseResults;
 				responseResults = JSON.parse(JSON.stringify(responseResults));
-				console.log(responseResults);
+				console.data = responseResults;
 				if(client)
 				{
 						   log("Displaying visualizations in Weave...");
@@ -55,6 +55,9 @@
 						    //creating the visualizations
 							for (var i in queryHandler.visualizations) {
 								toolName = client.newVisualization(queryHandler.visualizations[i], dataSourceName);
+								if(queryHandler.visualizations[i].hasOwnProperty("enableTitle")) {
+									client.setVisualizationTitle(toolName, queryHandler.visualizations[i].enableTitle,  queryHandler.visualizations[i].title);
+								}
 								queryHandler.currentVisualizations[queryHandler.visualizations[i].type] = toolName;
 								//console.log(queryHandler.visualizations[i]);
 								//aws.timeLogString = aws.reportTime(queryHandler.visualizations[i].type + ' added');
@@ -77,11 +80,13 @@
 				log("Updating visualizations...");
 				for(var i in queryHandler.visualizations){
 					if (queryHandler.currentVisualizations.hasOwnProperty(queryHandler.visualizations[i].type)) {
-						console.log(queryHandler.visualizations[i].type);
 						queryHandler.visualizations[i].toolName = queryHandler.currentVisualizations[queryHandler.visualizations[i].type];
 					}
 					
 					toolName = client.updateVisualization(queryHandler.visualizations[i], dataSourceName);
+					if(queryHandler.visualizations[i].hasOwnProperty("enableTitle")) {
+						client.setVisualizationTitle(toolName, queryHandler.visualizations[i].enableTitle,  queryHandler.visualizations[i].title);
+					}
 					queryHandler.currentVisualizations[queryHandler.visualizations[i].type] = toolName;
 				}
 				
