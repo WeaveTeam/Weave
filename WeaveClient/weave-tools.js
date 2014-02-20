@@ -165,7 +165,7 @@ function enableWeaveVisLayer(weave, toolName, layerName, enable)
 function modifySessionState(stateToModify, path, value)
 {
     if (path.length == 0)
-        return false
+        return false;
     var property = path[0];
     path = path.slice(1);
     if (Array.isArray(stateToModify))
@@ -201,7 +201,7 @@ function modifySessionState(stateToModify, path, value)
  */
 function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyColumn, resultHandler)
 {
-	var url = '/WeaveServices/AdminService'
+	var url = '/WeaveServices/AdminService';
 	var tableTitle = sqlTable; // the name which will be visible to end-users
 	var keyType = sqlTable;
 	var secondaryKeyColumn = null; // used for dimension slider format
