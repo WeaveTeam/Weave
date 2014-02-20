@@ -8,21 +8,21 @@
  */
 function queryService(url, method, params, resultHandler, queryId)
 {
-    var request = {
-        jsonrpc: "2.0",
-        id: queryId || "no_id",
-        method: method,
-        params: params
-    };
-    $.post(url, JSON.stringify(request), handleResponse, "json");
+	var request = {
+		jsonrpc: "2.0",
+		id: queryId || "no_id",
+		method: method,
+		params: params
+	};
+	$.post(url, JSON.stringify(request), handleResponse, "json");
 
-    function handleResponse(response)
-    {
-        if (response.error)
-            console.log(JSON.stringify(response, null, 3));
-        else if (resultHandler)
-            resultHandler(response.result, queryId);
-    }
+	function handleResponse(response)
+	{
+		if (response.error)
+			console.log(JSON.stringify(response, null, 3));
+		else if (resultHandler)
+			resultHandler(response.result, queryId);
+	}
 }
 
 /**
@@ -105,29 +105,29 @@ function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
  */
 function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 {
-    // convert an Array to a WeavePath object
-    if (Array.isArray(path))
-    	path = weave.path(path);
-    
-    if (!dataSourceName)
-    	dataSourceName = weave.path()
-    		.libs('weave.data.DataSources::WeaveDataSource')
-    		.getValue('getNames(WeaveDataSource)[0]');
-    
-    var metadata = {};
-    if (typeof columnId == 'object')
-    	for (var k in columnId)
-    		metadata[k] = columnId[k];
-    else
-    	metadata['weaveEntityId'] = columnId;
-    
-    if (sqlParams)
-    	metadata['sqlParams'] = path.libs('weave.api.WeaveAPI')
-    		.vars({"_arr": sqlParams})
-    		.getValue('WeaveAPI.CSVParser.createCSVRow(_arr)');
-    
-    // make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
-    path.request('DynamicColumn')
+	// convert an Array to a WeavePath object
+	if (Array.isArray(path))
+		path = weave.path(path);
+	
+	if (!dataSourceName)
+		dataSourceName = weave.path()
+			.libs('weave.data.DataSources::WeaveDataSource')
+			.getValue('getNames(WeaveDataSource)[0]');
+	
+	var metadata = {};
+	if (typeof columnId == 'object')
+		for (var k in columnId)
+			metadata[k] = columnId[k];
+	else
+		metadata['weaveEntityId'] = columnId;
+	
+	if (sqlParams)
+		metadata['sqlParams'] = path.libs('weave.api.WeaveAPI')
+			.vars({"_arr": sqlParams})
+			.getValue('WeaveAPI.CSVParser.createCSVRow(_arr)');
+	
+	// make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
+	path.request('DynamicColumn')
 		.push(null)
 			.request('ReferencedColumn')
 			.push('dynamicColumnReference',null)
@@ -136,7 +136,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 					"dataSourceName": dataSourceName,
 					"hierarchyPath": path.libs("mx.utils.ObjectUtil")
 						.vars({"_obj": metadata})
-				    	.getValue("var x = XML('<attribute/>'); for (var k in _obj) x['@'+k] = _obj[k]; return ObjectUtil.toString(x);")
+						.getValue("var x = XML('<attribute/>'); for (var k in _obj) x['@'+k] = _obj[k]; return ObjectUtil.toString(x);")
 				})
 			.pop()
 		.pop();
@@ -164,29 +164,29 @@ function enableWeaveVisLayer(weave, toolName, layerName, enable)
  */
 function modifySessionState(stateToModify, path, value)
 {
-    if (path.length == 0)
-        return false;
-    var property = path[0];
-    path = path.slice(1);
-    if (Array.isArray(stateToModify))
-    {
-        for (var i in stateToModify)
-        {
-        	var dynamicState = stateToModify[i];
-            if (property == dynamicState.objectName)
-            {
-                if (path.length)
-                    return modifySessionState(dynamicState.sessionState, path, value);
-                dynamicState.sessionState = value;
-                return true;
-            }
-        }
-        return false;
-    }
-    if (path.length)
-        return modifySessionState(stateToModify[property], path, value);
-    stateToModify[property] = value;
-    return true;
+	if (path.length == 0)
+		return false;
+	var property = path[0];
+	path = path.slice(1);
+	if (Array.isArray(stateToModify))
+	{
+		for (var i in stateToModify)
+		{
+			var dynamicState = stateToModify[i];
+			if (property == dynamicState.objectName)
+			{
+				if (path.length)
+					return modifySessionState(dynamicState.sessionState, path, value);
+				dynamicState.sessionState = value;
+				return true;
+			}
+		}
+		return false;
+	}
+	if (path.length)
+		return modifySessionState(stateToModify[property], path, value);
+	stateToModify[property] = value;
+	return true;
 }
 
 /**
