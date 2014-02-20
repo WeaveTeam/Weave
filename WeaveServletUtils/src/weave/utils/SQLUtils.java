@@ -777,7 +777,9 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields, true);
+			WhereClause<V> where = new WhereClauseBuilder<V>(conn, false)
+				.addGroupedConditions(whereParams, caseSensitiveFields, null)
+				.build();
 			
 			// build complete query
 			query = String.format(
@@ -1290,7 +1292,9 @@ public class SQLUtils
 			updateBlock = Strings.join(",", updateBlockList);
 		    
 			// build where clause
-		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields, true);
+		    WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
+		    	.addGroupedConditions(whereParams, caseSensitiveFields, null)
+		    	.build();
 		    queryParams.addAll(where.params);
 		    
 		    // build and execute query
@@ -1300,66 +1304,6 @@ public class SQLUtils
 		}
 		finally
 		{
-			cleanup(stmt);
-		}
-	}
-	/**
-	 * Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for,
-	 * this will only be two entries long, but this covers the general case.
-	 * @param conn
-	 * @param schemaName
-	 * @param table
-	 * @param column The name of the column to return.
-	 * @param queryParams A list of where parameters specified as Map entries.
-	 * @return The values from the specified column.
-	 * @throws SQLException
-	 */
-	public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> queryParams, Set<String> caseSensitiveFields) throws SQLException
-	{
-		String query = null;
-		List<Integer> results = new LinkedList<Integer>();
-		WhereClause<String> where = new WhereClause<String>(conn, queryParams, caseSensitiveFields, false);
-		// Construct the query with placeholders.
-		String qColumn = quoteSymbol(conn, column);
-		String qTable = quoteSchemaTable(conn, schemaName, table);
-		if (queryParams.size() == 0)
-		{
-			query = String.format("SELECT %s from %s group by %s", qColumn, qTable, qColumn);
-		}
-		else
-		{
-			query = String.format(
-					"SELECT %s FROM (SELECT %s, count(*) c FROM %s %s group by %s) result WHERE c = %s",
-					qColumn,
-					qColumn,
-					qTable,
-					where.clause,
-					qColumn,
-					queryParams.size()
-					);
-		}
-		
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		try
-		{
-			stmt = prepareStatement(conn, query, where.params);
-			
-			rs = stmt.executeQuery();
-			rs.setFetchSize(SQLResult.FETCH_SIZE);
-			while (rs.next())
-			{
-				results.add(rs.getInt(column));
-			}
-			return results;
-		}
-		catch (SQLException e)
-		{
-			throw new SQLExceptionWithQuery(query, e);
-		}
-		finally
-		{
-			cleanup(rs);
 			cleanup(stmt);
 		}
 	}
@@ -2072,6 +2016,12 @@ public class SQLUtils
 				throw new RemoteException("NestedColumnFilters: " + message);
 			}
 		}
+
+		public WhereClause(String whereClause, List<V> params)
+		{
+			this.clause = whereClause;
+			this.params = params;
+		}
 		
 		/**
 		 * A condition for filtering query results.
@@ -2173,108 +2123,168 @@ public class SQLUtils
 			}
 			clause.append(")");
 		}
+	}
+	
+	public static final char WILDCARD_SINGLE = '_';
+	public static final char WILDCARD_MULTI = '%';
+	
+	/**
+	 * Specifies how two SQL terms should be compared
+	 */
+	public static enum CompareMode
+	{
+		NORMAL, CASE_SENSITIVE, WILDCARD
+	}
+	public static class WhereClauseBuilder<V>
+	{
+		private Connection _connection = null;
+		private List<List<Condition>> _nestedConditions = new Vector<List<Condition>>();
+		private List<V> _params = new Vector<V>();
+		private boolean _conjunctive = false;
 		
-		public WhereClause(String whereClause, List<V> params)
+		/**
+		 * @param conn A SQL connection.
+		 * @param conjunctive Set to <code>true</code> for Conjunctive Normal Form: (a OR b) AND (x OR y).
+		 *                    Set to <code>false</code> for Disjunctive Normal Form: (a AND b) OR (x AND y).
+		 */
+		public WhereClauseBuilder(Connection conn, boolean conjunctive)
 		{
-			this.clause = whereClause;
-			this.params = params;
+			_connection = conn;
+			_conjunctive = conjunctive;
 		}
 		
 		/**
-		 * @param conn
-		 * @param conditions
-		 * @param caseSensitiveFields
-		 * @param conjunctive Set to <code>true</code> for "AND" logic or <code>false</code> for "OR" logic.
+		 * Adds a set of grouped inner conditions.
+		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * @param values Field names mapped to raw values
+		 * @param caseSensitiveFields A set of field names which should use case sensitive compare.
+		 * @param wildcardFields A set of field names which should use a "LIKE" SQL clause for wildcard search.
+		 */
+		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> values, Set<String> caseSensitiveFields, Set<String> wildcardFields)
+		{
+			Map<String, CompareMode> compareModes = new HashMap<String,CompareMode>();
+			if (caseSensitiveFields != null)
+				for (String field : caseSensitiveFields)
+					compareModes.put(field, CompareMode.CASE_SENSITIVE);
+			if (wildcardFields != null)
+				for (String field : wildcardFields)
+					compareModes.put(field, CompareMode.WILDCARD);
+			return addGroupedConditions(values, compareModes);
+		}
+		
+		/**
+		 * Adds a set of grouped inner conditions.
+		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * @param values Field names mapped to raw values
+		 * @param compareModes Field names mapped to compare modes
+		 */
+		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> values, Map<String,CompareMode> compareModes)
+		{
+			if (values.size() == 0)
+				throw new InvalidParameterException("No values specified");
+			List<Condition> conditions = new Vector<Condition>();
+			for (Entry<String,V> entry : values.entrySet())
+			{
+				Condition cond = new Condition();
+				cond.field = entry.getKey();
+				cond.value = "?";
+				if (compareModes != null)
+					cond.compareMode = compareModes.get(cond.field);
+				conditions.add(cond);
+				
+				_params.add(entry.getValue());
+			}
+			_nestedConditions.add(conditions);
+			return this;
+		}
+		
+		/**
+		 * Checks the number of groups which have been added via addGroupedConditions().
+		 * @return The number of groups.
+		 */
+		public int countGroups()
+		{
+			return _nestedConditions.size();
+		}
+		
+		/**
+		 * Builds a WhereClause based on the conditions previously specified with addGroupedConditions().
+		 * @return A WhereClause.
 		 * @throws SQLException
 		 */
-		public WhereClause(Connection conn, Map<String,V> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		public WhereClause<V> build() throws SQLException
 		{
-			List<Map<String,V>> list = new Vector<Map<String,V>>(1);
-			list.add(conditions);
-			// we have to negate our conjunctive parameter because we have just nested our conditions
-			init(conn, list, caseSensitiveFields, !conjunctive);
-		}
-		
-		public WhereClause(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
-		{
-			init(conn, conditions, caseSensitiveFields, conjunctive);
-		}
-		
-		private void init(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
-		{
-			params = new Vector<V>();
-			if (caseSensitiveFields == null)
-				caseSensitiveFields = Collections.emptySet();
-			List<List<Pair>> nestedPairs = new LinkedList<List<Pair>>();
-			for (Map<String,V> group : conditions)
-			{
-				List<Pair> pairs = new LinkedList<Pair>();
-				for (Entry<String,V> entry : group.entrySet())
-				{
-					pairs.add(new Pair(quoteSymbol(conn, entry.getKey()), "?"));
-					params.add(entry.getValue());
-				}
-				nestedPairs.add(pairs);
-			}
-			Set<String> quotedCSF = new HashSet<String>();
-			for (String field : caseSensitiveFields)
-				quotedCSF.add(quoteSymbol(conn, field));
-			String dnf = buildNormalForm(conn, nestedPairs, quotedCSF, conjunctive);
+			if (_connection == null)
+				throw new SQLException("connection must be set");
+				
+			String dnf = buildNormalForm(_connection, _nestedConditions, _conjunctive);
+			String clause = "";
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
-			else
-				clause = "";
+			
+			return new WhereClause<V>(clause, _params);
 		}
 		
-        protected static String buildDisjunctiveNormalForm(
-                Connection conn,
-				List<List<Pair>> symbolicArguments,
-				Set<String> caseSensitiveFields
-            ) throws SQLException
-        {
-            return buildNormalForm(conn, symbolicArguments, caseSensitiveFields, false);
-        }
-		protected static String buildNormalForm(
-				Connection conn,
-				List<List<Pair>> nestedPairs,
-				Set<String> caseSensitiveFields, boolean conjunctive
-			) throws SQLException
+		protected static String buildNormalForm(Connection conn, List<List<Condition>> nestedConditions, boolean conjunctive) throws SQLException
 		{
 			String outerJunction = conjunctive ? " AND " : " OR ";
 			String innerJunction = conjunctive ? " OR " : " AND ";
 		    List<String> junctions = new LinkedList<String>();
-		    for (List<Pair> juncMap : nestedPairs)
+		    for (List<Condition> conditions : nestedConditions)
 		    {
-		        List<String> juncList = new LinkedList<String>();
-		        for (Pair pair : juncMap)
-		        {
-		        	boolean caseSensitive = caseSensitiveFields.contains(pair.a) || caseSensitiveFields.contains(pair.b);
-		            juncList.add(buildPredicate(conn, pair.a, pair.b, caseSensitive));
-		        }
-		        junctions.add(String.format("(%s)", Strings.join(innerJunction, juncList)));
+		        List<String> predicates = new LinkedList<String>();
+		        for (Condition condition : conditions)
+		        	predicates.add(condition.buildPredicate(conn));
+		        junctions.add(String.format("(%s)", Strings.join(innerJunction, predicates)));
 		    }
 	        return Strings.join(outerJunction, junctions);
 		}
 		
-		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException
+		protected static class Condition
 		{
-			if (caseSensitive)
-			{
-				String compare = caseSensitiveCompare(conn, symbol1, symbol2);
-				return new StringBuilder().append('(').append(compare).append(')').toString();
-			}
-			return new StringBuilder().append('(').append(symbol1).append('=').append(symbol2).append(')').toString();
-		}
-		
-		protected static class Pair
-		{
-			public String a;
-			public String b;
+			/**
+			 * Fragment of a SQL query for a field name (should be quoted)
+			 */
+			public String field;
 			
-			public Pair(String a, String b)
+			/**
+			 * Fragment of a SQL query for a value (recommended to be "?" unless hard-coded and safe).
+			 */
+			public String value;
+			
+			/**
+			 * Specifies how the field and value should be compared
+			 */
+			public CompareMode compareMode = CompareMode.NORMAL;
+			
+			public Condition()
 			{
-				this.a = a;
-				this.b = b;
+			}
+			
+			public Condition(String field, String value, CompareMode compareMode)
+			{
+				this.field = field;
+				this.value = value;
+				this.compareMode = compareMode;
+			}
+			
+			public String buildPredicate(Connection conn) throws SQLException
+			{
+				// prevent null pointer error from switch
+				if (compareMode == null)
+					compareMode = CompareMode.NORMAL;
+				switch (compareMode)
+				{
+					case CASE_SENSITIVE:
+						String compare = caseSensitiveCompare(conn, field, value);
+						return new StringBuilder().append('(').append(compare).append(')').toString();
+					case WILDCARD:
+						return new StringBuilder().append('(').append(field).append(" LIKE ").append(value).append(')').toString();
+					default:
+						return new StringBuilder().append('(').append(field).append('=').append(value).append(')').toString();
+				}
 			}
 		}
 	}

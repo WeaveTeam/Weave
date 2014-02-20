@@ -235,9 +235,9 @@ public class DataConfig
         Collection<Integer> ids = null;
 
         if (!allPublic || allPrivate)
-            idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata);
+            idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata, null);
         if (!allPrivate || allPublic)
-            idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata);
+            idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata, null);
         if ((idsMatchingPublicMetadata != null) && (idsMatchingPrivateMetadata != null))
         {
         	if (allPrivate && allPublic) // union
@@ -421,7 +421,7 @@ public class DataConfig
     public EntityHierarchyInfo[] getEntityHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
     {
     	detectChange();
-    	Collection<Integer> ids = public_metadata.filter(publicMetadata);
+    	Collection<Integer> ids = public_metadata.filter(publicMetadata, null);
     	EntityHierarchyInfo[] result = new EntityHierarchyInfo[ids.size()];
     	if (result.length == 0)
     		return result;

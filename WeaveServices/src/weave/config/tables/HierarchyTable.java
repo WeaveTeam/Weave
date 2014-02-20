@@ -39,8 +39,9 @@ import weave.utils.MapUtils;
 import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
-import weave.utils.Strings;
 import weave.utils.SQLUtils.WhereClause;
+import weave.utils.SQLUtils.WhereClauseBuilder;
+import weave.utils.Strings;
 
 
 /**
@@ -220,7 +221,9 @@ public class HierarchyTable extends AbstractTable
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_PARENT, parent_id);
-			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, true);
+			WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
+				.addGroupedConditions(conditions, null)
+				.build();
 			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, FIELD_ORDER, Object.class);
 			List<Integer> children = new Vector<Integer>(rows.size());
 			for (Map<String,Object> row : rows)
@@ -292,7 +295,9 @@ public class HierarchyTable extends AbstractTable
 				whereParams.put(FIELD_CHILD, child_id);
 			if (parent_id != NULL)
 				whereParams.put(FIELD_PARENT, parent_id);
-			WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, null, true);
+			WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
+				.addGroupedConditions(whereParams, null)
+				.build();
 			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)

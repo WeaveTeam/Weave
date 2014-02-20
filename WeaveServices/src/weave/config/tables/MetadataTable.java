@@ -27,13 +27,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.config.DataConfig;
@@ -42,6 +41,7 @@ import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
+import weave.utils.SQLUtils.WhereClauseBuilder;
 import weave.utils.Strings;
 
 
@@ -161,16 +161,15 @@ public class MetadataTable extends AbstractTable
 					throw new RemoteException(String.format("Cannot remove required metadata field \"%s\"", requiredMetadataName));
 				}
 				
-				List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
+				WhereClauseBuilder<Object> whereBuilder = new WhereClauseBuilder<Object>(conn, false);
 				for (String property : diff.keySet())
 				{
 					if (newId && property.equals(requiredMetadataName))
 						continue;
 					record = MapUtils.fromPairs(FIELD_ID, id, FIELD_NAME, property);
-					records.add(record);
+					whereBuilder.addGroupedConditions(record, caseSensitiveFields, null);
 				}
-				WhereClause<Object> where = new WhereClause<Object>(conn, records, caseSensitiveFields, false);
-				SQLUtils.deleteRows(conn, schemaName, tableName, where);
+				SQLUtils.deleteRows(conn, schemaName, tableName, whereBuilder.build());
 			}
 			
 			for (Entry<String,String> entry : diff.entrySet())
@@ -200,7 +199,9 @@ public class MetadataTable extends AbstractTable
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_ID, id);
-			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, caseSensitiveFields, true);
+			WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
+				.addGroupedConditions(conditions, caseSensitiveFields, null)
+				.build();
 			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)
@@ -301,30 +302,81 @@ public class MetadataTable extends AbstractTable
 	/**
 	 * Finds IDs of entities having metadata matching a set of constraints. 
 	 * @param constraints Name-value pairs to be used as search criteria.
+	 * @param wildcardFields A set of property names which should be searched using wildcards * and ?.
 	 * @return A set of entity IDs.
 	 */
-	public Set<Integer> filter(Map<String,String> constraints) throws RemoteException
+	public Set<Integer> filter(Map<String,String> constraints, Set<String> wildcardFields) throws RemoteException
 	{
+		String query = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			List<Map<String,String>> crossRowArgs = new Vector<Map<String,String>>(constraints.size());
-
-			for (Entry<String,String> keyValPair : constraints.entrySet())
+			
+			// build where clause
+			WhereClauseBuilder<String> whereBuilder = new WhereClauseBuilder<String>(conn, false);
+			for (Entry<String,String> entry : constraints.entrySet())
 			{
-				if (keyValPair.getKey() == null || keyValPair.getValue() == null)
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if (key == null || value == null)
 					continue;
-				Map<String,String> colValPair = MapUtils.fromPairs(
-					FIELD_NAME, keyValPair.getKey(),
-					FIELD_VALUE, keyValPair.getValue()
+				Set<String> wf = null;
+				if (wildcardFields != null && wildcardFields.contains(entry.getKey()))
+				{
+					// FIELD_VALUE field should be treated as a wildcard
+					wf = Collections.singleton(FIELD_VALUE);
+					value = value.replace('?', SQLUtils.WILDCARD_SINGLE).replace('*', SQLUtils.WILDCARD_MULTI);
+				}
+				Map<String,String> condition = MapUtils.fromPairs(
+					FIELD_NAME, key,
+					FIELD_VALUE, value
 				);
-				crossRowArgs.add(colValPair);
+				whereBuilder.addGroupedConditions(condition, caseSensitiveFields, wf);
 			}
-			return new HashSet<Integer>(SQLUtils.crossRowSelect(conn, schemaName, tableName, FIELD_ID, crossRowArgs, caseSensitiveFields));
+			WhereClause<String> where = whereBuilder.build();
+			
+			Set<Integer> result = new HashSet<Integer>();
+			
+			// Construct the query with placeholders.
+			String qColumn = SQLUtils.quoteSymbol(conn, FIELD_ID);
+			String qTable = SQLUtils.quoteSchemaTable(conn, schemaName, tableName);
+			if (where.params.size() == 0)
+			{
+				query = String.format("SELECT %s FROM %s GROUP BY %s", qColumn, qTable, qColumn);
+			}
+			else
+			{
+				query = String.format(
+						"SELECT %s FROM %s %s GROUP BY %s HAVING COUNT(*) = %s",
+						qColumn,
+						qTable,
+						where.clause,
+						qColumn,
+						whereBuilder.countGroups()
+					);
+			}
+			
+			stmt = SQLUtils.prepareStatement(conn, query, where.params);
+			
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+			{
+				result.add(rs.getInt(FIELD_ID));
+			}
+			return result;
 		}
 		catch (SQLException e)
 		{
+			e = new SQLExceptionWithQuery(query, e);
 			throw new RemoteException("Unable to get ids given a set of property/value pairs.", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
 		}
 	}
 	public boolean isEmpty() throws RemoteException

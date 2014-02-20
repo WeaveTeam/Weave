@@ -61,6 +61,7 @@
 	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
+	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
@@ -194,7 +195,8 @@
 			}
 			else
 			{
-				if (Admin.entityCache.getBranchInfo(tableNode.id).title.toLowerCase().search(ts) < 0)
+				var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(tableNode.id);
+				if (!info || !info.title || info.title.toLowerCase().search(ts) < 0)
 					return false; // table name didn't match
 			}
 		}
