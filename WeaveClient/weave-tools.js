@@ -49,7 +49,8 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 			else
 				results[response.id] = response.result;
 		}
-		resultsHandler(results);
+		if (resultsHandler)
+			resultsHandler(results);
 	}
 }
 
@@ -196,6 +197,7 @@ function modifySessionState(stateToModify, path, value)
  * @param sqlSchema Schema name
  * @param sqlTable Table name
  * @param keyColumn Name of column in sql table that uniquely identifies rows in the table.
+ * @param resultHandler a function which receives the tableId
  */
 function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyColumn, resultHandler)
 {
@@ -224,4 +226,28 @@ function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyC
 	};
 	
 	queryService(url, method, params, resultHandler);
+}
+
+/**
+ * Updates the metadata for columns of a specified table.
+ * It's not recommended to use this function on a public website.
+ * See documentation for DataEntityWithRelationships (referred to here as an "entity object")
+ * http://ivpr.github.io/Weave-Binaries/javadoc/weave/config/DataConfig.DataEntityWithRelationships.html
+ * @param user AdminConsole connection name.
+ * @param pass AdminConsole password.
+ * @param tableId The ID of the table.
+ * @param entityUpdater A function that alters an entity object's metadata.
+ *     Example: function(entity) { entity.privateMetadata.sqlQuery += " where myfield = 'myvalue'"; }
+ */
+function weaveAdminUpdateColumns(user, pass, tableId, entityUpdater) {
+	var url = '/WeaveServices/AdminService';
+	var getEntities = queryService.bind(null, url, 'getEntitiesById');
+	var bulkUpdateEntities = bulkQueryService.bind(null, url, 'updateEntity');
+	getEntities([user, pass, [tableId]], function(tables) {
+		getEntities([user, pass, tables[0].childIds], function(columns) {
+			bulkUpdateEntities(
+				columns.map(function(e){ entityUpdater(e); return [user, pass, e.id, e]; })
+			)
+		});
+	});
 }
