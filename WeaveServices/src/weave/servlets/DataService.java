@@ -92,8 +92,14 @@ public class DataService extends GenericServlet
 	
 	@SuppressWarnings("rawtypes")
 	@Override
-	protected Object cast(Object value, Class<?> type)
+	protected Object cast(Object value, Class<?> type) throws RemoteException
 	{
+		value = super.cast(value, type);
+		if (type.isInstance(value))
+			return value;
+		
+		//TODO - is the code below required, or does super.cast() already handle it properly?
+		
 		if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
 		{
 			FilteredColumnRequest fcr = new FilteredColumnRequest();
@@ -118,11 +124,7 @@ public class DataService extends GenericServlet
 			}
 			value = output;
 		}
-		if (type == DataEntityMetadata.class && value != null && value instanceof Map)
-		{
-			return DataEntityMetadata.fromMap((Map)value);
-		}
-		return super.cast(value, type);
+		return value;
 	}
 	
 	/////////////////////

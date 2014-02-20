@@ -23,10 +23,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -714,20 +716,41 @@ public class GenericServlet extends HttpServlet
     }
     
 	/**
-	 * Tries to convert value to the given type
-	 * @param value
-	 * @param type
-	 * @return value which may have been cast as the new type
+	 * Tries to convert value to the given type.
+	 * @param value The value to cast to a new type.
+	 * @param type The desired type.
+	 * @return The value, which may have been cast as the new type.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object cast(Object value, Class<?> type)
+	protected Object cast(Object value, Class<?> type) throws RemoteException
 	{
+		if (type.isInstance(value))
+			return value;
+
 		if (value == null)
 		{
 			if (type == double.class || type == Double.class)
 				value = Double.NaN;
 			else if (type == float.class || type == Float.class)
 				value = Float.NaN;
+		}
+		else if (value instanceof Map)
+		{
+			try
+			{
+				Object bean = type.newInstance();
+				for (Field field : type.getFields())
+				{
+					Object fieldValue = ((Map)value).get(field.getName());
+					fieldValue = cast(fieldValue, field.getType());
+					field.set(bean, fieldValue);
+				}
+				value = bean;
+			}
+			catch (Exception e)
+			{
+				throw new RemoteException("Unable to cast Map to " + type.getName(), e);
+			}
 		}
 		else if (value instanceof String)
 		{
