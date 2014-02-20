@@ -26,7 +26,11 @@ package weave.services
 		 * A special flag value to represent a root node, which doesn't actually exist.
 		 */
 		public static const ROOT_ID:int = -1;
-		
+		/**
+		 * This is the maximum number of entities the server allows a user to request at a time.
+		 */
+		private static const MAX_ENTITY_REQUEST_COUNT:int = 1000;
+
 		private var service:IWeaveEntityService = null;
 		private var adminService:IWeaveEntityManagementService = null; // service as IWeaveEntityManagementService
 		private var idsToFetch:Object = {}; // id -> Boolean
@@ -173,11 +177,20 @@ package weave.services
 				else
 					ids.push(int(id));
 			}
+			
 			delete idsToFetch[ROOT_ID];
 			if (ids.length > 0)
-			{
 				idsToFetch = {};
-				addAsyncResponder(service.getEntities(ids), getEntityHandler, null, ids);
+			
+			while (ids.length > 0)
+			{
+				var splicedIds:Array = ids.splice(0, MAX_ENTITY_REQUEST_COUNT);
+				addAsyncResponder(
+					service.getEntities(splicedIds),
+					getEntityHandler,
+					null,
+					splicedIds
+				);
 			}
         }
 		

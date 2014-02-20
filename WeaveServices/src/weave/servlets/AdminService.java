@@ -64,6 +64,7 @@ import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
+import weave.config.DataConfig.DataEntitySearchCriteria;
 import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
@@ -609,7 +610,11 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 
 	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException
 	{
+		if (ids.length > DataConfig.MAX_ENTITY_REQUEST_COUNT)
+			throw new RemoteException(String.format("You cannot request more than %s entities at a time.", DataConfig.MAX_ENTITY_REQUEST_COUNT));
+		
 		authenticate(user, pass);
+		
 		DataConfig config = getDataConfig();
 		Set<Integer> idSet = new HashSet<Integer>();
 		for (int id : ids)
@@ -625,7 +630,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		return Arrays.copyOf(result, result.length, DataEntityWithRelationships[].class);
 	}
 
-	public int[] findEntityIds(String user, String pass, DataEntityMetadata metadata) throws RemoteException
+	public int[] findEntityIds(String user, String pass, DataEntitySearchCriteria metadata) throws RemoteException
 	{
 		authenticate(user, pass);
 		return ListUtils.toIntArray( getDataConfig().getEntityIds(metadata) );
@@ -1470,7 +1475,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 						SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable)
 					);
 
-				DataEntityMetadata metaQuery = new DataEntityMetadata();
+				DataEntitySearchCriteria metaQuery = new DataEntitySearchCriteria();
 				metaQuery.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 				metaQuery.setPrivateMetadata(
 						PrivateMetadata.CONNECTION, connectionName,
@@ -1863,7 +1868,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		try
 		{
 			// prepare metadata for existing column check
-			DataEntityMetadata geomInfo = new DataEntityMetadata();
+			DataEntitySearchCriteria geomInfo = new DataEntitySearchCriteria();
 			geomInfo.setPublicMetadata(
 					PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 					PublicMetadata.DATATYPE, DataType.GEOMETRY

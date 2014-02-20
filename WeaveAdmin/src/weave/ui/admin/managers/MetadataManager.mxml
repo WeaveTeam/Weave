@@ -7,10 +7,9 @@
     <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
 		<ui:Indent label="{lang('Data Tables')}" labelFontWeight="bold">
 			<ui:TextInputWithPrompt id="tableSearch" prompt="{lang('Search tables')}" width="100%"/>
-			<ui:TextInputWithPrompt id="columnSearch" prompt="{lang('Search columns (exact)')}" width="100%"/>
+			<ui:TextInputWithPrompt id="columnSearch" prompt="{lang('Search columns')}" width="100%"/>
 			<ui:HelpComponent>
 				You can search either by title or id number.
-				Column title search currently only supports exact matches.
 			</ui:HelpComponent>
 		</ui:Indent>
         <ui:WeaveTree id="tableTree" width="100%" height="100%"
@@ -62,7 +61,7 @@
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.beans.EntityHierarchyInfo;
-	import weave.api.services.beans.EntityMetadata;
+	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.data.hierarchy.EntityNode;
@@ -132,8 +131,30 @@
 		return number == uint(number) && str == number.toString();
 	}
 	
+	/**
+	 * Surrounds a string with '*' and replaces ' ' with '*'
+	 */
+	private function addWildcards(str:String):String
+	{
+		return StandardLib.replace('*' + str + '*', ' ', '*');
+	}
+
+	private function strToRegExp(strToSrch:String, flags:String = "i"):RegExp
+	{
+		var resultStr:String;
+		//excape metacharacters other than "*" and "?"
+		resultStr = strToSrch.replace(/[\^\$\\\.\+\(\)\[\]\{\}\|]/g, "\\$&");
+		//replace strToSrch "?" with reg exp equivalent "."
+		resultStr = resultStr.replace(/[\?]/g, ".");
+		//replace strToSrch "*" with reg exp equivalent ".*?"
+		resultStr = resultStr.replace(/[\*]/g, ".*?");
+		return new RegExp("^" + resultStr + "$", flags);
+	}
+
 	private function handleTableSearch():void
 	{
+		var searchStr:String = addWildcards(tableSearch.text.toLowerCase());
+		tableFilterRegExp = strToRegExp(searchStr);
 		filterByTableId = isUnsignedInt(tableSearch.text) ? uint(tableSearch.text) : -1;
 		Admin.instance.setFocusEntityId(filterByTableId);
 		tableTree.refresh();
@@ -160,11 +181,12 @@
 			return;
 		}
 		
-		var em:EntityMetadata = new EntityMetadata();
-		em.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
-		em.publicMetadata[ColumnMetadata.TITLE] = columnSearch.text;
+		var query:EntitySearchCriteria = new EntitySearchCriteria();
+		query.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
+		query.publicMetadata[ColumnMetadata.TITLE] = addWildcards(columnSearch.text);
+		query.publicWildcardFields = [ColumnMetadata.TITLE];
 		addAsyncResponder(
-			Admin.service.findEntityIds(em),
+			Admin.service.findEntityIds(query),
 			function(event:ResultEvent, search:String):void
 			{
 				if (search != columnSearch.text)
@@ -182,10 +204,11 @@
 	private var filterByTableId:int = -1; // table id
 	private var filterByColumnIds:Array = null; // list of column ids
 	private var filterByTableIdLookup:Object = null; // table id -> true
+	private var tableFilterRegExp:RegExp = new RegExp(".*");
 	
 	private function filterTables(tableNode:EntityNode):Boolean
 	{
-		var ts:String = tableSearch.text.toLowerCase();
+		var ts:String = tableSearch.text;
 		if (ts)
 		{
 			if (filterByTableId >= 0)
@@ -196,7 +219,7 @@
 			else
 			{
 				var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(tableNode.id);
-				if (!info || !info.title || info.title.toLowerCase().search(ts) < 0)
+				if (!(info && info.title && tableFilterRegExp.test(info.title.toLowerCase())))
 					return false; // table name didn't match
 			}
 		}

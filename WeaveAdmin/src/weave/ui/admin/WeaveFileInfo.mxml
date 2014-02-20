@@ -19,7 +19,7 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" visible="false">
 	<mx:VBox width="100%" horizontalAlign="center">
 		<mx:Label id="title" text="{_fileName}" />
 		<mx:VBox>

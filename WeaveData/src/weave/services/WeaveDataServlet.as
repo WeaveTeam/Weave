@@ -34,7 +34,7 @@ package weave.services
 	import weave.api.services.IWeaveEntityService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.api.services.beans.EntityHierarchyInfo;
-	import weave.api.services.beans.EntityMetadata;
+	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.services.beans.AttributeColumnData;
 	import weave.services.beans.GeometryStreamMetadata;
 	
@@ -149,9 +149,9 @@ package weave.services
 			return invoke(getEntities, arguments);
 		}
 		
-		public function findEntityIds(metadata:EntityMetadata):AsyncToken // returns int[]
+		public function findEntityIds(query:EntitySearchCriteria):AsyncToken // returns int[]
 		{
-			return invoke(findEntityIds, [metadata.publicMetadata]);
+			return invoke(findEntityIds, [query.publicMetadata, query.publicWildcardFields]);
 		}
 		
 		public function findPublicFieldValues(fieldName:String, valueSearch:String):AsyncToken // returns String[]

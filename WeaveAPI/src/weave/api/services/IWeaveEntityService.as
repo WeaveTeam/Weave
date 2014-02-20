@@ -18,7 +18,7 @@ package weave.api.services
 	import mx.rpc.AsyncToken;
 	
 	import weave.api.core.ILinkableObject;
-	import weave.api.services.beans.EntityMetadata;
+	import weave.api.services.beans.EntitySearchCriteria;
 	
 	/**
 	 * Interface for a service which provides RPC functions for retrieving Weave Entity information.
@@ -47,10 +47,10 @@ package weave.api.services
 		
 		/**
 		 * Gets an Array of entity IDs with matching metadata. 
-		 * @param metadata EntityMetadata containing values to match.
+		 * @param query Search criteria.
 		 * @return RPC token for an Array of IDs.
 		 */		
-		function findEntityIds(metadata:EntityMetadata):AsyncToken;
+		function findEntityIds(query:EntitySearchCriteria):AsyncToken;
 		
 		/**
 		 * Finds matching values for a public metadata field.

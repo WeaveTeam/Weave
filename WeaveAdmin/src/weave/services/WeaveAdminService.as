@@ -42,6 +42,7 @@ package weave.services
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWeaveEntityManagementService;
 	import weave.api.services.beans.EntityMetadata;
+	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -444,7 +445,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(getEntities, arguments);
 		}
-		public function findEntityIds(metadata:EntityMetadata):AsyncToken
+		public function findEntityIds(query:EntitySearchCriteria):AsyncToken
 		{
 			return invokeAdminWithLogin(findEntityIds, arguments);
 		}

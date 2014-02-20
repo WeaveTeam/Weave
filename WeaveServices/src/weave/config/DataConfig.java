@@ -50,6 +50,11 @@ import weave.utils.Strings;
  */
 public class DataConfig
 {
+	/**
+	 * This is a recommended maximum number of entities a remote user should be able to request at a time.
+	 */
+	public static final int MAX_ENTITY_REQUEST_COUNT = 1000;
+
 	static private final String SUFFIX_META_PRIVATE = "_meta_private";
 	static private final String SUFFIX_META_PUBLIC = "_meta_public";
 	static private final String SUFFIX_HIERARCHY = "_hierarchy";
@@ -225,22 +230,33 @@ public class DataConfig
     	public_metadata.setProperties(id, diff.publicMetadata);
     	private_metadata.setProperties(id, diff.privateMetadata);
     }
-    public Collection<Integer> getEntityIds(DataEntityMetadata query) throws RemoteException
+    public Collection<Integer> getEntityIds(DataEntitySearchCriteria query) throws RemoteException
     {
     	detectChange();
         Set<Integer> idsMatchingPublicMetadata = null;
         Set<Integer> idsMatchingPrivateMetadata = null;
-        boolean allPublic = query == null || query.publicMetadata == null || query.publicMetadata.size() == 0;
-        boolean allPrivate = query == null || query.privateMetadata == null || query.privateMetadata.size() == 0;
+        boolean filterPublic = query != null && query.publicMetadata != null && query.publicMetadata.size() > 0;
+        boolean filterPrivate = query != null && query.privateMetadata != null && query.privateMetadata.size() > 0;
+        boolean noFiltering = !filterPublic && !filterPrivate;
         Collection<Integer> ids = null;
 
-        if (!allPublic || allPrivate)
-            idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata, null);
-        if (!allPrivate || allPublic)
-            idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata, null);
+        if (filterPublic || noFiltering)
+        {
+        	Set<String> wf = null;
+        	if (query.publicWildcardFields != null)
+        		wf = new HashSet<String>(Arrays.asList(query.publicWildcardFields));
+            idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata, wf);
+        }
+        if (filterPrivate || noFiltering)
+        {
+        	Set<String> wf = null;
+        	if (query.privateWildcardFields != null)
+        		wf = new HashSet<String>(Arrays.asList(query.privateWildcardFields));
+            idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata, wf);
+        }
         if ((idsMatchingPublicMetadata != null) && (idsMatchingPrivateMetadata != null))
         {
-        	if (allPrivate && allPublic) // union
+        	if (noFiltering) // union
         		idsMatchingPublicMetadata.addAll(idsMatchingPrivateMetadata);
         	else // intersection
         		idsMatchingPublicMetadata.retainAll(idsMatchingPrivateMetadata);
@@ -535,13 +551,44 @@ public class DataConfig
 		}
 	}
 	
+	static public class DataEntitySearchCriteria extends DataEntityMetadata
+	{
+		/**
+		 * A list of field names in publicMetadata that should be treated
+		 * as search strings with wildcards '?' and '*' for single-character
+		 * and multi-character matching, respectively.
+		 */
+		public String[] publicWildcardFields = null;
+		/**
+		 * A list of field names in privateMetadata that should be treated
+		 * as search strings with wildcards '?' and '*' for single-character
+		 * and multi-character matching, respectively.
+		 */
+		public String[] privateWildcardFields = null;
+		
+		public String toString()
+		{
+			return MapUtils.fromPairs(
+					"publicMetadata", publicMetadata,
+					"privateMetadata", privateMetadata,
+					"publicWildcardFields", Arrays.deepToString(publicWildcardFields),
+					"privateWildcardFields", Arrays.deepToString(privateWildcardFields)
+				).toString();
+		}
+	}
 	
 	/**
 	 * This class contains public and private metadata for an entity.
 	 */
 	static public class DataEntityMetadata
 	{
+		/**
+		 * Private metadata, mapping field names to values.
+		 */
 		public Map<String,String> privateMetadata = new HashMap<String, String>();
+		/**
+		 * Public metadata, mapping field names to values.
+		 */
 		public Map<String,String> publicMetadata = new HashMap<String, String>();
 		
 		/**

@@ -52,7 +52,7 @@ import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
-import weave.config.DataConfig.DataEntityMetadata;
+import weave.config.DataConfig.DataEntitySearchCriteria;
 import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
@@ -79,6 +79,8 @@ import weave.utils.Strings;
 public class DataService extends WeaveServlet implements IWeaveEntityService
 {
 	private static final long serialVersionUID = 1L;
+	
+	public static final int MAX_COLUMN_REQUEST_COUNT = 100;
 	
 	public DataService()
 	{
@@ -148,6 +150,9 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 
 	public DataEntityWithRelationships[] getEntities(int[] ids) throws RemoteException
 	{
+		if (ids.length > DataConfig.MAX_ENTITY_REQUEST_COUNT)
+			throw new RemoteException(String.format("You cannot request more than %s entities at a time.", DataConfig.MAX_ENTITY_REQUEST_COUNT));
+		
 		DataConfig config = getDataConfig();
 		Set<Integer> idSet = new HashSet<Integer>();
 		for (int id : ids)
@@ -167,17 +172,12 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		return result;
 	}
 	
-	/**
-	 * This searches for entities matching a set of public metadata values.
-	 * @param publicMetadata A mapping from public metadata property names to values.
-	 * @return A list of entity IDs with matching public metadata.
-	 * @throws RemoteException
-	 */
-	public int[] findEntityIds(Map<String,String> publicMetadata) throws RemoteException
+	public int[] findEntityIds(Map<String,String> publicMetadata, String[] publicWildcardFields) throws RemoteException
 	{
-		DataEntityMetadata dem = new DataEntityMetadata();
-		dem.publicMetadata = publicMetadata;
-		int[] ids = ListUtils.toIntArray( getDataConfig().getEntityIds(dem) );
+		DataEntitySearchCriteria query = new DataEntitySearchCriteria();
+		query.publicMetadata = publicMetadata;
+		query.publicWildcardFields = publicWildcardFields;
+		int[] ids = ListUtils.toIntArray( getDataConfig().getEntityIds(query) );
 		Arrays.sort(ids);
 		return ids;
 	}
@@ -227,7 +227,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			@SuppressWarnings({ "rawtypes" })
 			Map metadata = (Map)columnId;
 			metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
-			int[] ids = findEntityIds(metadata);
+			int[] ids = findEntityIds(metadata, null);
 			if (ids.length == 0)
 				throw new RemoteException("No column with id " + columnId);
 			if (ids.length > 1)
@@ -432,6 +432,9 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 */
 	public WeaveJsonDataSet getDataSet(int[] columnIds) throws RemoteException
 	{
+		if (columnIds.length > MAX_COLUMN_REQUEST_COUNT)
+			throw new RemoteException(String.format("You cannot request more than %s columns at a time.", MAX_COLUMN_REQUEST_COUNT));
+		
 		WeaveJsonDataSet result = new WeaveJsonDataSet();
 		for (Integer columnId : columnIds)
 		{
@@ -510,15 +513,15 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		DataConfig dataConfig = getDataConfig();
 		
-		DataEntityMetadata params = new DataEntityMetadata();
+		DataEntitySearchCriteria params = new DataEntitySearchCriteria();
 		params.setPublicMetadata(
 				PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 				PublicMetadata.KEYTYPE, keyType
 			);
 		List<Integer> columnIds = new ArrayList<Integer>( dataConfig.getEntityIds(params) );
 
-		if (columnIds.size() > 100)
-			columnIds = columnIds.subList(0, 100);
+		if (columnIds.size() > MAX_COLUMN_REQUEST_COUNT)
+			columnIds = columnIds.subList(0, MAX_COLUMN_REQUEST_COUNT);
 		return DataService.getFilteredRows(ListUtils.toIntArray(columnIds), null, keysArray);
 	}
 	
@@ -919,7 +922,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	public int[] getEntityIdsByMetadata(Map<String,String> publicMetadata, int entityType) throws RemoteException
 	{
 		publicMetadata.put(PublicMetadata.ENTITYTYPE, EntityType.fromInt(entityType));
-		return findEntityIds(publicMetadata);
+		return findEntityIds(publicMetadata, null);
 	}
 	
 	/**
@@ -944,7 +947,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		if (metadata == null || metadata.size() == 0)
 			throw new RemoteException("No metadata query parameters specified.");
 		
-		DataEntityMetadata query = new DataEntityMetadata();
+		DataEntitySearchCriteria query = new DataEntitySearchCriteria();
 		query.publicMetadata = metadata;
 		query.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 		
@@ -969,7 +972,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			if (metadata.containsKey(DATATABLE) && metadata.containsKey(NAME))
 			{
 				// try to find columns sqlTable==dataTable and sqlColumn=name
-				DataEntityMetadata sqlInfoQuery = new DataEntityMetadata();
+				DataEntitySearchCriteria sqlInfoQuery = new DataEntitySearchCriteria();
 				sqlInfoQuery.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 				String sqlTable = metadata.get(DATATABLE);
 				String sqlColumn = metadata.get(NAME);

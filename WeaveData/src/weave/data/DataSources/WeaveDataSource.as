@@ -46,7 +46,7 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.api.services.beans.Entity;
-	import weave.api.services.beans.EntityMetadata;
+	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
@@ -303,7 +303,7 @@ package weave.data.DataSources
 			{
 				// backwards compatibility - get columns with matching dataTable metadata
 				var dataTableName:String = subtreeNode.attribute("name");
-				var em:EntityMetadata = new EntityMetadata();
+				var em:EntitySearchCriteria = new EntitySearchCriteria();
 				em.publicMetadata = {"dataTable": dataTableName, "entityType": EntityType.COLUMN};
 				addAsyncResponder(
 					_service.findEntityIds(em),
@@ -631,7 +631,6 @@ import weave.api.data.EntityType;
 import weave.api.data.IWeaveTreeNode;
 import weave.api.getCallbackCollection;
 import weave.api.services.beans.EntityHierarchyInfo;
-import weave.api.services.beans.EntityMetadata;
 import weave.data.AttributeColumns.ProxyColumn;
 import weave.data.DataSources.WeaveDataSource;
 import weave.data.hierarchy.EntityNode;
