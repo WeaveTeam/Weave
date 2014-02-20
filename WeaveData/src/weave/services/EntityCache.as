@@ -17,8 +17,14 @@ package weave.services
     import weave.api.services.beans.EntityMetadata;
     import weave.utils.VectorUtils;
 
+	/**
+	 * Provides an interface to a set of cached Entity objects.
+	 */
     public class EntityCache implements ILinkableObject
     {
+		/**
+		 * A special flag value to represent a root node, which doesn't actually exist.
+		 */
 		public static const ROOT_ID:int = -1;
 		
 		private var service:IWeaveEntityService = null;
@@ -31,7 +37,10 @@ package weave.services
 		private var idsDirty:Object = {}; // id -> Boolean; used to remember which ids to invalidate the next time the entity is requested
 		private var purgeMissingEntities:Boolean = false;
 		
+		private function get callbacks():ICallbackCollection { return getCallbackCollection(this); }
+		
 		/**
+		 * Creates an EntityCache.
 		 * @param service The entity service, which may or may not implement IWeaveEntityManagementService.
 		 * @param purgeMissingEntities Set this to true when entities may be deleted or created and ids previously deleted may be reused.
 		 */
@@ -44,6 +53,12 @@ package weave.services
 			callbacks.addGroupedCallback(this, groupedCallback);
         }
 		
+		/**
+		 * Checks if a specific parent-child relationship has been cached.
+		 * @param parentId The ID of the parent entity.
+		 * @param childId The ID of the child entity.
+		 * @return true if the relationship has been cached.
+		 */
 		public function hasCachedRelationship(parentId:int, childId:int):Boolean
 		{
 			if (entityCache[parentId] && (!idsToFetch[parentId] || !entityCache[childId]))
@@ -53,6 +68,11 @@ package weave.services
 			return false;
 		}
 		
+		/**
+		 * Invalidates a cached Entity object and optionally invalidates any related Entity objects.
+		 * @param id The entity ID.
+		 * @param alsoInvalidateRelatives Set this to true if any hierarchy relationships may have been altered.
+		 */
 		public function invalidate(id:int, alsoInvalidateRelatives:Boolean = false):void
 		{
 			callbacks.delayCallbacks();
@@ -91,8 +111,11 @@ package weave.services
 			callbacks.resumeCallbacks();
 		}
 		
-		private function get callbacks():ICallbackCollection { return getCallbackCollection(this); }
-		
+		/**
+		 * Retrieves an Entity object given its ID.
+		 * @param id The entity ID.
+		 * @return The Entity object.
+		 */
 		public function getEntity(id:int):Entity
 		{
 			// if there is no cached value, call invalidate() to create a placeholder.
@@ -102,6 +125,11 @@ package weave.services
             return entityCache[id] as Entity;
 		}
 		
+		/**
+		 * Checks if a particular Entity object is cached.
+		 * @param The entity ID.
+		 * @return true if the corresponding Entity object exists in the cache.
+		 */
 		public function entityIsCached(id:int):Boolean
 		{
 			var entity:Entity = entityCache[id] as Entity;
@@ -226,7 +254,6 @@ package weave.services
 		 * the results when they come back.
 		 * @param publicMetadata Search criteria.
 		 * @return An AsyncToken to which you can add a responder for handling the results. 
-		 * 
 		 */		
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{
@@ -256,6 +283,8 @@ package weave.services
 		}
 		
 		/**
+		 * Gets an Array of Entity objects which have previously been cached via getHierarchyInfo().
+		 * Entities of type 'table' and 'hierarchy' get cached automatically.
 		 * @param entityType Either 'table' or 'hierarchy'
 		 * @return An Array of Entity objects with the given type
 		 */		
@@ -265,6 +294,11 @@ package weave.services
 			return _idsByType[entityType] = (_idsByType[entityType] || []);
 		}
 		
+		/**
+		 * Gets an EntityHierarchyInfo object corresponding to an entity ID, to be used for displaying a hierarchy.
+		 * @param The entity ID.
+		 * @return The hierarchy info, or null if there is none.
+		 */
 		public function getBranchInfo(id:int):EntityHierarchyInfo
 		{
 			getEntity(ROOT_ID);
@@ -284,6 +318,10 @@ package weave.services
 			return info;
 		}
         
+		/**
+		 * Invalidates all cached information.
+		 * @param purge If set to true, clears cache instead of just invalidating it.
+		 */
 		public function invalidateAll(purge:Boolean = false):void
         {
 			callbacks.delayCallbacks();
