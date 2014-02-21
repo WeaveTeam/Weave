@@ -242,7 +242,7 @@ package weave.ui
 			
 			// "iterator" is a HierarchicalViewCursor, and its movePrevious()/moveNext()/seek() functions do not work if "current" is null.
 			// Calling refreshDataProvider() returns the tree to a working state.
-			if (iterator && iterator.current == null)
+			if (iterator && iterator.current == null && firstVisibleItem != null)
 				refreshDataProvider();
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
