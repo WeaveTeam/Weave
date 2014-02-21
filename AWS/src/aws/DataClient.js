@@ -46,6 +46,22 @@ aws.DataClient.getColumn = function(columnId, minParam, maxParam, sqlParams, han
 	aws.queryService(dataServiceURL, "getColumn", [columnId, minParam, maxParam, sqlParams], handleResult);	
 };
 
+
+aws.DataClient.getColumnsFromIds = function(ids, handleResult) {
+	var columns = [];
+	for(var i in ids) {
+		aws.DataClient.getColumn(ids[i], null, null, null, function(result) {
+			columns.push(result);
+		});
+	}
+	handleResult(columns);
+};
+
+aws.DataClient.getColumnsFromTableId = function(id, handleResult) {
+	aws.DataClient.getEntityChildIds(id, function(ids) {
+		aws.DataClient.getColumnsFromIds(ids, handleResult);
+	});
+};
 /**
  * @param {Object} meta
  * @param {function(Object)} handleResult
@@ -85,4 +101,28 @@ aws.DataClient.getDataMapping = function(varValues, callback)
 			callback(result);
 		}
 	);
+};
+
+/**
+ * This function will return a dataset, given a list of entity ids
+ * @param {Array.<number>} ids Array of ids
+ * 
+ * @param {function(Array.<Object>)} callback A callback which receives the data mapping.
+ */
+aws.DataClient.getDataSet = function(ids, callback)
+{
+	aws.queryService(dataServiceURL, "getDataSet", [ids], callback);
+};
+
+/**
+ * This function will return a dataset, given a single table entity id.
+ * @param {number} id table id
+ * 
+ * @param {function(Array.<Object>)} callback A callback which receives the data mapping.
+ */
+aws.DataClient.getDataSetFromTableId = function(id, callback)
+{
+	aws.DataClient.getEntityChildIds(id, function(ids) {
+		aws.DataClient.getDataSet(ids, callback);
+	});
 };

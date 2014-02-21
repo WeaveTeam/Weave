@@ -1,0 +1,20 @@
+<div ng-controller = "MetadataManagerCtrl" >
+			
+		Data Table: <select ng-model="dataTable" style=width:200px; ng-options="dt.title for dt in dataTableList"></select><br>
+		
+		Columns: <select ng-model="columnSelected" ng-options="column.title for column in columnList" style="width:40%"></select><br>
+		
+		<textarea  ng-model="aws_metadataTextArea" width="100%" cols="100" rows="10"></textarea><br>
+		<input type="button" value="Update" ng-click="update()">
+		<input type="button" value="Refresh" ng-click="refresh()">
+		<div id="log"></div>
+		<br><br>
+		Paste Metadata CSV here:<br>
+		<textarea ng-model="aws_metadataCSV" width="100%" cols="100" rows="10"></textarea><br>
+		<input type="button" value="Update" ng-click="updateFromCSV()">
+		
+		<script>
+			
+			
+		</script>	
+</div>

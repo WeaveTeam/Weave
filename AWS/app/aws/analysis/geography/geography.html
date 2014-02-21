@@ -1,0 +1,18 @@
+<div ng-controller="GeographyCtrl">
+	<div class="portlet-header">
+		<span>{{panelTitle}}</span>
+	</div>
+	<div class="portlet-content">
+		<div>
+			<br>State<br>
+			<select ui-select2 ng-model="stateSelection" data-placeholder="Choose State">
+				<option></option>
+				<option value="{{st}}" ng-repeat="st in stateOptions">{{st.label}}</option>
+			</select>
+			<br>Counties<br>
+			<select ui-select2 multiple ng-model="countySelection" data-placeholder="Choose Counties">
+				<option value="{{ct}}" ng-repeat="ct in countyOptions">{{ct.label}}</option>
+			</select>
+		</div>
+	</div>
+</div>

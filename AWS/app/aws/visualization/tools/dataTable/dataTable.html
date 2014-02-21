@@ -1,0 +1,10 @@
+<div ng-controller="DataTableCtrl">
+	<div class="portlet-header">
+		<span><input type="checkbox" ng-model="enabled"/> {{panelTitle}}</span>
+	</div>
+	<div class="portlet-content">
+		<select id="duallistboxid" dual-list-box multiple ng-model="selected" data-placeholder="Choose Columns"
+			 ng-options="opt for opt in options"> 
+		</select>
+	</div>
+</div>
