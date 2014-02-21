@@ -71,10 +71,16 @@ package weave.services
 		 */
 		public function getFocusEntityId():int
 		{
+			// if the entity does not exist on the server, don't attempt to focus on it
+			if (!entityCache.entityIsCached(focusEntityId))
+				focusEntityId = -1;
 			return focusEntityId;
 		}
 		public function setFocusEntityId(id:int):void
 		{
+			// Request the entity now so that we can later detect if it
+			// exists on the server by checking entityCache.entityIsCached().
+			entityCache.getEntity(id);
 			focusEntityId = id;
 		}
 		public function clearFocusEntityId():void

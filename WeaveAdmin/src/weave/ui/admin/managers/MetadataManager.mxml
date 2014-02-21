@@ -13,7 +13,7 @@
 			</ui:HelpComponent>
 		</ui:Indent>
         <ui:WeaveTree id="tableTree" width="100%" height="100%"
-					   rootNode="{new EntityNode(Admin.entityCache, EntityType.TABLE, filterTables)}"
+					   rootNode="{new EntityNode(Admin.entityCache, EntityType.TABLE, filterTableTreeNodes)}"
 					   dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
@@ -70,6 +70,7 @@
 	import weave.ui.WeaveTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
+	import weave.utils.VectorUtils;
 	
 	private function categoryOrHierarchyLabel(hierarchyTreeSelectedItems:Array):String
 	{
@@ -154,7 +155,7 @@
 	private function handleTableSearch():void
 	{
 		var searchStr:String = addWildcards(tableSearch.text.toLowerCase());
-		tableFilterRegExp = strToRegExp(searchStr);
+		filterTableRegExp = strToRegExp(searchStr);
 		filterByTableId = isUnsignedInt(tableSearch.text) ? uint(tableSearch.text) : -1;
 		Admin.instance.setFocusEntityId(filterByTableId);
 		tableTree.refresh();
@@ -162,8 +163,10 @@
 	
 	private function handleColumnSearch():void
 	{
+		var searchStr:String = addWildcards(columnSearch.text.toLowerCase());
 		filterByColumnIds = null;
 		filterByTableIdLookup = null;
+		filterByColumnIdLookup = null;
 		
 		if (!columnSearch.text)
 		{
@@ -183,7 +186,7 @@
 		
 		var query:EntitySearchCriteria = new EntitySearchCriteria();
 		query.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
-		query.publicMetadata[ColumnMetadata.TITLE] = addWildcards(columnSearch.text);
+		query.publicMetadata[ColumnMetadata.TITLE] = searchStr;
 		query.publicWildcardFields = [ColumnMetadata.TITLE];
 		addAsyncResponder(
 			Admin.service.findEntityIds(query),
@@ -191,9 +194,13 @@
 			{
 				if (search != columnSearch.text)
 					return;
-				filterByColumnIds = event.result as Array;
-				for each (var id:int in filterByColumnIds)
+				var ids:Array = event.result as Array;
+				filterByColumnIds = ids;
+				if (ids.length == 1)
+					Admin.instance.setFocusEntityId(ids[0]);
+				for each (var id:int in ids)
 					Admin.entityCache.getEntity(id);
+					
 				tableTree.refresh();
 			},
 			null,
@@ -203,41 +210,55 @@
 	
 	private var filterByTableId:int = -1; // table id
 	private var filterByColumnIds:Array = null; // list of column ids
+	private var filterByColumnIdLookup:Object = null; // column id -> true
 	private var filterByTableIdLookup:Object = null; // table id -> true
-	private var tableFilterRegExp:RegExp = new RegExp(".*");
+	private var filterTableRegExp:RegExp = new RegExp(".*");
 	
-	private function filterTables(tableNode:EntityNode):Boolean
+	private function filterTableTreeNodes(node:EntityNode):Boolean
 	{
-		var ts:String = tableSearch.text;
-		if (ts)
+		var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(node.id);
+		if (info && info.entityType == EntityType.TABLE) // this is a table node
 		{
+			// if we're only supposed to show one table, that's the only filtering criteria
 			if (filterByTableId >= 0)
+				return node.id == filterByTableId;
+			
+			// if columns are being filtered, only show the tables that contain those columns
+			if (filterByColumnIds)
 			{
-				if (tableNode.id != filterByTableId)
-					return false; // table id didn't match
-			}
-			else
-			{
-				var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(tableNode.id);
-				if (!(info && info.title && tableFilterRegExp.test(info.title.toLowerCase())))
-					return false; // table name didn't match
-			}
-		}
-		var cs:String = columnSearch.text.toLowerCase();
-		if (cs)
-		{
-			if (!filterByTableIdLookup)
-			{
-				var newLookup:Object = {};
-				for each (var childId:* in filterByColumnIds)
-					for each (var parentId:* in Admin.entityCache.getEntity(childId).parentIds)
-						newLookup[parentId] = true;
-				filterByTableIdLookup = newLookup;
+				if (!filterByTableIdLookup)
+				{
+					// Use a separate variable for building the lookup because getEntity()
+					// may trigger callbacks and set filterByTableIdLookup to null.
+					var newLookup:Object = {};
+					for each (var childId:* in filterByColumnIds)
+					{
+						// avoid requesting entities that do not exist on the server
+						if (Admin.entityCache.entityIsCached(childId))
+							VectorUtils.fillKeys(newLookup, Admin.entityCache.getEntity(childId).parentIds);
+					}
+					filterByTableIdLookup = newLookup;
+				}
+				// stop if we don't want this table
+				if (!filterByTableIdLookup[node.id])
+					return false;
 			}
 			
-			if (!filterByTableIdLookup[tableNode.id])
-				return false;
+			// if search text was entered, filter by title
+			if (tableSearch.text)
+				return info.title && filterTableRegExp.test(info.title.toLowerCase());
 		}
+		else // this is a column node
+		{
+			if (filterByColumnIds)
+			{
+				if (!filterByColumnIdLookup)
+					VectorUtils.fillKeys(filterByColumnIdLookup = {}, filterByColumnIds);
+				if (!filterByColumnIdLookup[node.id])
+					return false;
+			}
+		}
+		// return true if this node was not filtered out
 		return true;
 	}
 	

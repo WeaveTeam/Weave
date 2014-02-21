@@ -246,7 +246,7 @@ package weave.data.hierarchy
 				var child:EntityNode = _childNodeCache[childId] as EntityNode;
 				if (!child)
 				{
-					child = new EntityNode(cache);
+					child = new EntityNode(cache, null, _nodeFilterFunction);
 					child.id = childId;
 					_childNodeCache[childId] = child;
 				}
