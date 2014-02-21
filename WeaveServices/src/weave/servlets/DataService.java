@@ -64,7 +64,6 @@ import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
-import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -90,43 +89,6 @@ public class DataService extends GenericServlet
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
-	@SuppressWarnings("rawtypes")
-	@Override
-	protected Object cast(Object value, Class<?> type) throws RemoteException
-	{
-		value = super.cast(value, type);
-		if (type.isInstance(value))
-			return value;
-		
-		//TODO - is the code below required, or does super.cast() already handle it properly?
-		
-		if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
-		{
-			FilteredColumnRequest fcr = new FilteredColumnRequest();
-			fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
-			fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
-			if (fcr.filters != null)
-				for (int i = 0; i < fcr.filters.length; i++)
-				{
-					Object item = fcr.filters[i];
-					if (item != null && item.getClass() == ArrayList.class)
-						fcr.filters[i] = cast(item, Object[].class);
-				}
-			return fcr;
-		}
-		if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
-		{
-			Object[] input = (Object[]) value;
-			FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
-			for (int i = 0; i < input.length; i++)
-			{
-				output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
-			}
-			value = output;
-		}
-		return value;
-	}
-	
 	/////////////////////
 	// helper functions
 	
@@ -138,16 +100,11 @@ public class DataService extends GenericServlet
 		return entity;
 	}
 	
-	private static boolean isEmpty(String str)
-	{
-		return str == null || str.length() == 0;
-	}
-	
 	private void assertColumnHasPrivateMetadata(DataEntity columnEntity, String ... fields) throws RemoteException
 	{
 		for (String field : fields)
 		{
-			if (isEmpty(columnEntity.privateMetadata.get(field)))
+			if (Strings.isEmpty(columnEntity.privateMetadata.get(field)))
 			{
 				String dataType = columnEntity.publicMetadata.get(PublicMetadata.DATATYPE);
 				String description = (dataType != null && dataType.equals(DataType.GEOMETRY)) ? "Geometry column" : "Column";
@@ -344,7 +301,7 @@ public class DataService extends GenericServlet
 			
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
-			if (isEmpty(dataType))
+			if (Strings.isEmpty(dataType))
 			{
 				dataType = DataType.fromSQLType(result.columnTypes[1]);
 				entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
@@ -570,20 +527,6 @@ public class DataService extends GenericServlet
 		public Object[] filters;
 	}
 	
-//	public WeaveRecordList getFilteredData(FilteredColumnRequest[] columns) throws RemoteException
-//	{
-//		return getFilteredRows(columns, null);
-//	}
-	
-	/*
-	
-	[
-		{id: 1, filters: ["a","b"]},
-		{id: 2, filters: [[min,max],[min2,max2]]}
-	]
-	
-	 */
-
 	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
 	{
 		ColumnFilter[] cfArray = new ColumnFilter[columns.length];
@@ -608,6 +551,12 @@ public class DataService extends GenericServlet
 		return SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
 	}
 	
+	/*
+		[
+			{id: 1, filters: ["a","b"]},
+			{id: 2, filters: [[min,max],[min2,max2]]}
+		]
+	*/
 	@SuppressWarnings("unchecked")
 	public static WeaveRecordList getFilteredRows(FilteredColumnRequest[] columns, String[] keysArray) throws RemoteException
 	{
@@ -740,7 +689,7 @@ public class DataService extends GenericServlet
 					//timer.lap("get row set");
 					// if dataType is defined in the config file, use that value.
 					// otherwise, derive it from the sql result.
-					if (isEmpty(dataType))
+					if (Strings.isEmpty(dataType))
 						dataType = DataType.fromSQLType(sqlResult.columnTypes[1]);
 					boolean isNumeric = dataType != null && dataType.equalsIgnoreCase(DataType.NUMBER);
 					

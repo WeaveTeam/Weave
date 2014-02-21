@@ -23,14 +23,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -75,35 +77,10 @@ import flex.messaging.messages.ErrorMessage;
 
 /**
  * This class provides a servlet interface to a set of functions.
- * The functions may be invoked using URL parameters via HTTP GET or AMF3-serialized objects via HTTP POST.
- * Currently, the result of calling a function is given as an AMF3-serialized object.
- * 
- * TODO: Provide optional JSON output.
- * 
- * Not all objects will be supported automatically.
- * GenericServlet supports basic AMF3-serialized objects such as String,Object,Array.
- * 
- * The following mappings work (ActionScript -> Java):
- * Array -> Object[], Object[][], String[], String[][], double[], double[][], List
- * Object -> Map<String,Object>
- * String -> String, int, Integer, boolean, Boolean
- * Boolean -> boolean, Boolean
- * Number -> double
- * Raw byte stream -> Java InputStream
- * 
- * The following Java parameter types are supported:
- * boolean, Boolean
- * int, Integer
- * float, Float
- * double, Double
- * String, String[], String[][]
- * Object, Object[], Object[][]
- * double[], double[][]
- * Map<String,Object>
- * List
- * InputStream
- * 
- * TODO: Add support for more common parameter types.
+ * The functions may be invoked using URL parameters via HTTP GET using url parameters
+ * or via HTTP POST using JSON RPC 2.0 or AMF3-serialized objects.
+ * If using URL variables or JSON RPC 2.0, the return value will be provided as a JSON RPC 2.0 response object.
+ * If using AMF3, the return value will be provided as compressed AMF3.
  * 
  * @author skota
  * @author adufilie
@@ -721,77 +698,99 @@ public class GenericServlet extends HttpServlet
 	 * @param type The desired type.
 	 * @return The value, which may have been cast as the new type.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object cast(Object value, Class<?> type) throws RemoteException
 	{
 		if (type.isInstance(value))
 			return value;
 
-		if (value == null)
+		try
 		{
-			if (type == double.class || type == Double.class)
-				value = Double.NaN;
-			else if (type == float.class || type == Float.class)
-				value = Float.NaN;
-		}
-		else if (value instanceof Map)
-		{
-			try
+			if (value == null) // null -> NaN
+			{
+				if (type == double.class || type == Double.class)
+					value = Double.NaN;
+				else if (type == float.class || type == Float.class)
+					value = Float.NaN;
+				return value;
+			}
+			
+			if (value instanceof Map) // Map -> Java Bean
 			{
 				Object bean = type.newInstance();
 				for (Field field : type.getFields())
 				{
-					Object fieldValue = ((Map)value).get(field.getName());
+					Object fieldValue = ((Map<?,?>)value).get(field.getName());
 					fieldValue = cast(fieldValue, field.getType());
 					field.set(bean, fieldValue);
 				}
-				value = bean;
+				return bean;
 			}
-			catch (Exception e)
+			
+			if (type.isArray()) // ? -> T[]
 			{
-				throw new RemoteException("Unable to cast Map to " + type.getName(), e);
+				if (value instanceof String) // String -> String[]
+					value = CSVParser.defaultParser.parseCSVRow((String)value, true);
+				
+				if (value instanceof List) // List -> Object[]
+					value = ((List<?>)value).toArray();
+				
+				if (value.getClass().isArray()) // T1[] -> T2[]
+				{
+					int n = Array.getLength(value);
+					Class<?> itemType = type.getComponentType();
+					Object output = Array.newInstance(itemType, n);
+					while (n-- > 0)
+						Array.set(output, n, cast(Array.get(value, n), itemType));
+					return output;
+				}
 			}
-		}
-		else if (value instanceof String)
-		{
-			try
+
+			if (Collection.class.isAssignableFrom(type)) // ? -> <? extends Collection>
 			{
-				if (type == int.class || type == Integer.class)
+				value = cast(value, Object[].class); // ? -> Object[]
+				
+				if (value.getClass().isArray()) // T1[] -> Vector<T2>
 				{
-					value = Integer.parseInt((String)value);
+					int n = Array.getLength(value);
+					List<Object> output = new Vector<Object>(n);
+					TypeVariable<?>[] itemTypes = type.getTypeParameters();
+					Class<?> itemType = itemTypes.length > 0 ? itemTypes[0].getClass() : null;
+					while (n-- > 0)
+					{
+						Object item = Array.get(value, n);
+						if (itemType != null)
+							item = cast(item, itemType); // T1 -> T2
+						output.set(n, item);
+					}
+					return output;
 				}
-				else if (type == float.class || type == Float.class)
+			}
+			
+			if (value instanceof String) // String -> ?
+			{
+				String string = (String)value;
+				
+				try // String -> primitive
 				{
-					value = Float.parseFloat((String)value);
+					if (type == char.class || type == Character.class) return string.charAt(0);
+					if (type == byte.class || type == Byte.class) return Byte.parseByte(string);
+					if (type == long.class || type == Long.class) return Long.parseLong(string);
+					if (type == int.class || type == Integer.class) return Integer.parseInt(string);
+					if (type == short.class || type == Short.class) return Short.parseShort(string);
+					if (type == float.class || type == Float.class) return Float.parseFloat(string);
+					if (type == double.class || type == Double.class) return Double.parseDouble(string);
+					if (type == boolean.class || type == Boolean.class) return string.equalsIgnoreCase("true");
 				}
-				else if (type == double.class || type == Double.class)
+				catch (NumberFormatException e)
 				{
-					value = Double.parseDouble((String)value);
+					// if number parsing fails, leave the original value untouched
 				}
-				else if (type == boolean.class || type == Boolean.class)
-				{
-					//value = Boolean.parseBoolean((String)value);
-					value = ((String)(value)).equalsIgnoreCase("true");
-				}
-				else if (type.isArray() || type == List.class)
-				{
-					String[][] table = CSVParser.defaultParser.parseCSV((String)value, true);
-					if (table.length == 0)
-						value = new String[0]; // empty
-					else
-						value = table[0]; // first row
-					
-					if (type == List.class)
-						value = Arrays.asList((String[])value);
-					else
-						value = cast(value, type);
-				}
-				else if (type == InputStream.class)
+				
+				if (type == InputStream.class) // String -> InputStream
 				{
 					try
 					{
-						String temp = (String) value;
-						value = (InputStream)new ByteArrayInputStream(temp.getBytes("UTF-8"));
+						return new ByteArrayInputStream(string.getBytes("UTF-8"));
 					}
 					catch (Exception e)
 					{
@@ -799,97 +798,27 @@ public class GenericServlet extends HttpServlet
 					}
 				}
 			}
-			catch (NumberFormatException e)
+			
+			if (value instanceof Number) // Number -> primitive
 			{
-				// if number parsing fails, leave the original value untouched
+				Number number = (Number)value;
+				if (type == byte.class || type == Byte.class) return number.byteValue();
+				if (type == long.class || type == Long.class) return number.longValue();
+				if (type == int.class || type == Integer.class) return number.intValue();
+				if (type == short.class || type == Short.class) return number.shortValue();
+				if (type == float.class || type == Float.class) return number.floatValue();
+				if (type == double.class || type == Double.class) return number.doubleValue();
+				if (type == char.class || type == Character.class) return Character.toChars(number.intValue())[0];
+				if (type == boolean.class || type == Boolean.class) return !Double.isNaN(number.doubleValue()) && number.intValue() != 0;
 			}
 		}
-		else if (value instanceof Boolean && type == boolean.class)
+		catch (Exception e)
 		{
-			value = (boolean)(Boolean)value;
+			throw new RemoteException(String.format("Unable to cast %s to %s", value.getClass().getName(), type.getName()), e);
 		}
-		else if (value.getClass() == ArrayList.class)
-		{
-			value = cast(((ArrayList)value).toArray(), type);
-		}
-		else if (value.getClass().isArray())
-		{
-			Object[] valueArray = (Object[])value;
-			if (type == List.class)
-			{
-				value = ListUtils.copyArrayToList(valueArray, new Vector());
-			}
-			else if (type == Object[][].class)
-			{
-				Object[][] valueMatrix = new Object[valueArray.length][];
-				for (int i = 0; i < valueArray.length; i++)
-				{
-					valueMatrix[i] = (Object[])valueArray[i];
-				}
-				value = valueMatrix;
-			}
-			else if (type == String[][].class)
-			{
-				String[][] valueMatrix = new String[valueArray.length][];
-				for (int i = 0; i < valueArray.length; i++)
-				{
-					// cast Objects to Strings
-					Object[] objectArray = (Object[])valueArray[i];
-					valueMatrix[i] = ListUtils.copyStringArray(objectArray, new String[objectArray.length]);
-				}
-				value = valueMatrix;
-			}
-			else if (type == String[].class)
-			{
-				value = ListUtils.copyStringArray(valueArray, new String[valueArray.length]);
-			}
-			else if (type == double[][].class)
-			{
-				double[][] valueMatrix = new double[valueArray.length][];
-				for (int i = 0; i < valueArray.length; i++)
-				{
-					// cast Objects to doubles
-					Object[] objectArray = (Object[])valueArray[i];
-					valueMatrix[i] = ListUtils.copyDoubleArray(objectArray, new double[objectArray.length]);
-				}
-				value = valueMatrix;
-			}
-			else if (type == double[].class)
-			{
-				value = ListUtils.copyDoubleArray(valueArray, new double[valueArray.length]);
-			}
-			else if (type == int[][].class)
-			{
-				int[][] valueMatrix = new int[valueArray.length][];
-				for (int i = 0; i < valueArray.length; i++)
-				{
-					// cast Objects to doubles
-					Object[] objectArray = (Object[])valueArray[i];
-					valueMatrix[i] = ListUtils.copyIntegerArray(objectArray, new int[objectArray.length]);
-				}
-				value = valueMatrix;
-			}
-			else if (type == int[].class)
-			{
-				value = ListUtils.copyIntegerArray(valueArray, new int[valueArray.length]);
-			}
-		}
-		else if (value instanceof Number)
-		{
-			if (type == int.class || type == Integer.class)
-			{
-				value = ((Number)value).intValue();
-			}
-			else if (type == double.class || type == Double.class)
-			{
-				value = ((Number)value).doubleValue();
-			}
-			else if (type == float.class || type == Float.class)
-			{
-				value = ((Number)value).floatValue();
-			}
-		}
-		return value;
+		
+		// if all else fails, use default cast
+		return type.cast(value);
 	}
 	
     /**
