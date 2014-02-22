@@ -317,6 +317,11 @@
 			// called when the tool triggers callbacks
 			private function handleToolChange():void
 			{
+				if (!parent)
+				{
+					callLater(handleToolChange)
+					return;
+				}
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = targetTool.value;
 				
