@@ -202,6 +202,7 @@ package weave.application
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
 			WeaveAPI.initializeExternalInterface();
+			ExternalInterface.addCallback('loadFile', loadFile);
 
 			getFlashVars();
 			handleFlashVarPresentation();
@@ -252,6 +253,21 @@ package weave.application
 				ErrorLogPanel.openErrorLog();
 		}
 		
+		private var _requestedConfigFile:String;
+		/**
+		 * Loads a session state file from a URL.
+		 * @param url The URL to the session state file (.weave or .xml).
+		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.
+		 */
+		public function loadFile(url:String, noCacheHack:Boolean = false):void
+		{
+			_requestedConfigFile = url;
+			// load the session state file
+			if (noCacheHack)
+				url += "?" + (new Date()).getTime(); // prevent flex from using cache
+			WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
+		}
+		
 		private function downloadConfigFile():void
 		{
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
@@ -260,11 +276,8 @@ package weave.application
 			}
 			else
 			{
-				// load the session state file
 				var fileName:String = getFlashVarFile() || DEFAULT_CONFIG_FILE_NAME;
-				var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-				
-				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
+				loadFile(fileName, true);
 			}
 		}
 		private function handleConfigFileDownloaded(event:ResultEvent = null, fileName:String = null):void
@@ -275,6 +288,9 @@ package weave.application
 			}
 			else
 			{
+				// ignore old requests
+				if (fileName != _requestedConfigFile)
+					return;
 				if (Capabilities.playerType == "Desktop")
 					WeaveAPI.URLRequestUtils.setBaseURL(fileName);
 				loadSessionState(event.result, fileName);
