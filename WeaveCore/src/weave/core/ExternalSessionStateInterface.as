@@ -280,7 +280,8 @@ package weave.core
 		{
 			try
 			{
-				_compiler.includeLibraries.apply(null, staticLibraries);
+				if (staticLibraries)
+					_compiler.includeLibraries.apply(null, staticLibraries);
 				
 				var isAssignment:Boolean = (assignVariableName != null); // allows '' to be used to ignore resulting value
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);

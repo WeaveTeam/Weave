@@ -131,7 +131,7 @@ package weave.api.core
 		 * @param expression The expression to evaluate.
 		 * @param variables A hash map of variable names to values.
 		 * @param staticLibraries An array of fully qualified class names which contain static methods to include for future expressions, including this one.
-		 * @param assignVariableName An optional variable name to associate with the result of evaluating this expression.
+		 * @param assignVariableName An optional variable name to associate with the result of evaluating this expression. Use an empty string ("") to prevent returning a value.
 		 * @return The value of the evaluated expression, or undefined if assignVariableName was specified.
 		 * @see weave.compiler.Compiler
 		 */
