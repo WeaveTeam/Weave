@@ -817,8 +817,9 @@ public class GenericServlet extends HttpServlet
 			throw new RemoteException(String.format("Unable to cast %s to %s", value.getClass().getName(), type.getName()), e);
 		}
 		
-		// if all else fails, use default cast
-		return type.cast(value);
+		// Return original value if not handled above.
+		// Primitives and their Object equivalents will cast automatically.
+		return value;
 	}
 	
     /**
