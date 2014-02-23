@@ -14,11 +14,11 @@ weave.addCallback = function(target, callback, triggerNow, immediateMode)
 };
 // enhance weave.removeCallback() to support function pointers
 var _removeCallback = weave.removeCallback;
-weave.removeCallback = function(target, callback)
+weave.removeCallback = function(target, callback, everywhere)
 {
 	if (typeof callback == 'function')
 		callback = this.callbackToString(callback); // don't update 'this' context when removing callback
-	return _removeCallback.call(this, target, callback);
+	return _removeCallback.call(this, target, callback, everywhere);
 };
 // enhance weave.loadFile() to support function pointers
 var _loadFile = weave.loadFile;
@@ -291,13 +291,15 @@ weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, i
 	return this;
 };
 /**
- * Removes a callback from the object at the current path.
+ * Removes a callback from the object at the current path or from everywhere.
+ * First parameter is the callback function.
+ * Second parameter is optional, and if set to true will remove the callback from every object to which it was added.
  */
-weave.WeavePath.prototype.removeCallback = function(callback)
+weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
 {
 	if (assertParams('removeCallback', arguments))
 	{
-		this.weave.removeCallback(this._path, callback)
+		this.weave.removeCallback(this._path, callback, everywhere)
 			|| failObject('removeCallback', this._path);
 	}
 	return this;

@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -31,6 +32,7 @@ package weave.core
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
+	import weave.utils.Dictionary2D;
 
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
@@ -317,7 +319,8 @@ package weave.core
 		/**
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
 		 */		
-		private const _callbackFunctionCache:Object = {};
+		private var _callbackFunctionCache:Object = {};
+		private var _d2d_callbackStr_target:Dictionary2D = new Dictionary2D(true, true);
 		
 		/**
 		 * @private
@@ -355,6 +358,7 @@ package weave.core
 			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
+			_d2d_callbackStr_target.set(callback, object, true);
 			if (immediateMode)
 				getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
 			else
@@ -365,13 +369,35 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function removeCallback(objectPathOrVariableName:Object, callback:String):Boolean
+		public function removeCallback(objectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean
 		{
+			if (everywhere)
+			{
+				for (var target:Object in _d2d_callbackStr_target.dictionary[callback])
+					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callback] as Function);
+				delete _callbackFunctionCache[callback];
+				delete _d2d_callbackStr_target.dictionary[callback];
+				return true;
+			}
+			
 			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
+			_d2d_callbackStr_target.remove(callback, object);
 			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
 			return true;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function removeAllCallbacks():void
+		{
+			for (var callbackStr:String in _d2d_callbackStr_target.dictionary)
+				for (var target:Object in _d2d_callbackStr_target.dictionary[callbackStr])
+					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callbackStr] as Function);
+			_callbackFunctionCache = {};
+			_d2d_callbackStr_target = new Dictionary2D(true, true);
 		}
 		
 		/**

@@ -154,8 +154,15 @@ package weave.api.core
 		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
 		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
 		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
+		 * @param everywhere If set to true, removes the callback from every object to which it was added.
 		 * @return true if successful.
 		 */
-		function removeCallback(scopeObjectPathOrVariableName:Object, callback:String):Boolean;
+		function removeCallback(scopeObjectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean;
+		
+		/**
+		 * This function will remove all callbacks that were previously added using addCallback().
+		 * You may want to call this before calling loadFile() to prevent unwanted behavior due to scripts previously executed.
+		 */
+		function removeAllCallbacks():void;
 	}
 }
