@@ -23,7 +23,6 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
-		 creationComplete="creationComplete();"
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
@@ -124,9 +123,11 @@
 				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
-			
-			protected function creationComplete():void
+
+			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
+				
 				cRampEditor.colorRamp = _plotter.chartColors;
 				linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
 				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
