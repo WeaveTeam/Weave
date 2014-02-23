@@ -86,7 +86,14 @@ weave.callbackToString = function(callback, thisObj)
  */
 weave.path = function(/*...basePath*/)
 {
-	return new weave.WeavePath(arguments.length == 1 ? arguments[0] : arguments);
+	var basePath = arguments[0];
+	if (!Array.isArray(basePath))
+	{
+		basePath = [];
+		for (var i in arguments)
+			basePath[i] = arguments[i];
+	}
+	return new weave.WeavePath(basePath);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
