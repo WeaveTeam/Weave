@@ -284,6 +284,9 @@ package weave.core
 					_compiler.includeLibraries.apply(null, staticLibraries);
 				
 				var isAssignment:Boolean = (assignVariableName != null); // allows '' to be used to ignore resulting value
+				if (assignVariableName && !_compiler.isValidSymbolName(assignVariableName))
+					throw new Error("Invalid variable name: " + Compiler.encodeString(assignVariableName));
+				
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				var compiledObject:ICompiledObject = _compiler.compileToObject(expression);
 				var isFuncDef:Boolean = _compiler.compiledObjectIsFunctionDefinition(compiledObject);
