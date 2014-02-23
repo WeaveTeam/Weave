@@ -80,7 +80,7 @@ weave.callbackToString = function(callback, thisObj)
 }
 
 /**
- * Creates a WeavePath object.
+ * Creates a WeavePath object.  This is a shortcut for "new weave.WeavePath(basePath)".
  * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
  * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
  */
