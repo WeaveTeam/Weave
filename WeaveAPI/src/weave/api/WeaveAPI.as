@@ -38,6 +38,7 @@ package weave.api
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.utils.getExternalObjectID;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -170,9 +171,13 @@ package weave.api
 		/**
 		 * This is a JavaScript statement that sets a variable called "weave" equal to the embedded SWF object.
 		 */
-		public static const JS_var_weave:String = ExternalInterface.objectID
-			? 'var weave = document.getElementById("' + ExternalInterface.objectID + '");'
-			: 'var weave = document.body.firstChild;';
+		public static function get JS_var_weave():String
+		{
+			if (!_JS_var_weave)
+				_JS_var_weave = 'var weave = document.getElementById("' + getExternalObjectID('weave') + '");';
+			return _JS_var_weave;
+		}
+		private static var _JS_var_weave:String = null;
 
 		/**
 		 * avmplus.describeTypeJSON(o:*, flags:uint):Object

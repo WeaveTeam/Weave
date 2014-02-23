@@ -26,6 +26,7 @@ package weave.core
 	
 	import mx.core.UIComponent;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
@@ -267,7 +268,7 @@ package weave.core
 
 			/*
 			// create script to initialize the 'weave' variable
-			var initScript:String = 'var weave = document.getElementById("' + ExternalInterface.objectID + '");';
+			var initScript:String = WeaveAPI.JS_var_weave;
 			
 			// attempt to delay alert boxes, without delaying other types of scripts
 			if (script.search("(alert|confirm|prompt)[\\ \n\t]*\\(") >= 0)
