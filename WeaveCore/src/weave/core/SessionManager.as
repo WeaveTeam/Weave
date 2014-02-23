@@ -1088,8 +1088,8 @@ package weave.core
 			// set some variables to aid in debugging - only useful if you add a breakpoint here.
 			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
-			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push[obj]; }
-			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push[obj]; }
+			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push(obj); }
+			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push(obj); }
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
