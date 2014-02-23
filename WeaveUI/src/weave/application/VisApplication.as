@@ -201,8 +201,8 @@ package weave.application
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
-			WeaveAPI.initializeExternalInterface();
 			ExternalInterface.addCallback('loadFile', loadFile);
+			WeaveAPI.initializeExternalInterface();
 
 			getFlashVars();
 			handleFlashVarPresentation();
@@ -254,22 +254,29 @@ package weave.application
 		}
 		
 		private var _requestedConfigFile:String;
+		private var _loadFileCallback:Function;
 		/**
 		 * Loads a session state file from a URL.
 		 * @param url The URL to the session state file (.weave or .xml).
+		 * @param callback Either a Function or a String containing a JavaScript function definition. The callback will be invoked when the file loading completes.
 		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.
 		 */
-		public function loadFile(url:String, noCacheHack:Boolean = false):void
+		public function loadFile(url:String, callback:Object = null, noCacheHack:Boolean = false):void
 		{
 			_requestedConfigFile = url;
-			// load the session state file
+			_loadFileCallback = callback as Function;
+			if (callback is String)
+				_loadFileCallback = function():void { ExternalInterface.call(callback as String); };
+			
 			if (noCacheHack)
 				url += "?" + (new Date()).getTime(); // prevent flex from using cache
+			
 			WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
 		}
 		
 		private function downloadConfigFile():void
 		{
+			_loadFileCallback = null;
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
 			{
 				handleConfigFileDownloaded();
@@ -277,7 +284,7 @@ package weave.application
 			else
 			{
 				var fileName:String = getFlashVarFile() || DEFAULT_CONFIG_FILE_NAME;
-				loadFile(fileName, true);
+				loadFile(fileName, null, true);
 			}
 		}
 		private function handleConfigFileDownloaded(event:ResultEvent = null, fileName:String = null):void
@@ -308,6 +315,8 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
+			if (_loadFileCallback != null)
+				_loadFileCallback();
 			WeaveAPI.callExternalWeaveReady();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void

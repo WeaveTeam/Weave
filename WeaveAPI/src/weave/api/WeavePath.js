@@ -1,13 +1,83 @@
 // This code assumes it is being executed within a function(){} where the 'weave' variable is defined.
 
-if (!weave.id)
-	weave.id = 'weave';
-
 // browser backwards compatibility
 if (!Array.isArray)
 	Array.isArray = function(o) { return Object.prototype.toString.call(o) === '[object Array]'; }
 
-// variables global to this Weave instance
+// enhance weave.addCallback() to support function pointers
+var _addCallback = weave.addCallback;
+weave.addCallback = function(target, callback, triggerNow, immediateMode)
+{
+	if (typeof callback == 'function')
+		callback = this.callbackToString(callback, Array.isArray(target) ? weave.path(target) : weave.path());
+	return _addCallback.call(this, target, callback, triggerNow, immediateMode);
+};
+// enhance weave.removeCallback() to support function pointers
+var _removeCallback = weave.removeCallback;
+weave.removeCallback = function(target, callback)
+{
+	if (typeof callback == 'function')
+		callback = this.callbackToString(callback); // don't update 'this' context when removing callback
+	return _removeCallback.call(this, target, callback);
+};
+// enhance weave.loadFile() to support function pointers
+var _loadFile = weave.loadFile;
+weave.loadFile = function(url, callback, noCacheHack)
+{
+	if (typeof callback == 'function')
+		callback = this.callbackToString(callback);
+	return _loadFile.call(this, url, callback, noCacheHack);
+};
+
+/**
+ * For internal use with weave.addCallback() and weave.removeCallback().
+ * @param callback The callback function.
+ * @param thisObj The 'this' context to use for the callback function.
+ * @return A String containing a script for a function that invokes the callback.
+ */
+weave.callbackToString = function(callback, thisObj)
+{
+	// callback entries must be stored in a public place so they can be accessed by Weave
+	var list = this.callbackToString.list;
+	if (!list)
+		list = this.callbackToString.list = [];
+	
+	// try to find the callback in the list
+	for (var i in list)
+	{
+		if (list[i]['callback'] == callback)
+		{
+			// update thisObj if specified
+			if (thisObj)
+				list[i]['this'] = thisObj;
+			// this callback has already been listed
+			return list[i]['string'];
+		}
+	}
+	
+	// if this has no id, create one that is not already in use
+	if (!this.id)
+	{
+		var id = 'weave';
+		while (document.getElementById(id))
+			id += '_';
+		this.id = id;
+	}
+	
+	// build a script for a function that invokes the callback
+	var idStr = JSON && JSON.stringify ? JSON.stringify(this.id) : '"' + this.id + '"';
+	var string = 'function(){' +
+			'var weave = document.getElementById('+idStr+');' +
+			'var obj = weave.callbackToString.list['+list.length+'];' +
+			'obj["callback"].apply(obj["this"]);' +
+		'}';
+	list.push({
+		"callback": callback,
+		"string": string,
+		"this": thisObj
+	});
+	return string;
+}
 
 /**
  * Creates a WeavePath object.
@@ -16,459 +86,422 @@ if (!Array.isArray)
  */
 weave.path = function(/*...basePath*/)
 {
-	return new WeavePath(arguments);
+	return new weave.WeavePath(arguments.length == 1 ? arguments[0] : arguments);
 };
-weave.path.vars = {}; // used with exec() and getVar()
-weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with properties: callback, name, path
 
-// enhance weave.addCallback() to support function pointers
-var _addCallback = weave.addCallback;
-weave.addCallback = function(target, callback, triggerNow, immediateMode)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * WeavePath constructor.
+ * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
+ * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ */
+weave.WeavePath = function(/*...basePath*/)
 {
-	if (typeof callback == 'function')
-		callback = callbackToString(callback, Array.isArray(target) ? weave.path(target) : weave.path());
-	return _addCallback.call(this, target, callback, triggerNow, immediateMode);
+	// private variables
+	this._path = this._A(arguments, 1);
+	this._stack = []; // stack of argument counts from push() calls, used with pop()
+	this._reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all Object parameters
+}
+
+weave.WeavePath.prototype._vars = {}; // used with exec() and getVar()
+
+/**
+ * Private function for internal use.
+ * 
+ * Converts an arguments object to an Array, and then reconstructs the Array using JSON if natualize() was previously called.
+ * The first parameter is an arguments object.
+ * The second parameter is an integer flag for special behavior.
+ *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
+ *   - If set to 2, it handles arguments like (...LIST, REQUIRED_PARAM) where LIST can be either an Array or multiple arguments.
+ */
+weave.WeavePath.prototype._A = function(args, option)
+{
+	var array;
+	var value;
+	var n = args.length;
+	if (n && n == option && args[0] && Array.isArray(args[0]))
+	{
+		array = [].concat(args[0]);
+		for (var i = 1; i < n; i++)
+		{
+			value = args[i];
+			if (this._reconstructArgs && typeof value == 'object')
+				array.push(JSON.parse(JSON.stringify(value)));
+			else
+				array.push(value);
+		}
+	}
+	else // just convert Arguments to Array
+	{
+		array = [];
+		while (n--)
+		{
+			value = args[n];
+			if (this._reconstructArgs && typeof value == 'object')
+				array[n] = JSON.parse(JSON.stringify(value));
+			else
+				array[n] = value;
+		}
+	}
+	return array;
+}
+
+// public variables
+
+/**
+* A pointer to the Weave instance.
+*/
+weave.WeavePath.prototype.weave = weave;
+
+
+
+// public chainable methods
+
+/**
+ * Specify any number of names to push on to the end of the path.
+ * Accepts a list of names relative to the current path.
+ * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ */
+weave.WeavePath.prototype.push = function(/*...relativePath*/)
+{
+	var args = this._A(arguments, 1);
+	if (assertParams('push', args))
+	{
+		// append names to path
+		for (var i = 0; i < args.length; i++)
+			this._path.push(args[i]);
+		// remember the number of names we appended
+		this._stack.push(args.length);
+	}
+	return this;
 };
-// enhance weave.removeCallback() to support function pointers
-var _removeCallback = weave.removeCallback;
-weave.removeCallback = function(target, callback)
+/**
+ * Pops off all names from previous call to push().  No arguments.
+ */
+weave.WeavePath.prototype.pop = function()
 {
-	if (typeof callback == 'function')
-		callback = callbackToString(callback); // don't update path when removing callback
-	return _removeCallback.call(this, target, callback);
+	if (this._stack.length)
+		this._path.length -= this._stack.pop();
+	else
+		failMessage('pop', 'stack is empty');
+	return this;
+};
+/**
+ * Requests that an object be created if it doesn't already exist at (or relative to) the current path.
+ * Accepts an optional list of names relative to the current path.
+ * The final parameter should be the name of an ActionScript class in Weave.
+ */
+weave.WeavePath.prototype.request = function(/*...relativePath, objectType*/)
+{
+	var args = this._A(arguments, 2);
+	if (assertParams('request', args))
+	{
+		var type = args.pop();
+		var pathcopy = this._path.concat(args);
+		this.weave.requestObject(pathcopy, type)
+			|| failPath('request', pathcopy);
+	}
+	return this;
+};
+/**
+ * Removes a dynamically created object.
+ * Accepts an optional list of names relative to the current path.
+ */
+weave.WeavePath.prototype.remove = function(/*...relativePath*/)
+{
+	var pathcopy = this._path.concat(this._A(arguments, 1));
+	weave.removeObject(pathcopy)
+		|| failPath('remove', pathcopy);
+	return this;
+};
+/**
+ * Reorders the children of an ILinkableHashMap at the current path.
+ * Accepts an Array or a list of ordered child names.
+ */
+weave.WeavePath.prototype.reorder = function(/*...orderedNames*/)
+{
+	var args = this._A(arguments, 1);
+	if (assertParams('reorder', args))
+	{
+		this.weave.setChildNameOrder(this._path, args)
+			|| failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + this._path);
+	}
+	return this;
+};
+/**
+ * Sets the session state of the object at the current path or relative to the current path.
+ * Any existing dynamically created objects that do not appear in the new state will be removed.
+ * Accepts an optional list of names relative to the current path.
+ * The final parameter should be the session state.
+ */
+weave.WeavePath.prototype.state = function(/*...relativePath, state*/)
+{
+	var args = this._A(arguments, 2);
+	if (assertParams('state', args))
+	{
+		var state = args.pop();
+		var pathcopy = this._path.concat(args);
+		this.weave.setSessionState(pathcopy, state, true)
+			|| failObject('state', pathcopy);
+	}
+	return this;
+};
+/**
+ * Applies a session state diff to the object at the current path or relative to the current path.
+ * Existing dynamically created objects that do not appear in the new state will remain unchanged.
+ * Accepts an optional list of names relative to the current path.
+ * The final parameter should be the session state diff.
+ */
+weave.WeavePath.prototype.diff = function(/*...relativePath, diff*/)
+{
+	var args = this._A(arguments, 2);
+	if (assertParams('diff', args))
+	{
+		var diff = args.pop();
+		var pathcopy = this._path.concat(args);
+		this.weave.setSessionState(pathcopy, diff, false)
+			|| failObject('diff', pathcopy);
+	}
+	return this;
+};
+/**
+ * Adds a callback to the object at the current path.
+ * When the callback is called, a WeavePath object initialized at the current path will be used as the 'this' context.
+ * First parameter is the callback function.
+ * Second parameter is a Boolean, when set to true will trigger the callback now.
+ * Third parameter is a Boolean, when set to true will use an immediate callback instead of a grouped callback.
+ * If the same callback is added to multiple paths, only the last path will be used as the 'this' context.
+ */
+weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, immediateMode)
+{
+	if (assertParams('addCallback', arguments))
+	{
+		callback = this.weave.callbackToString(callback, new this.constructor(this._path));
+		this.weave.addCallback(this._path, callback, triggerCallbackNow, immediateMode)
+			|| failObject('addCallback', this._path);
+	}
+	return this;
+};
+/**
+ * Removes a callback from the object at the current path.
+ */
+weave.WeavePath.prototype.removeCallback = function(callback)
+{
+	if (assertParams('removeCallback', arguments))
+	{
+		this.weave.removeCallback(this._path, callback)
+			|| failObject('removeCallback', this._path);
+	}
+	return this;
+};
+/**
+ * Specifies additional variables to be used in subsequent calls to exec() and getValue().
+ * The variables will be made globally available for any WeavePath object created from the same Weave instance.
+ * The first parameter should be an object mapping variable names to values.
+ */
+weave.WeavePath.prototype.vars = function(newVars)
+{
+	for (var key in newVars)
+	{
+		var value = newVars[key];
+		if (this._reconstructArgs && typeof value == 'object')
+			this._vars[key] = JSON.parse(JSON.stringify(value));
+		else
+			this._vars[key] = value;
+	}
+	return this;
+};
+/**
+ * Specifies additional libraries to be included in subsequent calls to exec() and getValue().
+ */
+weave.WeavePath.prototype.libs = function(/*...libraries*/)
+{
+	var args = this._A(arguments, 1);
+	if (assertParams('libs', args))
+	{
+		// include libraries for future evaluations
+		this.weave.evaluateExpression(null, null, null, args);
+	}
+	return this;
+};
+/**
+ * Evaluates an ActionScript expression using the current path, vars, and libs.
+ * The 'this' context within the script will be the object at the current path.
+ * First parameter is the script to be evaluated by Weave using the object at the current path as the 'this' context.
+ * Second parameter is an optional callback or variable name.
+ * - If given a callback function, the function will be passed the result of
+ *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
+ * - If the second parameter is a variable name, the result will be stored as a variable
+ *   as if it was passed as an object property to WeavePath.vars().  It may then be used
+ *   in future calls to WeavePath.exec() or retrieved with WeavePath.getValue().
+ */
+weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
+{
+	var type = typeof callback_or_variableName;
+	var callback = type == 'function' ? callback_or_variableName : null;
+	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
+	var variableName = type == 'string' ? callback_or_variableName : "";
+	var result = weave.evaluateExpression(this._path, script, this._vars, null, variableName);
+	if (callback)
+		callback.apply(this, [result]);
+	
+	return this;
+};
+/**
+ * Applies a function with optional parameters, setting 'this' pointer to the WeavePath object
+ */
+weave.WeavePath.prototype.call = function(func/*[, ...args]*/)
+{
+	if (assertParams('call', arguments))
+	{
+		var a = this._A(arguments);
+		a.shift().apply(this, a);
+	}
+	return this;
+};
+/**
+ * Applies a function to each item in an Array or an Object.
+ * If items is an Array, this has the same effect as WeavePath.call(function(){ itemsArray.forEach(visitorFunction, this); }).
+ * If items is an Object, it will behave like WeavePath.call(function(){ for(var key in items) visitorFunction.call(this, items[key], key, items); }).
+ */
+weave.WeavePath.prototype.forEach = function(items, visitorFunction)
+{
+	if (assertParams('forEach', arguments, 2))
+	{
+		if (Array.isArray(items))
+			items.forEach(visitorFunction, this);
+		else
+			for (var key in items) visitorFunction.call(this, items[key], key, items);
+	}
+	return this;
 };
 
 /**
- * Private function for internal use with weave.addCallback() and weave.removeCallback().
+ * Enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
+ * Only the WeavePath object you are currently working with will be affected by this call.
+ * Note that if you use this mode, any occurrences of NaN and Infinity will be converted to null
+ * because this mode uses JSON.parse(JSON.stringify(...)) and those values are not supported by JSON.
  */
-function callbackToString(callback, path)
+weave.WeavePath.prototype.naturalize = function()
 {
-	var list = weave.path.callbacks;
-	for (var i in list)
-	{
-		if (list[i].callback == callback)
-		{
-			// update path if specified
-			if (path)
-				list[i]['path'] = path;
-			return list[i]['string'];
-		}
-	}
-	
-	var list = weave.path.callbacks;
-	var idStr = JSON && JSON.stringify ? JSON.stringify(weave.id) : '"' + weave.id + '"';
-	var string = 'function(){' +
-			'var weave = document.getElementById('+idStr+');' +
-			'var obj = weave.path.callbacks['+list.length+'];' +
-			'obj.callback.apply(obj.path);' +
-		'}';
-	list.push({
-		"callback": callback,
-		"string": string,
-		"path": path
-	});
-	return string;
+	this._reconstructArgs = true;
+	return this;
 }
 
-// constructor, accepts a single parameter - the base path Array
-function WeavePath(args)
+
+
+// non-chainable methods
+
+/**
+* Returns a copy of the current path Array.
+* Accepts an optional list of names to be appended to the result.
+*/
+weave.WeavePath.prototype.getPath = function(/*...relativePath*/)
 {
-	// private variables
-	var stack = []; // stack of argument counts from push() calls, used with pop()
-	var reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all Object parameters
-	var path = A(args, 1);
-	
-	/**
-	 * Private function for internal use.
-	 * 
-	 * Converts an arguments object to an Array, and then reconstructs the Array using JSON if natualize() was previously called.
-	 * The first parameter is an arguments object.
-	 * The second parameter is an integer flag for special behavior.
-	 *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
-	 *   - If set to 2, it handles arguments like (...LIST, REQUIRED_PARAM) where LIST can be either an Array or multiple arguments.
-	 */
-	function A(args, option)
+	return this._path.concat(this._A(arguments, 1));
+};
+/**
+* Gets an Array of child names under the object at the current path or relative to the current path.
+* Accepts an optional list of names relative to the current path.
+*/
+weave.WeavePath.prototype.getNames = function(/*...relativePath*/)
+{
+	return this.weave.getChildNames(this._path.concat(this._A(arguments, 1)));
+};
+/**
+* Gets the type (qualified class name) of the object at the current path or relative to the current path.
+* Accepts an optional list of names relative to the current path.
+*/
+weave.WeavePath.prototype.getType = function(/*...relativePath*/)
+{
+	return this.weave.getObjectType(this._path.concat(this._A(arguments, 1)));
+};
+/**
+* Gets the session state of an object at the current path or relative to the current path.
+* Accepts an optional list of names relative to the current path.
+*/
+weave.WeavePath.prototype.getState = function(/*...relativePath*/)
+{
+	return this.weave.getSessionState(this._path.concat(this._A(arguments, 1)));
+};
+/**
+* Gets the changes that have occurred since previousState for the object at the current path or relative to the current path.
+* Accepts an optional list of names relative to the current path.
+*/
+weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
+{
+	var args = this._A(arguments, 2);
+	if (assertParams('getDiff', args))
 	{
-		var array;
-		var value;
-		var n = args.length;
-		if (n && n == option && args[0] && Array.isArray(args[0]))
-		{
-			array = [].concat(args[0]);
-			for (var i = 1; i < n; i++)
-			{
-				value = args[i];
-				if (reconstructArgs && typeof value == 'object')
-					array.push(JSON.parse(JSON.stringify(value)));
-				else
-					array.push(value);
-			}
-		}
-		else
-		{
-			array = [];
-			while (n--)
-			{
-				value = args[n];
-				if (reconstructArgs && typeof value == 'object')
-					array[n] = JSON.parse(JSON.stringify(value));
-				else
-					array[n] = value;
-			}
-		}
-		return array;
+		var otherState = args.pop();
+		var pathcopy = this._path.concat(args);
+		var script = "import 'weave.api.WeaveAPI';"
+			+ "import 'weave.api.core.ILinkableObject';"
+			+ "return WeaveAPI.SessionManager.computeDiff(otherState, this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null);";
+		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
-	
-	// public variables and non-chainable methods
-	
-	/**
-	 * A pointer to the Weave instance.
-	 */
-	this.weave = weave;
-	/**
-	 * Returns a copy of the current path Array.
-	 * Accepts an optional list of names to be appended to the result.
-	 */
-	this.getPath = function(/*...relativePath*/)
+	return null;
+}
+/**
+* Gets the changes that would have to occur to get to another state for the object at the current path or relative to the current path.
+* Accepts an optional list of names relative to the current path.
+*/
+weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherState*/)
+{
+	var args = this._A(arguments, 2);
+	if (assertParams('getReverseDiff', args))
 	{
-		return path.concat(A(arguments, 1));
-	};
-	/**
-	 * Gets an Array of child names under the object at the current path or relative to the current path.
-	 * Accepts an optional list of names relative to the current path.
-	 */
-	this.getNames = function(/*...relativePath*/)
-	{
-		return weave.getChildNames(path.concat(A(arguments, 1)));
-	};
-	/**
-	 * Gets the type (qualified class name) of the object at the current path or relative to the current path.
-	 * Accepts an optional list of names relative to the current path.
-	 */
-	this.getType = function(/*...relativePath*/)
-	{
-		return weave.getObjectType(path.concat(A(arguments, 1)));
-	};
-	/**
-	 * Gets the session state of an object at the current path or relative to the current path.
-	 * Accepts an optional list of names relative to the current path.
-	 */
-	this.getState = function(/*...relativePath*/)
-	{
-		return weave.getSessionState(path.concat(A(arguments, 1)));
-	};
-	/**
-	 * Gets the changes that have occurred since previousState for the object at the current path or relative to the current path.
-	 * Accepts an optional list of names relative to the current path.
-	 */
-	this.getDiff = function(/*...relativePath, previousState*/)
-	{
-		var args = A(arguments, 2);
-		if (assertParams('getDiff', args))
-		{
-			var otherState = args.pop();
-			var pathcopy = path.concat(args);
-			var script = "import 'weave.api.WeaveAPI';"
-				+ "import 'weave.api.core.ILinkableObject';"
-				+ "return WeaveAPI.SessionManager.computeDiff(otherState, this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null);";
-			return weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
-		}
-		return null;
+		var otherState = args.pop();
+		var pathcopy = this._path.concat(args);
+		var script = "import 'weave.api.WeaveAPI';"
+			+ "import 'weave.api.core.ILinkableObject';"
+			+ "return WeaveAPI.SessionManager.computeDiff(this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null, otherState);";
+		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
-	/**
-	 * Gets the changes that would have to occur to get to another state for the object at the current path or relative to the current path.
-	 * Accepts an optional list of names relative to the current path.
-	 */
-	this.getReverseDiff = function(/*...relativePath, otherState*/)
+	return null;
+}
+/**
+* Returns the value of an ActionScript expression or variable using the current path, vars, and libs.
+* The 'this' context within the script will be set to the object at the current path.
+* First parameter is the script to be evaluated by Weave, or simply a variable name.
+*/
+weave.WeavePath.prototype.getValue = function(script_or_variableName)
+{
+	return this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// helper functions
+function assertParams(methodName, args, minLength)
+{
+	if (!minLength)
+		minLength = 1;
+	if (args.length < minLength)
 	{
-		var args = A(arguments, 2);
-		if (assertParams('getReverseDiff', args))
-		{
-			var otherState = args.pop();
-			var pathcopy = path.concat(args);
-			var script = "import 'weave.api.WeaveAPI';"
-				+ "import 'weave.api.core.ILinkableObject';"
-				+ "return WeaveAPI.SessionManager.computeDiff(this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null, otherState);";
-			return weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
-		}
-		return null;
-	}
-	/**
-	 * Returns the value of an ActionScript expression or variable using the current path, vars, and libs.
-	 * The 'this' context within the script will be set to the object at the current path.
-	 * First parameter is the script to be evaluated by Weave, or simply a variable name.
-	 */
-	this.getValue = function(script_or_variableName)
-	{
-		return weave.evaluateExpression(path, script_or_variableName, weave.path.vars);
-	};
-	
-	
-	
-	// public chainable methods
-	
-	/**
-	 * Specify any number of names to push on to the end of the path.
-	 * Accepts a list of names relative to the current path.
-	 * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-	 */
-	this.push = function(/*...relativePath*/)
-	{
-		var args = A(arguments, 1);
-		if (assertParams('push', args))
-		{
-			// append names to path
-			for (var i = 0; i < args.length; i++)
-				path.push(args[i]);
-			// remember the number of names we appended
-			stack.push(args.length);
-		}
-		return this;
-	};
-	/**
-	 * Pops off all names from previous call to push().  No arguments.
-	 */
-	this.pop = function()
-	{
-		if (stack.length)
-			path.length -= stack.pop();
-		else
-			failMessage('pop', 'stack is empty');
-		return this;
-	};
-	/**
-	 * Requests that an object be created if it doesn't already exist at (or relative to) the current path.
-	 * Accepts an optional list of names relative to the current path.
-	 * The final parameter should be the name of an ActionScript class in Weave.
-	 */
-	this.request = function(/*...relativePath, objectType*/)
-	{
-		var args = A(arguments, 2);
-		if (assertParams('request', args))
-		{
-			var type = args.pop();
-			var pathcopy = path.concat(args);
-			weave.requestObject(pathcopy, type)
-				|| failPath('request', pathcopy);
-		}
-		return this;
-	};
-	/**
-	 * Removes a dynamically created object.
-	 * Accepts an optional list of names relative to the current path.
-	 */
-	this.remove = function(/*...relativePath*/)
-	{
-		var pathcopy = path.concat(A(arguments, 1));
-		weave.removeObject(pathcopy)
-			|| failPath('remove', pathcopy);
-		return this;
-	};
-	/**
-	 * Reorders the children of an ILinkableHashMap at the current path.
-	 * Accepts an Array or a list of ordered child names.
-	 */
-	this.reorder = function(/*...orderedNames*/)
-	{
-		var args = A(arguments, 1);
-		if (assertParams('reorder', args))
-		{
-			weave.setChildNameOrder(path, args)
-				|| failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + path);
-		}
-		return this;
-	};
-	/**
-	 * Sets the session state of the object at the current path or relative to the current path.
-	 * Any existing dynamically created objects that do not appear in the new state will be removed.
-	 * Accepts an optional list of names relative to the current path.
-	 * The final parameter should be the session state.
-	 */
-	this.state = function(/*...relativePath, state*/)
-	{
-		var args = A(arguments, 2);
-		if (assertParams('state', args))
-		{
-			var state = args.pop();
-			var pathcopy = path.concat(args);
-			weave.setSessionState(pathcopy, state, true)
-				|| failObject('state', pathcopy);
-		}
-		return this;
-	};
-	/**
-	 * Applies a session state diff to the object at the current path or relative to the current path.
-	 * Existing dynamically created objects that do not appear in the new state will remain unchanged.
-	 * Accepts an optional list of names relative to the current path.
-	 * The final parameter should be the session state diff.
-	 */
-	this.diff = function(/*...relativePath, diff*/)
-	{
-		var args = A(arguments, 2);
-		if (assertParams('diff', args))
-		{
-			var diff = args.pop();
-			var pathcopy = path.concat(args);
-			weave.setSessionState(pathcopy, diff, false)
-				|| failObject('diff', pathcopy);
-		}
-		return this;
-	};
-	/**
-	 * Adds a callback to the object at the current path.
-	 * When the callback is called, a WeavePath object initialized at the current path will be used as the 'this' context.
-	 * First parameter is the callback function.
-	 * Second parameter is a Boolean, when set to true will trigger the callback now.
-	 * Third parameter is a Boolean, when set to true will use an immediate callback instead of a grouped callback.
-	 * If the same callback is added to multiple paths, only the last path will be used as the 'this' context.
-	 */
-	this.addCallback = function(callback, triggerCallbackNow, immediateMode)
-	{
-		if (assertParams('addCallback', arguments))
-		{
-			callback = callbackToString(callback, weave.path(path.concat()));
-			weave.addCallback(path, callback, triggerCallbackNow, immediateMode)
-				|| failObject('addCallback', path);
-		}
-		return this;
-	};
-	/**
-	 * Removes a callback from the object at the current path.
-	 */
-	this.removeCallback = function(callback)
-	{
-		if (assertParams('removeCallback', arguments))
-		{
-			weave.removeCallback(path, callback)
-				|| failObject('removeCallback', path);
-		}
-		return this;
-	};
-	/**
-	 * Specifies additional variables to be used in subsequent calls to exec() and getValue().
-	 * The variables will be made globally available for any WeavePath object created from the same Weave instance.
-	 * The first parameter should be an object mapping variable names to values.
-	 */
-	this.vars = function(newVars)
-	{
-		var vars = weave.path.vars;
-		for (var key in newVars)
-		{
-			var value = newVars[key];
-			if (reconstructArgs && typeof value == 'object')
-				vars[key] = JSON.parse(JSON.stringify(value));
-			else
-				vars[key] = value;
-		}
-		return this;
-	};
-	/**
-	 * Specifies additional libraries to be included in subsequent calls to exec() and getValue().
-	 */
-	this.libs = function(/*...libraries*/)
-	{
-		var args = A(arguments, 1);
-		if (assertParams('libs', args))
-		{
-			// include libraries for future evaluations
-			weave.evaluateExpression(null, null, null, args);
-		}
-		return this;
-	};
-	/**
-	 * Evaluates an ActionScript expression using the current path, vars, and libs.
-	 * The 'this' context within the script will be the object at the current path.
-	 * First parameter is the script to be evaluated by Weave using the object at the current path as the 'this' context.
-	 * Second parameter is an optional callback or variable name.
-	 * - If given a callback function, the function will be passed the result of
-	 *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
-	 * - If the second parameter is a variable name, the result will be stored as a variable
-	 *   as if it was passed as an object property to WeavePath.vars().  It may then be used
-	 *   in future calls to WeavePath.exec() or retrieved with WeavePath.getValue().
-	 */
-	this.exec = function(script, callback_or_variableName)
-	{
-		var type = typeof callback_or_variableName;
-		var callback = type == 'function' ? callback_or_variableName : null;
-		// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
-		var variableName = type == 'string' ? callback_or_variableName : "";
-		var vars = weave.path.vars;
-		var result = weave.evaluateExpression(path, script, vars, null, variableName);
-		if (callback)
-			callback.apply(this, [result]);
-		
-		return this;
-	};
-	/**
-	 * Applies a function with optional parameters, setting 'this' pointer to the WeavePath object
-	 */
-	this.call = function(func/*[, ...args]*/)
-	{
-		if (assertParams('call', arguments))
-		{
-			var a = A(arguments);
-			a.shift().apply(this, a);
-		}
-		return this;
-	};
-	/**
-	 * Applies a function to each item in an Array or an Object.
-	 * If items is an Array, this has the same effect as WeavePath.call(function(){ itemsArray.forEach(visitorFunction, this); }).
-	 * If items is an Object, it will behave like WeavePath.call(function(){ for(var key in items) visitorFunction.call(this, items[key], key, items); }).
-	 */
-	this.forEach = function(items, visitorFunction)
-	{
-		if (assertParams('forEach', arguments, 2))
-		{
-			if (Array.isArray(items))
-				items.forEach(visitorFunction, this);
-			else
-				for (var key in items) visitorFunction.call(this, items[key], key, items);
-		}
-		return this;
-	};
-	
-	/**
-	 * Enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
-	 * Only the WeavePath object you are currently working with will be affected by this call.
-	 * Note that if you use this mode, any occurrences of NaN and Infinity will be converted to null
-	 * because this mode uses JSON.parse(JSON.stringify(...)) and those values are not supported by JSON.
-	 */
-	this.naturalize = function()
-	{
-		reconstructArgs = true;
-		return this;
-	}
-	
-	function assertParams(methodName, args, minLength)
-	{
-		if (!minLength)
-			minLength = 1;
-		if (args.length < minLength)
-		{
-			var msg = 'requires at least ' + ((minLength == 1) ? 'one parameter' : (minLength + ' parameters'));
-			failMessage(methodName, msg);
-			return false;
-		}
-		return true;
-	}
-	function failPath(methodName, path)
-	{
-		var msg = 'command failed (path: ' + path + ')';
+		var msg = 'requires at least ' + ((minLength == 1) ? 'one parameter' : (minLength + ' parameters'));
 		failMessage(methodName, msg);
+		return false;
 	}
-	function failObject(methodName, path)
-	{
-		var msg = 'object does not exist (path: ' + path + ')';
-		failMessage(methodName, msg);
-	}
-	function failMessage(methodName, message)
-	{
-		var str = 'WeavePath.' + methodName + '(): ' + message;
-		
-		//TODO - mode where error is logged instead of thrown?
-		//console.log(str);
-		
-		throw new Error(str);
-	}
+	return true;
+}
+function failPath(methodName, path)
+{
+	var msg = 'command failed (path: ' + path + ')';
+	failMessage(methodName, msg);
+}
+function failObject(methodName, path)
+{
+	var msg = 'object does not exist (path: ' + path + ')';
+	failMessage(methodName, msg);
+}
+function failMessage(methodName, message)
+{
+	var str = 'WeavePath.' + methodName + '(): ' + message;
+	
+	//TODO - mode where error is logged instead of thrown?
+	//console.log(str);
+	
+	throw new Error(str);
 }
