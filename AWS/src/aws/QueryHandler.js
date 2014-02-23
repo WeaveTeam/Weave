@@ -173,7 +173,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 	$("#LogBox").html('');
 	//testing new Weave Window
 	if(!newWeaveWindow || newWeaveWindow.closed) {
-		newWeaveWindow = window.open("SeparateWindow.html",
+		newWeaveWindow = window.open("aws/visualization/weave/weave.html",
 			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 	}
 	
