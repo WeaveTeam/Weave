@@ -23,6 +23,20 @@ aws.DataClient.getEntityChildIds = function(id, handleResult) {
 	aws.queryService(dataServiceURL, "getEntityChildIds", [id], handleResult);
 };
 
+
+/**
+ * This function calls the getListOfProjects function on the servlet
+ * it will get the list of files in the directory
+ * @param {Function} callback callback function
+ */
+aws.DataClient.getListOfProjects = function(callback) {
+	aws.queryService(rServiceURL, 'getListOfProjects', null, callback);
+};
+
+aws.DataClient.getListOfQueryObjects = function(projectName, callback){
+	aws.queryService(rServiceURL, 'getQueryObjectsInProject', [projectName], callback);
+};
+
 /**
  * This function mirrors the getEntitiesById on the servlet.
  * 
@@ -46,19 +60,12 @@ aws.DataClient.getColumn = function(columnId, minParam, maxParam, sqlParams, han
 	aws.queryService(dataServiceURL, "getColumn", [columnId, minParam, maxParam, sqlParams], handleResult);	
 };
 
-
-aws.DataClient.getColumnsFromIds = function(ids, handleResult) {
-	aws.bulkQueryService(dataServiceURL, "getColumn", ids.map(function(id) { return [id, null, null, null];}), handleResult);
-};
-
-aws.DataClient.getColumnsFromTableId = function(id, handleResult) {
-	aws.DataClient.getEntityChildIds(id, function(ids) { aws.DataClient.getColumnsFromIds(ids, handleResult);});
-};
 /**
  * @param {Object} meta
  * @param {function(Object)} handleResult
  */
 aws.DataClient.getEntityIdsByMetadata = function(meta, handleResult){
+	// Assuming we want a column back, the dataEntity Type should be 1.
 	aws.queryService(dataServiceURL, "getEntityIdsByMetadata", [meta, 1], handleResult);
 };
 
@@ -92,28 +99,4 @@ aws.DataClient.getDataMapping = function(varValues, callback)
 			callback(result);
 		}
 	);
-};
-
-/**
- * This function will return a dataset, given a list of entity ids
- * @param {Array.<number>} ids Array of ids
- * 
- * @param {function(Array.<Object>)} callback A callback which receives the data mapping.
- */
-aws.DataClient.getDataSet = function(ids, callback)
-{
-	aws.queryService(dataServiceURL, "getDataSet", [ids], callback);
-};
-
-/**
- * This function will return a dataset, given a single table entity id.
- * @param {number} id table id
- * 
- * @param {function(Array.<Object>)} callback A callback which receives the data mapping.
- */
-aws.DataClient.getDataSetFromTableId = function(id, callback)
-{
-	aws.DataClient.getEntityChildIds(id, function(ids) {
-		aws.DataClient.getDataSet(ids, callback);
-	});
 };
