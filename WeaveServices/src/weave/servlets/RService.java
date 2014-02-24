@@ -96,7 +96,7 @@ public class RService extends GenericServlet
 	}
 	
 	//handles running canned scripts by pulling data from csv
-	public RResult[] runScriptOnCSVOnServer(Object[] queryObject)throws Exception
+	public RResult[] runScriptOnCSVOnServer(String[] queryObject)throws Exception
 	{
 		RResult[] csvreturnedColumns;
 		//get the upload path for csv (on server)
