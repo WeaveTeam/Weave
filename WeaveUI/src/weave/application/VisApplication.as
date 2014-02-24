@@ -1639,7 +1639,7 @@ package weave.application
 			var popup:AlertTextBox;
 			popup = PopUpManager.createPopUp(this, AlertTextBox) as AlertTextBox;
 			popup.allowEmptyInput = true;
-			popup.textInput = WeaveAPI.CSVParser.createCSV([Weave.getPluginList()]);
+			popup.textInput = WeaveAPI.CSVParser.createCSVRow(Weave.getPluginList());
 			popup.title = lang("Specify which plugins to load");
 			popup.message = lang("List plugin .SWC files, separated by commas. Weave will reload itself if plugins have to be unloaded.");
 			popup.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handlePluginsChange);

@@ -109,7 +109,7 @@ package weave
 		{
 			var xml:XML = WeaveXMLEncoder.encode(root.getSessionState(), "Weave");
 			if (ALLOW_PLUGINS)
-				xml.@plugins = WeaveAPI.CSVParser.createCSV([getPluginList()]);
+				xml.@plugins = WeaveAPI.CSVParser.createCSVRow(getPluginList());
 			return xml;
 		}
 		
