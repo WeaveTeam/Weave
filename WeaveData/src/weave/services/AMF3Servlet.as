@@ -22,6 +22,8 @@ package weave.services
 	import flash.utils.ByteArray;
 	
 	import mx.rpc.AsyncToken;
+	
+	import weave.api.reportError;
 
 	/**
 	 * This is an extension of Servlet that deserializes AMF3 result objects and handles special cases where an ErrorMessage is returned.
@@ -47,20 +49,13 @@ package weave.services
 		 * be treated as a stream in Java.
 		 * @param methodName The name of the method to call.
 		 * @param methodParameters The parameters to use when calling the method.
-		 * @return An AsyncToken generated for the call.
+		 * @return An AsyncToken that you can add responders to.
 		 */
 		override public function invokeAsyncMethod(methodName:String, methodParameters:Object = null):AsyncToken
 		{
-			//  if these parameters are coming from a DelayedAsyncInvocation object, call super.invokeAsyncMethod().
-			if (methodParameters is DelayedParameters)
-				return super.invokeAsyncMethod(methodName, (methodParameters as DelayedParameters).methodParameters);
-			
-			// create a wrapper object for these parameters to serve as a flag to say that they are coming from a DelayedAsyncInvocation object.
-			var token:DelayedAsyncInvocation = new DelayedAsyncInvocation(this, methodName, new DelayedParameters(methodParameters), readCompressedObject, true);
-			token.invoke();
-			// discard params wrapper immediately after invoking
-			token.parameters = methodParameters;
-			return token;
+			var pt:ProxyAsyncToken = new ProxyAsyncToken(super.invokeAsyncMethod, arguments, readCompressedObject);
+			pt.invoke();
+			return pt;
 		}
 		
 		/**
@@ -72,41 +67,22 @@ package weave.services
 		{
 			try
 			{
-				//				var packed:int = compressedSerializedObject.bytesAvailable;
-				//				var time:int = getTimer();
+				//var packed:int = compressedSerializedObject.bytesAvailable;
+				//var time:int = getTimer();
 				
 				compressedSerializedObject.uncompress();
 				
-				//				var unpacked:int = compressedSerializedObject.bytesAvailable;
-				//				trace(packed,'/',unpacked,'=',Math.round(packed/unpacked*100) + '%',getTimer()-time,'ms');
+				//var unpacked:int = compressedSerializedObject.bytesAvailable;
+				//trace(packed,'/',unpacked,'=',Math.round(packed/unpacked*100) + '%',getTimer()-time,'ms');
 				
 				return compressedSerializedObject.readObject();
 			}
 			catch (e:Error)
 			{
 				// decompression/deserialization failed
-				//trace(e.getStackTrace());
+				reportError(e);
 			}
 			return null;
 		}
 	}
-}
-
-
-
-/**
- * This class is a wrapper for a parameters object and serves as a flag to say
- * that the parameters are being passed from a DelayedAsyncInvocation object.
- */
-internal class DelayedParameters
-{
-	/**
-	 * @param methodParameters The parameters to be sent to an AMF3 servlet method.
-	 */
-	public function DelayedParameters(methodParameters:Object)
-	{
-		this.methodParameters = methodParameters;
-	}
-	
-	public var methodParameters:Object;
 }

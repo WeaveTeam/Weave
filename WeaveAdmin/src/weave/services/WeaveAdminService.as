@@ -169,13 +169,15 @@ package weave.services
 			hooks.push(hook);
 		}
 		
-		private function hookCaptureHandler(query:DelayedAsyncInvocation):void
+		private function hookCaptureHandler(query:ProxyAsyncToken):void
 		{
-			for each (var hook:MethodHook in methodHooks[query.methodName])
+			var methodName:String = query._params[0];
+			var methodParams:Array = query._params[1];
+			for each (var hook:MethodHook in methodHooks[methodName])
 			{
 				if (hook.captureHandler == null)
 					continue;
-				var args:Array = (query.parameters as Array).concat();
+				var args:Array = methodParams ? methodParams.concat() : [];
 				args.length = hook.captureHandler.length;
 				hook.captureHandler.apply(query, args);
 			}
@@ -185,10 +187,12 @@ package weave.services
 		 * This gets called automatically for each ResultEvent from an RPC.
 		 * @param method The WeaveAdminService function which corresponds to the RPC.
 		 */
-		private function hookHandler(event:Event, query:DelayedAsyncInvocation):void
+		private function hookHandler(event:Event, query:ProxyAsyncToken):void
 		{
 			var handler:Function;
-			for each (var hook:MethodHook in methodHooks[query.methodName])
+			var methodName:String = query._params[0];
+			var methodParams:Array = query._params[1];
+			for each (var hook:MethodHook in methodHooks[methodName])
 			{
 				if (event is ResultEvent)
 					handler = hook.resultHandler;
@@ -197,7 +201,7 @@ package weave.services
 				if (handler == null)
 					continue;
 				
-				var args:Array = [event, query.parameters];
+				var args:Array = [event, methodParams];
 				args.length = handler.length;
 				handler.apply(null, args);
 			}
@@ -210,7 +214,7 @@ package weave.services
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeAdmin(method:Function, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
+		private function invokeAdmin(method:Function, parameters:Array, queued:Boolean = true):AsyncToken
 		{
 			var methodName:String = propertyNameLookup[method];
 			if (!methodName)
@@ -225,7 +229,7 @@ package weave.services
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeAdminWithLogin(method:Function, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
+		private function invokeAdminWithLogin(method:Function, parameters:Array, queued:Boolean = true):AsyncToken
 		{
 			parameters.unshift(Admin.instance.activeConnectionName, Admin.instance.activePassword);
 			return invokeAdmin(method, parameters, queued);
@@ -254,22 +258,21 @@ package weave.services
 		 * @param byteArray An optional byteArray to append to the end of the stream.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:Array, queued:Boolean):DelayedAsyncInvocation
+		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:Array, queued:Boolean):AsyncToken
 		{
-			var query:DelayedAsyncInvocation;
-			if (queued)
-			{
-				query = new DelayedAsyncInvocation(service, methodName, parameters);
-				queue.addToQueue(query);
-			}
-			else
-			{
-				query = service.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
-			}
+			var query:ProxyAsyncToken = new ProxyAsyncToken(service.invokeAsyncMethod, [methodName, parameters]);
 
+			if (queued)
+				queue.addToQueue(query);
+			
 			hookCaptureHandler(query);
+			
 			// automatically display FaultEvent error messages as alert boxes
 			addAsyncResponder(query, hookHandler, alertFault, query);
+			
+			if (!queued)
+				query.invoke();
+			
 			return query;
 		}
 		
@@ -291,8 +294,10 @@ package weave.services
 		}
 		
 		// this function displays an error message from a FaultEvent in an Alert box.
-		private function alertFault(event:FaultEvent, query:AsyncToken):void
+		private function alertFault(event:FaultEvent, query:ProxyAsyncToken):void
 		{
+			var methodName:String = query._params[0];
+			var methodParams:Array = query._params[1];
 			if (PREVENT_FAULT_ALERT[query])
 			{
 				delete PREVENT_FAULT_ALERT[query];
@@ -301,14 +306,14 @@ package weave.services
 			
 			var paramDebugStr:String = '';
 			
-			if (query.parameters is Array && query.parameters.length > 0)
-				paramDebugStr = '"' + query.parameters.join('", "') + '"';
+			if (methodParams is Array && methodParams.length > 0)
+				paramDebugStr = '"' + methodParams.join('", "') + '"';
 			else
-				paramDebugStr += ObjectUtil.toString(query.parameters);
+				paramDebugStr += ObjectUtil.toString(methodParams);
 			
 			trace(StandardLib.substitute(
 					"Received error on {0}({1}):\n\t{2}",
-					query.methodName,
+					methodName,
 					paramDebugStr,
 					event.fault.faultString
 				));
@@ -316,7 +321,9 @@ package weave.services
 			//Alert.show(event.fault.faultString, event.fault.name);
 			var msg:String = event.fault.faultString;
 			if (msg == "ioError")
-				msg = "Received no response from the servlet.\nHas the WAR file been deployed correctly?\nExpected servlet URL: "+ adminService.servletURL;
+				msg = "Received no response from the servlet.\n"
+					+ "Has the WAR file been deployed correctly?\n"
+					+ "Expected servlet URL: "+ adminService.servletURL;
 			messageDisplay(event.fault.name, msg, true);
 		}
 

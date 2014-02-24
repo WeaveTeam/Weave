@@ -183,7 +183,8 @@ package weave.services
 			var items:Array = event.result as Array;
 			for (var i:int = 0; i < items.length; i++)
 			{
-				var item:EntityHierarchyInfo = new EntityHierarchyInfo(items[i], entityType);
+				var item:EntityHierarchyInfo = EntityHierarchyInfo(items[i]);
+				item.type = entityType; // type is not provided by the server
 				_infoLookup[item.id] = item;
 				items[i] = item.id; // overwrite item with its id
 			}

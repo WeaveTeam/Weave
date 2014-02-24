@@ -614,7 +614,7 @@ package weave.data.DataSources
 					return;
 				}
 				
-				var result:AttributeColumnData = new AttributeColumnData(event.result);
+				var result:AttributeColumnData = AttributeColumnData(event.result);
 				//trace("handleGetAttributeColumn",pathInHierarchy.toXMLString());
 	
 				// fill in metadata

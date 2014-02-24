@@ -104,7 +104,7 @@
 				
 				// The TextArea log needs the logging messages from the AdminConsole.
 				// This currently pushes all new logging messages since this panel was instantiated.
-				// It should only display logging messages for DelayedAsyncInvocations which were created 
+				// It should only display logging messages for AsyncTokens which were created 
 				// in this instance.
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessage);
 			}

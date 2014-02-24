@@ -26,28 +26,19 @@ package weave.services.beans
 		public var title:String;
 		public var numChildren:int;
 		
-		public function EntityHierarchyInfo(obj:Object, entityType:int)
-		{
-			type = entityType;
-			for (var name:String in obj)
-				if (this.hasOwnProperty(name))
-					this[name] = obj[name];
-		}
-		
 		public function getLabel(debug:Boolean = false):String
 		{
-			var branchInfo:EntityHierarchyInfo = this;
 			var typeStr:String = EntityType.getTypeString(type) || lang('Entity');
-			var tableTitle:String = branchInfo.title || lang("Untitled {0}#{1}", typeStr, branchInfo.id);
+			var tableTitle:String = this.title || lang("Untitled {0}#{1}", typeStr, this.id);
 			
 			// this is a table node, so avoid calling getEntity()
 			var str:String = tableTitle;
 			
 			if (type == EntityType.TABLE)
-				str = lang("{0} ({1})", str, branchInfo.numChildren);
+				str = lang("{0} ({1})", str, this.numChildren);
 			
 			if (debug)
-				str = lang("({0}#{1}) {2}", typeStr, branchInfo.id, str);
+				str = lang("({0}#{1}) {2}", typeStr, this.id, str);
 			
 			return str;
 		}

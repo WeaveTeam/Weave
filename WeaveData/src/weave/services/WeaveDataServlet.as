@@ -24,14 +24,20 @@ package weave.services
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.core.mx_internal;
 	import mx.rpc.AsyncToken;
+	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWeaveGeometryTileService;
-	import weave.utils.HierarchyUtils;
+	import weave.services.beans.AttributeColumnData;
+	import weave.services.beans.EntityHierarchyInfo;
+	import weave.services.beans.GeometryStreamMetadata;
+	
+	use namespace mx_internal;
 	
 	/**
 	 * This is a wrapper class for making asynchronous calls to a Weave data servlet.
@@ -66,13 +72,18 @@ package weave.services
 		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
 		
 		/**
-		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
+		 * This function will generate a AsyncToken representing a servlet method invocation and add it to the queue.
 		 * @param method A WeaveAdminService class member function or a String.
 		 * @param parameters Parameters for the servlet method.
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
-		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
+		 * @param returnType_or_castFunction
+		 *     Either the type of object (Class) returned by the service or a Function that converts an Object to the appropriate type.
+		 *     If the service returns an Array of objects, each object in the Array will be cast to this type.
+		 *     The object(s) returned by the service will be cast to this type by copying the public properties of the objects.
+		 *     It is unnecessary to specify this parameter if the return type is a primitive value.
+		 * @return The AsyncToken object representing the servlet method invocation.
 		 */		
-		private function invoke(method:Object, parameters:Array):AsyncToken
+		private function invoke(method:Object, parameters:Array, returnType_or_castFunction:Object = null):AsyncToken
 		{
 			var methodName:String;
 			if (method is Function)
@@ -83,15 +94,48 @@ package weave.services
 			if (!methodName)
 				throw new Error("method must be a member of " + getQualifiedClassName(this));
 			
-			return servlet.invokeAsyncMethod(methodName, parameters);
+			var token:AsyncToken = servlet.invokeAsyncMethod(methodName, parameters);
+			if (returnType_or_castFunction)
+			{
+				if (!(returnType_or_castFunction is Function || returnType_or_castFunction is Class))
+					throw new Error("returnType_or_castFunction parameter must either be a Class or a Function");
+				if ([Array, String, Number, int, uint].indexOf(returnType_or_castFunction) < 0)
+					addAsyncResponder(token, castResult, null, returnType_or_castFunction);
+			}
+			return token;
+		}
+		
+		private function castResult(event:ResultEvent, cast:Object):void
+		{
+			var results:Array = event.result as Array || [event.result];
+			for (var i:int = 0; i < results.length; i++)
+			{
+				if (cast is Class)
+				{
+					var result:Object = results[i];
+					if (result is (cast as Class))
+						continue;
+					var newResult:Object = new cast();
+					for (var key:String in result)
+						if (newResult.hasOwnProperty(key))
+							newResult[key] = result[key];
+					results[i] = newResult;
+				}
+				else
+				{
+					results[i] = cast(results[i])
+				}
+			}
+			if (event.result != results)
+				event.setResult(results[0]);
 		}
 		
 		////////////////////
 		// DataEntity info
 		
-		public function getDataTableList():AsyncToken // returns DataEntityTableInfo[]
+		public function getDataTableList():AsyncToken
 		{
-			return invoke(getDataTableList, arguments);
+			return invoke(getDataTableList, arguments, EntityHierarchyInfo);
 		}
 		
 		public function getEntityChildIds(parentId:int):AsyncToken // returns int[]
@@ -118,17 +162,17 @@ package weave.services
 		////////////////////////////////////
 		// string and numeric data columns
 		
-		public function getColumn(columnId:Object, minParam:Number, maxParam:Number, sqlParams:Array):AsyncToken // returns AttributeColumnData
+		public function getColumn(columnId:Object, minParam:Number, maxParam:Number, sqlParams:Array):AsyncToken
 		{
-			return invoke(getColumn, arguments);
+			return invoke(getColumn, arguments, AttributeColumnData);
 		}
 		
 		/////////////////////
 		// Geometry columns
 		
-		public function getGeometryStreamTileDescriptors(columnId:int):AsyncToken // returns GeometryStreamMetadata
+		public function getGeometryStreamTileDescriptors(columnId:int):AsyncToken
 		{
-			return invoke(getGeometryStreamTileDescriptors, arguments);
+			return invoke(getGeometryStreamTileDescriptors, arguments, GeometryStreamMetadata);
 		}
 		public function getGeometryStreamMetadataTiles(columnId:int, tileIDs:Array):AsyncToken // returns byte[]
 		{
@@ -166,9 +210,9 @@ package weave.services
 		////////////////////////////
 		// backwards compatibility
 		
-		[Deprecated] public function getColumnFromMetadata(metadata:Object):AsyncToken // returns AttributeColumnData
+		[Deprecated] public function getColumnFromMetadata(metadata:Object):AsyncToken
 		{
-			return invoke(getColumnFromMetadata, arguments);
+			return invoke(getColumnFromMetadata, arguments, AttributeColumnData);
 		}
 	}
 }
