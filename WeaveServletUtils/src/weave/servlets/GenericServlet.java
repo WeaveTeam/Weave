@@ -56,6 +56,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
@@ -392,6 +393,7 @@ public class GenericServlet extends HttpServlet
 	
 	private static final Gson GSON = new GsonBuilder()
 		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
+		.registerTypeHierarchyAdapter(Double.class, new FloatToNullAdapter())
 		.disableHtmlEscaping()
 		.create();
 	// Base64 adapter modified from GsonHelper.java, https://gist.github.com/orip/3635246
@@ -404,6 +406,33 @@ public class GenericServlet extends HttpServlet
 		public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context)
 		{
 			return new JsonPrimitive(Base64.encodeBytes(src, Base64.DONT_BREAK_LINES));
+		}
+	}
+	
+	//Handles NaN for JSON serialization
+	private static class FloatToNullAdapter implements JsonSerializer<Double>, JsonDeserializer<Double>
+	{
+		//convert JSON --> java
+		public Double deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+		{
+			//convert null to NaN
+			if(json.isJsonNull())
+			{
+				return Double.NaN;
+			}else{
+				return json.getAsDouble();
+			}
+		}
+		//convert Java --> JSON
+		public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context)
+		{
+			//convert NaN to null
+			if(Double.isNaN(src)){
+				return  JsonNull.INSTANCE;
+			}else{
+				return new JsonPrimitive(src );
+			}
+			
 		}
 	}
 	
@@ -491,7 +520,9 @@ public class GenericServlet extends HttpServlet
     		}
     		if (!info.isBatchRequest)
     		{
-   				result = GSON.toJson(info.jsonResponses.get(0));
+    			
+    			result = GSON.toJson(info.jsonResponses.get(0));
+    				
     		}
     		else
     		{

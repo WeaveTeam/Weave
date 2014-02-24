@@ -22,6 +22,7 @@ package weave.servlets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,6 +38,10 @@ import java.util.Vector;
 
 import javax.script.ScriptException;
 
+import org.apache.commons.io.FilenameUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RFactor;
@@ -50,6 +55,7 @@ import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
+
 import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
@@ -328,6 +334,43 @@ public class AWSRService extends RService
 	}
 
 
+	//Gets the subdirectories (projects) in the 'Projects' folder
+	public String[] getListOfProjects() 
+	{
+		File projects = new File("C:/", "Projects");
+		//File projects = new File(uploadPath, "Projects");
+		String[] projectNames = projects.list();
+		return projectNames; 
+	}
+	
+	//Gets the list of queryObjects in a folder and returns an array of JSONObjects(each JSONObject --> one queryObject)
+	public JSONObject[] getQueryObjectsInProject(String projectName) throws Exception
+	{
+		ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
+		JSONParser parser = new JSONParser();
+		File queries = new File("C:/Projects", projectName);
+		String[] queryNames = queries.list();
+		
+		JSONObject[] finalQueryObjectCollection = new JSONObject[queryNames.length];
+		for(int i =0; i < queryNames.length; i++){
+			//for every queryObject, convert to a json object
+			String extension = FilenameUtils.getExtension(queryNames[i]);
+			
+			if(extension.equalsIgnoreCase("json")){
+				String path = "C:/Projects/"+projectName+"/"+queryNames[i];//find better way to do this
+				Object currentQueryObject = parser.parse(new FileReader(path));
+				JSONObject currentjsonObject = (JSONObject) currentQueryObject;
+				jsonlist.add(currentjsonObject);
+			}
+		}
+		
+		//returning an array of JSON Objects
+		finalQueryObjectCollection = jsonlist.toArray(finalQueryObjectCollection);
+		
+		return finalQueryObjectCollection;
+		
+	}
+	
 	/**
      * 
      * @param requestObject sent from the AWS UI collection of parameters to run a computation
@@ -416,6 +459,7 @@ public class AWSRService extends RService
              
     }        
     
+
     public int runStataScript() throws IOException{
     	
     	 Runtime run = Runtime.getRuntime();
@@ -470,6 +514,7 @@ public class AWSRService extends RService
          }
     	
     }
+
     public Object getScriptMetadata(String scriptName) throws Exception
 	{
 		File directory = new File(uploadPath, "RScripts");

@@ -48,7 +48,59 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         return deferred.promise;
         
     };
+    /**
+     * This function wraps the async aws getListOfProjects function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.getListOfProjects = function() {
+        
+    	if(this.dataObject.listOfProjects) {
+    		return this.dataObject.listOfProjects;
+    	}
+    	
+    	
+    	var deferred = $q.defer();
+
+        aws.DataClient.getListOfProjects(function(result) {
+            
+        	that.dataObject.listOfProjects = result;
+        	
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
     
+    /**
+     * This function wraps the async aws getQueryObjectsInProject function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.getListOfQueryObjectsInProject = function(projectName) {
+    	
+    	if(this.dataObject.listofQueryObjectsInProject) {
+    		return this.dataObject.listofQueryObjectsInProject;
+    	}
+    	
+    	
+    	var deferred = $q.defer();
+
+        aws.DataClient.getListOfQueryObjects(projectName, function(result) {
+            
+        	that.dataObject.listofQueryObjectsInProject = result;
+        	
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
     /**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
