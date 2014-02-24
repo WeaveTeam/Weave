@@ -88,8 +88,6 @@ angular.module('aws.directives.dualListBox', ['aws.router'])
                             //elements.filterinput1.hide();
                             //elements.filterinput2.hide();
                             var box = $(container.insertBefore(elem));
-                            console.log("inside link");
-                            console.log(elem.context);
                             bindevents();
                             refreshselects();
                             updatesselectionstates();

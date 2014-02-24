@@ -48,26 +48,17 @@ aws.DataClient.getColumn = function(columnId, minParam, maxParam, sqlParams, han
 
 
 aws.DataClient.getColumnsFromIds = function(ids, handleResult) {
-	var columns = [];
-	for(var i in ids) {
-		aws.DataClient.getColumn(ids[i], null, null, null, function(result) {
-			columns.push(result);
-		});
-	}
-	handleResult(columns);
+	aws.bulkQueryService(dataServiceURL, "getColumn", ids.map(function(id) { return [id, null, null, null];}), handleResult);
 };
 
 aws.DataClient.getColumnsFromTableId = function(id, handleResult) {
-	aws.DataClient.getEntityChildIds(id, function(ids) {
-		aws.DataClient.getColumnsFromIds(ids, handleResult);
-	});
+	aws.DataClient.getEntityChildIds(id, function(ids) { aws.DataClient.getColumnsFromIds(ids, handleResult);});
 };
 /**
  * @param {Object} meta
  * @param {function(Object)} handleResult
  */
 aws.DataClient.getEntityIdsByMetadata = function(meta, handleResult){
-	// Assuming we want a column back, the dataEntity Type should be 1.
 	aws.queryService(dataServiceURL, "getEntityIdsByMetadata", [meta, 1], handleResult);
 };
 

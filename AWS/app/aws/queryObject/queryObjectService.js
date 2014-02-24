@@ -202,5 +202,19 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
             return deferred.promise;
         };
         
-        this.getGeographyMetadata = function(){};
+        this.getDataSetFromTableId = function(id, forceUpdata){
+        	var deferred = $q.defer();
+        	
+        	if(!forceUpdate && this.dataObject.hasOwnProperty(geographyMetadata)) {
+        		return this.dataObject.geographyMetadata;
+        	} else {
+        		aws.DataClient.getDataSetFromTableId(id, function(result) {
+        			that.dataObject.geographyMetadata = result;
+        			scope.$safeApply(function(){
+        				deferred.resolve();
+        			});
+        		});
+        		return deferred.promise;
+        	}
+        };
 }]);

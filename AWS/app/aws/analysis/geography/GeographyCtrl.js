@@ -1,11 +1,74 @@
 angular.module("aws.analysis.geography", [])
 .controller("GeographyCtrl", function($scope, queryService){
 	
-	queryService.queryObject.Geography = {
+	queryService.queryObject.GeographyFilter = {
 			state : {},
 			counties : {}
 	};
 	
+	$scope.$watch('geographyMetadataTableId', function() {
+		queryService.queryObject.GeographyFilter.geographyMetadataTableId = $scope.geographyMetadataTableId;
+		queryService.getDataSetFromTableId();
+	});
+	
+	$scope.$watch(function() {
+		return queryService.dataObject.geographyMetadata;
+	}, function() {
+		var processedMetadata = [];
+		var geographyMetadata = queryService.dataObject.geographyMetadata;
+		var stateValueKey = null;
+		var stateLabelKey = null;
+		var countyValueKey = null;
+		var countyLabelKey = null;
+		
+		// would need to be generalized later...
+		for(var key in geographyMetadata.columns) {
+			switch(geographyMetadata.columns[key].title) {
+				case "FIPS State":
+					stateValueKey = key;
+					break;
+				case "State":
+					stateLabelKey = key;
+					break;
+				case "FIPS County":
+					countyValueKey = key;
+					break;
+				case "FIPS Name":
+					countyLabelKey = key;
+					break;
+				default:
+					break;
+			}
+		}	
+		
+		if(stateValueKey == null ||
+		   stateLabelKey == null ||
+		   countyValueKey == null ||
+		   countyLabelKey == null) {
+			console.log("Could not find all the geography columns");
+		} else {
+			for(key in geographyMetadata.records) {
+				record = geographyMetadata.records[key];
+				for(var i in processedMetadata) {
+					if(processedMetadata[i].value == record[stateValueKey]) {
+						processedMetadata[i].counties.push({value : record[countyValueKey],
+							label : record[countyLabelKey]});
+					} else {
+						// we found a new state
+						processedMetadata[i].push({value : record[stateValueKey], 
+							label : record[stateLabelKey],
+							counties : [{value : record[countyValueKey],
+								label : record[countyLabelKey]
+							
+							}]});
+					}
+				} 
+				
+			}
+		}
+		console.log(processedMetadata);
+	});
+
 	var metadata = [ {
 		value : "01",
 		label : "Alabama",
@@ -67,7 +130,7 @@ angular.module("aws.analysis.geography", [])
 	
 	];
 	
-	$scope.stateOptions = $.map(metadata, function(item){
+	$scope.stateOptions = $.map(processedMetadata, function(item){
 		return {value : item.value, label : item.label};
 	});
 	
@@ -76,9 +139,9 @@ angular.module("aws.analysis.geography", [])
 			var state = angular.fromJson($scope.stateSelection);
 			queryService.queryObject.Geography.state = state;
 			console.log(state);
-			for(var i in metadata) {
+			for(var i in processedMetadata) {
 				if(metadata[i].value == state.value) {
-					$scope.countyOptions =  metadata[i].counties;
+					$scope.countyOptions =  processedMetadata[i].counties;
 					break;
 				}
 			}

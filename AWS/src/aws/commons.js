@@ -131,13 +131,38 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         	console.log(JSON.stringify(response, null, 3));
         }
         else if (resultHandler){
-        	// console.log("about to call result handler" + resultHandler.toString());
-        	//console.log("done" , response.result === undefined);
-        	//console.log("itworked = " + aws.JSON["itworked"]);
-        	
             return resultHandler(response.result, queryId);
         }
     }
+};
+
+/**
+ * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
+ * @param {string} url The URL of the service.
+ * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
+ * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
+ * @param {function(Array|Object)} resultsHandler Receives a mapping from queryId to RPC result.
+ */
+aws.bulkQueryService = function(url, method, queryIdToParams, resultsHandler)
+{
+	var batch = [];
+	for (var queryId in queryIdToParams)
+		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
+	$.post(url, JSON.stringify(batch), handleBatch, "json");
+	function handleBatch(batchResponse)
+	{
+		var results = Array.isArray(queryIdToParams) ? [] : {};
+		for (var i in batchResponse)
+		{
+			var response = batchResponse[i];
+			if (response.error)
+				console.log(JSON.stringify(response, null, 3));
+			else
+				results[response.id] = response.result;
+		}
+		if (resultsHandler)
+			resultsHandler(results);
+	}
 };
 
 /**
@@ -175,25 +200,4 @@ aws.broadcastBusyStatus = function()
 aws.addBusyListener = function(callback)
 {
 	aws.rpcBusyListeners.push(callback);
-};
-
-/**
- * returns the current time to the console
- * @param {string=} message (activity) with the time
- * @return {string} a time log for activity
- */
-aws.reportTime = function(message)
-{
-	Date.prototype.today = function(){ 
-		return ((this.getDate() < 10)?"0":"") + this.getDate() +"/"+(((this.getMonth()+1) < 10)?"0":"") + (this.getMonth()+1) +"/"+ this.getFullYear(); 
-	};
-	//For the time now
-	Date.prototype.timeNow = function(){
-		return ((this.getHours() < 10)?"0":"") + this.getHours() +":"+ ((this.getMinutes() < 10)?"0":"") + this.getMinutes() +":"+ ((this.getSeconds() < 10)?"0":"") + this.getSeconds();
-	};
-	var currentTime = new Date();
-	
-	//return "Current time :" + currentTime.today() + "@" + currentTime.timeNow();
-	return message + ": " + currentTime.today()+ "@ " + currentTime.timeNow() + "\n";
-	
 };

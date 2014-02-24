@@ -28,7 +28,7 @@ app.run(['$rootScope', function($rootScope){
 	};
 }]);
 
-angular.module('aws.analysis', [/*'aws.analysis.geography'*/]);
+angular.module('aws.analysis', ['aws.analysis.geography']);
 angular.module('aws.directives', ['aws.directives.dualListBox',
                                   'aws.directives.fileUpload',
                                   'aws.directives.panel']);

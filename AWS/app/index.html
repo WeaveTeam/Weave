@@ -29,6 +29,7 @@
 <script src='aws/app/file-upload-directive.js'></script>
 <script src='aws/app/panel-directive.js'></script>
 <script src='aws/analysis/AnalysisCtrl.js'></script>
+<script src='aws/analysis/geography/GeographyCtrl.js'></script>
 <script src='aws/configure/metadata/MetadataManagerCtrl.js'></script>
 <script src='aws/configure/metadata/metadataManagerService.js'></script>
 <script src='aws/configure/script/ScriptManagerCtrl.js'></script> 
@@ -79,6 +80,7 @@
 					<button ng-click="updateVisualizations()" class="btn btn-primary">Update</button>
 					<button ng-click="clearWeave()" class="btn btn-primary">Clear</button>
 				</div>
+				<div ng-include src="geographyPanel"></div>
 				<!--div id="weavePanel" ng-include src="weaveInstancePanel"></div-->
 			</div>
 
