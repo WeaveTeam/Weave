@@ -520,6 +520,7 @@ public class DataService extends GenericServlet
 	public static class FilteredColumnRequest
 	{
 		public int id;
+		public boolean getData;
 		
 		/**
 		 * Either [[min,max],[min2,max2],...] for numeric values or ["a","b",...] for string values.
@@ -530,13 +531,14 @@ public class DataService extends GenericServlet
 	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
 	{
 		ColumnFilter[] cfArray = new ColumnFilter[columns.length];
-		String[] quotedFields = new String[columns.length];
+		List<String> quotedFields = new LinkedList<String>();
 		for (int i = 0; i < columns.length; i++)
 		{
 			cfArray[i] = new ColumnFilter();
 			cfArray[i].field = entities[i].privateMetadata.get(PrivateMetadata.SQLCOLUMN);
 			cfArray[i].filters = columns[i].filters;
-			quotedFields[i] = SQLUtils.quoteSymbol(conn, cfArray[i].field);
+			if (columns[i].getData)
+				quotedFields.add(SQLUtils.quoteSymbol(conn, cfArray[i].field));
 		}
 		
 		WhereClause<Object> where = WhereClause.fromFilters(conn, cfArray);
@@ -553,8 +555,8 @@ public class DataService extends GenericServlet
 	
 	/*
 		[
-			{id: 1, filters: ["a","b"]},
-			{id: 2, filters: [[min,max],[min2,max2]]}
+			{id: 1, getData: true, filters: ["a","b"]},
+			{id: 2, getData: true, filters: [[min,max],[min2,max2]]}
 		]
 	*/
 	@SuppressWarnings("unchecked")
