@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import mx.formatters.NumberFormatter;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -106,9 +107,9 @@ package weave.visualization.plotters
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const labelWordWrapSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
-		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['number', 'string']));
+		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['number', 'string', 'column']));
 		private static const DEFAULT_LABEL_FUNCTION:String = <![CDATA[
-			function (number, string) {
+			function (number, string, column) {
 				return string;
 			}
 		]]>;
@@ -536,7 +537,7 @@ package weave.visualization.plotters
 			try
 			{
 				if (labelFunction.value)
-					result = labelFunction.apply(null, [tickValue, result]);
+					result = labelFunction.apply(null, [tickValue, result, columnWatcher.target]);
 			}
 			catch (e:Error)
 			{
@@ -546,12 +547,14 @@ package weave.visualization.plotters
 			return result;
 		}
 		// TEMPORARY SOLUTION
-		public function setLabelFunction(func:Function):void
+		public function setLabelFunction(func:Function, column:IAttributeColumn):void
 		{
 			_labelFunction = func;
+			columnWatcher.target = column;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		private var _labelFunction:Function = null;
+		private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		// END TEMPORARY SOLUTION
 		
 		//////////////////////////////////////////////////////////////////////////////////////////////

@@ -329,8 +329,8 @@
 					visualization.enableProbeLine(false, _groupingMode == CompoundBarChartPlotter.STACK);
 				}
 				
-				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction);
-				heightAxis.setLabelFunction(heightAxisLabelFunction);
+				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction, _plotter.sortColumn);
+				heightAxis.setLabelFunction(heightAxisLabelFunction, heightColumns[0]);
 				
 				// height axis uses automatic min,max based on data
 				heightAxis.tickMinValue.value = NaN;

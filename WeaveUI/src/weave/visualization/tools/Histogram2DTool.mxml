@@ -191,14 +191,14 @@
 				xAxisPlotter.tickCountRequested.value = xBinCol.numberOfBins;
 				xAxisPlotter.tickMinValue.value = 0;
 				xAxisPlotter.tickMaxValue.value = xBinCol.numberOfBins - 1;	
-				xAxisPlotter.setLabelFunction(xBinCol.deriveStringFromNumber);
+				xAxisPlotter.setLabelFunction(xBinCol.deriveStringFromNumber, xBinCol);
 				
 				var yBinCol:BinnedColumn = plotter.yBinnedColumn;
 				
 				yAxisPlotter.tickCountRequested.value = yBinCol.numberOfBins;
 				yAxisPlotter.tickMinValue.value = 0;
 				yAxisPlotter.tickMaxValue.value = yBinCol.numberOfBins - 1;	
-				yAxisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber);
+				yAxisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber, yBinCol);
 				
 				
 				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
