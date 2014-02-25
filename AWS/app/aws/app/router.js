@@ -8,6 +8,7 @@ angular.module("aws.router", [])
 	$scope.weaveInstancePanel = "./visualization/weave/weave.html";
 	$scope.geographyPanel = "aws/analysis/geography/geography.html";
 	$scope.projectManagementUrl = "aws/project/projectManagementPanel.html";
+	$scope.scriptManagerUrl = "aws/configure/script/scriptManager.html";
 	//$scope.georgraphyUrl = "./tpls/GeographyPanel.tpls.html";
 	
 	$scope.$watch(function(){

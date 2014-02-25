@@ -57,16 +57,17 @@
   <ul class="nav nav-tabs">
     <li class="active"><a href="#tab1" data-toggle="tab">Analysis Builder</a></li>
     <li><a href="#tab2" data-toggle="tab">Projects</a></li>
+    <li><a href="#tab3" data-toggle="tab">Scripts</a></li>
   </ul>
   
   <!-- TAB CONTENT -->
   <div class="tab-content">
   
   <!-- -----ANALYSIS TAB -->
-    <div class="tab-pane active" id="tab1"ng-controller="LayoutCtrl">
+    <div class="tab-pane active" id="tab1" ng-controller="LayoutCtrl">
 		<div id="container">
 			<div id="header">
-				<div ng-controller="DataTableCtrl" style="display: inline-block; margin-left : 30px"">
+				<div ng-controller="DataTableCtrl" style="display: inline-block; margin-left: 30px">
 					Data Table: <select ui-select2 ng-model="dataTable" style=width:200px;>
 						<option></option>
 						<option ng-repeat="dt in dataTableList" value="{{dt}}">{{dt.title}}</option>
@@ -111,7 +112,11 @@
     <div class="tab-pane" id="tab2" ng-controller="LayoutCtrl">
       <div ng-include src = "projectManagementUrl"></div>
     </div>
-    
+    <!-- SCRIPT TAB -->
+    <div class="tab-pane" id="tab3" ng-controller="LayoutCtrl">
+    	<div ng-include src="scriptManagerUrl"></div>
+    	
+    </div>
   </div>
   <!-- END OF TAB CONTENT -->
 </div>

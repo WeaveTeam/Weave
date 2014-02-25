@@ -1,6 +1,4 @@
-angular.module('aws.configure.script', [])
-			
-			.service("scriptManagerService", ['$q', '$rootScope', function($q, scope) {
+ScriptManager.service("scriptManagerService", ['$q', '$rootScope', function($q, scope) {
 				
 				this.dataObject = {};
 				

@@ -37,3 +37,7 @@ angular.module('aws.configure', ['aws.configure.metadata',
                                  'aws.configure.script']);
 angular.module('aws.visualization',['aws.visualization.tools',
                                     /*'aws.visualization.weave'*/]);
+/* It looks like it doesn't just add components to these modules so we need
+ * to instantiate a Module variable. I'm going to read more about this.
+ * -Patrick */
+var ScriptManager = angular.module('aws.configure.script', []);
