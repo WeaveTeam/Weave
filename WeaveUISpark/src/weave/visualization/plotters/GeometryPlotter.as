@@ -1,24 +1,26 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
 {
+	import com.cartogrammar.drawing.DashedLine;
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
@@ -47,6 +49,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -71,11 +74,11 @@ package weave.visualization.plotters
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-
+			
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
 			
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
-
+			
 			setSingleKeySource(geometryColumn);
 			
 			// not every change to the geometries changes the keys
@@ -87,7 +90,7 @@ package weave.visualization.plotters
 		}
 		
 		public const symbolPlotters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));
-
+		
 		/**
 		 * This is the reprojected geometry column to draw.
 		 */
@@ -104,6 +107,49 @@ package weave.visualization.plotters
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 		
 		/**
+		 * This is the constant dashed line to use for graphics.
+		 */
+		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
+		
+		//The following variables are different parameters of the dashed line.
+		
+		public const dashedColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
+		
+		public const dashedAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1.0));
+		
+		public const dashedWeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(4));
+		
+		public const useDashedLine:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
+		public const dashedDetails:LinkableString = registerLinkableChild(this, new LinkableString("5,5"), verifyDashedSelectionBox);
+		public function verifyDashedSelectionBox():void
+		{
+			if (dashedDetails.value === null) 
+				dashedDetails.value = "5,5";
+			
+			var rows:Array = WeaveAPI.CSVParser.parseCSV(dashedDetails.value);
+			
+			if (rows.length == 0)
+				dashedDetails.value = "5,5";
+			
+			// Only the first row will be used
+			var values:Array = rows[0];
+			var foundNonZero:Boolean = false;
+			for (var i:int = 0; i < values.length; ++i)
+			{
+				// We want every value >= 0 with at least one value > 0 
+				// Undefined and negative numbers are invalid.
+				var value:int = int(values[i]);
+				if (isNaN(value)) 
+					dashedDetails.value = "5,5";
+				if (value < 0) 
+					dashedDetails.value = "5,5";
+				if (value != 0)
+					foundNonZero = true; 
+			}
+		}
+		
+		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
 		public const line:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle, invalidateCachedBitmaps);
@@ -111,13 +157,13 @@ package weave.visualization.plotters
 		 * This is the fill style used to fill the geometries.
 		 */
 		public const fill:ExtendedFillStyle = newLinkableChild(this, ExtendedFillStyle, invalidateCachedBitmaps);
-
+		
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
 		 **/
 		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize), disposeCachedBitmaps);
 		private function validateIconSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
-
+		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			var geoms:Array = null;
@@ -139,12 +185,12 @@ package weave.visualization.plotters
 			}
 			else if (value is GeneralizedGeometry)
 				geoms = [value as GeneralizedGeometry]; // single geom -- create array
-
+			
 			var i:int = 0;
 			if( !notGeoms )
 				if (geoms != null)
 					for each (var geom:GeneralizedGeometry in geoms)
-						output[i++] = geom.bounds;
+					output[i++] = geom.bounds;
 			output.length = i;
 		}
 		
@@ -172,7 +218,7 @@ package weave.visualization.plotters
 			if( !notGeoms )
 				if (geoms != null)
 					for each (var geom:GeneralizedGeometry in geoms)
-						results.push(geom);
+					results.push(geom);
 			
 			return results;
 		}
@@ -204,24 +250,24 @@ package weave.visualization.plotters
 		public var debugSimplify:Boolean = false;
 		private var _debugSimplifyDataBounds:IBounds2D;
 		private var _debugSimplifyScreenBounds:IBounds2D;
-
+		
 		/**
 		 * This function calculates the importance of a pixel.
 		 */
 		protected function getDataAreaPerPixel(dataBounds:IBounds2D, screenBounds:IBounds2D):Number
 		{
 			// get minimum importance value required to display the shape at this zoom level
-//			var dw:Number = dataBounds.getWidth();
-//			var dh:Number = dataBounds.getHeight();
-//			var sw:Number = screenBounds.getWidth();
-//			var sh:Number = screenBounds.getHeight();
-//			return Math.min((dw*dw)/(sw*sw), (dh*dh)/(sh*sh));
+			//			var dw:Number = dataBounds.getWidth();
+			//			var dh:Number = dataBounds.getHeight();
+			//			var sw:Number = screenBounds.getWidth();
+			//			var sh:Number = screenBounds.getHeight();
+			//			return Math.min((dw*dw)/(sw*sw), (dh*dh)/(sh*sh));
 			return dataBounds.getArea() / screenBounds.getArea();
 		}
 		
 		private var colorToBitmapMap:Dictionary = new Dictionary(); // color -> BitmapData
 		private var colorToBitmapValidFlagMap:Dictionary = new Dictionary(); // color -> valid flag
-
+		
 		// this calls dispose() on all cached bitmaps and removes references to them.
 		private function disposeCachedBitmaps():void
 		{
@@ -351,7 +397,7 @@ package weave.visualization.plotters
 			
 			if (debugGridSkip)
 				simplifyDataBounds = null;
-
+			
 			var drawImages:Boolean = pointDataImageColumn.getInternalColumn() != null;
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
@@ -454,7 +500,7 @@ package weave.visualization.plotters
 		
 		private static const tempPoint:Point = new Point(); // reusable object
 		private static const tempMatrix:Matrix = new Matrix(); // reusable object
-
+		
 		/**
 		 * This function draws a list of GeneralizedGeometry objects
 		 * @param geomParts A 2-dimensional Array or Vector of objects, each having x and y properties.
@@ -473,9 +519,17 @@ package weave.visualization.plotters
 		{
 			if (points.length == 0)
 				return;
-
+			
+			if( useDashedLine.value )
+			{
+				_dashedLine.graphics = outputGraphics;
+				_dashedLine.lengthsString = dashedDetails.value;
+				_dashedLine.clear();
+				_dashedLine.lineStyle(dashedWeight.value, dashedColor.value, dashedAlpha.value);
+			}
+			
 			var currentNode:Object;
-
+			
 			if (geomType == GeometryType.POINT)
 			{
 				for each (currentNode in points)
@@ -490,11 +544,11 @@ package weave.visualization.plotters
 				}
 				return;
 			}
-
+			
 			// prevent moveTo/lineTo from drawing a filled polygon if the shape type is line
 			if (geomType == GeometryType.LINE)
 				outputGraphics.endFill();
-
+			
 			var numPoints:int = points.length;
 			var firstX:Number, firstY:Number;
 			for (var vIndex:int = 0; vIndex < numPoints; vIndex++)
@@ -511,11 +565,22 @@ package weave.visualization.plotters
 					if (keepTrack)
 						totalVertices++;
 					x=int(x),y=int(y);
-					outputGraphics.moveTo(x-1,y);
-					outputGraphics.lineTo(x+1,y);
-					outputGraphics.moveTo(x,y-1);
-					outputGraphics.lineTo(x,y+1);
-					outputGraphics.moveTo(x, y);
+					if( !useDashedLine.value )
+					{
+						outputGraphics.moveTo(x-1,y);
+						outputGraphics.lineTo(x+1,y);
+						outputGraphics.moveTo(x,y-1);
+						outputGraphics.lineTo(x,y+1);
+						outputGraphics.moveTo(x, y);
+					}
+					else
+					{
+						_dashedLine.moveTo(x-1,y);
+						_dashedLine.lineTo(x+1,y);
+						_dashedLine.moveTo(x,y-1);
+						_dashedLine.lineTo(x,y+1);
+						_dashedLine.moveTo(x, y);
+					}
 					continue;
 				}
 				
@@ -523,15 +588,26 @@ package weave.visualization.plotters
 				{
 					firstX = x;
 					firstY = y;
-					outputGraphics.moveTo(x, y);
+					if( !useDashedLine.value )
+						outputGraphics.moveTo(x, y);
+					else
+						_dashedLine.moveTo(x, y);
 					continue;
 				}
-				outputGraphics.lineTo(x, y);
+				if( !useDashedLine.value )
+					outputGraphics.lineTo(x, y);
+				else
+					_dashedLine.lineTo(x, y);
 			}
 			
 			if (!debug)
 				if (geomType == GeometryType.POLYGON)
-					outputGraphics.lineTo(firstX, firstY);
+				{
+					if( !useDashedLine.value )
+						outputGraphics.lineTo(firstX, firstY);
+					else
+						_dashedLine.lineTo(firstX, firstY);
+				}
 		}
 		
 		private function drawImage(key:IQualifiedKey, dataX:Number, dataY:Number, dataBounds:IBounds2D, screenBounds:IBounds2D, outputGraphics:Graphics, outputBitmapData:BitmapData):void
@@ -563,7 +639,7 @@ package weave.visualization.plotters
 		{
 			disposeCachedBitmaps();
 		}
-
+		
 		// backwards compatibility 0.9.6
 		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
 		{

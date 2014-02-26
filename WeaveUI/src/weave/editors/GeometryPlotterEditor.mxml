@@ -1,71 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns:ui="weave.ui.*"
 		 xmlns="weave.editors.*"
-		 label="{lang('Geometries')}"
-		 implements="weave.api.ui.ILinkableObjectEditor">
+		 label="{lang('Geometries')}" implements="weave.api.ui.ILinkableObjectEditor">
 	
-	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/>
+	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"
+							   errorStringFunction="{getGeometryErrorString}"/>
 	
 	<ui:Indent label="{lang('Icon size')}">
-		<mx:NumericStepper id="iconSize"
-						   width="50"
-						   minimum="0.2" maximum="100"
+		<mx:NumericStepper id="iconSize" width="50"
+						   creationComplete="linkBindableProperty(_plotter.iconSize, event.target, 'value')"
 						   enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
-						   creationComplete="linkBindableProperty(_plotter.iconSize, event.target, 'value')"/>
+						   maximum="100" minimum="0.2"/>
 		<ui:HelpComponent>
 			This sets the default icon size when point-based geometry data is used.
 		</ui:HelpComponent>
 	</ui:Indent>
 	
-	<ui:CheckBoxWithNestedOptions id="useImagesCheck" label="{lang('Enable images for point data')}" click="handleGeomPlotterImageToggle()">
-		<ui:IndentTextInput id="imageURL" label="{lang('Default image URL')}" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
-		<ui:DynamicColumnComponent id="imageURLColumnSelector" label="{lang('Image URL column')}" dynamicObject="{_plotter.pointDataImageColumn}"/>
-		<mx:CheckBox id="fixedImageSizeCheck" label="{lang('Use specified icon size')}" enabled="{useImagesCheck.selected}" creationComplete="linkBindableProperty(_plotter.useFixedImageSize, fixedImageSizeCheck, 'selected');"/>
+	<ui:CheckBoxWithNestedOptions id="useImagesCheck" label="{lang('Enable images for point data')}"
+								  click="handleGeomPlotterImageToggle()">
+		<ui:IndentTextInput id="imageURL" label="{lang('Default image URL')}"
+							creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)"
+							enabled="{useImagesCheck.selected}"/>
+		<ui:DynamicColumnComponent id="imageURLColumnSelector" label="{lang('Image URL column')}"
+								   dynamicObject="{_plotter.pointDataImageColumn}"/>
+		<mx:CheckBox id="fixedImageSizeCheck" label="{lang('Use specified icon size')}"
+					 creationComplete="linkBindableProperty(_plotter.useFixedImageSize, fixedImageSizeCheck, 'selected');"
+					 enabled="{useImagesCheck.selected}"/>
 	</ui:CheckBoxWithNestedOptions>
 	
 	<ui:CheckBoxWithNestedOptions id="fillEnabled" label="{lang('Enable fill color')}"
 								  creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')">
 		<mx:HBox id="fillColorColumnControls" width="100%" verticalAlign="middle">
-			<ui:DynamicColumnComponent id="fillColorColumn" label="{lang('Color')}" showLinkControl="false" columnWrapper="{_plotter.fill.color}"/>
-			<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+			<ui:DynamicColumnComponent id="fillColorColumn" label="{lang('Color')}"
+									   columnWrapper="{_plotter.fill.color}" showLinkControl="false"/>
+			<mx:Button label="Edit Bins..."
+					   click="DraggablePanel.openStaticInstance(ColorController);"/>
 		</mx:HBox>
 		<mx:HBox horizontalGap="{hgap}">
-			<ui:Indent grouped="false" label="{lang('Alpha')}">
-				<mx:NumericStepper 	id="fillAlpha" 
-									minimum="0" maximum="1" stepSize="0.1" 
-									value="0"
-									width="50"
-									toolTip="{lang('0: transparent, 1: opaque')}"
-									creationComplete="linkBindableProperty(_plotter.fill.alpha.defaultValue,event.target,'value')"/>
+			<ui:Indent label="{lang('Alpha')}" grouped="false">
+				<mx:NumericStepper id="fillAlpha" width="50"
+								   creationComplete="linkBindableProperty(_plotter.fill.alpha.defaultValue,event.target,'value')"
+								   maximum="1" minimum="0" stepSize="0.1"
+								   toolTip="{lang('0: transparent, 1: opaque')}" value="0"/>
 			</ui:Indent>
 			<ui:Indent grouped="false" useFirstChildAsLabel="true">
 				<mx:CheckBox id="enableDefaultColor" label="{lang('Default color')}"
 							 change="handleBindableFillColor()"/>
-				<ui:CustomColorPicker id="fillColorDefault"
-								enabled="{enableDefaultColor.selected}"
-								change="handleBindableFillColor()"
-								selectedColor="0xEEEEEE"/>
+				<ui:CustomColorPicker id="fillColorDefault" change="handleBindableFillColor()"
+									  enabled="{enableDefaultColor.selected}"
+									  selectedColor="0xEEEEEE"/>
 				<ui:HelpComponent>
 					This color will be used in place of missing data.
 				</ui:HelpComponent>
@@ -74,33 +78,31 @@
 	</ui:CheckBoxWithNestedOptions>
 	
 	<ui:CheckBoxWithNestedOptions id="lineEnabled" label="{lang('Enable borders')}"
-				 				  creationComplete="linkBindableProperty(_plotter.line.enabled.defaultValue,event.target,'selected')">
+								  creationComplete="linkBindableProperty(_plotter.line.enabled.defaultValue,event.target,'selected')">
 		<mx:HBox horizontalGap="{hgap}">
-			<ui:Indent grouped="false" label="{lang('Alpha')}">
-				<mx:NumericStepper 	id="lineAlpha" 
-									minimum="0" maximum="1" stepSize="0.1"
-									width="50"
-									toolTip="{lang('0: transparent, 1: opaque')}"
-									creationComplete="linkBindableProperty(_plotter.line.alpha.defaultValue, event.target, 'value')"/>
+			<ui:Indent label="{lang('Alpha')}" grouped="false">
+				<mx:NumericStepper id="lineAlpha" width="50"
+								   creationComplete="linkBindableProperty(_plotter.line.alpha.defaultValue, event.target, 'value')"
+								   maximum="1" minimum="0" stepSize="0.1"
+								   toolTip="{lang('0: transparent, 1: opaque')}"/>
 			</ui:Indent>
-			<ui:Indent grouped="false" label="{lang('Color')}">
+			<ui:Indent label="{lang('Color')}" grouped="false">
 				<ui:CustomColorPicker id="lineColor"
-								creationComplete="linkBindableProperty(_plotter.line.color.defaultValue,event.target,'selectedColor')"/>
+									  creationComplete="linkBindableProperty(_plotter.line.color.defaultValue,event.target,'selectedColor')"/>
 			</ui:Indent>
-			<ui:Indent grouped="false" label="{lang('Default thickness')}">
-				<mx:NumericStepper 	id="lineWeight" 
-									minimum="1" maximum="10"
-									width="50"
-									creationComplete="linkBindableProperty(_plotter.line.weight.defaultValue, event.target, 'value')"/>
+			<ui:Indent label="{lang('Default thickness')}" grouped="false">
+				<mx:NumericStepper id="lineWeight" width="50"
+								   creationComplete="linkBindableProperty(_plotter.line.weight.defaultValue, event.target, 'value')"
+								   maximum="10" minimum="1"/>
 			</ui:Indent>
 		</mx:HBox>
-		<ui:NormalizedColumnComponent id="normalizedWeightComponent"
-									  label="{lang('Thickness')}"
+		<ui:NormalizedColumnComponent id="normalizedWeightComponent" label="{lang('Thickness')}"
 									  enabled="{lineEnabled.selected}"/>
 	</ui:CheckBoxWithNestedOptions>
 	
 	<mx:HBox>
-		<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore subset')}" change="handleIgnoreSubsetCheck()"/>
+		<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore subset')}"
+					 change="handleIgnoreSubsetCheck()"/>
 		<ui:HelpComponent>
 			Check this box to always display these geometries whether or not they are in the current subset.
 			Fill color will only be displayed on the geometries in the current subset.
@@ -108,8 +110,39 @@
 		</ui:HelpComponent>
 	</mx:HBox>
 	
+	<ui:CheckBoxWithNestedOptions label="Enable dashed lines"
+								  creationComplete="linkBindableProperty(_plotter.useDashedLine, event.target, 'selected')">
+		<mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Alpha"/>
+				<mx:NumericStepper creationComplete="linkBindableProperty(_plotter.dashedAlpha, event.target, 'value')"
+								   maximum="1.0" stepSize="0.1" value="1.0"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Color"/>
+				<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.dashedColor, event.target, 'selectedColor')"
+								selectedColor="0x000000"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Default thickness"/>
+				<mx:NumericStepper creationComplete="linkBindableProperty(_plotter.dashedWeight,event.target,'value')"
+								   stepSize="1" value="4.0"/>
+			</mx:HBox>
+		</mx:HBox>
+		
+		<ui:Indent label="{lang('Dashed line parameters')}" grouped="false">
+			<ui:HelpComponent>
+				Enter a series of numbers separated by commas to be used as alternating line length and gap values.
+			</ui:HelpComponent>
+			<mx:TextInput creationComplete="linkBindableProperty(_plotter.dashedDetails, event.target, 'text');"/>
+			<mx:Canvas id="dashedCanvas" width="100%" height="100%" resize="drawDashedLinePreview()"/>
+		</ui:Indent>
+	</ui:CheckBoxWithNestedOptions>
+	
 	<mx:Script>
 		<![CDATA[
+			import com.cartogrammar.drawing.DashedLine;
+			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
@@ -118,10 +151,8 @@
 			import weave.api.linkBindableProperty;
 			import weave.compiler.StandardLib;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
-			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
-			import weave.utils.ColumnUtils;
 			import weave.utils.EventUtils;
 			import weave.visualization.plotters.GeometryPlotter;
 			
@@ -147,6 +178,11 @@
 				
 				normalizedWeightComponent.normalizedColumn = _plotter.line.normalizedWeightColumn;
 				_plotter.fill.color.defaultValue.addImmediateCallback(this, handleLinkableFillColor, true);
+				
+				_plotter.dashedDetails.addGroupedCallback(this, drawDashedLinePreview, true);
+				_plotter.dashedAlpha.addGroupedCallback(this, drawDashedLinePreview, true);
+				_plotter.dashedWeight.addGroupedCallback(this, drawDashedLinePreview, true);
+				_plotter.dashedColor.addGroupedCallback(this, drawDashedLinePreview, true);
 			}
 			
 			private function getGeometryErrorString():String
@@ -213,6 +249,22 @@
 				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 				if (adc)
 					imageURL.text = adc.defaultValue.value as String;
+			}
+			
+			private const _dashedLine:DashedLine = new DashedLine();
+			private function drawDashedLinePreview():void
+			{
+				_dashedLine.graphics = dashedCanvas.graphics;
+				_dashedLine.lengthsString = _plotter.dashedDetails.value;
+				_dashedLine.clear();
+				_dashedLine.lineStyle(_plotter.dashedWeight.value, _plotter.dashedColor.value, _plotter.dashedAlpha.value);
+				
+				var xStart:Number = 5;
+				var yStart:Number = 10;
+				var xEnd:Number = dashedCanvas.width - 5;
+				var yEnd:Number = yStart;
+				_dashedLine.moveTo(xStart, yStart);
+				_dashedLine.lineTo(xEnd, yEnd);
 			}
 		]]>
 	</mx:Script>
