@@ -231,11 +231,24 @@ package weave.ui
 			_editMode = value;
 			
 			_drawing = false;
-			if (value)
-				CustomCursorManager.showCursor(PEN_CURSOR);
-			else
-				CustomCursorManager.hack_removeAllCursors();
+			toggleCursor(value);
 			invalidateDisplayList();
+		}
+		
+		private static var _cursorId:int = 0;
+		private static function toggleCursor(show:Boolean):void
+		{
+			if (show)
+			{
+				if (!_cursorId)
+					_cursorId = CustomCursorManager.showCursor(PEN_CURSOR);
+			}
+			else
+			{
+				if (_cursorId)
+					CustomCursorManager.removeCursor(_cursorId);
+				_cursorId = 0;
+			}
 		}
 
 		/**
@@ -462,7 +475,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.showCursor(PEN_CURSOR);
+			toggleCursor(true);
 		}
 		
 		/**
@@ -474,7 +487,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.hack_removeAllCursors();
+			toggleCursor(false);
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -704,7 +717,7 @@ package weave.ui
 					
 					_removeDrawingsMenuItem.enabled = true;
 				}
-				CustomCursorManager.showCursor(PEN_CURSOR);
+				toggleCursor(true);
 			}
 		}
 		
@@ -719,7 +732,7 @@ package weave.ui
 			if (!contextMenu)
 				return;
 
-			CustomCursorManager.hack_removeCurrentCursor();
+			toggleCursor(false);
 
 			//Reset Context Menu as if no PenMouse Object is there and let following code adjust as necessary.
 			_penToolMenuItem.caption = ENABLE_PEN;
@@ -771,7 +784,7 @@ package weave.ui
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				_changeDrawingMode.enabled = true;
-				CustomCursorManager.showCursor(PEN_CURSOR);
+				toggleCursor(true);
 			}
 			else
 			{

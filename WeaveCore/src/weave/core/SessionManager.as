@@ -345,6 +345,17 @@ package weave.core
 			}
 			if (linkableObject is ILinkableCompositeObject)
 			{
+				if (newState is String)
+					newState = [newState];
+				
+				if (newState != null && !(newState is Array))
+				{
+					var array:Array = [];
+					for (var key:String in newState)
+						array.push(new DynamicState(key, null, newState[key]));
+					newState = array;
+				}
+				
 				(linkableObject as ILinkableCompositeObject).setSessionState(newState as Array, removeMissingDynamicObjects);
 				return;
 			}
@@ -736,7 +747,7 @@ package weave.core
 				
 				// when there are no more tasks, check later to see if callbacks trigger
 				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
-				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{
@@ -1077,8 +1088,8 @@ package weave.core
 			// set some variables to aid in debugging - only useful if you add a breakpoint here.
 			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
-			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push[obj]; }
-			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push[obj]; }
+			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push(obj); }
+			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push(obj); }
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
@@ -1389,7 +1400,7 @@ package weave.core
 				// if the linkable variable's callbacks are delayed, delay synchronization
 				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
 				{
-					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 					return;
 				}
 				

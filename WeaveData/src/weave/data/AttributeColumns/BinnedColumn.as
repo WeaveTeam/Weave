@@ -110,7 +110,7 @@ package weave.data.AttributeColumns
 				_dataType = binningDefinition.internalObject is CategoryBinningDefinition ? String : Number;
 				// fill all mappings
 				if (_column && _binClassifiers)
-					WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, triggerCallbacks);
+					WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_2_BUILDING, triggerCallbacks);
 			}
 		}
 		

@@ -96,7 +96,7 @@ package weave.data
 			
 			if (asyncMode)
 			{
-				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_PARSING, parseDone);
+				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, parseDone);
 			}
 			else
 			{

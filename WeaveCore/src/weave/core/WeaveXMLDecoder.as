@@ -142,7 +142,7 @@ package weave.core
 				else
 				{
 					qualifiedClassName = packageName ? (packageName + "::" + className) : className;
-					trace("Class not found: " + qualifiedClassName +" in "+childNode.toString());
+					trace("Class not found: " + qualifiedClassName);
 				}
 				
 				var name:String = childNode.attributes["name"] as String;

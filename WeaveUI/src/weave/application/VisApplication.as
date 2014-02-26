@@ -205,6 +205,7 @@ package weave.application
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
+			ExternalInterface.addCallback('loadFile', loadFile);
 			WeaveAPI.initializeExternalInterface();
 
 			getFlashVars();
@@ -256,19 +257,38 @@ package weave.application
 				ErrorLogPanel.openErrorLog();
 		}
 		
+		private var _requestedConfigFile:String;
+		private var _loadFileCallback:Function;
+		/**
+		 * Loads a session state file from a URL.
+		 * @param url The URL to the session state file (.weave or .xml).
+		 * @param callback Either a Function or a String containing a JavaScript function definition. The callback will be invoked when the file loading completes.
+		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.
+		 */
+		public function loadFile(url:String, callback:Object = null, noCacheHack:Boolean = false):void
+		{
+			_requestedConfigFile = url;
+			_loadFileCallback = callback as Function;
+			if (callback is String)
+				_loadFileCallback = function():void { ExternalInterface.call(callback as String); };
+			
+			if (noCacheHack)
+				url += "?" + (new Date()).getTime(); // prevent flex from using cache
+			
+			WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
+		}
+		
 		private function downloadConfigFile():void
 		{
+			_loadFileCallback = null;
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
 			{
 				handleConfigFileDownloaded();
 			}
 			else
 			{
-				// load the session state file
 				var fileName:String = getFlashVarFile() || DEFAULT_CONFIG_FILE_NAME;
-				var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-				
-				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
+				loadFile(fileName, null, true);
 			}
 		}
 		private function handleConfigFileDownloaded(event:ResultEvent = null, fileName:String = null):void
@@ -279,6 +299,9 @@ package weave.application
 			}
 			else
 			{
+				// ignore old requests
+				if (fileName != _requestedConfigFile)
+					return;
 				if (Capabilities.playerType == "Desktop")
 					WeaveAPI.URLRequestUtils.setBaseURL(fileName);
 				loadSessionState(event.result, fileName);
@@ -296,7 +319,9 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			handleWeaveReady();
+			if (_loadFileCallback != null)
+				_loadFileCallback();
+			WeaveAPI.callExternalWeaveReady();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
@@ -310,7 +335,7 @@ package weave.application
 				// if not opened from admin console, enable interface now
 				if (!getFlashVarAdminConnectionName())
 					this.enabled = true;
-				handleWeaveReady();
+				WeaveAPI.callExternalWeaveReady();
 			}
 			else
 			{
@@ -318,14 +343,6 @@ package weave.application
 				if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
 					Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 			}
-		}
-		private function handleWeaveReady():void
-		{
-			// enable JavaScript API after initial session state has loaded.
-			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
-			Weave.initExternalDragDrop();
-			WeaveAPI.callExternalWeaveReady();
-			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -1684,7 +1701,7 @@ package weave.application
 			var popup:AlertTextBox;
 			popup = PopUpManager.createPopUp(this, AlertTextBox) as AlertTextBox;
 			popup.allowEmptyInput = true;
-			popup.textInput = WeaveAPI.CSVParser.createCSV([Weave.getPluginList()]);
+			popup.textInput = WeaveAPI.CSVParser.createCSVRow(Weave.getPluginList());
 			popup.title = lang("Specify which plugins to load");
 			popup.message = lang("List plugin .SWC files, separated by commas. Weave will reload itself if plugins have to be unloaded.");
 			popup.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handlePluginsChange);

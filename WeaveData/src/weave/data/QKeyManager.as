@@ -151,7 +151,7 @@ package weave.data
 				}
 				return 1;
 			};
-			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncCallback);
+			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncCallback);
 		}
 
 		/**

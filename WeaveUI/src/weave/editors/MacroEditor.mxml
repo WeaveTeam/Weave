@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
-<!---
-@author jfallon
--->
 <ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				 xmlns:ui="weave.ui.*"
 				 backgroundColor="#EFF4BC"
@@ -30,42 +27,40 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:VBox width="100%" height="100%" paddingBottom="5" paddingLeft="5" paddingRight="5"
 			 paddingTop="5">
 		<mx:HBox>
-			<mx:Button width="33%" height="100%" label="{lang('Add')}" click="newMacroEntry(event)"/>
-			<mx:Button width="33%" height="100%" label="{lang('Delete')}" click="deleteEntry(event)"
-					   enabled="{buttonsEnabled}"/>
-			<mx:Button width="33%" height="100%" label="{lang('Rename')}"
-					   click="renameMacroEntry(event)" enabled="{buttonsEnabled}"/>
+			<mx:Button label="{lang('Add')}" click="newMacro()"/>
+			<mx:Button label="{lang('Rename')}" click="renameMacro()" enabled="{macroList.selectedItem}"/>
+			<mx:Button label="{lang('Delete')}" click="controller.hashMap.removeObject(selectedMacroName);" enabled="{macroList.selectedItem}"/>
 		</mx:HBox>
 		<mx:HDividedBox width="100%" height="100%">
-			<mx:VBox width="25%" height="100%">
-				<mx:List id="macroList" width="100%" height="100%" itemClick="macroList_itemClickHandler(event)"/>
+			<mx:VBox width="15%" height="100%">
+				<mx:List id="macroList" width="100%" height="100%" change="setSelectedMacro(macroList.selectedItem as LinkableFunction)"/>
 			</mx:VBox>
-			<mx:VDividedBox width="75%" height="100%">
-				<ui:CodeEditor id="editor"/>
-				<mx:VBox height="25%" width="100%">
-					<mx:Text text="{lang('Macro Result:')}"/>
-					<mx:TextArea id="macroResult" width="100%" height="100%" minHeight="24" editable="false"/>
-				</mx:VBox>
+			<mx:VDividedBox width="85%" height="100%" visible="{macroList.selectedItem}" includeInLayout="{macroList.selectedItem}">
+				<ui:CodeEditor id="editor" change="handleMacroInput()"/>
+				<mx:HBox width="100%">
+					<mx:VBox>
+						<mx:Button id="testButton" label="{lang('Test macro')}" click="testMacro(true)"/>
+						<ui:CustomCheckBox id="autoTest" label="{lang('Auto test')}"/>
+					</mx:VBox>
+					<mx:TextArea id="result" width="100%" height="100%" minHeight="22" editable="false"/>
+				</mx:HBox>
 			</mx:VDividedBox>
 		</mx:HDividedBox>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.events.ListEvent;
+			import mx.binding.utils.BindingUtils;
 			
-			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableFunction;
+			import weave.core.LinkableWatcher;
 			import weave.ui.AlertTextBox;
 			import weave.ui.AlertTextBoxEvent;
 			import weave.ui.VariableListController;
 			import weave.utils.EventUtils;
 			
-			//Used for enabling/disabling the delete and rename button based on whether this macroList has at least one item.
-			[Bindable]
-			private var buttonsEnabled:Boolean = false;
-			private var controller:VariableListController = newLinkableChild(this, VariableListController);
+			private const controller:VariableListController = newLinkableChild(this, VariableListController);
+			private const macroWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleMacroChange);
 			
 			override protected function constructor():void
 			{
@@ -82,173 +77,126 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				controller.hashMap = LinkableFunction.macros;
 				controller.allowMultipleSelection = false;
 				controller.view = macroList;
+				LinkableFunction.macros.childListCallbacks.addImmediateCallback(this, handleMacroChange, true);
 				
-				if (controller.hashMap.getNames().length > 0)
-				{
-					buttonsEnabled = true;
-					macroList.selectedIndex = 0;
-					editor.text = selectedFunction.value;
-					handleChange();
-				}
+				BindingUtils.bindSetter(setSelectedMacro, macroList, 'selectedItem');
+				
 				this.targets = [controller.hashMap];
 				this.sessionEditorTarget = controller.hashMap;
-				getCallbackCollection(controller.hashMap).addImmediateCallback(this, enableButtonsCheck, true);
-				EventUtils.addDelayedEventCallback(editor, Event.CHANGE, handleChange);
 			}
 			
-			public function get selectedFunction():LinkableFunction
+			public function get selectedMacro():LinkableFunction
 			{
-				return macroList.selectedItem as LinkableFunction
-					|| (macroList.selectedIndex >= 0
-						? controller.hashMap.getObjects()[macroList.selectedIndex]
-						: null);
+				return macroWatcher.target as LinkableFunction;
 			}
 			
-			public function get selectedFunctionName():String
+			public function setSelectedMacro(value:LinkableFunction):void
 			{
-				return controller.hashMap.getName(selectedFunction);
+				if (macroList.selectedItem != value)
+					macroList.selectedItem = value;
+				macroWatcher.target = value as LinkableFunction;
 			}
 			
-			protected function deleteEntry(event:MouseEvent):void
+			public function get selectedMacroName():String
 			{
-				if (selectedFunction)
+				return controller.hashMap.getName(selectedMacro);
+			}
+			
+			private function handleMacroChange():void
+			{
+				setSelectedMacro(selectedMacro); // will set macroList.selectedItem if necessary
+				
+				if (!selectedMacro)
+					setSelectedMacro(controller.hashMap.getObjects()[0] as LinkableFunction);
+				
+				result.text = '';
+				if (selectedMacro)
 				{
-					controller.hashMap.removeObject(selectedFunctionName);
-			
-				    if (controller.hashMap.getNames().length > 0)
-			    	{
-				    	macroList.selectedIndex = 0;
-					    editor.text = selectedFunction.value;
-						try
-						{
-							macroResult.text = LinkableFunction.evaluateMacro(selectedFunctionName);
-						}
-						catch(e:Error)
-						{
-							macroResult.text = e.toString();
-						}
-				    }
-				    else
-					{
-						editor.text = "";
-						macroResult.text = "";
-					}
-					if (controller.hashMap.getNames().length == 0)
-						editor.editable = false;
-				}
-			}
-			
-			protected function newMacroEntry(event:MouseEvent):void
-			{
-				var box:AlertTextBox = AlertTextBox.show(lang("Macro Naming Window"), lang("Enter a name for the new macro:"));
-				box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
-				macroResult.text = "";
-			}
-			
-			private function checkInput(event:AlertTextBoxEvent):void
-			{
-				if( event.confirm == true )
-				{
-					var macroNames:Array = controller.hashMap.getNames();
-					for( var i:int = 0; i < macroNames.length; i++)
-					{
-						if( event.textInput == macroNames[i])
-						{
-							var box:AlertTextBox = AlertTextBox.show(lang("Macro Naming Window"), lang("The name you entered is already being used. Please enter a new name:"));
-							box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
-							return;
-						}
-					}
-					if( renaming )
-					{
-						controller.hashMap.renameObject(selectedFunctionName, event.textInput);
-						macroList.selectedIndex = lastSelectedIndex;
-						renaming = false;
-						return;
-					}
-					controller.hashMap.requestObject(event.textInput, LinkableFunction, false);
-					editor.text = "";
-					macroList.selectedIndex = controller.hashMap.getNames().length - 1;
-					if (selectedFunction)
-						editor.editable = true;
-				}
-			}
-			
-			protected function macroList_itemClickHandler(event:ListEvent):void
-			{
-				if (selectedFunction)
-				{
-					editor.editable = true;
-					macroResult.text = "";
-					editor.text = selectedFunction.value;	
-					handleChange(null);
+					editor.text = selectedMacro.value;
+					EventUtils.callLaterThrottled(this, testMacro);
 				}
 				else
 				{
-					editor.editable = false;
-					editor.text = "";
-					macroResult.text = "";
+					editor.text = '';
+				}
+			}
+			private function handleMacroInput():void
+			{
+				if (selectedMacro)
+					selectedMacro.value = editor.text;
+			}
+			
+			private function newMacro():void
+			{
+				AlertTextBox.show(
+					lang("New macro"),
+					lang("Enter a name for the new macro. The name should be a valid ActionScript identifier."),
+					'',
+					macroNameValidator
+				).addEventListener(
+					AlertTextBoxEvent.BUTTON_CLICKED,
+					function(event:AlertTextBoxEvent):void
+					{
+						if (event.confirm == true)
+							setSelectedMacro(controller.hashMap.requestObject(event.textInput, LinkableFunction, false));
+					}
+				);
+			}
+			private function renameMacro():void
+			{
+				AlertTextBox.show(
+					lang("Rename macro"),
+					lang('Enter a new name for the selected macro. The name should be a valid ActionScript identifier.'),
+					selectedMacroName,
+					macroNameValidator
+				).addEventListener(
+					AlertTextBoxEvent.BUTTON_CLICKED,
+					function(event:AlertTextBoxEvent):void
+					{
+						if (event.confirm == true)
+							setSelectedMacro(controller.hashMap.renameObject(selectedMacroName, event.textInput) as LinkableFunction);
+					}
+				);
+			}
+			private function deleteMacro():void
+			{
+				if (selectedMacro)
+					controller.hashMap.removeObject(selectedMacroName);
+			}
+			private function testMacro(forced:Boolean = false):void
+			{
+				result.text = '';
+				
+				if (!selectedMacro)
+					return;
+				
+				try
+				{
+					if (autoTest.selected || forced)
+						result.text = LinkableFunction.evaluateMacro(selectedMacroName);
+					else
+						selectedMacro.validate();
+					testButton.enabled = true;
+				}
+				catch(e:Error)
+				{
+					result.text = e.toString();
+					testButton.enabled = false;
 				}
 			}
 			
-			protected function handleChange(event:Event = null):void
+			private function macroNameValidator(name:String):Boolean
 			{
-				if (selectedFunction)
-				{
-					try
-					{
-						var funcToSave:LinkableFunction = selectedFunction;	
-						funcToSave.value = editor.text;
-						macroResult.text = LinkableFunction.evaluateMacro(selectedFunctionName);
-					}
-					catch(e:Error)
-					{
-						macroResult.text = e.toString();
-					}
-				}
-			}
-			
-			//Used to flag that there is a renaming going on.
-			private var renaming:Boolean = false;
-			//Use to set the selectedIndex back to where it should be once renaming is completed.
-			private var lastSelectedIndex:int = 0;
-			
-			protected function renameMacroEntry(event:MouseEvent):void
-			{
-				if (selectedFunction)
-				{
-					renaming = true;
-					lastSelectedIndex = macroList.selectedIndex;
-					var box:AlertTextBox = AlertTextBox.show(lang("Macro Renaming Window"), lang("Enter a new name for the macro:"));
-					box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
-				}
-				else
-				{
-					mx.controls.Alert.show("Please select one item to rename.");
-				}
+				return !controller.hashMap.getObject(name)
+					&& LinkableFunction.isValidSymbolName(name);
 			}
 			
 			override public function revert():void
 			{
 				super.revert();
 				if( controller.hashMap.getNames(LinkableFunction).length > 0 )
-					editor.text = selectedFunction.value;
+					editor.text = selectedMacro.value;
 			}
-			
-			protected function enableButtonsCheck():void
-			{
-				if( controller.hashMap.getNames(LinkableFunction).length > 0 )
-				{
-					buttonsEnabled = true;
-					editor.editable = true;
-				}
-				else
-				{
-					buttonsEnabled = false;	
-					editor.editable = false;
-				}
-			}
-			
 		]]>
 	</mx:Script>
 </ui:ControlPanel>

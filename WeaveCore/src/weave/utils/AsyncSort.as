@@ -157,7 +157,7 @@ package weave.utils
 			}
 			else
 			{
-				WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_BUILDING, done);
+				WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_2_BUILDING, done);
 			}
 		}
 		

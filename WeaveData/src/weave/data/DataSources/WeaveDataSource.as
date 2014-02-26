@@ -458,6 +458,10 @@ package weave.data.DataSources
 			var entityIds:Array = hierarcyNode_entityIds[1] as Array; // ordered list of ids
 			var orderLookup:Object = createLookup(entityIds);
 
+			hierarchyNode = _attributeHierarchy.getNodeFromPath(_attributeHierarchy.getPathFromNode(hierarchyNode));
+			if (!hierarchyNode)
+				return;
+			
 			try
 			{
 				var entities:Array = event.result as Array;
@@ -653,7 +657,7 @@ package weave.data.DataSources
 							proxyColumn.setInternalColumn(newGeometricColumn);
 						};
 						var pgGeomTask:Function = PGGeomUtil.newParseTask(result.data, geometriesVector);
-						WeaveAPI.StageUtils.startTask(proxyColumn, pgGeomTask, WeaveAPI.TASK_PRIORITY_PARSING, createGeomColumn);
+						WeaveAPI.StageUtils.startTask(proxyColumn, pgGeomTask, WeaveAPI.TASK_PRIORITY_3_PARSING, createGeomColumn);
 					}
 					else if (result.thirdColumn != null)
 					{

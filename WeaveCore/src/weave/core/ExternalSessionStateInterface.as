@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -31,6 +32,7 @@ package weave.core
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
+	import weave.utils.Dictionary2D;
 
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
@@ -280,29 +282,22 @@ package weave.core
 		{
 			try
 			{
-				_compiler.includeLibraries.apply(null, staticLibraries);
+				if (staticLibraries)
+					_compiler.includeLibraries.apply(null, staticLibraries);
 				
 				var isAssignment:Boolean = (assignVariableName != null); // allows '' to be used to ignore resulting value
+				if (assignVariableName && !_compiler.isValidSymbolName(assignVariableName))
+					throw new Error("Invalid variable name: " + Compiler.encodeString(assignVariableName));
+				
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				var compiledObject:ICompiledObject = _compiler.compileToObject(expression);
 				var isFuncDef:Boolean = _compiler.compiledObjectIsFunctionDefinition(compiledObject);
-				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [_variables, variables], null, thisObject != null);
+				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [_variables, variables], reportError, thisObject != null);
 				var result:*;
 				if (isAssignment && isFuncDef)
 				{
-					// bind 'this' scope and wrap in try/catch
-					result = function(...args):*
-					{
-						try
-						{
-							return compiledMethod.apply(thisObject, args);
-						}
-						catch (e:Error)
-						{
-							reportError(e);
-						}
-						return undefined;
-					};
+					// bind 'this' scope
+					result = Compiler.bind(compiledMethod, thisObject);
 				}
 				else
 				{
@@ -324,7 +319,8 @@ package weave.core
 		/**
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
 		 */		
-		private const _callbackFunctionCache:Object = {};
+		private var _callbackFunctionCache:Object = {};
+		private var _d2d_callbackStr_target:Dictionary2D = new Dictionary2D(true, true);
 		
 		/**
 		 * @private
@@ -357,26 +353,51 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean
+		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
 		{
 			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
-			// always use a grouped callback to avoid messy situations with javascript alert boxes
-			getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+			_d2d_callbackStr_target.set(callback, object, true);
+			if (immediateMode)
+				getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+			else
+				getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
 			return true;
 		}
 		
 		/**
 		 * @inheritDoc
 		 */
-		public function removeCallback(objectPathOrVariableName:Object, callback:String):Boolean
+		public function removeCallback(objectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean
 		{
+			if (everywhere)
+			{
+				for (var target:Object in _d2d_callbackStr_target.dictionary[callback])
+					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callback] as Function);
+				delete _callbackFunctionCache[callback];
+				delete _d2d_callbackStr_target.dictionary[callback];
+				return true;
+			}
+			
 			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
+			_d2d_callbackStr_target.remove(callback, object);
 			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
 			return true;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function removeAllCallbacks():void
+		{
+			for (var callbackStr:String in _d2d_callbackStr_target.dictionary)
+				for (var target:Object in _d2d_callbackStr_target.dictionary[callbackStr])
+					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callbackStr] as Function);
+			_callbackFunctionCache = {};
+			_d2d_callbackStr_target = new Dictionary2D(true, true);
 		}
 		
 		/**

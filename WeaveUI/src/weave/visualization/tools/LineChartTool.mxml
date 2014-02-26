@@ -74,8 +74,8 @@
 				// default axis values
 				yAxisPlotter.tickCountRequested.value = 5;
 				
-				xAxisPlotter.setLabelFunction(_plotter.xAxisLabelFunction);
-				yAxisPlotter.setLabelFunction(_plotter.yAxisLabelFunction);
+				xAxisPlotter.setLabelFunction(_plotter.xAxisLabelFunction, null);
+				yAxisPlotter.setLabelFunction(_plotter.yAxisLabelFunction, null);
 				
 				
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
@@ -235,7 +235,7 @@
 			
 			private function updateFilterText():void
 			{
-				xValuesInput.text = WeaveAPI.CSVParser.createCSV([_plotter.getXValues()]);
+				xValuesInput.text = WeaveAPI.CSVParser.createCSVRow(_plotter.getXValues());
 			}
 			
 			override protected function childrenCreated():void

@@ -180,6 +180,7 @@ package
 			WeaveXMLDecoder.includePackages(
 				"weave.editors",
 				"weave.ui",
+				"weave.ui.annotation",
 				"weave.utils",
 				"weave.visualization",
 				"weave.visualization.tools",

@@ -475,7 +475,7 @@ package weave
 			try
 			{
 				ExternalInterface.marshallExceptions = true;
-				ExternalInterface.call(script, ExternalInterface.objectID);
+				ExternalInterface.call(script);
 			}
 			catch (e:Error)
 			{
