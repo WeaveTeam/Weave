@@ -30,6 +30,7 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
@@ -37,6 +38,7 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
@@ -77,10 +79,14 @@ package weave.data.DataSources
 		{
 		}
 
+		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeofIsObject));
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
+		
+		private function typeofIsObject(value:Object):Boolean { return typeof value == 'object'; }
+		
 		/**
 		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
 		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
@@ -134,7 +140,7 @@ package weave.data.DataSources
 		 * Contains the csv data that should be used elsewhere in the code
 		 */		
 		private var parsedRows:Array;
-		private var columnIds:Array;
+		private var columnIds:Array = [];
 		
 		private function handleParsedRows(rows:Array):void
 		{
@@ -188,24 +194,52 @@ package weave.data.DataSources
 		 */
 		public function getColumnIds():Array
 		{
-			return columnIds ? columnIds.concat() : [];
+			return columnIds.concat();
+		}
+		
+		/**
+		 * Gets whatever is stored in the "metadata" session state for the specified id.
+		 */
+		private function getColumnMetadata(id:Object):Object
+		{
+			var meta:Object = metadata.getSessionState();
+			if (id is String && meta is Array)
+				return meta[columnIds.indexOf(id)];
+			else if (meta)
+				return meta[id];
+			return null;
+		}
+		
+		public function getColumnTitle(id:Object):String
+		{
+			var meta:Object = getColumnMetadata(id);
+			var title:String = meta ? meta[ColumnMetadata.TITLE] : null;
+			if (!title && typeof id == 'number' && parsedRows && parsedRows.length)
+				title = parsedRows[0][id];
+			if (!title)
+				title = String(id);
+			return title;
 		}
 		
 		private function getAttrTagFromColumnId(id:Object):XML
 		{
 			if (!parsedRows)
 				return null;
-			var attr:XML = <attribute keyType={ keyType.value || DataTypes.STRING }/>;
+			var attr:XML = <attribute/>;
+			attr['@'+ColumnMetadata.TITLE] = getColumnTitle(id);
+			attr['@'+ColumnMetadata.KEY_TYPE] = keyType.value || DataTypes.STRING;
+			
+			// get column metadata from session state
+			var meta:Object = getColumnMetadata(id);
+			for (var key:String in meta)
+				attr['@'+key] = meta[key];
+			
+			// overwrite identifying property
 			if (typeof id == 'number')
-			{
-				attr['@title'] = parsedRows[0] ? parsedRows[0][id] : '';
-				attr['@csvColumnIndex'] = id;
-			}
+				attr['@'+METADATA_COLUMN_INDEX] = id;
 			else
-			{
-				attr['@title'] = id;
-				attr['@csvColumn'] = id;
-			}
+				attr['@'+METADATA_COLUMN_NAME] = id;
+			
 			return attr;
 		}
 		
@@ -224,42 +258,6 @@ package weave.data.DataSources
 			_reusableReference.hierarchyPath.value = getAttrTagFromColumnId(columnNameOrIndex);
 			return WeaveAPI.AttributeColumnCache.getColumn(_reusableReference);
 		}
-		
-		/**
-		 * Sets the metadata for a column
-		 * @param csvColumnName the name of the column 
-		 * @param metaDataName the name of the metadata. Use ColumnMetadata to get property name
-		 * @value value the value to set for the metadata property
-		 **/
-//		public function setColumnMetaData(csvColumnName:String,metaDataName:String,value:String):void
-//		{
-//			var hierarchy:XML = _attributeHierarchy.value;
-//			if (hierarchy)
-//			{
-//				for each (var tag:XML in hierarchy.descendants('attribute'))
-//				{
-//					if (String(tag.@csvColumn) == csvColumnName)
-//					{
-//						if(metaDataName == ColumnMetadata.DATA_TYPE)
-//							tag.@dataType = value;
-//						else if(metaDataName == ColumnMetadata.KEY_TYPE)
-//							tag.@keyType = value;
-//						else if(metaDataName == ColumnMetadata.MAX)
-//							tag.@max = value;
-//						else if(metaDataName == ColumnMetadata.MIN)
-//							tag.@min = value;
-//						else if(metaDataName == ColumnMetadata.NUMBER)
-//							tag.@number = value;
-//						else if (metaDataName == ColumnMetadata.PROJECTION)
-//							tag.@projection = value;
-//						else if (metaDataName == ColumnMetadata.STRING)
-//							tag.@string = value;
-//						else if (metaDataName == ColumnMetadata.TITLE)
-//							tag.@title = value;
-//					}
-//				}
-//			}
-//		}
 		
 		// used by getColumnByName
 		private const _reusableReference:HierarchyColumnReference = newDisposableChild(this, HierarchyColumnReference);
@@ -403,14 +401,6 @@ package weave.data.DataSources
 		{
 			handleURLChange();
 			
-			if (_attributeHierarchy.value == null && parsedRows)
-			{
-				// loop through column names, adding indicators to hierarchy
-				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
-				for each (var id:Object in columnIds)
-					root.appendChild(getAttrTagFromColumnId(id));
-				_attributeHierarchy.value = root;
-			}
 			// recalculate all columns previously requested because CSV data may have changed.
 			for (var proxyColumn:* in _columnToReferenceMap)
 				requestColumnFromSource(_columnToReferenceMap[proxyColumn] as IColumnReference, proxyColumn);
@@ -418,10 +408,49 @@ package weave.data.DataSources
 			super.initialize();
 		}
 		
+		/**
+		 * Gets the root node of the attribute hierarchy.
+		 */
+		override public function getHierarchyRoot():IWeaveTreeNode
+		{
+			if (_attributeHierarchy.value === null)
+			{
+				if (!(_rootNode is CSVColumnNode))
+					_rootNode = new CSVColumnNode(this);
+				return _rootNode;
+			}
+			else
+			{
+				return super.getHierarchyRoot();
+			}
+		}
+		
+		/**
+		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
+		 */
+		override public function getColumnReference(node:IWeaveTreeNode, output:ILinkableDynamicObject):Boolean
+		{
+			if (node.getSource() != this || node.isBranch())
+				return false;
+			
+			var csvNode:CSVColumnNode = node as CSVColumnNode;
+			if (csvNode)
+			{
+				getCallbackCollection(output).delayCallbacks();
+				var hcr:HierarchyColumnReference = output.requestLocalObject(HierarchyColumnReference, false);
+				hcr.dataSourceName.value = WeaveAPI.globalHashMap.getName(this);
+				hcr.hierarchyPath.value = getAttrTagFromColumnId(csvNode.columnIndex);
+				getCallbackCollection(output).resumeCallbacks();
+				return true;
+			}
+			
+			return super.getColumnReference(node, output);
+		}
+		
 		override protected function handleHierarchyChange():void
 		{
 			super.handleHierarchyChange();
-			convertOldHierarchyFormat(_attributeHierarchy.value, "attribute", {name: "csvColumn"});
+			convertOldHierarchyFormat(_attributeHierarchy.value, "attribute", {"name": METADATA_COLUMN_NAME});
 			if (_attributeHierarchy.value)
 			{
 				for each (var tag:XML in _attributeHierarchy.value.descendants('attribute'))
@@ -475,6 +504,9 @@ package weave.data.DataSources
 		{
 			// do nothing
 		}
+		
+		public static const METADATA_COLUMN_INDEX:String = 'csvColumnIndex';
+		public static const METADATA_COLUMN_NAME:String = 'csvColumn';
 
 		/**
 		 * This function must be implemented by classes by extend AbstractDataSource.
@@ -492,14 +524,14 @@ package weave.data.DataSources
 			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
 			proxyColumn.setMetadata(leafNode.copy());
 
-			var columnId:Object = proxyColumn.getMetadata("csvColumnIndex");
+			var columnId:Object = proxyColumn.getMetadata(METADATA_COLUMN_INDEX);
 			if (columnId)
 			{
 				columnId = int(columnId);
 			}
 			else
 			{
-				columnId = proxyColumn.getMetadata("csvColumn");
+				columnId = proxyColumn.getMetadata(METADATA_COLUMN_NAME);
 				
 				// backwards compatibility
 				if (!columnId)
@@ -645,4 +677,47 @@ package weave.data.DataSources
 		
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
 	}
+}
+
+import weave.api.WeaveAPI;
+import weave.api.data.ColumnMetadata;
+import weave.api.data.IWeaveTreeNode;
+import weave.data.DataSources.CSVDataSource;
+
+internal class CSVColumnNode implements IWeaveTreeNode
+{
+	private var source:CSVDataSource;
+	public var columnIndex:int;
+	internal var children:Array;
+	public function CSVColumnNode(source:CSVDataSource = null, columnIndex:int = -1)
+	{
+		this.source = source;
+		this.columnIndex = columnIndex;
+		if (columnIndex < 0)
+			children = [];
+	}
+	public function getSource():Object { return source; }
+	public function equals(other:IWeaveTreeNode):Boolean { return other == this; }
+	public function getLabel():String
+	{
+		if (columnIndex < 0)
+			return WeaveAPI.globalHashMap.getName(source);
+		return source.getColumnTitle(columnIndex);
+	}
+	public function isBranch():Boolean { return columnIndex < 0; }
+	public function hasChildBranches():Boolean { return false; }
+	public function getChildren():Array
+	{
+		if (!children)
+			return null;
+		
+		var ids:Array = source.getColumnIds();
+		children.length = ids.length;
+		for (var i:int = 0; i < ids.length; i++)
+			if (!children[i])
+				children[i] = new CSVColumnNode(source, i);
+		return children;
+	}
+	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { throw new Error("Not implemented"); }
+	public function removeChild(child:IWeaveTreeNode):Boolean { throw new Error("Not implemented"); }
 }
