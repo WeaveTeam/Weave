@@ -47,6 +47,7 @@ package weave.data.AttributeColumns
 			super(metadata);
 		}
 		
+		[Deprecated]
 		public function get metadata():XML
 		{
 			return _metadata;
@@ -158,7 +159,7 @@ package weave.data.AttributeColumns
 		private function errorHandler(e:*):void
 		{
 			var str:String = e is Error ? e.message : String(e);
-			str = StandardLib.substitute("Error in script for AttributeColumn {0}:\n{1}", _metadata.toXMLString(), str);
+			str = StandardLib.substitute("Error in script for AttributeColumn {0}:\n{1}", _metadata && _metadata.toXMLString(), str);
 			if (_lastError != str)
 			{
 				_lastError = str;
@@ -218,7 +219,7 @@ package weave.data.AttributeColumns
 				{
 					_reportedDuplicate = true;
 					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-					var str:String = StandardLib.substitute(fmt, key.localName, _metadata.toXMLString());
+					var str:String = StandardLib.substitute(fmt, key.localName, _metadata && _metadata.toXMLString());
 					if (Capabilities.isDebugger)
 						reportError(str);
 				}
@@ -320,7 +321,7 @@ package weave.data.AttributeColumns
 			
 			if (dataType == IQualifiedKey)
 			{
-				var type:String = _metadata.attribute(ColumnMetadata.DATA_TYPE);
+				var type:String = _metadata && _metadata.attribute(ColumnMetadata.DATA_TYPE);
 				if (!type)
 					type = DataTypes.STRING;
 				return WeaveAPI.QKeyManager.getQKey(type, string);

@@ -225,9 +225,9 @@
 				var dataVariable:DynamicColumn = dataEquation.variables.requestObject("data", DynamicColumn, false);
 				setSessionState(dataVariable, dataState);
 				dataEquation.variables.requestObjectCopy("groupBy", _plotter.groupBy);
-				dataEquation.setMetadata(ColumnMetadata.TITLE, lang("{0} (reverse lookup)", dataTitle));
-				dataEquation.setMetadata(ColumnMetadata.KEY_TYPE, ColumnUtils.getDataType(_plotter.groupBy));
-				dataEquation.setMetadata(ColumnMetadata.DATA_TYPE, dataType);
+				dataEquation.setMetadataProperty(ColumnMetadata.TITLE, lang("{0} (reverse lookup)", dataTitle));
+				dataEquation.setMetadataProperty(ColumnMetadata.KEY_TYPE, ColumnUtils.getDataType(_plotter.groupBy));
+				dataEquation.setMetadataProperty(ColumnMetadata.DATA_TYPE, dataType);
 				dataEquation.equation.value = 'var associatedKeys = getAssociatedKeys(groupBy, key);\n' +
 					'return associatedKeys ? data.getValueFromKey(associatedKeys[0], dataType) : cast(undefined, dataType);';
 				dataEquation.resumeCallbacks();
