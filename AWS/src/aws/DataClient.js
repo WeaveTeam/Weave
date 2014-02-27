@@ -37,6 +37,10 @@ aws.DataClient.getListOfQueryObjects = function(projectName, callback){
 	aws.queryService(rServiceURL, 'getQueryObjectsInProject', [projectName], callback);
 };
 
+
+aws.DataClient.deleteProject = function(projectName, callback){
+	aws.queryService(rServiceURL, 'deleteProject',[projectName], callback );
+};
 /**
  * This function mirrors the getEntitiesById on the servlet.
  * 

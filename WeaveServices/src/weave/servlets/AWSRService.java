@@ -51,6 +51,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 import weave.beans.RResult;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.servlets.DataService.FilteredColumnRequest;
+import weave.utils.FileUtils;
 import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
@@ -369,6 +370,15 @@ public class AWSRService extends RService
 		
 		return finalQueryObjectCollection;
 		
+	}
+	
+	public boolean deleteProject(String projectName) throws Exception
+	{
+		boolean status;
+		File pj = new File("C:/Projects", projectName);
+		status = FileUtils.deleteDirectory(pj);
+		
+		return status;
 	}
 	
 	/**

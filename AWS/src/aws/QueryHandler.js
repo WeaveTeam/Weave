@@ -35,6 +35,14 @@ aws.QueryHandler = function(queryObject)
 		}
 	}
 	
+	if(queryObject.hasOwnProperty("projectSelected")) {
+		if (queryObject.projectSelected != "") {
+			this.rRequestObject.projectName = queryObject.projectSelected;
+		} else {
+			console.log("no project selected");
+		}
+	}
+	
 	if(queryObject.hasOwnProperty("FilteredColumnRequest")) {
 		for( var i = 0; i < queryObject.FilteredColumnRequest.length; i++) {
 			this.rRequestObject.FilteredColumnRequest[i] = {
