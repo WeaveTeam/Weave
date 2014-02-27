@@ -485,9 +485,9 @@ package weave.data.DataSources
 			if (!hierarchyRef)
 				return handleUnsupportedColumnReference(columnReference, proxyColumn);
 
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
+			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value || <empty/>;
+			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
+			proxyColumn.setMetadata(leafNode.copy());
 
 			var columnId:Object = proxyColumn.getMetadata("csvColumnIndex");
 			if (columnId)

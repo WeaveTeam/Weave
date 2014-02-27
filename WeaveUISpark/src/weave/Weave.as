@@ -168,11 +168,11 @@ package weave
 		
 		/******************************************************************************************/
 		
-		private static const THUMBNAIL_SIZE:int = 200;
-		private static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
-		private static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
-		private static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
-		private static const ARCHIVE_HISTORY_AMF:String = "history.amf";
+		public static const THUMBNAIL_SIZE:int = 200;
+		public static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
+		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
+		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
+		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
 		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
 		
 		private static var _pluginList:Array = [];
@@ -329,6 +329,10 @@ package weave
 				reportError(e, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + e.message);
 			}
 			
+			// embedded files
+			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
+				output.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
+			
 			if (Weave.ALLOW_PLUGINS)
 				output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
 			
@@ -360,6 +364,7 @@ package weave
 			if (debug)
 				debugTrace("loadWeaveFileContent", arguments);
 			var plugins:Array;
+			var fileName:String;
 			if (content is String)
 				content = XML(content);
 			if (content is XML)
@@ -373,6 +378,10 @@ package weave
 					root.setSessionState(newState, true);
 					// begin with empty history after loading the session state from the xml
 					history.clearHistory();
+					
+					// remove all local files and replace with list from archive
+					for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
+						WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
 				}
 			}
 			else if (content)
@@ -397,6 +406,12 @@ package weave
 				var _history:Object = _lastLoadedArchive.objects[ARCHIVE_HISTORY_AMF];
 				if (!_history)
 					throw new Error("Weave session history not found.");
+				
+				// remove all local files and replace with list from archive
+				for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
+					WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
+				for (fileName in _lastLoadedArchive.files)
+					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, _lastLoadedArchive.files[fileName]);
 				
 				plugins = _lastLoadedArchive.objects[ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))

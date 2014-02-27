@@ -213,7 +213,7 @@ package weave.data.DataSources
 		 * This maps a requested hierarchy subtree xml string to a value of true.
 		 * If a subtree node has not been requested yet, it will not appear in this Object.
 		 */
-		private var _requestedHierarchySubtreeStringMap:Object = new Object();
+		protected var _requestedHierarchySubtreeStringMap:Object = new Object();
 		
 		/**
 		 * If the hierarchy subtree pointed to subtreeNode 
