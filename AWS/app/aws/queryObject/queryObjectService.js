@@ -75,16 +75,40 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         
     };
     
+    
+    /**
+     * This function wraps the async aws deleteproject function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.deleteProject = function() {
+          	
+    	var deferred = $q.defer();
+
+        aws.DataClient.deleteProject(projectName, function(result) {
+            
+        	that.dataObject.deleteStatus = result;//returns a boolean which states if the project has been deleted(true)
+        	
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
+    
+    
     /**
      * This function wraps the async aws getQueryObjectsInProject function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
     this.getListOfQueryObjectsInProject = function(projectName) {
     	
-    	if(this.dataObject.listofQueryObjectsInProject) {
-    		return this.dataObject.listofQueryObjectsInProject;
-    	}
-    	
+//    	if(this.dataObject.listofQueryObjectsInProject) {
+//    		return this.dataObject.listofQueryObjectsInProject;
+//    	}
+	
     	
     	var deferred = $q.defer();
 
@@ -101,6 +125,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         return deferred.promise;
         
     };
+    
+    
+    
     /**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...

@@ -10,7 +10,8 @@ var app = angular.module('aws', ['aws.router',
                                  'aws.visualization',
                                  'ui.bootstrap', // don't need?
                                  'ui.select2',
-                                 'ui.slider']);
+                                 'ui.slider',
+                                 'ui.sortable']);
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {
