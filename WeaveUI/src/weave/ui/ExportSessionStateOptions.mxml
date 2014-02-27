@@ -41,7 +41,7 @@
 							 change="handleXMLToggle()"
 							 selected="false"/>
 				<HelpComponent id="xmlHelp">
-					Also, XML format currently does not allow embedding files.
+					XML format does not support embedded files.
 				</HelpComponent>
 			</mx:HBox>
 			<mx:CheckBox label="{lang('Dashboard mode')}"

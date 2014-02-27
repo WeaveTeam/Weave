@@ -209,6 +209,7 @@ package weave.primitives
 		/**
 		 * This function assigns importance values to a list of coordinates and replaces the contents of the BLGTree.
 		 * @param xyCoordinates An array of Numbers, even index values being x coordinates and odd index values being y coordinates.
+		 *                      To indicate part markers, use a sequence of two NaN values.
 		 */
 		public function setCoordinates(xyCoordinates:Array, method:String = "BLGTreeUtils.METHOD_SAMPLE"):void
 		{
@@ -241,27 +242,28 @@ package weave.primitives
 			// process each part of the geometry (additional parts may be islands or lakes)
 			while (ix + 1 < xyCoordinates.length) // while there is an x,y pair
 			{
-				if (firstVertexID > 0)
-				{
-					// create new part and add part marker
-					coordinates = new BLGTree();
-					receivedPartMarkers[coordinates] = true;
-					parts.push(coordinates);
-					partMarkers.push(firstVertexID);
-				}
 				// loop through coordinates
 				var numPoints:int = 0;
 				for (; ix + 1 < xyCoordinates.length; ix += 2)
 				{
 					x = xyCoordinates[ix];
 					y = xyCoordinates[ix + 1];
-		
-					if (x <= -Number.MAX_VALUE || x >= Number.MAX_VALUE ||
-						y <= -Number.MAX_VALUE || y >= Number.MAX_VALUE)
+					
+					// check for part marker
+					if (isNaN(x) && isNaN(y))
 					{
-						// don't add invalid points
-						continue;
+						if (numPoints > 0)
+						{
+							ix += 2; // skip part marker
+							break; // end of part
+						}
+						continue; // haven't seen beginning of part yet
 					}
+					
+					// skip invalid points
+					if (!isFinite(x) || !isFinite(y))
+						continue;
+					
 					// create chain link for this coordinate
 					newVertex = VertexChainLink.getUnusedInstance(firstVertexID + numPoints, x, y);
 					if (numPoints == 0)
@@ -277,13 +279,12 @@ package weave.primitives
 							continue;
 						}
 						// stop adding points when the current coord is equal to the first coord
-						// or NaN part marker is found
-						if (newVertex.equals2D(firstVertex) || isNaN(x) || isNaN(y))
+						if (newVertex.equals2D(firstVertex))
 						{
 							ix += 2; // make sure to skip this coord
 
 							VertexChainLink.saveUnusedInstance(newVertex);
-							break;
+							break; // end of part
 						}
 						firstVertex.insert(newVertex);
 					}
@@ -291,15 +292,29 @@ package weave.primitives
 					bounds.includeCoords(x, y);
 					numPoints++;
 				}
-				// ARC: end points of a part are required points
-				if (geomType == GeometryType.LINE && numPoints > 0)
-				{
-					firstVertex.importance = Infinity;
-					firstVertex.prev.importance = Infinity;
-				}
 				
-				// assign importance values to points and save them
-				BLGTreeUtils.buildBLGTree(firstVertex, coordinates, method);
+				// end of part
+				if (numPoints > 0)
+				{
+					// ARC: end points of a part are required points
+					if (geomType == GeometryType.LINE && numPoints > 0)
+					{
+						firstVertex.importance = Infinity;
+						firstVertex.prev.importance = Infinity;
+					}
+					
+					if (firstVertexID > 0)
+					{
+						// create new part and add part marker
+						coordinates = new BLGTree();
+						receivedPartMarkers[coordinates] = true;
+						parts.push(coordinates);
+						partMarkers.push(firstVertexID);
+					}
+					
+					// assign importance values to points and save them
+					BLGTreeUtils.buildBLGTree(firstVertex, coordinates, method);
+				}
 				
 				// done copying points for this part, advance firstVertexID to after the current part
 				firstVertexID += numPoints;
