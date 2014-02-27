@@ -1,10 +1,16 @@
-angular.module("aws.analysis.geography", [])
-.controller("GeographyCtrl", function($scope, queryService){
+GeoModule = angular.module('aws.analysis.geography', []); 
+GeoModule.controller('GeographyControl', function($scope, queryService){
 	
 	queryService.queryObject.GeographyFilter = {
 			state : {},
 			counties : {}
 	};
+	var stateValueKey = null;
+	var stateLabelKey = null;
+	var countyValueKey = null;
+	var countyLabelKey = null;
+	var processedMetadata = [];
+	var geographyMetadata = null;
 	
 	$scope.$watch('geographyMetadataTableId', function() {
 		queryService.queryObject.GeographyFilter.geographyMetadataTableId = $scope.geographyMetadataTableId;
@@ -14,12 +20,9 @@ angular.module("aws.analysis.geography", [])
 	$scope.$watch(function() {
 		return queryService.dataObject.geographyMetadata;
 	}, function() {
-		var processedMetadata = [];
-		var geographyMetadata = queryService.dataObject.geographyMetadata;
-		var stateValueKey = null;
-		var stateLabelKey = null;
-		var countyValueKey = null;
-		var countyLabelKey = null;
+		
+		geographyMetadata = queryService.dataObject.geographyMetadata;
+
 		
 		// would need to be generalized later...
 		for(var key in geographyMetadata.columns) {

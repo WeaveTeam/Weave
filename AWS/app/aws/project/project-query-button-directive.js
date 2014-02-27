@@ -1,7 +1,7 @@
 /**
  * 
  */
-angular.module('aws.project', [])//name of module
+angular.module('aws.project')//name of module
 .directive('projectQueryButton', function($compile) {//name of directive (part used in HTML)
   return {//way of building directive by returning a directive description object
 	  restrict: 'E',//invoking the directive as an 'Element'

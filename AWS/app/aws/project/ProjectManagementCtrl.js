@@ -15,7 +15,7 @@ angular.module('aws.project', [])
 			queryService.queryObject.projectSelected = $scope.projectSelectorUI;//updates UI
 			//$scope.currentProjectSeletion = $scope.projectSelectorUI;
 			
-			queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);
+			$scope.listItems = queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);
 				
 		}
 	});
