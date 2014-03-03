@@ -51,7 +51,7 @@ package weave.data.AttributeColumns
 	{
 		private static var _debug:Boolean = false;
 		
-		public function StreamedGeometryColumn(metadataTileDescriptors:ByteArray, geometryTileDescriptors:ByteArray, tileService:IWeaveGeometryTileService, metadata:XML = null)
+		public function StreamedGeometryColumn(metadataTileDescriptors:ByteArray, geometryTileDescriptors:ByteArray, tileService:IWeaveGeometryTileService, metadata:Object = null)
 		{
 			super(metadata);
 			

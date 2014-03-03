@@ -36,7 +36,7 @@ package weave.data.AttributeColumns
 	 */
 	public class ProxyColumn extends AbstractAttributeColumn implements IColumnWrapper
 	{
-		public function ProxyColumn(metadata:XML = null)
+		public function ProxyColumn(metadata:Object = null)
 		{
 			super(metadata);
 		}
@@ -63,9 +63,9 @@ package weave.data.AttributeColumns
 		 * This function updates the proxy metadata.
 		 * @param metadata New metadata for the proxy.
 		 */
-		override public function setMetadata(metadata:XML):void
+		override public function setMetadata(metadata:Object):void
 		{
-			_metadata = metadata;
+			_metadata = copyValues(metadata);
 			triggerCallbacks();
 		}
 

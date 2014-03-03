@@ -41,7 +41,7 @@ package weave.data.AttributeColumns
 	
 	public class SecondaryKeyNumColumn extends AbstractAttributeColumn implements IPrimitiveColumn
 	{
-		public function SecondaryKeyNumColumn(metadata:XML = null)
+		public function SecondaryKeyNumColumn(metadata:Object = null)
 		{
 			super(metadata);
 			secondaryKeyFilter.addImmediateCallback(this, triggerCallbacks);
@@ -163,7 +163,7 @@ package weave.data.AttributeColumns
 			_keyToNumericDataMapping = new Dictionary();
 			
 			//if it's string data - create list of unique strings
-			var dataType:String = _metadata.attribute(ColumnMetadata.DATA_TYPE);
+			var dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
 			if (data[0] is String || (dataType && dataType != DataTypes.NUMBER))
 			{
 				if (!dataType)
@@ -186,7 +186,7 @@ package weave.data.AttributeColumns
 				_minNumber = NaN;
 				_maxNumber = NaN;
 			}
-			_metadata.attribute(ColumnMetadata.DATA_TYPE).setChildren(dataType);
+			_metadata[ColumnMetadata.DATA_TYPE] = dataType;
 			_dataType = dataType == DataTypes.STRING ? String : Number;
 			
 			// save a mapping from keys to data
@@ -292,7 +292,7 @@ package weave.data.AttributeColumns
 			{
 				if (_qkeyCache[qkey] === undefined)
 				{
-					var type:String = _metadata.attribute(ColumnMetadata.DATA_TYPE);
+					var type:String = getMetadata(ColumnMetadata.DATA_TYPE);
 					if (type == DataTypes.NUMBER)
 						return null;
 					if (type == '')

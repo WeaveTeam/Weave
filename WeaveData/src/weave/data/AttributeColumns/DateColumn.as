@@ -23,6 +23,8 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
@@ -37,7 +39,7 @@ package weave.data.AttributeColumns
 	 */
 	public class DateColumn extends AbstractAttributeColumn implements IPrimitiveColumn
 	{
-		public function DateColumn(metadata:XML = null)
+		public function DateColumn(metadata:Object = null)
 		{
 			super(metadata);
 		}
@@ -56,11 +58,6 @@ package weave.data.AttributeColumns
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
 		private var _dateFormat:String = null;
-		
-		public function get metadata():XML
-		{
-			return _metadata;
-		}
 		
 		/**
 		 * @inheritDoc
@@ -190,7 +187,7 @@ package weave.data.AttributeColumns
 								+ ' (only the first error for this column is reported).'
 								+ ' Attribute column: {1}',
 								string,
-								_metadata.toXMLString()
+								ObjectUtil.toString(_metadata)
 							);
 							reportError(err);
 						}
@@ -209,7 +206,7 @@ package weave.data.AttributeColumns
 				{
 					_reportedError = true;
 					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-					var str:String = StandardLib.substitute(fmt, key.localName, _metadata.toXMLString());
+					var str:String = StandardLib.substitute(fmt, key.localName, ObjectUtil.toString(_metadata));
 					if (Capabilities.isDebugger)
 						reportError(str);
 				}

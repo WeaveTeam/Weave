@@ -32,7 +32,7 @@ package weave.data.AttributeColumns
 	 */
 	public class GeometryColumn extends AbstractAttributeColumn
 	{
-		public function GeometryColumn(metadata:XML = null)
+		public function GeometryColumn(metadata:Object = null)
 		{
 			super(metadata);
 		}

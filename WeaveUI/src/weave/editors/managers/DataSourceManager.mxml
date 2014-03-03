@@ -93,7 +93,7 @@
 											columnDisplayGrid.dataProvider = column.keys;
 											keyColumn.keyType.value = column.getMetadata(ColumnMetadata.KEY_TYPE);
 											var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
-											dataColumn.setMetadata(<attribute title={
+											dataColumn.setMetadata(<attribute {ColumnMetadata.TITLE}={
 												dataType ? lang("Value ({0})", dataType) : lang("Value")
 											}/>);
 										},
