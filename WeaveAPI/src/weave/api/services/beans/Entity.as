@@ -29,18 +29,18 @@ package weave.api.services.beans
 	{
 		public function Entity(info:EntityHierarchyInfo = null)
 		{
-			_id = -1;
+			id = -1;
 			if (info)
 			{
-				_id = info.id;
+				id = info.id;
 				publicMetadata[ColumnMetadata.TITLE] = info.title;
 				publicMetadata[ColumnMetadata.ENTITY_TYPE] = info.entityType;
 			}
 		}
 		
-		private var _id:int;
-		private var _parentIds:Array;
-		private var _childIds:Array;
+		public var id:int;
+		public var parentIds:Array;
+		public var childIds:Array;
 		private var _hasParent:Object;
 		private var _hasChild:Object;
 		
@@ -49,9 +49,9 @@ package weave.api.services.beans
 		 */		
 		public function reset():void
 		{
-			_id = -1;
-			_parentIds = null;
-			_childIds = null;
+			id = -1;
+			parentIds = null;
+			childIds = null;
 			_hasParent = null;
 			_hasChild = null;
 			publicMetadata = {};
@@ -63,64 +63,34 @@ package weave.api.services.beans
 		 */		
 		public function get initialized():Boolean
 		{
-			return _id != -1;
+			return id != -1;
 		}
 		
-		public function get id():int
-		{
-			return _id;
-		}
 		public function getEntityType():String
 		{
 			return publicMetadata[ColumnMetadata.ENTITY_TYPE];
 		}
-		public function get parentIds():Array
-		{
-			return _parentIds;
-		}
-		public function get childIds():Array
-		{
-			return _childIds;
-		}
 		
 		public function hasParent(parentId:int):Boolean
 		{
+			if (!_hasParent)
+			{
+				_hasParent = {};
+				for each (var pid:String in parentIds)
+					_hasParent[pid] = true;
+			}
 			return _hasParent[parentId];
 		}
 		
 		public function hasChild(childId:int):Boolean
 		{
+			if (!_hasChild)
+			{
+				_hasChild = {};
+				for each (var cid:String in childIds)
+					_hasChild[cid] = true;
+			}
 			return _hasChild[childId];
-		}
-		
-		public function copyFromResult(result:Object):void
-		{
-			_id = getEntityIdFromResult(result);
-			privateMetadata = result.privateMetadata || {};
-			publicMetadata = result.publicMetadata || {};
-			_parentIds = result.parentIds;
-			_childIds = result.childIds;
-			_hasParent = {};
-			_hasChild = {};
-			var id:int;
-			for each (id in _parentIds)
-				_hasParent[id] = true;
-			for each (id in _childIds)
-				_hasChild[id] = true;
-	
-			// replace nulls with empty strings
-			var name:String;
-			for (name in privateMetadata)
-				if (privateMetadata[name] == null)
-					privateMetadata[name] = '';
-			for (name in publicMetadata)
-				if (publicMetadata[name] == null)
-					publicMetadata[name] = '';
-		}
-		
-		public static function getEntityIdFromResult(result:Object):int
-		{
-			return result.id;
 		}
 	}
 }

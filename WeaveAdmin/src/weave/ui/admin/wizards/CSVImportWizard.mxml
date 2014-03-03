@@ -227,12 +227,12 @@
 			private function openServerBrowser():void
 			{
 				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_CSV);
-				_serverFileBrowser.datagrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
+				_serverFileBrowser.dataGrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
 				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{
-				csvFileNameInput.text = _serverFileBrowser.datagrid.selectedItem.name;
+				csvFileNameInput.text = _serverFileBrowser.selectedFileInfo.fileName;
 				PopUpManager.removePopUp(_serverFileBrowser);
 				getColumnNames();
 			}

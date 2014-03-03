@@ -108,6 +108,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.services.beans.ConnectionInfo;
 			import mx.rpc.AsyncToken;
 			import mx.binding.utils.BindingUtils;
 			import mx.rpc.events.ResultEvent;
@@ -207,7 +208,7 @@
 					if (treeWithSearch.tree.selectedItem.label != name)
 						return;
 					clearConnectionFields(false);
-					var info:ConnectionInfo = new ConnectionInfo(event.result);
+					var info:ConnectionInfo = ConnectionInfo(event.result) || new ConnectionInfo();
 					connectionNameInput.text = info.name;
 					connectionPasswordInput.text = info.pass;
 					superuserCheckbox.selected = info.is_superuser;
@@ -245,7 +246,7 @@
 			
 			private function saveConnectionInfo():void
 			{
-				var info:ConnectionInfo = new ConnectionInfo(null);
+				var info:ConnectionInfo = new ConnectionInfo();
 				info.name = connectionNameInput.text;
 				info.pass = connectionPasswordInput.text;
 				info.is_superuser = superuserCheckbox.selected;

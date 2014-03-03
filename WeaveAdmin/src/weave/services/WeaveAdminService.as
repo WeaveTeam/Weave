@@ -41,12 +41,16 @@ package weave.services
 	
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWeaveEntityManagementService;
+	import weave.api.services.beans.Entity;
+	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
 	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.services.beans.ConnectionInfo;
+	import weave.services.beans.DatabaseConfigInfo;
+	import weave.services.beans.WeaveFileInfo;
 	
 	/**
 	 * The functions in this class correspond directly to Weave servlet functions written in Java.
@@ -226,12 +230,12 @@ package weave.services
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeAdmin(method:Function, parameters:Array, queued:Boolean = true):AsyncToken
+		private function invokeAdmin(method:Function, parameters:Array, queued:Boolean = true, returnType:Class = null):AsyncToken
 		{
 			var methodName:String = propertyNameLookup[method];
 			if (!methodName)
 				throw new Error("method must be a member of " + getQualifiedClassName(this));
-			return generateQuery(adminService, methodName, parameters, queued);
+			return generateQuery(adminService, methodName, parameters, queued, returnType);
 		}
 		
 		/**
@@ -241,10 +245,10 @@ package weave.services
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeAdminWithLogin(method:Function, parameters:Array, queued:Boolean = true):AsyncToken
+		private function invokeAdminWithLogin(method:Function, parameters:Array, queued:Boolean = true, returnType:Class = null):AsyncToken
 		{
 			parameters.unshift(Admin.instance.activeConnectionName, Admin.instance.activePassword);
-			return invokeAdmin(method, parameters, queued);
+			return invokeAdmin(method, parameters, queued, returnType);
 		}
 		
 		/**
@@ -254,12 +258,12 @@ package weave.services
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeDataService(method:Function, parameters:Array, queued:Boolean = true):AsyncToken
+		private function invokeDataService(method:Function, parameters:Array, queued:Boolean = true, returnType:Class = null):AsyncToken
 		{
 			var methodName:String = propertyNameLookup[method];
 			if (!methodName)
 				throw new Error("method must be a member of " + getQualifiedClassName(this));
-			return generateQuery(dataService, methodName, parameters, queued);
+			return generateQuery(dataService, methodName, parameters, queued, returnType);
 		}
 		
 		/**
@@ -267,10 +271,10 @@ package weave.services
 		 * @param service The servlet.
 		 * @param methodName The name of a servlet method.
 		 * @param parameters Parameters for the servlet method.
-		 * @param byteArray An optional byteArray to append to the end of the stream.
-		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
+		 * @param returnType The type of object which the result should be cast to.
+		 * @return The ProxyAsyncToken object representing the servlet method invocation.
 		 */		
-		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:Array, queued:Boolean):AsyncToken
+		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:Array, queued:Boolean, returnType:Class):AsyncToken
 		{
 			var query:ProxyAsyncToken = new ProxyAsyncToken(service.invokeAsyncMethod, [methodName, parameters]);
 
@@ -278,7 +282,10 @@ package weave.services
 				queue.addToQueue(query);
 			
 			hookCaptureHandler(query);
-			
+
+			if ([null, Array, String, Number, int, uint].indexOf(returnType) < 0)
+				addAsyncResponder(query, WeaveDataServlet.castResult, null, returnType);
+
 			// automatically display FaultEvent error messages as alert boxes
 			addAsyncResponder(query, hookHandler, alertFault, query);
 			
@@ -370,7 +377,7 @@ package weave.services
 		}
 		public function getWeaveFileInfo(fileName:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getWeaveFileInfo, arguments, false); // bypass queue
+			return invokeAdminWithLogin(getWeaveFileInfo, arguments, false, WeaveFileInfo); // bypass queue
 		}
 		
 		//////////////////////////////
@@ -382,7 +389,7 @@ package weave.services
 		}
 		public function getConnectionInfo(userToGet:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getConnectionInfo, arguments);
+			return invokeAdminWithLogin(getConnectionInfo, arguments, true, ConnectionInfo);
 		}
 		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):AsyncToken
 		{
@@ -405,7 +412,7 @@ package weave.services
 		
 		public function getDatabaseConfigInfo():AsyncToken
 		{
-			return invokeAdminWithLogin(getDatabaseConfigInfo, arguments);
+			return invokeAdminWithLogin(getDatabaseConfigInfo, arguments, true, DatabaseConfigInfo);
 		}
 		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):AsyncToken
 		{
@@ -439,11 +446,11 @@ package weave.services
 		}
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{
-			return invokeAdminWithLogin(getHierarchyInfo, arguments);
+			return invokeAdminWithLogin(getHierarchyInfo, arguments, true, EntityHierarchyInfo);
 		}
 		public function getEntities(entityIds:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(getEntities, arguments);
+			return invokeAdminWithLogin(getEntities, arguments, true, Entity);
 		}
 		public function findEntityIds(query:EntitySearchCriteria):AsyncToken
 		{
@@ -498,11 +505,11 @@ package weave.services
 		}
 		public function getUploadedCSVFiles():AsyncToken
 		{
-			return invokeAdmin(getUploadedCSVFiles, arguments, false);
+			return invokeAdmin(getUploadedCSVFiles, arguments, false, WeaveFileInfo);
 		}
 		public function getUploadedSHPFiles():AsyncToken
 		{
-			return invokeAdmin(getUploadedSHPFiles, arguments, false);
+			return invokeAdmin(getUploadedSHPFiles, arguments, false, WeaveFileInfo);
 		}
 		public function getCSVColumnNames(csvFiles:String):AsyncToken
 		{

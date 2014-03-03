@@ -286,9 +286,7 @@ package weave.data.DataSources
 						var entities:Array = event.result as Array;
 						if (entities && entities.length)
 						{
-							var entity:Entity = new Entity();
-							entity.copyFromResult(entities[0]);
-							getChildNodes(subtreeNode, entity.childIds);
+							getChildNodes(subtreeNode, Entity(entities[0]).childIds);
 						}
 						else
 						{
@@ -370,16 +368,9 @@ package weave.data.DataSources
 			try
 			{
 				var entities:Array = event.result as Array;
-				// convert each Object to Entity
-				for (i = 0; i < entities.length; i++)
-				{
-					entity = new Entity();
-					entity.copyFromResult(entities[i]);
-					entities[i] = entity;
-				}
 				
 				// sort entities by preferred id order
-				var idOrder:Object = new Dictionary(true); // id -> index
+				var idOrder:Object = {}; // id -> index
 				for (i = 0; i < entityIds.length; i++)
 					idOrder[entityIds[i]] = i;
 				StandardLib.sort(

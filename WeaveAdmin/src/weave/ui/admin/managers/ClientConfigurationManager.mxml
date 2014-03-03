@@ -54,7 +54,7 @@
 			</mx:HBox>
 		</mx:VBox>
 	</mx:TabNavigator>
-	<admin:WeaveFileInfo id="weaveFileInfo" width="100%"/>
+	<admin:WeaveFileInfoDisplay id="weaveFileInfo" width="100%"/>
 	
 <!--	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
 		<mx:Canvas label="Settings" width="100%" height="100%">

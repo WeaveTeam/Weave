@@ -56,7 +56,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import weave.beans.UploadFileFilter;
-import weave.beans.UploadedFile;
 import weave.beans.WeaveFileInfo;
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
@@ -741,66 +740,35 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 	}
 
-	public UploadedFile[] getUploadedCSVFiles()
-		throws RemoteException
+	public WeaveFileInfo[] getUploadedCSVFiles() throws RemoteException
 	{
-		File directory = new File(getUploadPath());
-		List<UploadedFile> list = new ArrayList<UploadedFile>();
-		File[] listOfFiles = null;
-
-		try
-		{
-			if (directory.isDirectory())
-			{
-				listOfFiles = directory.listFiles(new UploadFileFilter("csv"));
-				for (File file : listOfFiles)
-				{
-					if (file.isFile())
-					{
-						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
-						list.add(uploadedFile);
-					}
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-
-		int n = list.size();
-		return list.toArray(new UploadedFile[n]);
+		return getUploadedFiles("csv");
 	}
-
-	public UploadedFile[] getUploadedSHPFiles()
-		throws RemoteException
+	
+	public WeaveFileInfo[] getUploadedSHPFiles() throws RemoteException
+	{
+		return getUploadedFiles("shp");
+	}
+	
+	private WeaveFileInfo[] getUploadedFiles(String extension) throws RemoteException
 	{
 		File directory = new File(getUploadPath());
-		List<UploadedFile> list = new ArrayList<UploadedFile>();
-		File[] listOfFiles = null;
-
+		List<WeaveFileInfo> list = new ArrayList<WeaveFileInfo>();
 		try
 		{
 			if (directory.isDirectory())
 			{
-				listOfFiles = directory.listFiles(new UploadFileFilter("shp"));
+				File[] listOfFiles = directory.listFiles(new UploadFileFilter(extension));
 				for (File file : listOfFiles)
-				{
 					if (file.isFile())
-					{
-						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
-						list.add(uploadedFile);
-					}
-				}
+						list.add(new WeaveFileInfo(file));
 			}
 		}
 		catch (Exception e)
 		{
 			throw new RemoteException(e.getMessage());
 		}
-
-		int n = list.size();
-		return list.toArray(new UploadedFile[n]);
+		return list.toArray(new WeaveFileInfo[list.size()]);
 	}
 
 	/**

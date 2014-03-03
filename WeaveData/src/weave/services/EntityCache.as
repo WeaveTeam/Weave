@@ -220,14 +220,11 @@ package weave.services
 				idsDirty[id] = true;
 			}
 			
-			for each (var result:Object in event.result)
+			for each (entity in event.result)
 			{
-				id = Entity.getEntityIdFromResult(result);
-				entity = entityCache[id] || new Entity();
-				entity.copyFromResult(result);
-	            entityCache[id] = entity;
+				id = entity.id;
+				entityCache[id] = entity;
 				idsDirty[id] = false;
-				
 				info = _infoLookup[id];
 				if (info)
 				{

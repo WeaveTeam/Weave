@@ -33,6 +33,7 @@ package weave.services
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWeaveEntityService;
 	import weave.api.services.IWeaveGeometryTileService;
+	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.services.beans.AttributeColumnData;
@@ -106,7 +107,7 @@ package weave.services
 			return token;
 		}
 		
-		private function castResult(event:ResultEvent, cast:Object):void
+		public static function castResult(event:ResultEvent, cast:Object):void
 		{
 			var results:Array = event.result as Array || [event.result];
 			for (var i:int = 0; i < results.length; i++)
@@ -146,7 +147,7 @@ package weave.services
 		
 		public function getEntities(ids:Array):AsyncToken // returns Entity[]
 		{
-			return invoke(getEntities, arguments);
+			return invoke(getEntities, arguments, Entity);
 		}
 		
 		public function findEntityIds(query:EntitySearchCriteria):AsyncToken // returns int[]

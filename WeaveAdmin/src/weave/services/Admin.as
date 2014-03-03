@@ -108,8 +108,16 @@ package weave.services
 		[Bindable] public var keyTypes:Array = [];
 		[Bindable] private var entityTypes:Array = [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
 		[Bindable] private var dataTypes:Array = [];
-		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
+		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo();
+		/**
+		 * An Array of WeaveFileInfo objects.
+		 * @see weave.services.beans.WeaveFileInfo
+		 */
 		[Bindable] public var uploadedCSVFiles:Array = [];
+		/**
+		 * An Array of WeaveFileInfo objects.
+		 * @see weave.services.beans.WeaveFileInfo
+		 */
 		[Bindable] public var uploadedShapeFiles:Array = [];
 		
 		public function Admin()
@@ -253,7 +261,7 @@ package weave.services
 				function(event:ResultEvent, token:Object):void
 				{
 					// save info
-					databaseConfigInfo = new DatabaseConfigInfo(event.result);
+					databaseConfigInfo = DatabaseConfigInfo(event.result) || new DatabaseConfigInfo();
 				}
 			);
 			service.addHook(
@@ -382,7 +390,7 @@ package weave.services
 			privateWeaveFileNames = [];
 			keyTypes = [];
 			dataTypes = [];
-			databaseConfigInfo = new DatabaseConfigInfo(null);
+			databaseConfigInfo = new DatabaseConfigInfo();
 		}
 		[Bindable] public function get activePassword():String
 		{

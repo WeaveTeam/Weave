@@ -19,9 +19,13 @@
 
 package weave.services.beans
 {
-	public class DatabaseConfigInfo
+	import flash.utils.ByteArray;
+
+	public class WeaveFileInfo
 	{
-		[Bindable] public var connection:String = "";
-		[Bindable] public var schema:String = "weave";
+		public var lastModified:int;
+		public var fileSize:int;
+		public var thumb:ByteArray;
+		public var fileName:String;
 	}
 }
