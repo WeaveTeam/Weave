@@ -317,12 +317,14 @@ package weave
 			try
 			{
 				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-				output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
+				WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_THUMBNAIL_PNG, _pngEncoder.encode(_thumbnail));
 				if (saveScreenshot)
 				{
 					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(component);
-					output.files[ARCHIVE_SCREENSHOT_PNG] = _pngEncoder.encode(_screenshot);
+					WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_SCREENSHOT_PNG, _pngEncoder.encode(_screenshot));
 				}
+				else
+					WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
 			}
 			catch (e:SecurityError)
 			{
