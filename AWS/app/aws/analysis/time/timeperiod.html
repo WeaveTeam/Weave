@@ -1,0 +1,48 @@
+<div ng-controller="TimePeriodControl">
+	<div class="portlet-header">
+		<span>Time Period</span>
+	</div>
+	<div class="portlet-content">
+		<input type="checkbox" ng-model="asRange"/> Range
+		<input type="checkbox" ng-model="asSpecific"/> Specific
+		<div ng-enabled="!Q1Enabled || !Q2Enabled || !Q3Enabled || !Q4Enabled">
+			Start Year<br>
+			<select ui-select2 ng-model="stateSelection" data-placeholder="Choose Year">
+				<option></option>
+				<option value="{{st}}" ng-repeat="st in stateOptions">{{st.label}}</option>
+			</select>
+			<br>Month<br>
+			<select ui-select2 ng-model="countySelection" data-placeholder="Choose Month">
+				<option value="{{ct}}" ng-repeat="ct in countyOptions">{{ct.label}}</option>
+			</select>
+			<br><br>
+			End Year<br>
+			<select ui-select2 ng-model="stateSelection" data-placeholder="Choose Year">
+				<option></option>
+				<option value="{{st}}" ng-repeat="st in stateOptions">{{st.label}}</option>
+			</select>
+			<br>End Month<br>
+			<select ui-select2 ng-model="countySelection" data-placeholder="Choose Month">
+				<option value="{{ct}}" ng-repeat="ct in countyOptions">{{ct.label}}</option>
+			</select>
+		</div>
+		<br><br>
+			Year<br>
+			<select ui-select2 ng-model="stateSelection" data-placeholder="Choose Year">
+				<option></option>
+				<option value="{{st}}" ng-repeat="st in stateOptions">{{st.label}}</option>
+			</select>
+			<br>Months<br>
+			<select ui-select2 multiple ng-model="countySelection" data-placeholder="Choose Month">
+				<option value="{{ct}}" ng-repeat="ct in countyOptions">{{ct.label}}</option>
+			</select>
+			
+		<br><br>
+		<div>
+			<input type="checkbox" ng-model="Q1Enabled"/> Q1
+			<input type="checkbox" ng-model="Q2Enabled"/> Q2
+			<input type="checkbox" ng-model="Q3Enabled"/> Q3
+			<input type="checkbox" ng-model="Q4Enabled"/> Q4
+		</div>
+	</div>
+</div>
