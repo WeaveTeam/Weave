@@ -29,7 +29,9 @@ angular.module("aws.analysis", [])
 	// array of booleans, either true of false if we want filtering enabled
 	$scope.enabled = [];
 	
-	$scope.scriptList = queryService.getListOfScripts();
+	queryService.getListOfScripts().then(function(val){
+		$scope.scriptList = val;
+	});
 	
 	
 	$scope.$watch('scriptSelected', function() {

@@ -26,6 +26,9 @@ app.run(['$rootScope', function($rootScope){
         	fn();
     	}
 	};
+}])
+.config(['$parseProvider', function($parseProvider){
+	$parseProvider.unwrapPromises(true);
 }]);
 
 angular.module('aws.analysis', ['aws.analysis.geography',

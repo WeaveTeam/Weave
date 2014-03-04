@@ -36,7 +36,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         	
         	// since this function executes async in a future turn of the event loop, we need to wrap
             // our code into an $apply call so that the model changes are properly observed.
-        	scope.$safeApply(function() {
+        	scope.$apply(function() {
                 deferred.resolve(result);
             });
         	
