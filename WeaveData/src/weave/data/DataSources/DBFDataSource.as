@@ -61,7 +61,7 @@ package weave.data.DataSources
 	 */
 	public class DBFDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, DBFDataSource, "DBF/SHP files (URLs)");
+		WeaveAPI.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
 		
 		public function DBFDataSource()
 		{
@@ -83,6 +83,7 @@ package weave.data.DataSources
 		private function resetHierarchy():void
 		{
 			_attributeHierarchy.value = null;
+			_requestedHierarchySubtreeStringMap = {};
 		}
 		
 		private function handleDbfUrlChange():void
@@ -139,6 +140,7 @@ package weave.data.DataSources
 			
 			try
 			{
+				dbfData.position = 0;
 				dbfHeader = new DbfHeader(dbfData);
 			}
 			catch (e:Error)
@@ -198,6 +200,7 @@ package weave.data.DataSources
 			
 			try
 			{
+				bytes.position = 0;
 				shpfile = registerLinkableChild(this, new ShpFileReader(bytes));
 			}
 			catch (e:Error)

@@ -39,8 +39,19 @@ package weave.data.AttributeColumns
 				_metadata = metadata.copy();
 		}
 		
-		protected var _metadata:XML = <attribute title="Undefined column"/>;
+		protected var _metadata:XML = null;
 
+		/**
+		 * This function should only be called once, before setting the record data.
+		 * @param metadata Metadata for this column.
+		 */
+		public function setMetadata(metadata:XML):void
+		{
+			if (_metadata !== null)
+				throw new Error("Cannot call setMetadata() if already set");
+			_metadata = metadata;
+		}
+		
 		// metadata for this attributeColumn (statistics, description, unit, etc)
 		public function getMetadata(propertyName:String):String
 		{

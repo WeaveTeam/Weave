@@ -31,13 +31,16 @@ package weave.core
 	import weave.api.registerLinkableChild;
 	
 	/**
-	 * This contains an ordered list of name-to-object mappings.
+	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
+	 * The session state is an Array of DynamicState objects.
+	 * @see weave.core.DynamicState
 	 * 
 	 * @author adufilie
 	 */
 	public class LinkableHashMap extends CallbackCollection implements ILinkableHashMap
 	{
 		/**
+		 * Constructor.
 		 * @param typeRestriction If specified, this will limit the type of objects that can be added to this LinkableHashMap.
 		 */
 		public function LinkableHashMap(typeRestriction:Class = null)
@@ -59,9 +62,7 @@ package weave.core
 		
 		
 		/**
-		 * This is an interface for adding and removing callbacks that will get triggered immediately
-		 * when an object is added or removed.
-		 * @return An interface for adding callbacks that get triggered when the list of child objects changes.
+		 * @inheritDoc
 		 */
 		public function get childListCallbacks():IChildListCallbackInterface
 		{
@@ -69,8 +70,7 @@ package weave.core
 		}
 
 		/**
-		 * @param filter If specified, names of objects that are not of this type will be filtered out.
-		 * @return A copy of the ordered list of names of objects contained in this LinkableHashMap.
+		 * @inheritDoc
 		 */
 		public function getNames(filter:Class = null):Array
 		{
@@ -84,8 +84,7 @@ package weave.core
 			return result;
 		}
 		/**
-		 * @param filter If specified, objects that are not of this type will be filtered out.
-		 * @return An ordered Array of objects that correspond to the names returned by getNames(filter).
+		 * @inheritDoc
 		 */
 		public function getObjects(filter:Class = null):Array
 		{
@@ -100,26 +99,21 @@ package weave.core
 			return result;
 		}
 		/**
-		 * @param name The identifying name to associate with an object.
-		 * @return The object associated with the given name.
+		 * @inheritDoc
 		 */
 		public function getObject(name:String):ILinkableObject
 		{
 			return _nameToObjectMap[name] as ILinkableObject;
 		}
 		/**
-		 * @param object An object contained in this LinkableHashMap.
-		 * @return The name associated with the object, or null if the object was not found. 
+		 * @inheritDoc
 		 */
 		public function getName(object:ILinkableObject):String
 		{
 			return _objectToNameMap[object] as String;
 		}
 		/**
-		 * This will reorder the names returned by getNames() and the objects returned by getObjects().
-		 * Any names appearing in newOrder that do not appear in getNames() will be ignored.
-		 * Callbacks will be called if the new child order differs from the old order.
-		 * @param newOrder The new desired ordering of names and their corresponding objects.
+		 * @inheritDoc
 		 */
 		public function setNameOrder(newOrder:Array):void
 		{
@@ -161,13 +155,7 @@ package weave.core
 				_childListCallbacks.runCallbacks(null, null, null);
 		}
 		/**
-		 * This function creates an object in the hash map if it doesn't already exist.
-		 * If there is an existing object associated with the specified name, it will be kept if it
-		 * is the specified type, or replaced with a new instance of the specified type if it is not.
-		 * @param name The identifying name of a new or existing object.
-		 * @param classDef The Class of the desired object type.
-		 * @param lockObject If this is true, the object will be locked in place under the specified name.
-		 * @return The object under the requested name of the requested type, or null if an error occurred.
+		 * @inheritDoc
 		 */
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
 		{
@@ -177,10 +165,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.
-		 * @param newName A name for the object to be initialized in this LinkableHashMap.
-		 * @param objectToCopy An object to copy the session state from.
-		 * @return The new object of the same type, or null if an error occurred.
+		 * @inheritDoc
 		 */
 		public function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject
 		{
@@ -203,10 +188,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function will rename an object by making a copy and removing the original.
-		 * @param oldName The name of an object to replace.
-		 * @param newName The new name to use for the copied object.
-		 * @return The copied object associated with the new name, or the original object if newName is the same as oldName.
+		 * @inheritDoc
 		 */
 		public function renameObject(oldName:String, newName:String):ILinkableObject
 		{
@@ -317,16 +299,14 @@ package weave.core
 		    	_nameIsLocked[name] = true;
 	    }
 		/**
-		 * This function will return true if the specified object was previously locked.
-		 * @param name The name of an object.
+		 * @inheritDoc
 		 */
 		public function objectIsLocked(name:String):Boolean
 		{
 			return _nameIsLocked[name] ? true : false;
 		}
 		/**
-		 * @param name The identifying name of an object previously saved with setObject().
-		 * @see weave.api.core.ILinkableHashMap#removeObject
+		 * @inheritDoc
 		 */
 		public function removeObject(name:String):void
 		{
@@ -352,8 +332,7 @@ package weave.core
 		}
 
 		/**
-		 * This function attempts to removes all objects from this LinkableHashMap.
-		 * Any objects that are locked will remain.
+		 * @inheritDoc
 		 */
 		public function removeAllObjects():void
 		{
@@ -365,6 +344,7 @@ package weave.core
 		
 		/**
 		 * This function removes all objects from this LinkableHashMap.
+		 * @inheritDoc
 		 */
 		override public function dispose():void
 		{
@@ -378,8 +358,7 @@ package weave.core
 		}
 
 		/**
-		 * This will generate a new name for an object that is different from all the names of objects previously used in this LinkableHashMap.
-		 * @param baseName The name to start with.  If the name is already in use, an integer will be appended to create a unique name.
+		 * @inheritDoc
 		 */
 		public function generateUniqueName(baseName:String):String
 		{

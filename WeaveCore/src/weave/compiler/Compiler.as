@@ -276,13 +276,6 @@ package weave.compiler
 			return finalize(compileTokens(getTokens(expression), true));
 		}
 		
-		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
-		
-		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */
-		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-		
 		/**
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
 		 * @param classesOrObjects An Array of Class definitions or objects containing functions to be supported by the compiler.
@@ -1046,6 +1039,52 @@ package weave.compiler
 				result[i] = esc ? '\\' + esc : chr;
 			}
 			return quote + result.join('') + quote;
+		}
+		
+		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */
+		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
+		
+		/**
+		 * Generates a deterministic JSON representation of an object, meaning object keys appear in sorted order.
+		 * @param object The object to stringify.
+		 */
+		public static function stringify(object:Object, sortKeys:Boolean = true):String
+		{
+			var output:Array;
+			var item:Object;
+			var key:String;
+			
+			if (object is String)
+				return encodeString(object as String);
+			if (object == null || typeof object != 'object')
+				return String(object) || String(null);
+			if (object is Array)
+			{
+				output = [];
+				for each (item in object)
+					output.push(stringify(item, sortKeys));
+				return "[" + output.join(", ") + "]";
+			}
+			// loop over keys in Object
+			output = [];
+			if (object.constructor == Object)
+			{
+				for (key in object)
+					output.push(encodeString(key) + ": " + stringify(object[key], sortKeys));
+			}
+			else
+			{
+				for each (var list:Array in describeTypeJSON(object, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+					for each (item in list)
+						if (item.access != 'writeonly')
+							output.push(encodeString(item.name) + ": " + stringify(object[item.name], sortKeys));
+			}
+			// sort keys
+			StandardLib.sort(output);
+			// output key:value pairs
+			return "{" + output.join(", ") + "}";
 		}
 		
 		/**

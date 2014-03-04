@@ -71,7 +71,7 @@ package weave.data.AttributeColumns
 			getCallbackCollection(LinkableFunction.macroLibraries).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			
-			setMetadata(ColumnMetadata.TITLE, "Untitled Equation");
+			setMetadataProperty(ColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
 			
 			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
@@ -202,7 +202,7 @@ package weave.data.AttributeColumns
 		 * @param propertyName
 		 * @param value
 		 */
-		public function setMetadata(propertyName:String, value:String):void
+		public function setMetadataProperty(propertyName:String, value:String):void
 		{
 			value = StringUtil.trim(value);
 			var _metadata:Object = metadata.value || {};
@@ -442,6 +442,6 @@ package weave.data.AttributeColumns
 		
 		//---------------------------------
 		// backwards compatibility
-		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadata(ColumnMetadata.TITLE, value); }
+		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadataProperty(ColumnMetadata.TITLE, value); }
 	}
 }

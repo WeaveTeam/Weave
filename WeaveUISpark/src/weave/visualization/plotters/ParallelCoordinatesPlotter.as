@@ -240,9 +240,9 @@ package weave.visualization.plotters
 				col.variables.requestObjectCopy("filterCol", _filteredXData);
 				col.variables.requestObjectCopy("dataCol", _filteredYData);
 				
-				col.setMetadata(ColumnMetadata.TITLE, value);
-				col.setMetadata(ColumnMetadata.MIN, '{ getMin(dataCol) }');
-				col.setMetadata(ColumnMetadata.MAX, '{ getMax(dataCol) }');
+				col.setMetadataProperty(ColumnMetadata.TITLE, value);
+				col.setMetadataProperty(ColumnMetadata.MIN, '{ getMin(dataCol) }');
+				col.setMetadataProperty(ColumnMetadata.MAX, '{ getMax(dataCol) }');
 				
 				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, "'+value+'", Number)';
 				col.resumeCallbacks();
