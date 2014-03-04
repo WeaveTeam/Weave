@@ -171,6 +171,7 @@ angular.module("aws.analysis", [])
 			}
 		}
 	});
+	
 	$scope.$watchCollection('enabled', function(){
 		if($scope.enabled != undefined) {
 			for(var i = 0; i < $scope.enabled.length; i++) {

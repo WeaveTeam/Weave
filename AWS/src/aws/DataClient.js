@@ -104,3 +104,57 @@ aws.DataClient.getDataMapping = function(varValues, callback)
 		}
 	);
 };
+
+/**
+ * This function mirrors the getColumn on the servlet.
+ * 
+ * @param {number|Object} columnId A column entity ID or a set of public metadata that uniquely identifies a column
+ * @param {number} minParam Used for filtering numeric data
+ * @param {number} maxParam Used for filtering numeric data
+ * @param {Array.<string>} sqlParams Parameters for '?' placeholders in the column's SQL query
+ * @param {function(Object)} handleResult
+ */
+aws.DataClient.getColumn = function(columnId, minParam, maxParam, sqlParams, handleResult) {
+	aws.queryService(dataServiceURL, "getColumn", [columnId, minParam, maxParam, sqlParams], handleResult);	
+};
+
+
+aws.DataClient.getColumnsFromIds = function(ids, handleResult) {
+	aws.bulkQueryService(dataServiceURL, "getColumn", ids.map(function(id) { return [id, null, null, null];}), handleResult);
+};
+
+aws.DataClient.getColumnsFromTableId = function(id, handleResult) {
+	aws.DataClient.getEntityChildIds(id, function(ids) { aws.DataClient.getColumnsFromIds(ids, handleResult);});
+};
+
+/**
+ * @param {Object} meta
+ * @param {function(Object)} handleResult
+ */
+aws.DataClient.getEntityIdsByMetadata = function(meta, handleResult){
+	aws.queryService(dataServiceURL, "getEntityIdsByMetadata", [meta, 1], handleResult);
+};
+
+/**
+ * This function will return a dataset, given a list of entity ids
+ * @param {Array.<number>} ids Array of ids
+ * 
+ * @param {function(Array.<Object>)} callback A callback which receives the data mapping.
+ */
+aws.DataClient.getDataSet = function(ids, callback)
+{
+	aws.queryService(dataServiceURL, "getDataSet", [ids], callback);
+};
+
+/**
+ * This function will return a dataset, given a single table entity id.
+ * @param {number} id table id
+ * 
+ * @param {function(Array.<Object>)} callback A callback which receives the data mapping.
+ */
+aws.DataClient.getDataSetFromTableId = function(id, callback)
+{
+	aws.DataClient.getEntityChildIds(id, function(ids) {
+		aws.DataClient.getDataSet(ids, callback);
+	});
+};

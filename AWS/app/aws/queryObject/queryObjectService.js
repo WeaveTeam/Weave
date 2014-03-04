@@ -281,10 +281,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
             return deferred.promise;
         };
         
-        this.getDataSetFromTableId = function(id, forceUpdata){
+        this.getDataSetFromTableId = function(id, forceUpdate){
         	var deferred = $q.defer();
         	
-        	if(!forceUpdate && this.dataObject.hasOwnProperty(geographyMetadata)) {
+        	if(!forceUpdate && this.dataObject.hasOwnProperty("geographyMetadata")) {
         		return this.dataObject.geographyMetadata;
         	} else {
         		aws.DataClient.getDataSetFromTableId(id, function(result) {

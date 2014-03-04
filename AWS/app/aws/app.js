@@ -5,7 +5,6 @@ var app = angular.module('aws', ['aws.router',
                                  'aws.configure',
                                  'aws.directives', 
                                  'aws.project', 
-                                 //'aws.data', 
                                  'aws.queryObject',
                                  'aws.visualization',
                                  'ui.bootstrap', // don't need?
@@ -29,7 +28,9 @@ app.run(['$rootScope', function($rootScope){
 	};
 }]);
 
-angular.module('aws.analysis', ['aws.analysis.geography']);
+angular.module('aws.analysis', ['aws.analysis.geography',
+								'aws.analysis.indicator',
+								'aws.analysis.timeperiod']);
 angular.module('aws.directives', ['aws.directives.dualListBox',
                                   'aws.directives.fileUpload',
                                   'aws.directives.panel']);
