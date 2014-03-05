@@ -2,8 +2,8 @@
  * Handle all Analysis Tab related work - Controllers to handle Analysis Tab
  */'use strict';
 
-var AnalysisModule  = angular.module('aws.analysis', ['wu.masonry']);
-AnalysisModule.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
+angular.module('aws.analysis', ['wu.masonry'])
+.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
 	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
 	$scope.tool_list = dasboard_widget_service.get_tool_list();
