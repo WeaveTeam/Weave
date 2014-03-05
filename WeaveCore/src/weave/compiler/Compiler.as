@@ -337,6 +337,9 @@ package weave.compiler
 		 */
 		public static function bind(func:Function, that:*, ...args):Function
 		{
+			if (func == null)
+				throw new Error("function parameter cannot be null");
+			
 			if (args.length)
 				return function():*{ return func.apply(that, args.concat(arguments)); };
 			else

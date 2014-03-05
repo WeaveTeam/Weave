@@ -301,12 +301,12 @@ package weave.data.DataSources
 			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 			if (!sourceOwner)
 				return false;
-			var essi:ExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface;
+			
 			var dc:DynamicColumn = dynamicColumnOrPath as DynamicColumn;
 			if (!dc)
 			{
-				essi.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
-				dc = essi.getObject(dynamicColumnOrPath as Array) as DynamicColumn;
+				WeaveAPI.ExternalSessionStateInterface.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
+				dc = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, dynamicColumnOrPath as Array) as DynamicColumn;
 			}
 			if (!dc)
 				return false;
