@@ -10,7 +10,8 @@ var app = angular.module('aws', ['aws.router',
                                  'ui.bootstrap', // don't need?
                                  'ui.select2',
                                  'ui.slider',
-                                 'ui.sortable']);
+                                 'ui.sortable',
+                                 'ngRoute']); // from Amith's UI
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {
@@ -27,9 +28,28 @@ app.run(['$rootScope', function($rootScope){
     	}
 	};
 }])
-.config(['$parseProvider', function($parseProvider){
+.config(function($parseProvider, $routeProvider){
 	$parseProvider.unwrapPromises(true);
-}]);
+	
+	// Also from Amith's UI
+	$routeProvider.when('/analysis', {
+		templateUrl : 'aws/analysis/analysis.tpl.html',
+		controller : 'WidgetsController',
+		activetab : 'analysis'
+	}).when('/metadata', {
+		templateUrl : 'aws/metadata/metadata.tpl.html',
+		controller : 'WidgetsController',
+		activetab : 'metadata'
+	}).when('/script_management', {
+		templateUrl : 'aws/scripts/script.tpl.html',
+		controller : 'WidgetsController',
+		activetab : 'script_management'
+	}).when('/project_management', {
+		templateUrl : 'aws/projects/project_management.tpl.html',
+		controller : 'WidgetsController',
+		activetab : 'project_management'
+	});
+});
 
 angular.module('aws.analysis', ['aws.analysis.geography',
 								'aws.analysis.indicator',
@@ -42,3 +62,13 @@ angular.module('aws.configure', ['aws.configure.metadata',
                                  'aws.configure.script']);
 angular.module('aws.visualization',['aws.visualization.tools',
                                     /*'aws.visualization.weave'*/]);
+
+// From Amith's UI
+app.controller('AWSController', function($scope, $route, $location) {
+	
+	$scope.$route = $route;
+	
+});
+var navbar_ctrl = function($scope, $route, $location) {
+	$scope.$route = $route;
+};

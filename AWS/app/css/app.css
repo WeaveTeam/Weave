@@ -1,312 +1,237 @@
-/* app css stylesheet */
-body {
-	padding-top: 20px;
+
+
+body{
+	background: url(img/furley_bg.png);
+	min-height: 100%;
 }
 
-h1 {
-	border-bottom: 1px solid gray;
+#header .navbar-collapse.collapse {
+	display: block !important;
+	height: inherit;
 }
 
-pre {
-	font-size: 11px;
-	line-height: 13px;
+#header .img-responsive {
+
+	color: #E6E6E6;
+	vertical-align: middle;
+	font-size: 18px;
 }
 
-#Log {
-	/* display:inline-block; */
+.navbar .logo {
+
+	color: #E6E6E6;
+	/*font-weight: 600;*/
+	padding-left: 5px;
+	font-size: 15px;
+	padding-bottom: 2px;
+	vertical-align: middle;
+	font-weight: 100;
 }
 
-#container {
-	width: 98%;
-	height: 98%;
-	position: relative;
-	margin-left: 20px;
-	margin-right: auto;
-	margin-top: auto;
-	margin-bottom: auto;
-	/* border:solid;*/
-	display: inline-block;
+.navbar .logo:hover {
+
+	color: #CCCCCC;
+}
+
+#header .navbar-default {
+
+	background-image: linear-gradient(to bottom,#0F0202 0,#292626 100%);
+	background-repeat: repeat-x;
+	border-color: #e6e6e6;
+}
+
+#header .navbar-collapse {
+	width: 100%;
+	border-top: 0;
+	box-shadow: none;
+	background: #292929;
+	border-color: #292929;
+	border-bottom: 0px solid #000;
+}
+
+#header{
+	min-height: 42px;
+}
+
+#header .navbar {
+	-webkit-box-shadow: inset 0px 1px 0px 0px rgba(0, 0, 0, 1), 0px 1px 0px 0px rgba(0, 0, 0, 0.8);
+	box-shadow: inset 0px 1px 0px 0px rgba(0, 0, 0, 1), 0px 1px 0px 0px rgba(0, 0, 0, 0.8);
+	min-height: 42px;
+	background: #2B2525;
+	border-width: 0;
+	margin-bottom: 0;
 }
 
 #header {
-	width: 100%;
-	height: 8%;
-	position: relative;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: auto;
-	margin-bottom: 5px;
-	float: left;
-	/*border:solid;*/
+
+	font-size: 12px;
 }
 
-#leftPanel {
-	width: 15%;
-	height: 90%;
-	position: relative;
-	float: left;
+#header .navbar-brand:hover {
+	color: #FFF;
 }
 
-#weave {
-	display:inline-block;
+#header .navbar-brand {
+
+	padding: 13px 10px;
+	font-size: inherit;
 }
 
-#weavePanel{
-	display:inline-block;
-	margin-left: 10px;
+#header .navbar-nav > li > a {
+	color: #FFFFFF;
+	text-shadow: 0 1px 0 rgba(255,255,255,.25);
 }
 
-#weaveThumb {
-	width: 100%;
-	height: 15%;
-	position: relative;
-	float: left;
-	margin-top: 3px;
+#header .pull-right {
+	margin-right: 25px;
 }
 
-#center {
-/*  border: solid; */
-  width: 70%;
-  height: 80%;
-  position: relative;
-  float: left;
-  display: inline-block;
+#header .navbar-nav > li > a:hover {
+
+	color: #CCCCCC;
 }
 
-#sortable {
-	width: 100%;
-	/*border: 1px solid #ccc;*/
-	height: 600px;
-	padding: 3px;
+#header .navbar-default .navbar-nav > .dropdown > a .caret {
+	border-top-color: #428bca;
+	border-bottom-color: #428bca;
+}
+
+#header .navbar-collapse .navbar-nav.navbar-right:last-child {
+	margin-right: 25px;
+	
+}
+
+#header .navbar-collapse .navbar-nav.navbar-right {
+
+	padding-top: 6px;
+}
+
+#header .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
+	background-color: #292929;
+}
+
+#header .navbar-nav > li > a {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.navbar .navbar-nav > li > .dropdown-menu {
+	border-top-right-radius: 4px;
+	border-top-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px;
+	font-size: 12px;
+}
+.navbar .navbar-nav > li > .dropdown-menu::before, .navbar .navbar-nav > li > .dropdown-menu::after {
+	content: '';
 	display: inline-block;
+	border-left: 7px solid transparent;
+	border-right: 7px solid transparent;
+	border-bottom: 7px solid #CCC;
+	border-bottom-color: rgba(0, 0, 0, 0.2);
+	position: absolute;
+	top: -7px;
+	left: 9px;
+}
+.navbar .navbar-nav > li > .dropdown-menu::after {
+	border-left-width: 6px;
+	border-right-width: 6px;
+	border-bottom-width: 6px;
+	border-bottom-color: #fff;
+	top: -6px;
+	left: 10px;
+}
+.navbar .navbar-nav.navbar-right > li > .dropdown-menu::before, .navbar .navbar-nav.navbar-right > li > .dropdown-menu::after {
+	left: auto;
+	right: 9px;
+}
+.navbar .navbar-nav.navbar-right > li > .dropdown-menu::after {
+	left: auto;
+	right: 10px;
 }
 
-#dataButton {
-	margin-left: 21px;
-	margin-bottom: 10px;
-}
 
-#refreshButton {
-	margin-left: 20px;
-}
+/*Th sub nav bar inside the main nav for tabs*/
 
-div.portlet {
-	margin: 3px;
-	padding: 1px;
-	float: left;
-	height: 100px;
-	width: 100%;
-}
-
-/*.portlet { margin: 0 1em 1em 0; }*/
-
-.portlet-minimized {
-	height: auto !important;
-}
-
-/*.portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }*/
-
-.portlet-header .ui-icon {
-	float: right;
-}
-
-.portlet-content { 
-	padding-right: 10px;
-	padding-left: 7px;
-	padding-bottom: 5px;
-	padding-top: 3px; 
-}
-
-.portlet-minimized .portlet-content {
-	display: none !important;
-}
-
-.ui-sortable-placeholder {
-	border: 1px black;
-	visibility: visible !important;
-	height: 100px !important;
-	clear: both;
-	background: black;
-}
-
-.ui-sortable-placeholder * {
-	visibility: hidden;
-}
-
-.panel {
-	vertical-align: top;
+.nev {
 	margin-bottom: 20px;
-}
-
-.panel-title-margins {
-	margin-left: 7px;
-}
-
-.centered-button {
-	margin-left: 108px;
-	margin-top: 20px;
-	margin-bottom: 20px;
-}
-
-select {
-	margin: 5px 3px 3px 0px;
-	width: 100%;
-}
-
-ol {
-	margin: 0px 0px 0px 0px;
-}
-input[type="checkbox"] {
-	margin: -2px 0 0;
-}
-#feedback {
-	font-size: .5em;
-}
-
-.ui-selecting {
-	background: #FECA40;
-}
-
-.ui-selected {
-	background: #F39814;
-	color: white;
-}
-
-#selectable {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	width: 60%;
-}
-
-#selectable li {
-	margin: 0px;
-	padding: 0em;
-	font-size: .7em;
-	height: 10px;
-}
-
-#busyIndicator {
-	height: 20px;
-	width: 20px;
-}
-
-/** ng-grid styles */
-.gridStyle {
-    border: 1px solid rgb(212,212,212);
-    width: 100%; 
-    height: 300px
-}
-
-.animate-enter {
- -webkit-transition: height 1s linear all; /* Safari/Chrome */
- -moz-transition: 1s linear all; /* Firefox */
- -o-transition: 1s linear all; /* Opera */
- transition: height 1s linear all; /* IE10+ and Future Browsers */
- 
- /* The animation preparation code */
- opacity: 0;
+	margin-left: 0;
+	list-style: none
 }
  
-/*
- Keep in mind that you want to combine both CSS
- classes together to avoid any CSS-specificity
- conflicts
-*/
-.animate-enter.animate-enter-active {
- /* The animation code itself */
- opacity: 1;
+ .nev > li > a > img {
+	max-width: none;
+}
+ .nev > .pull-right {
 }
 
-.select2-container {
-	width: 100%;
+.nev-header {
+	display: block;
+	padding: 3px 15px;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 2px;
+	color: #999;
+	text-transform: uppercase
+}
+ .nev li+ .nev-header {
+	margin-top: 9px;
 }
 
-.ui-slider{
-	margin-top: 10px;
-	margin-left: 7px;
-	margin-right: 7px;
-	margin-bottom: 5px;
-}
 
-/* These .file-upload classes have been altered to match the bootstrap .btn classes */
-.file-upload {
-	overflow: hidden;
-	display: inline-block;
-	position: relative;	
-	vertical-align: middle;
-	text-align: center;
-	cursor: pointer;
-
-	/* Cosmetics */
-	color: #fff;
-	border-top-color: rgba(0, 0, 0, 0.1);
-	border-right-color: rgba(0, 0, 0, 0.1);
-	border-bottom-color: rgba(0, 0, 0, 0.25);
-	border-left-color: rgba(0, 0, 0, 0.1);
-	text-shadow: 0px -1px 0px rgba(0,0,0,0.25);
-	border-top-width: 1px;
-	border-top-style: solid;
-	border-right-width: 1px;
-	border-right-style: solid;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-	border-left-width: 1px;
-	border-left-style: solid;
-	background: rgb(0, 109, 204);
-	background-image: linear-gradient(rgb(0, 136, 204), rgb(0, 68, 204));
-	background-repeat: repeat-x;
-	padding: 4px 14px 4px 14px;
-	height: 20px;
-
-	/* Nice if your browser can do it */
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
-	border-radius: 4px;
-    }
-	
-.file-upload:hover { 
-	background: #ffffff;
-	background-color: rgb(0, 68, 204);
-	}
-
-.file-upload.focus { 
-	outline-width: thin;
-	outline-style: dotted;
-	outline-color: #333;
-	}
-
-.file-upload input {
-	position: absolute;
-	top: 0;
+ .nev {
+	position: relative;
 	left: 0;
-	margin: 0;
-	font-size: 40px;
-
-	/* Loses tab index in webkit if width is set to 0 */
-	opacity: 0;
-	filter: alpha(opacity=0);
-	}
-.tile {
-	width: 500px;
-	padding: 2em;
-	background-color: #f5f5f5;
-	border: 1px solid #f0f0f0;
-	margin: 2em;
+	display: block;
+	float: left;
+	margin: 0 10px 0 0;
+	height: 47px;
+	padding-left: 10px;
 }
-/* .file-upload strong { 
-	font: normal 1.75em arial,sans-serif; 
-	}	
-	
-.file-upload span {
-	position: absolute;
-	top: 0;
-	left: 0;
-	display: inline-block;
 
-	Adjust button text vertical alignment
-	padding-top: .45em;
-	} */
-/* 
-/* Adjust the button size */	
-/*.file-upload {  } */
+ .nev > li {
+	float: left;
+	height: 100%;
+}
+ .nev > li > a {
+ 	display: block;
+	float: none;
+	padding: 18px 15px 4px;
+	text-decoration: none;
+	height: 100%;
+	font-weight: 400;
+	font-size: 12px;
+	color: #FFFFFF;
+	 
+}
+
+ .nev > li > a:hover, .nev > li > a:focus {
+	color: #CCCCCC;
+	text-decoration: none;
+	background-color: #292929;
+}
+
+ .nev > .active > a, .nev > .active > a:hover, .nev > .active > a:focus {
+	color: #CCCCCC;
+	text-decoration: none;
+	border-bottom: 6px solid #A30000;/* #d44413;*/
+	background-color: #292929;
+	height: 100%;
+	
+}
+
+/*End of Header Section Css*/
+
+.tab-container{
+	
+    position:absolute;
+    top: 42px;
+    left:0px;
+    right:0px;
+    bottom:0px;
+    overflow-y:scroll;        
+
+}
+
+
+
