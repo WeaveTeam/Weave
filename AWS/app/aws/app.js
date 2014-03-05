@@ -41,13 +41,17 @@ app.run(['$rootScope', function($rootScope){
 		controller : 'WidgetsController',
 		activetab : 'metadata'
 	}).when('/script_management', {
-		templateUrl : 'aws/scripts/script.tpl.html',
-		controller : 'WidgetsController',
+		templateUrl : 'aws/configure/script/scriptManager.html',
+		controller : 'ScriptManagerCtrl',
 		activetab : 'script_management'
 	}).when('/project_management', {
-		templateUrl : 'aws/projects/project_management.tpl.html',
-		controller : 'WidgetsController',
+		templateUrl : 'aws/project/projectManagementPanel.html',
+		controller : 'LayoutCtrl',
 		activetab : 'project_management'
+	}).when('/old_analysis', {
+		templateUrl : 'aws/analysis/oldAnalysis.html',
+		controller : 'LayoutCtrl',
+		activetab : 'old_analysis'
 	});
 });
 

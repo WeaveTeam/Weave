@@ -32,6 +32,10 @@ Remove this if you use the .htaccess -->
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-animate.min.js"></script>
 <script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.min.js"></script>
 <script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.tpl.min.js"></script>
+<script src="lib/angular/masonry.js"></script>
+<script src="lib/angular/angular-masonry.js"></script>
+<script src="lib/imagesloaded/imagesloaded.js"></script>
+<script src="/lib/jsoneditor/jsoneditor.js"></script>
 
 <script src='lib/angular/ng-grid-2.0.7.debug.js'></script>
 <script src='lib/angular/slider.js'></script>
@@ -48,6 +52,8 @@ Remove this if you use the .htaccess -->
 <script src='aws/analysis/geography/GeographyCtrl.js'></script>
 <script src='aws/analysis/indicator/IndicatorCtrl.js'></script>
 <script src='aws/analysis/time/TimePeriodCtrl.js'></script>
+<script src='aws/analysis/analysis.js'></script>
+<script src='aws/analysis/analysisService.js'></script>
 <script src='aws/configure/metadata/MetadataManagerCtrl.js'></script>
 <script src='aws/configure/metadata/metadataManagerService.js'></script>
 <script src='aws/configure/script/ScriptManagerCtrl.js'></script> 
@@ -100,6 +106,10 @@ Remove this if you use the .htaccess -->
 							<li ng-class="{active: $route.current.activetab == 'project_management'}">
 								<a href="#/project_management">Projects</a>
 							</li>
+							<li ng-class="{active: $route.current.activetab == 'old_anlysis'}">
+								<a href="#/old_analysis">OldAWS</a>
+							</li>
+							
 
 						</ul>
 						<!--The right navbar -->
@@ -141,79 +151,20 @@ Remove this if you use the .htaccess -->
 
 				</nav>
 			</header>
-		</div>
+		
 
+	<div style="height: 100%" class = "tab-container" >
+				<div style="height: 100%" class="ngview" ng-view>
 
-
-
-
-<div class="tabbable">
-  <ul class="nav nav-tabs">
-    <li class="active"><a href="#tab1" data-toggle="tab">Analysis Builder</a></li>
-    <li><a href="#tab2" data-toggle="tab">Projects</a></li>
-    <li><a href="#tab3" data-toggle="tab">Scripts</a></li>
-  </ul>
-  
-  <!-- TAB CONTENT -->
-  <div class="tab-content">
-  
-  <!-- -----ANALYSIS TAB -->
-    <div class="tab-pane active" id="tab1" ng-controller="LayoutCtrl">
-		<div id="container">
-			<div id="header">
-				<div ng-controller="DataTableCtrl" style="display: inline-block; margin-left: 30px">
-					Data Table: <select ui-select2 ng-model="dataTable" style=width:200px;>
-						<option></option>
-						<option ng-repeat="dt in dataTableList" value="{{dt}}">{{dt.title}}</option>
-					</select>
 				</div>
-				                         v0.5b0211
-				<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float: right;">
-					<button ng-click="exportQueryObject()" class="btn btn-primary">Export Query</button>
-						<div class="file-upload">
-							<label for="queryImport">Import Query</label> 
-							<input type="file" id="queryImport" name="queryImport"	ng-submit="importQueryObject()" file-upload />
-						</div>
-					<br>
-				</div>
+				
+				
+
 			</div>
-			<div id="leftPanel" ng-include src="leftPanelUrl">
-			</div>
-
-
-			<div id="center" class="col-md-8">
-				<div id="analysis" ng-include src="analysisUrl"></div>
-				<div ng-controller="RunQueryCtrl" style="display: inline-block; float: right;">
-					<button ng-click="runQuery()" class="btn btn-primary">Run</button>
-					<button ng-click="updateVisualizations()" class="btn btn-primary">Update</button>
-					<button ng-click="clearWeave()" class="btn btn-primary">Clear</button>
-				</div>
-				<!-- <div ng-include src="geographyPanel"></div> -->
-				<!--div id="weavePanel" ng-include src="weaveInstancePanel"></div-->
-			</div>
-		</div>
-
-		<div id="Log">
-			<h4>Log:</h4>
-			<div id="LogBox"></div>
-		</div>
-
-	</div>
- <!-- ---------END OF ANALSYSIS BUILDER TAB -->
-    
-    <!-- PROJECTS TAB -->
-    <div class="tab-pane" id="tab2" ng-controller="LayoutCtrl">
-      <div ng-include src = "projectManagementUrl"></div>
-    </div>
-    <!-- SCRIPT TAB -->
-    <div class="tab-pane" id="tab3" ng-controller="LayoutCtrl">
-    	<div ng-include src="scriptManagerUrl"></div>
-    	
-    </div>
-  </div>
-  <!-- END OF TAB CONTENT -->
 </div>
-	
+
+
+
 
 	<!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>

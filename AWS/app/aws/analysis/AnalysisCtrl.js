@@ -2,8 +2,8 @@
  *  Individual Panel Type Controllers
  *  These controllers will be specified via the panel directive
  */
-angular.module("aws.analysis", [])
-.controller("AnalysisCtrl", function($scope, queryService){
+//angular.module("aws.analysis")
+AnalysisModule.controller("AnalysisCtrl", function($scope, queryService){
 	
 	// array of column selected
 	$scope.selection = []; 
