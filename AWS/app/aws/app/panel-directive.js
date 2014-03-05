@@ -23,7 +23,7 @@ angular.module('aws.directives.panel', ['aws.router'])
                     //controller = attrs.paneltype + 'Ctrl';
                     $(element)
                         .addClass(
-                            "ui-widget portlet ui-widget-content span4 ui-corner-all ui-helper-clearfix panel")
+                            "ui-widget portlet ui-widget-content col-md-4 ui-corner-all ui-helper-clearfix panel")
                         .find(".portlet-header")
                         .addClass(
                             "ui-widget-header ui-helper-clearfix")
