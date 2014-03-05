@@ -1053,7 +1053,7 @@ package weave.compiler
 		 * Generates a deterministic JSON representation of an object, meaning object keys appear in sorted order.
 		 * @param object The object to stringify.
 		 */
-		public static function stringify(object:Object, sortKeys:Boolean = true):String
+		public static function stringify(object:Object):String
 		{
 			var output:Array;
 			var item:Object;
@@ -1067,7 +1067,7 @@ package weave.compiler
 			{
 				output = [];
 				for each (item in object)
-					output.push(stringify(item, sortKeys));
+					output.push(stringify(item));
 				return "[" + output.join(", ") + "]";
 			}
 			// loop over keys in Object
@@ -1075,14 +1075,14 @@ package weave.compiler
 			if (object.constructor == Object)
 			{
 				for (key in object)
-					output.push(encodeString(key) + ": " + stringify(object[key], sortKeys));
+					output.push(encodeString(key) + ": " + stringify(object[key]));
 			}
 			else
 			{
 				for each (var list:Array in describeTypeJSON(object, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
 					for each (item in list)
 						if (item.access != 'writeonly')
-							output.push(encodeString(item.name) + ": " + stringify(object[item.name], sortKeys));
+							output.push(encodeString(item.name) + ": " + stringify(object[item.name]));
 			}
 			// sort keys
 			StandardLib.sort(output);
