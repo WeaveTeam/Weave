@@ -274,7 +274,7 @@ package weave.api
 		/**
 		 * This will execute JavaScript code that uses a 'weave' variable.
 		 */		
-		private static function executeJavaScript(...lines):void
+		public static function executeJavaScript(...lines):void
 		{
 			lines.unshift('function(){', JS_var_weave);
 			lines.push('}');

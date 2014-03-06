@@ -14,6 +14,7 @@ package weave.visualization.tools
 	import weave.core.LinkableString;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableDynamicObject;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -22,89 +23,48 @@ package weave.visualization.tools
 	import weave.data.KeySets.KeySet;
 	import flash.external.ExternalInterface;
 
-	public class ExternalTool extends LinkableDynamicObject
+	public class ExternalTool extends LinkableHashMap
 	{
-		private var _toolName:String;
-		private var _toolReady:Boolean = false;
-		public const toolState:LinkableVariable = newLinkableChild(this, LinkableVariable, sendStateChange);
+		private var toolUrl:LinkableString;
+		private var toolPath:Array;
 
-		private var _probePath:String;
-		private var _selectionPath:String;
-		private var _subsetPath:String;
-
-		public function ExternalTool(toolName:String, toolUrl:String)
+		public function ExternalTool()
 		{
-			_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
+			toolUrl = requestObject("toolUrl", LinkableString, true);
+			toolUrl.addGroupedCallback(this, toolPropertiesChanged);
 		}
-		public function launch(url:String):void
+		private function toolPropertiesChanged():void
 		{
+			
+			if (toolUrl.value != "")
+			{
+				launch();
+			}
+		}
+		public function launch():void
+		{
+			if (toolPath == null)
+				toolPath = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
 			var windowFeatures:String = "menubar=no,status=no,toolbar=no";
 			ExternalInterface.call(
-				"function (weaveID, toolname, url, features) {\
+				"function (weaveID, toolPath, url, features) {\
 				 var weave = weaveID ? document.getElementById(weaveID) : document;\
+				 var windowName = JSON.stringify(toolPath);\
 				 if (weave.external_tools == undefined) weave.external_tools = {};\
-				 weave.external_tools[toolname] = window.open(url, toolname, features);\
-				}", ExternalInterface.objectID, _toolName, url, windowFeatures);
+				 weave.external_tools[windowName] = window.open(url, windowName, features);\
+				 weave.external_tools[windowName].toolPath = toolPath;\
+				 weave.external_tools[windowName].weave = weave;\
+				}", ExternalInterface.objectID, toolPath, toolUrl.value, windowFeatures);
 		}
-
-		public function callMethod(methodname:String, parameters:Array = null):void
+		override public function dispose():void
 		{
-			if (parameters === null) parameters = [];
-			if (!_toolReady) weaveTrace("ExternalTool " + _toolName + " was accessed, but was not ready yet.");
+			super.dispose();
 			ExternalInterface.call(
-					"function (weaveID, toolname, methodname, parameters) {\
-						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.external_tools[toolname][methodname].apply(this, parameters);\
-						}", ExternalInterface.objectID, _toolName, methodname, parameters);
-		}
-		public function loadData(records:Array, keyTypeMappings:Object, dataOptions:Object):void
-		{
-			callMethod("load_data", [records, keyTypeMappings, dataOptions]);
-		}
-		public function initialize():void
-		{
-			callMethod("launch");
-		}
-		public function setFocus():void
-		{
-			callMethod("focus");
-			return;
-		}
-		public function setProbe(qkeys:Array):void
-		{
-			callMethod("probe",  [qkeys]);
-			return;
-		}
-		public function setSelect(qkeys:Array):void
-		{
-			callMethod("select", [qkeys]);
-			return;
-		}
-		public function setSubset(qkeys:Array):void
-		{
-			callMethod("subset", [qkeys]);
-			return;
-		}
-		public function setReady():void
-		{
-			weaveTrace("ExternalTool " + _toolName + " ready.");
-			_toolReady = true;
-			return;
-		}
-		public function emitError(message:String):void
-		{
-			weaveTrace("ExternalTool error from " + _toolName + ": " + message);
-			return;
-		}
-		public function sendStateChange():void
-		{
-			callMethod("update_state", [this.toolState.getSessionState()]);
-			return;
-		}
-		public function updateState(obj:Object):void
-		{
-			this.toolState.setSessionState(obj);
-			return;
+				"function (weaveID, toolPath) {\
+				 var weave = weaveID ? document.getElementById(weaveID) : document;\
+				 var windowName = JSON.stringify(toolPath);\
+				 if (weave.external_tools[toolname]) weave.external_tools[toolname].close();\
+				}", ExternalInterface.objectID, toolPath);
 		}
 	}
 }
