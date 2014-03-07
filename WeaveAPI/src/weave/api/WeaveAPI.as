@@ -281,38 +281,45 @@ package weave.api
 		 * 
 		 * @example Example 1
 		 * <listing version="3.0">
-		 *     var sum = executeJavaScript({x: 2, y: 3}, "return x + y");
+		 *     var sum = WeaveAPI.executeJavaScript({x: 2, y: 3}, "return x + y");
 		 *     trace("sum:", sum);
 		 * </listing>
 		 * 
 		 * @example Example 2
 		 * <listing version="3.0">
-		 *     executeJavaScript(
+		 *     var sum = WeaveAPI.executeJavaScript(
 		 *         {x: 2, y: 3},
 		 *         'return weave.path().vars({x: x, y: y}).getValue("x + y");'
 		 *     );
+		 *     trace("sum:", sum);
 		 * </listing>
 		 */		
 		public static function executeJavaScript(...paramsAndCode):*
 		{
 			var pNames:Array = [];
 			var pValues:Array = [];
-			var key:String;
-			var value:Object;
+			var code:String = '';
 			
-			// find function parameters
-			for each (value in paramsAndCode)
-				if (value.constructor == Object)
-					for (key in value)
-						pNames.push(key), pValues.push(value[key]);
-			
-			// concatenate all code inside a function wrapper
-			var code:String = 'function(' + pNames.join(',') + '){\n';
+			// insert weave variable declaration
 			paramsAndCode.unshift(JS_var_weave);
-			for each (value in paramsAndCode)
-				if (value.constructor != Object)
+			
+			// separate function parameters from code
+			for each (var value:Object in paramsAndCode)
+			{
+				if (value.constructor == Object)
+				{
+					for (var key:String in value)
+					{
+						pNames.push(key);
+						pValues.push(value[key]);
+					}
+				}
+				else
 					code += value + '\n';
-			code += '}';
+			}
+			
+			// concatenate all code inside a function wrapper with a "weave" variable declaration
+			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
 			
 			// call the function with the specified parameters
 			pValues.unshift(code);
