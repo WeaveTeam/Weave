@@ -275,6 +275,9 @@ package weave.api
 		 * This will execute JavaScript code that uses a 'weave' variable.
 		 * @param paramsAndCode A list of lines of code, optionally including an
 		 *     Object containing named parameters to be passed from ActionScript to JavaScript.
+		 *     Inside the code, you can use a variable named "weave" which will be a pointer
+		 *     to the Weave instance.
+		 * @return The result of executing the JavaScript code.
 		 * 
 		 * @example Example 1
 		 * <listing version="3.0">
@@ -286,14 +289,11 @@ package weave.api
 		 * <listing version="3.0">
 		 *     executeJavaScript(
 		 *         {x: 2, y: 3},
-		 *         'if (x < y)',
-		 *         '    console.log("x < y");',
-		 *         'else',
-		 *         '    console.log("x >= y");'
+		 *         'return weave.path().vars({x: x, y: y}).getValue("x + y");'
 		 *     );
 		 * </listing>
 		 */		
-		public static function executeJavaScript(...paramsAndCode):void
+		public static function executeJavaScript(...paramsAndCode):*
 		{
 			var pNames:Array = [];
 			var pValues:Array = [];
@@ -310,13 +310,13 @@ package weave.api
 			var code:String = 'function(' + pNames.join(',') + '){\n';
 			paramsAndCode.unshift(JS_var_weave);
 			for each (value in paramsAndCode)
-				if (value is String)
+				if (value.constructor != Object)
 					code += value + '\n';
 			code += '}';
 			
 			// call the function with the specified parameters
 			pValues.unshift(code);
-			ExternalInterface.call.apply(null, pValues);
+			return ExternalInterface.call.apply(null, pValues);
 		}
 		
 		private static function handleExternalError(e:Error):void
