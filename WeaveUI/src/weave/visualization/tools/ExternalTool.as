@@ -32,7 +32,7 @@ package weave.visualization.tools
 		public function ExternalTool()
 		{
 			toolUrl = requestObject("toolUrl", LinkableString, true);
-			toolUrl.addGroupedCallback(this, toolPropertiesChanged);
+			toolUrl.addImmediateCallback(this, toolPropertiesChanged);
 		}
 		private function toolPropertiesChanged():void
 		{
@@ -55,10 +55,11 @@ package weave.visualization.tools
 					url: toolUrl.value,
 					features: "menubar=no,status=no,toolbar=no"
 				},
-				"if (!weave.external_tools) weave.external_tools = {};\
-				 weave.external_tools[windowName] = window.open(url, windowName, features);\
-				 weave.external_tools[windowName].toolPath = toolPath;\
-				 weave.external_tools[windowName].weave = weave;"
+				"if (!weave.external_tools) weave.external_tools = {};",
+				"weave.external_tools[windowName] = window.open(url, windowName, features);",
+				"console.log(toolPath);",
+				"weave.external_tools[windowName].toolPath = toolPath;",
+				"weave.external_tools[windowName].weave = weave;"
 			);
 		}
 		override public function dispose():void
