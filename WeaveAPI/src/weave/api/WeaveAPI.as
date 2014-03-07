@@ -276,14 +276,14 @@ package weave.api
 		 * @param paramsAndCode A list of lines of code, optionally including an
 		 *     Object containing named parameters to be passed from ActionScript to JavaScript.
 		 * 
-		 * @example
-		 * <pre><code>
+		 * @example Example 1
+		 * <listing version="3.0">
 		 *     var sum = executeJavaScript({x: 2, y: 3}, "return x + y");
 		 *     trace("sum:", sum);
-		 * </code></pre>
+		 * </listing>
 		 * 
-		 * @example
-		 * <pre><code>
+		 * @example Example 2
+		 * <listing version="3.0">
 		 *     executeJavaScript(
 		 *         {x: 2, y: 3},
 		 *         'if (x < y)',
@@ -291,7 +291,7 @@ package weave.api
 		 *         'else',
 		 *         '    console.log("x >= y");'
 		 *     );
-		 * </code></pre>
+		 * </listing>
 		 */		
 		public static function executeJavaScript(...paramsAndCode):void
 		{
