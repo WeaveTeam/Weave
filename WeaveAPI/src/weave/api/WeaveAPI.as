@@ -273,13 +273,50 @@ package weave.api
 		
 		/**
 		 * This will execute JavaScript code that uses a 'weave' variable.
+		 * @param paramsAndCode A list of lines of code, optionally including an
+		 *     Object containing named parameters to be passed from ActionScript to JavaScript.
+		 * 
+		 * @example
+		 * <pre><code>
+		 *     var sum = executeJavaScript({x: 2, y: 3}, "return x + y");
+		 *     trace("sum:", sum);
+		 * </code></pre>
+		 * 
+		 * @example
+		 * <pre><code>
+		 *     executeJavaScript(
+		 *         {x: 2, y: 3},
+		 *         'if (x < y)',
+		 *         '    console.log("x < y");',
+		 *         'else',
+		 *         '    console.log("x >= y");'
+		 *     );
+		 * </code></pre>
 		 */		
-		public static function executeJavaScript(...lines):void
+		public static function executeJavaScript(...paramsAndCode):void
 		{
-			lines.unshift('function(){', JS_var_weave);
-			lines.push('}');
-			var script:String = lines.join('\n');
-			ExternalInterface.call(script);
+			var pNames:Array = [];
+			var pValues:Array = [];
+			var key:String;
+			var value:Object;
+			
+			// find function parameters
+			for each (value in paramsAndCode)
+				if (value.constructor == Object)
+					for (key in value)
+						pNames.push(key), pValues.push(value[key]);
+			
+			// concatenate all code inside a function wrapper
+			var code:String = 'function(' + pNames.join(',') + '){\n';
+			paramsAndCode.unshift(JS_var_weave);
+			for each (value in paramsAndCode)
+				if (value is String)
+					code += value + '\n';
+			code += '}';
+			
+			// call the function with the specified parameters
+			pValues.unshift(code);
+			ExternalInterface.call.apply(null, pValues);
 		}
 		
 		private static function handleExternalError(e:Error):void

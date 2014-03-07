@@ -1,32 +1,33 @@
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package weave.visualization.tools
 {
-	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.linkBindableProperty;
-	import weave.api.registerLinkableChild;
-	import weave.api.newLinkableChild;
-	import weave.api.ui.IVisTool;
-	import weave.core.LinkableNumber;
-	import weave.core.LinkableString;
-	import weave.core.LinkableBoolean;
-	import weave.core.LinkableDynamicObject;
+	import weave.compiler.Compiler;
 	import weave.core.LinkableHashMap;
-	import weave.core.LinkableVariable;
-	import weave.core.SessionManager;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.KeySets.FilteredKeySet;
-	import weave.data.KeySets.KeyFilter;
-	import weave.data.KeySets.KeySet;
-	import flash.external.ExternalInterface;
+	import weave.core.LinkableString;
 
 	public class ExternalTool extends LinkableHashMap
 	{
 		private var toolUrl:LinkableString;
 		private var toolPath:Array;
+		private var windowName:String;
 
 		public function ExternalTool()
 		{
@@ -35,7 +36,6 @@ package weave.visualization.tools
 		}
 		private function toolPropertiesChanged():void
 		{
-			
 			if (toolUrl.value != "")
 			{
 				launch();
@@ -44,27 +44,31 @@ package weave.visualization.tools
 		public function launch():void
 		{
 			if (toolPath == null)
+			{
 				toolPath = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
-			var windowFeatures:String = "menubar=no,status=no,toolbar=no";
-			ExternalInterface.call(
-				"function (weaveID, toolPath, url, features) {\
-				 var weave = weaveID ? document.getElementById(weaveID) : document;\
-				 var windowName = JSON.stringify(toolPath);\
-				 if (weave.external_tools == undefined) weave.external_tools = {};\
+				windowName = Compiler.stringify(toolPath);
+			}
+			WeaveAPI.executeJavaScript(
+				{
+					windowName: windowName,
+					toolPath: toolPath,
+					url: toolUrl.value,
+					features: "menubar=no,status=no,toolbar=no"
+				},
+				"if (!weave.external_tools) weave.external_tools = {};\
 				 weave.external_tools[windowName] = window.open(url, windowName, features);\
 				 weave.external_tools[windowName].toolPath = toolPath;\
-				 weave.external_tools[windowName].weave = weave;\
-				}", ExternalInterface.objectID, toolPath, toolUrl.value, windowFeatures);
+				 weave.external_tools[windowName].weave = weave;"
+			);
 		}
 		override public function dispose():void
 		{
 			super.dispose();
-			ExternalInterface.call(
-				"function (weaveID, toolPath) {\
-				 var weave = weaveID ? document.getElementById(weaveID) : document;\
-				 var windowName = JSON.stringify(toolPath);\
-				 if (weave.external_tools[toolname]) weave.external_tools[toolname].close();\
-				}", ExternalInterface.objectID, toolPath);
+			WeaveAPI.executeJavaScript(
+				{windowName: windowName},
+				"if (weave.external_tools && weave.external_tools[windowName])\
+					weave.external_tools[windowName].close();"
+			);
 		}
 	}
 }
