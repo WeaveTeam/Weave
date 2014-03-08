@@ -135,11 +135,11 @@ package weave.api.core
 		 * @return The value of the evaluated expression, or undefined if assignVariableName was specified.
 		 * @see weave.compiler.Compiler
 		 */
-		function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, libraries:Array = null, assignVariableName:String = null):*;
+		function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignVariableName:String = null):*;
 		
 		/**
 		 * This function will add a callback to an ILinkableObject.
-		 * @param objectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
+		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
 		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
 		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered after it is added.

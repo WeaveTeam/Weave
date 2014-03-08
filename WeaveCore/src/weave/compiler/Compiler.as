@@ -95,7 +95,7 @@ package weave.compiler
 		
 		/**
 		 * Used during compiling only.
-		 */		
+		 */
 		private static const _jumpStatements:Array = [ST_BREAK, ST_CONTINUE, ST_RETURN, ST_THROW];
 		
 		/**
@@ -189,7 +189,7 @@ package weave.compiler
 		private static const WHITESPACE:String = '\r\n \t\f';
 		/**
 		 * This is used to match number tokens.
-		 */		
+		 */
 		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 		
 		private const JUMP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
@@ -238,24 +238,23 @@ package weave.compiler
 		
 		/**
 		 * This is used to temporarily store the host of the property that was accessed by the last call to the '.' operator.
-		 */		
+		 */
 		private var _propertyHost:Object = null;
 		/**
 		 * This is used to temporarily store the property name that was accessed by the last call to the '.' operator.
-		 */		
+		 */
 		private var _propertyName:* = null;
 
 		/**
 		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
-		 * Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
-		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
 		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression. Multiple lookup tables can be specified in an Array. The values in the lookup tables may be changed outside the function after compiling.
 		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
-		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
+		 * @return A Function generated from the expression String.
+		 * @throws Error If the expression is invalid.
 		 */
 		public function compileToFunction(expression:String, symbolTable:Object, errorHandler:Function = null, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
@@ -269,7 +268,8 @@ package weave.compiler
 		 * This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.
 		 * This function is useful for inspecting the structure of the compiled function and decompiling individual parts.
 		 * @param expression An expression to parse.
-		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
+		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens.
+		 * @throws Error If the expression is invalid.
 		 */
 		public function compileToObject(expression:String):ICompiledObject
 		{
@@ -326,7 +326,7 @@ package weave.compiler
 		/**
 		 * This function gets a list of all the libraries currently being used by the compiler.
 		 * @return A new Array containing a list of all the objects and/or classes used as libraries in the compiler.
-		 */		
+		 */
 		public function getAllLibraries():Array
 		{
 			return libraries.concat(); // make a copy
@@ -623,7 +623,7 @@ package weave.compiler
 		/**
 		 * This will set the behavior of the '#' operator.
 		 * @param hashFunction A function that takes one parameter for use as an infix operator.
-		 */		
+		 */
 		public function setHashOperator(hashFunction:Function):void
 		{
 			constants[OPERATOR_ESCAPE + '#'] = operators['#'] = hashFunction;
@@ -675,7 +675,8 @@ package weave.compiler
 		 * This function is for internal use only.
 		 * @param expression An expression to parse.
 		 * @param index The starting index of the token.
-		 * @return The token beginning at the specified index, or null if an invalid quoted string was found.
+		 * @return The token beginning at the specified index.
+		 * @throws Error If a block comment or quoted String is not terminated properly.
 		 */
 		private function getToken(expression:String, index:int):String
 		{
@@ -770,7 +771,8 @@ package weave.compiler
 		 * Example set of input tokens:  pow ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
 		 * @param tokens An Array of tokens for an expression.  This array will be modified in place.
 		 * @param allowSemicolons Set to true to allow multiple statements and empty expressions.
-		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
+		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens.
+		 * @throws Error If the tokens do not describe a valid expression.
 		 */
 		private function compileTokens(tokens:Array, allowSemicolons:Boolean):ICompiledObject
 		{
@@ -2638,7 +2640,7 @@ package weave.compiler
 		 * This will check if the compiled object is a function definition.
 		 * @param compiledObject A compiled object returned by compileToObject().
 		 * @return true if the compiledObject is a function definition.
-		 */		
+		 */
 		public function compiledObjectIsFunctionDefinition(compiledObject:ICompiledObject):Boolean
 		{
 			return compiledObject is CompiledFunctionCall && (compiledObject as CompiledFunctionCall).evaluatedMethod == operators[FUNCTION];

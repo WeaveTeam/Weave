@@ -256,7 +256,8 @@ package weave.core
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				var compiledObject:ICompiledObject = _compiler.compileToObject(expression);
 				var isFuncDef:Boolean = _compiler.compiledObjectIsFunctionDefinition(compiledObject);
-				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [_variables, variables], reportError, thisObject != null);
+				// passed-in variables take precedence over stored ActionScript _variables
+				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [variables, _variables], reportError, thisObject != null);
 				var result:*;
 				if (isAssignment && isFuncDef)
 				{
@@ -317,9 +318,9 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
+		public function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
 		{
-			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
+			var object:ILinkableObject = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
 			_d2d_callbackStr_target.set(callback, object, true);

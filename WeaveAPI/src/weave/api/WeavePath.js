@@ -1,4 +1,21 @@
-// This code assumes it is being executed within a function(){} where the 'weave' variable is defined.
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of the Weave API.
+ *
+ * The Initial Developer of the Weave API is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Note: This code assumes it is being executed within a function(){} where the 'weave' variable is defined.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // browser backwards compatibility
 if (!Array.isArray)
@@ -357,6 +374,9 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
 	var variableName = type == 'string' ? callback_or_variableName : "";
 	var result = weave.evaluateExpression(this._path, script, this._vars, null, variableName);
+	// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
+	if (variableName)
+		delete this._vars[variableName];
 	if (callback)
 		callback.apply(this, [result]);
 	
