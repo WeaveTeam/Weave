@@ -493,14 +493,11 @@ package weave
 				
 				// reload the application
 				if (ExternalInterface.objectID)
-					ExternalInterface.call(
-						"function(reloadID) {" +
-							WeaveAPI.JS_var_weave +
-							"var p = weave.parentNode;" +
-							"p.weaveReloadID = reloadID;" +
-							"p.innerHTML = p.innerHTML;" +
-						"}",
-						uid
+					WeaveAPI.executeJavaScript(
+						{reloadID: uid},
+						"var p = weave.parentNode;",
+						"p.weaveReloadID = reloadID;",
+						"p.innerHTML = p.innerHTML;"
 					);
 				else
 					ExternalInterface.call("function(){ location.reload(false); }");
@@ -522,14 +519,11 @@ package weave
 				try
 				{
 					// get uid that was previously saved in parent node
-					uid = ExternalInterface.call(
-						'function(){' +
-							WeaveAPI.JS_var_weave +
-							'var p = weave.parentNode;' +
-							'var reloadID = p.weaveReloadID;' +
-							'p.weaveReloadID = undefined;' +
-							'return reloadID;' +
-						'}'
+					uid = WeaveAPI.executeJavaScript(
+						'var p = weave.parentNode;',
+						'var reloadID = p.weaveReloadID;',
+						'p.weaveReloadID = undefined;',
+						'return reloadID;'
 					);
 				}
 				catch (e:Error)
@@ -590,7 +584,7 @@ package weave
 				return;
 			try
 			{
-				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeaveStartup()) + '}');
+				WeaveAPI.executeJavaScript(new WeaveStartup());
 				_startupComplete = true;
 			}
 			catch (e:Error)

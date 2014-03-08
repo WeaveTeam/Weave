@@ -26,7 +26,6 @@ package weave.core
 	
 	import mx.core.UIComponent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
@@ -265,35 +264,6 @@ package weave.core
 					reportError(e);
 				}
 			}
-
-			/*
-			// create script to initialize the 'weave' variable
-			var initScript:String = WeaveAPI.JS_var_weave;
-			
-			// attempt to delay alert boxes, without delaying other types of scripts
-			if (script.search("(alert|confirm|prompt)[\\ \n\t]*\\(") >= 0)
-				script = 'function(event){setTimeout(function(){' + initScript + script + '},0)}';
-			else
-				script = 'function(event){' + initScript + script + '}';
-			
-			return function (event:Event):void
-			{
-				var eventObj:Object = {};
-				for each (var propertyName:String in ObjectUtil.getClassInfo(event).properties)
-					eventObj[propertyName] = String(ObjectUtil.copy(event[propertyName]));
-				
-				var prev:Boolean = ExternalInterface.marshallExceptions;
-				try
-				{
-					ExternalInterface.marshallExceptions = true;
-					ExternalInterface.call(script, eventObj);
-				}
-				finally
-				{
-					ExternalInterface.marshallExceptions = prev;
-				}
-			};
-			*/
 		}
 	}
 }

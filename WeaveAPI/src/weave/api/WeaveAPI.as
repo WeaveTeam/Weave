@@ -318,7 +318,7 @@ package weave.api
 					code += value + '\n';
 			}
 			
-			// concatenate all code inside a function wrapper with a "weave" variable declaration
+			// concatenate all code inside a function wrapper
 			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
 			
 			// call the function with the specified parameters
@@ -329,7 +329,7 @@ package weave.api
 		private static function handleExternalError(e:Error):void
 		{
 			if (e.errorID == 2060)
-				ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
+				ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set appropriately. " + e.message);
 			else
 				ErrorManager.reportError(e);
 		}
