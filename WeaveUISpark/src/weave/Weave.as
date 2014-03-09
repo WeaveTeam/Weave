@@ -495,9 +495,8 @@ package weave
 				if (ExternalInterface.objectID)
 					WeaveAPI.executeJavaScript(
 						{reloadID: uid},
-						"var p = weave.parentNode;",
-						"p.weaveReloadID = reloadID;",
-						"p.innerHTML = p.innerHTML;"
+						"weave.parentNode.weaveReloadID = reloadID;",
+						"weave.outerHTML = weave.outerHTML;"
 					);
 				else
 					ExternalInterface.call("function(){ location.reload(false); }");
