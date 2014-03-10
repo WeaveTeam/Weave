@@ -404,10 +404,10 @@ weave.WeavePath.prototype.libs = function(/*...libraries*/)
 /**
  * Evaluates an ActionScript expression using the current path, vars, and libs.
  * The 'this' context within the script will be the object at the current path.
- * @param script The script to be evaluated by Weave using the object at the current path as the 'this' context.
+ * @param script The script to be evaluated by Weave under the scope of the object at the current path.
  * @param callback_or_variableName Optional callback function or variable name.
  * - If given a callback function, the function will be passed the result of
- *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
+ *   evaluating the expression, setting the 'this' value to the current WeavePath object.
  * - If given a variable name, the result will be stored as a variable
  *   as if it was passed as an object property to WeavePath.vars().  It may then be used
  *   in future calls to WeavePath.exec() or retrieved with WeavePath.getValue().
@@ -430,7 +430,7 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 };
 
 /**
- * Applies a function with optional parameters, setting 'this' pointer to the WeavePath object
+ * Calls a function using the current WeavePath object as the 'this' value.
  * @param func The function to call.
  * @param args An optional list of arguments to pass to the function.
  * @return The current WeavePath object.
@@ -448,9 +448,9 @@ weave.WeavePath.prototype.call = function(func/*[, ...args]*/)
 /**
  * Applies a function to each item in an Array or an Object.
  * @param items Either an Array or an Object to iterate over.
- *              If items is an Array, this has the same effect as <code>WeavePath.call(function(){ itemsArray.forEach(visitorFunction, this); })</code>.
- *              If items is an Object, it will behave like <code>WeavePath.call(function(){ for(var key in items) visitorFunction.call(this, items[key], key, items); })</code>.
- * @param visitorFunction A function to be called for each item. The function will receive three parameters:  item, key, items.
+ * @param visitorFunction A function to be called for each item in items. The function will be called using the current
+ *                        WeavePath object as the 'this' value and will receive three parameters:  item, key, items.
+ *                        If items is an Array, the key will be an integer. If items is an Object, the key will be a String.
  * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.forEach = function(items, visitorFunction)
