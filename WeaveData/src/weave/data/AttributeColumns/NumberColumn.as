@@ -124,7 +124,7 @@ package weave.data.AttributeColumns
 		private function errorHandler(e:*):void
 		{
 			var str:String = e is Error ? e.message : String(e);
-			str = StandardLib.substitute("Error in script for AttributeColumn {0}:\n{1}", ObjectUtil.toString(_metadata), str);
+			str = StandardLib.substitute("Error in script for AttributeColumn {0}:\n{1}", Compiler.stringify(_metadata), str);
 			if (_lastError != str)
 			{
 				_lastError = str;
@@ -160,7 +160,7 @@ package weave.data.AttributeColumns
 					{
 						_reportedDuplicate = true;
 						var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-						var str:String = StandardLib.substitute(fmt, key.localName, ObjectUtil.toString(_metadata));
+						var str:String = StandardLib.substitute(fmt, key.localName, Compiler.stringify(_metadata));
 						if (Capabilities.isDebugger)
 							reportError(str);
 					}

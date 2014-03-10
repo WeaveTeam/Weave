@@ -25,6 +25,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.core.CallbackCollection;
 	import weave.utils.ColumnUtils;
+	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -60,13 +61,10 @@ package weave.data.AttributeColumns
 		 */
 		protected static function copyValues(obj_or_xml:Object):Object
 		{
-			var obj:Object = {};
 			if (obj_or_xml is XML_Class)
-			{
-				var xml:XML = XML(obj_or_xml);
-				for each (var attr:XML in xml.attributes())
-					obj[String(attr.name())] = String(attr);
-			}
+				return HierarchyUtils.getMetadata(XML(obj_or_xml));
+			
+			var obj:Object = {};
 			for (var key:String in obj_or_xml)
 				obj[key] = obj_or_xml[key];
 			return obj;

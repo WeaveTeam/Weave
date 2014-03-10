@@ -39,6 +39,7 @@
 		<ui:WeaveTree id="fileView" width="100%" height="100%"
 					   showDataTips="true"
 					   disclosureClosedIcon="{null}" disclosureOpenIcon="{null}"
+					   itemOpen="handleFileDoubleClick()"
 					   doubleClickEnabled="true" doubleClick="handleFileDoubleClick()"/>
 	</mx:VBox>
 
@@ -76,12 +77,20 @@
 				
 				fileView.dataDescriptor = new WeaveTreeDataDescriptor(2);
 				fileFilter.addGroupedCallback(this, refreshFiles);
+				
+				folderView.addEventListener(KeyboardEvent.KEY_DOWN, handleFolderKeyDown, false, int.MAX_VALUE);
+				fileView.addEventListener(KeyboardEvent.KEY_DOWN, handleFileKeyDown, false, int.MAX_VALUE);
 			}
 			
 			public function set rootNode(node:IWeaveTreeNode):void
 			{
-				rootWatcher.target = node ? (node as ILinkableObject || node.getSource() as ILinkableObject) : null;
+				rootWatcher.target = node as ILinkableObject;
 				folderView.rootNode = node;
+			}
+			
+			public function get selectedFolder():IWeaveTreeNode
+			{
+				return folderView.selectedItem as IWeaveTreeNode;
 			}
 			
 			private var _prevFolder:IWeaveTreeNode;
@@ -89,7 +98,7 @@
 			private function refreshFiles(folder:IWeaveTreeNode = null):void
 			{
 				if (!folder)
-					folder = folderView.selectedItem as IWeaveTreeNode;
+					folder = selectedFolder;
 				
 				fileVBox.visible = fileVBox.includeInLayout = !!folder;
 				
@@ -124,8 +133,9 @@
 			private function handleFolderCollapse(event:TreeEvent):void
 			{
 				// if collapsing a node would make the current selection disappear, select the collapsing node
-				if (selectionWouldDisappear(folderView, event.item as IWeaveTreeNode, folderView.selectedItem as IWeaveTreeNode))
-					folderView.selectedItem = _prevFolder = event.item as IWeaveTreeNode;
+				var collapsing:IWeaveTreeNode = event.item as IWeaveTreeNode;
+				if (selectionWouldDisappear(folderView, collapsing, selectedFolder))
+					folderView.selectedItem = _prevFolder = collapsing;
 			}
 			
 			private function selectionWouldDisappear(tree:Tree, collapsing:IWeaveTreeNode, selected:IWeaveTreeNode):Boolean
@@ -151,9 +161,9 @@
 				// Note that this will toggle the folder icon whether or not the node has child branches.
 				// Also note that the same behavior occurs when using the left and right arrow keys.
 				// We could check node.hasChildBranches() before toggling expanded state, but the user may find marking the folder icons useful.
-				var node:IWeaveTreeNode = folderView.selectedItem as IWeaveTreeNode;
-				if (node)
-					folderView.expandItem(node, !folderView.isItemOpen(node));
+				var folder:IWeaveTreeNode = selectedFolder;
+				if (folder)
+					folderView.expandItem(folder, !folderView.isItemOpen(folder));
 			}
 			private function handleFileDoubleClick():void
 			{
@@ -167,6 +177,50 @@
 							return folder == node;
 						}
 					);
+				}
+			}
+			
+			private function handleFolderKeyDown(event:KeyboardEvent):void
+			{
+				// press ENTER key on folder -> focus fileView
+				if (event.keyCode == Keyboard.ENTER && selectedFolder)
+				{
+					fileView.setFocus();
+					event.preventDefault();
+				}
+				
+				// press RIGHT key on folder with no subfolders -> focus fileView
+				if (event.keyCode == Keyboard.RIGHT && selectedFolder && !selectedFolder.hasChildBranches())
+				{
+					fileView.setFocus();
+					event.preventDefault();
+				}
+			}
+			
+			private function handleFileKeyDown(event:KeyboardEvent):void
+			{
+				var selectedFile:IWeaveTreeNode = fileView.selectedItem as IWeaveTreeNode;
+				
+				// press ENTER or RIGHT on folder in file view -> same as doubleClick
+				if ((event.keyCode == Keyboard.ENTER || event.keyCode == Keyboard.RIGHT) && selectedFile && selectedFile.isBranch())
+				{
+					handleFileDoubleClick();
+					event.preventDefault();
+				}
+				
+				// press LEFT on folder in file view -> go to parent folder or close file view if there is no parent folder
+				if (event.keyCode == Keyboard.LEFT)
+				{
+					var parent:IWeaveTreeNode = folderView.getParentItem(selectedFolder) as IWeaveTreeNode;
+					if (parent)
+						folderView.selectedItem = parent;
+					else
+					{
+						folderView.selectedItem = null;
+						folderView.setFocus();
+						refreshFiles();
+					}
+					event.preventDefault();
 				}
 			}
 		]]>

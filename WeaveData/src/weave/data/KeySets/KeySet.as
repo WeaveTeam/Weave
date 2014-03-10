@@ -29,6 +29,7 @@ package weave.data.KeySets
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
 	import weave.api.setSessionState;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
@@ -376,7 +377,7 @@ package weave.data.KeySets
 		private static function traceKeySet(keySet:KeySet):void
 		{
 			trace(' ->', getKeyStrings(keySet.keys));
-			trace('   ', ObjectUtil.toString(getSessionState(keySet)));
+			trace('   ', Compiler.stringify(getSessionState(keySet)));
 		}
 		private static function testFunction(keySet:KeySet, func:Function, comment:String, keyType:String, keys:Array, expectedResultKeyType:String, expectedResultKeys:Array, expectedResultKeyType2:String = null, expectedResultKeys2:Array = null):void
 		{

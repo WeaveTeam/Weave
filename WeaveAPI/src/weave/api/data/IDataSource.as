@@ -15,7 +15,6 @@
 
 package weave.api.data
 {
-	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableObject;
 	
 	/**
@@ -31,23 +30,15 @@ package weave.api.data
 		function refreshHierarchy():void
 		
 		/**
-		 * Gets the root node of the attribute hierarchy.
+		 * Gets the root node of the attribute hierarchy, which should have descendant nodes that implement IColumnReference.
 		 */
 		function getHierarchyRoot():IWeaveTreeNode;
 		
 		/**
-		 * Populates a LinkableDynamicObject with an IColumnReference corresponding to a node in the attribute hierarchy.
-		 * @return true if successful.
+		 * Retrieves an IAttributeColumn from this IDataSource.
+		 * @param metadata Metadata used to identify a column in this IDataSource.
+		 * @return An IAttributeColumn object that will be updated when the column data is available.
 		 */
-		function getColumnReference(node:IWeaveTreeNode, output:ILinkableDynamicObject):Boolean;
-
-		/**
-		 * The parameter to this function used to be pathInHierarchy because old implementations use XML path objects.
-		 * The parameter type is now temporarily Object during this transitional phase.
-		 * In future versions, the parameter will be an IColumnReference object.
-		 * @param columnReference A reference to a column in this IDataSource.
-		 * @return An IAttributeColumn object that will be updated when the column data downloads.
-		 */
-		function getAttributeColumn(columnReference:IColumnReference):IAttributeColumn;
+		function getAttributeColumn(metadata:Object):IAttributeColumn;
 	}
 }

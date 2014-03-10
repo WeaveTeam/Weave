@@ -27,6 +27,31 @@ package weave.utils
 	public class HierarchyUtils
 	{
 		/**
+		 * Gets all metadata stored at the leaf node of a hierarchy path.
+		 * @return An Object mapping attribute names to values.
+		 */
+		public static function getMetadata(leafNodeOrPath:XML):Object
+		{
+			var xml:XML = getNodeFromPath(leafNodeOrPath, leafNodeOrPath);
+			var obj:Object = {};
+			if (xml)
+				for each (var attr:XML in xml.attributes())
+					obj[String(attr.name())] = String(attr);
+			return obj;
+		}
+		
+		/**
+		 * Creates an XML node containing attribute name/value pairs corresponding to the given metadata.
+		 */
+		public static function nodeFromMetadata(metadata:Object):XML
+		{
+			var node:XML = <attribute/>;
+			for (var key:String in metadata)
+				node['@'+key] = metadata[key];
+			return node;
+		}
+		
+		/**
 		 * @param hierarchyRoot An XML hierarchy to traverse and compare with the nodes of pathInHierarchy.
 		 * @param pathInHierarchy An XML path, starting at the level of the hierarchy root, which will be compared with the hierarchy.
 		 * @return The leaf node of the newly added path in the hierarchy.

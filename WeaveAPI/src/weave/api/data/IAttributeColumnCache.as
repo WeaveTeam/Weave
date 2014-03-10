@@ -16,19 +16,20 @@
 package weave.api.data
 {
 	/**
-	 * This is a cache that maps IColumnReference hash values to IAttributeColumns.
-	 * The getAttributeColumn() function is used to avoid making duplicate column requests.
+	 * This is a cache used to avoid making duplicate column requests.
 	 * 
 	 * @author adufilie
 	 */
 	public interface IAttributeColumnCache
 	{
 		/**
-		 * This function will return the same IAttributeColumn for two IColumnReference objects having the same hash value.
-		 * Use this function to avoid duplicate data downloads.
-		 * @param columnReference A reference to a column.
-		 * @return The column that the reference refers to.
+		 * This function will return the same IAttributeColumn for identical metadata values.
+		 * Use this function to avoid downloading duplicate column data.
+		 * @param dataSource The data source to request the column from if it is not already cached.
+		 * @param metadata The metadata to be passed to dataSource.getAttributeColumn().
+		 * @return The cached column object.
+		 * @see weave.api.data.IDataSource#getAttributeColumn()
 		 */
-		function getColumn(columnReference:IColumnReference):IAttributeColumn;
+		function getColumn(dataSource:IDataSource, metadata:Object):IAttributeColumn;
 	}
 }

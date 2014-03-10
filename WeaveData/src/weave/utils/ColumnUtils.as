@@ -28,7 +28,6 @@ package weave.utils
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IKeySet;
@@ -40,6 +39,7 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ExtendedDynamicColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
@@ -103,11 +103,11 @@ package weave.utils
 		{
 			var name:String;
 			var nameMap:Object = {};
-			var refs:Array = getLinkableDescendants(column, IColumnReference);
-			for (var i:int = 0; i < refs.length; i++)
+			var cols:Array = getLinkableDescendants(column, ReferencedColumn);
+			for (var i:int = 0; i < cols.length; i++)
 			{
-				var ref:IColumnReference = refs[i];
-				var source:IDataSource = ref.getDataSource();
+				var col:ReferencedColumn = cols[i];
+				var source:IDataSource = col.getDataSource();
 				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
 				if (!sourceOwner)
 					continue;

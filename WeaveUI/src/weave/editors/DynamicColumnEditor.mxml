@@ -43,10 +43,12 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
+			import mx.charts.chartClasses.IColumn;
 			
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IColumnReference;
 			import weave.api.data.IDataSource;
 			import weave.api.data.IWeaveTreeNode;
 			import weave.api.getCallbackCollection;
@@ -92,6 +94,7 @@
 
 				explorer.rootNode = new DataSourceTreeNode();
 				
+				explorer.folderView.dragEnabled = false;
 				explorer.fileView.dragEnabled = true;
 				//explorer.attributeView.addEventListener(DragEvent.DRAG_START, handleAttributeDrag);
 				
@@ -102,8 +105,13 @@
 			
 			private function handleSelection(node:IWeaveTreeNode):void
 			{
-				if (node && node.getSource() is IDataSource && !node.isBranch())
-					(node.getSource() as IDataSource).getColumnReference(node, referencedColumn.dynamicColumnReference);
+				var ref:IColumnReference = node as IColumnReference;
+				if (ref)
+				{
+					var meta:Object = ref.getColumnMetadata();
+					if (meta)
+						referencedColumn.setColumnReference(ref.getDataSource(), meta);
+				}
 			}
 			
 			/**
@@ -115,8 +123,8 @@
 			public function addMultipleColumns(destination:ILinkableHashMap, selectedOnly:Boolean):Array
 			{
 				var result:Array = [];
-				var node:IWeaveTreeNode = explorer.folderView.selectedItem as IWeaveTreeNode;
-				if (!node)
+				var folder:IWeaveTreeNode = explorer.folderView.selectedItem as IWeaveTreeNode;
+				if (!folder)
 					return result;
 				
 				var nodes:Array;
@@ -129,16 +137,23 @@
 				}
 				else
 				{
-					nodes = node.getChildren();
+					nodes = folder.getChildren();
 				}
 				
 				referencedColumn.delayCallbacks();
 				getCallbackCollection(destination).delayCallbacks();
-				for each (node in nodes)
+				for each (var node:IWeaveTreeNode in nodes)
 				{
-					var ds:IDataSource = node.getSource() as IDataSource;
-					if (ds && ds.getColumnReference(node, referencedColumn.dynamicColumnReference))
-						result.push(destination.requestObjectCopy(null, referencedColumn));
+					var ref:IColumnReference = node as IColumnReference;
+					if (ref)
+					{
+						var meta:Object = ref.getColumnMetadata();
+						if (meta !== null)
+						{
+							referencedColumn.setColumnReference(ref.getDataSource(), meta);
+							result.push(destination.requestObjectCopy(null, referencedColumn));
+						}
+					}
 				}
 				getCallbackCollection(destination).resumeCallbacks();
 				referencedColumn.resumeCallbacks();

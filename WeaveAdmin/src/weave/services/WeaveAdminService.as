@@ -45,6 +45,7 @@ package weave.services
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
 	import weave.api.services.beans.EntitySearchCriteria;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -326,9 +327,9 @@ package weave.services
 			var paramDebugStr:String = '';
 			
 			if (methodParams is Array && methodParams.length > 0)
-				paramDebugStr = '"' + methodParams.join('", "') + '"';
+				paramDebugStr = methodParams.map(function(p:Object, i:int, a:Array):String { return Compiler.stringify(p); }).join(', ');
 			else
-				paramDebugStr += ObjectUtil.toString(methodParams);
+				paramDebugStr += Compiler.stringify(methodParams);
 			
 			trace(StandardLib.substitute(
 					"Received error on {0}({1}):\n\t{2}",

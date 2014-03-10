@@ -30,17 +30,12 @@ package weave.ui
 	import mx.events.ListEvent;
 	import mx.managers.DragManager;
 	
-	import weave.api.copySessionState;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IColumnReference;
-	import weave.api.data.IDataSource;
-	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.registerDisposableChild;
-	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	
@@ -164,7 +159,6 @@ package weave.ui
 		private const _dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
 		private const _childListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider);
 		private var _labelFunction:Function = null;
-		private var _colRefBuffer:ILinkableDynamicObject = null;
 		
 		public function get hashMap():ILinkableHashMap
 		{
@@ -353,7 +347,10 @@ package weave.ui
 		// called when something is being dragged on top of this list
 		private function dragOverHandler(event:DragEvent):void
 		{
-			DragManager.showFeedback(DragManager.MOVE);
+			if (dragSourceIsAcceptable(event))
+				DragManager.showFeedback(DragManager.MOVE);
+			else
+				DragManager.showFeedback(DragManager.NONE);
 		}
 		
 		// called when something is dropped into this list
@@ -390,15 +387,14 @@ package weave.ui
 							newNames.push(hashMap.getName(newObject));
 						}
 						
-						var node:IWeaveTreeNode = items[i] as IWeaveTreeNode
-						if (node && node.getSource() is IDataSource)
+						var ref:IColumnReference = items[i] as IColumnReference;
+						if (ref)
 						{
-							if (!_colRefBuffer)
-								_colRefBuffer = registerDisposableChild(this, new LinkableDynamicObject(IColumnReference));
-							if ((node.getSource() as IDataSource).getColumnReference(node, _colRefBuffer))
+							var meta:Object = ref.getColumnMetadata();
+							if (meta)
 							{
 								var refCol:ReferencedColumn = hashMap.requestObject(null, ReferencedColumn, false);
-								copySessionState(_colRefBuffer, refCol.dynamicColumnReference);
+								refCol.setColumnReference(ref.getDataSource(), meta);
 								newObject = refCol;
 								newNames.push(hashMap.getName(newObject));
 							}
@@ -422,15 +418,26 @@ package weave.ui
 			}
 		}
 		
-		// called when something is dragged on top of this list
-		private function dragEnterCaptureHandler(event:DragEvent):void
+		private function dragSourceIsAcceptable(event:DragEvent):Boolean
 		{
 			if (event.dragSource.hasFormat("items"))
 			{
 				var items:Array = event.dragSource.dataForFormat("items") as Array;
-				if (items[0] is IWeaveTreeNode || items[0] is ILinkableObject)
-					DragManager.acceptDragDrop(event.currentTarget as IUIComponent);
+				for each (var item:Object in items)
+				{
+					var ref:IColumnReference = item as IColumnReference;
+					if (item is ILinkableObject || (ref && ref.getColumnMetadata() != null))
+						return true;
+				}
 			}
+			return false;
+		}
+		
+		// called when something is dragged on top of this list
+		private function dragEnterCaptureHandler(event:DragEvent):void
+		{
+			if (dragSourceIsAcceptable(event))
+				DragManager.acceptDragDrop(event.currentTarget as IUIComponent);
 			event.preventDefault();
 		}
 		

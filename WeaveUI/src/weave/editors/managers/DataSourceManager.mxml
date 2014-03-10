@@ -251,7 +251,7 @@
 					}
 					
 					// clear any existing selection
-					browser.referencedColumn.dynamicColumnReference.removeObject();
+					browser.referencedColumn.setColumnReference(null, null);
 					
 					if (editor && editor.parent == container)
 						container.removeChild(editor as DisplayObject);

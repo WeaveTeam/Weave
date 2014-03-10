@@ -19,6 +19,7 @@
 package weave.ui
 {
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
@@ -289,5 +290,10 @@ package weave.ui
 			return super.scrollToIndex(index);
 		}
 
+		override protected function keyDownHandler(event:KeyboardEvent):void
+		{
+			if (!event.isDefaultPrevented())
+				super.keyDownHandler(event);
+		}
 	}
 }

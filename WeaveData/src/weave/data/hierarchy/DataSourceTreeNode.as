@@ -40,8 +40,6 @@ package weave.data.hierarchy
 			registerLinkableChild(this, WeaveAPI.globalHashMap.childListCallbacks);
 		}
 		
-		//weave.path('ct').libs('weave.api.WeaveAPI').request('CustomTool').push('children','tree').request('EntityHierarchySelector').exec("percentWidth=percentHeight=100; rootNode = new 'weave.data.hierarchy.DataSourceTreeNode';")
-		
 		private var _dataSourceToNode:Dictionary = new Dictionary(true);
 		
 		// the node can re-use the same children array
@@ -50,11 +48,6 @@ package weave.data.hierarchy
 		public function equals(other:IWeaveTreeNode):Boolean
 		{
 			return other is DataSourceTreeNode;
-		}
-		
-		public function getSource():Object
-		{
-			return null;
 		}
 		
 		public function getLabel():String
@@ -107,15 +100,8 @@ package weave.data.hierarchy
 		
 		private var _globalColumnNode:XMLEntityNode = new XMLEntityNode();
 		
-		public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean
-		{
-			throw new Error("Not implemented");
-		}
-		
-		public function removeChild(child:IWeaveTreeNode):Boolean
-		{
-			throw new Error("Not implemented");
-		}
+		public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
+		public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
 		
 		public function dispose():void
 		{

@@ -28,20 +28,19 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
 	import weave.services.WFSServlet;
@@ -284,29 +283,16 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * Makes a WFS request to get a column of data specified by a hierarchy path.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
-		 * @param A ProxyColumn object that will be updated when the column data is ready.
+		 * @inheritDoc
 		 */
-		override protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var hierarchyRef:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-			if (!hierarchyRef)
-				return handleUnsupportedColumnReference(columnReference, proxyColumn);
-			
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			
-			var query:AsyncToken;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
-			
-			var featureTypeName:String = leafNode.attribute("featureTypeName");
-			var propertyNamesArray:Array = [];
-			var propertyName:String = leafNode.attribute("name");
-			propertyNamesArray.push(propertyName);
-			query = wfsDataService.getFeature(featureTypeName, propertyNamesArray);
-			var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-			addAsyncResponder(query, handleColumnDownload, handleColumnDownloadFail, token);
+			addAsyncResponder(
+				wfsDataService.getFeature(proxyColumn.getMetadata("featureTypeName"), [proxyColumn.getMetadata("name")]),
+				handleColumnDownload,
+				handleColumnDownloadFail,
+				proxyColumn
+			);
 		}
 		
 		private function getQName(xmlContainingNamespaceInfo:XML, qname:String):QName
@@ -322,11 +308,8 @@ package weave.data.DataSources
 			return null;
 		}
 
-		private function handleColumnDownload(event:ResultEvent, request:ColumnRequestToken):void
+		private function handleColumnDownload(event:ResultEvent, proxyColumn:ProxyColumn):void
 		{
-			var hierarchyPath:XML = request.pathInHierarchy;
-			var proxyColumn:ProxyColumn = request.proxyColumn;
-			
 			if (proxyColumn.wasDisposed)
 				return;
 			
@@ -334,13 +317,6 @@ package weave.data.DataSources
 			var i:int;
 			try
 			{
-				var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(hierarchyPath);
-				if (hierarchyNode == null)
-				{
-					trace("WARNING! Discarding downloaded column data because the path no longer exists in the hierarchy: " + hierarchyPath.toXMLString());
-					return;
-				}
-	
 				try
 				{
 					result = new XML(event.result);
@@ -353,10 +329,10 @@ package weave.data.DataSources
 				if (result == null || result.localName().toString() == 'ExceptionReport')
 					throw new Error("An invalid XML result was received from the WFS service at "+this.url.value);
 	
-				var featureTypeName:String = hierarchyNode.@featureTypeName; // typeName was previously stored here
-				var propertyName:String = hierarchyNode.@name; // propertyName was previously stored here
-				var dataType:String = hierarchyNode.@dataType;
-				var keyType:String = hierarchyNode.@keyType;
+				var featureTypeName:String = proxyColumn.getMetadata('featureTypeName'); // typeName was previously stored here
+				var propertyName:String = proxyColumn.getMetadata('name'); // propertyName was previously stored here
+				var dataType:String = proxyColumn.getMetadata('dataType');
+				var keyType:String = proxyColumn.getMetadata('keyType');
 	
 				//trace("WFSDataSource.handleColumnDownload(): typeName=" + featureTypeName + ", propertyName=" + propertyName);
 				
@@ -368,7 +344,7 @@ package weave.data.DataSources
 				var keyQName:QName = getQName(result, featureTypeName);
 				if (keyQName == null)
 				{
-					reportError('WFS response did not contain namespace of featureTypeName: ' + hierarchyNode.toXMLString());
+					reportError('WFS response did not contain namespace of featureTypeName: ' + Compiler.stringify(proxyColumn.getProxyMetadata()));
 					return;
 				}
 				var dataQName:QName = new QName(keyQName.uri, propertyName); // use same namespace as keyQName
@@ -389,7 +365,7 @@ package weave.data.DataSources
 				var newColumn:IAttributeColumn;
 				if (ObjectUtil.stringCompare(dataType, DataTypes.GEOMETRY, true) == 0)
 				{
-					newColumn = new GeometryColumn(hierarchyNode);
+					newColumn = new GeometryColumn(proxyColumn.getProxyMetadata());
 					var geomVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
 					var features:XMLList = result.descendants(keyQName);
 					var firstFeatureData:XML = features[0].descendants(dataQName)[0];
@@ -440,12 +416,12 @@ package weave.data.DataSources
 				}
 				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
-					newColumn = new NumberColumn(hierarchyNode);
+					newColumn = new NumberColumn(proxyColumn.getProxyMetadata());
 					(newColumn as NumberColumn).setRecords(keysVector, xmlToVector(dataList, new Vector.<Number>()));
 				}
 				else
 				{
-					newColumn = new StringColumn(hierarchyNode);
+					newColumn = new StringColumn(proxyColumn.getProxyMetadata());
 					(newColumn as StringColumn).setRecords(keysVector, xmlToVector(dataList, new Vector.<String>()));
 				}
 				// save pointer to new column inside the matching proxy column

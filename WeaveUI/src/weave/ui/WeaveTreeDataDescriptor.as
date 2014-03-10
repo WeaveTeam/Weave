@@ -103,7 +103,7 @@ package weave.ui
 		 */		
         public function getData(node:Object, model:Object = null):Object
         {
-			return node as IWeaveTreeNode;
+			return node;
         }
         
 		public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean

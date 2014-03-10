@@ -187,7 +187,7 @@ package weave.data.AttributeColumns
 								+ ' (only the first error for this column is reported).'
 								+ ' Attribute column: {1}',
 								string,
-								ObjectUtil.toString(_metadata)
+								Compiler.stringify(_metadata)
 							);
 							reportError(err);
 						}
@@ -206,7 +206,7 @@ package weave.data.AttributeColumns
 				{
 					_reportedError = true;
 					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-					var str:String = StandardLib.substitute(fmt, key.localName, ObjectUtil.toString(_metadata));
+					var str:String = StandardLib.substitute(fmt, key.localName, Compiler.stringify(_metadata));
 					if (Capabilities.isDebugger)
 						reportError(str);
 				}

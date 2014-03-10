@@ -20,20 +20,24 @@ package weave.data.hierarchy
 {
     import flash.utils.Dictionary;
     
+    import mx.utils.ObjectUtil;
+    
     import weave.api.WeaveAPI;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.EntityType;
+    import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
     import weave.api.getLinkableOwner;
     import weave.api.reportError;
     import weave.api.services.beans.Entity;
     import weave.api.services.beans.EntityHierarchyInfo;
+    import weave.data.DataSources.WeaveDataSource;
     import weave.services.EntityCache;
 
 	[RemoteClass]
-    public class EntityNode implements IWeaveTreeNode
+    public class EntityNode implements IWeaveTreeNode, IColumnReference
     {
 		/**
 		 * Dual lookup: (EntityCache -> int) and (int -> EntityCache)
@@ -70,8 +74,14 @@ package weave.data.hierarchy
 		 */
 		public var _cacheId:int = 0;
 		
+		/**
+		 * The entity ID.
+		 */
 		public var id:int = -1;
 		
+		/**
+		 * Sets the EntityCache associated with this node.
+		 */
 		public function setEntityCache(entityCache:EntityCache):void
 		{
 			if (entityCache && !$cacheLookup[entityCache])
@@ -86,11 +96,17 @@ package weave.data.hierarchy
 			}
 		}
 		
+		/**
+		 * Gets the EntityCache associated with this node.
+		 */
 		public function getEntityCache():EntityCache
 		{
 			return $cacheLookup[_cacheId];
 		}
 		
+		/**
+		 * Gets the Entity associated with this node.
+		 */
 		public function getEntity():Entity
 		{
 			return getEntityCache().getEntity(id);
@@ -103,6 +119,9 @@ package weave.data.hierarchy
 		// Each node must have its own child cache (not static) because we can't have the same node in two places in a Tree.
 		private const _childNodeCache:Object = {}; // id -> EntityNode
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function equals(other:IWeaveTreeNode):Boolean
 		{
 			if (other == this)
@@ -113,7 +132,10 @@ package weave.data.hierarchy
 				&& this.id == node.id;
 		}
 		
-		public function getSource():Object
+		/**
+		 * @inheritDoc
+		 */
+		public function getDataSource():IDataSource
 		{
 			var cache:EntityCache = getEntityCache();
 			var owner:ILinkableObject = cache;
@@ -121,11 +143,24 @@ package weave.data.hierarchy
 			{
 				owner = getLinkableOwner(owner);
 				if (owner is IDataSource)
-					return owner;
+					return owner as IDataSource;
 			}
-			return cache;
+			return null;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
+		public function getColumnMetadata():Object
+		{
+			if (getEntity().getEntityType() == EntityType.COLUMN)
+				return id;
+			return null; // not a column
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
 		public function getLabel():String
 		{
 			if (_overrideLabel)
@@ -155,7 +190,7 @@ package weave.data.hierarchy
 					title = '...';
 					
 					if (_rootFilterEntityType)
-						title = WeaveAPI.globalHashMap.getName(getSource() as IDataSource) || title;
+						title = WeaveAPI.globalHashMap.getName(getDataSource()) || title;
 				}
 			}
 			
@@ -175,6 +210,9 @@ package weave.data.hierarchy
 			return title;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function isBranch():Boolean
 		{
 			// root is a branch
@@ -197,6 +235,9 @@ package weave.data.hierarchy
 			return entity.childIds != null;
 		}
 
+		/**
+		 * @inheritDoc
+		 */
 		public function hasChildBranches():Boolean
 		{
 			if (_rootFilterEntityType)
@@ -216,6 +257,9 @@ package weave.data.hierarchy
 				|| entityType == EntityType.CATEGORY; // TEMPORARY SOLUTION FOR CATEGORIES
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function getChildren():Array
 		{
 			var cache:EntityCache = getEntityCache();
@@ -268,6 +312,9 @@ package weave.data.hierarchy
 			return _childNodes;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function addChildAt(child:IWeaveTreeNode, index:int):Boolean
 		{
 			var childNode:EntityNode = child as EntityNode;
@@ -282,6 +329,9 @@ package weave.data.hierarchy
 			return false;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function removeChild(child:IWeaveTreeNode):Boolean
 		{
 			var childNode:EntityNode = child as EntityNode;

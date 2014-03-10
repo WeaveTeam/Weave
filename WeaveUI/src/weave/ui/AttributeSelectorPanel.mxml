@@ -48,18 +48,15 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ListCollectionView;
 			import mx.controls.Label;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
-			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -67,9 +64,7 @@
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.ColumnUtils;
-			import weave.utils.HierarchyUtils;
 			
 			override protected function constructor():void
 			{

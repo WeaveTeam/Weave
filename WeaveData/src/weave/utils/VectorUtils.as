@@ -20,12 +20,10 @@
 package weave.utils
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
-	import mx.utils.ObjectUtil;
 	
 	/**
 	 * This class contains static functions that manipulate Vectors and Arrays.

@@ -84,6 +84,11 @@ package weave.data.AttributeColumns
 			return overrideValue;
 		}
 		
+		public function getProxyMetadata():Object
+		{
+			return copyValues(_metadata);
+		}
+		
 		override public function getMetadataPropertyNames():Array
 		{
 			if (_internalColumn)

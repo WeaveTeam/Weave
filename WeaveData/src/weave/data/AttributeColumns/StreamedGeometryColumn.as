@@ -57,7 +57,7 @@ package weave.data.AttributeColumns
 			
 			_tileService = registerLinkableChild(this, tileService);
 			
-			_geometryStreamDecoder.keyType = metadata.@keyType;
+			_geometryStreamDecoder.keyType = metadata[ColumnMetadata.KEY_TYPE];
 			
 			// handle tile descriptors
 			WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [metadataTileDescriptors]);

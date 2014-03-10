@@ -133,15 +133,10 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 	path.request('DynamicColumn')
 		.push(null)
 			.request('ReferencedColumn')
-			.push('dynamicColumnReference',null)
-				.request('HierarchyColumnReference')
-				.state({
-					"dataSourceName": dataSourceName,
-					"hierarchyPath": path.libs("mx.utils.ObjectUtil")
-						.vars({"_obj": metadata})
-						.getValue("var x = XML('<attribute/>'); for (var k in _obj) x['@'+k] = _obj[k]; return ObjectUtil.toString(x);")
-				})
-			.pop()
+			.state({
+				"dataSourceName": dataSourceName,
+				"metadata": metadata
+			})
 		.pop();
 }
 

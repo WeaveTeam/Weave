@@ -20,14 +20,15 @@ package weave.data.hierarchy
 {
     import weave.api.WeaveAPI;
     import weave.api.data.ColumnMetadata;
+    import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
     import weave.data.DataSources.IDataSource_old;
-    import weave.data.DataSources.MultiDataSource;
     import weave.data.DataSources.WeaveDataSource;
+    import weave.utils.HierarchyUtils;
 
 	[RemoteClass]
-    public class XMLEntityNode implements IWeaveTreeNode
+    public class XMLEntityNode implements IWeaveTreeNode, IColumnReference
     {
 		public function XMLEntityNode(dataSourceName:String = null, xml:XML = null)
 		{
@@ -50,7 +51,7 @@ package weave.data.hierarchy
 			_xml = value || <hierarchy/>;
 		}
 		
-		private function getMetadata(property:String):String
+		private function getMetadataProperty(property:String):String
 		{
 			return String(_xml['@' + property]);
 		}
@@ -65,20 +66,36 @@ package weave.data.hierarchy
 				&& this.xml == node.xml;
 		}
 		
-		public function getSource():Object
+		/**
+		 * @inheritDoc
+		 */
+		public function getDataSource():IDataSource
 		{
-			return WeaveAPI.globalHashMap.getObject(dataSourceName) || MultiDataSource.instance;
+			return WeaveAPI.globalHashMap.getObject(dataSourceName) as IDataSource;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
+		public function getColumnMetadata():Object
+		{
+			if (_xml.name() == 'attribute')
+				return HierarchyUtils.getMetadata(_xml);
+			return null; // not a column
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
 		public function getLabel():String
 		{
-			var label:String = getMetadata(ColumnMetadata.TITLE)
-				|| getMetadata('name')
+			var label:String = getMetadataProperty(ColumnMetadata.TITLE)
+				|| getMetadataProperty('name')
 				|| (_xml.parent() ? 'Untitled' : dataSourceName);
 			
 			if (isBranch())
 			{
-				var ds:IDataSource = getSource() as IDataSource;
+				var ds:IDataSource = getDataSource();
 				if (ds is WeaveDataSource && !_xml.parent())
 				{
 					// do nothing
@@ -91,28 +108,37 @@ package weave.data.hierarchy
 				}
 			}
 			
-			if (getMetadata('source'))
-				label = lang('{0} (Source: {1})', label, getMetadata('source'));
+			if (getMetadataProperty('source'))
+				label = lang('{0} (Source: {1})', label, getMetadataProperty('source'));
 			
 			return label;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function isBranch():Boolean
 		{
 			return String(_xml.localName()) != 'attribute';
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function hasChildBranches():Boolean
 		{
 			return _xml.child('category').length() > 0;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function getChildren():Array
 		{
 			if (!isBranch())
 				return null;
 			
-			var ds:IDataSource = getSource() as IDataSource;
+			var ds:IDataSource = getDataSource();
 			
 			var children:XMLList = _xml.children();
 			for (var i:int = 0; i < children.length(); i++)
@@ -148,14 +174,22 @@ package weave.data.hierarchy
 			return _childNodes;
 		}
 		
+		/**
+		 * Not implemented
+		 */
 		public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean
 		{
-			throw new Error("Not implemented");
+			trace(new Error("Not implemented").getStackTrace());
+			return false;
 		}
 		
+		/**
+		 * Not implemented
+		 */
 		public function removeChild(child:IWeaveTreeNode):Boolean
 		{
-			throw new Error("Not implemented");
+			trace(new Error("Not implemented").getStackTrace());
+			return false;
 		}
     }
 }
