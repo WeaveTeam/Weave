@@ -9,6 +9,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.data.IKeySet;
+			import weave.api.getCallbackCollection;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.UIUtils;
@@ -27,6 +28,8 @@
 				super.constructor();
 				
 				dynamicKeySet.globalName = Weave.DEFAULT_PROBE_KEYSET;
+				getCallbackCollection(ProbeTextUtils.probeHeaderColumns).addGroupedCallback(this, updateText);
+				getCallbackCollection(ProbeTextUtils.probedColumns).addGroupedCallback(this, updateText, true);
 			}
 			override protected function childrenCreated():void
 			{
