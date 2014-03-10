@@ -457,7 +457,7 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 {
 	if (assertParams('forEach', arguments, 2))
 	{
-		if (Array.isArray(items))
+		if (Array.isArray(items) && Array.prototype.forEach)
 			items.forEach(visitorFunction, this);
 		else
 			for (var key in items) visitorFunction.call(this, items[key], key, items);
