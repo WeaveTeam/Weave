@@ -216,6 +216,7 @@ weave.WeavePath.prototype.push = function(/*...relativePath*/)
 	{
 		var newWeavePath = new weave.WeavePath(this._path.concat(args));
 		newWeavePath._parent = this;
+		newWeavePath._reconstructArgs = this._reconstructArgs;
 		return newWeavePath;
 	}
 	return null;
@@ -467,6 +468,7 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 /**
  * Returns a copy of the current WeavePath that enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
  * This new WeavePath starts with an empty stack, meaning pop() cannot be called without first calling push().
+ * Any child WeavePath objects created with push() from this new one will also be in naturalize mode.
  * Note that if you use this mode, any occurrences of NaN and Infinity will be converted to null
  * because this mode uses JSON.parse(JSON.stringify(...)) and those values are not supported by JSON.
  * @return A copy of the current WeavePath object in naturalize mode with no memory of a parent WeavePath.
