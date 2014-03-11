@@ -215,7 +215,7 @@ package weave.services
 			if (loader == null || loader.isClosed)
 			{
 				// make the request and add handler function that will load the content
-				loader = getURL(relevantContext, request, handleGetContentResult, null, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
+				loader = getURL(relevantContext, request, handleGetContentResult, handleGetContentFault, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
 				_requestURLToLoader[request.url] = loader;
 			}
 			
@@ -248,6 +248,7 @@ package weave.services
 			if (!bytes || bytes.length == 0)
 			{
 				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault("Error", "HTTP GET failed: Content is null from " + url));
+				delete _requestURLToLoader[url];
 				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
 				return;
 			}
@@ -273,6 +274,7 @@ package weave.services
 			var handleLoaderError:Function = function(errorEvent:IOErrorEvent):void
 			{
 				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault(errorEvent.type, errorEvent.text));
+				delete _requestURLToLoader[url];
 				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
 			};
 		
@@ -283,6 +285,10 @@ package weave.services
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleLoaderComplete);
 			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleLoaderError);
 			loader.loadBytes(bytes);
+		}
+		private function handleGetContentFault(faultEvent:FaultEvent, url:String):void
+		{
+			delete _requestURLToLoader[url];
 		}
 	}
 }
@@ -502,6 +508,7 @@ internal class CustomURLLoader extends URLLoader
 		else
 			fault = new Fault(String(event.type), event.type, "Request cancelled");
 		_asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault));
+		_isClosed = true;
 	}
 	
 	/**
