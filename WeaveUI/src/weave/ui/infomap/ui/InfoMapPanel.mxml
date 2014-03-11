@@ -420,7 +420,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _referencedColumns:Array = [];
 			private function extractEntityColumns():void
 			{
+				_checkedDataSources = null;
+				_checkedDataSources = new Dictionary();
 				_loadingText = new InfoMapsProgressBar();
+				
 				addChild(_loadingText);
 				
 				_loadingText.label= "Selecting Entity Columns";
@@ -431,9 +434,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(_referencedColumns.length == 0)
 					handleEmptyEntityExtraction();
 				/* Iterate through each referenced column and get its parent */
-				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_PARSING);
+				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_3_PARSING);
 			}
 			
+			private var _checkedDataSources:Dictionary = null;
 			private function _iterateReferencedColumns():Number
 			{
 				if(_referencedColumns.length == 0)
@@ -456,11 +460,49 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						var sourceName:String  = Weave.root.getName(dataSource);
 						addAsyncResponder(token,handleGetParents,handleGetParentsFault,sourceName);
 					}
+					else if(dataSource is CSVDataSource)
+					{
+						if(!_checkedDataSources[dataSource])
+						{
+							_checkedDataSources[dataSource] = true;
+							var columnNames:Array = (dataSource as CSVDataSource).getColumnIds();
+							if(columnNames.length == 0)
+							{
+								handleEmptyEntityExtraction();
+							}
+							else
+							{
+								for each(var colname:* in columnNames)
+								{
+									var attrCol:IAttributeColumn = (dataSource as CSVDataSource).getColumnById(colname);
+									var attrColKeys:Array = attrCol.keys;
+									var minTest:Number = Math.min(attrColKeys.length,3);
+									var isEntityColumn:Boolean = false;
+									for(var count:int = 0; count<minTest; count++)
+									{
+										var check:Boolean = testForValidEntity(attrCol.getValueFromKey(attrColKeys[count]));
+										isEntityColumn = isEntityColumn || check;
+									}
+									if(isEntityColumn)
+									{
+										(dataSource as CSVDataSource).putColumnInHashMap(colname,_tempEntityColumns);
+									}
+								}
+							}
+						}
+						finishEntitySelection();
+					}
 				}
 				if(_referencedColumns.length == 0)
 					return 1;
 				else 
 					return 0;
+			}
+			
+			private function testForValidEntity(val:String):Boolean
+			{
+				var regex:RegExp = /.*[a-zA-Z]+.*/g;
+				return regex.test(val);
 			}
 			
 			private var _parentCount:int = 0;
@@ -565,7 +607,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						return 0;
 					}
-				},WeaveAPI.TASK_PRIORITY_PARSING,finishEntitySelection);
+				},WeaveAPI.TASK_PRIORITY_3_PARSING,finishEntitySelection);
 			}
 			
 			private var _entityColumnList:EntityColumnsList = null;

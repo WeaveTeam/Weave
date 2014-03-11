@@ -217,13 +217,15 @@
 			public static const TOPICS_VIEW:String = "Topics";
 			public static const WORD_CLOUD_VIEW:String = "Word Cloud";
 			public static const POINTS_VIEW:String = "Points";
-			public static const views:Array = [LIST_VIEW,GOOGLE_SEARCH_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW];
+			public static const views:Array = [LIST_VIEW,GOOGLE_SEARCH_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW,TOPICS_VIEW];
 			public const currentView:LinkableString =  registerLinkableChild(this,new LinkableString(LIST_VIEW,function(value:*):Boolean{
 				if(views.indexOf(value) != -1)
 					return true;
 				else
 					return false;
 			},false));
+			
+			public const enableTopicClassification:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
 			
 			private function handleTopicLayoutSettingChange():void
 			{
@@ -610,11 +612,11 @@
 					handleEmptyResultSet();
 					return;
 				}
-//				if(isQueryDifferent || _firstLoad)
-//				{
-//					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
-//						_currentRelatedKeywords);
-//				}
+				if(isQueryDifferent || _firstLoad)
+				{
+					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
+						_currentRelatedKeywords);
+				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
 					_currentQueryString,currentQuery.dateFilter,currentQuery.sources.value);
@@ -808,8 +810,11 @@
 					status.text = "Loading Points...";
 				}
 				
+				if(enableTopicClassification.value)
+				{
+					getTopicsClassification();
+				}
 				getEntityDistribution();
-				//				getTopicsClassification();
 				getClusters();
 				triggeredByQuerObjectChange = true;  // For Google Search Handle QueryObject change
 				googleSearchQuery(); // For Google Search Handle QueryObject change
@@ -977,7 +982,7 @@
 				_reusableThumbnailsToPlotArray = [];
 				_currentNewDocsCount = 0;
 				_thumbnailCount = 0;
-				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_PARSING,_completeThumbnailsIteration);
+				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_3_PARSING,_completeThumbnailsIteration);
 			}
 			
 			private var _thumbnailCount:Number = 0;
@@ -1144,7 +1149,7 @@
 					return;
 				
 				_totalT = docKeySet.keys.length;
-				WeaveAPI.StageUtils.startTask(this,_iterateClearDocs,WeaveAPI.TASK_PRIORITY_PARSING,_finalClearDocs);
+				WeaveAPI.StageUtils.startTask(this,_iterateClearDocs,WeaveAPI.TASK_PRIORITY_3_PARSING,_finalClearDocs);
 				//stopGlow();
 			}
 			
@@ -1555,7 +1560,7 @@
 						var parentComponent:UIComponent = new UIComponent();
 						parentComponent.width = 400;
 						parentComponent.height = 230; // ToDo Add extra 20 for displaying spot label
-						parentComponent.y= nodeBase.height;
+						parentComponent.y= nodeBase.filterStatus.y+nodeBase.filterStatus.height;
 						
 						topicComponent.drawTreeMap(urls, keywords, parentComponent, spaceBetwwenTopicRect.value);
 						topicComponents.push(topicComponent);
@@ -1612,7 +1617,7 @@
 						_pointCanvas.alpha = 0; //initializing so that toggle will show the points
 						_pointCanvas.visible = false;
 					}
-					_pointCanvas.y = nodeBase.height;
+					_pointCanvas.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
 					_pointCanvas.drawPoints(topicURLS, _topicsResult.keywords, this);
 					
 				}

@@ -156,7 +156,6 @@ so that it can be moved, selected, handle filters.
 				setStyle("borderThickness", 1.5);
 //				setStyle("borderColor",defaultBorderColor.value);
 				
-				
 			}
 			
 			private function handleMode():void
@@ -236,10 +235,11 @@ so that it can be moved, selected, handle filters.
 				
 				img.source = _noImage;
 				
-				if(_imageURL && checkIfValidURL(_imageURL))
-				{
-					token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
-				}
+//				if(_imageURL && checkIfValidURL(_imageURL))
+//				{
+//					trace("requesting 2 " + _imageURL,debugId(this));
+//					token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest,_imageURL);
+//				}
 				
 				if(docURL.value)
 				{
@@ -247,7 +247,7 @@ so that it can be moved, selected, handle filters.
 									
 					if(source)
 					{
-						source.getColumnByName("imgURL").addImmediateCallback(this, handleImageURLFromColumn, true);
+						source.getColumnById("imgURL").addImmediateCallback(this, handleImageURLFromColumn, true);
 						
 					}
 					
@@ -275,7 +275,7 @@ so that it can be moved, selected, handle filters.
 				_imageURL = source.getImageURLForURL(docURL.value);
 				if(_imageURL == null || !checkIfValidURL(_imageURL))
 					return;
-				
+//				trace("requesting 1 " + _imageURL,debugId(this));
 				token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest,_imageURL);
 			}
 			
@@ -296,6 +296,7 @@ so that it can be moved, selected, handle filters.
 			
 			private function handleImageRequest(event:ResultEvent,token:Object=null):void
 			{
+//				trace("found " + token);
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
 				try{
@@ -312,6 +313,7 @@ so that it can be moved, selected, handle filters.
 			{
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
+//				trace("not found " + token);
 				img.source = _noImage;
 			}
 			
