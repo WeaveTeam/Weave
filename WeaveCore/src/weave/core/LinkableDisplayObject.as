@@ -25,6 +25,7 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDisplayObject;
@@ -93,7 +94,7 @@ package weave.core
 		 */
 		public function setProperty(name:String, value:Object):void
 		{
-			var state:Object = Object(properties.value);
+			var state:Object = Object(ObjectUtil.copy(properties.value));
 			state[name] = value;
 			properties.value = state;
 		}
