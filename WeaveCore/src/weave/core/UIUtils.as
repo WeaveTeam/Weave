@@ -306,7 +306,7 @@ package weave.core
 						// case 2: check if child is the internal display object of an ILinkableDisplayObject
 						for each (var wrapper:ILinkableDisplayObject in wrappers)
 						{
-							if (wrapper.getDisplayObject() == child)
+							if (wrapper.object == child)
 							{
 								name = hashMap.getName(wrapper);
 								break;
@@ -393,7 +393,7 @@ package weave.core
 			// special case: ILinkableDisplayObject
 			if (childObject is ILinkableDisplayObject)
 			{
-				(childObject as ILinkableDisplayObject).setParentContainer(uiParent);
+				(childObject as ILinkableDisplayObject).parent = uiParent;
 				
 				var callback:Function = function():void { updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop); };
 				linkFunctionCache.set(uiParent, childObject, callback);
@@ -570,7 +570,7 @@ package weave.core
 			{
 				var wrapper:ILinkableDisplayObject = uiChildren[i] as ILinkableDisplayObject;
 				if (wrapper)
-					uiChildren[i] = wrapper.getDisplayObject();
+					uiChildren[i] = wrapper.object;
 				if (!(uiChildren[i] is DisplayObject))
 					uiChildren.splice(i, 1);
 			}
