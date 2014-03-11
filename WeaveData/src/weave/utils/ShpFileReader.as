@@ -83,6 +83,9 @@ package weave.utils
 					var poly:ShpPolygon = record.shape as ShpPolygon;
 					for(iring = 0; iring < poly.rings.length; iring++ )
 					{
+						// add part marker if this is not the first part
+						if (iring > 0)
+							points.push(NaN, NaN);
 						ring = poly.rings[iring] as Array;
 						for(ipoint = 0; ipoint < ring.length; ipoint++ )
 						{

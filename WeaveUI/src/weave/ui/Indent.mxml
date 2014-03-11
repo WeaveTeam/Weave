@@ -45,7 +45,7 @@
 			private var _useFirstChildAsLabel:Boolean = false;
 			private var _group:* = undefined;
 			private var _untranslatedLabel:String;
-			private var _translate:Boolean;
+			private var _translate:Boolean = false;
 			
 			/**
 			 * If this is set to true, the first child added to the Indent component

@@ -1,110 +1,75 @@
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package weave.visualization.tools
 {
-	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.linkBindableProperty;
-	import weave.api.registerLinkableChild;
-	import weave.api.newLinkableChild;
-	import weave.api.ui.IVisTool;
-	import weave.core.LinkableNumber;
+	import weave.compiler.Compiler;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
-	import weave.core.LinkableBoolean;
-	import weave.core.LinkableDynamicObject;
-	import weave.core.LinkableVariable;
-	import weave.core.SessionManager;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.KeySets.FilteredKeySet;
-	import weave.data.KeySets.KeyFilter;
-	import weave.data.KeySets.KeySet;
-	import flash.external.ExternalInterface;
 
-	public class ExternalTool extends LinkableDynamicObject
+	public class ExternalTool extends LinkableHashMap
 	{
-		private var _toolName:String;
-		private var _toolReady:Boolean = false;
-		public const toolState:LinkableVariable = newLinkableChild(this, LinkableVariable, sendStateChange);
+		private var toolUrl:LinkableString;
+		private var toolPath:Array;
+		private var windowName:String;
 
-		private var _probePath:String;
-		private var _selectionPath:String;
-		private var _subsetPath:String;
-
-		public function ExternalTool(toolName:String, toolUrl:String)
+		public function ExternalTool()
 		{
-			_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
+			toolUrl = requestObject("toolUrl", LinkableString, true);
+			toolUrl.addImmediateCallback(this, toolPropertiesChanged);
 		}
-		public function launch(url:String):void
+		private function toolPropertiesChanged():void
 		{
-			var windowFeatures:String = "menubar=no,status=no,toolbar=no";
-			ExternalInterface.call(
-				"function (weaveID, toolname, url, features) {\
-				 var weave = weaveID ? document.getElementById(weaveID) : document;\
-				 if (weave.external_tools == undefined) weave.external_tools = {};\
-				 weave.external_tools[toolname] = window.open(url, toolname, features);\
-				}", ExternalInterface.objectID, _toolName, url, windowFeatures);
+			if (toolUrl.value != "")
+			{
+				launch();
+			}
 		}
-
-		public function callMethod(methodname:String, parameters:Array = null):void
+		public function launch():void
 		{
-			if (parameters === null) parameters = [];
-			if (!_toolReady) weaveTrace("ExternalTool " + _toolName + " was accessed, but was not ready yet.");
-			ExternalInterface.call(
-					"function (weaveID, toolname, methodname, parameters) {\
-						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.external_tools[toolname][methodname].apply(this, parameters);\
-						}", ExternalInterface.objectID, _toolName, methodname, parameters);
+			if (toolPath == null)
+			{
+				toolPath = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
+				windowName = Compiler.stringify(toolPath);
+			}
+			WeaveAPI.executeJavaScript(
+				{
+					windowName: windowName,
+					toolPath: toolPath,
+					url: toolUrl.value,
+					features: "menubar=no,status=no,toolbar=no"
+				},
+				"if (!weave.external_tools) weave.external_tools = {};",
+				"weave.external_tools[windowName] = window.open(url, windowName, features);",
+				"console.log(toolPath);",
+				"weave.external_tools[windowName].toolPath = toolPath;",
+				"weave.external_tools[windowName].weave = weave;"
+			);
 		}
-		public function loadData(records:Array, keyTypeMappings:Object, dataOptions:Object):void
+		override public function dispose():void
 		{
-			callMethod("load_data", [records, keyTypeMappings, dataOptions]);
-		}
-		public function initialize():void
-		{
-			callMethod("launch");
-		}
-		public function setFocus():void
-		{
-			callMethod("focus");
-			return;
-		}
-		public function setProbe(qkeys:Array):void
-		{
-			callMethod("probe",  [qkeys]);
-			return;
-		}
-		public function setSelect(qkeys:Array):void
-		{
-			callMethod("select", [qkeys]);
-			return;
-		}
-		public function setSubset(qkeys:Array):void
-		{
-			callMethod("subset", [qkeys]);
-			return;
-		}
-		public function setReady():void
-		{
-			weaveTrace("ExternalTool " + _toolName + " ready.");
-			_toolReady = true;
-			return;
-		}
-		public function emitError(message:String):void
-		{
-			weaveTrace("ExternalTool error from " + _toolName + ": " + message);
-			return;
-		}
-		public function sendStateChange():void
-		{
-			callMethod("update_state", [this.toolState.getSessionState()]);
-			return;
-		}
-		public function updateState(obj:Object):void
-		{
-			this.toolState.setSessionState(obj);
-			return;
+			super.dispose();
+			WeaveAPI.executeJavaScript(
+				{windowName: windowName},
+				"if (weave.external_tools && weave.external_tools[windowName])\
+					weave.external_tools[windowName].close();"
+			);
 		}
 	}
 }

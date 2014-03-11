@@ -1,4 +1,25 @@
-// This code assumes it is being executed within a function(){} where the 'weave' variable is defined.
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of the Weave API.
+ *
+ * The Initial Developer of the Weave API is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
+/**
+ * The code below assumes it is being executed within a function(){} where the 'weave' variable is defined.
+ * @namespace weave
+ * @description The Weave instance.
+ * @private
+ */
+
 
 // browser backwards compatibility
 if (!Array.isArray)
@@ -34,6 +55,7 @@ weave.loadFile = function(url, callback, noCacheHack)
  * @param callback The callback function.
  * @param thisObj The 'this' context to use for the callback function.
  * @return A String containing a script for a function that invokes the callback.
+ * @memberof weave
  */
 weave.callbackToString = function(callback, thisObj)
 {
@@ -67,8 +89,8 @@ weave.callbackToString = function(callback, thisObj)
 	// build a script for a function that invokes the callback
 	var idStr = JSON && JSON.stringify ? JSON.stringify(this.id) : '"' + this.id + '"';
 	var string = 'function(){' +
-			'var weave = document.getElementById('+idStr+');' +
-			'var obj = weave.callbackToString.list['+list.length+'];' +
+			'var weave = document.getElementById(' + idStr + ');' +
+			'var obj = weave.callbackToString.list[' + list.length + '];' +
 			'obj["callback"].apply(obj["this"]);' +
 		'}';
 	list.push({
@@ -80,9 +102,11 @@ weave.callbackToString = function(callback, thisObj)
 }
 
 /**
- * Creates a WeavePath object.  This is a shortcut for "new weave.WeavePath(basePath)".
- * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
- * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * Creates a WeavePath object.  WeavePath objects are immutable after they are created.
+ * This is a shortcut for "new weave.WeavePath(basePath)".
+ * @param basePath An optional Array (or multiple parameters) specifying the path to an object in the session state.
+ *                 A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return A WeavePath object.
  */
 weave.path = function(/*...basePath*/)
 {
@@ -99,28 +123,40 @@ weave.path = function(/*...basePath*/)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * WeavePath constructor.
- * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
- * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * WeavePath constructor.  WeavePath objects are immutable after they are created.
+ * @class WeavePath
+ * @param basePath An optional Array (or multiple parameters) specifying the path to an object in the session state.
+ *                 A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return A WeavePath object.
  */
 weave.WeavePath = function(/*...basePath*/)
 {
-	// private variables
+	// "private" instance variables
 	this._path = this._A(arguments, 1);
-	this._stack = []; // stack of argument counts from push() calls, used with pop()
+	this._parent = null; // parent WeavePath returned by pop()
 	this._reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all Object parameters
 }
 
-weave.WeavePath.prototype._vars = {}; // used with exec() and getVar()
+
+
+// "private" shared properties
+
+/**
+ * Stores JavaScript variables common to all WeavePath objects.
+ * Used by vars(), exec(), and getValue()
+ * @private
+ */
+weave.WeavePath.prototype._vars = {};
 
 /**
  * Private function for internal use.
  * 
  * Converts an arguments object to an Array, and then reconstructs the Array using JSON if natualize() was previously called.
- * The first parameter is an arguments object.
- * The second parameter is an integer flag for special behavior.
+ * @param args An arguments object.
+ * @param option An integer flag for special behavior.
  *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
  *   - If set to 2, it handles arguments like (...LIST, REQUIRED_PARAM) where LIST can be either an Array or multiple arguments.
+ * @private
  */
 weave.WeavePath.prototype._A = function(args, option)
 {
@@ -154,11 +190,13 @@ weave.WeavePath.prototype._A = function(args, option)
 	return array;
 }
 
-// public variables
+
+
+// public shared properties
 
 /**
-* A pointer to the Weave instance.
-*/
+ * A pointer to the Weave instance.
+ */
 weave.WeavePath.prototype.weave = weave;
 
 
@@ -166,38 +204,46 @@ weave.WeavePath.prototype.weave = weave;
 // public chainable methods
 
 /**
- * Specify any number of names to push on to the end of the path.
- * Accepts a list of names relative to the current path.
- * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * Creates a new WeavePath relative to the current one.
+ * @param relativePath An Array (or multiple parameters) specifying successive child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return A new WeavePath object which remembers the current WeavePath as its parent.
  */
 weave.WeavePath.prototype.push = function(/*...relativePath*/)
 {
 	var args = this._A(arguments, 1);
 	if (assertParams('push', args))
 	{
-		// append names to path
-		for (var i = 0; i < args.length; i++)
-			this._path.push(args[i]);
-		// remember the number of names we appended
-		this._stack.push(args.length);
+		var newWeavePath = new weave.WeavePath(this._path.concat(args));
+		newWeavePath._parent = this;
+		newWeavePath._reconstructArgs = this._reconstructArgs;
+		return newWeavePath;
 	}
-	return this;
+	return null;
 };
+
 /**
- * Pops off all names from previous call to push().  No arguments.
+ * Returns to the previous WeavePath that spawned the current one with push().
+ * @return The parent WeavePath object.
  */
 weave.WeavePath.prototype.pop = function()
 {
-	if (this._stack.length)
-		this._path.length -= this._stack.pop();
+	if (this._parent)
+		return this._parent;
+	else if (this._reconstructArgs)
+		failMessage('pop', 'stack is empty after naturalize()')
 	else
 		failMessage('pop', 'stack is empty');
-	return this;
+	return null;
 };
+
 /**
- * Requests that an object be created if it doesn't already exist at (or relative to) the current path.
- * Accepts an optional list of names relative to the current path.
- * The final parameter should be the name of an ActionScript class in Weave.
+ * Requests that an object be created if it doesn't already exist at the current path (or relative path, if specified).
+ * This function can also be used to assert that the object at the current path is of the type you expect it to be.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param objectType The name of an ActionScript class in Weave.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.request = function(/*...relativePath, objectType*/)
 {
@@ -211,9 +257,12 @@ weave.WeavePath.prototype.request = function(/*...relativePath, objectType*/)
 	}
 	return this;
 };
+
 /**
  * Removes a dynamically created object.
- * Accepts an optional list of names relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.remove = function(/*...relativePath*/)
 {
@@ -222,9 +271,11 @@ weave.WeavePath.prototype.remove = function(/*...relativePath*/)
 		|| failPath('remove', pathcopy);
 	return this;
 };
+
 /**
  * Reorders the children of an ILinkableHashMap at the current path.
- * Accepts an Array or a list of ordered child names.
+ * @param orderedNames An Array (or multiple parameters) specifying ordered child names.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.reorder = function(/*...orderedNames*/)
 {
@@ -236,11 +287,14 @@ weave.WeavePath.prototype.reorder = function(/*...orderedNames*/)
 	}
 	return this;
 };
+
 /**
  * Sets the session state of the object at the current path or relative to the current path.
  * Any existing dynamically created objects that do not appear in the new state will be removed.
- * Accepts an optional list of names relative to the current path.
- * The final parameter should be the session state.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param state The session state to apply.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.state = function(/*...relativePath, state*/)
 {
@@ -254,11 +308,14 @@ weave.WeavePath.prototype.state = function(/*...relativePath, state*/)
 	}
 	return this;
 };
+
 /**
  * Applies a session state diff to the object at the current path or relative to the current path.
  * Existing dynamically created objects that do not appear in the new state will remain unchanged.
- * Accepts an optional list of names relative to the current path.
- * The final parameter should be the session state diff.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param diff The session state diff to apply.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.diff = function(/*...relativePath, diff*/)
 {
@@ -272,13 +329,15 @@ weave.WeavePath.prototype.diff = function(/*...relativePath, diff*/)
 	}
 	return this;
 };
+
 /**
  * Adds a callback to the object at the current path.
  * When the callback is called, a WeavePath object initialized at the current path will be used as the 'this' context.
- * First parameter is the callback function.
- * Second parameter is a Boolean, when set to true will trigger the callback now.
- * Third parameter is a Boolean, when set to true will use an immediate callback instead of a grouped callback.
  * If the same callback is added to multiple paths, only the last path will be used as the 'this' context.
+ * @param callback The callback function.
+ * @param triggerCallbackNow Optional parameter, when set to true will trigger the callback now.
+ * @param immediateMode Optional parameter, when set to true will use an immediate callback instead of a grouped callback.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, immediateMode)
 {
@@ -290,10 +349,12 @@ weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, i
 	}
 	return this;
 };
+
 /**
  * Removes a callback from the object at the current path or from everywhere.
- * First parameter is the callback function.
- * Second parameter is optional, and if set to true will remove the callback from every object to which it was added.
+ * @param callback The callback function.
+ * @param everywhere Optional paramter, if set to true will remove the callback from every object to which it was added.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
 {
@@ -304,10 +365,12 @@ weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
 	}
 	return this;
 };
+
 /**
  * Specifies additional variables to be used in subsequent calls to exec() and getValue().
  * The variables will be made globally available for any WeavePath object created from the same Weave instance.
- * The first parameter should be an object mapping variable names to values.
+ * @param newVars An object mapping variable names to values.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.vars = function(newVars)
 {
@@ -321,8 +384,11 @@ weave.WeavePath.prototype.vars = function(newVars)
 	}
 	return this;
 };
+
 /**
  * Specifies additional libraries to be included in subsequent calls to exec() and getValue().
+ * @param libraries An Array (or multiple parameters) specifying ActionScript class names to include as libraries.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.libs = function(/*...libraries*/)
 {
@@ -334,16 +400,18 @@ weave.WeavePath.prototype.libs = function(/*...libraries*/)
 	}
 	return this;
 };
+
 /**
  * Evaluates an ActionScript expression using the current path, vars, and libs.
  * The 'this' context within the script will be the object at the current path.
- * First parameter is the script to be evaluated by Weave using the object at the current path as the 'this' context.
- * Second parameter is an optional callback or variable name.
+ * @param script The script to be evaluated by Weave under the scope of the object at the current path.
+ * @param callback_or_variableName Optional callback function or variable name.
  * - If given a callback function, the function will be passed the result of
- *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
- * - If the second parameter is a variable name, the result will be stored as a variable
+ *   evaluating the expression, setting the 'this' value to the current WeavePath object.
+ * - If given a variable name, the result will be stored as a variable
  *   as if it was passed as an object property to WeavePath.vars().  It may then be used
  *   in future calls to WeavePath.exec() or retrieved with WeavePath.getValue().
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 {
@@ -352,13 +420,20 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
 	var variableName = type == 'string' ? callback_or_variableName : "";
 	var result = weave.evaluateExpression(this._path, script, this._vars, null, variableName);
+	// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
+	if (variableName)
+		delete this._vars[variableName];
 	if (callback)
 		callback.apply(this, [result]);
 	
 	return this;
 };
+
 /**
- * Applies a function with optional parameters, setting 'this' pointer to the WeavePath object
+ * Calls a function using the current WeavePath object as the 'this' value.
+ * @param func The function to call.
+ * @param args An optional list of arguments to pass to the function.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.call = function(func/*[, ...args]*/)
 {
@@ -369,16 +444,20 @@ weave.WeavePath.prototype.call = function(func/*[, ...args]*/)
 	}
 	return this;
 };
+
 /**
  * Applies a function to each item in an Array or an Object.
- * If items is an Array, this has the same effect as WeavePath.call(function(){ itemsArray.forEach(visitorFunction, this); }).
- * If items is an Object, it will behave like WeavePath.call(function(){ for(var key in items) visitorFunction.call(this, items[key], key, items); }).
+ * @param items Either an Array or an Object to iterate over.
+ * @param visitorFunction A function to be called for each item in items. The function will be called using the current
+ *                        WeavePath object as the 'this' value and will receive three parameters:  item, key, items.
+ *                        If items is an Array, the key will be an integer. If items is an Object, the key will be a String.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 {
 	if (assertParams('forEach', arguments, 2))
 	{
-		if (Array.isArray(items))
+		if (Array.isArray(items) && Array.prototype.forEach)
 			items.forEach(visitorFunction, this);
 		else
 			for (var key in items) visitorFunction.call(this, items[key], key, items);
@@ -387,15 +466,18 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 };
 
 /**
- * Enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
- * Only the WeavePath object you are currently working with will be affected by this call.
+ * Returns a copy of the current WeavePath that enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
+ * This new WeavePath starts with an empty stack, meaning pop() cannot be called without first calling push().
+ * Any child WeavePath objects created with push() from this new one will also be in naturalize mode.
  * Note that if you use this mode, any occurrences of NaN and Infinity will be converted to null
  * because this mode uses JSON.parse(JSON.stringify(...)) and those values are not supported by JSON.
+ * @return A copy of the current WeavePath object in naturalize mode with no memory of a parent WeavePath.
  */
 weave.WeavePath.prototype.naturalize = function()
 {
-	this._reconstructArgs = true;
-	return this;
+	var newWeavePath = new weave.WeavePath(this._path);
+	newWeavePath._reconstructArgs = true;
+	return newWeavePath;
 }
 
 
@@ -403,41 +485,55 @@ weave.WeavePath.prototype.naturalize = function()
 // non-chainable methods
 
 /**
-* Returns a copy of the current path Array.
-* Accepts an optional list of names to be appended to the result.
-*/
+ * Returns a copy of the current path Array or the path Array of a descendant object.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names to be appended to the result.
+ * @return An Array of successive child names used to identify an object in a Weave session state.
+ */
 weave.WeavePath.prototype.getPath = function(/*...relativePath*/)
 {
 	return this._path.concat(this._A(arguments, 1));
 };
+
 /**
-* Gets an Array of child names under the object at the current path or relative to the current path.
-* Accepts an optional list of names relative to the current path.
-*/
+ * Gets an Array of child names under the object at the current path or relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return An Array of child names.
+ */
 weave.WeavePath.prototype.getNames = function(/*...relativePath*/)
 {
 	return this.weave.getChildNames(this._path.concat(this._A(arguments, 1)));
 };
+
 /**
-* Gets the type (qualified class name) of the object at the current path or relative to the current path.
-* Accepts an optional list of names relative to the current path.
-*/
+ * Gets the type (qualified class name) of the object at the current path or relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return The qualified class name of the object at the current or descendant path, or null if there is no object.
+ */
 weave.WeavePath.prototype.getType = function(/*...relativePath*/)
 {
 	return this.weave.getObjectType(this._path.concat(this._A(arguments, 1)));
 };
+
 /**
-* Gets the session state of an object at the current path or relative to the current path.
-* Accepts an optional list of names relative to the current path.
-*/
+ * Gets the session state of an object at the current path or relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return The session state of the object at the current or descendant path.
+ */
 weave.WeavePath.prototype.getState = function(/*...relativePath*/)
 {
 	return this.weave.getSessionState(this._path.concat(this._A(arguments, 1)));
 };
+
 /**
-* Gets the changes that have occurred since previousState for the object at the current path or relative to the current path.
-* Accepts an optional list of names relative to the current path.
-*/
+ * Gets the changes that have occurred since previousState for the object at the current path or relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param previousState The previous state for comparison.
+ * @return A session state diff.
+ */
 weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 {
 	var args = this._A(arguments, 2);
@@ -452,10 +548,14 @@ weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 	}
 	return null;
 }
+
 /**
-* Gets the changes that would have to occur to get to another state for the object at the current path or relative to the current path.
-* Accepts an optional list of names relative to the current path.
-*/
+ * Gets the changes that would have to occur to get to another state for the object at the current path or relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param otherState The other state for comparison.
+ * @return A session state diff.
+ */
 weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherState*/)
 {
 	var args = this._A(arguments, 2);
@@ -470,11 +570,13 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
 	}
 	return null;
 }
+
 /**
-* Returns the value of an ActionScript expression or variable using the current path, vars, and libs.
-* The 'this' context within the script will be set to the object at the current path.
-* First parameter is the script to be evaluated by Weave, or simply a variable name.
-*/
+ * Returns the value of an ActionScript expression or variable using the current path, vars, and libs.
+ * The 'this' context within the script will be set to the object at the current path.
+ * @param script_or_variableName The script to be evaluated by Weave, or simply a variable name.
+ * @return The result of evaluating the script or variable.
+ */
 weave.WeavePath.prototype.getValue = function(script_or_variableName)
 {
 	return this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);

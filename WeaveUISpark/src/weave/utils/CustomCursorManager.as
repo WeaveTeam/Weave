@@ -48,11 +48,10 @@ package weave.utils
 			{
 				if (Capabilities.manufacturer == "Adobe Linux" && ExternalInterface.available)
 				{
-					_customCursorsSupported = ExternalInterface.call(
-						'function(){ try{' +
-							WeaveAPI.JS_var_weave +
-							'return weave.children.wmode.value != "transparent";' +
-						'} catch (e) { return true; } }'
+					_customCursorsSupported = WeaveAPI.executeJavaScript(
+						'try {',
+						'	return weave.children.wmode.value != "transparent";',
+						'} catch (e) { return true; }'
 					);
 				}
 				_initialized = true;

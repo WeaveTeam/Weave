@@ -37,6 +37,8 @@ package weave.services
 	import weave.api.WeaveAPI;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
+	import weave.compiler.StandardLib;
+	import weave.utils.VectorUtils;
 
 	/**
 	 * An all-static class containing functions for downloading URLs.
@@ -53,6 +55,10 @@ package weave.services
 		public static const DATA_FORMAT_BINARY:String = URLLoaderDataFormat.BINARY;
 		public static const DATA_FORMAT_VARIABLES:String = URLLoaderDataFormat.VARIABLES;
 		
+		public static const LOCAL_FILE_URL_SCHEME:String = "local://";
+		private var _baseURL:String;
+		private var _localFiles:Object = {};
+		
 		/**
 		 * This will set the base URL for use with relative URL requests.
 		 */
@@ -66,8 +72,6 @@ package weave.services
 			}
 		}
 		
-		private var _baseURL:String;
-		
 		/**
 		 * This will update a URLRequest to use the base URL specified via setBaseURL().
 		 */
@@ -75,6 +79,41 @@ package weave.services
 		{
 			if (_baseURL)
 				request.url = URLUtil.getFullURL(_baseURL, request.url);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function saveLocalFile(name:String, content:ByteArray):String
+		{
+			_localFiles[name] = content;
+			return LOCAL_FILE_URL_SCHEME + name;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getLocalFile(name:String):ByteArray
+		{
+			return _localFiles[name];
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function removeLocalFile(name:String):void
+		{
+			delete _localFiles[name];
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function getLocalFileNames():Array
+		{
+			var list:Array = VectorUtils.getKeys(_localFiles);
+			StandardLib.sort(list);
+			return list;
 		}
 		
 		/**
@@ -89,6 +128,31 @@ package weave.services
 		 */
 		public function getURL(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
 		{
+			if (request.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
+			{
+				var fileName:String = request.url.substr(LOCAL_FILE_URL_SCHEME.length);
+				
+				// If it's a local file, we still need to return a new URLLoader.
+				// CustomURLLoader doesn't load if the last parameter to the constructor is false.
+				urlLoader = new CustomURLLoader(request, dataFormat, false);
+				
+				var handler:Function;
+				var event:Event;
+				if (_localFiles.hasOwnProperty(fileName))
+				{
+					handler = asyncResultHandler;
+					event = ResultEvent.createEvent(_localFiles[fileName]);
+				}
+				else
+				{
+					handler = asyncFaultHandler;
+					event = FaultEvent.createEvent(new Fault("Error", "Missing local file: " + fileName));
+				}
+				
+				WeaveAPI.StageUtils.callLater(relevantContext, handler || noOp, [event, token]);
+				return urlLoader;
+			}
+			
 			addBaseURL(request);
 			
 			// attempt to load crossdomain.xml from same folder as file
@@ -151,7 +215,7 @@ package weave.services
 			if (loader == null || loader.isClosed)
 			{
 				// make the request and add handler function that will load the content
-				loader = getURL(relevantContext, request, handleGetContentResult, null, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
+				loader = getURL(relevantContext, request, handleGetContentResult, handleGetContentFault, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
 				_requestURLToLoader[request.url] = loader;
 			}
 			
@@ -184,6 +248,7 @@ package weave.services
 			if (!bytes || bytes.length == 0)
 			{
 				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault("Error", "HTTP GET failed: Content is null from " + url));
+				delete _requestURLToLoader[url];
 				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
 				return;
 			}
@@ -209,6 +274,7 @@ package weave.services
 			var handleLoaderError:Function = function(errorEvent:IOErrorEvent):void
 			{
 				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault(errorEvent.type, errorEvent.text));
+				delete _requestURLToLoader[url];
 				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
 			};
 		
@@ -219,6 +285,10 @@ package weave.services
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleLoaderComplete);
 			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleLoaderError);
 			loader.loadBytes(bytes);
+		}
+		private function handleGetContentFault(faultEvent:FaultEvent, url:String):void
+		{
+			delete _requestURLToLoader[url];
 		}
 	}
 }
@@ -438,6 +508,7 @@ internal class CustomURLLoader extends URLLoader
 		else
 			fault = new Fault(String(event.type), event.type, "Request cancelled");
 		_asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault));
+		_isClosed = true;
 	}
 	
 	/**

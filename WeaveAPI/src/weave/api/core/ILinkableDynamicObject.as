@@ -23,10 +23,10 @@ package weave.api.core
 	public interface ILinkableDynamicObject extends ILinkableCompositeObject
 	{
 		/**
-		 * This function gets the internal object, whether local or global.
-		 * @return The internal, dynamically created object.
+		 * This is the local or global internal object.
 		 */
 		function get internalObject():ILinkableObject;
+		
 		/**
 		 * This is the name of the linked global object, or null if the internal object is local.
 		 */

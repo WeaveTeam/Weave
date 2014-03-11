@@ -108,11 +108,11 @@
 			private const compiler:Compiler = new Compiler();
 			private function getObject(target:Object):ILinkableObject
 			{
-				if (target is String)
-					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
-				if (target is Array)
-					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
-				return ILinkableObject(target);
+				if (target == null || target is ILinkableObject)
+					return target as ILinkableObject;
+				if (!(target is Array))
+					target = WeaveAPI.CSVParser.parseCSVRow(String(target));
+				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, target as Array);
 			}
 			private const watchLookup:Dictionary = new Dictionary(true);
 			private function consoleWatch(target:Object, debugString:String):void

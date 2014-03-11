@@ -21,8 +21,6 @@ package weave.data.ColumnReferences
 {
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.data.IAttributeColumn;
@@ -32,7 +30,7 @@ package weave.data.ColumnReferences
 	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
+	import weave.compiler.Compiler;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableString;
 	
@@ -124,7 +122,7 @@ package weave.data.ColumnReferences
 		public function getHashCode():String
 		{
 			if (_hash == null)
-				_hash = _hashPrefix + ';' + ObjectUtil.toString(getSessionState(this));
+				_hash = _hashPrefix + ';' + Compiler.stringify(getSessionState(this));
 			return _hash;
 		}
 

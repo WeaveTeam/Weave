@@ -273,19 +273,63 @@ package weave.api
 		
 		/**
 		 * This will execute JavaScript code that uses a 'weave' variable.
+		 * @param paramsAndCode A list of lines of code, optionally including an
+		 *     Object containing named parameters to be passed from ActionScript to JavaScript.
+		 *     Inside the code, you can use a variable named "weave" which will be a pointer
+		 *     to the Weave instance.
+		 * @return The result of executing the JavaScript code.
+		 * 
+		 * @example Example 1
+		 * <listing version="3.0">
+		 *     var sum = WeaveAPI.executeJavaScript({x: 2, y: 3}, "return x + y");
+		 *     trace("sum:", sum);
+		 * </listing>
+		 * 
+		 * @example Example 2
+		 * <listing version="3.0">
+		 *     var sum = WeaveAPI.executeJavaScript(
+		 *         {x: 2, y: 3},
+		 *         'return weave.path().vars({x: x, y: y}).getValue("x + y");'
+		 *     );
+		 *     trace("sum:", sum);
+		 * </listing>
 		 */		
-		private static function executeJavaScript(...lines):void
+		public static function executeJavaScript(...paramsAndCode):*
 		{
-			lines.unshift('function(){', JS_var_weave);
-			lines.push('}');
-			var script:String = lines.join('\n');
-			ExternalInterface.call(script);
+			var pNames:Array = [];
+			var pValues:Array = [];
+			var code:String = '';
+			
+			// insert weave variable declaration
+			paramsAndCode.unshift(JS_var_weave);
+			
+			// separate function parameters from code
+			for each (var value:Object in paramsAndCode)
+			{
+				if (value.constructor == Object)
+				{
+					for (var key:String in value)
+					{
+						pNames.push(key);
+						pValues.push(value[key]);
+					}
+				}
+				else
+					code += value + '\n';
+			}
+			
+			// concatenate all code inside a function wrapper
+			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
+			
+			// call the function with the specified parameters
+			pValues.unshift(code);
+			return ExternalInterface.call.apply(null, pValues);
 		}
 		
 		private static function handleExternalError(e:Error):void
 		{
 			if (e.errorID == 2060)
-				ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
+				ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set appropriately. " + e.message);
 			else
 				ErrorManager.reportError(e);
 		}

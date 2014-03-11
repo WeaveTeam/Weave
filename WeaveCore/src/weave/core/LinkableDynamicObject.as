@@ -42,6 +42,10 @@ package weave.core
 	 */
 	public class LinkableDynamicObject extends CallbackCollection implements ILinkableDynamicObject
 	{
+		/**
+		 * Constructor.
+		 * @param typeRestriction If specified, this will limit the type of objects that can be added to this LinkableHashMap.
+		 */
 		public function LinkableDynamicObject(typeRestriction:Class = null)
 		{
 			if (!_globalHashMap)
@@ -60,11 +64,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function creates a local object using the given Class definition if it doesn't already exist.
-		 * If the existing object is locked, this function does nothing.
-		 * @param objectType The Class used to initialize the object.
-		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
-		 * @return The local object of the specified type, or null if the object could not be created.
+		 * @inheritDoc
 		 */
 		public function requestLocalObject(objectType:Class, lockObject:Boolean):*
 		{
@@ -75,13 +75,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function creates a global object using the given Class definition if it doesn't already exist.
-		 * If the object gets disposed of later, this object will still be linked to the global name.
-		 * If the existing object under the specified name is locked, this function does nothing.
-		 * @param name The name of the global object to link to.
-		 * @param objectType The Class used to initialize the object.
-		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
-		 * @return The global object of the specified name and type, or null if the object could not be created.
+		 * @inheritDoc
 		 */
 		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*
 		{
@@ -92,8 +86,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.
-		 * @param objectToCopy An object to copy the session state from.
+		 * @inheritDoc
 		 */
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
@@ -109,7 +102,7 @@ package weave.core
 		}
 		
 		/**
-		 * This is the name of the linked global object.
+		 * @inheritDoc
 		 */
 		public function get globalName():String
 		{
@@ -117,9 +110,7 @@ package weave.core
 		}
 
 		/**
-		 * This function will change the internalObject if the new globalName is different.
-		 * If a new global name is given, the session state of the new global object will take precedence.
-		 * @param newGlobalName This is the name of the global object to link to, or null to unlink from the current global object.
+		 * @inheritDoc
 		 */
 		public function set globalName(newGlobalName:String):void
 		{
@@ -158,7 +149,7 @@ package weave.core
 		}
 
 		/**
-		 * This is the local or global internal object.
+		 * @inheritDoc
 		 */
 		public function get internalObject():ILinkableObject
 		{
@@ -423,8 +414,7 @@ package weave.core
 		}
 
 		/**
-		 * This function will call lockObject() on the ILinkableHashMap that contains the internal object.
-		 * This object will also be locked so that no new objects can be requested.
+		 * @inheritDoc
 		 */
 		public function lock():void
 		{
@@ -432,8 +422,7 @@ package weave.core
 		}
 
 		/**
-		 * If the internal object is local, this will remove the object (unless it is locked).
-		 * If the internal object is global, this will remove the link to it.
+		 * @inheritDoc
 		 */
 		public function removeObject():void
 		{
@@ -506,7 +495,7 @@ package weave.core
 		}
 
 		/**
-		 * This function gets called by SessionManager.dispose().
+		 * @inheritDoc
 		 */
 		override public function dispose():void
 		{

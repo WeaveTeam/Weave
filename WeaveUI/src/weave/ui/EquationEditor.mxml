@@ -261,7 +261,7 @@
 				var newEquation:EquationColumn = WeaveAPI.globalHashMap.requestObject(null, EquationColumn, false);
 				if (dynamicColumn.globalName) // if something is selected, create a blank column
 				{
-					newEquation.setMetadata(ColumnMetadata.TITLE, WeaveAPI.globalHashMap.getName(newEquation));
+					newEquation.setMetadataProperty(ColumnMetadata.TITLE, WeaveAPI.globalHashMap.getName(newEquation));
 				}
 				else // when nothing is selected, copy session state to new column so nothing is lost
 				{
@@ -349,7 +349,7 @@
 			
 			private function handleTitleTextEntry():void
 			{
-				equationColumn.setMetadata(ColumnMetadata.TITLE, titleInput.text);
+				equationColumn.setMetadataProperty(ColumnMetadata.TITLE, titleInput.text);
 			}
 			private function handleTitleSessionStateChange():void
 			{

@@ -63,7 +63,7 @@ package weave.data.AttributeColumns
 		 * This function updates the proxy metadata.
 		 * @param metadata New metadata for the proxy.
 		 */
-		public function setMetadata(metadata:XML):void
+		override public function setMetadata(metadata:XML):void
 		{
 			_metadata = metadata;
 			triggerCallbacks();
