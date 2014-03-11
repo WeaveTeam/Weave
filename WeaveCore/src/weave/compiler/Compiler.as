@@ -2526,7 +2526,7 @@ package weave.compiler
 							}
 							else // all other single-parameter type casting operations
 							{
-								result = method(call.evaluatedParams[0]);
+								result = cast(call.evaluatedParams[0], method as Class);
 							}
 						}
 						else if (method == operators[ST_VAR]) // variable initialization
@@ -2644,6 +2644,25 @@ package weave.compiler
 		public function compiledObjectIsFunctionDefinition(compiledObject:ICompiledObject):Boolean
 		{
 			return compiledObject is CompiledFunctionCall && (compiledObject as CompiledFunctionCall).evaluatedMethod == operators[FUNCTION];
+		}
+		
+		/**
+		 * Casts an object to a specified type.
+		 * If given an unclassed Object, the properties will be copied over to a new instance of the type.
+		 * @param object An object to cast.
+		 * @param type The desired type.
+		 * @return An instance of the desired type.
+		 * @throws Error If unable to cast the object to the desired type.
+		 */
+		public static function cast(object:Object, type:Class):*
+		{
+			if (object is type || object === null || object.constructor != Object)
+				return type(object);
+			var newObj:Object = new type();
+			for (var key:String in object)
+				if (newObj.hasOwnProperty(key))
+					newObj[key] = object[key];
+			return newObj;
 		}
 
 		public static const _do_continue_test:String = <![CDATA[
