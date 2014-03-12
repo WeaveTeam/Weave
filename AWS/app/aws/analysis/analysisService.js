@@ -5,7 +5,8 @@
  */
 
 //angular.module('aws.analysisService')
-AnalysisModule.service('dasboard_widget_service',['$filter', function($filter) {
+angular.module('aws.analysis')
+.service('dasboard_widget_service',['$filter', function($filter) {
 
 	var tool_list = [{
 		id : 'BarChartTool',

@@ -1,0 +1,53 @@
+.projects-div .project-list{
+	
+	list-style: none;
+	width: 100%;
+	padding-left: 0px;
+	margin-left: 0px;
+	
+	}
+	
+	
+.projects-div .project-list .check{
+	
+	width: 100%;
+	
+	}	
+	
+	
+.projects-div .project-list .project-panel{
+	padding-top: 20px;
+	height: 80px;
+	list-style: none;
+	display: table-row;
+	
+	}
+	
+.projects-div .project-list .project-panel .info-div{
+	
+	display: table-cell;
+border: 1px solid yellow;
+width: 700px;
+height: 100%;
+	
+	}
+	
+.projects-div .project-list .project-panel .button-div{
+	
+/* 	border: 1px solid red; */
+	padding-left: 50px;
+display: table-cell;
+/* float: right; */
+width: 190px;
+height: 100%;
+	
+	}
+	
+	
+.projects-div .project-list .project-panel .btn{
+	
+	padding-left : 10px;
+	width: 40%;
+	
+	}
+	

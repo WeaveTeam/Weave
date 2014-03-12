@@ -37,9 +37,8 @@
 								
 								<!--Contains the run and delete buttons-->
 								<div class= "button-div">
-									<button ng-click = "runQueryInAnalysisBuilder()" style = "width : 30%" class ="btn btn-success"><span class = "glyphicon glyphicon-play-circle"></span></button>
-									<button ng-click = "deleteSpecificQueryObject()" style = "width : 30%" class="btn btn-danger"><span class = "glyphicon glyphicon-remove-circle"></span></button>
-									<button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button>
+									<button ng-click = "runQueryInAnalysisBuilder()" class ="btn btn-success"><span class = "glyphicon glyphicon-play-circle"></span></button>
+									<button ng-click = "deleteSpecificQueryObject()" class="btn btn-danger"><span class = "glyphicon glyphicon-remove-circle"></span></button>
 								</div><!--Contains the run and delete buttons END-->
                                 
                             </li>

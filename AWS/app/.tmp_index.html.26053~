@@ -12,13 +12,9 @@ Remove this if you use the .htaccess -->
 <link rel="stylesheet" href="css/bootstrap-duallistbox.css" />
 <link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
 <link rel="stylesheet" href="css/app-old.css" />
-
-<link rel="stylesheet" href="css/app.css"/>
-<link rel="stylesheet" href="css/cutdown.css"/>
-<link rel="stylesheet" href="css/projects.css"/>
 <link rel='stylesheet' href="css/bootstrap-addition.css"/>
-<link rel='stylesheet' href="css/jsoneditor.css"/>
-<link rel="stylesheet" href="//rawgithub.com/mgcrea/angular-motion/master/dist/angular-motion.min.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/cutdown.css">
 
 <script src='lib/jquery/jquery.js'></script>
 <script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
@@ -34,13 +30,12 @@ Remove this if you use the .htaccess -->
 
 <!-- For Amith's UI -->
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-animate.min.js"></script>
-<script src="//code.angularjs.org/1.2.11/angular-sanitize.js" data-semver="1.2.11"></script>
 <script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.min.js"></script>
 <script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.tpl.min.js"></script>
 <script src="lib/angular/masonry.js"></script>
 <script src="lib/angular/angular-masonry.js"></script>
 <script src="lib/imagesloaded/imagesloaded.js"></script>
-<script src="lib/jsoneditor/jsoneditor.js"></script>
+<script src="/lib/jsoneditor/jsoneditor.js"></script>
 
 <script src='lib/angular/ng-grid-2.0.7.debug.js'></script>
 <script src='lib/angular/slider.js'></script>
@@ -64,13 +59,11 @@ Remove this if you use the .htaccess -->
 <script src='aws/configure/script/ScriptManagerCtrl.js'></script> 
 <script src='aws/configure/script/scriptManagerService.js'></script>
 <script src='aws/queryObject/QueryImportExportCtrl.js'></script>
-<script src ='aws/queryObjectEditor/DemoCtrl.js'></script>
 <script src='aws/queryObject/QueryObjectCtrl.js'></script>
 <script src='aws/queryObject/queryObjectService.js'></script>
 <script src='aws/queryObject/RunQueryCtrl.js'></script>
 <script src='aws/project/ProjectManagementCtrl.js'></script>
 <script src='aws/project/project-query-button-directive.js'></script>
-<script src='aws/queryObjectEditor/query-Object-Editor-directive.js'></script>
 <script src='aws/visualization/weave/weaveCtrl.js'></script>
 <script src='aws/visualization/tools/tools.js'></script>
 <script src='aws/visualization/tools/barChart/BarChartCtrl.js'></script>
@@ -86,8 +79,9 @@ Remove this if you use the .htaccess -->
 
 <div style="height: 100%" ng-controller="AWSController">
 
-			<header id ="header">
+			<header id="header">
 				<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+
 					<div class="collapse navbar-collapse navbar-ex1-collapse">
 
 						<a class="navbar-brand" href="index.html"> <i class="glyphicon glyphicon glyphicon-tasks img-responsive"></i> <span class = "logo">Weave Analyst Workstation</span> </a>

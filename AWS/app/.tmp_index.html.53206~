@@ -78,6 +78,7 @@ Remove this if you use the .htaccess -->
 <script src='aws/visualization/tools/dataTable/DataTableCtrl.js'></script>
 <script src='aws/visualization/tools/map/MapCtrl.js'></script>
 <script src='aws/visualization/tools/scatterPlot/ScatterPlotCtrl.js'></script>
+<script src='aws/project/dictionary.js'></script>
 <script src='../aws/aws.js'></script>
 
 </head>
