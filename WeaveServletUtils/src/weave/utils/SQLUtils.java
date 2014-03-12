@@ -2001,7 +2001,10 @@ public class SQLUtils
 					if (i > 0)
 						sb.append(" OR ");
 					
-					if (filterValue.getClass() == Object[].class)
+					if (filterValue instanceof List)
+						filterValue = ((List<?>)filterValue).toArray();
+					
+					if (filterValue.getClass().isArray())
 					{
 						// numeric range
 						sb.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));

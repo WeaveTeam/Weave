@@ -69,7 +69,7 @@ package weave.core
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 			}
 		}
 		

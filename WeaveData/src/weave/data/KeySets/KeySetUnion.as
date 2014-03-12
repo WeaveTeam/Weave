@@ -123,7 +123,7 @@ package weave.data.KeySets
 			_asyncKeys = null;
 			_asyncKeySetIndex = 0;
 			_asyncKeyIndex = 0;
-			WeaveAPI.StageUtils.startTask(busyStatus, asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, asyncComplete);
+			WeaveAPI.StageUtils.startTask(busyStatus, asyncIterate, WeaveAPI.TASK_PRIORITY_2_BUILDING, asyncComplete);
 		}
 		
 		private function asyncIterate(stopTime:int):Number

@@ -26,6 +26,7 @@ package weave.utils
 	import mx.core.UIComponent;
 	
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -114,6 +115,21 @@ package weave.utils
 			destination.setStyle("fontWeight", bold.value ? FontWeight.BOLD : FontWeight.NORMAL);
 			destination.setStyle("fontStyle", italic.value ? FontPosture.ITALIC : FontPosture.NORMAL);
 			destination.setStyle("textDecoration", underline.value ? "underline" : "none");
+		}
+		
+		/**
+		 * Adds a grouped callback which will call copyToStyle() automatically when this LinkableTextFormat changes.
+		 * @param relevantContext The relevantContext parameter for addGroupedCallback().
+		 * @param destination The component to pass to copyToStyle().
+		 * @see weave.api.core.ICallbackCollection#addGroupedCallback()
+		 */		
+		public function bindStyle(relevantContext:Object, destination:UIComponent):void
+		{
+			getCallbackCollection(this).addGroupedCallback(
+				relevantContext,
+				function():void { copyToStyle(destination); },
+				true
+			);
 		}
 	}
 }

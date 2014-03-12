@@ -19,18 +19,13 @@
 
 package weave.utils
 {
-	import flash.events.Event;
-	import flash.events.IEventDispatcher;
 	import flash.events.TimerEvent;
+	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	
 	import mx.binding.utils.BindingUtils;
-	import mx.binding.utils.ChangeWatcher;
 	
-	import weave.api.core.ICallbackCollection;
-	import weave.api.newDisposableChild;
 	import weave.api.objectWasDisposed;
-	import weave.core.CallbackCollection;
 	
 	/**
 	 * Static functions related to event callbacks.
@@ -87,13 +82,39 @@ package weave.utils
 			// this function gets called when the timer completes
 			var callback_apply:Function = function(..._):void
 			{
-				// call the original callback with the params passed to delayedCallback
-				if (!objectWasDisposed(relevantContext))
+				if (objectWasDisposed(relevantContext))
+				{
+					if (_timer)
+					{
+						_timer.removeEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
+						_timer.stop();
+					}
+					_timer = null;
+					_delayedThisArg = null;
+					_delayedParams = null;
+					relevantContext = null;
+					callback = null;
+					callback_apply = null;
+					delayedCallback = null;
+				}
+				else
+				{
+					// call the original callback with the params passed to delayedCallback
 					callback.apply(_delayedThisArg, passDelayedParameters ? _delayedParams : null);
+				}
 			};
 			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
 			
 			return delayedCallback;
+		}
+		
+		private static const _throttledCallbacks:Dictionary = new Dictionary();
+		
+		public static function callLaterThrottled(relevantContext:Object, callback:Function, params:Array = null, delay:int = 500):void
+		{
+			if (!_throttledCallbacks[callback])
+				_throttledCallbacks[callback] = generateDelayedCallback(relevantContext, callback, delay, true);
+			(_throttledCallbacks[callback] as Function).apply(null, params);
 		}
 		
 		/*

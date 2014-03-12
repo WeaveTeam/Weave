@@ -301,12 +301,12 @@ package weave.data.DataSources
 			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 			if (!sourceOwner)
 				return false;
-			var essi:ExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface;
+			
 			var dc:DynamicColumn = dynamicColumnOrPath as DynamicColumn;
 			if (!dc)
 			{
-				essi.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
-				dc = essi.getObject(dynamicColumnOrPath as Array) as DynamicColumn;
+				WeaveAPI.ExternalSessionStateInterface.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
+				dc = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, dynamicColumnOrPath as Array) as DynamicColumn;
 			}
 			if (!dc)
 				return false;
@@ -485,9 +485,9 @@ package weave.data.DataSources
 			if (!hierarchyRef)
 				return handleUnsupportedColumnReference(columnReference, proxyColumn);
 
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
+			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value || <empty/>;
+			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
+			proxyColumn.setMetadata(leafNode.copy());
 
 			var columnId:Object = proxyColumn.getMetadata("csvColumnIndex");
 			if (columnId)

@@ -74,8 +74,8 @@
 				// default axis values
 				yAxisPlotter.tickCountRequested.value = 5;
 				
-				xAxisPlotter.setLabelFunction(_plotter.xAxisLabelFunction);
-				yAxisPlotter.setLabelFunction(_plotter.yAxisLabelFunction);
+				xAxisPlotter.setLabelFunction(_plotter.xAxisLabelFunction, null);
+				yAxisPlotter.setLabelFunction(_plotter.yAxisLabelFunction, null);
 				
 				
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
@@ -225,9 +225,9 @@
 				var dataVariable:DynamicColumn = dataEquation.variables.requestObject("data", DynamicColumn, false);
 				setSessionState(dataVariable, dataState);
 				dataEquation.variables.requestObjectCopy("groupBy", _plotter.groupBy);
-				dataEquation.setMetadata(ColumnMetadata.TITLE, lang("{0} (reverse lookup)", dataTitle));
-				dataEquation.setMetadata(ColumnMetadata.KEY_TYPE, ColumnUtils.getDataType(_plotter.groupBy));
-				dataEquation.setMetadata(ColumnMetadata.DATA_TYPE, dataType);
+				dataEquation.setMetadataProperty(ColumnMetadata.TITLE, lang("{0} (reverse lookup)", dataTitle));
+				dataEquation.setMetadataProperty(ColumnMetadata.KEY_TYPE, ColumnUtils.getDataType(_plotter.groupBy));
+				dataEquation.setMetadataProperty(ColumnMetadata.DATA_TYPE, dataType);
 				dataEquation.equation.value = 'var associatedKeys = getAssociatedKeys(groupBy, key);\n' +
 					'return associatedKeys ? data.getValueFromKey(associatedKeys[0], dataType) : cast(undefined, dataType);';
 				dataEquation.resumeCallbacks();
@@ -235,7 +235,7 @@
 			
 			private function updateFilterText():void
 			{
-				xValuesInput.text = WeaveAPI.CSVParser.createCSV([_plotter.getXValues()]);
+				xValuesInput.text = WeaveAPI.CSVParser.createCSVRow(_plotter.getXValues());
 			}
 			
 			override protected function childrenCreated():void

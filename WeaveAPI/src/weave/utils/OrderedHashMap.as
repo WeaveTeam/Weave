@@ -18,6 +18,8 @@ package weave.utils
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;
 	
+	use namespace flash_proxy;
+	
 	/**
 	 * The names and values in this object are enumerated in the order they were added.
 	 * 
@@ -25,8 +27,8 @@ package weave.utils
 	 */
 	public class OrderedHashMap extends Proxy
 	{
-		private var names:Array = [];
-		private var values:Array = [];
+		protected var names:Array = [];
+		protected var values:Array = [];
 		
 		override flash_proxy function getProperty(name:*):*
 		{
@@ -37,7 +39,7 @@ package weave.utils
 		}
 		override flash_proxy function setProperty(name:*, value:*):void
 		{
-			flash_proxy::deleteProperty(name);
+			deleteProperty(name);
 			
 			names.push(String(name));
 			values.push(value);
