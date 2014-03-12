@@ -352,7 +352,7 @@ package weave.data.DataSources
 					csvData.setSessionState(null);
 					if (servletParams.value)
 					{
-						if (urlChanged)
+						if (!_servlet || _servlet.servletURL != url.value)
 						{
 							disposeObject(_servlet);
 							_servlet = registerLinkableChild(this, new AMF3Servlet(url.value));
