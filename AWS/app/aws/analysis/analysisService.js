@@ -4,8 +4,7 @@
  * 
  */
 
-//angular.module('aws.analysisService')
-angular.module('aws.analysis')
+angular.module('aws.analysisService', [])
 .service('dasboard_widget_service',['$filter', function($filter) {
 
 	var tool_list = [{

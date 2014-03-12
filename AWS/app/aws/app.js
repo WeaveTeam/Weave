@@ -2,6 +2,7 @@
 
 var app = angular.module('aws', ['aws.router',
                                  'aws.analysis', 
+                                 'aws.analysisService',
                                  'aws.configure',
                                  'aws.directives', 
                                  'aws.project', 
