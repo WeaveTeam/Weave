@@ -1,5 +1,5 @@
 angular.module('aws.configure.script', [])
-.controller("ScriptManagerCtrl", function($scope, queryService){
+.controller("ScriptManagerCtrl", function($scope, scriptManagerService){
 				
 				$scope.listOfScripts = [];
 				$scope.uploadScript = false;
