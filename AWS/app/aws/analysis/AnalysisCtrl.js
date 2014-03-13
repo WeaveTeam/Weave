@@ -149,7 +149,6 @@ angular.module("aws.analysis")
 										} else {
 											$scope.show[i] = false;
 										}
-										console.log($scope.filterOptions);
 									}
 								} 
 							}

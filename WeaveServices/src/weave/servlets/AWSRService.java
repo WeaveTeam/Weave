@@ -582,15 +582,25 @@ public class AWSRService extends RService
 		String cannedScript = uploadPath + "RScripts/" +scriptName;
 		
 		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("FilteredColumnRequest");
-		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];
+		ArrayList<StringMap<Object>> filterRequests = (ArrayList<StringMap<Object>>) requestObject.get("FilterOnlyColumns");
+		
+		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size() + filterRequests.size()];
+		
 		StringMap<Object> theStringMapColumnRequest;
 		FilteredColumnRequest filteredColumnRequest;
-		
+
 		for (int i = 0; i < columnRequests.size(); i++) {
 
 			theStringMapColumnRequest = (StringMap<Object>) columnRequests.get(i);
 			filteredColumnRequest = (FilteredColumnRequest) cast(theStringMapColumnRequest, FilteredColumnRequest.class);
 			filteredColumnRequests[i] = filteredColumnRequest;
+		}
+		
+		for (int i = 0; i < filterRequests.size(); i++) {
+			int j = i + columnRequests.size();
+			theStringMapColumnRequest = (StringMap<Object>) filterRequests.get(j);
+			filteredColumnRequest = (FilteredColumnRequest) cast(theStringMapColumnRequest, FilteredColumnRequest.class);
+			filteredColumnRequests[j] = filteredColumnRequest;
 		}
 		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
 		long startTime = System.currentTimeMillis();
@@ -972,8 +982,7 @@ public class AWSRService extends RService
 	}
 	
     @SuppressWarnings("rawtypes")
-    @Override
-    protected Object cast(Object value, Class<?> type)
+    protected Object cast(Object value, Class<?> type) throws RemoteException
     {
     	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
     	{
@@ -999,10 +1008,7 @@ public class AWSRService extends RService
     		}
     		value = output;
     	}
-    	if (type == DataEntityMetadata.class && value != null && value instanceof Map)
-    	{
-    		return DataEntityMetadata.fromMap((Map)value);
-    	}
+    	
     	return super.cast(value, type);
     }
 }
