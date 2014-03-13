@@ -1,0 +1,213 @@
+
+!ENTRY org.eclipse.core.resources 4 566 2014-03-13 12:12:40.193
+!MESSAGE Could not save safe table.
+!STACK 0
+java.io.FileNotFoundException: /Users/amith/Development/IVPR/workspace/Weave/.metadata/.plugins/org.eclipse.core.resources/.safetable/com.aptana.webserver.core.1 (No such file or directory)
+	at java.io.FileOutputStream.open(Native Method)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:194)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:145)
+	at org.eclipse.core.internal.resources.SafeFileTable.save(SafeFileTable.java:82)
+	at org.eclipse.core.internal.resources.SaveContext.commit(SaveContext.java:40)
+	at org.eclipse.core.internal.resources.SaveManager.commit(SaveManager.java:324)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1193)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1109)
+	at org.eclipse.core.internal.resources.DelayedSnapshotJob.run(DelayedSnapshotJob.java:51)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+
+!ENTRY org.eclipse.core.resources 4 2 2014-03-13 12:12:41.002
+!MESSAGE Problems occurred when invoking code from plug-in: "org.eclipse.core.resources".
+!STACK 1
+org.eclipse.debug.core.DebugException: Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+	at org.eclipse.debug.internal.core.LaunchConfigurationInfo.initializeFromXML(LaunchConfigurationInfo.java:509)
+	at org.eclipse.debug.internal.core.LaunchManager.createInfoFromXML(LaunchManager.java:920)
+	at org.eclipse.debug.internal.core.LaunchManager.getInfo(LaunchManager.java:1322)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getInfo(LaunchConfiguration.java:453)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getAttribute(LaunchConfiguration.java:402)
+	at org.eclipse.core.externaltools.internal.launchConfigurations.ExternalToolsCoreUtil.getResourcesForBuildScope(ExternalToolsCoreUtil.java:179)
+	at org.eclipse.core.externaltools.internal.model.ExternalToolBuilder.build(ExternalToolBuilder.java:79)
+	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:728)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:199)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:239)
+	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:292)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:295)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:351)
+	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:374)
+	at org.eclipse.core.internal.resources.Workspace.buildInternal(Workspace.java:513)
+	at org.eclipse.core.internal.resources.Workspace.build(Workspace.java:422)
+	at com.aptana.js.internal.core.index.JSMetadataLoader$1.run(JSMetadataLoader.java:136)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+!SUBENTRY 1 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.002
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+!SUBENTRY 1 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.002
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+
+!ENTRY org.eclipse.core.resources 4 2 2014-03-13 12:12:41.004
+!MESSAGE Problems occurred when invoking code from plug-in: "org.eclipse.core.resources".
+!STACK 1
+org.eclipse.debug.core.DebugException: Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+	at org.eclipse.debug.internal.core.LaunchConfigurationInfo.initializeFromXML(LaunchConfigurationInfo.java:509)
+	at org.eclipse.debug.internal.core.LaunchManager.createInfoFromXML(LaunchManager.java:920)
+	at org.eclipse.debug.internal.core.LaunchManager.getInfo(LaunchManager.java:1322)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getInfo(LaunchConfiguration.java:453)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getAttribute(LaunchConfiguration.java:402)
+	at org.eclipse.core.externaltools.internal.launchConfigurations.ExternalToolsCoreUtil.getResourcesForBuildScope(ExternalToolsCoreUtil.java:179)
+	at org.eclipse.core.externaltools.internal.model.ExternalToolBuilder.build(ExternalToolBuilder.java:79)
+	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:728)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:199)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:239)
+	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:292)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:295)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:351)
+	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:374)
+	at org.eclipse.core.internal.resources.Workspace.buildInternal(Workspace.java:513)
+	at org.eclipse.core.internal.resources.Workspace.build(Workspace.java:422)
+	at com.aptana.js.internal.core.index.JSMetadataLoader$1.run(JSMetadataLoader.java:136)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+!SUBENTRY 1 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.005
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+!SUBENTRY 1 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.005
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+
+!ENTRY org.eclipse.core.resources 4 75 2014-03-13 12:12:41.009
+!MESSAGE Errors occurred during the build.
+!SUBENTRY 1 org.eclipse.core.externaltools 4 75 2014-03-13 12:12:41.009
+!MESSAGE Errors running builder 'Integrated External Tool Builder' on project 'AWS'.
+!STACK 1
+org.eclipse.debug.core.DebugException: Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+	at org.eclipse.debug.internal.core.LaunchConfigurationInfo.initializeFromXML(LaunchConfigurationInfo.java:509)
+	at org.eclipse.debug.internal.core.LaunchManager.createInfoFromXML(LaunchManager.java:920)
+	at org.eclipse.debug.internal.core.LaunchManager.getInfo(LaunchManager.java:1322)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getInfo(LaunchConfiguration.java:453)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getAttribute(LaunchConfiguration.java:402)
+	at org.eclipse.core.externaltools.internal.launchConfigurations.ExternalToolsCoreUtil.getResourcesForBuildScope(ExternalToolsCoreUtil.java:179)
+	at org.eclipse.core.externaltools.internal.model.ExternalToolBuilder.build(ExternalToolBuilder.java:79)
+	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:728)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:199)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:239)
+	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:292)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:295)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:351)
+	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:374)
+	at org.eclipse.core.internal.resources.Workspace.buildInternal(Workspace.java:513)
+	at org.eclipse.core.internal.resources.Workspace.build(Workspace.java:422)
+	at com.aptana.js.internal.core.index.JSMetadataLoader$1.run(JSMetadataLoader.java:136)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+!SUBENTRY 2 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.009
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+!SUBENTRY 1 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.009
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+!SUBENTRY 1 org.eclipse.core.externaltools 4 75 2014-03-13 12:12:41.009
+!MESSAGE Errors running builder 'Integrated External Tool Builder' on project 'AWS'.
+!STACK 1
+org.eclipse.debug.core.DebugException: Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+	at org.eclipse.debug.internal.core.LaunchConfigurationInfo.initializeFromXML(LaunchConfigurationInfo.java:509)
+	at org.eclipse.debug.internal.core.LaunchManager.createInfoFromXML(LaunchManager.java:920)
+	at org.eclipse.debug.internal.core.LaunchManager.getInfo(LaunchManager.java:1322)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getInfo(LaunchConfiguration.java:453)
+	at org.eclipse.debug.internal.core.LaunchConfiguration.getAttribute(LaunchConfiguration.java:402)
+	at org.eclipse.core.externaltools.internal.launchConfigurations.ExternalToolsCoreUtil.getResourcesForBuildScope(ExternalToolsCoreUtil.java:179)
+	at org.eclipse.core.externaltools.internal.model.ExternalToolBuilder.build(ExternalToolBuilder.java:79)
+	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:728)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:199)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:239)
+	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:292)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:42)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:295)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:351)
+	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:374)
+	at org.eclipse.core.internal.resources.Workspace.buildInternal(Workspace.java:513)
+	at org.eclipse.core.internal.resources.Workspace.build(Workspace.java:422)
+	at com.aptana.js.internal.core.index.JSMetadataLoader$1.run(JSMetadataLoader.java:136)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+!SUBENTRY 2 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.010
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+!SUBENTRY 1 org.eclipse.debug.core 4 5020 2014-03-13 12:12:41.010
+!MESSAGE Launch configuration type id "org.eclipse.ant.AntBuilderLaunchConfigurationType" does not exist.
+Possible causes:
+	Missing specification of a launch type (missing plug-in)
+	Incorrect launch configuration XML
+
+!ENTRY org.eclipse.core.resources 4 566 2014-03-13 12:17:40.204
+!MESSAGE Could not save safe table.
+!STACK 0
+java.io.FileNotFoundException: /Users/amith/Development/IVPR/workspace/Weave/.metadata/.plugins/org.eclipse.core.resources/.safetable/com.aptana.webserver.core.1 (No such file or directory)
+	at java.io.FileOutputStream.open(Native Method)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:194)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:145)
+	at org.eclipse.core.internal.resources.SafeFileTable.save(SafeFileTable.java:82)
+	at org.eclipse.core.internal.resources.SaveContext.commit(SaveContext.java:40)
+	at org.eclipse.core.internal.resources.SaveManager.commit(SaveManager.java:324)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1193)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1109)
+	at org.eclipse.core.internal.resources.DelayedSnapshotJob.run(DelayedSnapshotJob.java:51)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+
+!ENTRY org.eclipse.core.resources 4 566 2014-03-13 12:30:57.600
+!MESSAGE Could not save safe table.
+!STACK 0
+java.io.FileNotFoundException: /Users/amith/Development/IVPR/workspace/Weave/.metadata/.plugins/org.eclipse.core.resources/.safetable/com.aptana.webserver.core.1 (No such file or directory)
+	at java.io.FileOutputStream.open(Native Method)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:194)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:145)
+	at org.eclipse.core.internal.resources.SafeFileTable.save(SafeFileTable.java:82)
+	at org.eclipse.core.internal.resources.SaveContext.commit(SaveContext.java:40)
+	at org.eclipse.core.internal.resources.SaveManager.commit(SaveManager.java:324)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1193)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1109)
+	at org.eclipse.core.internal.resources.DelayedSnapshotJob.run(DelayedSnapshotJob.java:51)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+
+!ENTRY org.eclipse.core.resources 4 566 2014-03-13 12:30:57.613
+!MESSAGE Could not save safe table.
+!STACK 0
+java.io.FileNotFoundException: /Users/amith/Development/IVPR/workspace/Weave/.metadata/.plugins/org.eclipse.core.resources/.safetable/com.aptana.webserver.core.1 (No such file or directory)
+	at java.io.FileOutputStream.open(Native Method)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:194)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:145)
+	at org.eclipse.core.internal.resources.SafeFileTable.save(SafeFileTable.java:82)
+	at org.eclipse.core.internal.resources.SaveContext.commit(SaveContext.java:40)
+	at org.eclipse.core.internal.resources.SaveManager.commit(SaveManager.java:324)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1193)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1109)
+	at org.eclipse.core.internal.resources.DelayedSnapshotJob.run(DelayedSnapshotJob.java:51)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)

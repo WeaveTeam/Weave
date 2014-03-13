@@ -1,0 +1,22 @@
+<div class="aside" tabindex="-1" role="dialog">
+    <div class="aside-dialog">
+        <div class="aside-content">
+            <div class="aside-header" ng-show="title">
+                <button type="button" class="close" ng-click="$hide()">
+                    &times;
+                </button>
+                <span class="aside-title" ng-bind-html="title"></span>
+            </div>
+            <div class="aside-body">
+            </div>
+            <div class="aside-footer">
+                <button type="button" class="btn btn-default" ng-click="$hide()">
+                    Close
+                </button>
+                <button type="button" class="btn btn-primary" ng-click="runQuery()">
+                    Save and Display
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

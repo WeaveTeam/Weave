@@ -80,14 +80,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      * This function wraps the async aws deleteproject function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.deleteProject = function() {
+    this.deleteProject = function(projectName) {
           	
     	var deferred = $q.defer();
 
         aws.DataClient.deleteProject(projectName, function(result) {
             
         	that.dataObject.deleteStatus = result;//returns a boolean which states if the project has been deleted(true)
-        	
         	scope.$safeApply(function() {
                 deferred.resolve(result);
             });
@@ -98,6 +97,27 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         
     };
     
+    
+    /**
+     * This function wraps the async aws deleteQueryObject function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.deleteQueryObject = function(projectName, queryObjectName) {
+          	
+    	var deferred = $q.defer();
+
+        aws.DataClient.deleteQueryObject(projectName,queryObjectName, function(result) {
+            
+        	that.dataObject.deleteQueryStatus = result;//returns a boolean which states if the query has been deleted(true)
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
     
     /**
      * This function wraps the async aws getQueryObjectsInProject function into an angular defer/promise
@@ -114,7 +134,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 
         aws.DataClient.getListOfQueryObjects(projectName, function(result) {
             
-        	that.dataObject.listofQueryObjectsInProject = result;
+        	//testing
+        	that.dataObject.listofQueryObjectsInProject = result[0];
+        	that.dataObject.queryNames = result[1];
+        	
         	
         	scope.$safeApply(function() {
                 deferred.resolve(result);

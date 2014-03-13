@@ -2,10 +2,15 @@
 
 var app = angular.module('aws', ['aws.router',
                                  'aws.analysis', 
+                                 'aws.analysisService',
                                  'aws.configure',
                                  'aws.directives', 
                                  'aws.project', 
                                  'aws.queryObject',
+                                 'aws.queryObjectEditor',
+                                 'ngAnimate',
+                                 'ngSanitize',
+                                 'mgcrea.ngStrap',
                                  'aws.visualization',
                                  'ui.bootstrap', // don't need?
                                  'ui.select2',
