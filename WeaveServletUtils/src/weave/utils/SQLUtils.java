@@ -597,6 +597,8 @@ public class SQLUtils
 	 * @param params Parameters for the SQL query for all '?' place holders, or null if there are no parameters.
 	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
+	 * @example
+	 * getResultFromQuery(conn, "SELECT a, b FROM mytable WHERE c = ? and d = ?", new Object[]{ "my-c-value", 0xDDDD }, false)
 	 */
 	public static <TYPE> SQLResult getResultFromQuery(Connection connection, String query, TYPE[] params, boolean convertToStrings)
 		throws SQLException
