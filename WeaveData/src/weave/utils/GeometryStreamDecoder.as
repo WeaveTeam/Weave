@@ -399,7 +399,7 @@ package weave.utils
 			};
 			
 			// Weave automatically triggers callbacks when all tasks complete
-			WeaveAPI.StageUtils.startTask(metadataCallbacks, task, WeaveAPI.TASK_PRIORITY_PARSING);
+			WeaveAPI.StageUtils.startTask(metadataCallbacks, task, WeaveAPI.TASK_PRIORITY_3_PARSING);
 		}
 		
 		private function readShapeType(stream:ByteArray):void
@@ -588,7 +588,7 @@ package weave.utils
 			}
 			
 				// Weave automatically triggers callbacks when all tasks complete
-			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_PARSING);
+			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_3_PARSING);
 		}
 
 		

@@ -20,13 +20,30 @@
 */
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.ui.*">
+	<Indent id="embeddedFiles" label="Embedded files:" translate="true" grouped="false" verticalAlign="top">
+		<Paragraph trim="false">
+			<creationComplete>
+				<![CDATA[
+				var list:Array = WeaveAPI.URLRequestUtils.getLocalFileNames();
+				list = list.filter(function(s:String, ..._):Boolean{ return s != Weave.ARCHIVE_THUMBNAIL_PNG && s != Weave.ARCHIVE_SCREENSHOT_PNG; });
+				(event.target as Paragraph).text = list.join('\n');
+				embeddedFiles.visible = embeddedFiles.includeInLayout = !!list.length;
+				]]>
+			</creationComplete>
+		</Paragraph>
+	</Indent>
 	<mx:Label text="{lang('Export options')}"/>
 	<Indent>
 		<mx:VBox>
-			<mx:CheckBox id="saveXML"
-						 label="{lang('Save as XML (larger file size, takes longer to load)')}"
-						 change="handleXMLToggle()"
-						 selected="false"/>
+			<mx:HBox>
+				<mx:CheckBox id="saveXML"
+							 label="{lang('Save as XML (larger file size, takes longer to load)')}"
+							 change="handleXMLToggle()"
+							 selected="false"/>
+				<HelpComponent id="xmlHelp">
+					XML format does not support embedded files.
+				</HelpComponent>
+			</mx:HBox>
 			<mx:CheckBox label="{lang('Dashboard mode')}"
 						 toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
 						 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
@@ -86,6 +103,11 @@
 			
 			private function handleXMLToggle():void
 			{
+				if (WeaveAPI.URLRequestUtils.getLocalFileNames().length)
+					saveXML.enabled = saveXML.selected = false;
+				else
+					saveXML.enabled = true;
+				
 				var xml:Boolean = saveXML.selected;
 				saveHistory.selected = !xml;
 				saveHistory.enabled = !xml;

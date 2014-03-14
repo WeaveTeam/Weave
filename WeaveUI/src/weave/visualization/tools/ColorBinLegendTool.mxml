@@ -112,9 +112,12 @@
 			private function get internalDataColumn():DynamicColumn
 			{
 				var bc:BinnedColumn = internalBinnedColumn;
-				var fc:FilteredColumn = bc.getInternalColumn() as FilteredColumn;
-				if (fc)
-					return fc.internalDynamicColumn;
+				if (bc)
+				{
+					var fc:FilteredColumn = bc.getInternalColumn() as FilteredColumn;
+					if (fc)
+						return fc.internalDynamicColumn;
+				}
 				return null;
 			}
 

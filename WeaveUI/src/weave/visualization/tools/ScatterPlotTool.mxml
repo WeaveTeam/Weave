@@ -75,8 +75,8 @@
 				
 				visualization.enableZoomAndPan.value = false;
 				
-				xAxisPlotter.setLabelFunction(labelFunctionX);
-				yAxisPlotter.setLabelFunction(labelFunctionY);
+				xAxisPlotter.setLabelFunction(labelFunctionX, plotter.dataX);
+				yAxisPlotter.setLabelFunction(labelFunctionY, plotter.dataY);
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataX); })
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataY); })

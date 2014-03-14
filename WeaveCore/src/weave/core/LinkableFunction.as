@@ -60,6 +60,7 @@ package weave.core
 			_paramNames = paramNames && paramNames.concat();
 		}
 		
+		private var _catchErrors:Boolean = false;
 		private var _ignoreRuntimeErrors:Boolean = false;
 		private var _useThisScope:Boolean = false;
 		private var _compiledMethod:Function = null;
@@ -79,6 +80,10 @@ package weave.core
 		{
 			if (_triggerCount != triggerCounter)
 			{
+				// if this LinkableFunction is in the macros list, errors should be caught and reported.
+				if (macros.getName(this))
+					_catchErrors = true;
+				
 				_triggerCount = triggerCounter;
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
@@ -103,6 +108,13 @@ package weave.core
 			
 			if (_ignoreRuntimeErrors || debug)
 				return true;
+			
+			if (_catchErrors)
+			{
+				reportError(e);
+				return false;
+			}
+			
 			throw e;
 		}
 		
@@ -171,13 +183,15 @@ package weave.core
 		}
 		
 		/**
-		 * This function evaluates a macro specified in the macros hash map.
+		 * This function evaluates a macro specified in the macros hash map,
+		 * catching and reporting any errors that are thrown.
 		 * @param macroName The name of the macro to evaluate.
 		 * @param params The parameters to pass to the macro.
 		 * @return The result of evaluating the macro.
 		 */
-		public static function evaluateMacro(macroName:String, ...params):*
+		public static function evaluateMacro(macroName:String, params:Array = null):*
 		{
+			// error catching/reporting is handled automatically for LinkableFunctions in the macros list.
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
 			return lf ? lf.apply(null, params) : undefined;
 		}
@@ -233,6 +247,16 @@ package weave.core
 				}
 			}
 			return compiler;
+		}
+		
+		/**
+		 * Tests if an expression is a single, valid symbol name.
+		 */
+		public static function isValidSymbolName(expression:String):Boolean
+		{
+			if (!_compiler)
+				_compiler = _getNewCompiler(true);
+			return _compiler.isValidSymbolName(expression);
 		}
 
 //		/**

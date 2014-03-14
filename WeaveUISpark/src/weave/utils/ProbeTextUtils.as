@@ -66,19 +66,26 @@ package weave.utils
 		public static const probeLineFormatter:LinkableFunction = new LinkableFunction(DEFAULT_LINE_FORMAT, true, false, ['column', 'key', 'string', 'title']);
 		
 		/**
-		 * getProbeText
-		 * @param keySet The key set you are interested in.
-		 * @param additionalColumns An array of additional columns (other than global probed columns) to be displayed in the probe tooltip
-		 * @param maxRecordsShown Maximum no. of records shown in one probe tooltip
-		 * @return A string to be displayed on a tooltip while probing 
+		 * Additional columns to be used by getProbeText() when the additionalColumnsArray parameter is not specified.
+		 * This variable will be set automatically when that parameter is passed to getProbeText().
 		 */
-		public static function getProbeText(keys:Array, additionalColumns:Array = null):String
+		public static var additionalColumns:Array = null;
+		
+		/**
+		 * @param keySet The key set you are interested in.
+		 * @param additionalColumnsArray An array of additional columns (other than global probed columns) to be included in the probe text.
+		 *                               If this parameter is not specified, the previously specified Array (or null) will be used.
+		 * @return A String containing formatted values from the probed columns.
+		 */
+		public static function getProbeText(keys:Array, additionalColumnsArray:* = undefined):String
 		{
 			var result:String = '';
 			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
 			// include headers in list of columns so that those appearing in the headers won't be duplicated.
 			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
-			if (additionalColumns != null && additionalColumns.length)
+			if (additionalColumnsArray !== undefined)
+				additionalColumns = additionalColumnsArray;
+			if (additionalColumns && additionalColumns.length)
 				columns = columns.concat(additionalColumns);
 			var keys:Array = keys.concat();
 			AsyncSort.sortImmediately(keys);

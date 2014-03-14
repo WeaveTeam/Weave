@@ -79,6 +79,7 @@
 			public function applyChanges():void
 			{
 				_weaveDataSource.url.value = url.text;
+				url.text = _weaveDataSource.url.value;
 			}
 			
 		]]>

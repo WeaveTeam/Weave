@@ -27,6 +27,7 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.copySessionState;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
@@ -112,14 +113,21 @@
 					_sizeBinLegendPlotter.typeRadio.value = SizeBinLegendPlotter.customRadio;
 			}
 			
+			private function getMarginColumn():IAttributeColumn
+			{
+				if (scatterPlot == null || !scatterPlot.plotter.sizeBy.internalObject)
+					return visualization.topMarginColumn = colorColumn;
+				else
+					return visualization.topMarginColumn = _sizeBinLegendPlotter.radiusColumn;
+			}
 			
 			// Get called in handleScatterPlotChange
 			override public function get defaultPanelTitle():String
-			{				
-				if (scatterPlot == null || !scatterPlot.plotter.sizeBy.internalObject)
-					return lang("Color legend of " + ColumnUtils.getTitle(colorColumn));
+			{
+				if (getMarginColumn() == colorColumn)
+					return lang("Color legend of " + ColumnUtils.getTitle(getMarginColumn()));
 				else
-					return lang("Size legend of " + ColumnUtils.getTitle(_sizeBinLegendPlotter.radiusColumn));
+					return lang("Size legend of " + ColumnUtils.getTitle(getMarginColumn()));
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
@@ -162,17 +170,17 @@
 					copySessionState(scatterPlot.plotter.colorPositive, _sizeBinLegendPlotter.colorPositive);
 				}
 				
-				if (scatterPlot && scatterPlot.plotter.sizeBy.internalObject)
-				{
-					// show size bin legend
-					_colorLegendLayerSettings.visible.value = false;
-					_sizeBinLegendLayerSettings.visible.value = true;
-				}
-				else
+				if (getMarginColumn() == colorColumn)
 				{
 					// show global color ramp legend
 					_colorLegendLayerSettings.visible.value = true;
 					_sizeBinLegendLayerSettings.visible.value = false;
+				}
+				else
+				{
+					// show size bin legend
+					_colorLegendLayerSettings.visible.value = false;
+					_sizeBinLegendLayerSettings.visible.value = true;
 				}
 				
 				updateMarginLabel();
@@ -181,32 +189,15 @@
 			
 			private function handleMarginLabelClick():void
 			{
-				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
-					AttributeSelectorPanel.open(colorColumn);
-				else
-					AttributeSelectorPanel.open(scatterPlot.plotter.sizeBy);
+				AttributeSelectorPanel.open(getMarginColumn());
 			}
-			
-			[Bindable] private var marginLabelText:String = "";
-			[Bindable] private var marginLabelMode:String = "";
-			private static const MARGIN_LABEL_MODE_COLOR:String = lang('color');
-			private static const MARGIN_LABEL_MODE_SIZE:String = lang('size');
 			
 			private function updateMarginLabel():void
 			{
 				if (!parent)
 					return callLater(updateMarginLabel);
 				
-				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
-				{
-					marginLabelText = ColumnUtils.getTitle(colorColumn);
-					marginLabelMode = MARGIN_LABEL_MODE_COLOR;
-				}
-				else
-				{
-					marginLabelText = ColumnUtils.getTitle(_sizeBinLegendPlotter.radiusColumn);
-					marginLabelMode = MARGIN_LABEL_MODE_SIZE;
-				}
+				marginLabel.text = ColumnUtils.getTitle(getMarginColumn());
 
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
@@ -215,20 +206,17 @@
 			{
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
+			private var _cursorId:int;
 		]]>
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
 				 visible="{marginLabel.height > 0}"
-				 fontWeight="bold" click="handleMarginLabelClick()" 
-				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
-				 text="{marginLabelText}" width="100%"
-				 mouseOver="CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK)"
+				 mouseChildren="false" mouseEnabled="false"
+				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 mouseOut="CustomCursorManager.hack_removeCurrentCursor()"
 				 wordWrap="true" selectable="false" editable="false"
-				 borderThickness="0" backgroundAlpha="0"
-				 toolTip="{lang('{0}\r\tClick here to select the attribute used for {1}.', marginLabelText, marginLabelMode)}"/>
+				 borderThickness="0" backgroundAlpha="0"/>
 
 	<ui:ControlPanel>
 		<mx:VBox width="100%" label="{lang('Legend')}">

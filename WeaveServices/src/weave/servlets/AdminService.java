@@ -102,17 +102,6 @@ public class AdminService
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
-	@SuppressWarnings("rawtypes")
-	@Override
-	protected Object cast(Object value, Class<?> type)
-	{
-		if (type == DataEntityMetadata.class && value != null && value instanceof Map)
-		{
-			return DataEntityMetadata.fromMap((Map)value);
-		}
-		return super.cast(value, type);
-	}
-	
 	private boolean isEmpty(String str)
 	{
 		return str == null || str.length() == 0;

@@ -25,6 +25,7 @@
 				addedToStage="handleAddedToStage();"
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical"
+				showBusyIndicator="false"
 				escapeKeyClosesPanel="true"
 				titleStyleName="weave-panel-title-style"
 				>

@@ -34,6 +34,7 @@
         <! END Browser History required section -->
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="https://raw.github.com/IVPR/Weave/master/WeaveClient/weave-tools.js"></script>
         <script type="text/javascript" src="swfobject.js"></script>
         <script type="text/javascript">
             // For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection.
@@ -108,17 +109,24 @@ $.ajaxSetup({
     cache: false
 });
 
-function queryDataService(method, params, callback, queryId)
+queryService = function(url, method, params, resultHandler, queryId)
 {
-	console.log('queryDataService',method,params);
-	var url = '/WeaveServices/DataService';
 	var request = {
 		jsonrpc: "2.0",
 		id: queryId || "no_id",
 		method: method,
 		params: params
 	};
-	$.post(url, JSON.stringify(request), callback, "json");
+	$.post(url, JSON.stringify(request), handleResponse, "json");
+
+	function handleResponse(response)
+	{
+		if (response.error)
+			resultTextArea.value = JSON.stringify(response, null, 3);
+		else if (resultHandler)
+			resultHandler(response.result, queryId);
+	}
+	
 	resultTextArea.value = 'Awaiting response for ' + method + ' request...';
 }
 
@@ -131,42 +139,28 @@ function testServerQuery(secondMethodName)
 			publicMetadata: {keyType: keyType},
 			entityType: 1
 		},
-		handleColumnIds
+		function(ids)
+		{
+			console.log("Found " + ids.length + " column ids: " + ids);
+	
+			// trim the list of ids to 10
+			if (ids.length > 10)
+				ids.length = 10;
+	
+			queryDataService(
+				secondMethodName,
+				[ids],
+				function(data)
+				{
+					var dataStr = JSON.stringify(data, null, 3);
+					console.log(dataStr);
+					resultTextArea.value = dataStr;
+				}
+			);
+	
+		}
 	);
 
-	function handleColumnIds(response)
-	{
-		if (response.error)
-		{
-			resultTextArea.value = JSON.stringify(response, null, 3);
-			return;
-		}
-		var ids = response.result;
-		console.log("Found " + ids.length + " column ids: " + ids);
-
-		// trim the list of ids to 10
-		if (ids.length > 10)
-			ids.length = 10;
-
-		queryDataService(
-			secondMethodName,
-			[ids],
-			handleDataSet
-		);
-
-		function handleDataSet(response)
-		{
-			if (response.error)
-			{
-				resultTextArea.value = JSON.stringify(response, null, 3);
-				return;
-			}
-			var data = response.result;
-			var dataStr = JSON.stringify(data, null, 3);
-			console.log(dataStr);
-			resultTextArea.value = dataStr;
-		}
-	}
 }
 
 function getImage()

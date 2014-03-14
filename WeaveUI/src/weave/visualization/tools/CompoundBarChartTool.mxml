@@ -23,7 +23,6 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
-		 creationComplete="creationComplete();"
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
@@ -61,6 +60,7 @@
 			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxisLabels, true);
 			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), sizeAxisTickCountRequestedChanged, true);
 			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
+			public const linkHeightAndColorColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
 			
 			
@@ -78,6 +78,7 @@
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
 				
+				_plotter.colorColumn.addGroupedCallback(this, handleColorColumnChange);
 				_plotter.sortColumn.addGroupedCallback(this, handleSortColumnChange);
 				_plotter.heightColumns.addGroupedCallback(this, handleHeightColumnsChange);
 				
@@ -124,9 +125,11 @@
 				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
-			
-			protected function creationComplete():void
+
+			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
+				
 				cRampEditor.colorRamp = _plotter.chartColors;
 				linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
 				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
@@ -328,8 +331,8 @@
 					visualization.enableProbeLine(false, _groupingMode == CompoundBarChartPlotter.STACK);
 				}
 				
-				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction);
-				heightAxis.setLabelFunction(heightAxisLabelFunction);
+				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction, _plotter.sortColumn);
+				heightAxis.setLabelFunction(heightAxisLabelFunction, heightColumns[0]);
 				
 				// height axis uses automatic min,max based on data
 				heightAxis.tickMinValue.value = NaN;
@@ -369,6 +372,20 @@
 				return null;
 			}
 			
+			private function handleColorColumnChange():void
+			{
+				if (linkHeightAndColorColumns.value)
+				{
+					_plotter.heightColumns.delayCallbacks();
+					
+					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
+					var columns:Array = _plotter.heightColumns.getObjects();
+					copySessionState(ColumnUtils.hack_findInternalDynamicColumn(_plotter.colorColumn), columns[0]);
+					
+					_plotter.heightColumns.resumeCallbacks();
+				}
+			}
+			
 			private function handleSortColumnChange():void
 			{
 				if (!_plotter.sortColumn.getInternalColumn())
@@ -391,6 +408,16 @@
 				if (_plotter.heightColumns.getObjects().length < 1)
 					return;
 
+				if (linkHeightAndColorColumns.value)
+				{
+					_plotter.heightColumns.delayCallbacks();
+					
+					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
+					var columns:Array = _plotter.heightColumns.getObjects();
+					copySessionState(columns[0], ColumnUtils.hack_findInternalDynamicColumn(_plotter.colorColumn));
+					
+					_plotter.heightColumns.resumeCallbacks();
+				}
 				if (linkHeightAndSortColumns.value)
 				{
 					_plotter.heightColumns.delayCallbacks();
@@ -454,7 +481,6 @@
 			<ui:DynamicColumnComponent label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent label="{lang('Sort')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="{lang('Group bars by the sort column')}" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
-			<mx:CheckBox label="{lang('Link Height and Sort Column')}" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
 			<mx:HBox>
 				<mx:CheckBox id="horizontalCheckBox" label="{lang('Horizontal bars')}"
 							 toolTip="{lang('Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top).')}"/>
@@ -468,6 +494,10 @@
 				<ui:ColumnListComponent label="{lang('Positive error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
 				<ui:ColumnListComponent label="{lang('Negative error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</mx:TabNavigator>
+			<mx:HBox>
+				<mx:CheckBox label="{lang('Link Height and Sort Column')}" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
+				<mx:CheckBox label="{lang('Link Height and Color Column')}" creationComplete="linkBindableProperty(linkHeightAndColorColumns, event.target, 'selected');"/>
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="{lang('Labeling')}">
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>

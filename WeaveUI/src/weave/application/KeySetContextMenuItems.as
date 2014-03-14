@@ -53,7 +53,7 @@ package weave.application
 		private static var _addToSubsetCMI:ContextMenuItem = null;
 		private static var _removeFromSubsetCMI:ContextMenuItem = null;
 		private static var _showAllRecordsCMI:ContextMenuItem = null;
-		private static var _viewRecordCMI:ContextMenuItem = null;
+//		private static var _viewRecordCMI:ContextMenuItem = null;
 /*
 // TODO: move this clustering code to the appropriate locations: DataMiningPlatter, DataStatisticsTool
 		private static var _runClusteringonSubsetCMI:ContextMenuItem = null;
@@ -125,12 +125,12 @@ package weave.application
 						// if there is not a selection and something is probed, then use it for the subset 
 						else if(_localProbeKeySet.keys.length > 0)
 						{
-							_viewRecordCMI.enabled = true;
-							_viewRecordCMI.caption = lang("Show data for highlighted record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
+//							_viewRecordCMI.enabled = true;
+//							_viewRecordCMI.caption = lang("Show data for highlighted record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
 							_removeFromSubsetCMI.caption = SUBSET_REMOVE_PROBE_CAPTION;
 							_createSubsetCMI.caption     = SUBSET_CREATE_PROBE_CAPTION;
 						}
-						if(_localProbeKeySet.keys.length <= 0 ) _viewRecordCMI.enabled = false;
+//						if(_localProbeKeySet.keys.length <= 0 ) _viewRecordCMI.enabled = false;
 						
 						// add to subset only if we have a subset already and we have something selected
 						//_addToSubsetCMI.enabled    		= usingSelection && usingSubset;
@@ -270,6 +270,7 @@ package weave.application
 					groupName
 				);
 
+			/*
 			// create and add the view record(s) context menu item
 			_viewRecordCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
 				lang("Show data for highlighted record"),
@@ -293,7 +294,7 @@ package weave.application
 				},
 				groupName
 				);
-			
+			*/
         	return true;
         }
 		

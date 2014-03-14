@@ -301,12 +301,12 @@ package weave.data.DataSources
 			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 			if (!sourceOwner)
 				return false;
-			var essi:ExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface;
+			
 			var dc:DynamicColumn = dynamicColumnOrPath as DynamicColumn;
 			if (!dc)
 			{
-				essi.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
-				dc = essi.getObject(dynamicColumnOrPath as Array) as DynamicColumn;
+				WeaveAPI.ExternalSessionStateInterface.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
+				dc = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, dynamicColumnOrPath as Array) as DynamicColumn;
 			}
 			if (!dc)
 				return false;
@@ -352,7 +352,7 @@ package weave.data.DataSources
 					csvData.setSessionState(null);
 					if (servletParams.value)
 					{
-						if (urlChanged)
+						if (!_servlet || _servlet.servletURL != url.value)
 						{
 							disposeObject(_servlet);
 							_servlet = registerLinkableChild(this, new AMF3Servlet(url.value));
@@ -378,11 +378,14 @@ package weave.data.DataSources
 			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
 				return;
 			var data:Array = event.result as Array;
-			if (!data || (data.length && !(data[0] is Array)))
+			if (!data)
 			{
-				reportError('Result from servlet is not a two-dimensional Array');
+				reportError('Result from servlet is not an Array');
 				return;
 			}
+			if (data.length && !(data[0] is Array))
+				data = WeaveAPI.CSVParser.convertRecordsToRows(data);
+			
 			handleParsedRows(data);
 			getCallbackCollection(this).triggerCallbacks();
 		}
@@ -485,9 +488,9 @@ package weave.data.DataSources
 			if (!hierarchyRef)
 				return handleUnsupportedColumnReference(columnReference, proxyColumn);
 
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
+			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value || <empty/>;
+			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
+			proxyColumn.setMetadata(leafNode.copy());
 
 			var columnId:Object = proxyColumn.getMetadata("csvColumnIndex");
 			if (columnId)
