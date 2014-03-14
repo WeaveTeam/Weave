@@ -35,11 +35,11 @@ import javax.servlet.ServletException;
 
 import weave.beans.RResult;
 import weave.config.WeaveContextParams;
-import weave.servlets.GenericServlet;
+import weave.servlets.WeaveServlet;
 
 
  
-public class JRIService extends GenericServlet
+public class JRIService extends WeaveServlet
 {
 	private static final long serialVersionUID = 1L;
 

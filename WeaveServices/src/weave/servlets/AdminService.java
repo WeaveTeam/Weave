@@ -86,7 +86,7 @@ import weave.utils.SQLUtils;
 import weave.utils.Strings;
 
 public class AdminService
-		extends GenericServlet
+		extends WeaveServlet
 {
 	private static final long serialVersionUID = 1L;
 	private RemoteException initializationError = null;
