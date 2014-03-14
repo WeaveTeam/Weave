@@ -58,6 +58,7 @@
 			import weave.editors.managers.CustomLayerWindow;
 			import weave.primitives.Bounds2D;
 			import weave.ui.SubMenu;
+			import weave.ui.SubMenuItem;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
@@ -271,22 +272,20 @@
 				
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 				
-				
-				
-				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				
-				selectionSubMenu.addSubMenuItem(lang("Rectangular Selection"),function():void{
-					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;});
-				
-				selectionSubMenu.addSubMenuItem(lang("Circular Selection"),function():void{
-					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;});
-				
-				selectionSubMenu.addSubMenuItem(lang("Lasso Selection"),function():void{
-					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;});
-				
+				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP], [
+					new SubMenuItem(lang("Rectangular Selection"), function():void {
+						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
+						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;
+					}),
+					new SubMenuItem(lang("Circular Selection"), function():void {
+						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
+						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;
+					}),
+					new SubMenuItem(lang("Lasso Selection"), function():void {
+						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
+						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;
+					})
+				]);
 				
 				visibleScaleController.view = visibleScaleRangesList;
 				visibleScaleController.hashMap = visualization.plotManager.layerSettings
