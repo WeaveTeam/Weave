@@ -640,17 +640,8 @@ public class AWSRService extends RService
 
 		String cannedScript = uploadPath + "RScripts/" +scriptName;
 		
-		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("FilteredColumnRequest");
-		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];
-		StringMap<Object> theStringMapColumnRequest;
-		FilteredColumnRequest filteredColumnRequest;
+		FilteredColumnRequest[] filteredColumnRequests = (FilteredColumnRequest[]) cast(requestObject.get("FilteredColumnRequest"), FilteredColumnRequest[].class);
 		
-		for (int i = 0; i < columnRequests.size(); i++) {
-
-			theStringMapColumnRequest = (StringMap<Object>) columnRequests.get(i);
-			filteredColumnRequest = (FilteredColumnRequest) cast(theStringMapColumnRequest, FilteredColumnRequest.class);
-			filteredColumnRequests[i] = filteredColumnRequest;
-		}
 		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
 		long startTime = System.currentTimeMillis();
 		
@@ -1029,39 +1020,4 @@ public class AWSRService extends RService
 		  }
 		  return array_new;
 	}
-	
-    @SuppressWarnings("rawtypes")
-    @Override
-    protected Object cast(Object value, Class<?> type)
-    {
-    	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
-    	{
-    		FilteredColumnRequest fcr = new FilteredColumnRequest();
-    		fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
-    		fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
-    		if (fcr.filters != null)
-    			for (int i = 0; i < fcr.filters.length; i++)
-    			{
-    				Object item = fcr.filters[i];
-    				if (item != null && item.getClass() == ArrayList.class)
-    					fcr.filters[i] = cast(item, Object[].class);
-    			}
-    		return fcr;
-    	}
-    	if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
-    	{
-    		Object[] input = (Object[]) value;
-    		FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
-    		for (int i = 0; i < input.length; i++)
-    		{
-    			output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
-    		}
-    		value = output;
-    	}
-    	if (type == DataEntityMetadata.class && value != null && value instanceof Map)
-    	{
-    		return DataEntityMetadata.fromMap((Map)value);
-    	}
-    	return super.cast(value, type);
-    }
 }
