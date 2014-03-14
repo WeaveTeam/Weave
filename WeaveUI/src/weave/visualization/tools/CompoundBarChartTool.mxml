@@ -168,6 +168,7 @@
 			public function get heightColumns():ILinkableHashMap { return _plotter.heightColumns; }
 			public function get chartColors():ColorRamp { return _plotter.chartColors; }
 			
+			public function get plotter():CompoundBarChartPlotter {return _plotter;}
 			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
 			{
 				handleSelectAllAttrInProbe(value);
