@@ -4,3 +4,7 @@ WeaveServices/.externalToolBuilders/
 .idea/
 /WeaveServletUtils/nbproject/private/
 /WeaveServices/nbproject/private/
+/AWS/nbproject/
+/WeaveServices/nbproject/
+/WeaveServletUtils/nbproject/
+.tern-project
