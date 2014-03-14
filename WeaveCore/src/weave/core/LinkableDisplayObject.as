@@ -25,12 +25,14 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
+	import weave.api.getLinkableOwner;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -43,16 +45,33 @@ package weave.core
 	 * 
 	 * @author adufilie
 	 */	
-	[ExcludeClass]
 	public class LinkableDisplayObject implements ILinkableDisplayObject, ILinkableContainer, IDisposableObject
 	{
 		public function LinkableDisplayObject()
 		{
 		}
 		
-		public const qualifiedClassName:LinkableString = newLinkableChild(this, LinkableString, handleClassDefChange);
-		public const eventListeners:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, updateEventListeners);
-		public const properties:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, handlePropertiesChange);
+		/**
+		 * The qualified class name of a DisplayObject.
+		 */
+		public const className:LinkableString = newLinkableChild(this, LinkableString, handleClassDefChange);
+		
+		/**
+		 * Session state containing an object mapping an event name to a script to be called when the event fires.
+		 * The "this" context of the script will be the DisplayObject.
+		 * The "event" variable will be set to the event object.
+		 * The "owner" variable can be used inside the script to get a pointer to the LinkableDisplayObject.
+		 */
+		public const events:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, updateEventListeners);
+		
+		/**
+		 * Session state containing an object mapping the DisplayObject's property names to values.
+		 */
+		public const properties:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, handlePropertiesChange, true);
+		
+		/**
+		 * Child linkable objects.
+		 */
 		public const children:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		
 		private var _parent:DisplayObjectContainer = null; // The parent passed to setParentContainer()
@@ -61,23 +80,52 @@ package weave.core
 		private var _eventListenerMap:Object = null; // hash map of event listeners that have been added to the DisplayObject
 		
 		/**
-		 * @see weave.api.core.IDisposableObject
+		 * Creates a child LinkableDisplayObject
+		 */
+		public function newChild(name:String, displayObjectClassName:String):LinkableDisplayObject
+		{
+			var ldo:LinkableDisplayObject = children.requestObject(name, LinkableDisplayObject, false);
+			ldo.className.value = displayObjectClassName;
+			return ldo;
+		}
+		
+		/**
+		 * Sets a value in the properties session state.
+		 */
+		public function setProperty(name:String, value:Object):void
+		{
+			var state:Object = Object(ObjectUtil.copy(properties.value));
+			state[name] = value;
+			properties.value = state;
+		}
+		
+		/**
+		 * @inheritDoc
 		 */
 		public function dispose():void
 		{
-			setParentContainer(null);
+			parent = null;
 		}
 		/**
-		 * @see weave.api.ui.ILinkableContainer
+		 * @inheritDoc
 		 */
 		public function getLinkableChildren():ILinkableHashMap
 		{
 			return children;
 		}
+		
 		/**
-		 * @see weave.api.core.ILinkableDisplayObject
+		 * Returns the parent LinkableDisplayObject, if any.
 		 */
-		public function setParentContainer(parent:DisplayObjectContainer):void
+		public function get parentLDO():LinkableDisplayObject
+		{
+			return getLinkableOwner(getLinkableOwner(this)) as LinkableDisplayObject;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function set parent(parent:DisplayObjectContainer):void
 		{
 			if (_parent == parent)
 				return;
@@ -88,9 +136,9 @@ package weave.core
 				_parent.addChild(_displayObject);
 		}
 		/**
-		 * @see weave.api.core.ILinkableDisplayObject
+		 * @inheritDoc
 		 */
-		public function getDisplayObject():DisplayObject
+		public function get object():DisplayObject
 		{
 			return _displayObject;
 		}
@@ -114,7 +162,7 @@ package weave.core
 			// create new component
 			try
 			{
-				var classDef:Class = WeaveXMLDecoder.getClassDefinition(qualifiedClassName.value)
+				var classDef:Class = WeaveXMLDecoder.getClassDefinition(className.value)
 				if (!classDef)
 					return;
 				var classQName:String = getQualifiedClassName(classDef);
@@ -225,11 +273,11 @@ package weave.core
 			if (_displayObject == null)
 				return;
 			_eventListenerMap = {};
-			for (var name:String in eventListeners.value)
+			for (var name:String in events.value)
 			{
 				try
 				{
-					var script:String = eventListeners.value[name];
+					var script:String = events.value[name];
 					var listener:Function = generateEventListener(script);
 					_displayObject.addEventListener(name, listener, false, 0, true);
 					_eventListenerMap[name] = listener;

@@ -205,7 +205,8 @@ package weave.application
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
-			ExternalInterface.addCallback('loadFile', loadFile);
+			if (ExternalInterface.available)
+				ExternalInterface.addCallback('loadFile', loadFile);
 			WeaveAPI.initializeExternalInterface();
 
 			getFlashVars();

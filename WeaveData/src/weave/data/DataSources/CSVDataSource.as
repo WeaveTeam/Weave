@@ -355,7 +355,7 @@ package weave.data.DataSources
 					csvData.setSessionState(null);
 					if (servletParams.value)
 					{
-						if (urlChanged)
+						if (!_servlet || _servlet.servletURL != url.value)
 						{
 							disposeObject(_servlet);
 							_servlet = registerLinkableChild(this, new AMF3Servlet(url.value));
@@ -381,11 +381,14 @@ package weave.data.DataSources
 			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
 				return;
 			var data:Array = event.result as Array;
-			if (!data || (data.length && !(data[0] is Array)))
+			if (!data)
 			{
-				reportError('Result from servlet is not a two-dimensional Array');
+				reportError('Result from servlet is not an Array');
 				return;
 			}
+			if (data.length && !(data[0] is Array))
+				data = WeaveAPI.CSVParser.convertRecordsToRows(data);
+			
 			handleParsedRows(data);
 			getCallbackCollection(this).triggerCallbacks();
 		}
