@@ -88,7 +88,7 @@ import flex.messaging.messages.ErrorMessage;
  * @author skolman
  */
 
-public class GenericServlet extends HttpServlet
+public class WeaveServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 1L;
 	public static long debugThreshold = 1000;
@@ -121,9 +121,9 @@ public class GenericServlet extends HttpServlet
 	
 	/**
 	 * Default constructor.
-	 * This initializes all public methods defined in a class extending GenericServlet.
+	 * This initializes all public methods defined in a class extending WeaveServlet.
 	 */
-	protected GenericServlet()
+	protected WeaveServlet()
 	{
 		super();
 		initLocalMethods();
@@ -132,7 +132,7 @@ public class GenericServlet extends HttpServlet
 	/**
 	 * @param serviceObjects The objects to invoke methods on.
 	 */
-	protected GenericServlet(Object ...serviceObjects)
+	protected WeaveServlet(Object ...serviceObjects)
 	{
 	    super();
 	    initLocalMethods();
@@ -150,21 +150,21 @@ public class GenericServlet extends HttpServlet
 	
 	/**
 	 * This function will expose all the declared public methods of a class as servlet methods,
-	 * except methods that match those declared by GenericServlet or a superclass of GenericServlet.
+	 * except methods that match those declared by WeaveServlet or a superclass of WeaveServlet.
 	 * @param serviceObject The object containing public methods to be exposed by the servlet.
 	 */
 	protected void initAllMethods(Object serviceObject)
 	{
-		Method[] genericServletMethods = GenericServlet.class.getMethods();
+		Method[] weaveServletMethods = WeaveServlet.class.getMethods();
 		Method[] declaredMethods = serviceObject.getClass().getDeclaredMethods();
 		for (int i = declaredMethods.length; i-- > 0;)
 		{
 			Method declaredMethod = declaredMethods[i];
 			boolean shouldIgnore = false;
-			for (Method genericServletMethod : genericServletMethods)
+			for (Method weaveServletMethod : weaveServletMethods)
 			{
-				if (declaredMethod.getName().equals(genericServletMethod.getName()) &&
-					Arrays.equals(declaredMethod.getParameterTypes(), genericServletMethod.getParameterTypes()) )
+				if (declaredMethod.getName().equals(weaveServletMethod.getName()) &&
+					Arrays.equals(declaredMethod.getParameterTypes(), weaveServletMethod.getParameterTypes()) )
 				{
 					shouldIgnore = true;
 					break;

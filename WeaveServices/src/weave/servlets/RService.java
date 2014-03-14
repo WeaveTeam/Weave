@@ -33,7 +33,7 @@ import weave.beans.RResult;
 import weave.config.WeaveContextParams;
 import weave.utils.Strings;
 
-public class RService extends GenericServlet
+public class RService extends WeaveServlet
 {
 	private static final long serialVersionUID = 1L;
 
