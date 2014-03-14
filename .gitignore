@@ -2,3 +2,5 @@ tags
 .DS_Store
 WeaveServices/.externalToolBuilders/
 .idea/
+/WeaveServletUtils/nbproject/private/
+/WeaveServices/nbproject/private/
