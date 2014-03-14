@@ -1279,14 +1279,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 //				_fileReference.
 			}
 			
-			private function popupLoader():void
-			{
-				var loader:HTMLFileUploader = PopUpManager.createPopUp(this,HTMLFileUploader) as HTMLFileUploader;
-				PopUpManager.centerPopUp(loader);
-				loader.addEventListener(CloseEvent.CLOSE,function():void{PopUpManager.removePopUp(loader);});
-				
-			}
-			
 			private function callDropBox(event:ResultEvent,token:Object = null):void
 			{
 				ExternalInterface.call(event.result as String);
@@ -1636,7 +1628,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Button label="Upload File" click="browseAndUpload();"/>
 				<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files indexed' : ''}"/>
 			</mx:HBox>
-			<mx:Button label="Open Loader" click="popupLoader()"/>
 		</mx:VBox>-->
 	</ui:ControlPanel>
 </ui:DraggablePanel>
