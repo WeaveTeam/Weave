@@ -345,6 +345,17 @@ package weave.core
 			}
 			if (linkableObject is ILinkableCompositeObject)
 			{
+				if (newState is String)
+					newState = [newState];
+				
+				if (newState != null && !(newState is Array))
+				{
+					var array:Array = [];
+					for (var key:String in newState)
+						array.push(new DynamicState(key, null, newState[key]));
+					newState = array;
+				}
+				
 				(linkableObject as ILinkableCompositeObject).setSessionState(newState as Array, removeMissingDynamicObjects);
 				return;
 			}
@@ -356,10 +367,15 @@ package weave.core
 			var objectCC:ICallbackCollection = getCallbackCollection(linkableObject);
 			objectCC.delayCallbacks();
 
-			// set session state
 			var name:String;
 			
-			for each (name in getLinkablePropertyNames(linkableObject))
+			// cache property names if necessary
+			var classQName:String = getQualifiedClassName(linkableObject);
+			if (!classNameToSessionedPropertyNamesMap[classQName])
+				cacheClassInfo(linkableObject, classQName);
+			
+			// set session state
+			for each (name in classNameToSessionedPropertyNamesMap[classQName])
 			{
 				if (!newState.hasOwnProperty(name))
 					continue;
@@ -385,7 +401,7 @@ package weave.core
 			}
 			
 			// pass deprecated session state to deprecated setters
-			for each (name in getDeprecatedSetterNames(linkableObject))
+			for each (name in classNameToDeprecatedSetterNamesMap[classQName])
 			{
 				if (newState.hasOwnProperty(name) && newState[name] !== null)
 				{
@@ -548,31 +564,10 @@ package weave.core
 			}
 			
 			AsyncSort.sortImmediately(propertyNames);
-			classNameToSessionedPropertyNamesMap[classQName] = propertyNames;
-			
 			AsyncSort.sortImmediately(deprecatedSetters);
-			classNameToDeprecatedSetterNamesMap[classQName] = deprecatedSetters;
-		}
-		
-		/**
-		 * @private
-		 */
-		private function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
-		{
-			if (linkableObject == null)
-			{
-				reportError("SessionManager.getDeprecatedSetterNames(): linkableObject cannot be null.");
-				return [];
-			}
 			
-			var className:String = getQualifiedClassName(linkableObject);
-			var names:Array = classNameToDeprecatedSetterNamesMap[className] as Array;
-			if (names == null)
-			{
-				cacheClassInfo(linkableObject, className);
-				names = classNameToDeprecatedSetterNamesMap[className] as Array;
-			}
-			return names;
+			classNameToSessionedPropertyNamesMap[classQName] = propertyNames;
+			classNameToDeprecatedSetterNamesMap[classQName] = deprecatedSetters;
 		}
 
 		/**
@@ -597,7 +592,7 @@ package weave.core
 			}
 			return propertyNames;
 		}
-		// qualified class name of ILinkableObject
+		
 		internal static const ILinkableObjectQualifiedClassName:String = getQualifiedClassName(ILinkableObject);
 		
 		/**
@@ -736,7 +731,7 @@ package weave.core
 				
 				// when there are no more tasks, check later to see if callbacks trigger
 				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
-				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{
@@ -1077,8 +1072,8 @@ package weave.core
 			// set some variables to aid in debugging - only useful if you add a breakpoint here.
 			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
-			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push[obj]; }
-			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push[obj]; }
+			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push(obj); }
+			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push(obj); }
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
@@ -1167,6 +1162,38 @@ package weave.core
 				}
 			}
 			return null;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getObject(root:ILinkableObject, path:Array):ILinkableObject
+		{
+			var object:ILinkableObject = root;
+			for each (var propertyName:Object in path)
+			{
+				if (object == null)
+					return null;
+				if (object is ILinkableHashMap)
+				{
+					if (propertyName is Number)
+						object = (object as ILinkableHashMap).getObjects()[propertyName];
+					else
+						object = (object as ILinkableHashMap).getObject(String(propertyName));
+				}
+				else if (object is ILinkableDynamicObject)
+				{
+					// ignore propertyName and always return the internalObject
+					object = (object as ILinkableDynamicObject).internalObject;
+				}
+				else
+				{
+					if (getLinkablePropertyNames(object).indexOf(propertyName) < 0)
+						return null;
+					object = object[propertyName] as ILinkableObject;
+				}
+			}
+			return object;
 		}
 		
 		
@@ -1389,7 +1416,7 @@ package weave.core
 				// if the linkable variable's callbacks are delayed, delay synchronization
 				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
 				{
-					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 					return;
 				}
 				

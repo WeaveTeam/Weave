@@ -111,7 +111,9 @@ public class MetadataTable extends AbstractTable
 	}
 	public void setProperties(Integer id, Map<String,String> diff) throws RemoteException
 	{
-		try 
+		if (diff == null)
+			return;
+		try
 		{
 			if (!connectionConfig.migrationPending())
 			{

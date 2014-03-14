@@ -129,11 +129,6 @@ package weave.data.DataSources
 			super.initialize();
 		}
 		
-		private function toCSV(...values):String
-		{
-			return WeaveAPI.CSVParser.createCSV([values]);
-		}
-		
 		public static const PROPERTY_NAME:String = "TransposedDataSource_propertyName";
 		public static const RECORD_KEY:String = "TransposedDataSource_recordKey";
 		
@@ -161,7 +156,7 @@ package weave.data.DataSources
 				{
 					var recordAttr:XML = <attribute/>;
 					recordAttr['@'+ColumnMetadata.TITLE] = key.localName;
-					recordAttr['@'+RECORD_KEY] = toCSV(key.keyType, key.localName);
+					recordAttr['@'+RECORD_KEY] = WeaveAPI.CSVParser.createCSVRow([key.keyType, key.localName]);
 					for each (propertyName in metadata.getNames())
 					{
 						var metaColumn:IAttributeColumn = metadata.getObject(propertyName) as IAttributeColumn;

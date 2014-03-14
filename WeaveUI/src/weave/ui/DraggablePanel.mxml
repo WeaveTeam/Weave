@@ -126,7 +126,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
-			private var busyIndicator:BusyIndicator = new BusyIndicator(this as ILinkableObject);
+			/**
+			 * Set this to false to avoid creating a busy indicator. Must be set before creationComplete.
+			 */
+			public var showBusyIndicator:Boolean = true;
+			
+			private var busyIndicator:BusyIndicator;
 			
 			private var _moveImage:Image = new Image();
 
@@ -322,7 +327,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
 				rawChildren.addChild(_moveImage);
-				rawChildren.addChild(busyIndicator);
+				
+				if (showBusyIndicator)
+				{
+					busyIndicator = new BusyIndicator(this as ILinkableObject);
+					rawChildren.addChild(busyIndicator);
+				}
 			}
 			
 			/**

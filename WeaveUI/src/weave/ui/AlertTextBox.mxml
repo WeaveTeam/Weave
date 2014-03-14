@@ -56,7 +56,8 @@
 			 />
 	<mx:HBox id="alertButtons" width="100%">
 		<mx:Spacer width="100%"/>
-		<mx:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}" minWidth="64"/>
+		<mx:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" minWidth="64"
+				   enabled="{validateText(textBox.text)}"/>
 		<mx:Button label="{lang('Cancel')}" click="cancel()" minWidth="64"/>
 	</mx:HBox>
 	
@@ -75,8 +76,12 @@
 		[Bindable] public var allowEmptyInput:Boolean = false;
 		[Bindable] public var autoCompleteChoices:Array = null;
 		
+		public var inputValidator:Function = null;
+		
 		private var _textInput:String = null;
 		private var _expandButton:ExpandButton;
+		private var _ignoreTextChange:Boolean = false;
+		private var _lastSelection:Array;
 		
 		//Message before TextBox
 		[Bindable] public var message:String = null;
@@ -95,41 +100,24 @@
 		}
 	    public function set textInput(value:String):void
 		{
-			if (_blockEnterKey && (value == '\r' || value == '\n'))
-				value = '';
-			_blockEnterKey = false;
+			if (_ignoreTextChange)
+			{
+				_ignoreTextChange = false;
+				textBox.text = _textInput;
+				textBox.setSelection(_lastSelection[0], _lastSelection[1]);
+				return;
+			}
 			
 			_textInput = value || '';
 			
 			if (_textInput.indexOf('\r') >= 0 || _textInput.indexOf('\n') >= 0)
 				_expandButton.expanded = true;
 		}
-		
-		private var _blockEnterKey:Boolean = false;
 	
 		private function handleCreationComplete(event:Event):void
 		{
 			focusManager.setFocus(textBox);
 			textBox.setSelection(0, int.MAX_VALUE);
-		}
-		
-		public static var lastInstance:Object;
-		
-		public static function show(title:String, message:String, defaultInput:String = ""):AlertTextBox 
-		{
-			var newAlert:AlertTextBox = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AlertTextBox, true) as AlertTextBox;
-			newAlert.title = title;
-			// disable moving of the popup
-			newAlert.isPopUp = false;
-			newAlert.message = message;
-			newAlert.textInput = defaultInput;
-			newAlert.validateNow();
-			
-			PopUpManager.centerPopUp(newAlert);
-			
-			lastInstance = newAlert;
-			
-			return newAlert;
 		}
 		
 		private function close():void
@@ -155,13 +143,21 @@
 			close();
 		}
 		
+		private function validateText(text:String):Boolean
+		{
+			return (!!text || allowEmptyInput)
+				&& (inputValidator == null || inputValidator(text));
+		}
+		
 		private function handleKeyDown(event:KeyboardEvent):void
 		{
 			if (event.keyCode == Keyboard.ENTER && !_expandButton.expanded)
 			{
-				if (textBox.text || allowEmptyInput)
+				if (validateText(textBox.text))
 					handleOKClick();
-				_blockEnterKey = true;
+				_textInput = textBox.text;
+				_ignoreTextChange = true;
+				_lastSelection = [textBox.selectionBeginIndex, textBox.selectionEndIndex];
 			}
 			else if (autoCompleteChoices)
 			{
@@ -214,6 +210,24 @@
 			super.move(x, y);
 		}
 		
-   		]]>
+		public static var lastInstance:Object;
+		public static function show(title:String, message:String, defaultInput:String = "", inputValidator:Function = null):AlertTextBox
+		{
+			var newAlert:AlertTextBox = new AlertTextBox();
+			newAlert.title = title;
+			newAlert.message = message;
+			newAlert.textInput = defaultInput;
+			newAlert.inputValidator = inputValidator;
+			
+			PopUpManager.addPopUp(newAlert, WeaveAPI.topLevelApplication as DisplayObject, true);
+			PopUpManager.centerPopUp(newAlert);
+			
+			// disable moving of the popup
+			//newAlert.isPopUp = false;
+			
+			lastInstance = newAlert;
+			return newAlert;
+		}
+	]]>
 	</mx:Script>
 </mx:TitleWindow> 

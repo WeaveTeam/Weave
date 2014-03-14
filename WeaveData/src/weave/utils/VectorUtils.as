@@ -98,13 +98,16 @@ package weave.utils
 		/**
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
+		 * @param source An Array-like object.
+		 * @param destination An Array or Vector.
 		 * @return A pointer to the destination Array (or Vector)
 		 */
-		public static function copy(source:*, destination:*):*
+		public static function copy(source:*, destination:* = null):*
 		{
+			if (!destination)
+				destination = [];
 			destination.length = source.length;
-			var i:int = source.length;
-			while (i--)
+			for (var i:* in source)
 				destination[i] = source[i];
 			return destination;
 		}

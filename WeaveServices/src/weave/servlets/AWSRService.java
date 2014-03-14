@@ -20,9 +20,7 @@
 package weave.servlets;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,12 +32,12 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.script.ScriptException;
 
 import org.apache.commons.io.FilenameUtils;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.rosuda.REngine.REXP;
@@ -49,15 +47,11 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.beans.RResult;
-import weave.config.DataConfig.DataEntityMetadata;
 import weave.servlets.DataService.FilteredColumnRequest;
 import weave.utils.FileUtils;
-import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
-
-import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
 {
@@ -68,15 +62,25 @@ public class AWSRService extends RService
 
 	}
 
-	//TO DO write to and retrieve computation results from database
-	//TO DO make it a map of the entire queryObject, of which the results is a property
-	//temporary fix storing computation results in a hashmap
-	public Map<String,RResult[]> compResultLookMap = new HashMap<String,RResult[]>();
-	
-	public void clearCache() {
-		compResultLookMap.clear();
+	public static class AWSConnectionObject
+	{
+		String connectionType;
+        String user;
+        String password;
+        String schema;
+        String host;
+        String dsn;
 	}
-
+	
+	public static class AWSRequestObject
+	{
+		String scriptName;
+		String dataset;
+		String scriptPath;
+		String[] columnsToBeRetrieved;
+		FilteredColumnRequest[] filteredColumnRequests;
+	}
+   
 	public class MyResult {
 	
 		public RResult[] data;
@@ -129,87 +133,62 @@ public class AWSRService extends RService
 	 * @return returnedColumns result columns from the computation
 	 * @throws Exception
 	 */
-	public RResult[] runScriptOnSQLColumns(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
+	public RResult[] runScriptOnSQLColumns(AWSConnectionObject conn, AWSRequestObject request) throws Exception
 	{
 		RResult[] returnedColumns;
-		String connectionType = connectionObject.get("connectionType").toString();
-		String scriptName = requestObject.get("scriptName").toString();
-		System.out.print(requestObject.toString());
-		//if the computation result has been stored then computation is not run
-		//the stored results are simply returned
-		if(compResultLookMap.containsKey(requestObject.toString()))
-		{
-			return compResultLookMap.get(requestObject.toString());
-		}
 		
-		else
-		{
-			//Set<String> keys = connectionObject.keySet();
-			String user = connectionObject.get("user");
-			String password = connectionObject.get("password");
-			String schemaName = connectionObject.get("schema");
-			String hostName = connectionObject.get("host");
-			
-				
-			//String dataset = requestObject.get("dataset").toString();
-			String scriptPath = requestObject.get("scriptPath").toString();
-			//TODO Find better way to do this? full proof queries?
-			//query construction
-			Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
-			ArrayList<String> columns = new ArrayList<String>();
-			columns = (ArrayList)columnNames;
-			
-			String col1 = columns.get(0);
-			String col2 = columns.get(1);
-			String col3 = columns.get(2);
-			String col4 = columns.get(3);
-			String col5 = columns.get(4);
-			
-			System.out.println(col1 + col2 + col3  + col4 + col5);
-			String query = "";
-			//String query = buildSelectQuery(columns, dataset);
-			
-			String cannedScriptLocation = scriptPath + scriptName;
-			 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
-			 
-			 Object[] requestObjectInputValues = {cannedScriptLocation, query, col1, col2, col3, col4, col5};
-			 String[] requestObjectInputNames = {"cannedScriptPath", "query", "col1", "col2", "col3", "col4", "col5"};
-			
-			 String finalScript = "";
-			 String dsn = connectionObject.get("dsn").toString();
-			if(connectionType.equalsIgnoreCase("RMySQL"))
-			{
-				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-							  "library(RMySQL)\n" +
-							  "con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
-							  "library(survey)\n" +
-							  "getColumns <- function(query)\n" +
-							  "{\n" +
-							  "return(dbGetQuery(con, paste(query)))\n" +
-							  "}\n" +
-							  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
-			} else if (connectionType.equalsIgnoreCase("RODBC"))
-			{
-				finalScript ="scriptFromFile <- source(cannedScriptPath)\n" +
-							 "library(RODBC)\n" +
-							 "con <- odbcConnect(dsn =" + "\"" +dsn+"\", uid =" + "\"" +user+"\" , pwd =" + "\"" +password+"\")\n" +
-							 "sqlQuery(con, \"USE " + schemaName + "\")\n" +
-							 "library(survey)\n" +
-							 "getColumns <- function(query)\n" +
-							 "{\n" +
-							 "return(sqlQuery(con, paste(query)))\n" +
-							 "}\n" +
-							 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
-			}
-			String[] requestObjectOutputNames = {};
-			
-			returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
-			
-			//rewriting?
-			compResultLookMap.put(requestObject.toString(), returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
-			return returnedColumns;
-		}
+		//query construction
+		
+		String query = "";
+		//String query = buildSelectQuery(columns, dataset);
+		
+		String cannedScriptLocation = request.scriptPath + request.scriptName;
+		 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
 		 
+		Object[] requestObjectInputValues = {cannedScriptLocation, query, request.columnsToBeRetrieved[0], request.columnsToBeRetrieved[1], request.columnsToBeRetrieved[2], request.columnsToBeRetrieved[3], request.columnsToBeRetrieved[4]};
+		String[] requestObjectInputNames = {"cannedScriptPath", "query", "col1", "col2", "col3", "col4", "col5"};
+		
+		String finalScript = "";
+		if(conn.connectionType.equalsIgnoreCase("RMySQL"))
+		{
+			finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+						  "library(RMySQL)\n" +
+						  "con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +conn.user+"\" , password =" + "\"" +conn.password+"\", host =" + "\"" +conn.host+"\", port = 3306, dbname =" + "\"" +conn.schema+"\")\n" +
+						  "library(survey)\n" +
+						  "getColumns <- function(query)\n" +
+						  "{\n" +
+						  "return(dbGetQuery(con, paste(query)))\n" +
+						  "}\n" +
+						  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+		} else if (conn.connectionType.equalsIgnoreCase("RODBC"))
+		{
+			finalScript ="scriptFromFile <- source(cannedScriptPath)\n" +
+						 "library(RODBC)\n" +
+						 "con <- odbcConnect(dsn =" + "\"" +conn.dsn+"\", uid =" + "\"" +conn.user+"\" , pwd =" + "\"" +conn.password+"\")\n" +
+						 "sqlQuery(con, \"USE " + conn.schema + "\")\n" +
+						 "library(survey)\n" +
+						 "getColumns <- function(query)\n" +
+						 "{\n" +
+						 "return(sqlQuery(con, paste(query)))\n" +
+						 "}\n" +
+						 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+		}
+		String[] requestObjectOutputNames = {};
+		
+		returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
+		
+		return returnedColumns;
+	}
+	
+	private class InputPairs
+	{
+		ArrayList<String> names = new ArrayList<String>();
+		ArrayList<Object> values = new ArrayList<Object>();
+		void add(String name, Object value)
+		{
+			names.add(name);
+			values.add(value);
+		}
 	}
 	
 	/**
@@ -220,101 +199,68 @@ public class AWSRService extends RService
 	 * @return returnedColumns result columns from the computation
 	 * @throws Exception
 	 */
-	public RResult[] runScriptonAlgoCollection(Map<String,String> connectionObject, Map<String,Object> requestObject, Map<String,Object> algorithmParameters) throws Exception
+	public RResult[] runScriptonAlgoCollection(AWSConnectionObject conn, AWSRequestObject request, Map<String,Object> params) throws Exception
 	{
 		RResult[] returnedColumns;
-		String connectionType = connectionObject.get("connectionType").toString();
-		String scriptName = requestObject.get("scriptName").toString();
-
-		if(compResultLookMap.containsKey(requestObject.toString()))
-		{
-			return compResultLookMap.get(requestObject.toString());
-		}
+			
+		InputPairs input = new InputPairs();
 		
-		else
-		{
+		String query = buildSelectQuery(request.columnsToBeRetrieved, request.dataset);
+		String cannedScriptLocation = request.scriptPath + request.scriptName;
+		
+		input.add("cannedScriptPath", cannedScriptLocation);
+		input.add("query", query);
+		input.add("params", request.columnsToBeRetrieved);
+		input.add("myuser", conn.user);
+		input.add("mypassword", conn.password);
+		input.add("myhostName", conn.host);
+		input.add("myschemaName", conn.schema);
+		input.add("mydsn", conn.schema);
+		
+		//looping through the parameters needed in the computational algorithms in r
+		//if the map is not empty or if it exists
+		if(!(params.isEmpty()) || params != null)
+			for (Entry<String,Object> entry : params.entrySet())
+				input.add(entry.getKey(), entry.getValue());
 			
-			ArrayList<String> inputNames = new ArrayList<String>();
-			ArrayList<Object> inputValues = new ArrayList<Object>();
-			
-			String dataset = requestObject.get("dataset").toString();
-			String scriptPath = requestObject.get("scriptPath").toString();
-			Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
-			ArrayList<String> columnslist = new ArrayList<String>();
-			columnslist = (ArrayList)columnNames;
-			
-			String [] columns = new String[columnslist.size()];
-			columns = columnslist.toArray(columns);
-			String query = buildSelectQuery(columns, dataset);
-			String cannedScriptLocation = scriptPath + scriptName;
-			
-			inputNames.add("cannedScriptPath"); inputValues.add(cannedScriptLocation);
-			inputNames.add("query"); inputValues.add(query);
-			inputNames.add("params"); inputValues.add(columns);
-			
-			inputNames.add("myuser"); inputValues.add(connectionObject.get("user"));
-			inputNames.add("mypassword"); inputValues.add(connectionObject.get("password"));
-			inputNames.add("myhostName"); inputValues.add(connectionObject.get("host"));
-			inputNames.add("myschemaName"); inputValues.add(connectionObject.get("schema"));
-			inputNames.add("mydsn"); inputValues.add(connectionObject.get("dsn"));
-			
-			//looping through the parameters needed in the computational algorithms in r
-			//if the map is not empty or if it exists
-			if(!(algorithmParameters.isEmpty()) || algorithmParameters != null)
-			{
-				for(String key : algorithmParameters.keySet())
-				{
-					inputNames.add(key);
-				}
-				
-				for(Object value : algorithmParameters.values())
-				{
-					inputValues.add(value);
-				}
-			}
-				
-						
-			Object[] requestObjectInputValues = inputValues.toArray();
-			String [] requestObjectInputNames = new String[requestObjectInputValues.length];
-			inputNames.toArray(requestObjectInputNames);
-			 
-			//Object[] requestObjectInputValues = {cannedScriptLocation, query, columns, user, password, hostName, schemaName, dsn};
-			// String[] requestObjectInputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
-			
-			 String finalScript = "";
-			if(connectionType.equalsIgnoreCase("RMySQL"))
-			{
-				finalScript = "library(RMySQL)\n" +
-							  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
-							  "library(survey)\n" +
-							   "getColumns <- function(query)\n" +
-							  "{\n" +
-							  "return(dbGetQuery(con, paste(query)))\n" +
-							  "}\n" +
-							   "scriptFromFile <- source(cannedScriptPath)\n" +
-							   "returnedColumns <- scriptFromFile$value(ClusterSizes, Maxiterations, query)\n";
-			} else if (connectionType.equalsIgnoreCase("RODBC"))
-			{
-				finalScript = "library(RODBC)\n" +
-							 "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n" +
-							 "sqlQuery(con, \"USE myschemaName\")\n" +
-							 "library(survey)\n" +
-							 "getColumns <- function(query)\n" +
-							 "{\n" +
-							 "return(sqlQuery(con, paste(query)))\n" +
-							 "}\n" +
-							 "scriptFromFile <- source(cannedScriptPath)\n" +
-							 "returnedColumnsFromSQL <- scriptFromFile$value(ClusterSizes, Maxiterations, query)\n";
-			}
-			String[] requestObjectOutputNames = {};
-			
-			returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
-			
-			//rewriting?
-			compResultLookMap.put(requestObject.toString(), returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
-			return returnedColumns;
-		}
+					
+		Object[] requestObjectInputValues = input.values.toArray();
+		String [] requestObjectInputNames = new String[requestObjectInputValues.length];
+		input.names.toArray(requestObjectInputNames);
 		 
+		//Object[] requestObjectInputValues = {cannedScriptLocation, query, columns, user, password, hostName, schemaName, dsn};
+		// String[] requestObjectInputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
+		
+		 String finalScript = "";
+		if(conn.connectionType.equalsIgnoreCase("RMySQL"))
+		{
+			finalScript = "library(RMySQL)\n" +
+						  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
+						  "library(survey)\n" +
+						   "getColumns <- function(query)\n" +
+						  "{\n" +
+						  "return(dbGetQuery(con, paste(query)))\n" +
+						  "}\n" +
+						   "scriptFromFile <- source(cannedScriptPath)\n" +
+						   "returnedColumns <- scriptFromFile$value(ClusterSizes, Maxiterations, query)\n";
+		} else if (conn.connectionType.equalsIgnoreCase("RODBC"))
+		{
+			finalScript = "library(RODBC)\n" +
+						 "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n" +
+						 "sqlQuery(con, \"USE myschemaName\")\n" +
+						 "library(survey)\n" +
+						 "getColumns <- function(query)\n" +
+						 "{\n" +
+						 "return(sqlQuery(con, paste(query)))\n" +
+						 "}\n" +
+						 "scriptFromFile <- source(cannedScriptPath)\n" +
+						 "returnedColumnsFromSQL <- scriptFromFile$value(ClusterSizes, Maxiterations, query)\n";
+		}
+		String[] requestObjectOutputNames = {};
+		
+		returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
+		
+		return returnedColumns;
 	}
 	
 	public String[] getListOfScripts()
@@ -442,90 +388,58 @@ public class AWSRService extends RService
 	
 	/**
      * 
-     * @param requestObject sent from the AWS UI collection of parameters to run a computation
-     * @param connectionObject send from the AWS UI parameters needed for connection Rserve to the db
+     * @param request sent from the AWS UI collection of parameters to run a computation
+     * @param conn send from the AWS UI parameters needed for connection Rserve to the db
      * @return returnedColumns result columns from the computation
      * @throws Exception
      */
-    public RResult[] runScriptwithScriptMetadata(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
+    public RResult[] runScriptwithScriptMetadata(AWSConnectionObject conn, AWSRequestObject request) throws Exception
     {
-            RResult[] returnedColumns;
-            String connectionType = connectionObject.get("connectionType").toString();
-            String scriptName = requestObject.get("scriptName").toString();
-            System.out.print(requestObject.toString());
-            //if the computation result has been stored then computation is not run
-            //the stored results are simply returned
-            if(compResultLookMap.containsKey(requestObject.toString()))
-            {
-                    return compResultLookMap.get(requestObject.toString());
-            }
-            
-            else
-            {
-                    //Set<String> keys = connectionObject.keySet();
-                    String user = connectionObject.get("user");
-                    String password = connectionObject.get("password");
-                    String schemaName = connectionObject.get("schema");
-                    String hostName = connectionObject.get("host");
-                    String dsn = connectionObject.get("dsn").toString();
-                    
-                    String dataset = requestObject.get("dataset").toString();
-                    String scriptPath = requestObject.get("scriptPath").toString();
-                    
-                    
-                    //TODO Find better way to do this? full proof queries?
-                    //query construction
-                    Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
-                    ArrayList<String> columnslist = new ArrayList<String>();
-                    columnslist = (ArrayList)columnNames;
-                    
-                    String [] columns = new String[columnslist.size()];
-                    columns = columnslist.toArray(columns);
-                    
-                    String query = buildSelectQuery(columns, dataset);
-                    
-                    String cannedScriptLocation = scriptPath + scriptName;
-                     
-                    /*sending all necessary parameters to the database
-                     * getting rid of string concatenation
-                     * */
-                     Object[] requestObjectInputValues = {cannedScriptLocation, query, columns, user, password, hostName, schemaName, dsn};
-                     String[] requestObjectInputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
-                    
-                     String finalScript = "";
-                    if(connectionType.equalsIgnoreCase("RMySQL"))
-                    {
-                            finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-                                                      "library(RMySQL)\n" +
-                                                      "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
-                                                      "library(survey)\n" +
-                                                      "getColumns <- function(query)\n" +
-                                                      "{\n" +
-                                                      "return(dbGetQuery(con, paste(query)))\n" +
-                                                      "}\n" +
-                                                      "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
-                    } else if (connectionType.equalsIgnoreCase("RODBC"))
-                    {
-                            finalScript ="scriptFromFile <- source(cannedScriptPath)\n" +
-                                                     "library(RODBC)\n" +
-                                                     "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n" +
-                                                     "sqlQuery(con, \"USE myschemaName\")\n" +
-                                                     "library(survey)\n" +
-                                                     "getColumns <- function(query)\n" +
-                                                     "{\n" +
-                                                     "return(sqlQuery(con, paste(query)))\n" +
-                                                     "}\n" +
-                                                     "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
-                    }
-                    String[] requestObjectOutputNames = {};
-                    
-                    returnedColumns = runAWSScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false);
-                    
-                    //rewriting?
-                    compResultLookMap.put(requestObject.toString(), returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
-                    return returnedColumns;
-            }
-             
+        RResult[] returnedColumns;
+        
+        //TODO Find better way to do this? full proof queries?
+        //query construction
+        
+        String query = buildSelectQuery(request.columnsToBeRetrieved, request.dataset);
+        
+        String cannedScriptLocation = request.scriptPath + request.scriptName;
+         
+        /*sending all necessary parameters to the database
+         * getting rid of string concatenation
+         * */
+		Object[] requestObjectInputValues = {cannedScriptLocation, query, request.columnsToBeRetrieved, conn.user, conn.password, conn.host, conn.schema, conn.dsn};
+		String[] requestObjectInputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
+		
+		String finalScript = "";
+        if(conn.connectionType.equalsIgnoreCase("RMySQL"))
+        {
+                finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+                                          "library(RMySQL)\n" +
+                                          "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
+                                          "library(survey)\n" +
+                                          "getColumns <- function(query)\n" +
+                                          "{\n" +
+                                          "return(dbGetQuery(con, paste(query)))\n" +
+                                          "}\n" +
+                                          "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+        } else if (conn.connectionType.equalsIgnoreCase("RODBC"))
+        {
+                finalScript ="scriptFromFile <- source(cannedScriptPath)\n" +
+                                         "library(RODBC)\n" +
+                                         "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n" +
+                                         "sqlQuery(con, \"USE myschemaName\")\n" +
+                                         "library(survey)\n" +
+                                         "getColumns <- function(query)\n" +
+                                         "{\n" +
+                                         "return(sqlQuery(con, paste(query)))\n" +
+                                         "}\n" +
+                                         "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+        }
+        String[] requestObjectOutputNames = {};
+        
+        returnedColumns = runAWSScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false);
+        
+        return returnedColumns;
     }        
     
 
@@ -627,34 +541,22 @@ public class AWSRService extends RService
 		
 		return scriptMetadata;
 	}
+    
     // this functions intends to run a script with filtered.
 	// essentially this function should eventually be our main run script function.
 	// in the request object, there will be: the script path, the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public MyResult runScriptWithFilteredColumns(Map<String,Object> requestObject) throws Exception
+	public MyResult runScriptWithFilteredColumns(AWSRequestObject request) throws Exception
 	{
 		RResult[] returnedColumns;
 
-		String scriptName = requestObject.get("scriptName").toString();
-
-		String cannedScript = uploadPath + "RScripts/" +scriptName;
+		String cannedScript = uploadPath + "RScripts/" + request.scriptName;
 		
-		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("FilteredColumnRequest");
-		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];
-		StringMap<Object> theStringMapColumnRequest;
-		FilteredColumnRequest filteredColumnRequest;
-		
-		for (int i = 0; i < columnRequests.size(); i++) {
-
-			theStringMapColumnRequest = (StringMap<Object>) columnRequests.get(i);
-			filteredColumnRequest = (FilteredColumnRequest) cast(theStringMapColumnRequest, FilteredColumnRequest.class);
-			filteredColumnRequests[i] = filteredColumnRequest;
-		}
 		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
 		long startTime = System.currentTimeMillis();
 		
-		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequests, null).recordData;
+		Object[][] recordData = DataService.getFilteredRows(request.filteredColumnRequests, null).recordData;
 		Object[][] columnData = transpose(recordData);
 		recordData = null;
 		
@@ -1029,39 +931,4 @@ public class AWSRService extends RService
 		  }
 		  return array_new;
 	}
-	
-    @SuppressWarnings("rawtypes")
-    @Override
-    protected Object cast(Object value, Class<?> type)
-    {
-    	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
-    	{
-    		FilteredColumnRequest fcr = new FilteredColumnRequest();
-    		fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
-    		fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
-    		if (fcr.filters != null)
-    			for (int i = 0; i < fcr.filters.length; i++)
-    			{
-    				Object item = fcr.filters[i];
-    				if (item != null && item.getClass() == ArrayList.class)
-    					fcr.filters[i] = cast(item, Object[].class);
-    			}
-    		return fcr;
-    	}
-    	if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
-    	{
-    		Object[] input = (Object[]) value;
-    		FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
-    		for (int i = 0; i < input.length; i++)
-    		{
-    			output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
-    		}
-    		value = output;
-    	}
-    	if (type == DataEntityMetadata.class && value != null && value instanceof Map)
-    	{
-    		return DataEntityMetadata.fromMap((Map)value);
-    	}
-    	return super.cast(value, type);
-    }
 }

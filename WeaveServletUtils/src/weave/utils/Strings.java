@@ -30,10 +30,8 @@ public class Strings
 {
 	public static boolean equal(String a, String b)
 	{
-		if (a == null)
-			return b == null;
-		if (b == null)
-			return a == null;
+		if (a == null || b == null)
+			return a == b;
 		return a.equals(b);
 	}
 	public static boolean isEmpty(String str)

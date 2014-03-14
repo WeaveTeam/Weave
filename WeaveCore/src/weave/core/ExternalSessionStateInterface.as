@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -31,6 +32,7 @@ package weave.core
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
+	import weave.utils.Dictionary2D;
 
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
@@ -47,55 +49,18 @@ package weave.core
 		private var _rootObject:ILinkableObject = WeaveAPI.globalHashMap;
 		
 		/**
-		 * This function returns a pointer to an object appearing in the session state.
-		 * This function is not intended to be accessible directly from JavaScript because
-		 * the pointer to the ILinkableObject cannot be retained in JavaScript.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-		 * @return A pointer to the object referred to by objectPath.
-		 */
-		public function getObject(objectPath:Array):ILinkableObject
-		{
-			var object:ILinkableObject = _rootObject;
-			for each (var propertyName:Object in objectPath)
-			{
-				if (object == null)
-					return null;
-				if (object is ILinkableHashMap)
-				{
-					if (propertyName is Number)
-						object = (object as ILinkableHashMap).getObjects()[propertyName];
-					else
-						object = (object as ILinkableHashMap).getObject(String(propertyName));
-				}
-				else if (object is ILinkableDynamicObject)
-				{
-					// ignore propertyName and always return the internalObject
-					object = (object as ILinkableDynamicObject).internalObject;
-				}
-				else
-				{
-					if ((WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object).indexOf(propertyName) < 0)
-					{
-						return null;
-					}
-					object = object[propertyName] as ILinkableObject;
-				}
-			}
-			return object;
-		}
-		/**
 		 * @inheritDoc
 		 */
 		public function getSessionState(objectPath:Array):Object
 		{
-			var object:ILinkableObject = getObject(objectPath);
+			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
 			if (object == null)
 				return null;
 			var state:Object = WeaveAPI.SessionManager.getSessionState(object);
 			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
 		}
+		
 		/**
 		 * This function modifies a session state, converting any nested XML objects to Strings.
 		 * @param state A session state that may contain nested XML objects.
@@ -129,7 +94,7 @@ package weave.core
 		 */
 		public function setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean
 		{
-			var object:ILinkableObject = getObject(objectPath);
+			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
 			if (object == null)
 				return false;
 			WeaveAPI.SessionManager.setSessionState(object, newState, removeMissingObjects);
@@ -141,7 +106,7 @@ package weave.core
 		 */
 		public function getObjectType(objectPath:Array):String
 		{
-			var object:ILinkableObject = getObject(objectPath);
+			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
 			if (object == null)
 				return null;
 			return getQualifiedClassName(object);
@@ -152,7 +117,7 @@ package weave.core
 		 */
 		public function getChildNames(objectPath:Array):Array
 		{
-			var object:ILinkableObject = getObject(objectPath);
+			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
 			if (object == null)
 				return null;
 			if (object is ILinkableHashMap)
@@ -167,12 +132,13 @@ package weave.core
 		 */
 		public function setChildNameOrder(hashMapPath:Array, orderedChildNames:Array):Boolean
 		{
-			var hashMap:ILinkableHashMap = getObject(hashMapPath) as ILinkableHashMap;
+			var hashMap:ILinkableHashMap = WeaveAPI.SessionManager.getObject(_rootObject, hashMapPath) as ILinkableHashMap;
 			if (!hashMap || !orderedChildNames)
 				return false;
 			hashMap.setNameOrder(orderedChildNames);
 			return true;
 		}
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -187,7 +153,7 @@ package weave.core
 			
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = getObject(parentPath);
+			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 			var child:Object = null;
@@ -200,7 +166,7 @@ package weave.core
 			else if (dynamicObject)
 				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
 			else
-				child = getObject(objectPath);
+				child = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
 			return child is classDef;
 		}
 
@@ -213,7 +179,7 @@ package weave.core
 				return false;
 			objectPath = objectPath.concat();
 			var childName:Object = objectPath.pop();
-			var object:ILinkableObject = getObject(objectPath);
+			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
 			var hashMap:ILinkableHashMap = object as ILinkableHashMap;
 			var dynamicObject:ILinkableDynamicObject = object as ILinkableDynamicObject;
 			if (hashMap)
@@ -257,7 +223,7 @@ package weave.core
 		private function getObjectFromPathOrVariableName(objectPathOrVariableName:Object):*
 		{
 			if (objectPathOrVariableName is Array)
-				return getObject(objectPathOrVariableName as Array);
+				return WeaveAPI.SessionManager.getObject(_rootObject, objectPathOrVariableName as Array);
 			
 			var variableName:String = objectPathOrVariableName as String;
 			if (variableName)
@@ -280,29 +246,23 @@ package weave.core
 		{
 			try
 			{
-				_compiler.includeLibraries.apply(null, staticLibraries);
+				if (staticLibraries)
+					_compiler.includeLibraries.apply(null, staticLibraries);
 				
 				var isAssignment:Boolean = (assignVariableName != null); // allows '' to be used to ignore resulting value
+				if (assignVariableName && !_compiler.isValidSymbolName(assignVariableName))
+					throw new Error("Invalid variable name: " + Compiler.encodeString(assignVariableName));
+				
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				var compiledObject:ICompiledObject = _compiler.compileToObject(expression);
 				var isFuncDef:Boolean = _compiler.compiledObjectIsFunctionDefinition(compiledObject);
-				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [_variables, variables], null, thisObject != null);
+				// passed-in variables take precedence over stored ActionScript _variables
+				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [variables, _variables], reportError, thisObject != null);
 				var result:*;
 				if (isAssignment && isFuncDef)
 				{
-					// bind 'this' scope and wrap in try/catch
-					result = function(...args):*
-					{
-						try
-						{
-							return compiledMethod.apply(thisObject, args);
-						}
-						catch (e:Error)
-						{
-							reportError(e);
-						}
-						return undefined;
-					};
+					// bind 'this' scope
+					result = Compiler.bind(compiledMethod, thisObject);
 				}
 				else
 				{
@@ -324,7 +284,8 @@ package weave.core
 		/**
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
 		 */		
-		private const _callbackFunctionCache:Object = {};
+		private var _callbackFunctionCache:Object = {};
+		private var _d2d_callbackStr_target:Dictionary2D = new Dictionary2D(true, true);
 		
 		/**
 		 * @private
@@ -357,26 +318,51 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean
+		public function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
 		{
-			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
+			var object:ILinkableObject = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
-			// always use a grouped callback to avoid messy situations with javascript alert boxes
-			getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+			_d2d_callbackStr_target.set(callback, object, true);
+			if (immediateMode)
+				getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+			else
+				getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
 			return true;
 		}
 		
 		/**
 		 * @inheritDoc
 		 */
-		public function removeCallback(objectPathOrVariableName:Object, callback:String):Boolean
+		public function removeCallback(objectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean
 		{
+			if (everywhere)
+			{
+				for (var target:Object in _d2d_callbackStr_target.dictionary[callback])
+					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callback] as Function);
+				delete _callbackFunctionCache[callback];
+				delete _d2d_callbackStr_target.dictionary[callback];
+				return true;
+			}
+			
 			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
+			_d2d_callbackStr_target.remove(callback, object);
 			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
 			return true;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function removeAllCallbacks():void
+		{
+			for (var callbackStr:String in _d2d_callbackStr_target.dictionary)
+				for (var target:Object in _d2d_callbackStr_target.dictionary[callbackStr])
+					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callbackStr] as Function);
+			_callbackFunctionCache = {};
+			_d2d_callbackStr_target = new Dictionary2D(true, true);
 		}
 		
 		/**

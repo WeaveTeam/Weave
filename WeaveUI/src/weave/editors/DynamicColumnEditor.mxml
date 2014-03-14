@@ -308,9 +308,9 @@
 					lookupCol.dynamicColumnReference.removeObject();
 				var title:String = "{ this.variables.getObject('"+DATA_VARIABLE+"').getMetadata('"+ColumnMetadata.TITLE+"') }";
 //				var title:String = dataRef.getMetadata(AttributeColumnMetadata.TITLE);
-				equationColumn.setMetadata(ColumnMetadata.TITLE, title);
-				equationColumn.setMetadata(ColumnMetadata.KEY_TYPE, desiredKeyType);
-				equationColumn.setMetadata(ColumnMetadata.DATA_TYPE, dataRef.getMetadata(ColumnMetadata.DATA_TYPE));
+				equationColumn.setMetadataProperty(ColumnMetadata.TITLE, title);
+				equationColumn.setMetadataProperty(ColumnMetadata.KEY_TYPE, desiredKeyType);
+				equationColumn.setMetadataProperty(ColumnMetadata.DATA_TYPE, dataRef.getMetadata(ColumnMetadata.DATA_TYPE));
 				
 				dynamicColumn.resumeCallbacks();
 			}

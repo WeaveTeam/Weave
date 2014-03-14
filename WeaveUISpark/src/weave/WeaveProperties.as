@@ -466,12 +466,11 @@ package weave
 			if (!startupJavaScript.value)
 				return;
 			
-			var script:String = 'function(){' + WeaveAPI.JS_var_weave + startupJavaScript.value + '}';
 			var prev:Boolean = ExternalInterface.marshallExceptions;
 			try
 			{
 				ExternalInterface.marshallExceptions = true;
-				ExternalInterface.call(script, ExternalInterface.objectID);
+				WeaveAPI.executeJavaScript(startupJavaScript.value);
 			}
 			catch (e:Error)
 			{
