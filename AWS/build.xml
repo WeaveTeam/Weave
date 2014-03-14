@@ -14,12 +14,23 @@
 
 	<target name="all" depends="clean, compile, app, dist">
 	</target>
-	
+	<target name="simple" depends="partialclean, app, dist"></target>
 	<target name="clean">
 		<delete quiet="true" includeemptydirs="true">
 			<fileset dir="${build-dir}" includes="**/*"/>
 		</delete>
 	</target>
+    <target name="partialclean">
+      <delete quiet="true" includeemptydirs="true">
+        <fileset dir="${build-dir}">
+          <include name="**/*" />
+          <exclude name="aws/*" />
+          <exclude name="goog/*" />
+          <exclude name="aws-source-map.json" />
+          <exclude name="aws.js" />
+        </fileset> 
+      </delete>
+    </target>
 	
 	<target name="compile">
 		<!--
@@ -112,5 +123,5 @@
 		</sequential>
 	</macrodef>
 	<!-- <compile-soy file="mytemplate.soy"/> -->
-	
+    
 </project>
