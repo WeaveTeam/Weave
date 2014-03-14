@@ -75,7 +75,7 @@ import weave.utils.Strings;
  * 
  * @author Andy Dufilie
  */
-public class DataService extends GenericServlet
+public class DataService extends WeaveServlet
 {
 	private static final long serialVersionUID = 1L;
 	
