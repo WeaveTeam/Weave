@@ -82,6 +82,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		  $scope.myData = data;
 		  $scope.$apply();
 	 };
+	 $scope.selectedItems = [];
 	 
 	 $scope.gridOptions = { 
 	        data: 'myData',
@@ -89,16 +90,29 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	        enableCellEdit: true,
 	        columnDefs: [{field: 'property', displayName: 'Property', enableCellEdit: true}, 
 	                     {field:'value', displayName:'Value', enableCellEdit: true}],
-	        multiSelect : false
+	        multiSelect : false,
+	        selectedItems : $scope.selectedItems
 	                     
 	 };
 	 
 	 $scope.addNewRow = function () {
 		 $scope.myData.push({property: 'Property Name', value: 'Value'});
+		 updateMetadata($scope.myData);
 	 };
+	 
+	 $scope.removeRow = function() {
+		 var index = $scope.myData.indexOf($scope.gridOptions.selectedItems[0]);
+	     $scope.myData.splice(0, 1);
+	     updateMetadata($scope.myData);
+	 }
+	 
 	  
 	 $scope.$on('ngGridEventEndCellEdit', function(){
-		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat($scope.myData));
+		 updateMetadata($scope.myData);
+	 });
+	 
+	 var updateMetadata = function(metadata) {
+		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
 		 queryService.updateEntity("mysql", 
 			"pass", 
 			$scope.selectedColumnId, { 
@@ -109,60 +123,61 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		 ).then(function() {
 			 $scope.progressValue = 100;
 		 });
-	 });
+	 };
 	 
-	$scope.$watch('columnSelected', function(){
-		if($scope.columnSelected){
-			$scope.aws_metadataTextArea = JSON.stringify(JSON.parse($scope.columnSelected.aws_metadata), null, 2);
-			$('#log').html('');
-		} else {
-			$scope.aws_metadataTextArea = "";
-		}
-	});
-		
-	$scope.columnList = [];
-		
 	$scope.refresh = function() {
 		generateTree();
 		$scope.$apply();
 	};
-		
-	$scope.updateFromCSV = function() {
-			
-			var metadataArray = queryService.CSVToArray($scope.aws_metadataCSV);
-			aws.DataClient.getEntityChildIds($scope.selectedColumnId, function() {
-				
-			});
-			if($scope.dataTable) {
-				for (var i = 1; i < metadataArray.length; i++) {
-					var metadata = metadataArray[i][1];
-					var title = metadataArray[i][0];
-					$scope.progressValue = 0;
-					var end = $scope.columnList.length;
-					var id = -1;
-					var j = 0;
-					for(j = 0; j < $scope.columnList.length; j++) {
-						if($scope.columnList[j].title == title) {
-							id = $scope.columnList[j].id;
-					 	break; // we assume there is only one match
-					}
-				}
-				
-				if(id != -1) {
-					queryService.updateEntity("mysql", 
-							"pass", 
-							 id, { 
-														publicMetadata : { 
-																			aws_metadata : metadata.replace(/\s/g, '')
-																		}
-														}
-						 ).then(function() {
-							 $scope.progressValue++;
-						 });								
-				}
-			}						
-		} else {
-			$('#log').html("select a data table..");
-		}
+	
+	$scope.importQueryObject = function() {
+	
 	};
+			
+	$scope.$on('fileUploaded', function(e) {
+          $scope.$safeApply(function() {
+        	  var metadataArray = queryService.CSVToArray(e.targetScope.file);
+        	  if($scope.selectedColumnId) {
+        		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
+        			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
+        				  console.log(columns);
+            			  if(columns.length) {
+            				  for (var i = 1; i < metadataArray.length; i++) {
+            						var metadata = metadataArray[i][1];
+            						var title = metadataArray[i][0];
+            						$scope.progressValue = 0;
+            						var end = columns.length;
+            						$scope.maxTasks = end;
+            						var id;
+            						for(var j = 0; j < columns.length; j++) {
+            							if(columns.title == title) {
+            								id = $scope.columnList[j].id;
+            								break; // we assume there is only one match
+            							}
+            						}
+            					
+    	        					if(id) {
+    	        						queryService.updateEntity("mysql", 
+    	        								"pass", 
+    	        								 id, { 
+    	        															publicMetadata : { 
+    	        																				aws_metadata : metadata.replace(/\s/g, '')
+    	        																			}
+    	        															}
+    	        							 ).then(function() {
+    	        								 console.log("updating");
+    	        								 $scope.progressValue++;
+    	        							 });								
+    	        					}
+    							 }
+            			  } else {
+            				  console.log("selected entity is not a table or table does not contain any columns.");
+            			  }
+        			  });
+        		  });
+        	  } else {
+  					console.log("no selected tables");
+        	  };
+            });
+	});
 });
