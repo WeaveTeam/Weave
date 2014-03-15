@@ -102,7 +102,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	 
 	 $scope.removeRow = function() {
 		 var index = $scope.myData.indexOf($scope.gridOptions.selectedItems[0]);
-	     $scope.myData.splice(0, 1);
+	     $scope.myData.splice(index, 1);
 	     updateMetadata($scope.myData);
 	 };
 	 
