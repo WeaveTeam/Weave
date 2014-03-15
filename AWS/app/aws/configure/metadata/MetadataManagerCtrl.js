@@ -23,6 +23,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 						}
 						treeNode.children = children;
 						treeData.push(treeNode);
+						console.log("refresh");
 						if( treeData.length == end) {
 							$("#tree").dynatree({
 								minExpandLevel: 1,
@@ -104,9 +105,20 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		 var index = $scope.myData.indexOf($scope.gridOptions.selectedItems[0]);
 	     $scope.myData.splice(0, 1);
 	     updateMetadata($scope.myData);
-	 }
+	 };
 	 
-	  
+	 $scope.$watch('progressValue', function(){
+		if($scope.progressValue == $scope.maxTasks) {
+			setTimeout(function() {
+				$scope.inProgress = false;
+				$scope.progressValue = 0;
+				$scope.$apply();
+			}, 50);
+		} else {
+			$scope.inProgress = true;
+		}
+	 });
+	 
 	 $scope.$on('ngGridEventEndCellEdit', function(){
 		 updateMetadata($scope.myData);
 	 });
@@ -121,13 +133,14 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 														}
 										}
 		 ).then(function() {
+     		 $scope.maxTasks = 100;
 			 $scope.progressValue = 100;
 		 });
 	 };
 	 
 	$scope.refresh = function() {
+		console.log("refresh");
 		generateTree();
-		$scope.$apply();
 	};
 	
 	$scope.importQueryObject = function() {
@@ -140,22 +153,20 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
         	  if($scope.selectedColumnId) {
         		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
         			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
-        				  console.log(columns);
             			  if(columns.length) {
             				  for (var i = 1; i < metadataArray.length; i++) {
-            						var metadata = metadataArray[i][1];
+            					  	var metadata = metadataArray[i][1];
             						var title = metadataArray[i][0];
             						$scope.progressValue = 0;
             						var end = columns.length;
             						$scope.maxTasks = end;
             						var id;
             						for(var j = 0; j < columns.length; j++) {
-            							if(columns.title == title) {
-            								id = $scope.columnList[j].id;
+            							if(columns[j].publicMetadata.title == title) {
+            								id = columns[j].id;
             								break; // we assume there is only one match
             							}
             						}
-            					
     	        					if(id) {
     	        						queryService.updateEntity("mysql", 
     	        								"pass", 
@@ -165,7 +176,6 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
     	        																			}
     	        															}
     	        							 ).then(function() {
-    	        								 console.log("updating");
     	        								 $scope.progressValue++;
     	        							 });								
     	        					}

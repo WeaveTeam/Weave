@@ -17,7 +17,9 @@
 			<input type="file" file-upload name="queryImport"	ng-submit="UploadFromCSV()"/>
 	  </div>
 	  <br><br>
-      <progressbar value="progressValue" max="maxTasks">{{progressValue}}% completed</progressbar>
+	  <div ng-show="inProgress">
+	      <progressbar value="progressValue" max="maxTasks" animate="false"></progressbar>
+	  </div>
     </td>
     <td valign="top">
     	<br>
