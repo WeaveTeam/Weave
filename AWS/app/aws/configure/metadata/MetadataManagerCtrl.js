@@ -23,7 +23,6 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 						}
 						treeNode.children = children;
 						treeData.push(treeNode);
-						console.log("refresh");
 						if( treeData.length == end) {
 							$("#tree").dynatree({
 								minExpandLevel: 1,
@@ -139,7 +138,6 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	 };
 	 
 	$scope.refresh = function() {
-		console.log("refresh");
 		generateTree();
 	};
 	
