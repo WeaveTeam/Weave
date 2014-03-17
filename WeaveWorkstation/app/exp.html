@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
+	<head ng-app="aws">
 		<meta charset="utf-8" />
 
 		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
@@ -16,14 +16,30 @@
 		<!-- Replace favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
 
 		<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
-		<!--<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">-->
+				<!--<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">-->
 		<link rel="stylesheet" href="css/exp/cutdown.css">
 		<link rel="stylesheet" type="text/css" href="lib/jsoneditor/jsoneditor.css">
-		<script type="text/javascript" src="lib/jsoneditor/jsoneditor.js"></script>
+		<script src="lib/jquery/jquery 2_1_0.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script>
+		<script src="http://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.10.0.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular-route.js"></script>
+		
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-animate.min.js"></script>
+		<script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.js"></script>
+		<script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.tpl.js"></script>
+		
+		<script src="lib/angular/masonry.js"></script>
+		<script src="lib/imagesloaded/imagesloaded.js"></script>
+        <script src="lib/angular/angular-masonry.js"></script>
+		
+		<script src="aws/analysis/analysisService.js"></script>
+		<script src="aws/app.js"></script>
+		
+		<script src="aws/analysis/analysis.js"></script>
 
 	</head>
 
-	<body>
+	<body ng-controller="AWSController">
 
 		<div class="wizard-vertical">
 
@@ -62,7 +78,18 @@
 		<hr/>
 		<br />
 
-		<div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+		<div ng-controller="SrcController">
+			<button style="width: 40%; text-align: left; height: 30px; vertical-align: middle" type="button"
+			class="btn btn-default" ng-model="selectedIcons" data-html="1" data-multiple="1" data-animation="am-flip-x" ng-options="icon.value as icon.label for icon in icons" bs-select>
+				<span style="float: right; margin-top: 5px;" class="caret"></span>
+			</button>
+
+		</div>
+
+		<hr/>
+		<br />
+
+		<!--<div id="jsoneditor" style="width: 400px; height: 400px;"></div>
 
 		<script type="text/javascript" >
 			// create the editor
@@ -112,14 +139,11 @@
 
 			// get json
 			var json = editor.get();
-		</script>
+		</script>-->
 
-	<br />
-	
-	<div masonry>
+		<br />
+
 		
-		
-	</div>
-	
+
 	</body>
 </html>

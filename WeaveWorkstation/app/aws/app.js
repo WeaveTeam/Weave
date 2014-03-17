@@ -1,5 +1,8 @@
-var weaveAWSApp = angular.module('aws', ['ui.bootstrap', 
+var weaveAWSApp = angular.module('aws', [
+										 'ngSanitize',
+										 'mgcrea.ngStrap', 
 										 'ngRoute',
+										 'aws.services',
 										 'aws.analysisService',
 										 'aws.AnalysisModule'
 										 ]);
@@ -35,3 +38,4 @@ weaveAWSApp.config(function($routeProvider) {
 	});
 
 });
+

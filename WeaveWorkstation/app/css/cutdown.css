@@ -99,6 +99,33 @@
 	float: left;
 }
 
+
+/*
+ * 
+ * The Script Search Bar
+ * 
+ * 
+ */
+
+.strap-dropdown-input{
+	
+	
+	vertical-align: middle;
+	padding: 5px;
+	le;
+
+	
+}
+
+
+.strap-caret{
+	
+	float: right;
+	margin-top: 8px;
+	
+}
+
+
 /*
  *
  * The left form
@@ -134,6 +161,8 @@
 	margin-bottom: 5px;
 	color: #626262
 }
+
+
 
 .analysis-tpl .analysis-wizard {
 
@@ -250,6 +279,18 @@
 	vertical-align: middle;
 	font-size: 10px;
 	border: 0px;
+}
+
+.tool-list .tool-category{
+	
+	height: 35px;
+background-color: #292929;
+color: white;
+padding-left: 10px;
+padding-top: 5px;
+margin-top: 0px;
+margin-bottom: 0px;
+	
 }
 
 .widget-container .color-widget {
@@ -387,6 +428,14 @@
 	font-size: 17px;
 	font-weight: 300;
 }
+
+
+/*
+ * 
+ * CSS for the run bar -> report generation bar
+ * 
+ */
+
 
 .run-bar {
 

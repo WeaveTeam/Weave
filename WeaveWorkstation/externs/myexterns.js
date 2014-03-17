@@ -1,0 +1,2 @@
+// temporary solution
+var console;

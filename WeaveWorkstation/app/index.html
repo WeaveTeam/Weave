@@ -99,8 +99,6 @@
 				<div style="height: 100%" class="ngview" ng-view>
 
 				</div>
-				
-				
 
 			</div>
 
@@ -111,25 +109,35 @@
 			</footer>
 		</div>
 
-		
-		
 		<script src="lib/jquery/jquery 2_1_0.js"></script>
+
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
 		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script>
-		<script src="http://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.10.0.js"></script>
-		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular-route.js"></script>
-		
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-animate.min.js"></script>
-		<script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.min.js"></script>
+		<script src="lib/angularstrap/angular-strap-2-0-0-rc4.js"></script>
 		<script src="//rawgithub.com/mgcrea/angular-strap/master/dist/angular-strap.tpl.min.js"></script>
-		
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular-route.js"></script>
+		<script src="//code.angularjs.org/1.2.11/angular-sanitize.js" data-semver="1.2.11"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-animate.min.js"></script>
+		<!--Conflicts the for the tooltip-->
+		<!--<script src="http://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.10.0.js"></script>-->
 		<script src="lib/angular/masonry.js"></script>
 		<script src="lib/imagesloaded/imagesloaded.js"></script>
-        <script src="lib/angular/angular-masonry.js"></script>
+		<script src="lib/angular/angular-masonry.js"></script>
+
+		<script src="lib/safeapply.js"></script>
+		<!--Services js files-->
 		
-		<script src="aws/analysis/analysisService.js"></script>
 		<script src="aws/app.js"></script>
+		<script src="query_services.js"></script>
 		
+		
+		<!--Analysis Files-->		
+		<script src="aws/analysis/analysisService.js"></script>
 		<script src="aws/analysis/analysis.js"></script>
+		<script src="aws.js"></script>
+
+		
 
 	</body>
 </html>
