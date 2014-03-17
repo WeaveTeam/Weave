@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sites>
+<site>
+<name>Deploy WeaveWorkstation</name>
+<source>workspace:/WeaveWorkstation</source>
+<destination>file:/usr/local/apache-tomcat-7.0.50/webapps/ROOT</destination>
+</site>
+</sites>
