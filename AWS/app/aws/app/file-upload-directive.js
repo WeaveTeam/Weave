@@ -8,15 +8,13 @@ angular.module('aws.directives.fileUpload', ['aws.router'])
                 });
 
                 $(elem).on("change", function(evt) {
-                    //console.log(evt.target.files);
                     var file = evt.target.files[0];
                     var reader = new FileReader();
                     reader.onload = function(e) {
-                        $scope.jsonText = $.parseJSON(e.target.result);
-                        $scope.$broadcast('newQueryLoaded');
+                        $scope.file = e.target.result;
+                        $scope.$broadcast('fileUploaded');
                     }
                     reader.readAsText(file);
-
                 });
 
             }

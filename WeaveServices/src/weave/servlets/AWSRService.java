@@ -49,9 +49,11 @@ import org.rosuda.REngine.Rserve.RserveException;
 import weave.beans.RResult;
 import weave.servlets.DataService.FilteredColumnRequest;
 import weave.utils.FileUtils;
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
 {
@@ -931,4 +933,35 @@ public class AWSRService extends RService
 		  }
 		  return array_new;
 	}
+
+    @SuppressWarnings("rawtypes")
+    protected Object cast(Object value, Class<?> type) throws RemoteException
+    {
+    	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
+    	{
+    		FilteredColumnRequest fcr = new FilteredColumnRequest();
+    		fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
+    		fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
+    		if (fcr.filters != null)
+    			for (int i = 0; i < fcr.filters.length; i++)
+    			{
+    				Object item = fcr.filters[i];
+    				if (item != null && item.getClass() == ArrayList.class)
+    					fcr.filters[i] = cast(item, Object[].class);
+    			}
+    		return fcr;
+    	}
+    	if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
+    	{
+    		Object[] input = (Object[]) value;
+    		FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
+    		for (int i = 0; i < input.length; i++)
+    		{
+    			output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
+    		}
+    		value = output;
+    	}
+    	
+    	return super.cast(value, type);
+    }
 }

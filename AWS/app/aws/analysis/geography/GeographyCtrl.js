@@ -3,7 +3,9 @@ GeoModule.controller('GeographyControl', function($scope, queryService){
 	
 	queryService.queryObject.GeographyFilter = {
 			state : {},
-			counties : {}
+			counties : {},
+			stateColumn : {},
+			stateColumn : {}
 	};
 	var stateValueKey = null;
 	var stateLabelKey = null;
@@ -114,8 +116,57 @@ GeoModule.controller('GeographyControl', function($scope, queryService){
 					return angular.fromJson(item);
 				});
 			} else {
-				queryService.queryObject.GeographyFilter.counties = "";
+				queryService.queryObject.GeographyFilter.counties = [];
 			}
 		};
+	});
+	
+	$scope.$watch(function() {
+		return queryService.queryObject.dataTable;
+	}, function() {
+		if(queryService.queryObject.dataTable.hasOwnProperty("title")) {
+			$scope.dataTableTitle = queryService.queryObject.dataTable.title;
+		}
+	});
+	
+	$scope.$watch(function() {
+		return queryService.dataObject.columns;
+	}, function() {
+		if(queryService.dataObject.columns != undefined) {
+			
+			$scope.stateDBOptions = $.map(queryService.dataObject.columns, function(column) {
+					var aws_metadata = angular.fromJson(column.publicMetadata.aws_metadata);
+					if(aws_metadata != undefined){
+						if(aws_metadata.hasOwnProperty("columnType")) {
+							if(aws_metadata.columnType == "geography") {
+								return { id : column.id , title : column.publicMetadata.title};
+							} else {
+								// skip
+							}
+						}
+					}
+				});
+			$scope.countyDBOptions = $scope.stateDBOptions;
+		};
+	});
+	
+	$scope.$watch('stateDBSelection', function() {
+		if($scope.stateDBSelection != undefined) {
+			if($scope.stateDBSelection != "") {
+				queryService.queryObject.GeographyFilter.stateColumn = angular.fromJson($scope.stateDBSelection);
+			} else {
+				queryService.queryObject.GeographyFilter.stateColumn = {};
+			}
+		}
+	});
+	
+	$scope.$watch('countyDBSelection', function() {
+		if($scope.stateDBSelection != undefined) {
+			if($scope.stateDBSelection != "") {
+				queryService.queryObject.GeographyFilter.countyColumn = angular.fromJson($scope.countyDBSelection);
+			} else {
+				queryService.queryObject.GeographyFilter.countyColumn = {};
+			}
+		}
 	});
 });
