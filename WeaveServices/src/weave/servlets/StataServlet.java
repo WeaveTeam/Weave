@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 import weave.utils.CommandUtils;
 
-public class StataServlet extends GenericServlet {
+public class StataServlet extends WeaveServlet {
 	private static final long serialVersionUID = 1L;
 	private String statpath = "C:/Program Files (x86)/Stata12/Stata-64.exe";
 
