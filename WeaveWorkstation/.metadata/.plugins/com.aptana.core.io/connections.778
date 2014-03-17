@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connections>
+<connection id="b1dda6cd-838c-40d7-b054-3632583e4cd3" type="workspace">
+<name>WeaveWorkstation</name>
+<path>/WeaveWorkstation</path>
+</connection>
+<connection id="b29c6ae1-e033-47f8-982d-8e40aed5386c" type="local">
+<name>/usr/local/apache-tomcat-7.0.50/webapps/ROOT</name>
+<path>/usr/local/apache-tomcat-7.0.50/webapps/ROOT</path>
+</connection>
+</connections>

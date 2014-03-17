@@ -1,0 +1,14 @@
+<div class="panel-body">
+	<ul class="input-controls">
+		<li>
+			<span class="label-p">Height Column(s)</span>
+			<span class ="input-p">
+				<button type="button" class="btn btn-default" ng-model="selectedIcon" data-html="1" ng-options="icon.value as icon.label for icon in icons" bs-select>
+					Action <span class="caret"></span>
+				</button>
+			</span>
+		</li>	
+	</ul>
+
+</div>
+
