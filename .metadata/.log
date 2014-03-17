@@ -211,3 +211,73 @@ java.io.FileNotFoundException: /Users/amith/Development/IVPR/workspace/Weave/.me
 	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1109)
 	at org.eclipse.core.internal.resources.DelayedSnapshotJob.run(DelayedSnapshotJob.java:51)
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+
+!ENTRY org.eclipse.core.resources 4 566 2014-03-17 14:00:35.529
+!MESSAGE Could not save safe table.
+!STACK 0
+java.io.FileNotFoundException: /Users/amith/Development/IVPR/workspace/Weave/.metadata/.plugins/org.eclipse.core.resources/.safetable/com.aptana.webserver.core.1 (No such file or directory)
+	at java.io.FileOutputStream.open(Native Method)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:194)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:145)
+	at org.eclipse.core.internal.resources.SafeFileTable.save(SafeFileTable.java:82)
+	at org.eclipse.core.internal.resources.SaveContext.commit(SaveContext.java:40)
+	at org.eclipse.core.internal.resources.SaveManager.commit(SaveManager.java:324)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1193)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1109)
+	at org.eclipse.core.internal.resources.DelayedSnapshotJob.run(DelayedSnapshotJob.java:51)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+
+!ENTRY com.aptana.index.core 4 0 2014-03-17 14:00:43.497
+!MESSAGE (Build 3.4.2.201308081805) [ERROR]  null
+!STACK 0
+java.io.UTFDataFormatException
+	at com.aptana.internal.index.core.DiskIndex.readString(DiskIndex.java:1477)
+	at com.aptana.internal.index.core.DiskIndex.readChunk(DiskIndex.java:1226)
+	at com.aptana.internal.index.core.DiskIndex.readAllDocumentNames(DiskIndex.java:1015)
+	at com.aptana.internal.index.core.DiskIndex.mergeWith(DiskIndex.java:867)
+	at com.aptana.index.core.Index.save(Index.java:698)
+	at com.aptana.index.core.Index.save(Index.java:671)
+	at com.aptana.core.internal.build.IndexBuildParticipant.buildEnding(IndexBuildParticipant.java:66)
+	at com.aptana.core.internal.build.LazyBuildParticipant.buildEnding(LazyBuildParticipant.java:67)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.runParticipants(CommonReconcilingStrategy.java:341)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.reconcile(CommonReconcilingStrategy.java:277)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.reconcile(CommonReconcilingStrategy.java:235)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.fullReconcile(CommonReconcilingStrategy.java:477)
+	at com.aptana.editor.common.text.reconciler.CompositeReconcilingStrategy.fullReconcile(CompositeReconcilingStrategy.java:125)
+	at com.aptana.editor.common.text.reconciler.CommonReconciler.process(CommonReconciler.java:162)
+	at org.eclipse.jface.text.reconciler.AbstractReconciler$BackgroundThread.run(AbstractReconciler.java:206)
+
+!ENTRY com.aptana.index.core 4 0 2014-03-17 14:01:12.543
+!MESSAGE (Build 3.4.2.201308081805) [ERROR]  null
+!STACK 0
+java.io.UTFDataFormatException
+	at com.aptana.internal.index.core.DiskIndex.readString(DiskIndex.java:1477)
+	at com.aptana.internal.index.core.DiskIndex.readChunk(DiskIndex.java:1226)
+	at com.aptana.internal.index.core.DiskIndex.readAllDocumentNames(DiskIndex.java:1015)
+	at com.aptana.internal.index.core.DiskIndex.mergeWith(DiskIndex.java:867)
+	at com.aptana.index.core.Index.save(Index.java:698)
+	at com.aptana.index.core.Index.save(Index.java:671)
+	at com.aptana.core.internal.build.IndexBuildParticipant.buildEnding(IndexBuildParticipant.java:66)
+	at com.aptana.core.internal.build.LazyBuildParticipant.buildEnding(LazyBuildParticipant.java:67)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.runParticipants(CommonReconcilingStrategy.java:341)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.reconcile(CommonReconcilingStrategy.java:277)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.reconcile(CommonReconcilingStrategy.java:235)
+	at com.aptana.editor.common.text.reconciler.CommonReconcilingStrategy.fullReconcile(CommonReconcilingStrategy.java:477)
+	at com.aptana.editor.common.text.reconciler.CompositeReconcilingStrategy.fullReconcile(CompositeReconcilingStrategy.java:125)
+	at com.aptana.editor.common.text.reconciler.CommonReconciler.process(CommonReconciler.java:162)
+	at org.eclipse.jface.text.reconciler.AbstractReconciler$BackgroundThread.run(AbstractReconciler.java:206)
+
+!ENTRY org.eclipse.core.resources 4 566 2014-03-17 14:05:35.556
+!MESSAGE Could not save safe table.
+!STACK 0
+java.io.FileNotFoundException: /Users/amith/Development/IVPR/workspace/Weave/.metadata/.plugins/org.eclipse.core.resources/.safetable/com.aptana.webserver.core.1 (No such file or directory)
+	at java.io.FileOutputStream.open(Native Method)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:194)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:145)
+	at org.eclipse.core.internal.resources.SafeFileTable.save(SafeFileTable.java:82)
+	at org.eclipse.core.internal.resources.SaveContext.commit(SaveContext.java:40)
+	at org.eclipse.core.internal.resources.SaveManager.commit(SaveManager.java:324)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1193)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1109)
+	at org.eclipse.core.internal.resources.DelayedSnapshotJob.run(DelayedSnapshotJob.java:51)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
