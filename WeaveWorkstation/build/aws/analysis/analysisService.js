@@ -15,15 +15,39 @@ angular.module('aws.analysisService', [])
 function($filter) {
 
 	var tool_list = [{
-
+		id : 'Indicator',
+		title : 'Indicator',
+		template_url : 'aws/visualization/indicator/indicator.tpl.html',
+		description : 'Choose the indicator for this analysis',
+		note: 'This is the global indicator that will be use for the analysis',
+		category : 'indicator'
+	},
+	{
 		id : 'GeographyFilter',
-		title : 'Geography Filter',
+		title : 'Geography',
 		template_url : 'aws/visualization/data_filters/geography.tpl.html',
-		description : 'Filter display data based on places',
+		description : 'Filter data based on location',
 		note: 'This filter will limit its options if the scipt computes on a list subset',
 		category : 'datafilter'
 
-	}, {
+	},
+	{
+		id : 'TimePeriodFilter',
+		title : 'Time Period',
+		template_url : 'aws/visualizations/data_filters/time_period.tpl.html',
+		desription : 'Filter data based on time period',
+		note: 'This is a note',
+		category : 'datafilter'
+	},
+	{
+		id : 'ByVariableFilter',
+		title : 'By Variable',
+		template_url : 'aws/visualizations/data_filters/time_period.tpl.html',
+		desription : 'Filter data based on time period',
+		note: 'This is a note',
+		category : 'datafilter'
+	},
+	{
 		id : 'BarChartTool',
 		title : 'Bar Chart Tool',
 		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
