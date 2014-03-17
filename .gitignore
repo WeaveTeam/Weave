@@ -8,7 +8,8 @@ WeaveServices/.externalToolBuilders/
 /WeaveServices/nbproject/
 /WeaveServletUtils/nbproject/
 .tern-project
-.metadata/
+/.metadata
 .index
 .snap
 .data
+
