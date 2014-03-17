@@ -1,4 +1,5 @@
-/bin
-/.buildpath
-/build
-/.settings
+build/
+.settings/
+.tern-project
+.externalToolBuilders/
+nbproject/

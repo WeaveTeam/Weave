@@ -1,14 +1,8 @@
 tags
 .DS_Store
-WeaveServices/.externalToolBuilders/
 .idea/
-/WeaveServletUtils/nbproject/private/
-/WeaveServices/nbproject/private/
-/AWS/nbproject/
-/WeaveServices/nbproject/
-/WeaveServletUtils/nbproject/
+.metadata/
 .tern-project
-/.metadata
 .index
 .snap
 .data
