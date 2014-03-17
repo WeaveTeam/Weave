@@ -1,92 +1,83 @@
 <div ng-controller="ScriptManagerCtrl" style="padding-top:20px" >
 
-    <!-- sidebar -->
-    <div class="container" contenteditable="false">
-        <div class="row"></div>
-        <div class="row" contenteditable="false">
-            <div class="col-md-3" contenteditable="false">
-              <div class="gridStyle" ng-grid="gridOptions"></div>
-              {{selectedScript}}
+  <!-- sidebar -->
+  <div class="container" contenteditable="false">
+    <div class="row"></div>
+    <div class="row" contenteditable="false">
+      <div class="col-md-3" contenteditable="false">
+        <div class="gridStyle" ng-grid="gridOptions"></div>
+      </div>
+      <div class="col-md-9" contenteditable="false">
+        <div class="well">
+          <div class="row">
+            <div class="col-md-3">Script Name: {{selectedScript}}</div>
+            <div class="col-md-2"></div>
+            <div class="col-md-2">Script Type:{{selectedMetadata.scriptType}}</div>
+            <p class="text-right">Edit Mode:</p>
+            <div class="btn-group pull-right">
+              <button class="btn">On</button>
+              <button class="btn">Off</button>
             </div>
-            <div class="col-md-9" contenteditable="false">
-                <div class="well">
-                    <div class="row">
-                        <div class="col-md-3">Script Name:</div>
-                        <div class="col-md-2"></div>
-                        <div class="col-md-2">Script Type:</div>
-                        <p class="text-right">Edit Mode:</p>
-                        <div class="btn-group pull-right">
-                            <button class="btn">On</button>
-                            <button class="btn">Off</button>
-                        </div>
-                    </div>
-                    <div class="row">General description</div>
-                    <div class="row"></div>
-                </div>
-                <div class="well">
-                    <h3 class="">Inputs</h3>
-
-                    <div class="row" style="">
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                    </div>
-                </div>
-                <div class="well">
-                    <h3 class="">Outputs</h3>
-                    <div class="row" style="">
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                        <div class="col-md-4"></div>
-                        <div class="col-md-6">name type</div>
-                    </div>
-                </div>
-            </div>
+          </div>
+          <div class="row">General description</div>
+          <div class="row"></div>
         </div>
+        <div class="well">
+          <h3 class="">Inputs</h3>
+
+          <div class="row" style="">
+            <div ng-repeat="in in selectedMetadata.inputs">
+              <div class="col-md-4">{{in.param}}</div>
+              <div class="col-md-6">{{in.description}} type</div></div>
+
+          </div>
+        </div>
+        <div class="well">
+          <h3 class="">Outputs</h3>
+          <div class="row" style="">
+            <div ng-repeat="out in selectedMetadata.outputs">
+              <div class="col-md-4">{{out.param}}</div>
+              <div class="col-md-6">{{out.description}}</div></div>
+
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- /sidebar -->	
+  </div>
+  <!-- /sidebar -->	
 
-    <input type="button" value="Upload" ng-click="showUpload()"/> 
-    <input type="button" value="New" ng-click="showTextArea()"/> <br><br>	
-    List Of Scripts: <br> 
+  <input type="button" value="Upload" ng-click="showUpload()"/> 
+  <input type="button" value="New" ng-click="showTextArea()"/> <br><br>	
+  List Of Scripts: <br> 
 
-    <select ng-model = "scriptSelected" multiple ng-options="script for script in listOfScripts"></select><br>
+  <select ng-model = "scriptSelected" multiple ng-options="script for script in listOfScripts"></select><br>
 
-    <input type="button" value="Delete"/>
+  <input type="button" value="Delete"/>
 
-    <div ng-show="saveButton">
-        <div ng-show="uploadScript">
-            Script: <input type="file">	<br>
-            Metadata: <input type="file" title="Metadata"> <br>
-        </div>
-
-        <div ng-show=textScript>
-            <div>
-                Script: <br>
-                <textarea rows="20" cols="80"></textarea>
-            </div>
-            <div>
-                Metadata: <br>
-                <textarea rows="20" cols="80"></textarea>
-            </div> <br>
-        </div>
-
-        <input type="button" value="Save"/>
+  <div ng-show="saveButton">
+    <div ng-show="uploadScript">
+      Script: <input type="file">	<br>
+      Metadata: <input type="file" title="Metadata"> <br>
     </div>
 
-    <script>
+    <div ng-show=textScript>
+      <div>
+        Script: <br>
+        <textarea rows="20" cols="80"></textarea>
+      </div>
+      <div>
+        Metadata: <br>
+        <textarea rows="20" cols="80"></textarea>
+      </div> <br>
+    </div>
+
+    <input type="button" value="Save"/>
+  </div>
+
+  <script>
 
 
 
 
-    </script>	
+  </script>	
 </div>

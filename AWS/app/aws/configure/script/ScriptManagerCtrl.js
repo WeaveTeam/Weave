@@ -26,9 +26,9 @@ angular.module('aws.configure.script', ['ngGrid'])
     $scope.gridOptions = {data: 'listOfScripts',
       columnDefs: [{field: 'name', displayName: 'Name'}],
       selectedItems: $scope.selectedScript,
-      multiSelect: false,
+      //multiSelect: false,
       afterSelectionChange: function(item){
-        console.log("selectionchange", item);
+        console.log("selectionchange", $scope.selectedScript);
         scriptManagerService.getScriptMetadata($scope.selectedScript[0].name);
       }
     };
