@@ -15,12 +15,12 @@ angular.module('aws.analysisService', [])
 function($filter) {
 
 	var tool_list = [{
-		id : 'Indicator',
+		id : 'IndicatorFilter',
 		title : 'Indicator',
 		template_url : 'aws/visualization/indicator/indicator.tpl.html',
 		description : 'Choose the indicator for this analysis',
 		note: 'This is the global indicator that will be use for the analysis',
-		category : 'indicator'
+		category : 'indicatorfilter'
 	},
 	{
 		id : 'GeographyFilter',
@@ -92,7 +92,7 @@ function($filter) {
 			var tool = $filter('filter')(tool_list, {
 				id : widget_id
 			});
-			widget_bricks.splice(0, 0, tool[0]);
+			widget_bricks.splice(widget_bricks.length, 0, tool[0]);
 		} else {
 			//TODO: Hightlight the div if already added to dashboard. Use ScrollSpy
 		}
