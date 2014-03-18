@@ -34,7 +34,7 @@ function($filter) {
 	{
 		id : 'TimePeriodFilter',
 		title : 'Time Period',
-		template_url : 'aws/visualizations/data_filters/time_period.tpl.html',
+		template_url : 'aws/visualization/data_filters/time_period.tpl.html',
 		desription : 'Filter data based on time period',
 		note: 'This is a note',
 		category : 'datafilter'
@@ -42,8 +42,8 @@ function($filter) {
 	{
 		id : 'ByVariableFilter',
 		title : 'By Variable',
-		template_url : 'aws/visualizations/data_filters/time_period.tpl.html',
-		desription : 'Filter data based on time period',
+		template_url : 'aws/visualization/data_filters/by_variable.tpl.html',
+		desription : 'Filter data based on Variables',
 		note: 'This is a note',
 		category : 'datafilter'
 	},
