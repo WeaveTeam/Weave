@@ -151,6 +151,16 @@
 		resultStr = resultStr.replace(/[\*]/g, ".*?");
 		return new RegExp("^" + resultStr + "$", flags);
 	}
+	
+	/**
+	 * Refreshes tableTree and scrolls to selectedItem.
+	 */
+	private function refreshTableTree():void
+	{
+		tableTree.refresh();
+		if (tableTree.selectedItem && !tableTree.itemToItemRenderer(tableTree.selectedItem))
+			tableTree.scrollToSelectedItem();
+	}
 
 	private function handleTableSearch():void
 	{
@@ -158,7 +168,7 @@
 		filterTableRegExp = strToRegExp(searchStr);
 		filterByTableId = isUnsignedInt(tableSearch.text) ? uint(tableSearch.text) : -1;
 		Admin.instance.setFocusEntityId(filterByTableId);
-		tableTree.refresh();
+		refreshTableTree();
 	}
 	
 	private function handleColumnSearch():void
@@ -170,7 +180,7 @@
 		
 		if (!columnSearch.text)
 		{
-			tableTree.refresh();
+			refreshTableTree();
 			return;
 		}
 		
@@ -180,7 +190,7 @@
 			Admin.instance.setFocusEntityId(id);
 			Admin.entityCache.getEntity(id);
 			filterByColumnIds = [id];
-			tableTree.refresh();
+			refreshTableTree();
 			return;
 		}
 		
@@ -201,7 +211,7 @@
 				for each (var id:int in ids)
 					Admin.entityCache.getEntity(id);
 					
-				tableTree.refresh();
+				refreshTableTree();
 			},
 			null,
 			columnSearch.text

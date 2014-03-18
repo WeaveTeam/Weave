@@ -140,6 +140,25 @@ package weave.ui
 			while (cursor.moveNext());
 		}
 		
+		public function scrollToSelectedItem():void
+		{
+			var i:int = 0;
+			var item:Object = selectedItem;
+			var cursor:IViewCursor = collection.createCursor();
+			do
+			{
+				if (selectedItemsCompareFunction == null
+					? (cursor.current == item)
+					: selectedItemsCompareFunction(cursor.current, item))
+				{
+					scrollToIndex(i);
+					return;
+				}
+				i++;
+			}
+			while (cursor.moveNext());
+		}
+		
 		/**
 		 * @param itemTest A function to test for a matching item:  function(item:Object):Boolean
 		 * @return The matching item, if found.
