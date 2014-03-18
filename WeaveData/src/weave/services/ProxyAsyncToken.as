@@ -30,6 +30,8 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.reportError;
+	
 	use namespace mx_internal;
 
 	/**
@@ -94,15 +96,26 @@ package weave.services
 		{
 			eventReceived = event;
 			
-			if (_resultCastFunction != null && !(_handleErrorMessageObjects && event.result is ErrorMessage))
-				event.setResult(_resultCastFunction(event.result));
+			var fault:Fault;
+			try
+			{
+				if (_resultCastFunction != null && !(_handleErrorMessageObjects && event.result is ErrorMessage))
+					event.setResult(_resultCastFunction(event.result));
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+				fault = new Fault(e.name, "Unable to parse result from server", e.message);
+				handleFault(FaultEvent.createEvent(fault, this));
+				return;
+			}
 			
 			// if option is enabled, check if event.result is an ErrorMessage object.
 			if (_handleErrorMessageObjects && event.result is ErrorMessage)
 			{
 				// When an ErrorMessage is returned by the AsyncToken, treat it as a fault.
 				var msg:ErrorMessage = event.result as ErrorMessage;
-				var fault:Fault = new Fault(msg.faultCode, msg.faultString, msg.faultDetail);
+				fault = new Fault(msg.faultCode, msg.faultString, msg.faultDetail);
 				fault.message = msg;
 				fault.content = event;
 				fault.rootCause = this;

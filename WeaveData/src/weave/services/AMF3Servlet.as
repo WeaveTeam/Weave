@@ -61,28 +61,24 @@ package weave.services
 		/**
 		 * This function reads an object that has been AMF3-serialized into a ByteArray and compressed.
 		 * @param compressedSerializedObject The ByteArray that contains the compressed AMF3 serialization of an object.
-		 * @return The result of calling uncompress() and readObject() on the ByteArray, or null if an error occurs.
+		 * @return The result of calling uncompress() and readObject() on the ByteArray, or null if the RPC returns void.
+		 * @throws Error If unable to read the result.
 		 */
 		public static function readCompressedObject(compressedSerializedObject:ByteArray):Object
 		{
-			try
-			{
-				//var packed:int = compressedSerializedObject.bytesAvailable;
-				//var time:int = getTimer();
-				
-				compressedSerializedObject.uncompress();
-				
-				//var unpacked:int = compressedSerializedObject.bytesAvailable;
-				//trace(packed,'/',unpacked,'=',Math.round(packed/unpacked*100) + '%',getTimer()-time,'ms');
-				
-				return compressedSerializedObject.readObject();
-			}
-			catch (e:Error)
-			{
-				// decompression/deserialization failed
-				reportError(e);
-			}
-			return null;
+			// length may be zero for void result
+			if (compressedSerializedObject.length == 0)
+				return null;
+			
+			//var packed:int = compressedSerializedObject.bytesAvailable;
+			//var time:int = getTimer();
+			
+			compressedSerializedObject.uncompress();
+			
+			//var unpacked:int = compressedSerializedObject.bytesAvailable;
+			//trace(packed,'/',unpacked,'=',Math.round(packed/unpacked*100) + '%',getTimer()-time,'ms');
+			
+			return compressedSerializedObject.readObject();
 		}
 	}
 }
