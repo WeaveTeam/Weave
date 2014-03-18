@@ -2127,6 +2127,8 @@ public class SQLUtils
 	
 	public static final char WILDCARD_SINGLE = '_';
 	public static final char WILDCARD_MULTI = '%';
+	public static final char WILDCARD_ESCAPE = '\\';
+	public static final String LIKE_ESCAPE_CLAUSE = " ESCAPE '\\\\' ";
 	
 	/**
 	 * Specifies how two SQL terms should be compared
@@ -2281,7 +2283,9 @@ public class SQLUtils
 						String compare = caseSensitiveCompare(conn, field, value);
 						return new StringBuilder().append('(').append(compare).append(')').toString();
 					case WILDCARD:
-						return new StringBuilder().append('(').append(field).append(" LIKE ").append(value).append(')').toString();
+						return new StringBuilder().append('(')
+							.append(field).append(" LIKE ").append(value).append(LIKE_ESCAPE_CLAUSE)
+							.append(')').toString();
 					default:
 						return new StringBuilder().append('(').append(field).append('=').append(value).append(')').toString();
 				}

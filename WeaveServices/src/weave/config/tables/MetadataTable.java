@@ -327,6 +327,10 @@ public class MetadataTable extends AbstractTable
 				{
 					// FIELD_VALUE field should be treated as a wildcard
 					wf = Collections.singleton(FIELD_VALUE);
+					// escape special characters
+					for (char chr : new char[]{ SQLUtils.WILDCARD_ESCAPE, SQLUtils.WILDCARD_MULTI, SQLUtils.WILDCARD_SINGLE })
+						value = value.replace("" + chr, "" + SQLUtils.WILDCARD_ESCAPE + chr);
+					// replace our wildcards with SQL wildcards
 					value = value.replace('?', SQLUtils.WILDCARD_SINGLE).replace('*', SQLUtils.WILDCARD_MULTI);
 				}
 				Map<String,String> condition = MapUtils.fromPairs(
