@@ -328,11 +328,22 @@
 	
 }
 
-.search-script .popover > select{
+.search-script .popover .select-2-drop{
 	
-	width: 20% !important;
+	width: 50% !important;
 	 
 	
+}
+
+.search-script .popover .portlet-content{
+	width: 100%;
+	
+}
+
+.search-script .popover .label-p{
+	
+	width: 20%;
+	padding : 5px;
 }
 
 .search-script .popover .input-controls .input-p {
