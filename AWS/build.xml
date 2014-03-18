@@ -1,7 +1,8 @@
 <project name="AWS" basedir="." default="all">
 
     <property environment="env"/>
-    <property name="workspace_loc" value="/Users/patrick/Documents/workspace" />
+    <property file="${netbeans.user}/build.properties" />
+    <property name="workspace_loc" value="${var.workspace_loc}"/>
 	<property file="${workspace_loc}/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.core.resources.prefs"/>
 	
 	<property name="docroot" value="${pathvariable.WEAVE_DOCROOT}" />
