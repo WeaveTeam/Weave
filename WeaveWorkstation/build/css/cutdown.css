@@ -1,3 +1,5 @@
+
+
 .step {
 
 	background: #B2B5B9;
@@ -99,32 +101,24 @@
 	float: left;
 }
 
-
 /*
- * 
+ *
  * The Script Search Bar
- * 
- * 
+ *
+ *
  */
 
-.strap-dropdown-input{
-	
-	
+.strap-dropdown-input {
+
 	vertical-align: middle;
 	padding: 5px;
-	le;
-
-	
 }
 
+.strap-caret {
 
-.strap-caret{
-	
 	float: right;
 	margin-top: 8px;
-	
 }
-
 
 /*
  *
@@ -161,8 +155,6 @@
 	margin-bottom: 5px;
 	color: #626262
 }
-
-
 
 .analysis-tpl .analysis-wizard {
 
@@ -281,16 +273,15 @@
 	border: 0px;
 }
 
-.tool-list .tool-category{
-	
+.tool-list .tool-category {
+
 	height: 35px;
-background-color: #292929;
-color: white;
-padding-left: 10px;
-padding-top: 5px;
-margin-top: 0px;
-margin-bottom: 0px;
-	
+	background-color: #292929;
+	color: white;
+	padding-left: 10px;
+	padding-top: 5px;
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 
 .widget-container .color-widget {
@@ -318,6 +309,62 @@ margin-bottom: 0px;
 	border: 1px solid black;
 	height: 70px;
 	width: 10%;
+}
+
+/*
+ *
+ * Scripts settings panel
+ *
+ */
+
+.search-script .popover {
+
+	height: 50px;
+	top: -40px !important;
+	min-width: 400px;
+	height: auto;
+	padding-top: 5%;
+	padding-left: 5%;
+	
+}
+
+.search-script .popover > select{
+	
+	width: 20% !important;
+	 
+	
+}
+
+.search-script .popover .input-controls .input-p {
+
+/* margin: 0 0 10px; */
+display: table-cell;
+padding-left: 10px;
+width: 70%;
+}
+
+.search-script .popover .input-controls{
+	padding-left: 15px;
+}
+
+.search-script .popover .input-controls > li {
+	display: table-row;
+	border-right: 1px solid #FFE1EB;
+	width: 100%;
+	vertical-align: middle;
+	padding-bottom: 10px;
+}
+
+.search-script .popover .input-controls .label-p {
+
+	width: 30%;
+	display: table-cell;
+}
+
+.search-script .arrow{
+	
+	top: 20% !important;
+	
 }
 
 /*
@@ -429,13 +476,11 @@ margin-bottom: 0px;
 	font-weight: 300;
 }
 
-
 /*
- * 
+ *
  * CSS for the run bar -> report generation bar
- * 
+ *
  */
-
 
 .run-bar {
 
@@ -473,7 +518,7 @@ margin-bottom: 0px;
 	display: inline-block;
 }
 
-.run-bar .btn:hover{
+.run-bar .btn:hover {
 	background-color: #285E8E;
 }
 
@@ -486,7 +531,6 @@ margin-bottom: 0px;
 
 .run-bar .txt {
 
-	
 	padding: 2px 10px;
 	font-size: 11px;
 	line-height: 1;
@@ -512,4 +556,12 @@ margin-bottom: 0px;
 	-webkit-appearance: none;
 	display: inline-block;
 	margin-left: 5px;
+}
+
+
+.dropdown-menu{
+	
+	height: 70px;
+	overflow-y: scroll;
+	
 }
