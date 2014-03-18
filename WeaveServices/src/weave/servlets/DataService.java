@@ -59,6 +59,7 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.DataConfig.Relationship;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
@@ -147,7 +148,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		return getDataConfig().getEntityHierarchyInfo(publicMetadata);
 	}
-
+	
 	public DataEntityWithRelationships[] getEntities(int[] ids) throws RemoteException
 	{
 		if (ids.length > DataConfig.MAX_ENTITY_REQUEST_COUNT)
@@ -157,19 +158,16 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		Set<Integer> idSet = new HashSet<Integer>();
 		for (int id : ids)
 			idSet.add(id);
+		
 		DataEntity[] entities = config.getEntities(idSet).toArray(new DataEntity[0]);
-		DataEntityWithRelationships[] result = new DataEntityWithRelationships[entities.length];
+		List<Relationship> relationships = config.getRelationships(idSet);
 		for (int i = 0; i < entities.length; i++)
 		{
 			// prevent user from receiving private metadata
 			entities[i].privateMetadata = null;
-
-			int id = entities[i].id;
-			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
-			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
-			result[i] = new DataEntityWithRelationships(entities[i], parentIds, childIds);
+			entities[i] = new DataEntityWithRelationships(entities[i], relationships);
 		}
-		return result;
+		return Arrays.copyOf(entities, entities.length, DataEntityWithRelationships[].class);
 	}
 	
 	public int[] findEntityIds(Map<String,String> publicMetadata, String[] publicWildcardFields) throws RemoteException
@@ -860,7 +858,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			
 			if (keysArray == null)
 			{
-				LinkedList<String> keys = new LinkedList<String>();
+				List<String> keys = new LinkedList<String>();
 				for (Entry<String,Object[]> entry : data.entrySet())
 					if (entry.getValue() != null)
 						keys.add(entry.getKey());
@@ -900,7 +898,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 */
 	@Deprecated public int[] getEntityChildIds(int parentId) throws RemoteException
 	{
-		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
+		return ListUtils.toIntArray( getDataConfig().getRelationships(parentId).getChildIds(parentId) );
 	}
 	
 	/**
@@ -909,7 +907,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 */
 	@Deprecated public int[] getParents(int childId) throws RemoteException
 	{
-		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(Arrays.asList(childId)) );
+		int[] ids = ListUtils.toIntArray( getDataConfig().getRelationships(childId).getParentIds(childId) );
 		Arrays.sort(ids);
 		return ids;
 	}

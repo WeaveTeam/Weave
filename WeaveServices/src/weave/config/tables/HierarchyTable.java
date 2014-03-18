@@ -28,13 +28,11 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
 
 import weave.config.ConnectionConfig;
+import weave.config.DataConfig.Relationship;
+import weave.config.DataConfig.RelationshipList;
 import weave.utils.MapUtils;
 import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
@@ -170,12 +168,37 @@ public class HierarchyTable extends AbstractTable
 			SQLUtils.cleanup(stmt);
 		}
 	}
-
+	
 	/**
-	 * @param child_ids A collection of child entity ids.
-	 * @return A collection of parent ids associated with the given child ids.
+	 * Checks if an entity has no parents.
+	 * @param id
+	 * @return
+	 * @throws RemoteException
 	 */
-	public Collection<Integer> getParents(Collection<Integer> child_ids) throws RemoteException
+	public boolean isOrphan(int id) throws RemoteException
+	{
+		for (Relationship r : getRelationships(id))
+			if (r.childId == id)
+				return false;
+		return true;
+	}
+	
+	/**
+	 * Gets a list of parent-child relationships for an entity.
+	 * @param id An entity ID.
+	 * @return An ordered list of parent-child relationships involving the specified entity.
+	 */
+	public RelationshipList getRelationships(int id) throws RemoteException
+	{
+		return getRelationships(Arrays.asList(id));
+	}
+	
+	/**
+	 * Gets a list of parent-child relationships for a set of entities.
+	 * @param ids A collection of entity IDs.
+	 * @return An ordered list of parent-child relationships involving the specified entities.
+	 */
+	public RelationshipList getRelationships(Collection<Integer> ids) throws RemoteException
 	{
 		ResultSet rs = null;
 		PreparedStatement stmt = null;
@@ -183,59 +206,36 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Set<Integer> parent_ids = new HashSet<Integer>();
-			if (child_ids.size() == 0)
-				return parent_ids;
+			RelationshipList result = new RelationshipList();
+			if (ids.size() == 0)
+				return result;
 			
 			// build query
+			String idList = Strings.join(",", ids);
 			query = String.format(
-					"SELECT * FROM %s WHERE %s IN (%s)",
+					"SELECT * FROM %s WHERE %s IN (%s) OR %s IN (%s) ORDER BY %s",
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-					SQLUtils.quoteSymbol(conn, FIELD_CHILD),
-					Strings.join(",", child_ids)
+					SQLUtils.quoteSymbol(conn, FIELD_PARENT), idList,
+					SQLUtils.quoteSymbol(conn, FIELD_CHILD), idList,
+					SQLUtils.quoteSymbol(conn, FIELD_ORDER)
 				);
 			stmt = conn.prepareStatement(query);
 			rs = stmt.executeQuery();
 			rs.setFetchSize(SQLResult.FETCH_SIZE);
 			while (rs.next())
-				parent_ids.add(rs.getInt(FIELD_PARENT));
-			
-			return parent_ids;
+				result.add(new Relationship(rs.getInt(FIELD_PARENT), rs.getInt(FIELD_CHILD)));
+			return result;
 		}
 		catch (SQLException e)
 		{
 			if (query != null)
 				e = new SQLExceptionWithQuery(query, e);
-			throw new RemoteException("Unable to retrieve parents.", e);
+			throw new RemoteException("Unable to retrieve relationships.", e);
 		}
 		finally
 		{
 			SQLUtils.cleanup(rs);
 			SQLUtils.cleanup(stmt);
-		}
-	}
-	/* getChildren(null) will return all ids that appear in the 'child' column */
-	public List<Integer> getChildren(int parent_id) throws RemoteException
-	{
-		try
-		{
-			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_PARENT, parent_id);
-			WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
-				.addGroupedConditions(conditions, null)
-				.build();
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, FIELD_ORDER, Object.class);
-			List<Integer> children = new Vector<Integer>(rows.size());
-			for (Map<String,Object> row : rows)
-			{
-				Number child = (Number)row.get(FIELD_CHILD);
-				children.add(child.intValue());
-			}
-			return children;
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to retrieve children.", e);
 		}
 	}
 	

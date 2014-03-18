@@ -37,6 +37,7 @@ import java.util.Set;
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.tables.HierarchyTable;
 import weave.config.tables.MetadataTable;
+import weave.utils.ListUtils;
 import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 import weave.utils.Strings;
@@ -206,7 +207,7 @@ public class DataConfig
     			throw new RemoteException("Entity #" + id + " does not exist");
     		// remove all children
 	        if (Strings.equal(entityTypes.get(id), EntityType.TABLE))
-	            removed.addAll( removeEntities( hierarchy.getChildren(id) ) );
+	            removed.addAll( removeEntities( hierarchy.getRelationships(id).getChildIds(id) ) );
 	        hierarchy.purge(id);
 	        public_metadata.removeAllProperties(id);
 	        private_metadata.removeAllProperties(id);
@@ -354,7 +355,7 @@ public class DataConfig
 				// columns can be added directly to new parents
 				newChildId = childId;
 			}
-			else if (Strings.equal(childType, EntityType.CATEGORY) && hierarchy.getParents(Arrays.asList(childId)).size() == 0)
+			else if (Strings.equal(childType, EntityType.CATEGORY) && hierarchy.isOrphan(childId))
 			{
 				// ok to use existing child category since it has no parents
 				newChildId = childId;
@@ -370,16 +371,11 @@ public class DataConfig
 		
 		if (newChildId != childId)
 		{
-			// important to get the child list before we add a new child!
-			List<Integer> childIds = hierarchy.getChildren(childId);
-			
 			// recursively copy each child hierarchy element
 			int order = 0;
-			for (int grandChildId : childIds)
-			{
+			for (int grandChildId : hierarchy.getRelationships(childId).getChildIds(childId))
 				if (grandChildId != newChildId)
 					buildHierarchy(newChildId, grandChildId, order++);
-			}
 		}
 		
 		// add new child to parent
@@ -418,22 +414,24 @@ public class DataConfig
     	return getEntityTypes(Arrays.asList(entityId)).get(entityId);
     }
     
-    public Collection<Integer> getParentIds(Collection<Integer> childIds) throws RemoteException
+    public RelationshipList getRelationships(int id) throws RemoteException
     {
     	detectChange();
-    	return hierarchy.getParents(childIds);
+        return hierarchy.getRelationships(id);
     }
     
-    public List<Integer> getChildIds(int id) throws RemoteException
+    public RelationshipList getRelationships(Collection<Integer> ids) throws RemoteException
     {
     	detectChange();
-        return hierarchy.getChildren(id);
+    	return hierarchy.getRelationships(ids);
     }
+    
     public Collection<String> getUniquePublicValues(String property) throws RemoteException
     {
     	detectChange();
     	return new HashSet<String>(public_metadata.getPropertyMap(null, property).values());
     }
+    
     public EntityHierarchyInfo[] getEntityHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
     {
     	detectChange();
@@ -627,6 +625,71 @@ public class DataConfig
 		}
 	}
 	
+	/**
+	 * Represents a parent-child relationship between two entities.
+	 */
+	public static class Relationship
+	{
+		public Relationship() { }
+		public Relationship(int parentId, int childId)
+		{
+			this.parentId = parentId;
+			this.childId = childId;
+		}
+		public int parentId;
+		public int childId;
+		
+		public String toString()
+		{
+			return String.format("%s>%s", parentId, childId);
+		}
+	}
+	
+	/**
+	 * An ordered List of Relationship objects which adds two functions: getChildIds() and getParentIds().
+	 */
+	public static class RelationshipList extends LinkedList<Relationship>
+	{
+		private static final long serialVersionUID = 1L;
+		/**
+		 * Gets an ordered list of child IDs for a specified parent.
+		 * @param parentId A parent entity ID.
+		 * @return An ordered list of child entity IDs.
+		 */
+		public List<Integer> getChildIds(int parentId)
+		{
+			List<Integer> ids = new LinkedList<Integer>();
+			for (Relationship r : this)
+				if (r.parentId == parentId)
+					ids.add(r.childId);
+			return ids;
+		}
+		/**
+		 * Gets a list of IDs for parents having a specified child.
+		 * @param childId A child entity ID.
+		 * @return A list of parent entity IDs.
+		 */
+		public List<Integer> getParentIds(int childId)
+		{
+			List<Integer> ids = new LinkedList<Integer>();
+			for (Relationship r : this)
+				if (r.childId == childId)
+					ids.add(r.parentId);
+			return ids;
+		}
+		/**
+		 * Gets a list of all parent IDs appearing in this list of Relationship objects.
+		 * @return A list of entity IDs.
+		 */
+		public List<Integer> getParentIds()
+		{
+			List<Integer> ids = new LinkedList<Integer>();
+			for (Relationship r : this)
+				ids.add(r.parentId);
+			return ids;
+		}
+	}
+
 	static public class DataEntityWithRelationships extends DataEntity
 	{
 		public int[] parentIds;
@@ -634,7 +697,7 @@ public class DataConfig
 		
 		public DataEntityWithRelationships() { }
 		
-		public DataEntityWithRelationships(DataEntity base, int[] parentIds, int[] childIds)
+		public DataEntityWithRelationships(DataEntity base, List<Relationship> relationships)
 		{
 			if (base != null)
 			{
@@ -642,8 +705,19 @@ public class DataConfig
 				this.publicMetadata = base.publicMetadata;
 				this.privateMetadata = base.privateMetadata;
 			}
-			this.parentIds = parentIds;
-			this.childIds = childIds;
+			
+			List<Integer> parentIds = new LinkedList<Integer>();
+			List<Integer> childIds = new LinkedList<Integer>();
+			for (Relationship r : relationships)
+			{
+				if (id == r.childId)
+					parentIds.add(r.parentId);
+				else if (id == r.parentId)
+					childIds.add(r.childId);
+			}
+			
+			this.parentIds = ListUtils.toIntArray(parentIds);
+			this.childIds = ListUtils.toIntArray(childIds);
 		}
 		
 		public String toString()
