@@ -27,8 +27,10 @@
 
           <div class="row" style="">
             <div ng-repeat="in in selectedMetadata.inputs">
-              <div class="col-md-4">{{in.param}}</div>
-              <div class="col-md-6">{{in.description}} type</div></div>
+              <div class="col-md-4">Name: {{in.param}}</div>
+              <div class="col-md-6">Description: {{in.description}}</div>
+                
+            </div>
 
           </div>
         </div>
@@ -48,9 +50,7 @@
 
   <input type="button" value="Upload" ng-click="showUpload()"/> 
   <input type="button" value="New" ng-click="showTextArea()"/> <br><br>	
-  List Of Scripts: <br> 
 
-  <select ng-model = "scriptSelected" multiple ng-options="script for script in listOfScripts"></select><br>
 
   <input type="button" value="Delete"/>
 
