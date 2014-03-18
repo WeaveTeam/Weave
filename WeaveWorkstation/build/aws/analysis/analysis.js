@@ -74,10 +74,6 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService){
 	$scope.dataTableList = [];
 	var dataTable;
 
-	console.log('hello');
-
-	
-
 	$scope.$watch(function() {
 		return queryService.dataObject.dataTableList;
 	}, function() {
@@ -353,4 +349,3 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService){
 		}
 	});
 });
-

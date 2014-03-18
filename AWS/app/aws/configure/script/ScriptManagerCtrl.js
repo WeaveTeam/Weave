@@ -45,4 +45,3 @@ angular.module('aws.configure.script', ['ngGrid'])
     };
 
   });
-			

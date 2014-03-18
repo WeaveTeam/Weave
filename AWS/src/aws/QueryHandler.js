@@ -26,7 +26,8 @@ aws.QueryHandler = function(queryObject)
 	this.rRequestObject = {};
 	this.rRequestObject.scriptName = "";
 	this.rRequestObject.FilteredColumnRequest = [];
-
+	this.rRequestObject.FilterOnlyRequest = [];
+	
 	if(queryObject.hasOwnProperty("scriptSelected")) {
 		if (queryObject.scriptSelected != "") {
 			this.rRequestObject.scriptName = queryObject.scriptSelected;
@@ -47,7 +48,8 @@ aws.QueryHandler = function(queryObject)
 		for( var i = 0; i < queryObject.FilteredColumnRequest.length; i++) {
 			this.rRequestObject.FilteredColumnRequest[i] = {
 					id : -1,
-					filters : []
+					filters : [],
+					getData : true
 			};
 			
 			if (queryObject.FilteredColumnRequest[i].hasOwnProperty("column")) {
@@ -80,7 +82,41 @@ aws.QueryHandler = function(queryObject)
 				}
 			}
 		}
-	}	
+	}
+	
+	// Create a filter only request where we will pass geography and time-period information.
+	if(queryObject.hasOwnProperty("GeographyFilter")) {
+		//for(var i in queryObject.GeographyFilter) {
+			//var stateFilter = queryObject.GeographyFilter[i];
+			var stateFilter = queryObject.GeographyFilter;
+			// push the state and it's counties
+			if(stateFilter.stateColumn.hasOwnProperty("id") && stateFilter.state.hasOwnProperty("value")) {
+				this.rRequestObject.FilterOnlyRequest.push({
+					id : stateFilter.stateColumn.id, 
+					filters : stateFilter.state.value, 
+					getData : false
+				});
+			}
+
+			var cfilters = [];
+			
+			for(var j in stateFilter.counties) {
+				var countyFilter = stateFilter.counties[j];
+				cfilters.push(countyFilter.value); 
+			}
+			
+			this.rRequestObject.FilterOnlyRequest.push({id : stateFilter.countyColumn.id, filters : cfilters, getData : false});
+		//}
+	}
+	
+	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
+		
+		
+	}
+		
+		
+	
+	
 	this.keyType = "";
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {

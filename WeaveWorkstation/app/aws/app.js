@@ -2,6 +2,7 @@ var weaveAWSApp = angular.module('aws', [
 										 'ngSanitize',
 										 'mgcrea.ngStrap', 
 										 'ngRoute',
+										 'ui.select2',
 										 'aws.services',
 										 'aws.analysisService',
 										 'aws.AnalysisModule'

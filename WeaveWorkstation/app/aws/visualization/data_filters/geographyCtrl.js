@@ -1,5 +1,4 @@
-GeoModule = angular.module('aws.analysis.geography', []); 
-GeoModule.controller('GeographyControl', function($scope, queryService){
+analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 	
 	queryService.queryObject.GeographyFilter = {
 			state : {},
@@ -169,4 +168,5 @@ GeoModule.controller('GeographyControl', function($scope, queryService){
 			}
 		}
 	});
+	
 });
