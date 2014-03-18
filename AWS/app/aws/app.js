@@ -17,14 +17,14 @@ var app = angular.module('aws', ['aws.router',
                                  'ui.slider',
                                  'ui.sortable',
                                  'ngRoute',
-                                 'ngGrid']); // from Amith's UI
+                                 'ngGrid',
+                                 'xeditable']); // from Amith's UI
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {
 			if($scope == undefined){
 				$scope = $rootScope;
 			}
-			
 			fn = fn || function() {};
 			if ( !$scope.$$phase ) {
         	$scope.$apply( fn );
