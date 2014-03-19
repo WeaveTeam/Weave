@@ -6,14 +6,16 @@ var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry']);
 
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
+	$scope.box_enabled = false;
+	$scope.dt_focused = true;
+	$scope.script_focused = false;
+	$scope.dash_focused = false;
+
 	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
 	$scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
 	$scope.tool_list = dasboard_widget_service.get_tool_list('visualization');
 	$scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
 
-	
-	
-	
 	$scope.add_widget = function(element_id) {
 		dasboard_widget_service.add_widget_bricks(element_id);
 	};
@@ -21,51 +23,51 @@ analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_
 	$scope.remove_widget = function(widget_index) {
 		dasboard_widget_service.remove_widget_bricks(widget_index);
 	};
-	
-	$scope.enable_widget = function(id, enabled){
+
+	$scope.enable_widget = function(id, enabled) {
 		dasboard_widget_service.enable_widget(id, enabled);
 	};
-	
-	
+
 });
 
 /*analysis_mod.controller('ScriptsBarController', function($scope) {
 
-$scope.selectedIcon = "";
-$scope.selectedIcons = [];
-$scope.icons = [{"value":"Gear","label":"Gear"},{"value":"Globe","label":"Globe"},{"value":"Heart","label":"Heart"},{"value":"Camera","label":"Camera"}];
+ $scope.selectedIcon = "";
+ $scope.selectedIcons = [];
+ $scope.icons = [{"value":"Gear","label":"Gear"},{"value":"Globe","label":"Globe"},{"value":"Heart","label":"Heart"},{"value":"Camera","label":"Camera"}];
 
-});*/
-
-/*
-analysis_mod.controller('SrcController', function($scope){
-	
-	$scope.selectedIcon = "";
-$scope.selectedIcons = [];
-$scope.icons = [{"value":"Gear","label":"Gear"},{"value":"Globe","label":"Globe"},{"value":"Heart","label":"Heart"},{"value":"Camera","label":"Camera"}];
-
-	
-});
-*/
-
-analysis_mod.config(function($selectProvider) {
-  angular.extend($selectProvider.defaults, {
-    caretHTML: '&nbsp'
-  });
-});
-
+ });*/
 
 /*
- * 
- * Clean up
- * TODO: Seperate the dtatable from scripts bar
- * 
+ analysis_mod.controller('SrcController', function($scope){
+
+ $scope.selectedIcon = "";
+ $scope.selectedIcons = [];
+ $scope.icons = [{"value":"Gear","label":"Gear"},{"value":"Globe","label":"Globe"},{"value":"Heart","label":"Heart"},{"value":"Camera","label":"Camera"}];
+
+ });
  */
 
+analysis_mod.config(function($selectProvider) {
+	angular.extend($selectProvider.defaults, {
+		caretHTML : '&nbsp'
+	});
+});
 
-analysis_mod.controller("ScriptsBarController", function($scope, queryService){
-    
-   /*
+/*
+ *
+ * Clean up
+ * TODO: Seperate the dtatable from scripts bar
+ *
+ */
+
+analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
+
+	$scope.setting_loaded = false;
+	$scope.secret_state = false;
+	$scope.show_load = false;
+
+	/*
 	 *
 	 * Data Table Section
 	 *
@@ -76,8 +78,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService){
 		title : ""
 	};
 
-
-    /*??*/
+	/*??*/
 	queryService.getDataTableList();
 	$scope.dataTableList = [];
 	var dataTable;
@@ -120,16 +121,38 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService){
 	$scope.scriptList = []
 
 	$scope.populateScriptsBar = function() {
+		$scope.script_focused = true;
 
 		$scope.scriptList = queryService.getListOfScripts();
 
-	}
+	};
+
+	$scope.script_selected_set = function() {
+		if ($scope.setting_loaded == false) {
+			$scope.show_load = true;
+		};
+
+		//$scope.setting_data_loaded = false;
+
+	};
+
+	$scope.enable_settings = function(load_flag) {
+		if (load_flag) {
+			$scope.show_load = false;
+			$scope.setting_loaded = true;
+		}
+
+	};
+
+	$scope.enable_dashboard = function() {
+		$scope.dash_focused = true;
+
+	};
 
 	$scope.$watch('scriptSelected', function() {
 		if ($scope.scriptSelected != undefined && $scope.scriptSelected != "") {
 			queryService.queryObject.scriptSelected = $scope.scriptSelected;
 			queryService.getScriptMetadata($scope.scriptSelected, true);
-			
 
 		} else {
 			$scope.scriptList = queryService.getListOfScripts();
@@ -192,6 +215,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService){
 	$scope.$watch(function() {
 		return queryService.dataObject.columns;
 	}, function() {
+		var load_flag = false;
 		if (queryService.dataObject.columns != undefined) {
 			var columns = queryService.dataObject.columns;
 			var orderedColumns = {};
@@ -205,6 +229,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService){
 					});
 					var aws_metadata = angular.fromJson(column.publicMetadata.aws_metadata);
 					if (aws_metadata.hasOwnProperty("columnType")) {
+						load_flag = true
 						var key = aws_metadata.columnType;
 						if (!orderedColumns.hasOwnProperty(key)) {
 							orderedColumns[key] = [{
@@ -221,7 +246,9 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService){
 				}
 			}
 			$scope.columns = orderedColumns;
+			$scope.enable_settings(load_flag);
 		}
+
 	});
 
 	queryService.queryObject.FilteredColumnRequest = [];
