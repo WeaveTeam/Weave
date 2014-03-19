@@ -6,6 +6,7 @@ var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry']);
 
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
+<<<<<<< HEAD
 	$scope.box_enabled = false;
 	$scope.dt_focused = true;
 	$scope.script_focused = false;
@@ -26,6 +27,38 @@ analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_
 
 	$scope.enable_widget = function(id, enabled) {
 		dasboard_widget_service.enable_widget(id, enabled);
+=======
+	$scope.box_enabled = {};
+	$scope.dt_focused = true;
+	$scope.script_focused = false;
+	$scope.dash_focused = false;
+	
+	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
+	$scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
+	$scope.tool_list = dasboard_widget_service.get_tool_list('visualization');
+	$scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
+
+	$scope.add_widget = function(element_id) {
+		
+		dasboard_widget_service.add_widget_bricks(element_id);
+		try{
+			
+			$scope.box_enabled[element_id] = true;
+		}
+		catch(e){
+			
+				$scope.box_enabled.push({key: element_id, value : true});
+			}
+		
+	};
+
+	$scope.remove_widget = function(widget_index) {
+		dasboard_widget_service.remove_widget_bricks(widget_index);
+	};
+
+	$scope.enable_widget = function(id) {
+		dasboard_widget_service.enable_widget(id, $scope.box_enabled[id]);
+>>>>>>> branch 'aws-temp' of https://shwetapurushe@github.com/IVPR/Weave.git
 	};
 
 });
