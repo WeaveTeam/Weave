@@ -13,8 +13,12 @@ angular.module('aws.project', [])
 	$scope.dlStatus = false;//default is false (projected not selected for deletion)
 	
 	//external directives
-	$scope.aside = function (){
-			title : 'Query Object Editor';
+	$scope.aside = {
+			title : 'Query Object Editor'
+			
+		};
+	$scope.aside2 = {
+			title : 'New Project'
 			
 		};
 	

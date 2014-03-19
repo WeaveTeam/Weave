@@ -11,7 +11,13 @@ angular.module('aws.queryObjectEditor', [])
 		
 	});
 
-	
+	$scope.exportToJSONFile = function() {
+		console.log("exporting");
+		var blob = new Blob([ JSON.stringify($scope.queryObjectJson) ], {
+			type : "text/plain;charset=utf-8"
+		});
+		saveAs(blob, "QueryObject.json");
+	};
 	/*****************************BUTTON CONTROLS******************************/
 	
 	$scope.saveToCurrentProject = function(){

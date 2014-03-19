@@ -15,13 +15,15 @@
 
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package weave.servlets;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -39,6 +41,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 import javax.script.ScriptException;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -50,15 +55,19 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.beans.RResult;
+import weave.config.WeaveContextParams;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.WeaveConfig;
+
 import weave.servlets.DataService.FilteredColumnRequest;
+import weave.utils.FileUtils;
 import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
 {
@@ -69,8 +78,16 @@ public class AWSRService extends RService
 
 	}
 
-	public static class AWSConnectionObject
-	{
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		awsConfigPath = WeaveContextParams.getInstance(
+				config.getServletContext()).getConfigPath();
+		awsConfigPath = awsConfigPath + "/../aws-config/";
+	}
+
+	private String awsConfigPath = "";
+
+	public static class AWSConnectionObject {
 		String connectionType;
         String user;
         String password;
@@ -150,11 +167,18 @@ public class AWSRService extends RService
 		//String query = buildSelectQuery(columns, dataset);
 		
 		String cannedScriptLocation = request.scriptPath + request.scriptName;
-		 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
-		 
-		Object[] requestObjectInputValues = {cannedScriptLocation, query, request.columnsToBeRetrieved[0], request.columnsToBeRetrieved[1], request.columnsToBeRetrieved[2], request.columnsToBeRetrieved[3], request.columnsToBeRetrieved[4]};
-		String[] requestObjectInputNames = {"cannedScriptPath", "query", "col1", "col2", "col3", "col4", "col5"};
-		
+		// String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" +
+		// (scriptName).toString();//hard coded for now
+
+		Object[] requestObjectInputValues = { cannedScriptLocation, query,
+				request.columnsToBeRetrieved[0],
+				request.columnsToBeRetrieved[1],
+				request.columnsToBeRetrieved[2],
+				request.columnsToBeRetrieved[3],
+				request.columnsToBeRetrieved[4] };
+		String[] requestObjectInputNames = { "cannedScriptPath", "query",
+				"col1", "col2", "col3", "col4", "col5" };
+
 		String finalScript = "";
 		if(conn.connectionType.equalsIgnoreCase("RMySQL"))
 		{
@@ -181,9 +205,11 @@ public class AWSRService extends RService
 						 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 		}
 		String[] requestObjectOutputNames = {};
-		
-		returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
-		
+
+		returnedColumns = this.runScript(null, requestObjectInputNames,
+				requestObjectInputValues, requestObjectOutputNames,
+				finalScript, "", false, false, false);
+
 		return returnedColumns;
 	}
 	
@@ -269,23 +295,6 @@ public class AWSRService extends RService
 		
 		return returnedColumns;
 	}
-	
-	public String[] getListOfScripts()
-	{
-		
-		File directory = new File(uploadPath, "RScripts");
-		String[] files = directory.list();
-		List<String> rFiles = new ArrayList<String>();
-		String extension = "";
-		
-		for (int i = 0; i < files.length; i++)
-		{
-			extension = files[i].substring(files[i].lastIndexOf(".") + 1, files[i].length());
-			if(extension.equalsIgnoreCase("r"))
-				rFiles.add(files[i]);
-		}
-		return rFiles.toArray(new String[rFiles.size()]);
-	}
 
 	/**
 	    * @param userName author of a given Project
@@ -316,13 +325,67 @@ public class AWSRService extends RService
 		for(int i = 0; i < projectObjects.rows.length; i++){
 			Object project = projectObjects.rows[i][0];//TODO find better way to do this
 			projectNames[i] = project.toString();
+
 		}
 		
 		return projectNames;
 	}
 	
 	/**
-	    * @param userName author of a given Project
+
+	 * 
+	 * @param projectName
+	 *            project from which queryObjects have to be listed
+	 * @return finalQueryObjectCollection array of [jsonObjects, namesofFiles]
+	 * @throws Exception
+	 */
+	// Gets the list of queryObjects in a folder and returns an array of
+	// JSONObjects(each JSONObject --> one queryObject)
+//	public Object[] getQueryObjectsInProject(String projectName)
+//			throws Exception {
+//		Object[] finalQueryObjectCollection = new Object[2];
+//
+//		JSONObject[] finalQueryObjects = null;
+//		String[] queryNames = getQueryObjectNamesInProject(projectName);
+//		if (queryNames.length != 0) {// if the project contains something
+//			ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
+//			JSONParser parser = new JSONParser();
+//
+//			finalQueryObjects = new JSONObject[queryNames.length];
+//
+//			for (int i = 0; i < queryNames.length; i++) {
+//				// for every queryObject, convert to a json object
+//				String extension = FilenameUtils.getExtension(queryNames[i]);
+//
+//				// add file filter for searching only for json files
+//				if (extension.equalsIgnoreCase("json")) {
+//					String path = "C:/Projects/" + projectName + "/"
+//							+ queryNames[i];// TODO find better way
+//					FileReader reader = new FileReader(path);
+//					Object currentQueryObject = parser.parse(reader);
+//					JSONObject currentjsonObject = (JSONObject) currentQueryObject;
+//					jsonlist.add(currentjsonObject);
+//					reader.close();
+//				}
+//			}
+//
+//			// returning an array of JSON Objects
+//			finalQueryObjects = jsonlist.toArray(finalQueryObjects);
+//		}
+//
+//		else {
+//			// if project is empty return null
+//			finalQueryObjects = null;
+//			// throw new
+//			// RemoteException("No query Objects found in the specified folder!");
+//		}
+//
+//		finalQueryObjectCollection[0] = finalQueryObjects;
+//		finalQueryObjectCollection[1] = queryNames;
+//
+//	}
+		/*
+ 	    * @param userName author of a given Project
 	    * @param projectName project which contains the requested query
 	    * @param queryObjectName the filename that contains the requested queryObject
 	    * @return the requested single queryObject 
@@ -424,9 +487,12 @@ public class AWSRService extends RService
 		
 		finalQueryObjectCollection[0] = finalQueryObjects;
 		finalQueryObjectCollection[1] = queryNames;
+		
 		return finalQueryObjectCollection;
 		
 	}
+	
+
 	
 //	/**
 //	    * 
@@ -574,6 +640,7 @@ public class AWSRService extends RService
 //		return status;
 //	}
 //	
+
 	/**
      * 
      * @param request sent from the AWS UI collection of parameters to run a computation
@@ -599,96 +666,159 @@ public class AWSRService extends RService
 		String[] requestObjectInputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
 		
 		String finalScript = "";
-        if(conn.connectionType.equalsIgnoreCase("RMySQL"))
-        {
-                finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-                                          "library(RMySQL)\n" +
-                                          "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
-                                          "library(survey)\n" +
-                                          "getColumns <- function(query)\n" +
-                                          "{\n" +
-                                          "return(dbGetQuery(con, paste(query)))\n" +
-                                          "}\n" +
-                                          "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
-        } else if (conn.connectionType.equalsIgnoreCase("RODBC"))
-        {
-                finalScript ="scriptFromFile <- source(cannedScriptPath)\n" +
-                                         "library(RODBC)\n" +
-                                         "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n" +
-                                         "sqlQuery(con, \"USE myschemaName\")\n" +
-                                         "library(survey)\n" +
-                                         "getColumns <- function(query)\n" +
-                                         "{\n" +
-                                         "return(sqlQuery(con, paste(query)))\n" +
-                                         "}\n" +
-                                         "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
-        }
-        String[] requestObjectOutputNames = {};
-        
-        returnedColumns = runAWSScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false);
-        
-        return returnedColumns;
-    }        
-    
+		if (conn.connectionType.equalsIgnoreCase("RMySQL")) {
+			finalScript = "scriptFromFile <- source(cannedScriptPath)\n"
+					+ "library(RMySQL)\n"
+					+ "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n"
+					+ "library(survey)\n"
+					+ "getColumns <- function(query)\n"
+					+ "{\n"
+					+ "return(dbGetQuery(con, paste(query)))\n"
+					+ "}\n"
+					+ "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+		} else if (conn.connectionType.equalsIgnoreCase("RODBC")) {
+			finalScript = "scriptFromFile <- source(cannedScriptPath)\n"
+					+ "library(RODBC)\n"
+					+ "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n"
+					+ "sqlQuery(con, \"USE myschemaName\")\n"
+					+ "library(survey)\n"
+					+ "getColumns <- function(query)\n"
+					+ "{\n"
+					+ "return(sqlQuery(con, paste(query)))\n"
+					+ "}\n"
+					+ "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+		}
+		String[] requestObjectOutputNames = {};
 
-    public int runStataScript() throws IOException{
-    	
-    	 Runtime run = Runtime.getRuntime();
-         Process proc = null;
-         proc = run.exec(new String[] {"stata-se", "-q"});
-         OutputStream stdin = proc.getOutputStream();
-         stdin.write(new String("/Users/franckamayou/Desktop/test.do").getBytes());
-         stdin.close();
-         BufferedReader stdout = new BufferedReader( new InputStreamReader(proc.getInputStream()) );
-         BufferedReader stderr = new BufferedReader( new InputStreamReader(proc.getErrorStream()) );
-        
-         while (true)
-         {
-         	String line = null;
-             try
-             {
-                 // check both streams for new data
-                 if (stdout.ready())
-                 {
-               		line = stdout.readLine();
-                 }
-                 else if (stderr.ready())
-                 {
-               		line = stderr.readLine();
-                 }
-                 
- 				// print out data from stream
- 				if (line != null)
- 				{
- 					System.out.println(line);
- 					continue;
- 				}
-             }
-             catch (IOException ioe)
-             {
-                 // stream error, get the return value of the process and return from this function
-                 try {
-                     return proc.exitValue();
-                 } catch (IllegalThreadStateException itse) {
-                     return -Integer.MAX_VALUE;
-                 }
-             }
-             try
-             {
-                 // if process finished, return
-                 return proc.exitValue();
-             }
-             catch (IllegalThreadStateException itse)
-             {
-                 // process is still running, continue
-             }
-         }
-    	
+		returnedColumns = runAWSScript(null, requestObjectInputNames,
+				requestObjectInputValues, requestObjectOutputNames,
+				finalScript, "", false, false);
+
+		return returnedColumns;
+	}
+
+	public int runStataScript() throws IOException {
+
+		Runtime run = Runtime.getRuntime();
+		Process proc = null;
+		proc = run.exec(new String[] { "stata-se", "-q" });
+		OutputStream stdin = proc.getOutputStream();
+		stdin.write(new String("/Users/franckamayou/Desktop/test.do")
+				.getBytes());
+		stdin.close();
+		BufferedReader stdout = new BufferedReader(new InputStreamReader(
+				proc.getInputStream()));
+		BufferedReader stderr = new BufferedReader(new InputStreamReader(
+				proc.getErrorStream()));
+
+		while (true) {
+			String line = null;
+			try {
+				// check both streams for new data
+				if (stdout.ready()) {
+					line = stdout.readLine();
+				} else if (stderr.ready()) {
+					line = stderr.readLine();
+				}
+
+				// print out data from stream
+				if (line != null) {
+					System.out.println(line);
+					continue;
+				}
+			} catch (IOException ioe) {
+				// stream error, get the return value of the process and return
+				// from this function
+				try {
+					return proc.exitValue();
+				} catch (IllegalThreadStateException itse) {
+					return -Integer.MAX_VALUE;
+				}
+			}
+			try {
+				// if process finished, return
+				return proc.exitValue();
+			} catch (IllegalThreadStateException itse) {
+				// process is still running, continue
+			}
+		}
+
+	}
+
+	/**
+	 * Gives an object containing the script contents
+	 * 
+	 * @param scriptName
+	 * @return
+	 */
+	public String getScript(String scriptName) throws Exception{
+    	File directory = new File(awsConfigPath, "RScripts");
+		String[] files = directory.list();
+		String scriptContents = new String();
+		BufferedReader bufr = null;
+		for (int i = 0; i < files.length; i++)
+		{
+			if(scriptName.equalsIgnoreCase(files[i])){
+				try {
+					bufr = new BufferedReader(new FileReader(new File(directory, scriptName)));
+					String contents = "";
+					while((contents = bufr.readLine()) != null){
+						scriptContents = scriptContents + contents + "\n";
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						if(bufr != null){
+							bufr.close();
+						}
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				}
+			}
+		}
+		return scriptContents;
     }
 
-    public Object getScriptMetadata(String scriptName) throws Exception
-	{
-		File directory = new File(uploadPath, "RScripts");
+	public String[] getListOfScripts() {
+
+		File directory = new File(awsConfigPath, "RScripts");
+		String[] files = directory.list();
+		List<String> rFiles = new ArrayList<String>();
+		String extension = "";
+
+		for (int i = 0; i < files.length; i++) {
+			extension = files[i].substring(files[i].lastIndexOf(".") + 1,
+					files[i].length());
+			if (extension.equalsIgnoreCase("r"))
+				rFiles.add(files[i]);
+		}
+		return rFiles.toArray(new String[rFiles.size()]);
+	}
+
+	public String saveMetadata(String scriptName, Object scriptMetadata) throws Exception {
+		String status = "";
+		
+		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
+		File file = new File(awsConfigPath + "RScripts", jsonFileName);
+		if (!file.exists()){
+			throw new RemoteException("Metadata file: " + jsonFileName + "does not exist");
+			//file.createNewFile();
+		}
+		
+		FileWriter fw = new FileWriter(file.getAbsolutePath());
+		BufferedWriter bw = new BufferedWriter(fw);
+		Gson gson = new Gson();
+		gson.toJson(scriptMetadata, bw);
+		bw.close();
+		
+		status = "success";
+		return status;
+	}
+
+	public Object getScriptMetadata(String scriptName) throws Exception {
+		File directory = new File(awsConfigPath, "RScripts");
 		String[] files = directory.list();
 		int filecount = 0;
 		// this object will get the metadata from the json file
