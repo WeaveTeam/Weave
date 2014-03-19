@@ -75,6 +75,45 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         
     };
     
+    this.getListOfProjectsfromDatabase = function() {
+        
+    	if(this.dataObject.listOfProjectsFromDatabase) {
+    		return this.dataObject.listOfProjectsFromDatabase;
+    	}
+    	
+    	
+    	var deferred = $q.defer();
+        aws.DataClient.getListOfProjectsFromDatabase(function(result) {
+            
+        	that.dataObject.listOfProjectsFromDatabase = result;
+        	
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
+    
+    
+    this.addQueryObjectToProject = function(userName, projectName, queryObjectTitle, queryObjectContent) {
+      	
+    	var deferred = $q.defer();
+
+        aws.DataClient.insertQueryObject(userName, projectName, queryObjectTitle, queryObjectContent, function(result) {
+            
+        	that.dataObject.deleteQueryStatus = result;//returns a boolean which states if the query has been deleted(true)
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
     
     /**
      * This function wraps the async aws deleteproject function into an angular defer/promise

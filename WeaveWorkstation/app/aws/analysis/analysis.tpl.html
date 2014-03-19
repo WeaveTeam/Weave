@@ -1,30 +1,30 @@
 <div class="container-fluid analysis-tpl" style="width: 100%; height: 100%">
-	<div class="row analysis-wizard">
+	<div class="row analysis-wizard" ng-controller="ScriptsBarController">
 		<div class="wizard-vertical">
 
 			<div class="wizard-steps show">
-				<div class="wstep current" data-step-num="0">
+				<div class="wstep" ng-class="{current: dt_focused}" data-step-num="0">
 					<div class="donut">
 						<div>
-							<span class="step active">1</span>
+							<span class="step" ng-class="{active: dt_focused}">1</span>
 						</div>
 					</div>
 					<span class="txt">Select a Datatable</span>
 
 				</div>
-				<div class="wstep " data-step-num="0">
+				<div class="wstep " ng-class="{current: script_focused}" data-step-num="0">
 					<div class="donut ">
 						<div>
-							<span class="step">2</span>
+							<span class="step" ng-class="{active: script_focused}">2</span>
 						</div>
 					</div>
 					<span class="txt">Select a Script and Configure its parameters</span>
 
 				</div>
-				<div class="wstep last-child" data-step-num="0">
+				<div class="wstep last-child" ng-class="{current: dash_focused}" data-step-num="0">
 					<div class="donut">
 						<div>
-							<span class="step">3</span>
+							<span class="step" ng-class="{active: dash_focused}">3</span>
 						</div>
 					</div>
 					<span class="txt">Configure Visuals for Weave in the Dashboard</span>
@@ -34,7 +34,7 @@
 
 		</div>
 
-		<div class="wrap" ng-controller="ScriptsBarController">
+		<div class="wrap">
 			<div class="search-bar-content">
 
 				<!--<button style="width: 40%; text-align: left; height: 30px; vertical-align: middle" type="button"
@@ -44,7 +44,7 @@
 				</button>-->
 
 				<div class="input-group-btn">
-					<button type="button" class="btn btn-default"
+					<button type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
 					ng-model="dataTable" data-html="1"  ng-options="dt.title for dt in dataTableList" ng-change = 'populateScriptsBar()' bs-select>
 						<span class="caret"></span>
 					</button>
@@ -57,10 +57,14 @@
 				<div class="input-group search-script" >
 					<input type="text" class="form-control" ng-disabled="!dataTable" ng-model="scriptSelected" data-min-length="0"
 					data-html="1" ng-options="script for script in scriptList"
-					placeholder="Select or Search for Scripts" select-on-click bs-typeahead>
+					placeholder="Select or Search for Scripts"
+					ng-focus="script_focused = true" ng-change="script_selected_set()" select-on-click bs-typeahead>
 
 					</input>
-					<a href="javascript:" class="input-group-addon" title="Hello" data-content="Hello" data-template="aws/analysis/script_settings.tpl.html" data-animation="am-flip-x" bs-popover>Settings</a>
+					<div id="loading" ng-show="show_load" class="ng-hide">
+						<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
+					</div>
+					<a href="javascript:" ng-class="{'link-active': (setting_loaded == true)}" class="input-group-addon link-inactive" title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" data-animation="am-flip-x" bs-popover>Settings</a>
 
 					<!--<button type="button" class="btn btn-default" title="{{popover.title}}" data-content="{{popover.content}}" data-template="aws/analysis/script_settings.tpl.demo.html" data-animation="am-flip-x" bs-popover>
 					Settings
@@ -98,12 +102,12 @@
 			<div class="tool-bar">
 
 				<ul class="tool-list" >
-					<li>
+					<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
 						<span class="checkbox">
-							<input type="checkbox">
+							<input type="checkbox"  ng-model = "box_enabled[general_tool.id]" ng-change = "enable_widget(general_tool.id)">
 						</span>
-						<a href='javascript: void()'> Indicator</a>
-						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)" bs-tooltip>
+						<a href='javascript: void()'> {{general_tool.title}}</a>
+						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)" bs-tooltip>
 							<i class="glyphicon glyphicon-plus"></i>
 						</button>
 					</li>
@@ -112,20 +116,20 @@
 					</li>
 					<li id= "filter_tool.id" ng-repeat="filter_tool in filter_tools">
 						<span class="checkbox">
-							<input type="checkbox">
+							<input type="checkbox" ng-model = "box_enabled[filter_tool.id]" ng-change = "enable_widget(filter_tool.id)">
 						</span>
 						<a href='javascript: void()'> {{filter_tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)" bs-tooltip>
 							<i class="glyphicon glyphicon-plus"></i>
 						</button>
 					</li>
-					<li >
+					<li>
 						<h4 class='tool-category'>Visualization Tools</h4>
 					</li>
 
 					<li id="tool.id" ng-repeat= "tool in tool_list">
 						<span class="checkbox">
-							<input type="checkbox">
+							<input type="checkbox"  ng-model = "box_enabled[tool.id]" ng-change = "enable_widget(tool.id)">
 						</span>
 						<a href='javascript: void()'> {{tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(tool.id)" bs-tooltip>
@@ -161,10 +165,15 @@
 		</div>
 	</div>
 
-	<div class = 'run-bar'>
-		<span style="display: inline-block; margin-left: 20px; font-size: 13px;">Set Color Column</span>
-		<input class="txt" id="colorColumn" />
-		<a href="javascript:void(0);" class="btn btn-primary" id=""><span style="vertical-align: middle">Generate Report</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
+	<div class = 'run-bar' ng-controller="RunQueryCtrl">
+		<span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span>
+		<div class="master-select2-container">
+			<select ui-select2 ng-controller="ColorColumnCtrl" ng-model="selected" data-placeholder="Choose Color Column">
+				<option></option>
+				<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+			</select>
+		</div>
+		<a href="javascript:void(0);" class="btn btn-primary" id="" ng-click="runQuery()"><span style="vertical-align: middle">Run</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
 	</div>
 </div>
 

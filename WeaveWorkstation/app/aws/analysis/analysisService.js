@@ -11,16 +11,16 @@ angular.module('aws.analysisService', [])
     
        
 }])
-.service('dasboard_widget_service', ['$filter',
-function($filter) {
+.service('dasboard_widget_service', ['$filter', 'queryService', 
+function($filter, queryService) {
 
 	var tool_list = [{
-		id : 'Indicator',
+		id : 'IndicatorFilter',
 		title : 'Indicator',
 		template_url : 'aws/visualization/indicator/indicator.tpl.html',
 		description : 'Choose the indicator for this analysis',
 		note: 'This is the global indicator that will be use for the analysis',
-		category : 'indicator'
+		category : 'indicatorfilter'
 	},
 	{
 		id : 'GeographyFilter',
@@ -36,7 +36,7 @@ function($filter) {
 		title : 'Time Period',
 		template_url : 'aws/visualization/data_filters/time_period.tpl.html',
 		desription : 'Filter data based on time period',
-		note: 'This is a note',
+		note: 'Choose the year and month columns in the database to select the metadata',
 		category : 'datafilter'
 	},
 	{
@@ -92,7 +92,7 @@ function($filter) {
 			var tool = $filter('filter')(tool_list, {
 				id : widget_id
 			});
-			widget_bricks.splice(0, 0, tool[0]);
+			widget_bricks.splice(widget_bricks.length, 0, tool[0]);
 		} else {
 			//TODO: Hightlight the div if already added to dashboard. Use ScrollSpy
 		}
@@ -110,6 +110,42 @@ function($filter) {
 				category : category
 			});
 
+	};
+	
+	this.enable_widget = function(tool_id, enabled){
+		if (tool_id == 'IndicatorFilter')
+		{
+			
+		}
+		else if (tool_id == 'GeographyFilter')
+		{
+			
+		}
+		else if (tool_id == 'TimePeriodFilter')
+		{
+			queryService.queryObject.BarChartTool.enabled = enabled;
+		}
+		else if (tool_id == 'ByVariableFilter')
+		{
+			queryService.queryObject.BarChartTool.enabled = enabled;
+		}
+		else if (tool_id == 'BarChartTool')
+		{
+			queryService.queryObject.BarChartTool.enabled = enabled;
+		}
+		else if (tool_id == 'MapTool')
+		{
+			queryService.queryObject.BarChartTool.enabled = enabled;
+		}
+		else if (tool_id == 'DataTableTool')
+		{
+			queryService.queryObject.dataTable.enabled = enabled;
+		}
+		else if (tool_id == 'ScatterPlotTool')
+		{
+			queryService.queryObject.BarChartTool.enabled = enabled;
+		};
+		
 	};
 }]);
 
