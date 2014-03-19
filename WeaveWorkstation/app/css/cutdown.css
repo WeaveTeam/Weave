@@ -1,5 +1,3 @@
-
-
 .step {
 
 	background: #B2B5B9;
@@ -325,36 +323,32 @@
 	height: auto;
 	padding-top: 5%;
 	padding-left: 5%;
-	
 }
 
-.search-script .popover .select-2-drop{
-	
+.search-script .popover .select-2-drop {
+
 	width: 50% !important;
-	 
-	
 }
 
-.search-script .popover .portlet-content{
+.search-script .popover .portlet-content {
 	width: 100%;
-	
 }
 
-.search-script .popover .label-p{
-	
+.search-script .popover .label-p {
+
 	width: 20%;
-	padding : 5px;
+	padding: 5px;
 }
 
 .search-script .popover .input-controls .input-p {
 
-/* margin: 0 0 10px; */
-display: table-cell;
-padding-left: 10px;
-width: 70%;
+	/* margin: 0 0 10px; */
+	display: table-cell;
+	padding-left: 10px;
+	width: 70%;
 }
 
-.search-script .popover .input-controls{
+.search-script .popover .input-controls {
 	padding-left: 15px;
 }
 
@@ -372,10 +366,9 @@ width: 70%;
 	display: table-cell;
 }
 
-.search-script .arrow{
-	
+.search-script .arrow {
+
 	top: 20% !important;
-	
 }
 
 /*
@@ -455,12 +448,7 @@ width: 70%;
 	width: 70%;
 }
 
-.panel .panel-body .input-controls > li {
-	display: table-row;
-	border-right: 1px solid #FFE1EB;
-	width: 100%;
-	vertical-align: middle;
-}
+
 
 .panel .panel-body .input-controls .label-p {
 
@@ -485,6 +473,38 @@ width: 70%;
 	color: #999;
 	font-size: 17px;
 	font-weight: 300;
+}
+
+.panel .panel-body .input-controls > li {
+	display: inline;
+	
+	width: 100%;
+	vertical-align: middle;
+	line-height: 3em;
+	padding-bottom: 2px;
+	margin-bottom: 1em;
+}
+
+.masonry-brick .panel-body .widget-ui-control {
+
+	line-height: 1em !important;
+	width: 65% !important;
+	display: table-cell;
+}
+
+.masonry-brick .panel-body .tool-list-control-element {
+
+	line-height: 2em;
+	padding-bottom: 2px;
+	margin-bottom: 1em;
+	right: -20px;
+	vertical-align: middle;
+}
+
+.masonry-brick .panel-body .tool-label{
+	
+	display: inline-block;
+	width: 30%;
 }
 
 /*
@@ -569,10 +589,8 @@ width: 70%;
 	margin-left: 5px;
 }
 
+.dropdown-menu {
 
-.dropdown-menu{
-	
-	height: 70px;
+	height: 160px;
 	overflow-y: scroll;
-	
 }

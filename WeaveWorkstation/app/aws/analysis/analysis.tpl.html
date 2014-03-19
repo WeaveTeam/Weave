@@ -100,7 +100,7 @@
 				<ul class="tool-list" >
 					<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
 						<span class="checkbox">
-							<input type="checkbox">
+							<input type="checkbox" ng-click = "enable_widget()">
 						</span>
 						<a href='javascript: void()'> {{general_tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)" bs-tooltip>
@@ -112,20 +112,20 @@
 					</li>
 					<li id= "filter_tool.id" ng-repeat="filter_tool in filter_tools">
 						<span class="checkbox">
-							<input type="checkbox">
+							<input type="checkbox" ng-click = "enable_widget(filter_tool.id, this.val)">
 						</span>
 						<a href='javascript: void()'> {{filter_tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)" bs-tooltip>
 							<i class="glyphicon glyphicon-plus"></i>
 						</button>
 					</li>
-					<li >
+					<li>
 						<h4 class='tool-category'>Visualization Tools</h4>
 					</li>
 
 					<li id="tool.id" ng-repeat= "tool in tool_list">
 						<span class="checkbox">
-							<input type="checkbox">
+							<input type="checkbox" ng-click = "enable_widget()">
 						</span>
 						<a href='javascript: void()'> {{tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(tool.id)" bs-tooltip>
@@ -161,10 +161,10 @@
 		</div>
 	</div>
 
-	<div class = 'run-bar'>
+	<div class = 'run-bar' ng-controller="RunQueryCtrl">
 		<span style="display: inline-block; margin-left: 20px; font-size: 13px;">Set Color Column</span>
 		<input class="txt" id="colorColumn" />
-		<a href="javascript:void(0);" class="btn btn-primary" id=""><span style="vertical-align: middle">Generate Report</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
+		<a href="javascript:void(0);" class="btn btn-primary" id="" ng-click="runQuery()"><span style="vertical-align: middle">Generate Report</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
 	</div>
 </div>
 

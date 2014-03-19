@@ -11,13 +11,20 @@ analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_
 	$scope.tool_list = dasboard_widget_service.get_tool_list('visualization');
 	$scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
 
+	
+	
+	
 	$scope.add_widget = function(element_id) {
 		dasboard_widget_service.add_widget_bricks(element_id);
-	}
+	};
 
 	$scope.remove_widget = function(widget_index) {
 		dasboard_widget_service.remove_widget_bricks(widget_index);
-	}
+	};
+	
+	$scope.enable_widget = function(id, enabled){
+		dasboard_widget_service.enable_widget(id, enabled);
+	};
 	
 	
 });
