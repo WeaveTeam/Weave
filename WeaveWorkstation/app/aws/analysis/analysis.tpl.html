@@ -104,7 +104,7 @@
 				<ul class="tool-list" >
 					<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
 						<span class="checkbox">
-							<input type="checkbox" ng-model = "box_enabled" ng-change = "enable_widget(general_tool.id, box_enabled)">
+							<input type="checkbox"  ng-model = "box_enabled[general_tool.id]" ng-change = "enable_widget(general_tool.id)">
 						</span>
 						<a href='javascript: void()'> {{general_tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)" bs-tooltip>
@@ -116,7 +116,7 @@
 					</li>
 					<li id= "filter_tool.id" ng-repeat="filter_tool in filter_tools">
 						<span class="checkbox">
-							<input type="checkbox" ng-model = "box_enabled" ng-change = "enable_widget(filter_tool.id, box_enabled)">
+							<input type="checkbox" ng-model = "box_enabled[filter_tool.id]" ng-change = "enable_widget(filter_tool.id)">
 						</span>
 						<a href='javascript: void()'> {{filter_tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)" bs-tooltip>
@@ -129,7 +129,7 @@
 
 					<li id="tool.id" ng-repeat= "tool in tool_list">
 						<span class="checkbox">
-							<input type="checkbox" ng-model = "box_enabled" ng-change = "enable_widget(tool.id, box_enabled)">
+							<input type="checkbox"  ng-model = "box_enabled[tool.id]" ng-change = "enable_widget(tool.id)">
 						</span>
 						<a href='javascript: void()'> {{tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(tool.id)" bs-tooltip>
