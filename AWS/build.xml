@@ -15,7 +15,7 @@
 
 	<target name="all" depends="clean, compile, app, dist">
 	</target>
-	<target name="simple" depends="partialclean, app, rscripts, dist"></target>
+	<target name="simple" depends="partialclean, app, dist"></target>
 	<target name="clean">
 		<delete quiet="true" includeemptydirs="true">
 			<fileset dir="${build-dir}" includes="**/*"/>
@@ -112,7 +112,7 @@
 		</tstamp>
 		<echo message="${current.time}" />
 		<mkdir dir="${dist-dir}"/>
-		<delete quiet="false" includeemptydirs="true">
+		<delete quiet="true" includeemptydirs="true">
 			<fileset dir="${dist-dir}" />
 		</delete>
 		<copy todir="${dist-dir}">
