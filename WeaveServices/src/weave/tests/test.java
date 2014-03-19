@@ -66,33 +66,6 @@ public class test
 	}
 	
 	
-	public static void testcall(Map<String, String> connectionObjectCopy, Map<String, Object> requestObjectCopy)
-	throws Exception
-	{
-				 
-		for(int i = 0; i < 4; i++)
-	    {
-			
-				RResult[] scriptResult = null;
-				
-				Object [] allResults = new Object[3];
-				
-				System.out.println(System.getProperty("user.dir"));
-			try {
-				
-				scriptResult = aws.runScriptwithScriptMetadata(connectionObjectCopy, requestObjectCopy);
-				//scriptResult = aws.runScript(null, requestObjectInputNames, requestObjectInputValues, null, "","", false,false,false);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-				finally
-				{
-					System.out.println(Arrays.asList(scriptResult));
-				}
-				allResults[i] = scriptResult;
-	    }
-	}
-	
 
 	public static void main(String[] args) throws Exception
 	{
@@ -150,8 +123,6 @@ public class test
 		
 		
 		//call(null, inputNames, inputValues, resultNames, script, "", false, false, false);
-		
-		testcall(connectionObject, requestObject);
 		
 		
 		

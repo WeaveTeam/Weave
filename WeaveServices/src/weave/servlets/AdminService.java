@@ -86,7 +86,7 @@ import weave.utils.SQLUtils;
 import weave.utils.Strings;
 
 public class AdminService
-		extends GenericServlet
+		extends WeaveServlet
 {
 	private static final long serialVersionUID = 1L;
 	private RemoteException initializationError = null;
@@ -100,17 +100,6 @@ public class AdminService
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
-	}
-	
-	@SuppressWarnings("rawtypes")
-	@Override
-	protected Object cast(Object value, Class<?> type)
-	{
-		if (type == DataEntityMetadata.class && value != null && value instanceof Map)
-		{
-			return DataEntityMetadata.fromMap((Map)value);
-		}
-		return super.cast(value, type);
 	}
 	
 	private boolean isEmpty(String str)

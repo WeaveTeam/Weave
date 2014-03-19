@@ -258,7 +258,7 @@ package weave.visualization.layers
 			{
 				if (debug)
 					trace(this, 'begin async rendering');
-				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
+				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_1_RENDERING, asyncComplete);
 				
 				// assign secondary busy task in case async task gets cancelled due to busy dependencies
 				WeaveAPI.SessionManager.assignBusyTask(_dependencies, this);

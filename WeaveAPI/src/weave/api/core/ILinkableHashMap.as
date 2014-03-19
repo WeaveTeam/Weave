@@ -16,7 +16,9 @@
 package weave.api.core
 {
 	/**
-	 * This is the interface for an ordered list of name-to-object mappings.
+	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
+	 * The session state is an Array of DynamicState objects.
+	 * @see weave.core.DynamicState
 	 * 
 	 * @author adufilie
 	 */
@@ -111,7 +113,7 @@ package weave.api.core
 		function removeAllObjects():void;
 
 		/**
-		 * This will generate a new name for an object that is different from all the names of objects in this LinkableHashMap.
+		 * This will generate a new name for an object that is different from all the names of objects previously used in this LinkableHashMap.
 		 * @param baseName The name to start with.  If the name is already in use, an integer will be appended to create a unique name.
 		 */
 		function generateUniqueName(baseName:String):String;

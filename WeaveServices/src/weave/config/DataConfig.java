@@ -531,32 +531,6 @@ public class DataConfig
 			MapUtils.putPairs(privateMetadata, (Object[])pairs);
 		}
 		
-	    private static final String PUBLIC_METADATA = "publicMetadata";
-	    private static final String PRIVATE_METADATA = "privateMetadata";
-	    
-		@SuppressWarnings("rawtypes")
-		public static DataEntityMetadata fromMap(Map object)
-		{
-        	DataEntityMetadata dem = new DataEntityMetadata();
-        	copyMap((Map)object.get(PRIVATE_METADATA), dem.privateMetadata);
-       		copyMap((Map)object.get(PUBLIC_METADATA), dem.publicMetadata);
-        	return dem;
-		}
-		
-		@SuppressWarnings("rawtypes")
-		private static void copyMap(Map input, Map<String,String> output)
-		{
-			if (input == null)
-				return;
-			
-			for (Object key : input.keySet())
-			{
-				Object value = input.get(key);
-				String valueStr = value == null ? null : value.toString();
-				output.put(key.toString(), valueStr);
-			}
-		}
-		
 		public String toString()
 		{
 			return MapUtils.fromPairs(

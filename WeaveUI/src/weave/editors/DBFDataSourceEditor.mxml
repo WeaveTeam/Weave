@@ -32,10 +32,12 @@
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('DBF URL *')}">
-		<ui:TextInputWithPrompt id="dbfURL" width="100%"  prompt="http://www.example.com/example.dbf"/>
+		<ui:TextInputWithPrompt id="dbfURL" width="100%" prompt="http://www.example.com/example.dbf"/>
+		<mx:Button label="{lang('Open file')}" click="openFile(dbfURL, new FileFilter('DBF', '*.dbf'));"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('SHP URL')}">
 		<ui:TextInputWithPrompt id="shpURL" width="100%"  prompt="http://www.example.com/example.shp"/>
+		<mx:Button label="{lang('Open file')}" click="openFile(shpURL, new FileFilter('SHP', '*.shp'));"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
@@ -52,13 +54,20 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.data.DataSources.DBFDataSource;
+			import weave.ui.BusyIndicator;
 			
+			private var busyIndicator:BusyIndicator = new BusyIndicator();
+
 			override protected function createChildren():void
 			{
 				super.createChildren();
+				addChild(busyIndicator);
+				busyIndicator.visible = false;
 				sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
@@ -81,6 +90,7 @@
 					shpURL.text = _dbfDataSource.shpUrl.value;
 					keyColumnName.text = _dbfDataSource.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(_dbfDataSource.keyType.value);
+					keyTypeSelector.selectedKeyType = _dbfDataSource.keyType.value;
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
@@ -103,6 +113,36 @@
 				_dbfDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 			}
 			
+			private function openFile(target:TextInputWithPrompt, fileFilter:FileFilter):void
+			{
+				try
+				{
+					var _fileLoader:FileReference = new FileReference();
+					_fileLoader.addEventListener(Event.SELECT, function(event:Event):void{
+						busyIndicator.visible = true;
+						_fileLoader.load();
+						WeaveAPI.ProgressIndicator.addTask(_fileLoader);
+					});
+					_fileLoader.addEventListener(ProgressEvent.PROGRESS, function(event:ProgressEvent):void{
+						WeaveAPI.ProgressIndicator.updateTask(_fileLoader, event.bytesLoaded / event.bytesTotal);
+					});
+					_fileLoader.addEventListener(Event.COMPLETE, function(event:Event):void{
+						target.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
+						busyIndicator.visible = false;
+						WeaveAPI.ProgressIndicator.removeTask(_fileLoader);
+					});
+					_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void{
+						busyIndicator.visible = false;
+						reportError(event);
+					});
+					
+					_fileLoader.browse([fileFilter]);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

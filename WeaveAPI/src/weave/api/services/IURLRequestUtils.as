@@ -17,6 +17,7 @@ package weave.api.services
 {
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
+	import flash.utils.ByteArray;
 
 	/**
 	 * An interface for GET and POST URL requests.
@@ -57,5 +58,32 @@ package weave.api.services
 		 * @see weave.api.core.IProgressIndicator#addTask()
 		 */
 		function getContent(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken;
+		
+		/**
+		 * This will save a file in memory so that it can be accessed later via getURL().
+		 * @param name The file name.
+		 * @param content The file content.
+		 * @return The URL at which the file can be accessed later via getURL(). This will be the string "local://" followed by the filename.
+		 */
+		function saveLocalFile(name:String, content:ByteArray):String;
+
+		/**
+		 * Retrieves file content previously saved via saveLocalFile().
+		 * @param The file name that was passed to saveLocalFile().
+		 * @return The file content.
+		 */
+		function getLocalFile(name:String):ByteArray;
+		
+		/**
+		 * Removes a local file that was previously added via saveLocalFile().
+		 * @param name The file name which was passed to saveLocalFile().
+		 */
+		function removeLocalFile(name:String):void;
+		
+		/**
+		 * Gets a list of names of files saved via saveLocalFile().
+		 * @return An Array of file names.
+		 */
+		function getLocalFileNames():Array;
 	}
 }

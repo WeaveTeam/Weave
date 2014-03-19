@@ -48,10 +48,9 @@ package weave.utils
 			{
 				if (Capabilities.manufacturer == "Adobe Linux" && ExternalInterface.available)
 				{
-					_customCursorsSupported = ExternalInterface.call(
-						'function(){ try{' +
-							WeaveAPI.JS_var_weave +
-							'return weave.children.wmode.value != "transparent";' +
+					_customCursorsSupported = WeaveAPI.executeJavaScript(
+						'try {',
+						'	return weave.children.wmode.value != "transparent";',
 						'} catch (e) { return true; }'
 					);
 				}
@@ -99,7 +98,7 @@ package weave.utils
 			Mouse.registerCursor(cursorName, cursorData);
 		}
 		
-        private static var idCounter:int = 0; // used to generate unique IDs for cursors
+        private static var idCounter:int = 1; // used to generate unique IDs for cursors
 		private static const cursorStack:Array = []; // keeps track of previously shown cursors
 		
 		/**
@@ -166,7 +165,7 @@ package weave.utils
 		 * @private
 		 * @TODO Stop using this function and remove it.
 		 */
-		public static function hack_removeCurrentCursor():void
+		[Deprecated(replacement="removeCursor")] public static function hack_removeCurrentCursor():void
 		{
 			if (cursorStack.length == 0)
 				return;
@@ -179,7 +178,7 @@ package weave.utils
 		 * @private
 		 * @TODO Stop using this function and remove it.
 		 */
-		public static function hack_removeAllCursors():void
+		[Deprecated(replacement="removeCursor")] public static function hack_removeAllCursors():void
 		{
 			cursorStack.length = 0;
 			updateCursor();

@@ -108,15 +108,23 @@
 						}
 					}
 					// first parameter is filename
-					if (i >= args.length)
-					{
-						trace('no file name specified');
-						args.push('defaults.xml');
-					}
 					params['file'] = args[i];
 				}
+				
+				// only load the default file the first time the application is invoked
+				if (firstTimeInvoke && !params['file'])
+				{
+					trace('Loading default file', DEFAULT_FILE);
+					params['file'] = DEFAULT_FILE;
+				}
+				firstTimeInvoke = false;
+				
 				this.params = params;
 			}
+			
+			private var firstTimeInvoke:Boolean = true;
+			
+			private const DEFAULT_FILE:String = 'defaults.xml';
 		]]>
 	</fx:Script>
 	<!--<weave:VisApplication width="100%" height="100%" id="visApp"/>-->

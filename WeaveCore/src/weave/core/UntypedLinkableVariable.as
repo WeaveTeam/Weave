@@ -20,7 +20,6 @@
 package weave.core
 {
 	/**
-	 * UntypedLinkableVariable
 	 * This is a LinkableVariable that adds "get value" and "set value" functions for untyped values.
 	 * 
 	 * @author adufilie

@@ -131,30 +131,38 @@ package weave.api.core
 		 * @param expression The expression to evaluate.
 		 * @param variables A hash map of variable names to values.
 		 * @param staticLibraries An array of fully qualified class names which contain static methods to include for future expressions, including this one.
-		 * @param assignVariableName An optional variable name to associate with the result of evaluating this expression.
+		 * @param assignVariableName An optional variable name to associate with the result of evaluating this expression. Use an empty string ("") to prevent returning a value.
 		 * @return The value of the evaluated expression, or undefined if assignVariableName was specified.
 		 * @see weave.compiler.Compiler
 		 */
-		function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, libraries:Array = null, assignVariableName:String = null):*;
+		function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignVariableName:String = null):*;
 		
 		/**
-		 * This function will add a grouped callback to an ILinkableObject.
-		 * @param objectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
+		 * This function will add a callback to an ILinkableObject.
+		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
 		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
 		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
-		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
+		 * @param triggerCallbackNow If this is set to true, the callback will be triggered after it is added.
+		 * @param immediateMode If this is set to true, addImmediateCallback() will be used.  Otherwise, addGroupedCallback() will be used.
 		 * @return true if successful.
 		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
-		function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean;
+		function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.
 		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
 		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
 		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
+		 * @param everywhere If set to true, removes the callback from every object to which it was added.
 		 * @return true if successful.
 		 */
-		function removeCallback(scopeObjectPathOrVariableName:Object, callback:String):Boolean;
+		function removeCallback(scopeObjectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean;
+		
+		/**
+		 * This function will remove all callbacks that were previously added using addCallback().
+		 * You may want to call this before calling loadFile() to prevent unwanted behavior due to scripts previously executed.
+		 */
+		function removeAllCallbacks():void;
 	}
 }

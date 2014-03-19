@@ -41,6 +41,7 @@ package weave.api.core
 		function addEventCallback(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void;
 		
 		/**
+		 * Removes a callback that was previously added with addEventCallback().
 		 * @param eventType The name of the event to remove a callback for, one of the static values in the MouseEvent class.
 		 * @param callback The function to remove from the list of callbacks.
 		 */
@@ -174,26 +175,31 @@ package weave.api.core
 		function get keyboardEvent():KeyboardEvent;
 		
 		/**
+		 * Use this to test if the SHIFT key is currently pressed.
 		 * @return The current pressed state of the ctrl key.
 		 */
 		function get shiftKey():Boolean;
 		
 		/**
+		 * Use this to test if the ALT key is currently pressed.
 		 * @return The current pressed state of the ctrl key.
 		 */
 		function get altKey():Boolean;
 		
 		/**
+		 * Use this to test if the CTRL key is currently pressed.
 		 * @return The current pressed state of the ctrl key.
 		 */
 		function get ctrlKey():Boolean;
 		
 		/**
+		 * Use this to test if the mouse button is currently pressed.
 		 * @return The current pressed state of the mouse button.
 		 */
 		function get mouseButtonDown():Boolean;
 		
 		/**
+		 * Use this to test if the mouse was pressed and released at the same coordinate.
 		 * @return true if the mouse was clicked without moving
 		 */
 		function get pointClicked():Boolean;

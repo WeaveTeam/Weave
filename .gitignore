@@ -1,4 +1,9 @@
 tags
 .DS_Store
-WeaveServices/.externalToolBuilders/
 .idea/
+.metadata/
+.tern-project
+.index
+.snap
+.data
+

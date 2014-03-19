@@ -34,6 +34,6 @@ internal class Internal
 			backlog = null;
 		},
 		null,
-		WeaveAPI.TASK_PRIORITY_IMMEDIATE
+		WeaveAPI.TASK_PRIORITY_0_IMMEDIATE
 	);
 }

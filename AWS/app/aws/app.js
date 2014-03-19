@@ -16,7 +16,8 @@ var app = angular.module('aws', ['aws.router',
                                  'ui.select2',
                                  'ui.slider',
                                  'ui.sortable',
-                                 'ngRoute']); // from Amith's UI
+                                 'ngRoute',
+                                 'ngGrid']); // from Amith's UI
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {
@@ -42,8 +43,8 @@ app.run(['$rootScope', function($rootScope){
 		controller : 'WidgetsController',
 		activetab : 'analysis'
 	}).when('/metadata', {
-		templateUrl : 'aws/metadata/metadata.tpl.html',
-		controller : 'WidgetsController',
+		templateUrl : 'aws/configure/metadata/metadataManager.html',
+		controller : 'MetadataManagerCtrl',
 		activetab : 'metadata'
 	}).when('/script_management', {
 		templateUrl : 'aws/configure/script/scriptManager.html',
@@ -67,11 +68,9 @@ angular.module('aws.directives', ['aws.directives.dualListBox',
                                   'aws.directives.fileUpload',
                                   'aws.directives.panel']);
 angular.module('aws.configure', ['aws.configure.metadata',
-                                 //'aws.configure.auth', 
                                  'aws.configure.script']);
 angular.module('aws.visualization',['aws.visualization.tools',
                                     /*'aws.visualization.weave'*/]);
-
 // From Amith's UI
 app.controller('AWSController', function($scope, $route, $location) {
 	

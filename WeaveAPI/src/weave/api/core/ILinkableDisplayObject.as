@@ -23,7 +23,7 @@ package weave.api.core
 	 * 
 	 * Implementations of this interface should do the following:
 	 * Callbacks should be triggered when the internal DisplayObject is created or removed.
-	 * The parent passed to the setParentContainer() function should be remembered and the
+	 * The parent passed to the parent setter should be remembered and the
 	 * internal DisplayObject should be added as a child of that parent if the child is
 	 * created later.  The internal DisplayObject should be removed from the parent when
 	 * the dispose() function is called.
@@ -33,16 +33,16 @@ package weave.api.core
 	public interface ILinkableDisplayObject extends ILinkableObject
 	{
 		/**
-		 * This function will set the DisplayObjectContainer that the DisplayObject should be added to.
-		 * This function should be used instead of parent.addChild() because the internal DisplayObject may change.
+		 * This will set the DisplayObjectContainer that the DisplayObject should be added to.
+		 * This should be used instead of parent.addChild() because the internal DisplayObject may change.
 		 * @param parent The parent DisplayObjectContainer.
 		 */
-		function setParentContainer(parent:DisplayObjectContainer):void;
+		function set parent(parent:DisplayObjectContainer):void;
 		
 		/**
-		 * This function gets the DisplayObject this objects is a wrapper for.
+		 * This is the DisplayObject for which this object is a wrapper.
 		 * @return The internal DisplayObject.
 		 */		
-		function getDisplayObject():DisplayObject;
+		function get object():DisplayObject;
 	}
 }

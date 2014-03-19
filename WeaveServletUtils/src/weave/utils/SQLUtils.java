@@ -597,6 +597,8 @@ public class SQLUtils
 	 * @param params Parameters for the SQL query for all '?' place holders, or null if there are no parameters.
 	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
+	 * @example
+	 * getResultFromQuery(conn, "SELECT a, b FROM mytable WHERE c = ? and d = ?", new Object[]{ "my-c-value", 0xDDDD }, false)
 	 */
 	public static <TYPE> SQLResult getResultFromQuery(Connection connection, String query, TYPE[] params, boolean convertToStrings)
 		throws SQLException
@@ -2001,7 +2003,10 @@ public class SQLUtils
 					if (i > 0)
 						sb.append(" OR ");
 					
-					if (filterValue.getClass() == Object[].class)
+					if (filterValue instanceof List)
+						filterValue = ((List<?>)filterValue).toArray();
+					
+					if (filterValue.getClass().isArray())
 					{
 						// numeric range
 						sb.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));

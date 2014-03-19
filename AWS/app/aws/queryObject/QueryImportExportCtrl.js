@@ -16,9 +16,9 @@ QueryObject.controller("QueryImportExportCtrl", function($scope, queryService) {
 			$scope.importQueryObject = function() {
 			};
 			
-			$scope.$on('newQueryLoaded', function(e) {
+			$scope.$on('fileUploaded', function(e) {
                 $scope.$safeApply(function() {
-                  queryService.queryObject = e.targetScope.jsonText;
+                  queryService.queryObject = e.targetScope.file;
                 });
 			});
 });

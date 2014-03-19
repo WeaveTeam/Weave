@@ -38,6 +38,7 @@ package weave.api
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.utils.getExternalObjectID;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -50,19 +51,19 @@ package weave.api
 		 * For use with StageUtils.startTask(); this priority is used for things that must be done before anything else.
 		 * Tasks having this priority will take over the scheduler and prevent any other asynchronous task from running until it is completed.
 		 */
-		public static const TASK_PRIORITY_IMMEDIATE:uint = 0;
+		public static const TASK_PRIORITY_0_IMMEDIATE:uint = 0;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with rendering.
 		 */
-		public static const TASK_PRIORITY_RENDERING:uint = 1;
+		public static const TASK_PRIORITY_1_RENDERING:uint = 1;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with data manipulation tasks such as building an index.
 		 */
-		public static const TASK_PRIORITY_BUILDING:uint = 2;
+		public static const TASK_PRIORITY_2_BUILDING:uint = 2;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with parsing raw data.
 		 */
-		public static const TASK_PRIORITY_PARSING:uint = 3;
+		public static const TASK_PRIORITY_3_PARSING:uint = 3;
 		
 		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
@@ -170,9 +171,13 @@ package weave.api
 		/**
 		 * This is a JavaScript statement that sets a variable called "weave" equal to the embedded SWF object.
 		 */
-		public static const JS_var_weave:String = ExternalInterface.objectID
-			? 'var weave = document.getElementById("' + ExternalInterface.objectID + '");'
-			: 'var weave = document.body.firstChild;';
+		public static function get JS_var_weave():String
+		{
+			if (!_JS_var_weave)
+				_JS_var_weave = 'var weave = document.getElementById("' + getExternalObjectID('weave') + '");';
+			return _JS_var_weave;
+		}
+		private static var _JS_var_weave:String = null;
 
 		/**
 		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
@@ -268,19 +273,63 @@ package weave.api
 		
 		/**
 		 * This will execute JavaScript code that uses a 'weave' variable.
+		 * @param paramsAndCode A list of lines of code, optionally including an
+		 *     Object containing named parameters to be passed from ActionScript to JavaScript.
+		 *     Inside the code, you can use a variable named "weave" which will be a pointer
+		 *     to the Weave instance.
+		 * @return The result of executing the JavaScript code.
+		 * 
+		 * @example Example 1
+		 * <listing version="3.0">
+		 *     var sum = WeaveAPI.executeJavaScript({x: 2, y: 3}, "return x + y");
+		 *     trace("sum:", sum);
+		 * </listing>
+		 * 
+		 * @example Example 2
+		 * <listing version="3.0">
+		 *     var sum = WeaveAPI.executeJavaScript(
+		 *         {x: 2, y: 3},
+		 *         'return weave.path().vars({x: x, y: y}).getValue("x + y");'
+		 *     );
+		 *     trace("sum:", sum);
+		 * </listing>
 		 */		
-		private static function executeJavaScript(...lines):void
+		public static function executeJavaScript(...paramsAndCode):*
 		{
-			lines.unshift('function(){', JS_var_weave);
-			lines.push('}');
-			var script:String = lines.join('\n');
-			ExternalInterface.call(script);
+			var pNames:Array = [];
+			var pValues:Array = [];
+			var code:String = '';
+			
+			// insert weave variable declaration
+			paramsAndCode.unshift(JS_var_weave);
+			
+			// separate function parameters from code
+			for each (var value:Object in paramsAndCode)
+			{
+				if (value.constructor == Object)
+				{
+					for (var key:String in value)
+					{
+						pNames.push(key);
+						pValues.push(value[key]);
+					}
+				}
+				else
+					code += value + '\n';
+			}
+			
+			// concatenate all code inside a function wrapper
+			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
+			
+			// call the function with the specified parameters
+			pValues.unshift(code);
+			return ExternalInterface.call.apply(null, pValues);
 		}
 		
 		private static function handleExternalError(e:Error):void
 		{
 			if (e.errorID == 2060)
-				ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
+				ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set appropriately. " + e.message);
 			else
 				ErrorManager.reportError(e);
 		}

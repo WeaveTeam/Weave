@@ -160,13 +160,13 @@
 					binAxisPlotter.tickCountRequested.value = binnedColumn.numberOfBins;
 					binAxisPlotter.tickMinValue.value = 0;
 					binAxisPlotter.tickMaxValue.value = binnedColumn.numberOfBins - 1;	
-					binAxisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber);
+					binAxisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber, binnedColumn);
 				}
 				else
 				{
 					binAxisPlotter.tickMinValue.value = NaN;
 					binAxisPlotter.tickMaxValue.value = NaN;	
-					binAxisPlotter.setLabelFunction(null);
+					binAxisPlotter.setLabelFunction(null, null);
 				}
 				
 				heightAxisPlotter.tickMinValue.value = NaN;
@@ -174,19 +174,25 @@
 				
 				var binAxisTitle:String = ColumnUtils.getTitle(plotter.fillStyle.color);
 				var heightAxisTitle:String = lang("Number of records");
-				if (plotter.columnToAggregate.getInternalColumn() && plotter.aggregationMethod.value != HistogramPlotter.AG_COUNT)
+				if (plotter.columnToAggregate.getInternalColumn())
 				{
-					heightAxisPlotter.setLabelFunction(getHeightAxisLabel);
-					var agColTitle:String = ColumnUtils.getTitle(plotter.columnToAggregate);
-					var method:String = plotter.aggregationMethod.value;
-					if (method == HistogramPlotter.AG_MEAN)
-						heightAxisTitle = lang("Mean of {0}", agColTitle);
-					if (method == HistogramPlotter.AG_SUM)
-						heightAxisTitle = lang("Sum of {0}", agColTitle);
+					if (plotter.aggregationMethod.value != HistogramPlotter.AG_COUNT)
+					{
+						heightAxisPlotter.setLabelFunction(getHeightAxisLabel, plotter.columnToAggregate);
+						var agColTitle:String = ColumnUtils.getTitle(plotter.columnToAggregate);
+						var method:String = plotter.aggregationMethod.value;
+						if (method == HistogramPlotter.AG_MEAN)
+							heightAxisTitle = lang("Mean of {0}", agColTitle);
+						if (method == HistogramPlotter.AG_SUM)
+							heightAxisTitle = lang("Sum of {0}", agColTitle);
+					}
+					else
+						heightAxisPlotter.setLabelFunction(null, plotter.columnToAggregate);
 				}
 				else
 				{
-					heightAxisPlotter.setLabelFunction(null);
+					// fall back to using binnedColumn
+					heightAxisPlotter.setLabelFunction(null, binnedColumn);
 				}
 				
 				xAxisPlotter.setSideAxisName(plotter.horizontalMode.value ? heightAxisTitle : binAxisTitle, 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
