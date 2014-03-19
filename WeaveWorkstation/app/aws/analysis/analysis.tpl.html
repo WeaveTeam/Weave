@@ -104,34 +104,6 @@
 				<ul class="tool-list" >
 					<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
 						<span class="checkbox">
-<<<<<<< HEAD
-							<input type="checkbox" ng-model = "box_enabled" ng-change = "enable_widget(general_tool.id, box_enabled)">
-						</span>
-						<a href='javascript: void()'> {{general_tool.title}}</a>
-						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)" bs-tooltip>
-							<i class="glyphicon glyphicon-plus"></i>
-						</button>
-					</li>
-					<li >
-						<h4 class='tool-category'>Data Filters</h4>
-					</li>
-					<li id= "filter_tool.id" ng-repeat="filter_tool in filter_tools">
-						<span class="checkbox">
-							<input type="checkbox" ng-model = "box_enabled" ng-change = "enable_widget(filter_tool.id, box_enabled)">
-						</span>
-						<a href='javascript: void()'> {{filter_tool.title}}</a>
-						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)" bs-tooltip>
-							<i class="glyphicon glyphicon-plus"></i>
-						</button>
-					</li>
-					<li>
-						<h4 class='tool-category'>Visualization Tools</h4>
-					</li>
-
-					<li id="tool.id" ng-repeat= "tool in tool_list">
-						<span class="checkbox">
-							<input type="checkbox" ng-model = "box_enabled" ng-change = "enable_widget(tool.id, box_enabled)">
-=======
 							<input type="checkbox"  ng-model = "box_enabled[general_tool.id]" ng-change = "enable_widget(general_tool.id)">
 						</span>
 						<a href='javascript: void()'> {{general_tool.title}}</a>
@@ -158,7 +130,6 @@
 					<li id="tool.id" ng-repeat= "tool in tool_list">
 						<span class="checkbox">
 							<input type="checkbox"  ng-model = "box_enabled[tool.id]" ng-change = "enable_widget(tool.id)">
->>>>>>> branch 'aws-temp' of https://shwetapurushe@github.com/IVPR/Weave.git
 						</span>
 						<a href='javascript: void()'> {{tool.title}}</a>
 						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(tool.id)" bs-tooltip>
@@ -195,8 +166,11 @@
 	</div>
 
 	<div class = 'run-bar' ng-controller="RunQueryCtrl">
-		<span style="display: inline-block; margin-left: 20px; font-size: 13px;">Set Color Column</span>
-		<input class="txt" id="colorColumn" />
+		<span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span>
+		<select ui-select2 ng-controller="ColorColumnCtrl" ng-model="selected" data-placeholder="Choose Color Column">
+			<option></option>
+			<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+		</select>
 		<a href="javascript:void(0);" class="btn btn-primary" id="" ng-click="runQuery()"><span style="vertical-align: middle">Generate Report</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
 	</div>
 </div>
