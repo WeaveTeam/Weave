@@ -98,6 +98,23 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     };
     
     
+    this.addQueryObjectToProject = function(userName, projectName, queryObjectTitle, queryObjectContent) {
+      	
+    	var deferred = $q.defer();
+
+        aws.DataClient.insertQueryObject(userName, projectName, queryObjectTitle, queryObjectContent, function(result) {
+            
+        	that.dataObject.deleteQueryStatus = result;//returns a boolean which states if the query has been deleted(true)
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
+    
     /**
      * This function wraps the async aws deleteproject function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
@@ -124,28 +141,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      * This function wraps the async aws deleteQueryObject function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.deleteQueryObject = function(projectName, queryObjectTitle) {
+    this.deleteQueryObject = function(projectName, queryObjectName) {
           	
     	var deferred = $q.defer();
 
-        aws.DataClient.deleteQueryObject(projectName,queryObjectTitle, function(result) {
-            
-        	that.dataObject.deleteQueryStatus = result;//returns a boolean which states if the query has been deleted(true)
-        	scope.$safeApply(function() {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
-    };
-    
-    this.addQueryObjectToProject = function(userName, projectName, queryObjectTitle, queryObjectContent) {
-      	
-    	var deferred = $q.defer();
-
-        aws.DataClient.insertQueryObject(userName, projectName, queryObjectTitle, queryObjectContent, function(result) {
+        aws.DataClient.deleteQueryObject(projectName,queryObjectName, function(result) {
             
         	that.dataObject.deleteQueryStatus = result;//returns a boolean which states if the query has been deleted(true)
         	scope.$safeApply(function() {
