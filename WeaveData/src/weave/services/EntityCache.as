@@ -334,8 +334,6 @@ package weave.services
 		 */
 		public function invalidateAll(purge:Boolean = false):void
         {
-			callbacks.delayCallbacks();
-			
 			if (purge)
 			{
 				idsToFetch = {};
@@ -347,14 +345,11 @@ package weave.services
 			}
 			else
 			{
-				invalidate(ROOT_ID);
 				// we don't want to delete the cache because we can still use the cached values for display in the meantime.
 				for (var id:* in entityCache)
 					idsDirty[id] = true;
 			}
 			callbacks.triggerCallbacks();
-			
-			callbacks.resumeCallbacks();
         }
 		
 		public function update_metadata(id:int, diff:EntityMetadata):void
