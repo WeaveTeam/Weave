@@ -36,7 +36,7 @@ function($filter) {
 		title : 'Time Period',
 		template_url : 'aws/visualization/data_filters/time_period.tpl.html',
 		desription : 'Filter data based on time period',
-		note: 'This is a note',
+		note: 'Choose the year and month columns in the database to select the metadata',
 		category : 'datafilter'
 	},
 	{
