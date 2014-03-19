@@ -341,49 +341,49 @@ public class AWSRService extends RService
 	 */
 	// Gets the list of queryObjects in a folder and returns an array of
 	// JSONObjects(each JSONObject --> one queryObject)
-	public Object[] getQueryObjectsInProject(String projectName)
-			throws Exception {
-		Object[] finalQueryObjectCollection = new Object[2];
-
-		JSONObject[] finalQueryObjects = null;
-		String[] queryNames = getQueryObjectNamesInProject(projectName);
-		if (queryNames.length != 0) {// if the project contains something
-			ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
-			JSONParser parser = new JSONParser();
-
-			finalQueryObjects = new JSONObject[queryNames.length];
-
-			for (int i = 0; i < queryNames.length; i++) {
-				// for every queryObject, convert to a json object
-				String extension = FilenameUtils.getExtension(queryNames[i]);
-
-				// add file filter for searching only for json files
-				if (extension.equalsIgnoreCase("json")) {
-					String path = "C:/Projects/" + projectName + "/"
-							+ queryNames[i];// TODO find better way
-					FileReader reader = new FileReader(path);
-					Object currentQueryObject = parser.parse(reader);
-					JSONObject currentjsonObject = (JSONObject) currentQueryObject;
-					jsonlist.add(currentjsonObject);
-					reader.close();
-				}
-			}
-
-			// returning an array of JSON Objects
-			finalQueryObjects = jsonlist.toArray(finalQueryObjects);
-		}
-
-		else {
-			// if project is empty return null
-			finalQueryObjects = null;
-			// throw new
-			// RemoteException("No query Objects found in the specified folder!");
-		}
-
-		finalQueryObjectCollection[0] = finalQueryObjects;
-		finalQueryObjectCollection[1] = queryNames;
-
-	}
+//	public Object[] getQueryObjectsInProject(String projectName)
+//			throws Exception {
+//		Object[] finalQueryObjectCollection = new Object[2];
+//
+//		JSONObject[] finalQueryObjects = null;
+//		String[] queryNames = getQueryObjectNamesInProject(projectName);
+//		if (queryNames.length != 0) {// if the project contains something
+//			ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
+//			JSONParser parser = new JSONParser();
+//
+//			finalQueryObjects = new JSONObject[queryNames.length];
+//
+//			for (int i = 0; i < queryNames.length; i++) {
+//				// for every queryObject, convert to a json object
+//				String extension = FilenameUtils.getExtension(queryNames[i]);
+//
+//				// add file filter for searching only for json files
+//				if (extension.equalsIgnoreCase("json")) {
+//					String path = "C:/Projects/" + projectName + "/"
+//							+ queryNames[i];// TODO find better way
+//					FileReader reader = new FileReader(path);
+//					Object currentQueryObject = parser.parse(reader);
+//					JSONObject currentjsonObject = (JSONObject) currentQueryObject;
+//					jsonlist.add(currentjsonObject);
+//					reader.close();
+//				}
+//			}
+//
+//			// returning an array of JSON Objects
+//			finalQueryObjects = jsonlist.toArray(finalQueryObjects);
+//		}
+//
+//		else {
+//			// if project is empty return null
+//			finalQueryObjects = null;
+//			// throw new
+//			// RemoteException("No query Objects found in the specified folder!");
+//		}
+//
+//		finalQueryObjectCollection[0] = finalQueryObjects;
+//		finalQueryObjectCollection[1] = queryNames;
+//
+//	}
 		/*
  	    * @param userName author of a given Project
 	    * @param projectName project which contains the requested query
@@ -492,35 +492,7 @@ public class AWSRService extends RService
 		
 	}
 	
-	//deletes the entire specified folder (files within and folder itself)
-	public boolean deleteProject(String projectName) throws Exception
-	{
-		boolean status;
-		File pj = new File("C:/Projects", projectName);
-		status = FileUtils.deleteDirectory(pj);
 
-		return status;
-	}
-
-	// deletes the specified file(json) within the specified folder
-	public boolean deleteQueryObject(String projectName, String queryObjectName)
-			throws Exception {
-		boolean status = false;
-
-		String path = "C:/Projects/" + projectName + "/" + queryObjectName;// TODO
-																			// find
-																			// better
-																			// way
-		File fileToDelete = new File(path);
-
-		if (fileToDelete.exists()) {
-			fileToDelete.delete();
-			status = true;
-			System.out.println("deleted the file");
-		}
-
-		return status;
-	}
 	
 //	/**
 //	    * 

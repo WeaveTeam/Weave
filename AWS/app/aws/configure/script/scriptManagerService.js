@@ -50,7 +50,6 @@ angular.module('aws.configure.script')
         return deferred.promise;
       };
       this.saveChangedMetadata = function(metadata){
-        if(this.dataObject.scriptName === ""){return;}
         var deferred = $q.defer();
         this.dataObject.scriptMetadata = metadata;
         aws.RClient.saveMetadata(this.dataObject.scriptName ,this.dataObject.scriptMetadata, function(){
