@@ -1,21 +1,24 @@
 <div ng-controller="ProjectManagementCtrl" style="display: inline-block; margin-left : 30px">
-    <br>
-    </br>
+<br>
+	Username <input ng-model = "username" type = "text" placeholder = "Enter a username for the project"></input>
+    <br><br>
+	<button id = "newProjectButton"  style = "margin-left : 30px" type="button" class="btn btn-sm" data-template= "aws/project/projectAdditionPanel.html"
+	data-placement="left" data-animation="am-slide-left" bs-aside="aside" data-container="body"  ng-click = "open()">
+		Create New Project
+		<span class = "glyphicon glyphicon-plus-sign" ></span>
+	</button>
     Select Project 
     <select ui-select2 ng-model="projectSelectorUI" style=width:200px;>
         <option>Select Project</option>
         <option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option>
     </select>
-	<button type="button" style= "margin-left : 650px" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" 
-	data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
-		<span class = "glyphicon glyphicon-plus" ></span></button>
-    <br>
-    </br>
-    <br>
+	<button id = "newQueryObjectButton" type="button" style= "margin-left : 600px" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" 
+	data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')">
+		New Query Object
+		<span class = "glyphicon glyphicon-plus-sign" ></span></button>
+    <br><br>
     Query Objects: <b>{{projectSelectorUI}}</b>
-    </br>
-    <br>
-    </br>
+    <br><br>
     <!-- DROPDOWN COMPONENTS -->
     <!-- Houses the list and the buttons on the right -->
     <div style="/*display: inline-block;*/ margin-left : 30px ;width:1250px;height:600px;"">
@@ -39,7 +42,9 @@
 								<div class= "button-div">
 									<button ng-click = "runQueryInAnalysisBuilder()" style = "width : 30%" class ="btn btn-success"><span class = "glyphicon glyphicon-play-circle"></span></button>
 									<button ng-click = "deleteSpecificQueryObject()" style = "width : 30%" class="btn btn-danger"><span class = "glyphicon glyphicon-remove-circle"></span></button>
-									<button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button>
+									<!--button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button-->
+									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton')" type="button" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" 
+									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">Open in edito</button>
 								</div><!--Contains the run and delete buttons END-->
                                 
                             </li>

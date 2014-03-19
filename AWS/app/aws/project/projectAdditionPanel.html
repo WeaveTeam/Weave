@@ -1,0 +1,33 @@
+<div style= "width: 500px; height: 600px;" class="aside" tabindex="1" role="dialog" >
+    <div class="aside-dialog">
+        <div class="aside-content">
+            <div class="aside-header" ng-show="title">
+                <button type="button" class="close" ng-click="$hide()">
+                    &times;
+                </button>
+                <span class="aside-title" ng-bind-html="title">{{title}}</span>
+            </div>
+            <div class="aside-body">
+            	Name of the Project <input ng-model = "projectName" type = "text" placeholder = "Enter a name for the project"></input>
+				<br></br>
+				Author of the Project<input ng-model = "username" type = "text" placeholder = "Name of the author"></input>
+				<br></br>
+				Query Objects (.json) files to include in the project
+				<div style = "margin-left: 60px" class="file-upload">
+							<label for="queryImport">Upload</label> 
+							<input type="file" id="queryUpload" name="queryUpload"	ng-submit="uploadQueryObjects()" file-upload />
+				</div>
+           </div>
+			
+			<div class="aside-footer">
+                <button type="button" class="btn btn-primary">
+                    Export
+                </button>
+                <button type="button" class="btn btn-primary">
+                    Save to current Project
+                </button>
+				
+            </div>
+        </div>
+    </div>
+</div>
