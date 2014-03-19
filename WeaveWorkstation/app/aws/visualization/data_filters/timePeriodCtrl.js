@@ -139,8 +139,6 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 					
 					queryService.queryObject.TimePeriodFilter.years = year_array;
 					queryService.queryObject.TimePeriodFilter.months = month_array;
-					console.log(queryService.queryObject.TimePeriodFilter.years);
-					console.log(queryService.queryObject.TimePeriodFilter.months);
 			},
 			 onKeydown: function(node, event) {
 				 if( event.which == 32 ) {
