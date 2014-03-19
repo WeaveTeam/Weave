@@ -229,6 +229,8 @@
 			
 			protected function clearConnectionFields(resetConnectString:Boolean):void
 			{
+				if (resetConnectString)
+					treeWithSearch.tree.selectedItem = null;
 				connectionNameInput.text = "";
 				connectionPasswordInput.text = "";
 				folderNameInput.text = "";
