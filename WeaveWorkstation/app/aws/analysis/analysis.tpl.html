@@ -98,12 +98,12 @@
 			<div class="tool-bar">
 
 				<ul class="tool-list" >
-					<li>
+					<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
 						<span class="checkbox">
 							<input type="checkbox">
 						</span>
-						<a href='javascript: void()'> Indicator</a>
-						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)" bs-tooltip>
+						<a href='javascript: void()'> {{general_tool.title}}</a>
+						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)" bs-tooltip>
 							<i class="glyphicon glyphicon-plus"></i>
 						</button>
 					</li>

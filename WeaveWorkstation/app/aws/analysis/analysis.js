@@ -7,6 +7,7 @@ var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry']);
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
 	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
+	$scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
 	$scope.tool_list = dasboard_widget_service.get_tool_list('visualization');
 	$scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
 
