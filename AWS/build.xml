@@ -1,7 +1,8 @@
 <project name="AWS" basedir="." default="all">
 
     <property environment="env"/>
-    <property name="workspace_loc" value="/Users/patrick/Documents/workspace" />
+    <property file="${netbeans.user}/build.properties" />
+    <property name="workspace_loc" value="${var.workspace_loc}"/>
 	<property file="${workspace_loc}/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.core.resources.prefs"/>
 	
 	<property name="docroot" value="${pathvariable.WEAVE_DOCROOT}" />
@@ -20,6 +21,7 @@
 			<fileset dir="${build-dir}" includes="**/*"/>
 		</delete>
 	</target>
+    
     <target name="partialclean">
       <delete quiet="true" includeemptydirs="true">
         <fileset dir="${build-dir}">
@@ -94,7 +96,15 @@
 			<fileset dir="${app-dir}"/>
 		</copy>
 	</target>
-	
+	<target name="rscripts">
+      <property name="scriptfolder" value="${dist-dir}/../../aws-config/RScripts"/>
+      <delete quiet="false" includeemptydirs="true">
+        <fileset dir="${scriptfolder}"/>
+      </delete>
+      <copy todir="${scriptfolder}">
+        <fileset dir="${basedir}/RScripts"/>
+      </copy>
+    </target>
 	<target name="dist" >
 		<echo message="Dist-Build ${ant.project.name} ... ${dist-dir}"/>
 		<tstamp>
@@ -102,7 +112,7 @@
 		</tstamp>
 		<echo message="${current.time}" />
 		<mkdir dir="${dist-dir}"/>
-		<delete quiet="false" includeemptydirs="true">
+		<delete quiet="true" includeemptydirs="true">
 			<fileset dir="${dist-dir}" />
 		</delete>
 		<copy todir="${dist-dir}">

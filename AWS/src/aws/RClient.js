@@ -62,6 +62,13 @@ aws.RClient.getListOfScripts = function(callback) {
 	aws.queryService(rServiceURL, 'getListOfScripts', null, callback);
 };
 
+aws.RClient.getScript = function(scriptName, callback){
+  aws.queryService(rServiceURL, 'getScript', [scriptName], callback);
+};
+
+aws.RClient.saveMetadata = function(scriptName, metadata, callback){
+  aws.queryService(rServiceURL, 'saveMetadata', [scriptName, metadata], callback);
+};
 /**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
