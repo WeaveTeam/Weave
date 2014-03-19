@@ -13,7 +13,7 @@ angular.module('aws.queryObjectEditor')//name of module
 		  var editor = new jsoneditor.JSONEditor(element[0]);
 			 editor.set(scope.currentJson);
 			 
-			 
+			 //updates the editor depending on the source of the queryObject(loaded queryObject vs newQueryObject)
 			 scope.$watch('scope.currentJson',function(){
 				 editor.set(scope.currentJson);
 			 });

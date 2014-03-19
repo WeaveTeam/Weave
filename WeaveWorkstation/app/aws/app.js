@@ -1,4 +1,5 @@
 var weaveAWSApp = angular.module('aws', [
+										 'aws.directives',
 										 'ngSanitize',
 										 'mgcrea.ngStrap', 
 										 'ngRoute',
@@ -39,4 +40,7 @@ weaveAWSApp.config(function($routeProvider) {
 	});
 
 });
+
+
+angular.module('aws.directives', ['aws.directives.dualListBox']);
 

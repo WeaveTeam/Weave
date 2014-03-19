@@ -33,17 +33,31 @@ aws.DataClient.getListOfProjects = function(callback) {
 	aws.queryService(rServiceURL, 'getListOfProjects', null, callback);
 };
 
-aws.DataClient.getListOfQueryObjects = function(projectName, callback){
-	aws.queryService(rServiceURL, 'getQueryObjectsInProject', [projectName], callback);
+aws.DataClient.getListOfProjectsFromDatabase = function(callback) {
+	aws.queryService(rServiceURL, "getProjectFromDatabase", null,  callback);
 };
+
+
+//aws.DataClient.getListOfQueryObjects = function(projectName, callback){
+//	aws.queryService(rServiceURL, 'getQueryObjectsInProject', [projectName], callback);
+//};
+
+aws.DataClient.getListOfQueryObjects = function(projectName, callback){
+	aws.queryService(rServiceURL, 'getQueryObjectsFromDatabase', [projectName], callback);
+};
+
 
 
 aws.DataClient.deleteProject = function(projectName, callback){
-	aws.queryService(rServiceURL, 'deleteProject',[projectName], callback );
+	aws.queryService(rServiceURL, 'deleteProjectFromDatabase',[projectName], callback );
 };
 
-aws.DataClient.deleteQueryObject = function(projectName, queryObjectName, callback){
-	aws.queryService(rServiceURL, 'deleteQueryObject',[projectName, queryObjectName], callback );
+aws.DataClient.deleteQueryObject = function(projectName, queryObjectTitle, callback){
+	aws.queryService(rServiceURL, 'deleteQueryObjectFromProjectFromDatabase',[projectName, queryObjectTitle], callback );
+};
+
+aws.DataClient.insertQueryObject= function(userName, projectName, queryObjectTitle, queryObjectContent, callback){
+	aws.queryService(rServiceURL, "insertQueryObjectInProjectFromDatabase", [userName, projectName, queryObjectTitle, queryObjectContent], callback);
 };
 /**
  * This function mirrors the getEntitiesById on the servlet.

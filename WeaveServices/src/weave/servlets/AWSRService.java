@@ -26,20 +26,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.rmi.RemoteException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Vector;
-
 import javax.script.ScriptException;
-
 import org.apache.commons.io.FilenameUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RFactor;
@@ -47,13 +50,15 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.beans.RResult;
+import weave.config.ConnectionConfig.ConnectionInfo;
+import weave.config.WeaveConfig;
 import weave.servlets.DataService.FilteredColumnRequest;
-import weave.utils.FileUtils;
 import weave.utils.MapUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import weave.utils.SQLUtils.WhereClause;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
 {
@@ -282,112 +287,293 @@ public class AWSRService extends RService
 		return rFiles.toArray(new String[rFiles.size()]);
 	}
 
-
-	//Gets the sub-directories (projects) in the 'Projects' folder
-	public String[] getListOfProjects() 
-	{
-		File projects = new File("C:/", "Projects");
-		//File projects = new File(uploadPath, "Projects");
-		String[] projectNames = projects.list();
-		return projectNames; 
-	}
-	
-	
-	public String[] getQueryObjectNamesInProject(String projectName)throws Exception
-	{
-		String[] queryObjectNames = null;
-		String pathq = "C:/Projects/" + projectName;
-		File queries = new File(pathq);
-		if(queries.exists()){
-			System.out.println("Exists");
-			queryObjectNames = queries.list();
+	/**
+	    * @param userName author of a given Project
+	    * @param projectName project which contains queryObjects
+	    * @return  collection of queryObjects in the project 
+	    * @throws Exception
+	    */
+	//retrieves all the projects belonging to a particular user
+	public String[] getProjectFromDatabase() throws SQLException, RemoteException{
+		SQLResult projectObjects= null;//all the projects belonging to the userName
+		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
+		Connection con = coninfo.getConnection();
+		
+		List<String> selectColumns = new ArrayList<String>();
+		selectColumns.add("projectName");//we're retrieving the list of projects in the projectName column in database
+		
+//		Map<String,String> whereParams = new HashMap<String, String>();
+//		whereParams.put("userName", userName);
+//		Set<String> caseSensitiveFields  = new HashSet<String>(); 
+//		queryObjects= SQLUtils.getResultFromQuery(con, query, params, false); OR
+//		projectObjects = SQLUtils.getResultFromQuery(con,selectColumns, "data", "stored_query_objects", whereParams, caseSensitiveFields);
+		
+		
+		String query = String.format("SELECT distinct(%s) FROM %s", "projectName", (SQLUtils.quoteSchemaTable(con,"data", "stored_query_objects2")));
+		projectObjects = SQLUtils.getResultFromQuery(con,query, null, true );
+		
+		String[] projectNames = new String[projectObjects.rows.length];
+		for(int i = 0; i < projectObjects.rows.length; i++){
+			Object project = projectObjects.rows[i][0];//TODO find better way to do this
+			projectNames[i] = project.toString();
 		}
-		return queryObjectNames;
+		
+		return projectNames;
 	}
 	
 	/**
-	    * 
-	    * @param projectName project from which queryObjects have to be listed
-	    * @return finalQueryObjectCollection array of [jsonObjects, namesofFiles] 
+	    * @param userName author of a given Project
+	    * @param projectName project which contains the requested query
+	    * @param queryObjectName the filename that contains the requested queryObject
+	    * @return the requested single queryObject 
 	    * @throws Exception
 	    */
-	//Gets the list of queryObjects in a folder and returns an array of JSONObjects(each JSONObject --> one queryObject)
-	public Object[] getQueryObjectsInProject(String projectName) throws Exception
+	public SQLResult getSingleQueryObjectInProjectFromDatabase(String username, String projectName, String queryObjectName){
+		SQLResult singleQueryObject = null;//the queryObject requested
+		
+		return singleQueryObject;
+	};
+
+	//Gets the sub-directories (projects) in the 'Projects' folder
+//	public String[] getListOfProjects() 
+//	{
+//		File projects = new File("C:/", "Projects");
+//		//File projects = new File(uploadPath, "Projects");
+//		String[] projectNames = projects.list();
+//		return projectNames; 
+//	}
+//	
+	
+//	public String[] getQueryObjectNamesInProject(String projectName)throws Exception
+//	{
+//		String[] queryObjectNames = null;
+//		String pathq = "C:/Projects/" + projectName;
+//		File queries = new File(pathq);
+//		if(queries.exists()){
+//			System.out.println("Exists");
+//			queryObjectNames = queries.list();
+//		}
+//		return queryObjectNames;
+//	}
+//	
+//	
+	
+   /** 
+   * @param projectName project from which queryObjects have to be listed
+   * @return finalQueryObjectCollection array of [jsonObjects, title of queryObjects]   
+   * @throws Exception
+   */
+	public Object[] getQueryObjectsFromDatabase(String projectName) throws RemoteException, SQLException
 	{
 		Object[] finalQueryObjectCollection = new Object[2];
+		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
+		Connection con = coninfo.getConnection();
 		
+		//we're retrieving the list of queryObjects in the selected project
+		List<String> selectColumns = new ArrayList<String>();
+		selectColumns.add("queryObjectTitle");
+		selectColumns.add("queryObjectContent");
+		
+		
+		Map<String,String> whereParams = new HashMap<String, String>();
+		whereParams.put("projectName", projectName);
+		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
+		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, "data", "stored_query_objects2", whereParams, caseSensitiveFields);
+		
+		
+		
+		//getting names from queryObjectTitle
+		String[] queryNames =  new String[queryObjectsSQLresult.rows.length];
+		for(int i = 0; i < queryObjectsSQLresult.rows.length; i++){
+			Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
+			queryNames[i] = singleSQLQueryObject.toString();
+		}
+		
+		//getting json objects from queryObjectContent
 		JSONObject[] finalQueryObjects = null;
-		String[] queryNames = getQueryObjectNamesInProject(projectName);
-		if(queryNames.length != 0)
-		{//if the project contains something
+		if(queryObjectsSQLresult.rows.length != 0)
+		{
 			ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
 			JSONParser parser = new JSONParser();
+			finalQueryObjects = new JSONObject[queryObjectsSQLresult.rows.length];
 			
-			finalQueryObjects = new JSONObject[queryNames.length];
 			
-				for(int i =0; i < queryNames.length; i++)
-				{
-					//for every queryObject, convert to a json object
-					String extension = FilenameUtils.getExtension(queryNames[i]);
+			for(int i = 0; i < queryObjectsSQLresult.rows.length; i++)
+			{
+				Object singleObject = queryObjectsSQLresult.rows[i][1];//TODO find better way to do this
+				String singleObjectString = singleObject.toString();
+				try{
 					
-					//add file filter for searching only for json files
-					if(extension.equalsIgnoreCase("json"))
-					{
-						String path = "C:/Projects/"+projectName+"/"+queryNames[i];//TODO find better way
-						FileReader reader = new FileReader(path);
-						Object currentQueryObject = parser.parse(reader);
-						JSONObject currentjsonObject = (JSONObject) currentQueryObject;
-						jsonlist.add(currentjsonObject);
-						reader.close();
-					}
+					 Object parsedObject = parser.parse(singleObjectString);
+					 JSONObject currentJSONObject = (JSONObject) parsedObject;
+					
+					 jsonlist.add(currentJSONObject);
 				}
+				catch (ParseException pe){
 					
-					//returning an array of JSON Objects
-				finalQueryObjects = jsonlist.toArray(finalQueryObjects);
+				}
+				
+			}//end of for loop
+			
+			finalQueryObjects = jsonlist.toArray(finalQueryObjects);
+			
 		}
-			
-			else{
-				//if project is empty return null
-				finalQueryObjects = null;
-				//throw new RemoteException("No query Objects found in the specified folder!");
-			}
-			
-			
+		else{
+			finalQueryObjects = null;
+		}
+		
 		finalQueryObjectCollection[0] = finalQueryObjects;
 		finalQueryObjectCollection[1] = queryNames;
-		
 		return finalQueryObjectCollection;
 		
 	}
 	
-	//deletes the entire specified folder (files within and folder itself)
-	public boolean deleteProject(String projectName) throws Exception
-	{
-		boolean status;
-		File pj = new File("C:/Projects", projectName);
-		status = FileUtils.deleteDirectory(pj);
-		
-		return status;
-	}
+//	/**
+//	    * 
+//	    * @param projectName project from which queryObjects have to be listed
+//	    * @return finalQueryObjectCollection array of [jsonObjects, namesofFiles] 
+//	    * @throws Exception
+//	    */
+//	//Gets the list of queryObjects in a folder and returns an array of JSONObjects(each JSONObject --> one queryObject)
+//	public Object[] getQueryObjectsInProject(String projectName) throws Exception
+//	{
+//		Object[] finalQueryObjectCollection = new Object[2];
+//		
+//		JSONObject[] finalQueryObjects = null;
+//		String[] queryNames = getQueryObjectNamesInProject(projectName);
+//		if(queryNames.length != 0)
+//		{//if the project contains something
+//			ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
+//			JSONParser parser = new JSONParser();
+//			
+//			finalQueryObjects = new JSONObject[queryNames.length];
+//			
+//				for(int i =0; i < queryNames.length; i++)
+//				{
+//					//for every queryObject, convert to a json object
+//					String extension = FilenameUtils.getExtension(queryNames[i]);
+//					
+//					//add file filter for searching only for json files
+//					if(extension.equalsIgnoreCase("json"))
+//					{
+//						String path = "C:/Projects/"+projectName+"/"+queryNames[i];//TODO find better way
+//						FileReader reader = new FileReader(path);
+//						Object currentQueryObject = parser.parse(reader);
+//						JSONObject currentjsonObject = (JSONObject) currentQueryObject;
+//						jsonlist.add(currentjsonObject);
+//						reader.close();
+//					}
+//				}
+//					
+//					//returning an array of JSON Objects
+//				finalQueryObjects = jsonlist.toArray(finalQueryObjects);
+//		}
+//			
+//			else{
+//				//if project is empty return null
+//				finalQueryObjects = null;
+//				//throw new RemoteException("No query Objects found in the specified folder!");
+//			}
+//			
+//			
+//		finalQueryObjectCollection[0] = finalQueryObjects;
+//		finalQueryObjectCollection[1] = queryNames;
+//		
+//		return finalQueryObjectCollection;
+//		
+//	}
 	
-	
-	//deletes the specified file(json) within the specified folder
-	public boolean deleteQueryObject(String projectName, String queryObjectName) throws Exception
+	public boolean deleteProjectFromDatabase(String projectName)throws RemoteException, SQLException
 	{
 		boolean status = false;
+		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
+		Connection con = coninfo.getConnection();
+
 		
-		String path = "C:/Projects/" + projectName + "/" + queryObjectName;//TODO find better way 
-		File fileToDelete = new File(path);
+		//Set<String> caseSensitiveFields  = new HashSet<String>(); 
+		Map<String,Object> whereParams = new HashMap<String, Object>();
+		whereParams.put("projectName", projectName);
+		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
 		
-		if(fileToDelete.exists()){
-			fileToDelete.delete();
-			status = true;
-			System.out.println("deleted the file");
+		int count = SQLUtils.deleteRows(con, "data", "stored_query_objects",clause);
+		
+		if(count != 0){
+			status = true;//flag which indicates if all query objects in a project have been deleted
 		}
-	
+		
 		return status;
 	}
 	
+	
+	public boolean deleteQueryObjectFromProjectFromDatabase(String projectName, String queryObjectTitle)throws RemoteException, SQLException{
+		boolean status = false;
+		
+		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
+		Connection con = coninfo.getConnection();
+		
+		Map<String,Object> whereParams = new HashMap<String, Object>();
+		whereParams.put("projectName", projectName);
+		whereParams.put("queryObjectTitle", queryObjectTitle);
+		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
+		
+		int count = SQLUtils.deleteRows(con, "data", "stored_query_objects",clause);
+		
+		if(count != 0){
+			status = true;//flag which indicates if all query objects in a project have been deleted
+		}
+		
+		
+		
+		return status;
+	}
+	//adds a queryObject to the database
+	public boolean insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent) throws RemoteException, SQLException
+	{
+		boolean addStatus = false;
+		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
+		Connection con = coninfo.getConnection();
+		
+		Map<String,Object> record = new HashMap<String, Object>();
+		record.put("userName", userName);
+		record.put("projectName", projectName);
+		record.put("queryObjectTitle", queryObjectTitle);
+		record.put("queryObjectContent", queryObjectContent);
+		
+		int count = SQLUtils.insertRow(con, "data", "stored_query_objects", record );
+		
+		if(count != 0)
+			addStatus = true;
+		return addStatus;
+	}
+	
+	//deletes the entire specified folder (files within and folder itself)
+//	public boolean deleteProject(String projectName) throws Exception
+//	{
+//		boolean status;
+//		File pj = new File("C:/Projects", projectName);
+//		status = FileUtils.deleteDirectory(pj);
+//		
+//		return status;
+//	}
+//	
+	
+	//deletes the specified file(json) within the specified folder
+//	public boolean deleteQueryObject(String projectName, String queryObjectName) throws Exception
+//	{
+//		boolean status = false;
+//		
+//		String path = "C:/Projects/" + projectName + "/" + queryObjectName;//TODO find better way 
+//		File fileToDelete = new File(path);
+//		
+//		if(fileToDelete.exists()){
+//			fileToDelete.delete();
+//			status = true;
+//			System.out.println("deleted the file");
+//		}
+//	
+//		return status;
+//	}
+//	
 	/**
      * 
      * @param request sent from the AWS UI collection of parameters to run a computation

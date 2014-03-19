@@ -1,17 +1,36 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope, queryService){
+.controller("ProjectManagementCtrl", function($scope,queryService){
 	$scope.defaultProjectOption = 'Select Project';
 	$scope.currentProjectSelected = "";//used as flag for keeping track of projects deleted
 	
 	$scope.listOfProjects =[];
-	$scope.listOfProjects = queryService.getListOfProjects();//fetches for Drop down
+	//$scope.listOfProjects = queryService.getListOfProjects();//fetches for Drop down
+	$scope.listOfProjects = queryService.getListOfProjectsfromDatabase();
+	$scope.queryObjectJson = "";
 	
 	$scope.listItems = [];//list of returned JSON Objects 
 	$scope.currentQuerySelected = {};//current query Selected by the user for loading/running/deleting etc
 	$scope.dlStatus = false;//default is false (projected not selected for deletion)
-	$scope.aside = {
-			title : 'Query Object Editor',
+	
+	//external directives
+	$scope.aside = function (){
+			title : 'Query Object Editor';
+			
 		};
+	
+
+	//TODO find way to identify button id in angular
+	$scope.load = function(buttonid){
+		console.log(buttonid);
+		if(buttonid == "newQueryObjectButton"){
+			
+			$scope.queryObjectJson = "";
+		}
+			
+		if(buttonid == "openQueryObjectButton"){
+			$scope.queryObjectJson = $scope.currentQuerySelected;
+		}
+	};
 	//as soon as the UI is updated fetch the project and the list of queryObjects within
 	$scope.$watch('projectSelectorUI', function(){
 		if($scope.projectSelectorUI != undefined && $scope.projectSelectorUI != ""){

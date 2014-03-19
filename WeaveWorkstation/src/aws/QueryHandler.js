@@ -129,7 +129,7 @@ aws.QueryHandler = function(queryObject)
 									   label : queryObject.BarChartTool.label 
 									  },
 						title : queryObject.BarChartTool.title,
-						enableTitle : queryObject.ScatterPlotTool.enableTitle
+						enableTitle : queryObject.BarChartTool.enableTitle
 					}
 			);
 		}

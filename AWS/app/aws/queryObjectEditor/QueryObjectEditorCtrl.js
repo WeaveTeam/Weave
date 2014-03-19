@@ -3,49 +3,28 @@
  */
 angular.module('aws.queryObjectEditor', [])
 .controller("QueryObjectEditorCtrl", function($scope, queryService){
+	$scope.$watch(function(){
+		console.log("currentJSON", $scope.queryObjectJson);
+		return $scope.queryObjectJson;
+	}, function(){
+		$scope.currentJson = $scope.queryObjectJson;
+		
+	});
 
-	$scope.checkJson = {
-			  "title": "Alpha Query Object",
-			  "date": "2014-02-27T14:57:29.037Z",
-			  "author": "",
-			  "ComputationEngine": "R",
-			  "dataTable": {
-			    "id": 4327,
-			    "title": "test2010"
-			  },
-			  "FilteredColumnRequest": [
-			    {
-			      "column": {
-			        "id": 4624,
-			        "title": "X_FINALWT"
-			      }
-			    },
-			    {
-			      "column": {
-			        "id": 4362,
-			        "title": "DIABETE2"
-			      }
-			    }
-			  ],
-			  "MapTool": {
-			    "enabled": true,
-			    "selected": {
-			      "id": 5008,
-			      "title": "us_geometry",
-			      "keyType": "prevalence"
-			    }
-			  },
-			  "BarChartTool": {
-			    "enabled": false,
-			    "heights": [],
-			    "sort": "",
-			    "label": ""
-			  },
-			  "ColorColumn": {
-			    "enabled": true,
-			    "selected": "prev.percent"
-			  },
-			  "scriptSelected": "Indicator Prevalence by State.R"
-			};
-	console.log("queryServicequeryObject", queryService.queryObject);
+	
+	/*****************************BUTTON CONTROLS******************************/
+	
+	$scope.saveToCurrentProject = function(){
+		var projectName = $scope.currentProjectSelected;
+		console.log("sendingProject",$scope.currentProjectSelected);
+		var queryObjectTitle = $scope.currentQuerySelected.title;
+		console.log("sendingTitle",$scope.currentQuerySelected.title);
+		var queryObjectContent = JSON.stringify($scope.currentQuerySelected);//the actual json
+		console.log("sendingContent", $scope.currentQuerySelected);
+		var userName = "USerNameFOO";
+		
+		//calling the service
+		
+		queryService.addQueryObjectToProject(userName, projectName, queryObjectTitle, queryObjectContent);
+	};
 });
