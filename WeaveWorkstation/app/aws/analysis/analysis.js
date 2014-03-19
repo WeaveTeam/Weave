@@ -2,7 +2,7 @@
  * Handle all Analysis Tab related work - Controllers to handle Analysis Tab
  */'use strict';
 
-var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry']);
+var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2']);
 
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
@@ -40,23 +40,6 @@ analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_
 
 });
 
-/*analysis_mod.controller('ScriptsBarController', function($scope) {
-
- $scope.selectedIcon = "";
- $scope.selectedIcons = [];
- $scope.icons = [{"value":"Gear","label":"Gear"},{"value":"Globe","label":"Globe"},{"value":"Heart","label":"Heart"},{"value":"Camera","label":"Camera"}];
-
- });*/
-
-/*
- analysis_mod.controller('SrcController', function($scope){
-
- $scope.selectedIcon = "";
- $scope.selectedIcons = [];
- $scope.icons = [{"value":"Gear","label":"Gear"},{"value":"Globe","label":"Globe"},{"value":"Heart","label":"Heart"},{"value":"Camera","label":"Camera"}];
-
- });
- */
 
 analysis_mod.config(function($selectProvider) {
 	angular.extend($selectProvider.defaults, {
