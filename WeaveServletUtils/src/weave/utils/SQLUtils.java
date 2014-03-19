@@ -63,7 +63,7 @@ public class SQLUtils
 	public static String SQLUTILS_SERIAL_TRIGGER_TYPE = "SQLUTILS_SERIAL_TRIGGER_TYPE"; // used internally in createTable(), not an actual valid type
 	
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @return A driver name that can be used in the getConnection() function.
 	 */
 	public static String getDriver(String dbms) throws RemoteException
@@ -111,7 +111,7 @@ public class SQLUtils
 	}
 	
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, Microsoft SQL Server)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, Microsoft SQL Server)
 	 * @param ip The IP address of the DBMS.
 	 * @param port The port the DBMS is on (optional, can be "" to use default).
 	 * @param database The name of a database to connect to (can be "" for MySQL)
@@ -138,13 +138,13 @@ public class SQLUtils
 			format = "jdbc:%s:thin:%s/%s@%s:%s";
 			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
-		else // MySQL or PostGreSQL
+		else // MySQL or PostgreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
 		}
 
 		// MySQL connect string uses % as an escape character, so we must use URLEncoder.
-		// PostGreSQL does not support % as an escape character, and does not work with the & character.
+		// PostgreSQL does not support % as an escape character, and does not work with the & character.
 		if (dbms.equalsIgnoreCase(MYSQL))
 		{
 			try
@@ -383,7 +383,7 @@ public class SQLUtils
 	}
 
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @param symbol The symbol to quote.
 	 * @return The symbol surrounded in quotes, usable in queries for the specified DBMS.
 	 */
@@ -426,7 +426,7 @@ public class SQLUtils
 	}
 	
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @param symbol The quoted symbol.
 	 * @return The symbol without its dbms-specific quotes.
 	 */
@@ -520,7 +520,7 @@ public class SQLUtils
 	
 	/**
 	 * This function returns the name of a binary data type that can be used in SQL queries.
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @return The name of the binary SQL type to use for the given DBMS.
 	 */
 	public static String binarySQLType(String dbms)
@@ -536,7 +536,7 @@ public class SQLUtils
 	
 	/**
 	 * Returns quoted schema & table to use in SQL queries for the given DBMS.
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @param schema The schema the table resides in.
 	 * @param table The table.
 	 * @return The schema & table name surrounded in quotes, usable in queries for the specified DBMS.
@@ -777,9 +777,9 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			WhereClause<V> where = new WhereClauseBuilder<V>(conn, false)
+			WhereClause<V> where = new WhereClauseBuilder<V>(false)
 				.addGroupedConditions(whereParams, caseSensitiveFields, null)
-				.build();
+				.build(conn);
 			
 			// build complete query
 			query = String.format(
@@ -1170,7 +1170,7 @@ public class SQLUtils
 				else if (dbms.equals(POSTGRESQL))
 				{
 					// TODO http://stackoverflow.com/questions/3905378/manual-inserts-on-a-postgres-table-with-a-primary-key-sequence
-					throw new InvalidParameterException("PostGreSQL support not implemented for column type " + SQLUTILS_SERIAL_TRIGGER_TYPE);
+					throw new InvalidParameterException("PostgreSQL support not implemented for column type " + SQLUTILS_SERIAL_TRIGGER_TYPE);
 					/*
 					String quotedTriggerName = quoteSchemaTable(POSTGRESQL, schemaName, "trigger_" + unquotedSequenceName);
 					String quotedIdColumn = quoteSymbol(POSTGRESQL, columnNames.get(primaryKeyColumn));
@@ -1292,9 +1292,9 @@ public class SQLUtils
 			updateBlock = Strings.join(",", updateBlockList);
 		    
 			// build where clause
-		    WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
+		    WhereClause<Object> where = new WhereClauseBuilder<Object>(false)
 		    	.addGroupedConditions(whereParams, caseSensitiveFields, null)
-		    	.build();
+		    	.build(conn);
 		    queryParams.addAll(where.params);
 		    
 		    // build and execute query
@@ -1312,7 +1312,7 @@ public class SQLUtils
 	 * @param conn
 	 * @param schemaName
 	 * @param tableName
-	 * @param data
+	 * @param data Unquoted field names mapped to raw values.
 	 * @param idField
 	 * @return
 	 * @throws SQLException
@@ -1323,7 +1323,7 @@ public class SQLUtils
 		boolean isOracle = dbms.equals(ORACLE);
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
-		boolean isPostGreSQL = dbms.equals(POSTGRESQL);
+		boolean isPostgreSQL = dbms.equals(POSTGRESQL);
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
@@ -1356,7 +1356,7 @@ public class SQLUtils
 		
 		query += String.format(" VALUES (%s)", values_string);
 		
-		if (isPostGreSQL)
+		if (isPostgreSQL)
 			query += String.format(" RETURNING %s", quotedIdField);
 		
 		try
@@ -1421,6 +1421,28 @@ public class SQLUtils
 			cleanup(rs);
 		}
 		return sequences;
+	}
+	
+	/**
+	 * This function checks if a connection is for a PostgreSQL server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a PostgreSQL server.
+	 * @throws SQLException 
+	 */
+	public static boolean isPostgreSQL(Connection conn)
+	{
+		return getDbmsFromConnection(conn).equals(POSTGRESQL);
+	}
+	
+	/**
+	 * This function checks if a connection is for a MySQL server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a MySQL server.
+	 * @throws SQLException 
+	 */
+	public static boolean isMySQL(Connection conn)
+	{
+		return getDbmsFromConnection(conn).equals(MYSQL);
 	}
 	
 	/**
@@ -1533,7 +1555,7 @@ public class SQLUtils
 	public static void addColumn( Connection conn, String schemaName, String tableName, String columnName, String columnType)
 		throws SQLException
 	{
-		String format = "ALTER TABLE %s ADD %s %s"; // Note: PostGreSQL does not accept parentheses around the new column definition.
+		String format = "ALTER TABLE %s ADD %s %s"; // Note: PostgreSQL does not accept parentheses around the new column definition.
 		String query = String.format(format, quoteSchemaTable(conn, schemaName, tableName), quoteSymbol(conn, columnName), columnType);
 		Statement stmt = null;
 		try
@@ -1569,7 +1591,7 @@ public class SQLUtils
 		String query = "";
 		try
 		{
-			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
+			query = String.format("SELECT %s FROM %s", quoteSymbol(conn, columnArg), quoteSchemaTable(conn, schemaName, tableName));
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
@@ -1607,7 +1629,7 @@ public class SQLUtils
 		String query = "";
 		try
 		{
-			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
+			query = String.format("SELECT %s FROM %s", quoteSymbol(conn, columnArg), quoteSchemaTable(conn, schemaName, tableName));
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
@@ -2125,10 +2147,42 @@ public class SQLUtils
 		}
 	}
 	
-	public static final char WILDCARD_SINGLE = '_';
-	public static final char WILDCARD_MULTI = '%';
+	/**
+	 * The escape character (backslash) used by convertWildcards() and getLikeEscapeClause()
+	 * @see #convertWildcards()
+	 * @see #getLikeEscapeClause()
+	 */
 	public static final char WILDCARD_ESCAPE = '\\';
-	public static final String LIKE_ESCAPE_CLAUSE = " ESCAPE '\\\\' ";
+	
+	/**
+	 * Converts a search string which uses basic '?' and '*' wildcards into an equivalent SQL search string.
+	 * @param searchString A search string which uses basic '?' and '*' wildcards
+	 * @return The equivalent SQL search string using a backslash (\) as an escape character.
+	 * @see #getLikeEscapeClause()
+	 */
+	public static String convertWildcards(String searchString)
+	{
+		// escape special characters (including the escape character first)
+		for (char chr : new char[]{ WILDCARD_ESCAPE, '%', '_', '[' })
+			searchString = searchString.replace("" + chr, "" + WILDCARD_ESCAPE + chr);
+		// replace our wildcards with SQL wildcards
+		searchString = searchString.replace('?', '_').replace('*', '%');
+		return searchString;
+	}
+	
+	/**
+	 * Returns an ESCAPE clause for use with a LIKE comparison.
+	 * @param conn The SQL Connection where the ESCAPE clause will be used.
+	 * @return The ESCAPE clause specifying a backslash (\) as the escape character.
+	 * @see #convertWildcards()
+	 */
+	public static String getLikeEscapeClause(Connection conn)
+	{
+		String dbms = getDbmsFromConnection(conn);
+		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL))
+			return " ESCAPE '\\\\' ";
+		return " ESCAPE '\\' ";
+	}
 	
 	/**
 	 * Specifies how two SQL terms should be compared
@@ -2139,7 +2193,6 @@ public class SQLUtils
 	}
 	public static class WhereClauseBuilder<V>
 	{
-		private Connection _connection = null;
 		private List<List<Condition>> _nestedConditions = new Vector<List<Condition>>();
 		private List<V> _params = new Vector<V>();
 		private boolean _conjunctive = false;
@@ -2149,9 +2202,8 @@ public class SQLUtils
 		 * @param conjunctive Set to <code>true</code> for Conjunctive Normal Form: (a OR b) AND (x OR y).
 		 *                    Set to <code>false</code> for Disjunctive Normal Form: (a AND b) OR (x AND y).
 		 */
-		public WhereClauseBuilder(Connection conn, boolean conjunctive)
+		public WhereClauseBuilder(boolean conjunctive)
 		{
-			_connection = conn;
 			_conjunctive = conjunctive;
 		}
 		
@@ -2159,11 +2211,12 @@ public class SQLUtils
 		 * Adds a set of grouped inner conditions.
 		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
 		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
-		 * @param values Field names mapped to raw values
+		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param caseSensitiveFields A set of field names which should use case sensitive compare.
 		 * @param wildcardFields A set of field names which should use a "LIKE" SQL clause for wildcard search.
+		 * @see weave.utils.SQLUtils#convertWildcards()
 		 */
-		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> values, Set<String> caseSensitiveFields, Set<String> wildcardFields)
+		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> fieldsAndValues, Set<String> caseSensitiveFields, Set<String> wildcardFields) throws SQLException
 		{
 			Map<String, CompareMode> compareModes = new HashMap<String,CompareMode>();
 			if (caseSensitiveFields != null)
@@ -2172,26 +2225,27 @@ public class SQLUtils
 			if (wildcardFields != null)
 				for (String field : wildcardFields)
 					compareModes.put(field, CompareMode.WILDCARD);
-			return addGroupedConditions(values, compareModes);
+			return addGroupedConditions(fieldsAndValues, compareModes);
 		}
 		
 		/**
 		 * Adds a set of grouped inner conditions.
 		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
 		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
-		 * @param values Field names mapped to raw values
+		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param compareModes Field names mapped to compare modes
+		 * @see weave.utils.SQLUtils#convertWildcards()
 		 */
-		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> values, Map<String,CompareMode> compareModes)
+		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> fieldsAndValues, Map<String,CompareMode> compareModes) throws SQLException
 		{
-			if (values.size() == 0)
+			if (fieldsAndValues.size() == 0)
 				throw new InvalidParameterException("No values specified");
 			List<Condition> conditions = new Vector<Condition>();
-			for (Entry<String,V> entry : values.entrySet())
+			for (Entry<String,V> entry : fieldsAndValues.entrySet())
 			{
 				Condition cond = new Condition();
 				cond.field = entry.getKey();
-				cond.value = "?";
+				cond.valueExpression = "?";
 				if (compareModes != null)
 					cond.compareMode = compareModes.get(cond.field);
 				conditions.add(cond);
@@ -2213,15 +2267,13 @@ public class SQLUtils
 		
 		/**
 		 * Builds a WhereClause based on the conditions previously specified with addGroupedConditions().
+		 * @param conn A SQL Connection for which the query will be formatted.
 		 * @return A WhereClause.
 		 * @throws SQLException
 		 */
-		public WhereClause<V> build() throws SQLException
+		public WhereClause<V> build(Connection conn) throws SQLException
 		{
-			if (_connection == null)
-				throw new SQLException("connection must be set");
-				
-			String dnf = buildNormalForm(_connection, _nestedConditions, _conjunctive);
+			String dnf = buildNormalForm(conn);
 			String clause = "";
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
@@ -2229,12 +2281,12 @@ public class SQLUtils
 			return new WhereClause<V>(clause, _params);
 		}
 		
-		protected static String buildNormalForm(Connection conn, List<List<Condition>> nestedConditions, boolean conjunctive) throws SQLException
+		protected String buildNormalForm(Connection conn) throws SQLException
 		{
-			String outerJunction = conjunctive ? " AND " : " OR ";
-			String innerJunction = conjunctive ? " OR " : " AND ";
+			String outerJunction = _conjunctive ? " AND " : " OR ";
+			String innerJunction = _conjunctive ? " OR " : " AND ";
 		    List<String> junctions = new LinkedList<String>();
-		    for (List<Condition> conditions : nestedConditions)
+		    for (List<Condition> conditions : _nestedConditions)
 		    {
 		        List<String> predicates = new LinkedList<String>();
 		        for (Condition condition : conditions)
@@ -2247,14 +2299,14 @@ public class SQLUtils
 		protected static class Condition
 		{
 			/**
-			 * Fragment of a SQL query for a field name (should be quoted)
+			 * Unquoted SQL field name
 			 */
 			public String field;
 			
 			/**
 			 * Fragment of a SQL query for a value (recommended to be "?" unless hard-coded and safe).
 			 */
-			public String value;
+			public String valueExpression;
 			
 			/**
 			 * Specifies how the field and value should be compared
@@ -2265,10 +2317,15 @@ public class SQLUtils
 			{
 			}
 			
+			/**
+			 * @param field Unquoted SQL field name
+			 * @param value Fragment of a SQL query for a value (recommended to be "?" unless hard-coded and safe).
+			 * @param compareMode Specifies how the field and value should be compared
+			 */
 			public Condition(String field, String value, CompareMode compareMode)
 			{
 				this.field = field;
-				this.value = value;
+				this.valueExpression = value;
 				this.compareMode = compareMode;
 			}
 			
@@ -2277,17 +2334,18 @@ public class SQLUtils
 				// prevent null pointer error from switch
 				if (compareMode == null)
 					compareMode = CompareMode.NORMAL;
+				String quotedField = quoteSymbol(conn, field);
 				switch (compareMode)
 				{
 					case CASE_SENSITIVE:
-						String compare = caseSensitiveCompare(conn, field, value);
+						String compare = caseSensitiveCompare(conn, quotedField, valueExpression);
 						return new StringBuilder().append('(').append(compare).append(')').toString();
 					case WILDCARD:
 						return new StringBuilder().append('(')
-							.append(field).append(" LIKE ").append(value).append(LIKE_ESCAPE_CLAUSE)
+							.append(quotedField).append(" LIKE ").append(valueExpression).append(getLikeEscapeClause(conn))
 							.append(')').toString();
 					default:
-						return new StringBuilder().append('(').append(field).append('=').append(value).append(')').toString();
+						return new StringBuilder().append('(').append(quotedField).append('=').append(valueExpression).append(')').toString();
 				}
 			}
 		}

@@ -161,7 +161,7 @@ public class MetadataTable extends AbstractTable
 					throw new RemoteException(String.format("Cannot remove required metadata field \"%s\"", requiredMetadataName));
 				}
 				
-				WhereClauseBuilder<Object> whereBuilder = new WhereClauseBuilder<Object>(conn, false);
+				WhereClauseBuilder<Object> whereBuilder = new WhereClauseBuilder<Object>(false);
 				for (String property : diff.keySet())
 				{
 					if (newId && property.equals(requiredMetadataName))
@@ -169,7 +169,7 @@ public class MetadataTable extends AbstractTable
 					record = MapUtils.fromPairs(FIELD_ID, id, FIELD_NAME, property);
 					whereBuilder.addGroupedConditions(record, caseSensitiveFields, null);
 				}
-				SQLUtils.deleteRows(conn, schemaName, tableName, whereBuilder.build());
+				SQLUtils.deleteRows(conn, schemaName, tableName, whereBuilder.build(conn));
 			}
 			
 			for (Entry<String,String> entry : diff.entrySet())
@@ -199,9 +199,9 @@ public class MetadataTable extends AbstractTable
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_ID, id);
-			WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
+			WhereClause<Object> where = new WhereClauseBuilder<Object>(false)
 				.addGroupedConditions(conditions, caseSensitiveFields, null)
-				.build();
+				.build(conn);
 			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)
@@ -315,7 +315,7 @@ public class MetadataTable extends AbstractTable
 			Connection conn = connectionConfig.getAdminConnection();
 			
 			// build where clause
-			WhereClauseBuilder<String> whereBuilder = new WhereClauseBuilder<String>(conn, false);
+			WhereClauseBuilder<String> whereBuilder = new WhereClauseBuilder<String>(false);
 			for (Entry<String,String> entry : constraints.entrySet())
 			{
 				String key = entry.getKey();
@@ -327,11 +327,7 @@ public class MetadataTable extends AbstractTable
 				{
 					// FIELD_VALUE field should be treated as a wildcard
 					wf = Collections.singleton(FIELD_VALUE);
-					// escape special characters
-					for (char chr : new char[]{ SQLUtils.WILDCARD_ESCAPE, SQLUtils.WILDCARD_MULTI, SQLUtils.WILDCARD_SINGLE })
-						value = value.replace("" + chr, "" + SQLUtils.WILDCARD_ESCAPE + chr);
-					// replace our wildcards with SQL wildcards
-					value = value.replace('?', SQLUtils.WILDCARD_SINGLE).replace('*', SQLUtils.WILDCARD_MULTI);
+					value = SQLUtils.convertWildcards(value);
 				}
 				Map<String,String> condition = MapUtils.fromPairs(
 					FIELD_NAME, key,
@@ -339,7 +335,7 @@ public class MetadataTable extends AbstractTable
 				);
 				whereBuilder.addGroupedConditions(condition, caseSensitiveFields, wf);
 			}
-			WhereClause<String> where = whereBuilder.build();
+			WhereClause<String> where = whereBuilder.build(conn);
 			
 			Set<Integer> result = new HashSet<Integer>();
 			

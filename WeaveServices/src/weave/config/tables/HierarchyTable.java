@@ -295,9 +295,9 @@ public class HierarchyTable extends AbstractTable
 				whereParams.put(FIELD_CHILD, child_id);
 			if (parent_id != NULL)
 				whereParams.put(FIELD_PARENT, parent_id);
-			WhereClause<Object> where = new WhereClauseBuilder<Object>(conn, false)
+			WhereClause<Object> where = new WhereClauseBuilder<Object>(false)
 				.addGroupedConditions(whereParams, null)
-				.build();
+				.build(conn);
 			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)
