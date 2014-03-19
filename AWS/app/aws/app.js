@@ -12,7 +12,6 @@ var app = angular.module('aws', ['aws.router',
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
                                  'aws.visualization',
-                                 'ui.bootstrap', // don't need?
                                  'ui.select2',
                                  'ui.slider',
                                  'ui.sortable',
