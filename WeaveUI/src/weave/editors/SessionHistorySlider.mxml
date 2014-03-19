@@ -48,6 +48,7 @@
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
+			import weave.ui.SubMenuItem;
 			
 			private const padding:Number = 4;
 			
@@ -58,16 +59,17 @@
 			{
 				super.childrenCreated();
 				
-				_editMenu = new SubMenu(menuButton);
-				//_editMenu.addSubMenuItem(getPresentationMenuLabel, togglePresentationMode);
-				_editMenu.addSubMenuItem(lang("Clear all history"), _stateLog.clearHistory);
-				_editMenu.addSubMenuItem(lang("Clear undo history"), _stateLog.clearHistory, [-1]);
-				_editMenu.addSubMenuItem(lang("Clear redo history"), _stateLog.clearHistory, [1]);
-				_editMenu.addSubMenuItem(getSquashMenuLabel, squash);
+				_editMenu = new SubMenu(menuButton, null, null, [
+					// new SubMenuItem(getPresentationMenuLabel, togglePresentationMode),
+					new SubMenuItem(lang("Clear all history"), _stateLog.clearHistory),
+					new SubMenuItem(lang("Clear undo history"), _stateLog.clearHistory, [-1]),
+					new SubMenuItem(lang("Clear redo history"), _stateLog.clearHistory, [1]),
+					new SubMenuItem(getSquashMenuLabel, squash)
+				]);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				for each (var speed:int in [1,2,4,8,16])
-					_playMenu.addSubMenuItem(speed + 'x', play, [speed]);
+					_playMenu.menuItems.push(new SubMenuItem(speed + 'x', play, [speed]));
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
 			

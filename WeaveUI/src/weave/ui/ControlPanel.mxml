@@ -117,20 +117,22 @@
 				minimizable.value = false;
 				maximizable.value = false;
 				enableSubMenu.value = true;
-				subMenu.addSubMenuItem(
-					lang('Edit session state'),
-					function():void {
-						SessionStateEditor.openDefaultEditor((
-							sessionEditorTarget is Function
-								? sessionEditorTarget()
-								: sessionEditorTarget
-						) as ILinkableObject);
-					},
-					null,
-					function():Boolean { return sessionEditorTarget != null; }
+				subMenu.menuItems.push(
+					new SubMenuItem(
+						lang('Edit session state'),
+						function():void {
+							SessionStateEditor.openDefaultEditor((
+								sessionEditorTarget is Function
+									? sessionEditorTarget()
+									: sessionEditorTarget
+							) as ILinkableObject);
+						},
+						null,
+						function():Boolean { return sessionEditorTarget != null; }
+					),
+					new SubMenuItem(lang('Create save point'), save),
+					new SubMenuItem(lang('Revert to save point'), revert)
 				);
-				subMenu.addSubMenuItem(lang('Create save point'), save);
-				subMenu.addSubMenuItem(lang('Revert to save point'), revert);
 				
 				// title is set here instead of in the mxml because otherwise it would
 				// overwrite any other value set in mxml components based on this class.

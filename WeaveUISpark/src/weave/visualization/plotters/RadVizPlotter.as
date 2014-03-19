@@ -44,8 +44,10 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -53,6 +55,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
+	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.radviz.BruteForceLayoutAlgorithm;
@@ -61,6 +64,7 @@ package weave.visualization.plotters
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.ColumnUtils;
+	import weave.utils.EquationColumnLib;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -117,6 +121,7 @@ package weave.visualization.plotters
 				
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
+		public const showValuesForAnchorProbeLines:LinkableBoolean= registerLinkableChild(this,new LinkableBoolean(false));
 		
 		private var pointSensitivityColumns:Array = [];
 		private var annCenterColumns:Array = [];
@@ -184,7 +189,7 @@ package weave.visualization.plotters
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
-		
+		public var doCDLayoutFlag:Boolean = false; // ToDo yenfu temporary flag to fix the code
 		
 		private function handleColumnsChange():void
 		{
@@ -263,6 +268,8 @@ package weave.visualization.plotters
 			}
 			
 			setAnchorLocations();
+			
+			if (doCDLayoutFlag) setClassDiscriminationAnchorsLocations();
 		}
 		
 		
@@ -312,6 +319,8 @@ package weave.visualization.plotters
 			anchors.resumeCallbacks();
 		}
 		
+		public const anchorLabelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("Class('weave.utils.ColumnUtils').getTitle(column)", true, false, ['column']), setClassDiscriminationAnchorsLocations);
+		
 		//this function sets the anchor locations for the Class Discrimination Layout algorithm and marks the Class locations
 		public function setClassDiscriminationAnchorsLocations():void
 		{
@@ -339,7 +348,7 @@ package weave.visualization.plotters
 					cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
 					cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
 					cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
-					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
+					cdAnchor.title.value = anchorLabelFunction.apply(null, [columns.getObject(colNames[g]) as IAttributeColumn]);
 					columnIncrementor++;//change
 				}
 				
@@ -571,12 +580,11 @@ package weave.visualization.plotters
 				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
 				if(key.keyType != requiredKeyType)
 				{
-					return;
+					continue;
 				}
 				getXYcoordinates(key);
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
-				
 				var value:Number;
 				var name:String;
 				var anchor:AnchorPoint;
@@ -639,6 +647,80 @@ package weave.visualization.plotters
 			}
 		}
 		
+		public function drawProbeLinesForSelectedAnchors(anchorKeys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		{
+			if(!drawProbe) return;
+			if(!anchorKeys) return;
+			
+			var graphics:Graphics = destination;
+			graphics.clear();
+			
+			if(filteredKeySet.keys.length == 0)
+				return;
+			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
+			var keys:Array = filteredKeySet.keys;
+			var _cols:Array = columns.getObjects();
+			
+			for each( var anchorKey :IQualifiedKey in anchorKeys)
+			{
+				for each(var key:IQualifiedKey in keys)
+				{
+					
+					getXYcoordinates(key);
+					dataBounds.projectPointTo(coordinate, screenBounds);
+					var value:Number;
+					var name:String;
+					var anchor:AnchorPoint;
+					var column:IAttributeColumn = columns.getObject(anchorKey.localName) as IAttributeColumn;
+					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+					value = stats.getNorm(key);
+					
+					/*only draw probe line if higher than threshold value*/
+					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
+						continue;
+					
+					/*draw the line from point to anchor*/
+					name = columns.getName(column);
+					anchor = anchors.getObject(name) as AnchorPoint;
+					tempPoint.x = anchor.x.value;
+					tempPoint.y = anchor.y.value;
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					graphics.lineStyle(.5, 0xff0000);
+					graphics.moveTo(coordinate.x, coordinate.y);
+					graphics.lineTo(tempPoint.x, tempPoint.y);
+					
+					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
+					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
+					*/
+					if(showValuesForAnchorProbeLines.value)
+					{
+						graphics.lineStyle(0,0,0);
+						var uit:UITextField = new UITextField();
+						var numberValue:String = ColumnUtils.getNumber(column,key).toString();
+						numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
+						uit.text = numberValue;
+						uit.autoSize = TextFieldAutoSize.LEFT;
+						var textBitmapData:BitmapData = ImageSnapshot.captureBitmapData(uit);
+						
+						var sizeMatrix:Matrix = new Matrix();
+						var coef:Number =Math.min(uit.measuredWidth/textBitmapData.width,uit.measuredHeight/textBitmapData.height);
+						sizeMatrix.a = coef;
+						sizeMatrix.d = coef;
+						textBitmapData = ImageSnapshot.captureBitmapData(uit,sizeMatrix);
+						
+						var sm:Matrix = new Matrix();
+						sm.tx = (coordinate.x+tempPoint.x)/2;
+						sm.ty = (coordinate.y+tempPoint.y)/2;
+						
+						graphics.beginBitmapFill(textBitmapData, sm, false);
+						graphics.drawRect((coordinate.x+tempPoint.x)/2,(coordinate.y+tempPoint.y)/2,uit.measuredWidth,uit.measuredHeight);
+						graphics.endFill();
+					}
+					
+				}
+			}
+		}
+		
 		public var drawAnnuli:Boolean = false;
 		
 		public function drawAnnuliCircles(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
@@ -652,7 +734,7 @@ package weave.visualization.plotters
 			if(filteredKeySet.keys.length == 0)
 				return;
 			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
-			var psCols:Array = pointSensitivityColumns;
+						var psCols:Array = pointSensitivityColumns;
 			var cols:Array = columns.getObjects();
 			var annCols:Array = annCenterColumns;
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];

@@ -112,6 +112,8 @@
 			var item:Object;
 			var items:Array = [];
 			var root:Object = null;
+			if(!labels)
+				labels = [];
 			var vsp:int = tree.verticalScrollPosition;
 			var isSelected:Object = {};
 			for each (item in tree.selectedItems)
