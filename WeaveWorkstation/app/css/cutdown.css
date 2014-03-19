@@ -22,6 +22,16 @@ left: 30px;
 z-index: 100;
 }
 
+.master-select2-container{
+	display: inline-block;
+	vertical-align: middle;
+	min-width: 220px !important;
+}
+
+.select2-container{
+	display: block !important;
+}
+
 .link-inactive{
 	pointer-events: none;
        cursor: default;
@@ -556,7 +566,8 @@ z-index: 100;
 	z-index: 3000;
 	background-color: #4D555C;
 	color: rgb(252, 245, 245);
-	display: block;
+	display: inline;
+	vertical-align: middle;
 }
 
 .run-bar .btn {
@@ -576,7 +587,7 @@ z-index: 100;
 	width: 25%;
 	font-weight: 500;
 	margin-right: 30px;
-	margin-left: 530px;
+	margin-left: 90px;
 	vertical-align: middle;
 	text-align: center;
 	padding-top: 5px;
