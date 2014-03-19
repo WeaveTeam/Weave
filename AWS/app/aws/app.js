@@ -18,7 +18,8 @@ var app = angular.module('aws', ['aws.router',
                                  'ui.sortable',
                                  'ngRoute',
                                  'ngGrid',
-                                 'xeditable']); // from Amith's UI
+                                 'xeditable',
+                                 'mk.editablespan']); 
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {

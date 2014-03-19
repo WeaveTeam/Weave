@@ -1,4 +1,4 @@
-angular.module('aws.configure.script', ['ngGrid'])
+angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
   .controller("ScriptManagerCtrl", function($scope, scriptManagerService) {
 
     $scope.listOfScripts = [];
@@ -8,7 +8,17 @@ angular.module('aws.configure.script', ['ngGrid'])
     scriptManagerService.getListOfScripts();
     $scope.selectedScript = [];
     $scope.selectedMetadata = {};
-
+    $scope.scriptContent = {};
+    $scope.savingMetadata = false;
+    $scope.$watch('selectedMetadata',function(newv, oldv){
+      console.log("selectedMetadata", newv);
+      $scope.savingMetadata = true;
+      scriptManagerService.saveChangedMetadata($scope.selectedMetadata)
+        .then(function(){
+          $scope.savingMetadata = false;
+    });
+      
+    }, true);
     $scope.$watch(function() {
       return scriptManagerService.dataObject.listOfScripts;
     }, function() {
@@ -17,19 +27,30 @@ angular.module('aws.configure.script', ['ngGrid'])
         $scope.listOfScripts.push({name: item});
       });
     });
+
     $scope.$watch(function(){
       return scriptManagerService.dataObject.scriptMetadata;
-    },function(nv){
-      $scope.selectedMetadata = nv;
-      console.log("metadata:", $scope.selectedMetadata);
+    },function(newval){
+      $scope.selectedMetadata = newval;
+      //console.log("metadata:", $scope.selectedMetadata);
     });
+    
+    $scope.$watch(function(){
+      return scriptManagerService.dataObject.scriptContent;
+    }, function(newval){
+      $scope.scriptContent = newval;
+      //console.log("scriptcontent", $scope.scriptContent);
+    });
+
     $scope.gridOptions = {data: 'listOfScripts',
       columnDefs: [{field: 'name', displayName: 'Name'}],
       selectedItems: $scope.selectedScript,
-      //multiSelect: false,
+      multiSelect: false,
       afterSelectionChange: function(item){
-        console.log("selectionchange", $scope.selectedScript);
-        scriptManagerService.getScriptMetadata($scope.selectedScript[0].name);
+        //console.log("selectionchange", $scope.selectedScript);
+        if($scope.selectedScript.length >= 1){
+          scriptManagerService.refreshScriptInfo($scope.selectedScript[0].name);
+        }
       }
     };
     $scope.showUpload = function() {
