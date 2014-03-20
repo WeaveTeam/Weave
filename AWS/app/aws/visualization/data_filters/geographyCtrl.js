@@ -1,7 +1,7 @@
 analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 	
 	queryService.queryObject.GeographyFilter = {
-			state : {},
+			states : {},
 			counties : {},
 			stateColumn : {},
 			stateColumn : {}
@@ -196,40 +196,32 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 			children : geoTreeData,
 			keyBoard : true,
 			onSelect: function(select, node) {
-				var states_nodes = {};
-				var counties_nodes = {};
-				$("#geoTree").dynatree("getRoot").visit(function(node){
-					var partSel = [];
-					if(node.childList) { // dirty check to see if year node
-						if(node.bSelected) {
-							states_nodes[node.data.key] = node.data.title;
+				var treeSelection = {};
+				var root = $("#geoTree").dynatree("getRoot");
+				
+				for (var i = 0; i < root.childList.length; i++) {
+					var state = root.childList[i];
+					for(var j = 0; j < state.childList.length; j++) {
+						var county = state.childList[j];
+						if(state.childList[j].bSelected) {
+							if(!treeSelection[state.data.key]) {
+								var countyKey = county.data.key;
+								treeSelection[state.data.key] = {};
+								treeSelection[state.data.key].label = state.data.title;
+								var countyObj = {};
+								countyObj[countyKey] = county.data.title;
+								treeSelection[state.data.key].counties = [countyObj];
+							} else {
+								var countyKey = county.data.key;
+								var countyObj = {};
+								countyObj[countyKey] = county.data.title;
+								treeSelection[state.data.key].counties.push( { countyKey : county.data.title } );
+							}
 						}
-					} else {
-						if(node.bSelected) {
-							counties_nodes[node.data.key] = node.data.title;
-						}
 					}
-					$(".dynatree-partsel:not(.dynatree-selected)").each(function () {
-				        var node = $.ui.dynatree.getNode(this);
-				        if(node.childList) {
-				        	states_nodes[node.data.key] = node.data.title;
-				        } else {
-				        	
-				        }
-				    });
-				});
-
-					var states_array = [];
-					var counties_array = [];
-					for(key in states_nodes) {
-						states_array.push({value : key, label : states_nodes[key]});
-					}
-					for(key in counties_nodes) {
-						counties_array.push({value : key, label : counties_nodes[key]});
-					}
-					
-					queryService.queryObject.GeographyFilter.states = states_array;
-					queryService.queryObject.GeographyFilter.states = counties_array;
+				}
+				queryService.queryObject.GeographyFilter = treeSelection;
+				
 			},
 			 onKeydown: function(node, event) {
 				 if( event.which == 32 ) {
@@ -266,8 +258,8 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
     };
     
      var cmp = function(a, b) {
-        a = a.data.title.toLowerCase();
-        b = b.data.title.toLowerCase();
+        a = a.data.title;
+        b = b.data.title;
         return a > b ? 1 : a < b ? -1 : 0;
      };
 });
