@@ -1,12 +1,28 @@
 <div class="panel-body" ng-controller="byVariableCtrl">
 	<ul class="input-controls">
+<<<<<<< HEAD
 		<div ng-repeat="item in items" class="byvariable-contents">
 			<select ui-select2 ng-model="byVariableSelection[$index]" data-placeholder="Choose By Variable Filter">
 				<option></option>
 				<option value="{{col}}" ng-repeat="col in $parent.byVariableColumns"> {{col.title}}</option>
 			</select>
 			<a style="display: inline-block; margin-left: 50px;" ng-click='removeByVariable($index)'>Remove</a>
+=======
+	<div style="height: 300px; overflow: scroll; background-color: white; border-style:dotted; border-width:1px" >
+		<div ng-repeat="item in items" style="width : 100%; padding: 5px">
+>>>>>>> FETCH_HEAD
 			<br>
+			<div>
+				<div style="float: left;">
+					<select ui-select2 ng-model="byVariableSelection[$index]" data-placeholder="Choose By Variable Filter">
+						<option></option>
+						<option value="{{col}}" ng-repeat="col in $parent.byVariableColumns"> {{col.title}}</option>
+					</select>
+				</div>
+				<span style="float: left; padding-left: 15px; padding-top: 3px">
+					<a ng-click='removeByVariable($index)'>Remove</a>
+				</span>
+			</div>
 			<div  ng-if="$parent.filterType[$index] == 'continuous'">
 	 			Filter:  <div ui-slider="$parent.filterOptions[$index]" ng-model="$parent.filterValues[$index]"></div>
 			</div>
@@ -15,10 +31,8 @@
 	 				<option value="{{cat}}" ng-repeat="cat in $parent.filterOptions[$index]">{{cat.label}}</option>
 	 			</select>
 			</div>
-			<br>
 		</div>
-		<br>
-		<button class="btn-default" ng-click="addByVariable()">Add</button>
-		
+	</div>
+		<a class="btn" ng-click="addByVariable()"><i class="glyphicon glyphicon-plus"></i>Add</a>
 	</ul>
 </div>
