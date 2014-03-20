@@ -4,6 +4,7 @@ var weaveAWSApp = angular.module('aws', [
 										 'mgcrea.ngStrap', 
 										 'ngRoute',
 										 'ui.select2',
+										 'frapontillo.bootstrap-duallistbox',
 										 'aws.services',
 										 'aws.analysisService',
 										 'aws.AnalysisModule'
