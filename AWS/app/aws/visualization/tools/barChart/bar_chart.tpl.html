@@ -1,13 +1,25 @@
-<div class="panel-body">
+<div class="panel-body" ng-controller="BarChartCtrl">
 	<ul class="input-controls">
-		<li>
-			<span class="label-p">Height Column(s)</span>
-			<span class ="input-p">
-				<button type="button" class="btn btn-default" ng-model="selectedIcon" data-html="1" ng-options="icon.value as icon.label for icon in icons" bs-select>
-					Action <span class="caret"></span>
-				</button>
-			</span>
-		</li>	
+		<li class="tool-list-control-element">
+			<span class="tool-label">Height Column(s)</span>
+			<select class="widget-ui-control" ui-select2 multiple ng-model="heights" data-placeholder="Choose Height Column(s)">
+				<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+			</select>
+		</li>
+		<li class="tool-list-control-element">
+			<span>Sort Column</span>
+			<select class="widget-ui-control" ui-select2 ng-model="sort" data-placeholder="Choose Sort Column">
+				<option></option>
+				<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+			</select>
+		</li>
+		<li class="tool-list-control-element">
+			<span>Label Column</span>
+			<select class="widget-ui-control" ui-select2 ng-model="label" data-placeholder="Choose Label Column">
+				<option></option>
+				<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+			</select>
+		</li>
 	</ul>
 
 </div>
