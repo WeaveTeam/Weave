@@ -146,6 +146,8 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 					 return false;
 				 }
 		     },
+		     cookieId: "time-period-tree",
+		     idPrefix: "time-period-tree-",
 		     debugLevel: 0
 		});
 		$("#timeTree").dynatree("getTree").reload();

@@ -24,10 +24,9 @@ function($filter, queryService) {
 	},
 	{
 		id : 'GeographyFilter',
-		title : 'Geography',
+		title : 'Geography Filter',
 		template_url : 'aws/visualization/data_filters/geography.tpl.html',
-		description : 'Filter data based on location',
-		note: 'This filter will limit its options if the scipt computes on a list subset',
+		description : 'Filter data by States and Counties',
 		category : 'datafilter'
 
 	},
