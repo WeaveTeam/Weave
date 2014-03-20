@@ -104,41 +104,32 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 			selectMode : 3,
 			children : timeTreeData,
 			keyBoard : true,
-			onSelect: function(select, node) {
-				var year_nodes = {};
-				var month_nodes = {};
-				$("#timeTree").dynatree("getRoot").visit(function(node){
-					var partSel = [];
-					if(node.childList) { // dirty check to see if year node
-						if(node.bSelected) {
-							year_nodes[node.data.key] = node.data.title;
+			onSelect: function() {
+				var treeSelection = {};
+				var root = $("#timeTree").dynatree("getRoot");
+				
+				for (var i = 0; i < root.childList.length; i++) {
+					var year = root.childList[i];
+					for(var j = 0; j < year.childList.length; j++) {
+						var month = year.childList[j];
+						if(year.childList[j].bSelected) {
+							if(!treeSelection[year.data.key]) {
+								var monthKey = month.data.key;
+								treeSelection[year.data.key] = {};
+								treeSelection[year.data.key].label = year.data.title;
+								var monthObj = {};
+								monthObj[monthKey] = month.data.title;
+								treeSelection[year.data.key].months = [monthObj];
+							} else {
+								var monthKey = month.data.key;
+								var monthObj = {};
+								monthObj[monthKey] = month.data.title;
+								treeSelection[year.data.key].months.push( { monthKey : month.data.title } );
+							}
 						}
-					} else {
-						if(node.bSelected) {
-							month_nodes[node.data.key] = node.data.title;
-						}
 					}
-					$(".dynatree-partsel:not(.dynatree-selected)").each(function () {
-				        var node = $.ui.dynatree.getNode(this);
-				        if(node.childList) {
-				        	year_nodes[node.data.key] = node.data.title;
-				        } else {
-				        	
-				        }
-				    });
-				});
-
-					var year_array = [];
-					var month_array = [];
-					for(key in year_nodes) {
-						year_array.push({value : key, label : year_nodes[key]});
-					}
-					for(key in month_nodes) {
-						month_array.push({value : key, label : month_nodes[key]});
-					}
-					
-					queryService.queryObject.TimePeriodFilter.years = year_array;
-					queryService.queryObject.TimePeriodFilter.months = month_array;
+				}
+				queryService.queryObject.TimePeriodFilter = treeSelection;
 			},
 			 onKeydown: function(node, event) {
 				 if( event.which == 32 ) {

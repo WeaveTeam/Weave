@@ -140,7 +140,9 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	 };
 	 
 	$scope.refresh = function() {
-		generateTree();
+		$("#tree").dynatree("getTree").reload();
+		var node = $("#tree").dynatree("getRoot");
+	    node.sortChildren(cmp, true);
 	};
 	
 	$scope.importQueryObject = function() {

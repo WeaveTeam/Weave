@@ -3,6 +3,7 @@
 		<input type="checkbox" ng-model="enableTitle"/>
 		Title:
 		<input type="text" placeholder="Default" ng-model='title'>
+		<br>
 		<select ui-select2 ng-model="selected" data-placeholder="Choose Map">
 			<option></option>
 			<option value="{{gt}}"  ng-repeat="gt in geomTables">{{gt.title}}</option>
