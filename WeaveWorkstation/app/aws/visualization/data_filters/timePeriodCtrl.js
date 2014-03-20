@@ -150,6 +150,8 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 		     idPrefix: "time-period-tree-",
 		     debugLevel: 0
 		});
+		var node = $("#timeTree").dynatree("getRoot");
+	    node.sortChildren(cmp, true);
 		$("#timeTree").dynatree("getTree").reload();
 	});
 	
@@ -170,4 +172,10 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
     		node.select(true);
     	});
     };
+    
+    var cmp = function(a, b) {
+		a = a.data.key;
+		b = b.data.key;
+		return a > b ? 1 : a < b ? -1 : 0;
+    }
 });

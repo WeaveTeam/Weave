@@ -196,13 +196,13 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 			children : geoTreeData,
 			keyBoard : true,
 			onSelect: function(select, node) {
-				var year_nodes = {};
-				var month_nodes = {};
+				var states_nodes = {};
+				var counties_nodes = {};
 				$("#geoTree").dynatree("getRoot").visit(function(node){
 					var partSel = [];
 					if(node.childList) { // dirty check to see if year node
 						if(node.bSelected) {
-							year_nodes[node.data.key] = node.data.title;
+							states_nodes[node.data.key] = node.data.title;
 						}
 					} else {
 						if(node.bSelected) {
@@ -221,7 +221,7 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 
 					var states_array = [];
 					var counties_array = [];
-					for(key in year_nodes) {
+					for(key in states_nodes) {
 						states_array.push({value : key, label : states_nodes[key]});
 					}
 					for(key in counties_nodes) {
@@ -237,10 +237,13 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 					 return false;
 				 }
 		     },
-		     cookieId: "geo-period-tree",
-		     idPrefix: "geo-period-tree-",
+		     cookieId: "geo-tree",
+		     idPrefix: "geo-tree-",
 		     debugLevel: 0
 		});
+		
+		var node = $("#geoTree").dynatree("getRoot");
+	    node.sortChildren(cmp, true);
 		$("#geoTree").dynatree("getTree").reload();
 	});
 	
@@ -257,9 +260,14 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
     };
     
     $scope.selectAll = function(){
-    	$("#timeTree").dynatree("getRoot").visit(function(node){
+    	$("#geoTree").dynatree("getRoot").visit(function(node){
     		node.select(true);
     	});
     };
-	
+    
+     var cmp = function(a, b) {
+        a = a.data.title.toLowerCase();
+        b = b.data.title.toLowerCase();
+        return a > b ? 1 : a < b ? -1 : 0;
+     };
 });
