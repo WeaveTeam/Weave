@@ -1,13 +1,35 @@
-<div class="panel-body">
+<div class="panel-body" ng-controller="DataTableCtrl">
 	<ul class="input-controls">
-		<li>
-			<span class="label-p">Height Column(s)</span>
-			<span class ="input-p">
-				<button type="button" class="btn btn-default" ng-model="selectedIcon" data-html="1" ng-options="icon.value as icon.label for icon in icons" bs-select>
-					Action <span class="caret"></span>
-				</button>
-			</span>
-		</li>	
-	</ul>
+		<div class="portlet-content">
+			<!--<select style="width: 100%" id="duallistboxid" dual-list-box multiple ng-model="selected" data-placeholder="Choose Columns"
+			ng-options="opt for opt in options"></select>-->
 
+			<!--<select
+			ng-options="opt for opt in options"
+			multiple
+			ng-model="selected"
+			bs-duallistbox>
+			</select>-->
+
+			<select id="duallistboxid" dual-list-box multiple ng-model="selected" data-placeholder="Choose Columns"
+			ng-options="opt for opt in options">
+			</select>
+
+			<!--<span>Data Table</span>
+			<select ui-select2 ng-model="dataTable" style=width:200px;>
+			<option></option>
+			<option ng-repeat="dt in dataTableList" value="{{dt}}">{{dt.title}}</option>
+			</select>-->
+
+			<!--
+			<select
+			ng-model="dataTable"
+			multiple
+			ng-options="dt.title for dt in dataTableList"
+			bs-duallistbox>
+			</select>
+			-->
+
+		</div>
+	</ul>
 </div>
