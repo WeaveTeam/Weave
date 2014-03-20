@@ -11,8 +11,8 @@
 			bs-duallistbox>
 			</select>-->
 
-			<select id="duallistboxid" dual-list-box multiple ng-model="dataTable" data-placeholder="Choose Columns"
-			ng-options="">
+			<select id="duallistboxid" dual-list-box multiple ng-model="selected" data-placeholder="Choose Columns"
+			ng-options="opt for opt in options">
 			</select>
 
 			<!--<span>Data Table</span>
