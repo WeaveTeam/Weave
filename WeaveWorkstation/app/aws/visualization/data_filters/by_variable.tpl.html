@@ -1,17 +1,24 @@
 <div class="panel-body" ng-controller="byVariableCtrl">
 	<ul class="input-controls">
 		<div ng-repeat="item in items">
-			<select ui-select2 ng-model="$parent.byVariableSelection[$index]" data-placeholder="Choose By Variable Filter">
+			<select ui-select2 ng-model="byVariableSelection[$index]" data-placeholder="Choose By Variable Filter">
 				<option></option>
 				<option value="{{col}}" ng-repeat="col in $parent.byVariableColumns"> {{col.title}}</option>
 			</select>
 			<button class="btn-default" ng-click="removeByVariable($index)">Remove</button>
 			<br>
- 			Filter:  <div ui-slider="$parent.sliderOptions[$index]" ng-if="$parent.filterType[$index] == 'continuous'" ng-model="$parent.filterValues[$index]"></div>
- 			<select ui-select2 multiple ng-if="$parent.filterType[$index] == 'categorical" ng-model="$parent.filterValues[$index]" data-placeholder="Choose Filter(s)">
- 				<option value="{{cat}}" ng-repeat="cat in $parent.categoricalOptions[$index]">{{cat.label}}</option>
- 			</select>
+			<div  ng-if="$parent.filterType[$index] == 'continuous'">
+	 			Filter:  <div ui-slider="$parent.filterOptions[$index]" ng-model="$parent.filterValues[$index]"></div>
+			</div>
+			<div ng-if="$parent.filterType[$index] == 'categorical'" >
+	 			Filter:<select ui-select2 multiple ng-model="$parent.filterValues[$index]" data-placeholder="Choose Filter(s)">
+	 				<option value="{{cat}}" ng-repeat="cat in $parent.filterOptions[$index]">{{cat.label}}</option>
+	 			</select>
+			</div>
+			<br>
 		</div>
+		<br>
 		<button class="btn-default" ng-click="addByVariable()">Add</button>
+		
 	</ul>
 </div>

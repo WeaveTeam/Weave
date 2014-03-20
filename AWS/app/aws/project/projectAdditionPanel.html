@@ -1,4 +1,4 @@
-<div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 600px;"  >
+<div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 300px;" ng-controller = "projectAdditionController" >
     <div class="aside-dialog">
         <div class="aside-content">
             <div class="aside-header" ng-show="title">
@@ -10,7 +10,7 @@
             <div class="aside-body">
             	Name of the Project <input ng-model = "projectName" type = "text" placeholder = "Enter a name for the project"></input>
 				<br></br>
-				Author of the Project<input ng-model = "username" type = "text" placeholder = "Name of the author"></input>
+				Author of the Project<input ng-model = "userName" type = "text" placeholder = "Name of the author"></input>
 				<br></br>
 				Query Objects (.json) files to include in the project
 				<div style = "margin-left: 60px" class="file-upload">
@@ -20,11 +20,8 @@
            </div>
 			
 			<div class="aside-footer">
-                <button type="button" class="btn btn-primary">
-                    Export
-                </button>
-                <button type="button" class="btn btn-primary">
-                    Save to current Project
+                <button type="button" class= "btn btn-primary" style = "margin-left : 330px" ng-click = "saveNewProjectToDatabase()">
+                    Save
                 </button>
 				
             </div>
