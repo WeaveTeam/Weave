@@ -83,8 +83,15 @@
 
 				</div>-->
 
-				<div id="heading" class="page-header">
-					<h1><i class="glyphicon glyphicon-th-large"></i>&nbsp; Dashboard</h1>
+				<div id="heading" class="page-header" ng-controller="IndicatorCtrl">
+					
+						<h1><i class="glyphicon glyphicon-th-large"></i>&nbsp; Dashboard</h1> 
+					<span>
+						{{indicator.label}}
+							<span ng-show="indicator.label"> :
+							</span>
+						{{ indicatorDescription}}
+					</span>
 				</div>
 			</div>
 		</div>
