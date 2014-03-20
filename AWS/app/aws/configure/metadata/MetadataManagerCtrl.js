@@ -37,6 +37,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 								},
 								debugLevel: 0
 							});
+							var node = $("#tree").dynatree("getRoot");
+						     node.sortChildren(cmp, true);
 						}
 					});
 				})(treeNode, i, dataTableList.length);
@@ -188,4 +190,10 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
         	  };
             });
 	});
+	
+	var cmp = function(a, b) {
+		a = a.data.key;
+		b = b.data.key;
+		return a > b ? 1 : a < b ? -1 : 0;
+	};
 });

@@ -33,6 +33,8 @@ analysis_mod.controller('IndicatorCtrl', function($scope, queryService){
 		if($scope.indicSelection != undefined) {
 			if($scope.indicSelection != "") {
 				queryService.queryObject.Indicator = angular.fromJson($scope.indicSelection);
+				$scope.indicator = queryService.queryObject.Indicator;
+				console.log($scope.indicator);
 				for(var i = 0; i  < queryService.dataObject.columns.length; i++) {		
 					var column = queryService.dataObject.columns[i];
 					if(column.id == angular.fromJson($scope.indicSelection).id) {

@@ -5,12 +5,6 @@
  */
 
 angular.module('aws.analysisService', [])
-.service('steps1_2_service',['queryService', function(queryService){
-    
-    
-    
-       
-}])
 .service('dasboard_widget_service', ['$filter', 'queryService', 
 function($filter, queryService) {
 
@@ -18,33 +12,31 @@ function($filter, queryService) {
 		id : 'IndicatorFilter',
 		title : 'Indicator',
 		template_url : 'aws/visualization/indicator/indicator.tpl.html',
-		description : 'Choose the indicator for this analysis',
-		note: 'This is the global indicator that will be use for the analysis',
+		description : 'Choose an indicator',
+		note: 'The global indicator for this analysis',
 		category : 'indicatorfilter'
 	},
 	{
 		id : 'GeographyFilter',
-		title : 'Geography',
+		title : 'Geography Filter',
 		template_url : 'aws/visualization/data_filters/geography.tpl.html',
-		description : 'Filter data based on location',
-		note: 'This filter will limit its options if the scipt computes on a list subset',
+		description : 'Filter data by States and Counties',
 		category : 'datafilter'
 
 	},
 	{
 		id : 'TimePeriodFilter',
-		title : 'Time Period',
+		title : 'Time Period Filter',
 		template_url : 'aws/visualization/data_filters/time_period.tpl.html',
-		desription : 'Filter data based on time period',
-		note: 'Choose the year and month columns in the database to select the metadata',
+		description : 'Filter data by time',
+		note: 'Choose the year and month columns in the database',
 		category : 'datafilter'
 	},
 	{
 		id : 'ByVariableFilter',
-		title : 'By Variable',
+		title : 'By Variable Filter',
 		template_url : 'aws/visualization/data_filters/by_variable.tpl.html',
-		desription : 'Filter data based on Variables',
-		note: 'This is a note',
+		description : 'Filter data based on variables',
 		category : 'datafilter'
 	},
 	{
@@ -123,11 +115,11 @@ function($filter, queryService) {
 		}
 		else if (tool_id == 'TimePeriodFilter')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			//queryService.queryObject.BarChartTool.enabled = enabled;
 		}
 		else if (tool_id == 'ByVariableFilter')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			//queryService.queryObject.BarChartTool.enabled = enabled;
 		}
 		else if (tool_id == 'BarChartTool')
 		{
@@ -135,15 +127,15 @@ function($filter, queryService) {
 		}
 		else if (tool_id == 'MapTool')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			queryService.queryObject.MapTool.enabled = enabled;
 		}
 		else if (tool_id == 'DataTableTool')
 		{
-			queryService.queryObject.dataTable.enabled = enabled;
+			queryService.queryObject.DataTableTool.enabled = enabled;
 		}
 		else if (tool_id == 'ScatterPlotTool')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			queryService.queryObject.ScatterPlotTool.enabled = enabled;
 		};
 		
 	};

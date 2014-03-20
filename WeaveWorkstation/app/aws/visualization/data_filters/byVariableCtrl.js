@@ -48,6 +48,7 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 				queryService.queryObject.ByVariableFilter[i] = { 
 																	column : column
 															   }
+				console.log($scope.filterValues);
 				if(metadata) {
 					if(metadata.hasOwnProperty("varType") && metadata.hasOwnProperty("varValues")) {
 						$scope.filterType[i] = metadata.varType;
@@ -77,9 +78,9 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 				});
 
 				if ($scope.filterType[i] == "categorical") {
-					queryService.queryObject.FilteredColumnRequest[i].filters = { filterValues : temp };
+					queryService.queryObject.ByVariableFilter[i].filters = { filterValues : temp };
 				} else if ($scope.filterType[i] == "continuous") {// continuous, we want arrays of ranges
-					queryService.queryObject.FilteredColumnRequest[i].filters = { filterValues : [temp]};
+					queryService.queryObject.ByVariableFilter[i].filters = { filterValues : [temp]};
 				}
 			}
 		}
@@ -88,7 +89,7 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 	$scope.$watchCollection(function() {
 		return queryService.queryObject.ByVariableFilter;
 	}, function () {
-		
+		// fill out the UI based on the queryObject info.
 	});
 
 	$scope.addByVariable = function() {
