@@ -174,6 +174,19 @@
 			</select>
 		</div>
 		<a href="javascript:void(0);" class="btn btn-primary" id="" ng-click="runQuery()"><span style="vertical-align: middle">Run</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
+		
+		<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float: right;">
+			<button ng-click="exportQueryObject()" class="btn btn-primary">
+				Export Query
+			</button>
+			<div class="file-upload">
+				<label for="queryImport">Import Query</label>
+				<input type="file" id="queryImport" name="queryImport"	ng-submit="importQueryObject()" file-upload />
+			</div>
+			<br>
+		</div>
+		
+		
 	</div>
 </div>
 
