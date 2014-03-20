@@ -166,45 +166,56 @@ package weave.data.hierarchy
 			if (_overrideLabel)
 				return _overrideLabel;
 			
+			var title:String;
+			var entityType:String;
 			var cache:EntityCache = getEntityCache();
 			var branchInfo:EntityHierarchyInfo = cache.getBranchInfo(id);
-			if (branchInfo != null)
-				return branchInfo.getLabel(debug);
-			
-			var entity:Entity = getEntity();
-			
-			var title:String = entity.publicMetadata[ColumnMetadata.TITLE];
-			if (!title)
+			if (branchInfo)
 			{
-				var name:String = entity.publicMetadata['name'];
-				if (name)
-					title = '[name: ' + name + ']';
+				// avoid calling getEntity()
+				entityType = branchInfo.entityType || 'entity';
+				title = branchInfo.title || lang("Untitled {0}#{1}", entityType, branchInfo.id);
+				
+				if (entityType == EntityType.TABLE)
+					title = lang("{0} ({1})", title, branchInfo.numChildren);
 			}
-			
-			if (!title)
+			else
 			{
-				if (entity.initialized)
-					title = lang("{0}#{1}", entity.getEntityType(), entity.id);
-				else
+				var entity:Entity = getEntity();
+				
+				title = entity.publicMetadata[ColumnMetadata.TITLE];
+				if (!title)
 				{
-					title = '...';
-					
+					var name:String = entity.publicMetadata['name'];
+					if (name)
+						title = '[name: ' + name + ']';
+				}
+				
+				if (!title || debug)
+					entityType = entity.getEntityType() || 'entity';
+				
+				if (!title && !entity.initialized)
+				{
 					if (_rootFilterEntityType)
 						title = WeaveAPI.globalHashMap.getName(getDataSource()) || title;
+					else
+						title = '...';
 				}
 			}
 			
+			var idStr:String;
+			if (!title || debug)
+				idStr = lang("{0}#{1}", entityType, id);
+			
+			if (!title)
+				title = idStr;
+			
 			if (debug)
 			{
-				if (!title)
-					title = '[untitled]';
-				
-				var entityType:String = entity.getEntityType();
-				var childrenStr:String = '';
-				if (entityType != EntityType.COLUMN)
-					childrenStr = '; ' + getChildren().length + ' children';
-				var idStr:String = '(' + entityType + "#" + id + childrenStr + ') ' + debugId(this);
-				title = idStr + ' ' + title;
+				var children:Array = getChildren();
+				if (entityType != EntityType.COLUMN && children)
+					idStr += '; ' + children.length + ' children';
+				title = lang('({0}) {1} {2}', idStr, debugId(this), title);
 			}
 			
 			return title;

@@ -699,22 +699,23 @@ internal class GeomListNode implements IWeaveTreeNode
 			var meta:Object = {};
 			meta[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
 			meta[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
-			addAsyncResponder(cache.getHierarchyInfo(meta), handleInfo, null, children);
+			addAsyncResponder(cache.getHierarchyInfo(meta), handleHierarchyInfo, null, children);
 		}
 		return children;
 	}
-	private function handleInfo(event:ResultEvent, children:Array):void
+	private function handleHierarchyInfo(event:ResultEvent, children:Array):void
 	{
+		// ignore old results
 		if (this.children != children)
 			return;
 		
-		var infos:Array = event.result as Array;
-		infos.forEach(function(obj:Object, index:int, a:Array):void {
+		for each (var info:EntityHierarchyInfo in event.result)
+		{
 			var node:EntityNode = new EntityNode(source.entityCache);
-			node.id = EntityHierarchyInfo.getEntityIdFromResult(obj);
-			children[index] = node;
-			getCallbackCollection(source).triggerCallbacks();
-		});
+			node.id = info.id;
+			children.push(node);
+		}
+		getCallbackCollection(source).triggerCallbacks();
 	}
 	
 	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }

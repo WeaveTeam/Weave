@@ -19,35 +19,11 @@
 
 package weave.api.services.beans
 {
-	import weave.api.data.EntityType;
-
 	public class EntityHierarchyInfo
 	{
 		public var id:int;
 		public var entityType:String;
 		public var title:String;
 		public var numChildren:int;
-		
-		public function getLabel(debug:Boolean = false):String
-		{
-			var branchInfo:EntityHierarchyInfo = this;
-			var tableTitle:String = branchInfo.title || lang("Untitled {0}#{1}", entityType, branchInfo.id);
-			
-			// this is a table node, so avoid calling getEntity()
-			var str:String = tableTitle;
-			
-			if (entityType == EntityType.TABLE)
-				str = lang("{0} ({1})", str, branchInfo.numChildren);
-			
-			if (debug)
-				str = lang("({0}#{1}) {2}", entityType, branchInfo.id, str);
-			
-			return str;
-		}
-		
-		public static function getEntityIdFromResult(result:Object):int
-		{
-			return result.id;
-		}
 	}
 }

@@ -33,7 +33,7 @@ package weave.api.services
 
 		/**
 		 * Gets EntityHierarchyInfo objects containing basic information on entities matching public metadata.
-		 * @param publicMetadata EntityMetadata containing values to match.
+		 * @param publicMetadata Public metadata search criteria.
 		 * @return RPC token for an Array of EntityHierarchyInfo objects.
 		 */
 		function getHierarchyInfo(publicMetadata:Object):AsyncToken;

@@ -262,8 +262,9 @@ package weave.services
 		/**
 		 * Calls getHierarchyInfo() in the IWeaveEntityService that was passed to the constructor and caches
 		 * the results when they come back.
-		 * @param publicMetadata Search criteria.
-		 * @return An AsyncToken to which you can add a responder for handling the results. 
+		 * @param publicMetadata Public metadata search criteria.
+		 * @return RPC token for an Array of EntityHierarchyInfo objects.
+		 * @see weave.api.services.IWeaveEntityService#getHierarchyInfo()
 		 */		
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{
@@ -275,11 +276,11 @@ package weave.services
 		private function handleEntityHierarchyInfo(event:ResultEvent, publicMetadata:Object):void
 		{
 			var entityType:String = publicMetadata[ColumnMetadata.ENTITY_TYPE];
-			var infos:Array = event.result as Array;
-			var ids:Array = new Array(infos.length);
-			for (var i:int = 0; i < infos.length; i++)
+			var infoArray:Array = event.result as Array;
+			var ids:Array = new Array(infoArray.length);
+			for (var i:int = 0; i < infoArray.length; i++)
 			{
-				var info:EntityHierarchyInfo = EntityHierarchyInfo(infos[i]);
+				var info:EntityHierarchyInfo = EntityHierarchyInfo(infoArray[i]);
 				info.entityType = entityType; // entityType is not provided by the server
 				_infoLookup[info.id] = info;
 				ids[i] = info.id;
