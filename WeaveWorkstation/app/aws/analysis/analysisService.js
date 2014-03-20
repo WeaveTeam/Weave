@@ -5,12 +5,6 @@
  */
 
 angular.module('aws.analysisService', [])
-.service('steps1_2_service',['queryService', function(queryService){
-    
-    
-    
-       
-}])
 .service('dasboard_widget_service', ['$filter', 'queryService', 
 function($filter, queryService) {
 
@@ -123,11 +117,11 @@ function($filter, queryService) {
 		}
 		else if (tool_id == 'TimePeriodFilter')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			//queryService.queryObject.BarChartTool.enabled = enabled;
 		}
 		else if (tool_id == 'ByVariableFilter')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			//queryService.queryObject.BarChartTool.enabled = enabled;
 		}
 		else if (tool_id == 'BarChartTool')
 		{
@@ -135,15 +129,15 @@ function($filter, queryService) {
 		}
 		else if (tool_id == 'MapTool')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			queryService.queryObject.MapTool.enabled = enabled;
 		}
 		else if (tool_id == 'DataTableTool')
 		{
-			queryService.queryObject.dataTable.enabled = enabled;
+			queryService.queryObject.DataTableTool.enabled = enabled;
 		}
 		else if (tool_id == 'ScatterPlotTool')
 		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
+			queryService.queryObject.ScatterPlotTool.enabled = enabled;
 		};
 		
 	};
