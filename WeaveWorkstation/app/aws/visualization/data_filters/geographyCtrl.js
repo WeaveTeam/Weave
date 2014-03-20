@@ -6,52 +6,101 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 			stateColumn : {},
 			stateColumn : {}
 	};
+	
+	var geoTreeData;
+	
 	var stateValueKey = null;
 	var stateLabelKey = null;
 	var countyValueKey = null;
 	var countyLabelKey = null;
-	var processedMetadata = [];
+	var processedMetadata;
 	var geographyMetadata = null;
-	
-	$scope.$watch('geographyMetadataTableId', function() {
-		queryService.queryObject.GeographyFilter.geographyMetadataTableId = $scope.geographyMetadataTableId;
-		queryService.getDataSetFromTableId(2825);
-	});
+	var metadataTableTitle = null;
 	
 	$scope.$watch(function() {
-		return queryService.dataObject.geographyMetadata;
+		return queryService.dataObject.dataTableList;
+	}, function() {
+		$scope.dataTableOptions = queryService.dataObject.dataTableList;
+	});
+	
+	$scope.$watch('stateDBSelection', function() {
+		if($scope.stateDBSelection != undefined) {
+			if($scope.stateDBSelection != "") {
+				queryService.queryObject.GeographyFilter.stateColumn = angular.fromJson($scope.stateDBSelection);
+			} else {
+				queryService.queryObject.GeographyFilter.stateColumn = {};
+			}
+		}
+	});
+	
+	$scope.$watch('countyDBSelection', function() {
+		if($scope.stateDBSelection != undefined) {
+			if($scope.stateDBSelection != "") {
+				queryService.queryObject.GeographyFilter.countyColumn = angular.fromJson($scope.countyDBSelection);
+			} else {
+				queryService.queryObject.GeographyFilter.countyColumn = {};
+			}
+		}
+	});
+	
+	$scope.$watch('metadataTableSelection', function() {
+		if($scope.metadataTableSelection != undefined) {
+			if($scope.metadataTableSelection != "") {
+				
+				queryService.queryObject.GeographyFilter.metadataTableId = angular.fromJson($scope.metadataTableSelection).id;
+				
+				aws.DataClient.getDataColumnEntities([angular.fromJson($scope.metadataTableSelection).id], function(metadataTableArray) {
+					
+					var metadataTable = metadataTableArray[0];
+					
+					if(metadataTable.publicMetadata.hasOwnProperty("stateValues")) {
+						stateValueKey = metadataTable.publicMetadata.stateValues;
+					}
+					if( metadataTable.publicMetadata.hasOwnProperty("stateLabels")) {
+						stateLabelKey = metadataTable.publicMetadata.stateLabels;
+					}
+					
+					if( metadataTable.publicMetadata.hasOwnProperty("countyValues")) {
+						countyValueKey = metadataTable.publicMetadata.countyValues;
+					}
+					
+					if( metadataTable.publicMetadata.hasOwnProperty("countyLabels")) {
+						countyLabelKey = metadataTable.publicMetadata.countyLabels;
+					}
+					if( metadataTable.publicMetadata.hasOwnProperty("title")) {
+						metadataTableTitle = metadataTable.publicMetadata.title;
+					}
+					
+					$scope.$apply();
+					
+					queryService.getDataSetFromTableId(metadataTable.id);
+					
+					
+				});
+			}
+		}
+	});
+	
+	$scope.$watchCollection(function() {
+		return [queryService.dataObject.geographyMetadata,
+		         							stateValueKey,
+		         							stateLabelKey,
+		         							countyValueKey,
+		         							countyLabelKey,
+		         							metadataTableTitle];
 	}, function() {
 		
 		geographyMetadata = queryService.dataObject.geographyMetadata;
 		if(geographyMetadata) {
-			
-			// would need to be generalized later...
-			for(var key in geographyMetadata.columns) {
-				switch(geographyMetadata.columns[key].title) {
-					case "FIPS State":
-						stateValueKey = key;
-						break;
-					case "State":
-						stateLabelKey = key;
-						break;
-					case "FIPS County":
-						countyValueKey = key;
-						break;
-					case "County Name":
-						countyLabelKey = key;
-						break;
-					default:
-						break;
-				}
-			}	
-			
 			if(stateValueKey == null ||
 			   stateLabelKey == null ||
 			   countyValueKey == null ||
-			   countyLabelKey == null) {
-			   console.log("Could not find all the geography columns");
+			   countyLabelKey == null ||
+			   metadataTableTitle == null) {
+			   console.log("Could not find all the geography metadata");
 			} else {
-				var records = geographyMetadata.records["US_FIPS_Codes"];
+				var records = geographyMetadata.records[metadataTableTitle];
+				processedMetadata = [];
 				for(key in records) {
 					var record = records[key];
 					// push the first state
@@ -76,57 +125,45 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 								// which means it's a new state
 								processedMetadata.push({value : record[stateValueKey], 
 									label : record[stateLabelKey],
-									counties : [{value : record[countyValueKey],
+									counties : [/*{value : record[countyValueKey],
 									label : record[countyLabelKey]
 								
-								}]});
+								}*/]});
 							} else {
 								//continue the search
 								continue;
 							}
 						}
 					} 
-					
 				}
 			}
 		}
 		
 	});
 
-	$scope.stateOptions = processedMetadata;
-	
-	$scope.$watch('stateSelection', function() {
-		if($scope.stateSelection != undefined && $scope.stateSelection != "") {
-			var state = angular.fromJson($scope.stateSelection);
-			queryService.queryObject.GeographyFilter.state = { value : state.value, label : state.label};
-			for(var i in processedMetadata) {
-				if(processedMetadata[i].value == state.value) {
-					$scope.countyOptions =  processedMetadata[i].counties;
-					break;
-				}
-			}
-		}
-	});
-	
-	$scope.$watch('countySelection', function() {
-		if($scope.countySelection != undefined) {
-			if( $scope.countySelection != "") {
-				queryService.queryObject.GeographyFilter.counties = $.map($scope.countySelection, function(item){
-					return angular.fromJson(item);
-				});
-			} else {
-				queryService.queryObject.GeographyFilter.counties = [];
-			}
-		};
-	});
-	
-	$scope.$watch(function() {
-		return queryService.queryObject.dataTable;
+	$scope.$watchCollection(function() {
+
+		return [$scope.stateDBSelection, $scope.countyDBSelection, processedMetadata];
+		
 	}, function() {
-		if(queryService.queryObject.dataTable.hasOwnProperty("title")) {
-			$scope.dataTableTitle = queryService.queryObject.dataTable.title;
+		
+		if($scope.stateDBSelection != undefined && $scope.countyDBSelection != undefined && processedMetadata != undefined) {
+			if($scope.stateDBSelection != "" && $scope.countyDBSelection != "" && processedMetadata.length) {
+				geoTreeData = createGeoTreeData(processedMetadata);
+			}
 		}
 	});
+	
+	var createGeoTreeData = function(metadata) {
+		var treeData = [];
+		for(var i in metadata) {
+			treeData[i] = { title : metadata[i].label, key : metadata[i].value, isFolder : true,  children : [] };
+			for(var j in metadata[i].counties) {
+				treeData[i].children.push({ title : metadata[i].counties[j].label, key : metadata[i].counties[j].value });
+			}
+		}
+		return treeData;
+	}
 	
 	$scope.$watch(function() {
 		return queryService.dataObject.columns;
@@ -149,24 +186,80 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 		};
 	});
 	
-	$scope.$watch('stateDBSelection', function() {
-		if($scope.stateDBSelection != undefined) {
-			if($scope.stateDBSelection != "") {
-				queryService.queryObject.GeographyFilter.stateColumn = angular.fromJson($scope.stateDBSelection);
-			} else {
-				queryService.queryObject.GeographyFilter.stateColumn = {};
-			}
-		}
+	$scope.$watch(function() {
+		return geoTreeData;
+	}, function(){
+		$("#geoTree").dynatree({
+			minExpandLevel: 1,
+			checkbox : true,
+			selectMode : 3,
+			children : geoTreeData,
+			keyBoard : true,
+			onSelect: function(select, node) {
+				var year_nodes = {};
+				var month_nodes = {};
+				$("#geoTree").dynatree("getRoot").visit(function(node){
+					var partSel = [];
+					if(node.childList) { // dirty check to see if year node
+						if(node.bSelected) {
+							year_nodes[node.data.key] = node.data.title;
+						}
+					} else {
+						if(node.bSelected) {
+							counties_nodes[node.data.key] = node.data.title;
+						}
+					}
+					$(".dynatree-partsel:not(.dynatree-selected)").each(function () {
+				        var node = $.ui.dynatree.getNode(this);
+				        if(node.childList) {
+				        	states_nodes[node.data.key] = node.data.title;
+				        } else {
+				        	
+				        }
+				    });
+				});
+
+					var states_array = [];
+					var counties_array = [];
+					for(key in year_nodes) {
+						states_array.push({value : key, label : states_nodes[key]});
+					}
+					for(key in counties_nodes) {
+						counties_array.push({value : key, label : counties_nodes[key]});
+					}
+					
+					queryService.queryObject.GeographyFilter.states = states_array;
+					queryService.queryObject.GeographyFilter.states = counties_array;
+			},
+			 onKeydown: function(node, event) {
+				 if( event.which == 32 ) {
+					 node.toggleSelect();
+					 return false;
+				 }
+		     },
+		     cookieId: "geo-period-tree",
+		     idPrefix: "geo-period-tree-",
+		     debugLevel: 0
+		});
+		$("#geoTree").dynatree("getTree").reload();
 	});
 	
-	$scope.$watch('countyDBSelection', function() {
-		if($scope.stateDBSelection != undefined) {
-			if($scope.stateDBSelection != "") {
-				queryService.queryObject.GeographyFilter.countyColumn = angular.fromJson($scope.countyDBSelection);
-			} else {
-				queryService.queryObject.GeographyFilter.countyColumn = {};
-			}
-		}
-	});
+	 $scope.toggleSelect = function(){
+	      $("#geoTree").dynatree("getRoot").visit(function(node){
+	        node.toggleSelect();
+	      });
+	 };
+	 
+	$scope.deSelectAll = function(){
+      $("#geoTree").dynatree("getRoot").visit(function(node){
+        node.select(false);
+      });
+    };
+    
+    $scope.selectAll = function(){
+    	$("#timeTree").dynatree("getRoot").visit(function(node){
+    		node.select(true);
+    	});
+    };
 	
 });
