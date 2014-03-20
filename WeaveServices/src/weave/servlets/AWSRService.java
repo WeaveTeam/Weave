@@ -318,7 +318,7 @@ public class AWSRService extends RService
 //		projectObjects = SQLUtils.getResultFromQuery(con,selectColumns, "data", "stored_query_objects", whereParams, caseSensitiveFields);
 		
 		
-		String query = String.format("SELECT distinct(%s) FROM %s", "projectName", (SQLUtils.quoteSchemaTable(con,"data", "stored_query_objects2")));
+		String query = String.format("SELECT distinct(%s) FROM %s", "projectName", (SQLUtils.quoteSchemaTable(con,"data", "stored_query_objects")));
 		projectObjects = SQLUtils.getResultFromQuery(con,query, null, true );
 		
 		String[] projectNames = new String[projectObjects.rows.length];
@@ -327,6 +327,8 @@ public class AWSRService extends RService
 			projectNames[i] = project.toString();
 
 		}
+		
+		con.close();
 		
 		return projectNames;
 	}
@@ -441,7 +443,7 @@ public class AWSRService extends RService
 		Map<String,String> whereParams = new HashMap<String, String>();
 		whereParams.put("projectName", projectName);
 		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
-		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, "data", "stored_query_objects2", whereParams, caseSensitiveFields);
+		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, "data", "stored_query_objects", whereParams, caseSensitiveFields);
 		
 		
 		
@@ -487,7 +489,7 @@ public class AWSRService extends RService
 		
 		finalQueryObjectCollection[0] = finalQueryObjects;
 		finalQueryObjectCollection[1] = queryNames;
-		
+		con.close();
 		return finalQueryObjectCollection;
 		
 	}
@@ -549,9 +551,8 @@ public class AWSRService extends RService
 //		
 //	}
 	
-	public boolean deleteProjectFromDatabase(String projectName)throws RemoteException, SQLException
+	public int deleteProjectFromDatabase(String projectName)throws RemoteException, SQLException
 	{
-		boolean status = false;
 		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
 		Connection con = coninfo.getConnection();
 
@@ -562,17 +563,12 @@ public class AWSRService extends RService
 		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
 		
 		int count = SQLUtils.deleteRows(con, "data", "stored_query_objects",clause);
-		
-		if(count != 0){
-			status = true;//flag which indicates if all query objects in a project have been deleted
-		}
-		
-		return status;
+		con.close();
+		return count;//number of rows deleted
 	}
 	
 	
-	public boolean deleteQueryObjectFromProjectFromDatabase(String projectName, String queryObjectTitle)throws RemoteException, SQLException{
-		boolean status = false;
+	public int deleteQueryObjectFromProjectFromDatabase(String projectName, String queryObjectTitle)throws RemoteException, SQLException{
 		
 		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
 		Connection con = coninfo.getConnection();
@@ -583,19 +579,12 @@ public class AWSRService extends RService
 		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
 		
 		int count = SQLUtils.deleteRows(con, "data", "stored_query_objects",clause);
-		
-		if(count != 0){
-			status = true;//flag which indicates if all query objects in a project have been deleted
-		}
-		
-		
-		
-		return status;
+		con.close();
+		return count;//number of rows deleted
 	}
 	//adds a queryObject to the database
-	public boolean insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent) throws RemoteException, SQLException
+	public int insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent) throws RemoteException, SQLException
 	{
-		boolean addStatus = false;
 		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
 		Connection con = coninfo.getConnection();
 		
@@ -606,15 +595,12 @@ public class AWSRService extends RService
 		record.put("queryObjectContent", queryObjectContent);
 		
 		int count = SQLUtils.insertRow(con, "data", "stored_query_objects", record );
-		
-		if(count != 0)
-			addStatus = true;
-		return addStatus;
+		con.close();
+		return count;//single row added
 	}
 	
-	public boolean insertMultipleQueryObjectInProjectFromDatabase(String userName, String projectName, String[] queryObjectTitle, String[] queryObjectContent) throws RemoteException, SQLException
+	public int insertMultipleQueryObjectInProjectFromDatabase(String userName, String projectName, String[] queryObjectTitle, String[] queryObjectContent) throws RemoteException, SQLException
 	{
-		boolean addStatus = false;
 		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
 		Connection con = coninfo.getConnection();
 		
@@ -629,10 +615,8 @@ public class AWSRService extends RService
 		}
 		
 		int count = SQLUtils.insertRows(con, "data", "stored_query_objects", records );
-		
-		if(count != 0)
-			addStatus = true;
-		return addStatus;
+		con.close();
+		return count;
 	}
 	
 	//deletes the entire specified folder (files within and folder itself)

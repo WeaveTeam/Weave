@@ -12,7 +12,7 @@ angular.module('aws.project', [])
 	$scope.currentQuerySelected = {};//current query Selected by the user for loading/running/deleting etc
 	$scope.dlStatus = false;//default is false (projected not selected for deletion)
 	
-	$scope.columnString= "";
+	$scope.columnString= "";//string that displays the by-variables in the 'Columns:' section of each list item 
 	
 	//external directives
 	$scope.aside = {
@@ -60,6 +60,7 @@ angular.module('aws.project', [])
 		$scope.listItems = queryService.dataObject.listofQueryObjectsInProject;//updating the list of projects in this controller
 		//for retrieving the columns section on the listItem to be displayed
 		for(var i in $scope.listItems){
+			$scope.columnString = "";
 			var columns = $scope.listItems[i].FilteredColumnRequest;
 			for(var j in columns){
 				var title = columns[j].column.title;

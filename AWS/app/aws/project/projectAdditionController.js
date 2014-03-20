@@ -3,8 +3,9 @@ angular.module('aws.project')
 	
 	var project = "";
 	var user = "";
+	$scope.uploadStatus = "No file uploaded";
 	var queryObjectJsons = []; //array of uploaded queryObject jsons
-	
+	var fileCount = 0;
 	
 	$scope.$watch('projectName', function(){
 		 project = $scope.projectName;
@@ -12,6 +13,19 @@ angular.module('aws.project')
 	
 	$scope.$watch('userName', function(){
 		 user = $scope.userName;
+	});
+	
+	$scope.$on('fileUploaded', function(e) {
+        $scope.$safeApply(function() {
+        	$scope.uploadStatus = "";
+        	fileCount++;
+        	var countString = fileCount.toString();
+        	console.log("fileUploaded", e.targetScope.file);
+        	$scope.uploadStatus = countString + " files uploaded";
+//        	var jsonObject = JSON.parse(e.targetScope.file);
+//        	var qOTitle= jsonObject.title;
+//        	$scope.uploadStatus = $scope.uploadStatus.concat(qOTitle + " uploaded") + "\n";
+        });
 	});
 	
 	
