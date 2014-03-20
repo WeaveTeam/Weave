@@ -13,9 +13,15 @@
 				Author of the Project<input ng-model = "userName" type = "text" placeholder = "Name of the author"></input>
 				<br></br>
 				Query Objects (.json) files to include in the project
-				<div style = "margin-left: 60px" class="file-upload">
-							<label for="queryImport">Upload</label> 
-							<input type="file" id="queryUpload" name="queryUpload"	ng-submit="uploadQueryObjects()" file-upload />
+				<br></br>
+				<div>
+					<b>{{uploadStatus}}</b>
+					<div style = "margin-left: 80px" class="file-upload">
+								<label for="queryUpload">Upload</label> 
+								<span class = "glyphicon glyphicon-upload"></span> 
+								<span class = "glyphicon glyphicon-plus-sign" ></span>
+								<input type="file" id="queryUpload" name="queryUpload"	ng-submit="uploadQueryObjects()" file-upload />
+					</div>
 				</div>
            </div>
 			

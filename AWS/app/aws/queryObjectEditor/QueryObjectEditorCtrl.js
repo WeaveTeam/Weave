@@ -37,6 +37,6 @@ angular.module('aws.queryObjectEditor', [])
 		
 		//calling the service
 		
-		queryService.addQueryObjectToProject(userName, projectName, queryObjectTitle, queryObjectContent);
+		queryService.insertQueryObjectToProject(userName, projectName, queryObjectTitle, queryObjectContent);
 	};
 });

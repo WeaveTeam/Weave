@@ -1,23 +1,28 @@
 'use strict';
 
-var app = angular.module('aws', ['aws.router',
-                                 'aws.analysis', 
-                                 'aws.analysisService',
-                                 'aws.configure',
-                                 'aws.directives', 
-                                 'aws.queryObject',
-                                 'aws.queryObjectEditor',
-                                 'aws.project', 
-                                 'ngAnimate',
+var app = angular.module('aws', [//'aws.router', // for app structure (can be cleaned)
+                                 //'aws.analysis', 
+                                 
+                                 'aws.configure', //Both script and metadata managers
+                                 'aws.directives', // high level directives don't agree with current location
+
+                                 'aws.queryObject', // queryService.. this needs to be reconciled                               
+                                 'aws.queryObjectEditor', // Shweta's module
+                                 'aws.project',  // shweta's module
+                                 'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
-                                 'aws.visualization',
+                                 //'aws.visualization', 
                                  'ui.select2',
-                                 'ui.slider',
-                                 'ui.sortable',
+                                 //'ui.slider',
+                                 
+                                 'ui.sortable', // Shweta Needs, comes from angular-strap???
                                  'ngRoute',
-                                 'ngGrid',
-                                 'mk.editablespan']); 
+                                 'ngGrid', // Angular UI library
+                                 'mk.editablespan', // Directive for editing values. 
+                                 'aws.analysisService', 
+                                 'aws.AnalysisModule'
+                               ]); 
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {
@@ -51,31 +56,23 @@ app.run(['$rootScope', function($rootScope){
 		activetab : 'script_management'
 	}).when('/project_management', {
 		templateUrl : 'aws/project/projectManagementPanel.html',
-		controller : 'LayoutCtrl',
+		controller : 'ProjectManagementCtrl',
 		activetab : 'project_management'
-	}).when('/old_analysis', {
-		templateUrl : 'aws/analysis/oldAnalysis.html',
-		controller : 'LayoutCtrl',
-		activetab : 'old_analysis'
 	});
 });
 
-angular.module('aws.analysis', ['aws.analysis.geography',
-								'aws.analysis.indicator',
-								'aws.analysis.timeperiod']);
+
 angular.module('aws.directives', ['aws.directives.dualListBox',
-                                  'aws.directives.fileUpload',
-                                  'aws.directives.panel']);
+                                  'aws.directives.fileUpload']);
 angular.module('aws.configure', ['aws.configure.metadata',
                                  'aws.configure.script']);
-angular.module('aws.visualization',['aws.visualization.tools',
-                                    /*'aws.visualization.weave'*/]);
+
 // From Amith's UI
 app.controller('AWSController', function($scope, $route, $location) {
 	
 	$scope.$route = $route;
 	
 });
-var navbar_ctrl = function($scope, $route, $location) {
-	$scope.$route = $route;
-};
+//var navbar_ctrl = function($scope, $route, $location) {
+//	$scope.$route = $route;
+//};

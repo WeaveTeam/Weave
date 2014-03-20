@@ -98,13 +98,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     };
     
     
-    this.addQueryObjectToProject = function(userName, projectName, queryObjectTitle, queryObjectContent) {
+    this.insertQueryObjectToProject = function(userName, projectName, queryObjectTitle, queryObjectContent) {
       	
     	var deferred = $q.defer();
 
         aws.DataClient.insertQueryObject(userName, projectName, queryObjectTitle, queryObjectContent, function(result) {
-            
-        	that.dataObject.deleteQueryStatus = result;//returns a boolean which states if the query has been deleted(true)
+        	console.log("insertQueryObjectStatus", result);
+        	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
         	scope.$safeApply(function() {
                 deferred.resolve(result);
             });
@@ -124,8 +124,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	var deferred = $q.defer();
 
         aws.DataClient.deleteProject(projectName, function(result) {
+        	console.log("deleteProjectStatus", result);
             
-        	that.dataObject.deleteStatus = result;//returns a boolean which states if the project has been deleted(true)
+        	that.dataObject.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
         	scope.$safeApply(function() {
                 deferred.resolve(result);
             });
@@ -146,8 +147,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	var deferred = $q.defer();
 
         aws.DataClient.deleteQueryObject(projectName,queryObjectName, function(result) {
-            
-        	that.dataObject.deleteQueryStatus = result;//returns a boolean which states if the query has been deleted(true)
+        	console.log("deleteQueryObjectStatus",result);
+        	that.dataObject.deleteQueryObjectStatus = result;//returns a boolean which states if the query has been deleted(true)
         	scope.$safeApply(function() {
                 deferred.resolve(result);
             });

@@ -33,11 +33,11 @@
                             <li  class="project-panel">
                             	<div class= "info-div"><!--Contains the queryObject details -->
                             		<ul>
-										<li>Title: {{item.title}}</li>
-										<li>Date: {{item.date}}</li>
-										<li>Datatable: {{item.dataTable.title}}</li>
-										<li>Script: {{item.scriptSelected}}</li>
-										<li>Columns: {{columnString}}</li>
+										<li><b>Title: </b> {{item.title}}</li>
+										<li><b>Date: </b>{{item.date}}</li>
+										<li><b>Datatable: </b>{{item.dataTable.title}}</li>
+										<li><b>Script: </b> {{item.scriptSelected}}</li>
+										<li><b>Columns: </b> {{columnString}}</li>
 									</ul>
 								</div><!--Contains the queryObject details END -->
 								
@@ -60,9 +60,13 @@
         <!-- Rectangle -->
         <!--Contains all buttons -->
         <!--button ng-click = "loadQueryInAnalysisBuilder()" style = "margin-top: 10px; margin-left : 600px ; margin- bottom : 50px";  class="btn btn-primary">Load Query</button-->
-        <button ng-click = "deleteEntireProject()" style ="margin-top: 10px; margin-left : 700px ; margin-bottom : 50px"  class="btn btn-primary">
+        <button ng-click = "deleteEntireProject()" style ="margin-top: 10px; margin-left : 800px ; margin-bottom : 50px"  class="btn btn-primary">
 Delete Current Project
         </button>
         <!--button ng-click = "runQueryInAnalysisBuilder()"style = "margin-top: 10px; margin-left : 30px ; margin- bottom : 50px"; class="btn btn-primary">Run Query</button-->
     </div>
+	Add/Delete Log
+	<div style=" width:1150px;height:100px;border:1px solid #000; overflow-y : scroll;">
+		<textarea style = "width:100%; height:100%" readonly ></textarea>
+	</div>
 </div>
