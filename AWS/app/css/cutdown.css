@@ -1,3 +1,44 @@
+#loading {
+width: 77px;
+height: 20px;
+top: 110px;
+left: 520px;
+position: fixed;
+display: block;
+opacity: 0.7;
+/*background-color: #ccc;*/
+height: 10%;
+top: 110px;
+left: 530px;
+z-index: 99;
+text-align: center;
+
+}
+
+#loading-image {
+position: absolute;
+top: 10px;
+left: 30px;
+z-index: 100;
+}
+
+.master-select2-container{
+	display: inline-block;
+	vertical-align: middle;
+	min-width: 220px !important;
+}
+
+
+.link-inactive{
+	pointer-events: none;
+       cursor: default;
+}
+
+.link-active{
+	pointer-events: visible !important;
+	cursor: pointer !important;
+}
+
 .step {
 
 	background: #B2B5B9;
@@ -101,6 +142,25 @@
 
 /*
  *
+ * The Script Search Bar
+ *
+ *
+ */
+
+.strap-dropdown-input {
+
+	vertical-align: middle;
+	padding: 5px;
+}
+
+.strap-caret {
+
+	float: right;
+	margin-top: 8px;
+}
+
+/*
+ *
  * The left form
  *
  */
@@ -152,6 +212,7 @@
 	margin-right: 0px;
 	margin-left: 0px;
 	display: table;
+	overflow-y: scroll;
 }
 
 .dashboard-content .sidebar-content {
@@ -252,6 +313,17 @@
 	border: 0px;
 }
 
+.tool-list .tool-category {
+
+	height: 35px;
+	background-color: #292929;
+	color: white;
+	padding-left: 10px;
+	padding-top: 5px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
 .widget-container .color-widget {
 
 	width: 80px;
@@ -277,6 +349,68 @@
 	border: 1px solid black;
 	height: 70px;
 	width: 10%;
+}
+
+/*
+ *
+ * Scripts settings panel
+ *
+ */
+
+.search-script .popover {
+
+	height: 50px;
+	top: -40px !important;
+	min-width: 400px;
+	height: auto;
+	padding-top: 5%;
+	padding-left: 5%;
+}
+
+.search-script .popover .select-2-drop {
+
+	width: 50% !important;
+}
+
+.search-script .popover .portlet-content {
+	width: 100%;
+}
+
+.search-script .popover .label-p {
+
+	width: 20%;
+	padding: 5px;
+}
+
+.search-script .popover .input-controls .input-p {
+
+	/* margin: 0 0 10px; */
+	display: table-cell;
+	padding-left: 10px;
+	width: 70%;
+}
+
+.search-script .popover .input-controls {
+	padding-left: 15px;
+}
+
+.search-script .popover .input-controls > li {
+	display: table-row;
+	border-right: 1px solid #FFE1EB;
+	width: 100%;
+	vertical-align: middle;
+	padding-bottom: 10px;
+}
+
+.search-script .popover .input-controls .label-p {
+
+	width: 30%;
+	display: table-cell;
+}
+
+.search-script .arrow {
+
+	top: 20% !important;
 }
 
 /*
@@ -356,12 +490,7 @@
 	width: 70%;
 }
 
-.panel .panel-body .input-controls > li {
-	display: table-row;
-	border-right: 1px solid #FFE1EB;
-	width: 100%;
-	vertical-align: middle;
-}
+
 
 .panel .panel-body .input-controls .label-p {
 
@@ -388,25 +517,86 @@
 	font-weight: 300;
 }
 
+.panel .panel-body .input-controls > li {
+	display: inline;
+	
+	width: 100%;
+	vertical-align: middle;
+	line-height: 3em;
+	padding-bottom: 2px;
+	margin-bottom: 1em;
+}
+
+.masonry-brick .panel-body .widget-ui-control {
+
+	line-height: 1em !important;
+	width: 65% !important;
+	display: table-cell;
+}
+
+.masonry-brick .panel-body .tool-list-control-element {
+
+	line-height: 2em;
+	padding-bottom: 2px;
+	margin-bottom: 1em;
+	right: -20px;
+	vertical-align: middle;
+}
+
+.masonry-brick .panel-body .tool-label{
+	
+	display: inline-block;
+	width: 30%;
+}
+
+
+.masonry-brick .panel-body .byvariable-contents{
+	
+	width : 100%;
+	display: inline;
+	
+}
+
+.masonry-brick .byvariable-contents .select2-container
+{
+	display: inline-block !important;
+	width: 70%; 
+}
+
+.masonry-brick .geography-panel-contents .select2-container{
+	
+	width: 100% !important;
+	
+}
+
+
+/*
+ *
+ * CSS for the run bar -> report generation bar
+ *
+ */
+
 .run-bar {
 
 	position: fixed;
 	bottom: 0px;
 	width: 100%;
-	height: 45px;
+	height: 30px;
 	z-index: 3000;
 	background-color: #4D555C;
 	color: rgb(252, 245, 245);
-	display: block;
+	display: inline;
+	vertical-align: middle;
 }
 
-.run-bar .btn {
+.run-bar .run-btn {
 	margin-top: 4px;
 	margin-bottom: 4px;
 	font-size: 15px !important;
 	line-height: 1.5 !important;
 	border-radius: 3px !important;
-	padding: 3px 7px !important;
+	padding: 0px 7px !important;
+	padding-bottom: 3px !important;
 	height: 84%;
 	box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
 	-webkit-box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
@@ -417,14 +607,24 @@
 	width: 25%;
 	font-weight: 500;
 	margin-right: 30px;
-	margin-left: 530px;
+	margin-left: 90px;
 	vertical-align: middle;
 	text-align: center;
 	padding-top: 5px;
 	display: inline-block;
 }
 
-.run-bar .btn:hover{
+
+.run-bar .export-btn{
+	height: 20px;
+padding: 3px 4px;
+background-color: #A30000;
+border-color: #A30000;
+font-size: 11px;
+	
+}
+
+.run-bar .btn:hover {
 	background-color: #285E8E;
 }
 
@@ -437,7 +637,6 @@
 
 .run-bar .txt {
 
-	
 	padding: 2px 10px;
 	font-size: 11px;
 	line-height: 1;
@@ -465,3 +664,41 @@
 	margin-left: 5px;
 }
 
+.dropdown-menu {
+
+	height: 160px;
+	overflow-y: scroll;
+}
+
+
+.indicator-float{
+	
+	position: fixed;
+top: 165px;
+right: 0;
+height: 37px;
+z-index: 99;
+color: white;
+border-radius: 8px;
+padding-bottom: 7px;
+padding-top: 8px;
+float: left;
+display: inline-block;
+width: 140px!important;
+text-align: center;
+border-radius: 6px 0 0 6px!important;
+opacity: .70;
+filter: alpha(opacity=55.00000000000001);
+vertical-align: top;
+margin: 0;
+font-weight: normal;
+background: #131212!important;
+background-image: -webkit-gradient(linear,left 0,left 100%,from(##0A0A0A),to(#131212))!important;
+background-image: -webkit-linear-gradient(top,#0A0A0A,0%,#131212,100%)!important;
+background-image: -moz-linear-gradient(top,#0A0A0A 0,#131212 100%)!important;
+background-image: linear-gradient(to bottom,#0A0A0A 0,#131212 100%)!important;
+background-repeat: repeat-x!important;
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffbf66',endColorstr='#ffffa830',GradientType=0)!important;
+
+	
+}
