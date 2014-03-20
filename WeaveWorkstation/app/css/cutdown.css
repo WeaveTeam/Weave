@@ -570,7 +570,7 @@ z-index: 100;
 	vertical-align: middle;
 }
 
-.run-bar .btn {
+.run-bar .run-btn {
 	margin-top: 4px;
 	margin-bottom: 4px;
 	font-size: 15px !important;
@@ -592,6 +592,13 @@ z-index: 100;
 	text-align: center;
 	padding-top: 5px;
 	display: inline-block;
+}
+
+
+.run-bar .export-btn{
+	height: 25px;
+padding: 3px 4px;
+	
 }
 
 .run-bar .btn:hover {

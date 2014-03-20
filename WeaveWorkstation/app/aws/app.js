@@ -43,5 +43,5 @@ weaveAWSApp.config(function($routeProvider) {
 });
 
 
-angular.module('aws.directives', ['aws.directives.dualListBox']);
+angular.module('aws.directives', ['aws.directives.dualListBox', 'aws.directives.fileUpload']);
 

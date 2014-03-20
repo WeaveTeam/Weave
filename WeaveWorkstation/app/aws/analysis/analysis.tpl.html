@@ -180,20 +180,21 @@
 				<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 			</select>
 		</div>
-		<a href="javascript:void(0);" class="btn btn-primary" id="" ng-click="runQuery()"><span style="vertical-align: middle">Run</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
-		
-		<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float: right;">
-			<button ng-click="exportQueryObject()" class="btn btn-primary">
-				Export Query
-			</button>
-			<div class="file-upload">
-				<label for="queryImport">Import Query</label>
-				<input type="file" id="queryImport" name="queryImport"	ng-submit="importQueryObject()" file-upload />
-			</div>
-			<br>
+		<a href="javascript:void(0);" class="btn btn-primary run-btn" id="" ng-click="runQuery()"><span style="vertical-align: middle">Run</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
+
+		<div ng-controller="QueryImportExportCtrl" style="display: inline-block; margin-left: 100px;">
+
+			<a href="javascript:void(0);" class="btn btn-primary export-btn" id="" ng-click="exportQueryObject()"> <span style="vertical-align: middle">Export Query</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
+
+
+			<!-- Feature not included
+			<a href="javascript:void(0);" class="btn btn-primary import-button">
+			Import Query
+			<input class="btn-primary" type="file" id="queryImport" name="queryImport"	ng-submit="importQueryObject()" file-upload />
+			</a>
+			-->
 		</div>
-		
-		
+
 	</div>
 </div>
 
