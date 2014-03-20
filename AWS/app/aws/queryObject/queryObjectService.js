@@ -147,8 +147,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	var deferred = $q.defer();
 
         aws.DataClient.deleteQueryObject(projectName,queryObjectName, function(result) {
-        	console.log("deleteQueryObjectStatus",result);
         	that.dataObject.deleteQueryObjectStatus = result;//returns a boolean which states if the query has been deleted(true)
+        	console.log("in the service",that.dataObject.deleteQueryObjectStatus );
         	scope.$safeApply(function() {
                 deferred.resolve(result);
             });

@@ -603,16 +603,17 @@ public class AWSRService extends RService
 	{
 		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
 		Connection con = coninfo.getConnection();
-		
-		Map<String,Object> record = new HashMap<String, Object>();
 		List<Map<String, Object>> records = new ArrayList<Map<String, Object>>();
 		
 		for(int i = 0; i < queryObjectTitle.length; i++){
+			Map<String,Object> record = new HashMap<String, Object>();
 			record.put("userName", userName);
 			record.put("projectName", projectName);
 			record.put("queryObjectTitle", queryObjectTitle[i]);
 			record.put("queryObjectContent", queryObjectContent[i]);
+			records.add(record);
 		}
+		
 		
 		int count = SQLUtils.insertRows(con, "data", "stored_query_objects", records );
 		con.close();

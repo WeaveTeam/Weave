@@ -10,7 +10,8 @@ angular.module('aws.project', [])
 	
 	$scope.listItems = [];//list of returned JSON Objects 
 	$scope.currentQuerySelected = {};//current query Selected by the user for loading/running/deleting etc
-	$scope.dlStatus = false;//default is false (projected not selected for deletion)
+	$scope.deleteProjectStatus = 0;//count changes depending on how many queryObjects (rows) belonging to a project have been deleted from database
+	$scope.deleteQueryObjectStatus = 0;//count changes to 1 when a single queryObject has been deleted from database
 	
 	$scope.columnString= "";//string that displays the by-variables in the 'Columns:' section of each list item 
 	
@@ -87,13 +88,13 @@ angular.module('aws.project', [])
 	//2. reset required variables
 	//3. updates required lists
      $scope.$watch(function(){
-    	 return queryService.dataObject.deleteStatus;
+    	 return queryService.dataObject.deleteProjectStatus;
      },
     	 function(){
-    	 if($scope.dlStatus = true && $scope.currentProjectSelected != ""){
+    	 if($scope.deleteProjectStatus != 0 && $scope.currentProjectSelected != ""){
  			alert("The Project " + $scope.currentProjectSelected + " has been deleted");
  			$scope.currentProjectSelected = "";//reset
- 			$scope.dlStatus = false;//reset
+ 			$scope.deleteProjectStatus = 0;//reset
  			$scope.projectSelectorUI = $scope.defaultProjectOption;//resetting dropDown UI
  			//update the query Object and queryObject UI
  			queryService.dataObject.listofQueryObjectsInProject = [];//clean and reset for next selection iteration, resets listItems which is used to render list of queryObjects
@@ -106,9 +107,19 @@ angular.module('aws.project', [])
      });
      
      $scope.$watch(function(){
-    	 return queryService.dataObject.deleteQueryStatus;
+    	 return queryService.dataObject.deleteQueryObjectStatus;
+    	 //return $scope.deleteQueryObjectStatus;
      }, function(){
     	 console.log("woooohoooooo");
+    	 $scope.deleteQueryObjectStatus = queryService.dataObject.deleteQueryObjectStatus;
+    	 console.log("checking",$scope.deleteQueryObjectStatus);
+    	 if($scope.deleteQueryObjectStatus != 0)
+    		 {
+    		 	alert("Query Object " + $scope.currentQuerySelected.title + " has been deleted");
+    		 	$scope.currentQuerySelected = ""; //resetting currently selected queryObject
+    		 	queryService.dataObject.listofQueryObjectsInProject = [];//resets and updates new list of queryObjects
+    		 	queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);//makes a new call
+    		 }
      });
 
      
@@ -141,7 +152,7 @@ angular.module('aws.project', [])
 			var deletePopup = confirm("Are you sure you want to delete project " + currentProjectSelected + "?");
 			if(deletePopup == true){
 				//only if Ok is pressed delete the project
-				$scope.dlStatus = queryService.deleteProject($scope.currentProjectSelected);
+				$scope.deleteProjectStatus = queryService.deleteProject($scope.currentProjectSelected);
 			}
 			
 		};
@@ -149,7 +160,9 @@ angular.module('aws.project', [])
 	$scope.deleteQueryConfirmation = function(currentProjectSelected, currentQueryFileName){
 		var deletePopup = confirm("Are you sure you want to delete " + currentQueryFileName + " from " + currentProjectSelected + "?");
 		if(deletePopup == true){
-			$scope.dlQueryStatus = queryService.deleteQueryObject(currentProjectSelected, currentQueryFileName);
+			 
+			queryService.deleteQueryObject(currentProjectSelected, currentQueryFileName);
+		
 		}
 	};
 	$scope.runQueryInAnalysisBuilder = function(){
