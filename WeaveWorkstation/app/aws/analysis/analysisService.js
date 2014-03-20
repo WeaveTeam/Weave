@@ -26,18 +26,16 @@ function($filter, queryService) {
 	},
 	{
 		id : 'TimePeriodFilter',
-		title : 'Time Period',
+		title : 'Time Period Filter',
 		template_url : 'aws/visualization/data_filters/time_period.tpl.html',
-		desription : 'Filter data based on time period',
-		note: 'Choose the year and month columns in the database to select the metadata',
+		description : 'Filter data based on time period',
 		category : 'datafilter'
 	},
 	{
 		id : 'ByVariableFilter',
-		title : 'By Variable',
+		title : 'By Variable Filter',
 		template_url : 'aws/visualization/data_filters/by_variable.tpl.html',
-		desription : 'Filter data based on Variables',
-		note: 'This is a note',
+		description : 'Filter data based on Variables',
 		category : 'datafilter'
 	},
 	{
