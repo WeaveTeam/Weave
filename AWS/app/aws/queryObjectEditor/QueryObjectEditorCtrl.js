@@ -3,6 +3,7 @@
  */
 angular.module('aws.queryObjectEditor', [])
 .controller("QueryObjectEditorCtrl", function($scope, queryService){
+	
 	$scope.$watch(function(){
 		console.log("currentJSON", $scope.queryObjectJson);
 		return $scope.queryObjectJson;
@@ -21,11 +22,16 @@ angular.module('aws.queryObjectEditor', [])
 	/*****************************BUTTON CONTROLS******************************/
 	
 	$scope.saveToCurrentProject = function(){
+		var queryObjectContent = [];
+		var queryObjectTitle = [];
+		
 		var projectName = $scope.currentProjectSelected;
 		console.log("sendingProject",$scope.currentProjectSelected);
-		var queryObjectTitle = $scope.currentQuerySelected.title;
+		var singlequeryObjectTitle = $scope.currentQuerySelected.title;
+		queryObjectTitle.push(singlequeryObjectTitle);
 		console.log("sendingTitle",$scope.currentQuerySelected.title);
-		var queryObjectContent = JSON.stringify($scope.currentQuerySelected);//the actual json
+		var singlequeryObjectContent = JSON.stringify($scope.currentQuerySelected);//the actual json
+		queryObjectContent.push(singlequeryObjectContent);
 		console.log("sendingContent", $scope.currentQuerySelected);
 		var userName = "USerNameFOO";
 		

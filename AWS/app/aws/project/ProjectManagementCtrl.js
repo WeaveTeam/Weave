@@ -12,6 +12,8 @@ angular.module('aws.project', [])
 	$scope.currentQuerySelected = {};//current query Selected by the user for loading/running/deleting etc
 	$scope.dlStatus = false;//default is false (projected not selected for deletion)
 	
+	$scope.columnString= "";
+	
 	//external directives
 	$scope.aside = {
 			title : 'Query Object Editor'
@@ -47,7 +49,6 @@ angular.module('aws.project', [])
 			}
 			
 			$scope.listItems = queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);
-				
 		}
 	});
 	
@@ -57,6 +58,14 @@ angular.module('aws.project', [])
 		return queryService.dataObject.listofQueryObjectsInProject;
 	}, function() {
 		$scope.listItems = queryService.dataObject.listofQueryObjectsInProject;//updating the list of projects in this controller
+		//for retrieving the columns section on the listItem to be displayed
+		for(var i in $scope.listItems){
+			var columns = $scope.listItems[i].FilteredColumnRequest;
+			for(var j in columns){
+				var title = columns[j].column.title;
+				$scope.columnString= $scope.columnString.concat(title) + " , ";
+			}
+		}
 		//TO DO find better way to do this
 		//put a check if project is empty	
 		if($scope.listItems == null && !(angular.isUndefined($scope.projectSelectorUI))){

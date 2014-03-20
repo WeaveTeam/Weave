@@ -612,6 +612,29 @@ public class AWSRService extends RService
 		return addStatus;
 	}
 	
+	public boolean insertMultipleQueryObjectInProjectFromDatabase(String userName, String projectName, String[] queryObjectTitle, String[] queryObjectContent) throws RemoteException, SQLException
+	{
+		boolean addStatus = false;
+		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
+		Connection con = coninfo.getConnection();
+		
+		Map<String,Object> record = new HashMap<String, Object>();
+		List<Map<String, Object>> records = new ArrayList<Map<String, Object>>();
+		
+		for(int i = 0; i < queryObjectTitle.length; i++){
+			record.put("userName", userName);
+			record.put("projectName", projectName);
+			record.put("queryObjectTitle", queryObjectTitle[i]);
+			record.put("queryObjectContent", queryObjectContent[i]);
+		}
+		
+		int count = SQLUtils.insertRows(con, "data", "stored_query_objects", records );
+		
+		if(count != 0)
+			addStatus = true;
+		return addStatus;
+	}
+	
 	//deletes the entire specified folder (files within and folder itself)
 //	public boolean deleteProject(String projectName) throws Exception
 //	{

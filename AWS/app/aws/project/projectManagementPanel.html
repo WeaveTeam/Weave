@@ -1,19 +1,19 @@
 <div ng-controller="ProjectManagementCtrl" style="display: inline-block; margin-left : 30px">
 <br>
 	Username <input ng-model = "username" type = "text" placeholder = "Enter a username for the project"></input>
-    <br><br>
-	<button id = "newProjectButton"  style = "margin-left : 30px" type="button" class="btn btn-sm" data-template= "aws/project/projectAdditionPanel.html"
-	data-placement="left" data-animation="am-slide-left" bs-aside="aside" data-container="body"  ng-click = "open()">
+	<button id = "newProjectButton" style= "margin-left : 800px" type="button" class="btn btn-sm" data-template= "aws/project/projectAdditionPanel.html"
+	data-placement="right" data-animation="am-slide-right" bs-aside="aside2" data-container="body"  ng-click = "open()">
 		Create New Project
 		<span class = "glyphicon glyphicon-plus-sign" ></span>
 	</button>
-    Select Project 
+	<br><br>
+	Select Project 
     <select ui-select2 ng-model="projectSelectorUI" style="width:200px;">
         <option>Select Project</option>
         <option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option>
     </select>
 
-	<button id = "newQueryObjectButton" type="button" style= "margin-left : 600px" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" 
+	<button id = "newQueryObjectButton" type="button" style= "margin-left : 740px" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" 
 	data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')">
 		New Query Object
 		<span class = "glyphicon glyphicon-plus-sign" ></span></button>
@@ -35,7 +35,9 @@
                             		<ul>
 										<li>Title: {{item.title}}</li>
 										<li>Date: {{item.date}}</li>
-										<li>Date: {{item.date}}</li>
+										<li>Datatable: {{item.dataTable.title}}</li>
+										<li>Script: {{item.scriptSelected}}</li>
+										<li>Columns: {{columnString}}</li>
 									</ul>
 								</div><!--Contains the queryObject details END -->
 								
