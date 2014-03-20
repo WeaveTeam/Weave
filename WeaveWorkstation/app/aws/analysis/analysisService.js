@@ -12,8 +12,8 @@ function($filter, queryService) {
 		id : 'IndicatorFilter',
 		title : 'Indicator',
 		template_url : 'aws/visualization/indicator/indicator.tpl.html',
-		description : 'Choose the indicator for this analysis',
-		note: 'This is the global indicator that will be use for the analysis',
+		description : 'Choose an indicator',
+		note: 'The global indicator for this analysis',
 		category : 'indicatorfilter'
 	},
 	{
@@ -28,16 +28,15 @@ function($filter, queryService) {
 		id : 'TimePeriodFilter',
 		title : 'Time Period',
 		template_url : 'aws/visualization/data_filters/time_period.tpl.html',
-		desription : 'Filter data based on time period',
-		note: 'Choose the year and month columns in the database to select the metadata',
+		description : 'Filter data by time',
+		note: 'Choose the year and month columns in the database',
 		category : 'datafilter'
 	},
 	{
 		id : 'ByVariableFilter',
 		title : 'By Variable',
 		template_url : 'aws/visualization/data_filters/by_variable.tpl.html',
-		desription : 'Filter data based on Variables',
-		note: 'This is a note',
+		description : 'Filter data based on variables',
 		category : 'datafilter'
 	},
 	{

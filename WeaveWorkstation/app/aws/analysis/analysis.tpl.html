@@ -86,11 +86,12 @@
 				<div id="heading" class="page-header" ng-controller="IndicatorCtrl">
 					
 						<h1><i class="glyphicon glyphicon-th-large"></i>&nbsp; Dashboard</h1> 
-					<span>
-						{{indicator.label}}
-							<span ng-show="indicator.label"> :
-							</span>
-						{{ indicatorDescription}}
+						
+						
+						
+					<span style="font-size: 10px; font-weight: 400" class="indicator-float" ng-show="indicator.label">
+						<span>Indicator: {{indicator.label}}</span><br />
+						<span style="font-size: 10px;">{{ indicatorDescription}}</span>
 					</span>
 				</div>
 			</div>
@@ -107,7 +108,6 @@
 			<div style="width: 100%; height: 30px; border-bottom: 1px solid #CCCCCC;" class="possible-search-hide"></div>
 
 			<div class="tool-bar">
-
 				<ul class="tool-list" >
 					<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
 						<span class="checkbox">
@@ -182,7 +182,7 @@
 		</div>
 		<a href="javascript:void(0);" class="btn btn-primary run-btn" id="" ng-click="runQuery()"><span style="vertical-align: middle">Run</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
 
-		<div ng-controller="QueryImportExportCtrl" style="display: inline-block; margin-left: 100px;">
+		<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float:right; margin-top: 10px; margin-right: 5px;">
 
 			<a href="javascript:void(0);" class="btn btn-primary export-btn" id="" ng-click="exportQueryObject()"> <span style="vertical-align: middle">Export Query</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
 
