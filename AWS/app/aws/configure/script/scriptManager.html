@@ -7,7 +7,8 @@
         <div class="gridStyle" ng-grid="gridOptions"></div>
       </div>
       <div class="col-md-9" contenteditable="false">
-        <div class="well">
+        <div class="well"> 
+          <a class="btn" ng-show="savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
           <div class="row">
             <div class="col-md-3">Script Name: 
               <editablespan model='selectedScript[0].name'>{{selectedScript[0].name}}</editablespan>
@@ -15,9 +16,9 @@
             <div class="col-md-2"></div>
             <div class="col-md-2">Script Type:{{selectedMetadata.scriptType}}</div>
             <p class="text-right">Edit Mode:</p>
-            <div class="btn-group pull-right">
-              <button class="btn">On</button>
-              <button class="btn">Off</button>
+            <div class="btn-group btn-toggle pull-right" ng-click="editMode = !editMode">
+              <button ng-class="{'active btn-danger': editMode == true}" class="btn btn-default">On</button>
+              <button ng-class="{'active': editMode == false}" class="btn btn-default">Off</button>
             </div>
           </div>
           <div class="row">General description</div>
@@ -29,14 +30,11 @@
           <div  class="row">
             <div class="row" ng-repeat="inpt in selectedMetadata.inputs">
               <div class="col-md-6">Name: <editablespan model="inpt.param">{{inpt.param}}</editablespan></div>
-              <div class="col-md-6">Description: {{inpt.description}}</div>
-
+              <div class="col-md-6">Description: <editablespan model="inpt.description">{{inpt.description}}</editablespan></div>
             </div>
-            <a class="btn" ng-click="visible = true"><i class="glyphicon glyphicon-plus"></i>Add</a>
-            <a class="btn" ng-show="savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
-            <div class="container">
-        
-      </div>
+            <a class="btn pull-right" ng-click="addInput()"><i class="glyphicon glyphicon-plus"></i>Add</a>
+            
+         
 
           </div>
         </div>
@@ -44,9 +42,9 @@
           <h3 class="">Outputs</h3>
           <div class="row" style="">
             <div ng-repeat="out in selectedMetadata.outputs">
-              <div class="col-md-4">{{out.param}}</div>
-              <div class="col-md-6">{{out.description}}</div></div>
-
+              <div class="col-md-4"><editablespan model="out.param">{{out.param}}</editablespan></div>
+              <div class="col-md-6"><editablespan model="out.description">{{out.description}}</editablespan></div></div>
+<a class="btn pull-right" ng-click="addOutput()"><i class="glyphicon glyphicon-plus"></i>Add</a>
           </div>
         </div>
         <div class ="well">
