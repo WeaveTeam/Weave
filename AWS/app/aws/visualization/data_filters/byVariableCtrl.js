@@ -78,9 +78,9 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 				});
 
 				if ($scope.filterType[i] == "categorical") {
-					queryService.queryObject.ByVariableFilter[i].filters = { filterValues : temp };
+					queryService.queryObject.ByVariableFilter[i].filters = temp;
 				} else if ($scope.filterType[i] == "continuous") {// continuous, we want arrays of ranges
-					queryService.queryObject.ByVariableFilter[i].filters = { filterValues : [temp]};
+					queryService.queryObject.ByVariableFilter[i].filters = [temp];
 				}
 			}
 		}
@@ -95,7 +95,7 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 	$scope.addByVariable = function() {
 		lastIndex++;
 		$scope.items.push(lastIndex);
-	}
+	};
 	
 	$scope.removeByVariable = function(index) {
 		if($scope.items.length != 1) {

@@ -21,7 +21,12 @@ analysis_mod.controller("DataTableCtrl", function($scope, queryService) {
 			}
 		}
 	});
-
+	
+	if(queryService.queryObject.Indicator.label) {
+		$scope.title = "Data Table of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
+		$scope.enableTitle = true;
+	}
+	
 	$scope.$watch('enabled', function() {
 		if ($scope.enabled != undefined) {
 			queryService.queryObject.DataTableTool.enabled = $scope.enabled;

@@ -30,6 +30,12 @@ analysis_mod.controller("ScatterPlotCtrl", function($scope, queryService) {
 		}
 		
 	});
+	
+	if(queryService.queryObject.Indicator.label) {
+		$scope.title = "Scatter plot of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
+		$scope.enableTitle = true;
+	}
+	
 	$scope.$watch(function(){
 		return queryService.queryObject.ScatterPlotTool.enabled;
 	}, function() {
