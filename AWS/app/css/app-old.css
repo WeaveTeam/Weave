@@ -290,7 +290,7 @@ input[type="checkbox"] {
 	border: 1px solid #f0f0f0;
 	margin: 2em;
 }
-/* .file-upload strong { 
+ .file-upload strong { 
 	font: normal 1.75em arial,sans-serif; 
 	}	
 	
@@ -300,9 +300,9 @@ input[type="checkbox"] {
 	left: 0;
 	display: inline-block;
 
-	Adjust button text vertical alignment
+	/*Adjust button text vertical alignment*/
 	padding-top: .45em;
-	} */
-/* 
+	} 
+ /*
 /* Adjust the button size */	
 /*.file-upload {  } */

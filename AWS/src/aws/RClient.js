@@ -90,6 +90,9 @@ aws.RClient.getScriptMetadata = function(scriptName, callback) {
 	aws.queryService(rServiceURL, 'getScriptMetadata', [scriptName], callback);
 };
 
+aws.RClient.uploadNewScript = function(scriptName, file, callback){
+    aws.queryService(rServiceURL, 'uploadNewScript', [scriptName, file], callback);
+};
 
 /*-----------------CALLBACKS------------------------------------------------------------------*/
 //stores the connection to be used in later R servlet calls

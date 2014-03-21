@@ -48,6 +48,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.opengis.geometry.coordinate.Cone;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RFactor;
@@ -55,6 +56,7 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.beans.RResult;
+import weave.config.ConnectionConfig;
 import weave.config.WeaveContextParams;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.WeaveConfig;
@@ -311,8 +313,9 @@ public class AWSRService extends RService
 	//retrieves all the projects belonging to a particular user
 	public String[] getProjectFromDatabase() throws SQLException, RemoteException{
 		SQLResult projectObjects= null;//all the projects belonging to the userName
-		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
-		Connection con = coninfo.getConnection();
+		
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		
 		List<String> selectColumns = new ArrayList<String>();
 		selectColumns.add("projectName");//we're retrieving the list of projects in the projectName column in database
@@ -324,7 +327,7 @@ public class AWSRService extends RService
 //		projectObjects = SQLUtils.getResultFromQuery(con,selectColumns, "data", "stored_query_objects", whereParams, caseSensitiveFields);
 		
 		
-		String query = String.format("SELECT distinct(%s) FROM %s", "projectName", (SQLUtils.quoteSchemaTable(con,"data", "stored_query_objects")));
+		String query = String.format("SELECT distinct(%s) FROM %s", "projectName", (SQLUtils.quoteSchemaTable(con,schema, "stored_query_objects")));
 		projectObjects = SQLUtils.getResultFromQuery(con,query, null, true );
 		
 		String[] projectNames = new String[projectObjects.rows.length];
@@ -436,28 +439,33 @@ public class AWSRService extends RService
    */
 	public Object[] getQueryObjectsFromDatabase(String projectName) throws RemoteException, SQLException
 	{
-		Object[] finalQueryObjectCollection = new Object[2];
-		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
-		Connection con = coninfo.getConnection();
+		Object[] finalQueryObjectCollection = new Object[3];
+		
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		
 		//we're retrieving the list of queryObjects in the selected project
 		List<String> selectColumns = new ArrayList<String>();
 		selectColumns.add("queryObjectTitle");
 		selectColumns.add("queryObjectContent");
+		selectColumns.add("projectDescription");
 		
 		
 		Map<String,String> whereParams = new HashMap<String, String>();
 		whereParams.put("projectName", projectName);
 		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
-		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, "data", "stored_query_objects", whereParams, caseSensitiveFields);
+		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
 		
 		
 		
 		//getting names from queryObjectTitle
 		String[] queryNames =  new String[queryObjectsSQLresult.rows.length];
+		String projectDescription = null;
 		for(int i = 0; i < queryObjectsSQLresult.rows.length; i++){
 			Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
 			queryNames[i] = singleSQLQueryObject.toString();
+			
+			projectDescription = (queryObjectsSQLresult.rows[i][2]).toString();//TODO find better way to do this
 		}
 		
 		//getting json objects from queryObjectContent
@@ -495,6 +503,7 @@ public class AWSRService extends RService
 		
 		finalQueryObjectCollection[0] = finalQueryObjects;
 		finalQueryObjectCollection[1] = queryNames;
+		finalQueryObjectCollection[2] = projectDescription;
 		con.close();
 		return finalQueryObjectCollection;
 		
@@ -559,16 +568,16 @@ public class AWSRService extends RService
 	
 	public int deleteProjectFromDatabase(String projectName)throws RemoteException, SQLException
 	{
-		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
-		Connection con = coninfo.getConnection();
-
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
+		
 		
 		//Set<String> caseSensitiveFields  = new HashSet<String>(); 
 		Map<String,Object> whereParams = new HashMap<String, Object>();
 		whereParams.put("projectName", projectName);
 		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
 		
-		int count = SQLUtils.deleteRows(con, "data", "stored_query_objects",clause);
+		int count = SQLUtils.deleteRows(con, schema, "stored_query_objects",clause);
 		con.close();
 		return count;//number of rows deleted
 	}
@@ -576,39 +585,37 @@ public class AWSRService extends RService
 	
 	public int deleteQueryObjectFromProjectFromDatabase(String projectName, String queryObjectTitle)throws RemoteException, SQLException{
 		
-		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
-		Connection con = coninfo.getConnection();
-		
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		Map<String,Object> whereParams = new HashMap<String, Object>();
 		whereParams.put("projectName", projectName);
 		whereParams.put("queryObjectTitle", queryObjectTitle);
 		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
 		
-		int count = SQLUtils.deleteRows(con, "data", "stored_query_objects",clause);
+		int count = SQLUtils.deleteRows(con, schema, "stored_query_objects",clause);
 		con.close();
 		return count;//number of rows deleted
 	}
 	//adds a queryObject to the database
 	public int insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent) throws RemoteException, SQLException
 	{
-		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
-		Connection con = coninfo.getConnection();
-		
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		Map<String,Object> record = new HashMap<String, Object>();
 		record.put("userName", userName);
 		record.put("projectName", projectName);
 		record.put("queryObjectTitle", queryObjectTitle);
 		record.put("queryObjectContent", queryObjectContent);
 		
-		int count = SQLUtils.insertRow(con, "data", "stored_query_objects", record );
+		int count = SQLUtils.insertRow(con, schema, "stored_query_objects", record );
 		con.close();
 		return count;//single row added
 	}
 	
 	public int insertMultipleQueryObjectInProjectFromDatabase(String userName, String projectName, String[] queryObjectTitle, String[] queryObjectContent) throws RemoteException, SQLException
 	{
-		ConnectionInfo coninfo = WeaveConfig.getConnectionConfig().getConnectionInfo("mysql");
-		Connection con = coninfo.getConnection();
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		List<Map<String, Object>> records = new ArrayList<Map<String, Object>>();
 		
 		for(int i = 0; i < queryObjectTitle.length; i++){
@@ -621,7 +628,7 @@ public class AWSRService extends RService
 		}
 		
 		
-		int count = SQLUtils.insertRows(con, "data", "stored_query_objects", records );
+		int count = SQLUtils.insertRows(con, schema , "stored_query_objects", records );
 		con.close();
 		return count;
 	}
@@ -813,6 +820,9 @@ public class AWSRService extends RService
 
 	public String saveMetadata(String scriptName, Object scriptMetadata) throws Exception {
 		String status = "";
+		if(scriptName.length() < 3){
+			return "The script Name is invalid";
+		}
 		
 		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
 		File file = new File(awsConfigPath + "RScripts", jsonFileName);
@@ -860,7 +870,7 @@ public class AWSRService extends RService
 					
 					scriptMetadata = gson.fromJson(br, Object.class);
 					
-					System.out.println(scriptMetadata);
+					//System.out.println(scriptMetadata);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -873,6 +883,17 @@ public class AWSRService extends RService
 		
 		return scriptMetadata;
 	}
+	
+	public String uploadNewScript(String scriptName, Object fileObject){
+		System.out.println(fileObject);
+		return "success";
+	}
+	
+	public String deleteNewScript(String scriptName, String password){
+		
+		return "success";
+	}
+	
     
     // this functions intends to run a script with filtered.
 	// essentially this function should eventually be our main run script function.

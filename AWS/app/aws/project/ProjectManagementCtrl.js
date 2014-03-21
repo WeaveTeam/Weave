@@ -82,6 +82,13 @@ angular.module('aws.project', [])
 //		}
 	});
 	
+	$scope.$watch(function(){
+		return queryService.dataObject.projectDescription;
+	},function(){
+		$scope.projectDescriptionStatement = queryService.dataObject.projectDescription;
+	});
+	
+	
 	//updates the UI depending on the queryObject
 	$scope.$watch(function(){
 		return queryService.queryObject.projectSelected;
