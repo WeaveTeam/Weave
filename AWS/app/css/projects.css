@@ -105,8 +105,17 @@
 	display: inline-block;
 }
 
-.project-management .prj-contents .panel .widget-selectors .new-query-button {
+.project-management .prj-contents .panel .query-btn-holder {
+	display: inline-block;
+	margin-top: 20px;
+	border-top: 2px solid #8D8F91;
+	padding: 5px;
+	margin-left: 30px;
+	width: 95%;
+}
 
+.project-management .prj-contents .panel .aside-dialog{
+	height: 100% !important;
 }
 
 .d-list-content {
@@ -241,14 +250,14 @@
 }
 
 /*@media only screen and (min-width: 700px) {
-	.dd {
-		float: left;
-		width: 100%
-	}
-	.dd+ .dd {
-		margin-left: 2%
-	}
-}*/
+ .dd {
+ float: left;
+ width: 100%
+ }
+ .dd+ .dd {
+ margin-left: 2%
+ }
+ }*/
 .dd-hover > .dd-handle {
 	background: #2ea8e5 !important
 }
@@ -302,16 +311,16 @@
 }
 .dd3-handle:before {
 	/*content: '\f0c9';
-	display: block;
-	position: absolute;
-	left: 0;
-	top: 3px;
-	width: 100%;
-	text-align: center;
-	text-indent: 0;
-	color: #818181;
-	font-weight: 400;
-	line-height: 28px*/
+	 display: block;
+	 position: absolute;
+	 left: 0;
+	 top: 3px;
+	 width: 100%;
+	 text-align: center;
+	 text-indent: 0;
+	 color: #818181;
+	 font-weight: 400;
+	 line-height: 28px*/
 }
 .dd3-handle:hover:before {
 	color: #C27616

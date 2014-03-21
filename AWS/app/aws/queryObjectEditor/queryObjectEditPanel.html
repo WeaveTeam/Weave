@@ -1,24 +1,24 @@
-<div class="aside" tabindex="-1" role="dialog" ng-controller = "QueryObjectEditorCtrl">
-    <div class="aside-dialog">
-        <div class="aside-content" >
-            <div class="aside-header" ng-show="title">
-                <button type="button" class="close" ng-click="$hide()">
-                    &times;
-                </button>
-                <span class="aside-title" ng-bind-html="title">{{title}}</span>
-            </div>
-            <div id = "QOEcontainer" class="aside-body">
-            	<query-object-editor></query-object-editor>
-            </div>
-			
-			<div class="aside-footer">
-                <button type="button" class="btn btn-primary" ng-click = "exportToJSONFile()" >
-                    Export
-                </button>
-                <button type="button" class="btn btn-primary" ng-click = "saveToProject()">
-                    Save to Project
-                </button>
-				</div>
-        </div>
-    </div>
+<div style="height: 100%" class="aside" tabindex="-1" role="dialog" ng-controller = "QueryObjectEditorCtrl">
+	<div style="height: 100%" class="aside-dialog">
+		<div style="height: 100%" class="aside-content" >
+			<div style="height: 35px" class="aside-header" ng-show="title">
+				<button type="button" class="close" ng-click="$hide()">
+					&times;
+				</button>
+				<span class="aside-title" ng-bind-html="title">{{title}}</span>
+			</div>
+			<div style="height: 85%" id = "QOEcontainer" class="aside-body">
+				<query-object-editor></query-object-editor>
+			</div>
+
+			<div style="height: 40px; padding: 0px 40px 0px; border: 0px; margin-top: 0px">
+				<button type="button" class="btn btn-primary" ng-click = "exportToJSONFile()" >
+					Export
+				</button>
+				<button type="button" class="btn btn-primary" ng-click = "saveToProject()">
+					Save to Project
+				</button>
+			</div>
+		</div>
+	</div>
 </div>

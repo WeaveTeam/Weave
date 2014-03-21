@@ -43,35 +43,54 @@
 				</div>
 				<div class="dd" id="nestable3">
 					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
-						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems" ng-click = "choseQueryObject(item)">
+						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems">
 							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
 							<div class="dd-handle dd3-handle">
 								Drag
 							</div>
 							<div class= "dd3-content d-list-content">
-								<ul>
-									<li>
-										<b>Title: </b> {{item.title}}
-									</li>
-									<li>
-										<b>Date: </b>{{item.date}}
-									</li>
-									<!-- <li>
-									<b>Datatable: </b>{{item.dataTable.title}}
-									</li>
-									<li>
-									<b>Script: </b> {{item.scriptSelected}}
-									</li>
-									<li>
-									<b>Columns: </b> {{columnString}}
-									</li> -->
-								</ul>
+								<div style='inline-block'>
+									<ul>
+										<li>
+											<b>Title: </b> {{item.title}}
+										</li>
+										<li>
+											<b>Date: </b>{{item.date}}
+										</li>
+										<li>
+											<b>Datatable: </b>{{item.dataTable.title}}
+										</li>
+										<li>
+											<b>Script: </b> {{item.scriptSelected}}
+										</li>
+										<li>
+											<b>Columns: </b> {{columnString}}
+										</li>
+									</ul>
+								</div>
+								<div class="query-btn-holder">
+									<button ng-click = "runQueryInAnalysisBuilder()" style = "width : 30%" class ="btn btn-sm">
+										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
+										Run Query
+									</button>
+									<button ng-click = "deleteSpecificQueryObject()" style = "width : 30%" class="btn btn-sm">
+										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
+										Delete the query
+									</button>
+									<!--button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button-->
+									<button style = "width : 30%; height: 100%"  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item)" type="button" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
+									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
+										Open in editor
+									</button>
+								</div>
 							</div>
 
-						</li>
-					</ol>
 				</div>
+
+				</li>
+				</ol>
 			</div>
 		</div>
 	</div>
+</div>
 </div>
