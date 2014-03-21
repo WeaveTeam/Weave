@@ -174,9 +174,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 
         aws.DataClient.getListOfQueryObjects(projectName, function(result) {
             
-        	//testing
+        	//TODO testing find better way to do this
         	that.dataObject.listofQueryObjectsInProject = result[0];
         	that.dataObject.queryNames = result[1];
+        	that.dataObject.projectDescription = result[2];
+        	
+        	console.log("projectDescription", that.dataObject.projectDescription);
         	
         	
         	scope.$safeApply(function() {
