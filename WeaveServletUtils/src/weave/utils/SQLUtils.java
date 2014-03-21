@@ -2093,7 +2093,10 @@ public class SQLUtils
 					if (values == filters.cond.v) // string value
 					{
 						if (stringCompare == null)
-							stringCompare = caseSensitiveCompare(conn, quotedField, "?");
+						{
+							stringCompare = String.format("%s = ?", quotedField);
+							//stringCompare = caseSensitiveCompare(conn, quotedField, "?");
+						}
 						clause.append(stringCompare);
 						params.add(values[i]);
 					}

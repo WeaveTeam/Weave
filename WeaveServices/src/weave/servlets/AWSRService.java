@@ -40,15 +40,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
+
 import javax.script.ScriptException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import org.apache.commons.io.FilenameUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.opengis.geometry.coordinate.Cone;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RFactor;
@@ -56,20 +55,14 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.beans.RResult;
-import weave.config.ConnectionConfig;
-import weave.config.WeaveContextParams;
-import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.WeaveConfig;
-
-import weave.servlets.DataService.FilteredColumnRequest;
-import weave.utils.FileUtils;
-import weave.utils.MapUtils;
+import weave.config.WeaveContextParams;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
+import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
 {
@@ -104,15 +97,9 @@ public class AWSRService extends RService
 		String dataset;
 		String scriptPath;
 		String[] columnsToBeRetrieved;
-		FilteredColumnRequest[] filteredColumnRequests;
+		NestedColumnFilters dataRequest;
 	}
 	
-	public static class RequestObject
-	{
-		String scriptName;
-		FilteredColumnRequest[] ScriptColumnRequest;
-	}
-   
 	public class MyResult {
 	
 		public RResult[] data;
@@ -120,21 +107,6 @@ public class AWSRService extends RService
 	
 	}
 	
-	private Map<String,String> queryToMap(String query)
-	{
-		// Split it along &
-		String[] pairs = query.split("&");
-		Map<String,String> query_map = new HashMap<String,String>();
-		for (String pair_str: pairs)
-		{
-			String[] pair = pair_str.split("=", 2);
-
-			query_map.put(pair[0], pair[1]);
-		}
-
-		return query_map;
-	}
-
 	// this select query is the first version without filtering
 	// we need to eventually replace it with the getQuery function in the DataService
 	private String buildSelectQuery(String [] columns, String tableName)
@@ -900,15 +872,18 @@ public class AWSRService extends RService
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public MyResult runScriptWithFilteredColumns(RequestObject request) throws Exception
+	public MyResult runScriptWithFilteredColumns(String scriptName,	int [] ids, NestedColumnFilters filters) throws Exception
 	{
 		RResult[] returnedColumns;
 
-		String cannedScript = awsConfigPath + "RScripts/" + request.scriptName;
+		String cannedScript = awsConfigPath + "RScripts/" + scriptName;
 		
 		long startTime = System.currentTimeMillis();
 		
-		Object[][] recordData = DataService.getFilteredRows(request.ScriptColumnRequest, null).recordData;
+		Object[][] recordData = DataService.getFilteredRows(ids, filters, null).recordData;
+		if(recordData.length == 0){
+			throw new RemoteException("Query produced no rows...");
+		}
 		Object[][] columnData = transpose(recordData);
 		recordData = null;
 		
@@ -1283,35 +1258,4 @@ public class AWSRService extends RService
 		  }
 		  return array_new;
 	}
-
-    @SuppressWarnings("rawtypes")
-    protected Object cast(Object value, Class<?> type) throws RemoteException
-    {
-    	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
-    	{
-    		FilteredColumnRequest fcr = new FilteredColumnRequest();
-    		fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
-    		fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
-    		if (fcr.filters != null)
-    			for (int i = 0; i < fcr.filters.length; i++)
-    			{
-    				Object item = fcr.filters[i];
-    				if (item != null && item.getClass() == ArrayList.class)
-    					fcr.filters[i] = cast(item, Object[].class);
-    			}
-    		return fcr;
-    	}
-    	if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
-    	{
-    		Object[] input = (Object[]) value;
-    		FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
-    		for (int i = 0; i < input.length; i++)
-    		{
-    			output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
-    		}
-    		value = output;
-    	}
-    	
-    	return super.cast(value, type);
-    }
 }

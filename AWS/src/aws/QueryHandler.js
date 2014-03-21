@@ -49,7 +49,7 @@ aws.QueryHandler = function(queryObject)
 			scriptColumnRequest.push(queryObject.ScriptColumnRequest[i].id);
 		}
 	}
-	
+	this.rRequestObject.ids = scriptColumnRequest;
 	var geoFilter = {};
 	// Create a filter only request where we will pass geography and time-period information.
 	if(queryObject.hasOwnProperty("GeographyFilter")) {
@@ -115,48 +115,47 @@ aws.QueryHandler = function(queryObject)
 		timePeriodFilter = timePeriodQuery;
 	}
 	
-	var byVariableFilter = {};
+	var byVariableFilter;
 	if(queryObject.hasOwnProperty("ByVariableFilter")) {
-		var byVarQuery = {};
-		byVarQuery.and = [];
+		var byVarQuery = {and : []};
 		for(var i in queryObject.ByVariableFilter) {
-			var index = byVarQuery.and.push({
-						cond : queryObject.ByVariableFilter[i].column.id
-					});
+			var cond = {f : queryObject.ByVariableFilter[i].column.id };
+			
 			if(queryObject.ByVariableFilter[i].hasOwnProperty("filters")) {
-				byVarQuery.and[index - 1].v = [];
+				cond.v = [];
 				for (var j in queryObject.ByVariableFilter[i].filters) {
-						byVarQuery.and[index - 1].v.push(queryObject.ByVariableFilter[i].filters[j].value);
+						cond.v.push(queryObject.ByVariableFilter[i].filters[j].value);
 				}
+				byVarQuery.and.push({cond : cond});
 			} else if (queryObject.ByVariableFilter[i].hasOwnProperty("ranges")) {
-				byVarQuery.and[index - 1].r = [];
+				cond.r = [];
 				for (var j in queryObject.ByVariableFilter[i].filters) {
-					byVarQuery.and[index - 1].r.push(queryObject.ByVariableFilter[i].filters[j]);
+					cond.r.push(queryObject.ByVariableFilter[i].filters[j]);
 				}
-			} else {
-				byVarQuery.and.pop(); // remove the unconstructed object...
-			}
+				byVarQuery.and.push({cond : cond});
+			} 
 		}
-		byVariableFilter = byVarQuery;
+		if(byVarQuery.and.length) {
+			byVariableFilter = byVarQuery;
+		}
 	}	
 	
 	
-	nestedFilterRequest = {and : []};
+	var nestedFilterRequest = {and : []};
 	if(timePeriodFilter.hasOwnProperty("or") && timePeriodFilter.or.length) {
 		nestedFilterRequest.and.push(timePeriodFilter);
 	}
 	if(geoFilter.hasOwnProperty("or") && geoFilter.or.length) {
 		nestedFilterRequest.and.push(geoFilter);
 	}
-	if(byVariableFilter.hasOwnProperty("and") && byVariableFilter.and.length) {
+	
+	if(byVariableFilter) {
 		nestedFilterRequest.and.push(byVariableFilter);
 	}
-	var nestedFilterRequest = { and : [timePeriodFilter, byVariableFilter, geoFilter] };
 	
-	this.rRequestObject.dataRequest = {
-			ids : scriptColumnRequest,
-			NestedColumnFilter : nestedFilterRequest
-	};
+	if(nestedFilterRequest.and.length) {
+		this.rRequestObject.filters = nestedFilterRequest;
+	}
 	
 	console.log(angular.toJson(this.rRequestObject));
 	
