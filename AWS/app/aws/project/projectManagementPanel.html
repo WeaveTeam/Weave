@@ -69,16 +69,16 @@
 									</ul>
 								</div>
 								<div class="query-btn-holder">
-									<button ng-click = "runQueryInAnalysisBuilder()" style = "width : 30%" class ="btn btn-sm">
+									<button ng-click = "runQueryInAnalysisBuilder()" class ="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
 										Run Query
 									</button>
-									<button ng-click = "deleteSpecificQueryObject()" style = "width : 30%" class="btn btn-sm">
+									<button ng-click = "deleteSpecificQueryObject()" class="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
 										Delete the query
 									</button>
 									<!--button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button-->
-									<button style = "width : 30%; height: 100%"  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item)" type="button" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
+									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item)" type="button" class="btn btn-sm query-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
 									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
 										Open in editor
 									</button>
