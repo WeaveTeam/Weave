@@ -19,6 +19,7 @@
 
 package weave.utils;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,14 +42,12 @@ public class ListUtils
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> List<T> copyArrayToList(Object[] input, List<T> output)
+	public static <O> List<O> copyArrayToList(Object inputArray, List<O> outputList)
 	{
-		for (int i = 0; i < input.length; i++)
-		{
-			output.add((T)input[i]);
-		}
+		for (int i = 0; i < Array.getLength(inputArray); i++)
+			outputList.add((O)Array.get(inputArray, i));
 		
-		return output;
+		return outputList;
 	}
 
 	public static int[] copyIntegerArray(Object[] input, int[] output)

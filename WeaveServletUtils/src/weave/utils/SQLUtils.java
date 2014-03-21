@@ -1966,42 +1966,70 @@ public class SQLUtils
 		public String clause;
 		public List<V> params;
 		
-		
-		public static class ColumnFilter
+		/**
+		 * An object with three modes: and, or, and filter.
+		 * If one property is specified, the others must be null.
+		 */
+		public static class NestedColumnFilters
 		{
-			public String field;
 			/**
-			 * Contains a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+			 * Nested filters to be grouped with AND logic.
 			 */
-			public Object[] filters;
+			public NestedColumnFilters[] and;
+			/**
+			 * Nested filters to be grouped with OR logic.
+			 */
+			public NestedColumnFilters[] or;
+			/**
+			 * A condition for a particular field.
+			 */
+			public ColumnFilter filter;
 		}
 		
 		/**
-		 * @param conn
-		 * @param filters Either a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+		 * A condition for filtering query results.
 		 */
-		public static WhereClause<Object> fromFilters(Connection conn, ColumnFilter[] filters) throws SQLException
+		public static class ColumnFilter
 		{
-			WhereClause<Object> result = new WhereClause<Object>("", new Vector<Object>());
-			StringBuilder sb = new StringBuilder();
-			for (ColumnFilter filter : filters)
+			/**
+			 * The unquoted field name.
+			 */
+			public String field;
+			/**
+			 * Contains a list of String values ["a", "b", ...] or a list of numeric ranges [[min,max], [min2,max2], ...]
+			 */
+			public Object[] values;
+		}
+		
+		/**
+		 * Builds a WhereClause from nested filtering logic.
+		 * @param conn
+		 * @param filters
+		 * @return
+		 * @throws SQLException
+		 */
+		public static WhereClause<Object> fromFilters(Connection conn, NestedColumnFilters filters) throws SQLException
+		{
+			WhereClause<Object> where = new WhereClause<Object>("", new Vector<Object>());
+			StringBuilder sb = new StringBuilder(" WHERE ");
+			build(conn, sb, where.params, filters);
+			where.clause = sb.toString();
+			if (where.params.isEmpty())
+				where.clause = "";
+			return where;
+		}
+		private static void build(Connection conn, StringBuilder clause, List<Object> params, NestedColumnFilters filters) throws SQLException
+		{
+			clause.append("(");
+			if (filters.filter != null)
 			{
-				if (filter.filters == null || filter.filters.length == 0)
-					continue;
-				
-				if (sb.length() == 0)
-					sb.append(" WHERE ");
-				else
-					sb.append(" AND ");
-				
-				sb.append("(");
-				String quotedField = quoteSymbol(conn, filter.field);
+				String quotedField = quoteSymbol(conn, filters.filter.field);
 				String stringCompare = null;
-				for (int i = 0; i < filter.filters.length; i++)
+				for (int i = 0; i < filters.filter.values.length; i++)
 				{
-					Object filterValue = filter.filters[i];
+					Object filterValue = filters.filter.values[i];
 					if (i > 0)
-						sb.append(" OR ");
+						clause.append(" OR ");
 					
 					if (filterValue instanceof List)
 						filterValue = ((List<?>)filterValue).toArray();
@@ -2009,24 +2037,34 @@ public class SQLUtils
 					if (filterValue.getClass().isArray())
 					{
 						// numeric range
-						sb.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
+						clause.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
 						Object[] range = (Object[])filterValue;
-						result.params.add(range[0]);
-						result.params.add(range[1]);
+						params.add(range[0]);
+						params.add(range[1]);
 					}
 					else
 					{
 						// string value
 						if (stringCompare == null)
 							stringCompare = caseSensitiveCompare(conn, quotedField, "?");
-						sb.append(stringCompare);
-						result.params.add(filterValue);
+						clause.append(stringCompare);
+						params.add(filterValue);
 					}
 				}
-				sb.append(")");
 			}
-			result.clause = sb.toString();
-			return result;
+			else
+			{
+				NestedColumnFilters[] list = filters.and != null ? filters.and : filters.or;
+				int i = 0;
+				for (NestedColumnFilters item : list)
+				{
+					if (i > 0)
+						clause.append(list == filters.and ? " AND " : " OR ");
+					build(conn, clause, params, item);
+					i++;
+				}
+			}
+			clause.append(")");
 		}
 		
 		public WhereClause(String whereClause, List<V> params)
