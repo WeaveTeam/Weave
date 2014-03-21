@@ -5,10 +5,15 @@
     <div class="row" contenteditable="false">
       <div class="col-md-3" contenteditable="false">
         <div class="gridStyle" ng-grid="gridOptions"></div>
+        <div>
+          <button class="btn btn-primary" ng-click="addNewScript()">Upload</button>
+          <a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
+        </div>
+        
       </div>
       <div class="col-md-9" contenteditable="false">
         <div class="well"> 
-          <a class="btn" ng-show="savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
+
           <div class="row">
             <div class="col-md-3">Script Name: 
               <editablespan model='selectedScript[0].name'>{{selectedScript[0].name}}</editablespan>
@@ -30,11 +35,14 @@
           <div  class="row">
             <div class="row" ng-repeat="inpt in selectedMetadata.inputs">
               <div class="col-md-6">Name: <editablespan model="inpt.param">{{inpt.param}}</editablespan></div>
-              <div class="col-md-6">Description: <editablespan model="inpt.description">{{inpt.description}}</editablespan></div>
+              <div class="col-md-6">Description: <editablespan model="inpt.description">{{inpt.description}}</editablespan>
+                <a class="btn" ng-click="deleteInput($index)" ng-show="editMode"><i class="glyphicon glyphicon-remove"></i></a>
+              </div>
+
             </div>
-            <a class="btn pull-right" ng-click="addInput()"><i class="glyphicon glyphicon-plus"></i>Add</a>
-            
-         
+            <a class="btn pull-right" ng-click="addInput()" ng-show="editMode"><i class="glyphicon glyphicon-plus"></i>Add</a>
+
+
 
           </div>
         </div>
@@ -43,8 +51,11 @@
           <div class="row" style="">
             <div ng-repeat="out in selectedMetadata.outputs">
               <div class="col-md-4"><editablespan model="out.param">{{out.param}}</editablespan></div>
-              <div class="col-md-6"><editablespan model="out.description">{{out.description}}</editablespan></div></div>
-<a class="btn pull-right" ng-click="addOutput()"><i class="glyphicon glyphicon-plus"></i>Add</a>
+              <div class="col-md-6"><editablespan model="out.description">{{out.description}}</editablespan>
+              </div>
+            <a class="btn" ng-click="deleteOutput($index)" ng-show="editMode"><i class="glyphicon glyphicon-remove"></i></a>
+            </div>
+            <a class="btn pull-right" ng-click="addOutput()" ng-show="editMode"><i class="glyphicon glyphicon-plus"></i>Add</a>
           </div>
         </div>
         <div class ="well">

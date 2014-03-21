@@ -10,7 +10,7 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
     $scope.selectedMetadata = {};
     $scope.scriptContent = {};
     $scope.savingMetadata = false;
-    $scope.editMode = true;
+    $scope.editMode = false;
     $scope.$watch('selectedMetadata',function(newv, oldv){
       console.log("selectedMetadata", newv);
       $scope.savingMetadata = true;
@@ -30,6 +30,22 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
       });
     });
 
+    $scope.addInput = function(){
+      $scope.selectedMetadata.inputs.push({param: "New Input", description: "Type a Description"});
+    };
+    $scope.addOutput = function(){
+      $scope.selectedMetadata.outputs.push({param: "New Output", description: "Type a Description"});
+    };
+    $scope.deleteInput = function(index){
+      $scope.selectedMetadata.inputs.splice(index, 1);
+    };
+    $scope.deleteOutput = function(index){
+      $scope.selectedMetadata.outputs.splice(index, 1);
+    };
+    $scope.addNewScript = function(){
+      console.log("add a new Script means uploading a script and optionally metadata");
+      console.log("if there is no metadata then should be able to fill out the forms with sensible defaults");
+    };
     $scope.$watch(function(){
       return scriptManagerService.dataObject.scriptMetadata;
     },function(newval){
