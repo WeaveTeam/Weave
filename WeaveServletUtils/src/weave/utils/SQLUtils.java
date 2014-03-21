@@ -1983,7 +1983,7 @@ public class SQLUtils
 			/**
 			 * A condition for a particular field.
 			 */
-			public ColumnFilter filter;
+			public ColumnFilter cond;
 		}
 		
 		/**
@@ -1994,11 +1994,17 @@ public class SQLUtils
 			/**
 			 * The unquoted field name.
 			 */
-			public String field;
+			public Object f;
 			/**
-			 * Contains a list of String values ["a", "b", ...] or a list of numeric ranges [[min,max], [min2,max2], ...]
+			 * Contains a list of String values ["a", "b", ...]
+			 * If <code>v</code> is set, <code>r</code> must be null.
 			 */
-			public Object[] values;
+			public Object[] v;
+			/**
+			 * Contains a list of numeric ranges [[min,max], [min2,max2], ...]
+			 * If <code>r</code> is set, <code>v</code> must be null.
+			 */
+			public Object[][] r;
 		}
 		
 		/**
@@ -2012,43 +2018,38 @@ public class SQLUtils
 		{
 			WhereClause<Object> where = new WhereClause<Object>("", new Vector<Object>());
 			StringBuilder sb = new StringBuilder(" WHERE ");
-			build(conn, sb, where.params, filters);
-			where.clause = sb.toString();
-			if (where.params.isEmpty())
-				where.clause = "";
+			if (filters != null)
+				build(conn, sb, where.params, filters);
+			if (!where.params.isEmpty())
+				where.clause = sb.toString();
 			return where;
 		}
 		private static void build(Connection conn, StringBuilder clause, List<Object> params, NestedColumnFilters filters) throws SQLException
 		{
 			clause.append("(");
-			if (filters.filter != null)
+			if (filters.cond != null)
 			{
-				String quotedField = quoteSymbol(conn, filters.filter.field);
+				String quotedField = quoteSymbol(conn, filters.cond.f.toString());
 				String stringCompare = null;
-				for (int i = 0; i < filters.filter.values.length; i++)
+				Object[] values = filters.cond.v != null ? filters.cond.v : filters.cond.r;
+				for (int i = 0; i < values.length; i++)
 				{
-					Object filterValue = filters.filter.values[i];
 					if (i > 0)
 						clause.append(" OR ");
 					
-					if (filterValue instanceof List)
-						filterValue = ((List<?>)filterValue).toArray();
-					
-					if (filterValue.getClass().isArray())
+					if (values == filters.cond.v) // string value
 					{
-						// numeric range
-						clause.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
-						Object[] range = (Object[])filterValue;
-						params.add(range[0]);
-						params.add(range[1]);
-					}
-					else
-					{
-						// string value
 						if (stringCompare == null)
 							stringCompare = caseSensitiveCompare(conn, quotedField, "?");
 						clause.append(stringCompare);
-						params.add(filterValue);
+						params.add(values[i]);
+					}
+					else // numeric range
+					{
+						clause.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
+						Object[] range = (Object[])values[i];
+						params.add(range[0]);
+						params.add(range[1]);
 					}
 				}
 			}

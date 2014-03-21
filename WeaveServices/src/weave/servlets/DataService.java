@@ -508,96 +508,65 @@ public class DataService extends WeaveServlet
 	}
 	
 	/**
-	 * An object with three modes: "and", "or", and "id+filters"
+	 * Gets all column IDs referenced by this object and its nested objects.
 	 */
-	public static class NestedColumnFilter
+	private static Collection<Integer> getReferencedColumnIds(NestedColumnFilters filters)
 	{
-		/**
-		 * If this property is specified, the <code>or</code>, <code>id</code>, and <code>filters</code> properties must be null.
-		 * Specifies a list of nested filter objects to be grouped with AND logic.
-		 */
-		public NestedColumnFilter[] and;
-		/**
-		 * If this property is specified, the <code>and</code>, <code>id</code>, and <code>filters</code> properties must be null.
-		 * Specifies a list of nested filter objects to be grouped with OR logic.
-		 */
-		public NestedColumnFilter[] or;
-		/**
-		 * If this property is specified, the <code>and</code> and <code>or</code> properties must be null.
-		 * Specifies a column ID.
-		 */
-		public Integer id;
-		/**
-		 * If this property is specified, the <code>and</code> and <code>or</code> properties must be null.
-		 * This array contains either [[min,max],[min2,max2],...] for numeric values or ["a","b",...] for string values.
-		 */
-		public Object filter;
-		
-		/**
-		 * Gets all column IDs referenced by this object and its nested objects.
-		 */
-		public Collection<Integer> getColumnIds()
-		{
-			Set<Integer> ids = new HashSet<Integer>();
-			if (id != null)
-				ids.add(id);
-			else if (and != null)
-				for (NestedColumnFilter nested : and)
-					ids.addAll(nested.getColumnIds());
-			else if (or != null)
-				for (NestedColumnFilter nested : or)
-					ids.addAll(nested.getColumnIds());
-			return ids;
-		}
-		
-		public WhereClause<Object> buildWhereClause(Connection conn, Map<Integer, DataEntity> entities) throws SQLException
-		{
-			return WhereClause.fromFilters(conn, toSQLUtilsNestedColumnFilters(entities));
-		}
-		private NestedColumnFilters toSQLUtilsNestedColumnFilters(Map<Integer, DataEntity> entities)
-		{
-			NestedColumnFilters result = new NestedColumnFilters();
-			if (id != null)
-			{
-				result.filter = new ColumnFilter();
-				result.filter.field = entities.get(id).privateMetadata.get(PrivateMetadata.SQLCOLUMN);
-				result.filter.values = new Object[]{ filter };
-			}
-			else
-			{
-				NestedColumnFilter[] in = and != null ? and : or;
-				NestedColumnFilters[] out = new NestedColumnFilters[in.length];
-				for (int i = 0; i < out.length; i++)
-					out[i] = in[i].toSQLUtilsNestedColumnFilters(entities);
-				if (in == and)
-					result.and = out;
-				else
-					result.or = out;
-			}
-			return result;
-		}
+		Set<Integer> ids = new HashSet<Integer>();
+		if (filters.cond != null)
+			ids.add(((Number)filters.cond.f).intValue());
+		else
+			for (NestedColumnFilters nested : (filters.and != null ? filters.and : filters.or))
+				ids.addAll(getReferencedColumnIds(nested));
+		return ids;
 	}
 	
-	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, int[] columns, NestedColumnFilter filters, Map<Integer,DataEntity> entities) throws SQLException
+	/**
+	 * Converts nested ColumnFilter.f values from a column ID to the corresponding SQL field name.
+	 * @param filters
+	 * @param entities
+	 * @return A copy of filters with field names in place of the column IDs.
+	 * @see ColumnFilter#f
+	 */
+	private static NestedColumnFilters convertColumnIdsToFieldNames(NestedColumnFilters filters, Map<Integer, DataEntity> entities)
+	{
+		NestedColumnFilters result = new NestedColumnFilters();
+		if (filters.cond != null)
+			result.cond.f = entities.get(filters.cond.f).privateMetadata.get(PrivateMetadata.SQLCOLUMN);
+		else
+		{
+			NestedColumnFilters[] in = (filters.and != null ? filters.and : filters.or);
+			NestedColumnFilters[] out = new NestedColumnFilters[in.length];
+			for (int i = 0; i < in.length; i++)
+				out[i] = convertColumnIdsToFieldNames(in[i], entities);
+			if (filters.and == in)
+				result.and = out;
+			else
+				result.or = out;
+		}
+		return result;
+	}
+	
+	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, int[] columns, NestedColumnFilters filters, Map<Integer,DataEntity> entities) throws SQLException
 	{
 		String[] quotedFields = new String[columns.length];
 		for (int i = 0; i < columns.length; i++)
 			quotedFields[i] = SQLUtils.quoteSymbol(conn, entities.get(columns[i]).privateMetadata.get(PrivateMetadata.SQLCOLUMN));
 		
-		WhereClause<Object> where = filters == null ? null : filters.buildWhereClause(conn, entities);
+		WhereClause<Object> where = WhereClause.fromFilters(conn, convertColumnIdsToFieldNames(filters, entities));
 
 		String query = String.format(
 			"SELECT %s FROM %s %s",
 			Strings.join(",", quotedFields),
 			SQLUtils.quoteSchemaTable(conn, schema, table),
-			filters == null ? "" : where.clause
+			where.clause
 		);
 		
-		return SQLUtils.getResultFromQuery(conn, query, filters == null ? null : where.params.toArray(), false);
+		return SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static WeaveRecordList getFilteredRows(int[] columns, NestedColumnFilter filters, String[] keysArray) throws RemoteException
+	public static WeaveRecordList getFilteredRows(int[] columns, NestedColumnFilters filters, String[] keysArray) throws RemoteException
 	{
 		if (columns == null || columns.length == 0)
 			throw new RemoteException("At least one column must be specified.");
@@ -610,7 +579,7 @@ public class DataService extends WeaveServlet
 			// get all column IDs whether or not they are to be selected.
 			Set<Integer> allColumnIds = new HashSet<Integer>();
 			if (filters != null)
-				allColumnIds.addAll(filters.getColumnIds());
+				allColumnIds.addAll(getReferencedColumnIds(filters));
 			for (int id : columns)
 				allColumnIds.add(id);
 			// get all corresponding entities
