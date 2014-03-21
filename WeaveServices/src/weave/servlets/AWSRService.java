@@ -439,7 +439,7 @@ public class AWSRService extends RService
    */
 	public Object[] getQueryObjectsFromDatabase(String projectName) throws RemoteException, SQLException
 	{
-		Object[] finalQueryObjectCollection = new Object[2];
+		Object[] finalQueryObjectCollection = new Object[3];
 		
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
@@ -448,6 +448,7 @@ public class AWSRService extends RService
 		List<String> selectColumns = new ArrayList<String>();
 		selectColumns.add("queryObjectTitle");
 		selectColumns.add("queryObjectContent");
+		selectColumns.add("projectDescription");
 		
 		
 		Map<String,String> whereParams = new HashMap<String, String>();
@@ -459,9 +460,12 @@ public class AWSRService extends RService
 		
 		//getting names from queryObjectTitle
 		String[] queryNames =  new String[queryObjectsSQLresult.rows.length];
+		String projectDescription = null;
 		for(int i = 0; i < queryObjectsSQLresult.rows.length; i++){
 			Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
 			queryNames[i] = singleSQLQueryObject.toString();
+			
+			projectDescription = (queryObjectsSQLresult.rows[i][2]).toString();//TODO find better way to do this
 		}
 		
 		//getting json objects from queryObjectContent
@@ -499,6 +503,7 @@ public class AWSRService extends RService
 		
 		finalQueryObjectCollection[0] = finalQueryObjects;
 		finalQueryObjectCollection[1] = queryNames;
+		finalQueryObjectCollection[2] = projectDescription;
 		con.close();
 		return finalQueryObjectCollection;
 		
