@@ -12,7 +12,7 @@
 
 			<br>
 
-			<div style="width: 90%;  min-height: 100px;" class="panel panel-default">
+			<div style="width: 90%;  height: 100%;" class="panel panel-default">
 
 				<div class="panel-heading">
 					<h2>Manage Query Object and Projects</h2>
@@ -40,37 +40,36 @@
 						</button>
 					</div>
 
-					<div class="dd" id="nestable3">
-						<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
-							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems" ng-click = "choseQueryObject(item)">
-								<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
-								<div class="dd-handle dd3-handle">
-									Drag
-								</div>
-								<div class= "dd3-content d-list-content">
-									<ul>
-										<li>
-											<b>Title: </b> {{item.title}}
-										</li>
-										<li>
-											<b>Date: </b>{{item.date}}
-										</li>
-										<!-- <li>
-										<b>Datatable: </b>{{item.dataTable.title}}
-										</li>
-										<li>
-										<b>Script: </b> {{item.scriptSelected}}
-										</li>
-										<li>
-										<b>Columns: </b> {{columnString}}
-										</li> -->
-									</ul>
-								</div>
+				</div>
+				<div class="dd" id="nestable3">
+					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
+						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems" ng-click = "choseQueryObject(item)">
+							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
+							<div class="dd-handle dd3-handle">
+								Drag
+							</div>
+							<div class= "dd3-content d-list-content">
+								<ul>
+									<li>
+										<b>Title: </b> {{item.title}}
+									</li>
+									<li>
+										<b>Date: </b>{{item.date}}
+									</li>
+									<!-- <li>
+									<b>Datatable: </b>{{item.dataTable.title}}
+									</li>
+									<li>
+									<b>Script: </b> {{item.scriptSelected}}
+									</li>
+									<li>
+									<b>Columns: </b> {{columnString}}
+									</li> -->
+								</ul>
+							</div>
 
-							</li>
-						</ol>
-					</div>
-
+						</li>
+					</ol>
 				</div>
 			</div>
 		</div>
