@@ -13,7 +13,7 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
     $scope.$watch('selectedMetadata',function(newv, oldv){
       console.log("selectedMetadata", newv);
       $scope.savingMetadata = true;
-      if(this.dataObject.scriptName != ""){
+      if($scope.selectedScript[0] != ""){
         scriptManagerService.saveChangedMetadata($scope.selectedMetadata)
           .then(function(){
             $scope.savingMetadata = false;
