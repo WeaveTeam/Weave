@@ -820,6 +820,9 @@ public class AWSRService extends RService
 
 	public String saveMetadata(String scriptName, Object scriptMetadata) throws Exception {
 		String status = "";
+		if(scriptName.length() < 3){
+			return "The script Name is invalid";
+		}
 		
 		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
 		File file = new File(awsConfigPath + "RScripts", jsonFileName);
@@ -867,7 +870,7 @@ public class AWSRService extends RService
 					
 					scriptMetadata = gson.fromJson(br, Object.class);
 					
-					System.out.println(scriptMetadata);
+					//System.out.println(scriptMetadata);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -880,6 +883,17 @@ public class AWSRService extends RService
 		
 		return scriptMetadata;
 	}
+	
+	public String uploadNewScript(String scriptName, Object fileObject){
+		System.out.println(fileObject);
+		return "success";
+	}
+	
+	public String deleteNewScript(String scriptName, String password){
+		
+		return "success";
+	}
+	
     
     // this functions intends to run a script with filtered.
 	// essentially this function should eventually be our main run script function.
