@@ -27,6 +27,16 @@ angular.module('aws.configure.script')
         this.getScript();
       };
       
+      this.uploadNewScript = function(file){
+        var deferred = $q.defer();
+        aws.RClient.uploadNewScript(file.filename, file.contents, function(result){
+          console.log(result); // currently just string returned from servlet
+          scope.$safeApply(function() { deferred.resolve(result); });
+        });
+        return deferred.promise;
+      };
+      
+      
       /**
        * This function wraps the async aws getListOfScripts function into
        * an angular defer/promise So that the UI asynchronously wait for

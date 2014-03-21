@@ -813,6 +813,9 @@ public class AWSRService extends RService
 
 	public String saveMetadata(String scriptName, Object scriptMetadata) throws Exception {
 		String status = "";
+		if(scriptName.length() < 3){
+			return "The script Name is invalid";
+		}
 		
 		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
 		File file = new File(awsConfigPath + "RScripts", jsonFileName);

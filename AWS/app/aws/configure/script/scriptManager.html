@@ -7,6 +7,9 @@
         <div class="gridStyle" ng-grid="gridOptions"></div>
         <div>
           <button class="btn btn-primary" ng-click="addNewScript()">Upload</button>
+          <a href="javascript:void(0);" ng-click="addNewScript()" class="btn btn-primary file-upload">
+			Import Script
+            <input type="file" ng-model="scriptToUpload" name="scriptImport" file-upload /></a>
           <a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
         </div>
         
@@ -78,7 +81,7 @@
       Metadata: <input type="file" title="Metadata"> <br>
     </div>
 
-    <div ng-show=textScript>
+    <div ng-show="textScript">
       <div>
         Script: <br>
         <textarea rows="20" cols="80"></textarea>

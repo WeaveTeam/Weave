@@ -11,10 +11,11 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
     $scope.scriptContent = {};
     $scope.savingMetadata = false;
     $scope.editMode = false;
+    $scope.scriptToUpload = "";
+    $scope.fileToUpload = null;
     $scope.$watch('selectedMetadata',function(newv, oldv){
-      console.log("selectedMetadata", newv);
-      $scope.savingMetadata = true;
-      if($scope.selectedScript[0] != ""){
+      if($scope.selectedScript[0] != "" && $scope.selectedScript[0] != undefined){
+        $scope.savingMetadata = true;
         scriptManagerService.saveChangedMetadata($scope.selectedMetadata)
           .then(function(){
             $scope.savingMetadata = false;
@@ -43,8 +44,17 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
       $scope.selectedMetadata.outputs.splice(index, 1);
     };
     $scope.addNewScript = function(){
-      console.log("add a new Script means uploading a script and optionally metadata");
-      console.log("if there is no metadata then should be able to fill out the forms with sensible defaults");
+      if($scope.scriptToUpload != "" && $scope.scriptToUpload != undefined){
+        $scope.$watch('fileToUpload',function(n, o){
+          if(n != "" && n!= undefined){
+            var file = {
+              filename: $scope.scriptToUpload,
+              contents: n
+            };
+            scriptManagerService.uploadNewScript(file);
+          }
+        });
+      }
     };
     $scope.$watch(function(){
       return scriptManagerService.dataObject.scriptMetadata;
