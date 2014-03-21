@@ -1,72 +1,96 @@
-<div ng-controller="ProjectManagementCtrl" style="display: inline-block; margin-left : 30px">
-<br>
-	Username <input ng-model = "username" type = "text" placeholder = "Enter a username for the project"></input>
-	<button id = "newProjectButton" style= "margin-left : 800px" type="button" class="btn btn-sm" data-template= "aws/project/projectAdditionPanel.html"
-	data-placement="right" data-animation="am-slide-right" bs-aside="aside2" data-container="body"  ng-click = "open()">
-		Create New Project
-		<span class = "glyphicon glyphicon-plus-sign" ></span>
-	</button>
-	<br><br>
-	Select Project 
-    <select ui-select2 ng-model="projectSelectorUI" style="width:200px;">
-        <option>Select Project</option>
-        <option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option>
-    </select>
+<div class="project-management" ng-controller="ProjectManagementCtrl">
+	<div >
+		<div class="prj-contents" style="width: 100%; padding-left: 40px;">
 
-	<button id = "newQueryObjectButton" type="button" style= "margin-left : 740px" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" 
-	data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')">
-		New Query Object
-		<span class = "glyphicon glyphicon-plus-sign" ></span></button>
-    <br><br>
-    Query Objects: <b>{{projectSelectorUI}}</b>
-    <br><br>
-    <!-- DROPDOWN COMPONENTS -->
-    <!-- Houses the list and the buttons on the right -->
-    <div style="margin-left : 30px ;width:1250px;height:600px;">
-        <!-- Rectangle -->
-        <div style=" width:1000px;height:500px;border:1px solid #000; overflow-y : scroll;" class="projects-div">
-            <!-- DropDownList -->
-            <ul ui-sortable ng-model="listItems" id="queryObjectChoicesUI" style="" class="listItems project-list"><!--Collection of queryObjects-->
-                <li ng-repeat="item in listItems" ng-click = "choseQueryObject(item)" class = 'item'><!--single queryObject-->
-                    <div class = "check"   style="border:1px solid #000">
-                        <ul>
-                            <li  class="project-panel">
-                            	<div class= "info-div"><!--Contains the queryObject details -->
-                            		<ul>
-										<li><b>Title: </b> {{item.title}}</li>
-										<li><b>Date: </b>{{item.date}}</li>
-										<li><b>Datatable: </b>{{item.dataTable.title}}</li>
-										<li><b>Script: </b> {{item.scriptSelected}}</li>
-										<li><b>Columns: </b> {{columnString}}</li>
+			<div class="project-username">
+				<span class="user-label">Username: </span>
+
+				<input class="user-input" ng-model = "username" type = "text" placeholder = "Enter a username for the project">
+				</input>
+
+			</div>
+
+			<br>
+
+			<div style="width: 90%;  height: 100%;" class="panel panel-default">
+
+				<div class="panel-heading">
+					<h2>Manage Query Object and Projects</h2>
+				</div>
+				<div class="widget-selectors">
+					<select ui-select2 ng-model="projectSelectorUI" style="width:200px;" data-placeholder="Select a project">
+						<option></option>
+						<option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option>
+					</select>
+
+					<div style="display: inline-block; margin-left: 90px;">
+						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
+						data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')">
+							New Query Object
+						</button>
+
+						<button id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" data-template= "aws/project/projectAdditionPanel.html"
+						data-placement="right" data-animation="am-slide-right" bs-aside="aside2" data-container="body"  ng-click = "open()">
+							Create a project
+							<!-- <span class = "glyphicon glyphicon-plus-sign" ></span> -->
+						</button>
+						<button  ng-click = "deleteEntireProject()"  class="btn btn-sm new-project-button" data-trigger="hover" data-title="Delete this project" bs-tooltip>
+							Delete selected project
+							<!-- <span class = "glyphicon glyphicon-plus-sign" ></span> -->
+						</button>
+					</div>
+
+				</div>
+				<div class="dd" id="nestable3">
+					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
+						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems">
+							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
+							<div class="dd-handle dd3-handle">
+								Drag
+							</div>
+							<div class= "dd3-content d-list-content">
+								<div style='inline-block'>
+									<ul>
+										<li>
+											<b>Title: </b> {{item.title}}
+										</li>
+										<li>
+											<b>Date: </b>{{item.date}}
+										</li>
+										<li>
+											<b>Datatable: </b>{{item.dataTable.title}}
+										</li>
+										<li>
+											<b>Script: </b> {{item.scriptSelected}}
+										</li>
+										<li>
+											<b>Columns: </b> {{columnString}}
+										</li>
 									</ul>
-								</div><!--Contains the queryObject details END -->
-								
-								<!--Contains the run and delete buttons-->
-								<div class= "button-div">
-									<button ng-click = "runQueryInAnalysisBuilder()" style = "width : 30%" class ="btn btn-success"><span class = "glyphicon glyphicon-play-circle"></span></button>
-									<button ng-click = "deleteSpecificQueryObject()" style = "width : 30%" class="btn btn-danger"><span class = "glyphicon glyphicon-remove-circle"></span></button>
+								</div>
+								<div class="query-btn-holder">
+									<button ng-click = "runQueryInAnalysisBuilder()" style = "width : 30%" class ="btn btn-sm">
+										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
+										Run Query
+									</button>
+									<button ng-click = "deleteSpecificQueryObject()" style = "width : 30%" class="btn btn-sm">
+										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
+										Delete the query
+									</button>
 									<!--button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button-->
-									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton')" type="button" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" 
-									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">Open in edito</button>
-								</div><!--Contains the run and delete buttons END-->
-                                
-                            </li>
-                        </ul> 
-                    </div>
-                    <!--<project-query-button ></project-query-button>-->
-                </li><!--single queryObject END-->
-            </ul><!--Collection of queryObjects END-->
-        </div>
-        <!-- Rectangle -->
-        <!--Contains all buttons -->
-        <!--button ng-click = "loadQueryInAnalysisBuilder()" style = "margin-top: 10px; margin-left : 600px ; margin- bottom : 50px";  class="btn btn-primary">Load Query</button-->
-        <button ng-click = "deleteEntireProject()" style ="margin-top: 10px; margin-left : 800px ; margin-bottom : 50px"  class="btn btn-primary">
-Delete Current Project
-        </button>
-        <!--button ng-click = "runQueryInAnalysisBuilder()"style = "margin-top: 10px; margin-left : 30px ; margin- bottom : 50px"; class="btn btn-primary">Run Query</button-->
-    </div>
-	Add/Delete Log
-	<div ng-controller = "databaseLogController" style=" width:1150px;height:100px;border:1px solid #000; overflow-y : scroll;">
-		<textarea style = "width:100%; height:100%" readonly ></textarea>
+									<button style = "width : 30%; height: 100%"  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item)" type="button" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
+									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
+										Open in editor
+									</button>
+								</div>
+							</div>
+
+				</div>
+
+				</li>
+				</ol>
+			</div>
+		</div>
 	</div>
+</div>
 </div>

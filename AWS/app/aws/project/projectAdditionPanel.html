@@ -1,4 +1,4 @@
-<div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 300px;" ng-controller = "projectAdditionController" >
+<div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 100%;" ng-controller = "projectAdditionController" >
     <div class="aside-dialog">
         <div class="aside-content">
             <div class="aside-header" ng-show="title">
@@ -12,6 +12,8 @@
 				<br></br>
 				Author of the Project<input ng-model = "userName" type = "text" placeholder = "Name of the author"></input>
 				<br></br>
+				Project Description<textarea ng-model = "projtDescription" style = "width:200px; overflow-y : scroll;" type = "text" placeholder = "Enter a brief project description"></textarea>
+				<br> </br>
 				Query Objects (.json) files to include in the project
 				<br></br>
 				<div>

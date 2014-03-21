@@ -5,7 +5,7 @@ angular.module('aws.queryObjectEditor')//name of module
 .directive('queryObjectEditor', function($compile) {//name of directive (part used in HTML)
   return {
 	  restrict: 'E',//
-	  template: '<div id = "q" style="width: 500px; height: 600px;"></div>',
+	  template: '<div id = "q" style="width: 500px; height: 100%;"></div>',
 	  replace : true, 
 	  
 	  link: function(scope, element, attrs) {

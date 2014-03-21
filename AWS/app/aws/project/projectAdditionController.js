@@ -3,6 +3,7 @@ angular.module('aws.project')
 	
 	var project = "";
 	var user = "";
+	var projectDescription= "";
 	$scope.uploadStatus = "No file uploaded";
 	var queryObjectJsons = []; //array of uploaded queryObject jsons
 	var queryObjectTitles = [];
@@ -14,6 +15,10 @@ angular.module('aws.project')
 	
 	$scope.$watch('userName', function(){
 		 user = $scope.userName;
+	});
+	
+	$scope.$watch('projtDescription', function(){
+		projectDescription = $scope.projtDescription;
 	});
 	
 	$scope.$on('fileUploaded', function(e) {
@@ -41,7 +46,7 @@ angular.module('aws.project')
 		 queryObjectTitle = queryObjectTitles;
 		 queryObjectContent = queryObjectJsons;
 				 
-		 queryService.insertQueryObjectToProject(user, project, queryObjectTitle, queryObjectContent);
+		 queryService.insertQueryObjectToProject(user, project,projectDescription, queryObjectTitle, queryObjectContent);
 		 
 	 };
 	
