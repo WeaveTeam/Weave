@@ -1967,7 +1967,7 @@ public class SQLUtils
 		public List<V> params;
 		
 		/**
-		 * An object with three modes: and, or, and filter.
+		 * An object with three modes: and, or, and cond.
 		 * If one property is specified, the others must be null.
 		 */
 		public static class NestedColumnFilters
@@ -1984,6 +1984,27 @@ public class SQLUtils
 			 * A condition for a particular field.
 			 */
 			public ColumnFilter cond;
+			
+			/**
+			 * Makes sure the values in this object are specified correctly.
+			 * @throws RemoteException If this object or any of its nested objects are missing required values.
+			 */
+			public void assertValid() throws RemoteException
+			{
+				if ((and==null?0:1) + (or==null?0:1) + (cond==null?0:1) != 1)
+					throw new RemoteException("NestedColumnFilters: Exactly one of the properties 'and', 'or', 'cond' must be set");
+				
+				if (cond != null)
+					cond.assertValid();
+				if (and != null)
+					for (NestedColumnFilters nested : and)
+						if (nested == null)
+							throw new RemoteException("NestedColumnFilters: 'and' must not contain null items");
+				if (or != null)
+					for (NestedColumnFilters nested : or)
+						if (nested == null)
+							throw new RemoteException("NestedColumnFilters: 'or' must not contain null items");
+			}
 		}
 		
 		/**
@@ -2005,6 +2026,18 @@ public class SQLUtils
 			 * If <code>r</code> is set, <code>v</code> must be null.
 			 */
 			public Object[][] r;
+			
+			/**
+			 * Makes sure the values in this object are specified correctly.
+			 * @throws RemoteException If this object or any of its nested objects are missing required values.
+			 */
+			public void assertValid() throws RemoteException
+			{
+				if (f == null)
+					throw new RemoteException("ColumnFilter: 'f' cannot be null");
+				if ((v == null) == (r == null))
+					throw new RemoteException("ColumnFilter: Either 'v' or 'r' must be set, but not both");
+			}
 		}
 		
 		/**

@@ -571,6 +571,9 @@ public class DataService extends WeaveServlet
 		if (columns == null || columns.length == 0)
 			throw new RemoteException("At least one column must be specified.");
 		
+		if (filters != null)
+			filters.assertValid();
+		
 		DataConfig dataConfig = getDataConfig();
 		WeaveRecordList result = new WeaveRecordList();
 		Map<Integer, DataEntity> entityLookup = new HashMap<Integer, DataEntity>();
