@@ -12,7 +12,8 @@ analysis_mod.controller("MapCtrl", function($scope, queryService){
 									   };
 	
 	if(queryService.queryObject.Indicator.label) {
-		$scope.title = "Map of " + + " for " +  queryService.queryObject.Indicator.label;
+		$scope.title = "Map of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
+		$scope.enableTitle = true;
 	}
 	
 	queryService.getGeometryDataColumnsEntities();

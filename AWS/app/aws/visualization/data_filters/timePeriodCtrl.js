@@ -1,7 +1,6 @@
 analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 	queryService.queryObject.TimePeriodFilter = {
-			years : [],
-			months : [],
+			filters : {},
 			yearColumn : {},
 			monthColumn : {}
 	};
@@ -41,8 +40,8 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 	});
 	
 	$scope.$watch('monthDBSelection', function() {
-		if($scope.stateDBSelection != undefined) {
-			if($scope.stateDBSelection != "") {
+		if($scope.monthDBSelection != undefined) {
+			if($scope.monthDBSelection != "") {
 				queryService.queryObject.TimePeriodFilter.monthColumn = angular.fromJson($scope.monthDBSelection);
 			} else {
 				queryService.queryObject.TimePeriodFilter.monthColumn = {};
@@ -124,12 +123,12 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 								var monthKey = month.data.key;
 								var monthObj = {};
 								monthObj[monthKey] = month.data.title;
-								treeSelection[year.data.key].months.push( { monthKey : month.data.title } );
+								treeSelection[year.data.key].months.push( monthObj );
 							}
 						}
 					}
 				}
-				queryService.queryObject.TimePeriodFilter = treeSelection;
+				queryService.queryObject.TimePeriodFilter.filters = treeSelection;
 			},
 			 onKeydown: function(node, event) {
 				 if( event.which == 32 ) {

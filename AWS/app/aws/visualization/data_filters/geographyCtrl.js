@@ -1,8 +1,7 @@
 analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 	
 	queryService.queryObject.GeographyFilter = {
-			states : {},
-			counties : {},
+			filters : {},
 			stateColumn : {},
 			stateColumn : {}
 	};
@@ -215,12 +214,12 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 								var countyKey = county.data.key;
 								var countyObj = {};
 								countyObj[countyKey] = county.data.title;
-								treeSelection[state.data.key].counties.push( { countyKey : county.data.title } );
+								treeSelection[state.data.key].counties.push(countyObj);
 							}
 						}
 					}
 				}
-				queryService.queryObject.GeographyFilter = treeSelection;
+				queryService.queryObject.GeographyFilter.filters = treeSelection;
 				
 			},
 			 onKeydown: function(node, event) {
