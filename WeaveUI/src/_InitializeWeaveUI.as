@@ -94,6 +94,7 @@ package
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
+	import weave.visualization.tools.TreeTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -169,7 +170,8 @@ package
 				TransposedTableTool,
 				RamachandranPlotTool,
 				DataStatisticsTool,
-				RInterfaceTool
+				RInterfaceTool,
+				TreeTool
 			]);
 			
 			/**
