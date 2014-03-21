@@ -25,13 +25,14 @@
 	display: block;
 padding: 0px;
 border-radius: 0px !important;
-height: 100%
+height: 100%;
+border: 0px !important;
 
 }
 
 .search-script .search-script-div .select2-choice {
 display: block;
-height: 26px;
+height: 30px;
 padding: 0 0 0 8px;
 overflow: hidden;
 position: relative;
@@ -753,7 +754,7 @@ height: 100%
 	margin: 0;
 	font-weight: normal;
 	background: #131212 !important;
-	background-image: -webkit-gradient(linear,left 0,left 100%,from(##0A0A0A),to(#131212)) !important;
+	background-image: -webkit-gradient(linear,left 0,left 100%,from(#0A0A0A),to(#131212)) !important;
 	background-image: -webkit-linear-gradient(top,#0A0A0A,0%,#131212,100%) !important;
 	background-image: -moz-linear-gradient(top,#0A0A0A 0,#131212 100%) !important;
 	background-image: linear-gradient(to bottom,#0A0A0A 0,#131212 100%) !important;

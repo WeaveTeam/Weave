@@ -1,5 +1,5 @@
 /* app css stylesheet */
-body {
+/*body {
 	padding-top: 20px;
 }
 
@@ -11,9 +11,9 @@ pre {
 	font-size: 11px;
 	line-height: 13px;
 }
-
+/*
 #Log {
-	/* display:inline-block; */
+	/* display:inline-block; *
 }
 
 #container {
@@ -24,9 +24,9 @@ pre {
 	margin-right: auto;
 	margin-top: auto;
 	margin-bottom: auto;
-	/* border:solid;*/
+	/* border:solid;*
 	display: inline-block;
-}
+}*/
 
 /* #header {
 	width: 100%;
@@ -40,12 +40,12 @@ pre {
 	border:solid;
 } */
 
-#leftPanel {
+/*#leftPanel {
 	width: 15%;
 	height: 90%;
 	position: relative;
 	float: left;
-}
+}*/
 
 #weave {
 	display:inline-block;
@@ -90,22 +90,24 @@ pre {
 	margin-left: 20px;
 }
 
-div.portlet {
+/*div.portlet {
 	margin: 3px;
 	padding: 1px;
 	float: left;
 	height: 100px;
 	width: 100%;
-}
+}*/
 
 /*.portlet { margin: 0 1em 1em 0; }*/
 
+/*
 .portlet-minimized {
 	height: auto !important;
 }
-
+*/
 /*.portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }*/
 
+/*
 .portlet-header .ui-icon {
 	float: right;
 }
@@ -120,7 +122,7 @@ div.portlet {
 .portlet-minimized .portlet-content {
 	display: none !important;
 }
-
+*/
 .ui-sortable-placeholder {
 	border: 1px black;
 	visibility: visible !important;
@@ -132,7 +134,7 @@ div.portlet {
 .ui-sortable-placeholder * {
 	visibility: hidden;
 }
-
+/*
 .panel {
 	vertical-align: top;
 	margin-bottom: 20px;
@@ -190,7 +192,7 @@ input[type="checkbox"] {
 	height: 20px;
 	width: 20px;
 }
-
+*/
 .animate-enter {
  -webkit-transition: height 1s linear all; /* Safari/Chrome */
  -moz-transition: 1s linear all; /* Firefox */
@@ -211,9 +213,10 @@ input[type="checkbox"] {
  opacity: 1;
 }
 
+/*
 .select2-container {
 	width: 100%;
-}
+}*/
 
 .ui-slider{
 	margin-top: 10px;

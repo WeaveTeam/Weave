@@ -44,11 +44,10 @@
 				</button>-->
 
 				<div class="input-group-btn">
-					<button type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
+					<button style="width: 30%;border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
 					ng-model="dataTable" data-html="1"  ng-options="dt.title for dt in dataTableList" ng-change = 'populateScriptsBar()' bs-select>
-						<span class="caret"></span>
+						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
 					</button>
-
 				</div>
 
 				<!--save for later-->
@@ -56,8 +55,9 @@
 
 				<div class="input-group search-script" >
 
-					<select class=" form-control search-script-div" ui-select2 ng-focus="script_focused = true" ng-change="script_selected_set()" ng-disabled="!dataTable" ng-model="scriptSelected" data-placeholder="Choose Height Column(s)">
-						<option value="{{script}}" ng-repeat="script for script in scriptList">{{opt}}</option>
+					<select class=" form-control search-script-div" ui-select2 ng-change="script_selected_set()" ng-disabled="!dataTable" ng-model="scriptSelected" data-placeholder="Select Script">
+						<option></option>
+						<option value="{{scr}}" ng-repeat="scr in scriptList">{{scr}}</option>
 					</select>
 
 					<!--<input type="text" class=""  data-min-length="0"

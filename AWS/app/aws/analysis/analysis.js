@@ -111,7 +111,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	 */
 
 	$scope.scriptSelected = '';
-	$scope.scriptList = []
+	$scope.scriptList = [];
 
 	$scope.populateScriptsBar = function() {
 		$scope.script_focused = true;
@@ -121,6 +121,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	};
 
 	$scope.script_selected_set = function() {
+		$scope.script_focused = true;
 		if ($scope.setting_loaded == false) {
 			$scope.show_load = true;
 		};
