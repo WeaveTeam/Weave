@@ -69,7 +69,7 @@
 					<div id="loading" ng-show="show_load" class="ng-hide">
 						<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
 					</div>
-					<a href="javascript:" ng-class="{'link-active': (setting_loaded == true)}" class="input-group-addon link-inactive" title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" data-animation="am-flip-x" bs-popover>Settings</a>
+					<a href="javascript:" /*data-trigger="focus"*/ ng-class="{'link-active': (setting_loaded == true)}" class="input-group-addon link-inactive" title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" bs-popover>Settings</a>
 
 					<!--<button type="button" class="btn btn-default" title="{{popover.title}}" data-content="{{popover.content}}" data-template="aws/analysis/script_settings.tpl.demo.html" data-animation="am-flip-x" bs-popover>
 					Settings
