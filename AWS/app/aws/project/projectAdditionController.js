@@ -3,11 +3,11 @@ angular.module('aws.project')
 	
 	var project = "";
 	var user = "";
-	var projectDescription= "";
 	$scope.uploadStatus = "No file uploaded";
 	var queryObjectJsons = []; //array of uploaded queryObject jsons
 	var queryObjectTitles = [];
 	var fileCount = 0;
+    $scope.fileUpload;
 	
 	$scope.$watch('projectName', function(){
 		 project = $scope.projectName;
@@ -17,24 +17,33 @@ angular.module('aws.project')
 		 user = $scope.userName;
 	});
 	
-	$scope.$watch('projtDescription', function(){
-		projectDescription = $scope.projtDescription;
-	});
-	
-	$scope.$on('fileUploaded', function(e) {
-        $scope.$safeApply(function() {
-        	$scope.uploadStatus = "";
-        	fileCount++;
-        	var countString = fileCount.toString();
-        	console.log("fileUploaded", e.targetScope.file);
-        	$scope.uploadStatus = countString + " files uploaded";
-        	queryObjectJsons.push(e.targetScope.file);//filling up the json array
-        	var jsonObject = JSON.parse(e.targetScope.file);
-        	queryObjectTitles.push(jsonObject.title);
-//        	$scope.uploadStatus = $scope.uploadStatus.concat(qOTitle + " uploaded") + "\n";
-        });
-	});
-	
+//	$scope.$on('fileUploaded', function(e) {
+//        $scope.$safeApply(function() {
+//        	$scope.uploadStatus = "";
+//        	fileCount++;
+//        	var countString = fileCount.toString();
+//        	console.log("fileUploaded", e.targetScope.file);
+//        	$scope.uploadStatus = countString + " files uploaded";
+//        	queryObjectJsons.push(e.targetScope.file);//filling up the json array
+//        	var jsonObject = JSON.parse(e.targetScope.file);
+//        	queryObjectTitles.push(jsonObject.title);
+////        	$scope.uploadStatus = $scope.uploadStatus.concat(qOTitle + " uploaded") + "\n";
+//        });
+//	});
+	$scope.$watch('fileUpload', function(n, o) {
+            if ($scope.fileUpload && $scope.fileUpload.then) {
+              $scope.fileUpload.then(function(result) {
+                $scope.uploadStatus = "";
+                fileCount++;
+                var countString = fileCount.toString();
+                console.log("fileUploaded", result);
+                $scope.uploadStatus = countString + " files uploaded";
+                queryObjectJsons.push(result.contents);//filling up the json array
+                var jsonObject = JSON.parse(result.contents);
+                queryObjectTitles.push(jsonObject.title);
+              });
+            }
+          }, true);
 	
 	 $scope.saveNewProjectToDatabase = function(){
 		
@@ -46,7 +55,7 @@ angular.module('aws.project')
 		 queryObjectTitle = queryObjectTitles;
 		 queryObjectContent = queryObjectJsons;
 				 
-		 queryService.insertQueryObjectToProject(user, project,projectDescription, queryObjectTitle, queryObjectContent);
+		 queryService.insertQueryObjectToProject(user, project, queryObjectTitle, queryObjectContent);
 		 
 	 };
 	
