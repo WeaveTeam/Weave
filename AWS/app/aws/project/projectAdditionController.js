@@ -46,7 +46,7 @@ angular.module('aws.project')
 		 queryObjectTitle = queryObjectTitles;
 		 queryObjectContent = queryObjectJsons;
 				 
-		 queryService.insertQueryObjectToProject(user, project, queryObjectTitle, queryObjectContent);
+		 queryService.insertQueryObjectToProject(user, project,projectDescription, queryObjectTitle, queryObjectContent);
 		 
 	 };
 	

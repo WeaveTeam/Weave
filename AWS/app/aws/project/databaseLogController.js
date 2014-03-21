@@ -4,4 +4,8 @@
 angular.module('aws.project')
 .controller("databaseLogController", function($scope, queryService){
 	
+	$scope.$on('DB_UPDATE', function(event, args){
+		$scope.databaseLog = args.status;
+
+	});
 });

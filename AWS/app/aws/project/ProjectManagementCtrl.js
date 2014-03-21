@@ -27,7 +27,7 @@ angular.module('aws.project', [])
 	
 
 	//TODO find way to identify button id in angular
-	$scope.load = function(buttonid){
+	$scope.load = function(buttonid, item){
 		console.log(buttonid);
 		if(buttonid == "newQueryObjectButton"){
 			
@@ -35,7 +35,9 @@ angular.module('aws.project', [])
 		}
 			
 		if(buttonid == "openQueryObjectButton"){
-			$scope.queryObjectJson = $scope.currentQuerySelected;
+			//$scope.queryObjectJson = $scope.currentQuerySelected;
+			$scope.queryObjectJson = item;
+			$scope.currentQuerySelected = item;
 		}
 	};
 	
@@ -106,7 +108,6 @@ angular.module('aws.project', [])
      },
     	 function(){
     	 $scope.deleteProjectStatus = queryService.dataObject.deleteProjectStatus;
-    	 
     	 if(! ($scope.deleteProjectStatus == 0 || angular.isUndefined($scope.deleteProjectStatus)))
     		 {
     		 if(!($scope.currentProjectSelected != "" || angular.isUndefined($scope.currentProjectSelected)))
@@ -133,10 +134,16 @@ angular.module('aws.project', [])
     		 if(!(angular.isUndefined($scope.currentQuerySelected.title))){
     			 
     			 alert("Query Object " + $scope.currentQuerySelected.title + " has been deleted");
+    			 //LOG CONTROLLER BROADCAST
+    			 var message = $scope.deleteQueryObjectStatus + " rows deleted from database";
+    			 $scope.$broadcast('DB_UPDATE', {status:message});
+    			 
     			 $scope.currentQuerySelected = ""; //resetting currently selected queryObject
     			 queryService.dataObject.deleteQueryObjectStatus = 0;
     			 queryService.dataObject.listofQueryObjectsInProject = [];//resets and updates new list of queryObjects
     			 queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);//makes a new call
+    			 
+    			 
     		 }
     	 }
     			
