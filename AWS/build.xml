@@ -5,6 +5,7 @@
     <property name="workspace_loc" value="${var.workspace_loc}"/>
 	<property file="${workspace_loc}/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.core.resources.prefs"/>
 	
+	<!--<property name="docroot" value="/Library/Tomcat/webapps/ROOT" />-->
 	<property name="docroot" value="${pathvariable.WEAVE_DOCROOT}" />
 	<property name="build-dir" value="${basedir}/build" />
 	<property name="dist-dir" value="${docroot}/aws"/>
