@@ -11,6 +11,10 @@ analysis_mod.controller("MapCtrl", function($scope, queryService){
 											 title : ""
 									   };
 	
+	if(queryService.queryObject.Indicator.label) {
+		$scope.title = "Map of " + + " for " +  queryService.queryObject.Indicator.label;
+	}
+	
 	queryService.getGeometryDataColumnsEntities();
 	$scope.geomTables = [];
 	

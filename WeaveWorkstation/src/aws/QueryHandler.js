@@ -26,7 +26,11 @@ aws.QueryHandler = function(queryObject)
 	this.rRequestObject = {};
 	this.rRequestObject.scriptName = "";
 	this.rRequestObject.FilteredColumnRequest = [];
-
+	
+	var filterQuery = {
+			filters : [],
+			nesting : {}
+	};
 	if(queryObject.hasOwnProperty("scriptSelected")) {
 		if (queryObject.scriptSelected != "") {
 			this.rRequestObject.scriptName = queryObject.scriptSelected;
@@ -80,7 +84,11 @@ aws.QueryHandler = function(queryObject)
 				}
 			}
 		}
-	}	
+	}
+	
+	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
+		
+	}
 	this.keyType = "";
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
