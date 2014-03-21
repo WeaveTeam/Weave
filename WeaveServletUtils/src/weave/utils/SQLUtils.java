@@ -1992,22 +1992,34 @@ public class SQLUtils
 			public void assertValid() throws RemoteException
 			{
 				if ((and==null?0:1) + (or==null?0:1) + (cond==null?0:1) != 1)
-					throw new RemoteException("NestedColumnFilters: Exactly one of the properties 'and', 'or', 'cond' must be set");
+					error("Exactly one of the properties 'and', 'or', 'cond' must be set");
 				
 				if (cond != null)
 					cond.assertValid();
 				if (and != null)
+				{
+					if (and.length == 0)
+						error("'and' must have at least one item");
 					for (NestedColumnFilters nested : and)
 						if (nested != null)
 							nested.assertValid();
 						else
-							throw new RemoteException("NestedColumnFilters: 'and' must not contain null items");
+							error("'and' must not contain null items");
+				}
 				if (or != null)
+				{
+					if (or.length == 0)
+						error("'or' must have at least one item");
 					for (NestedColumnFilters nested : or)
 						if (nested != null)
 							nested.assertValid();
 						else
-							throw new RemoteException("NestedColumnFilters: 'or' must not contain null items");
+							error("'or' must not contain null items");
+				}
+			}
+			private void error(String message) throws RemoteException
+			{
+				throw new RemoteException("NestedColumnFilters: " + message);
 			}
 		}
 		
@@ -2038,9 +2050,13 @@ public class SQLUtils
 			public void assertValid() throws RemoteException
 			{
 				if (f == null)
-					throw new RemoteException("ColumnFilter: 'f' cannot be null");
+					error("'f' cannot be null");
 				if ((v == null) == (r == null))
-					throw new RemoteException("ColumnFilter: Either 'v' or 'r' must be set, but not both");
+					error("Either 'v' or 'r' must be set, but not both");
+			}
+			private void error(String message) throws RemoteException
+			{
+				throw new RemoteException("ColumnFilter: " + message);
 			}
 		}
 		
