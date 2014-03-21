@@ -44,23 +44,28 @@
 				</button>-->
 
 				<div class="input-group-btn">
-					<button type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
+					<button style="width: 30%;border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
 					ng-model="dataTable" data-html="1"  ng-options="dt.title for dt in dataTableList" ng-change = 'populateScriptsBar()' bs-select>
-						<span class="caret"></span>
+						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
 					</button>
-
 				</div>
 
 				<!--save for later-->
 				<!-- href>Set preferences for this page</a>-->
 
 				<div class="input-group search-script" >
-					<input type="text" class="form-control" ng-disabled="!dataTable" ng-model="scriptSelected" data-min-length="0"
+
+					<select class=" form-control search-script-div" ui-select2 ng-change="script_selected_set()" ng-disabled="!dataTable" ng-model="scriptSelected" data-placeholder="Select Script">
+						<option></option>
+						<option value="{{scr}}" ng-repeat="scr in scriptList">{{scr}}</option>
+					</select>
+
+					<!--<input type="text" class=""  data-min-length="0"
 					data-html="1" ng-options="script for script in scriptList"
 					placeholder="Select or Search for Scripts"
 					ng-focus="script_focused = true" ng-change="script_selected_set()" select-on-click bs-typeahead>
 
-					</input>
+					</input>-->
 					<div id="loading" ng-show="show_load" class="ng-hide">
 						<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
 					</div>
@@ -84,15 +89,12 @@
 				</div>-->
 
 				<div id="heading" class="page-header" ng-controller="IndicatorCtrl">
-					
-						<h1><i class="glyphicon glyphicon-th-large"></i>&nbsp; Dashboard</h1> 
-						
-						
-						
-					<span style="font-size: 10px; font-weight: 400" class="indicator-float" ng-show="indicator.label">
-						<span>Indicator: {{indicator.label}}</span><br />
-						<span style="font-size: 10px;">{{ indicatorDescription}}</span>
-					</span>
+
+					<h1><i class="glyphicon glyphicon-th-large"></i>&nbsp; Dashboard</h1>
+
+					<span style="font-size: 10px; font-weight: 400" class="indicator-float" ng-show="indicator.label"> <span>Indicator: {{indicator.label}}</span>
+						<br />
+						<span style="font-size: 10px;">{{ indicatorDescription}}</span> </span>
 				</div>
 			</div>
 		</div>
@@ -185,7 +187,6 @@
 		<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float:right; margin-top: 10px; margin-right: 5px;">
 
 			<a href="javascript:void(0);" class="btn btn-primary export-btn" id="" ng-click="exportQueryObject()"> <span style="vertical-align: middle">Export Query</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
-
 
 			<!-- Feature not included
 			<a href="javascript:void(0);" class="btn btn-primary import-button">
