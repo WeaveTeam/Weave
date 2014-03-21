@@ -147,7 +147,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 		if ($scope.scriptSelected != undefined && $scope.scriptSelected != "") {
 			queryService.queryObject.scriptSelected = $scope.scriptSelected;
 			queryService.getScriptMetadata($scope.scriptSelected, true);
-
+			$scope.selection = [];
 		} else {
 			$scope.scriptList = queryService.getListOfScripts();
 		}
@@ -271,19 +271,22 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 
 	});
 
-	queryService.queryObject.FilteredColumnRequest = [];
+	queryService.queryObject.ScriptColumnRequest = [];
 
 	$scope.$watchCollection('selection', function() {
+		
+		if(!$scope.selection.length) {
+			queryService.queryObject.ScriptColumnRequest = [];
+		}
+		
 		for (var i = 0; i < $scope.selection.length; i++) {
 			if ($scope.selection != undefined) {
 				if ($scope.selection[i] != undefined && $scope.selection[i] != "") {
 					var selection = angular.fromJson($scope.selection[i]);
-					if (queryService.queryObject.FilteredColumnRequest[i]) {
-						queryService.queryObject.FilteredColumnRequest[i].column = selection;
+					if (queryService.queryObject.ScriptColumnRequest[i]) {
+						queryService.queryObject.ScriptColumnRequest[i] = selection;
 					} else {
-						queryService.queryObject.FilteredColumnRequest[i] = {
-							column : selection
-						};
+						queryService.queryObject.ScriptColumnRequest[i] = selection;
 					}
 //					var columnSelected = selection;
 //					var allColumns = queryService.dataObject.columns;
@@ -319,7 +322,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 //							}
 //						}
 //					}
-				} // end if ""
+				} 
 			} // end if undefined
 		}
 	});
@@ -334,14 +337,14 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 //						return angular.fromJson(item);
 //					});
 //
-//					if (!queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
-//						queryService.queryObject.FilteredColumnRequest[i].filters = {};
+//					if (!queryService.queryObject.ScriptColumnRequest[i].hasOwnProperty("filters")) {
+//						queryService.queryObject.ScriptColumnRequest[i].filters = {};
 //					}
 //
 //					if ($scope.filterType[i] == "categorical") {
-//						queryService.queryObject.FilteredColumnRequest[i].filters.filterValues = temp;
+//						queryService.queryObject.ScriptColumnRequest[i].filters.filterValues = temp;
 //					} else if ($scope.filterType[i] == "continuous") {// continuous, we want arrays of ranges
-//						queryService.queryObject.FilteredColumnRequest[i].filters.filterValues = [temp];
+//						queryService.queryObject.ScriptColumnRequest[i].filters.filterValues = [temp];
 //					}
 //				}
 //			}
@@ -351,12 +354,12 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 //	$scope.$watchCollection('enabled', function() {
 //		if ($scope.enabled != undefined) {
 //			for (var i = 0; i < $scope.enabled.length; i++) {
-//				if (!queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
-//					queryService.queryObject.FilteredColumnRequest[i].filters = {};
+//				if (!queryService.queryObject.ScriptColumnRequest[i].hasOwnProperty("filters")) {
+//					queryService.queryObject.ScriptColumnRequest[i].filters = {};
 //				}
 //
 //				if ($scope.enabled[i] != undefined) {
-//					queryService.queryObject.FilteredColumnRequest[i].filters.enabled = $scope.enabled[i];
+//					queryService.queryObject.ScriptColumnRequest[i].filters.enabled = $scope.enabled[i];
 //				}
 //
 //				//				console.log($scope.enabled);
@@ -367,36 +370,33 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 //	});
 
 	$scope.$watchCollection(function() {
-		return queryService.queryObject.FilteredColumnRequest;
+		return queryService.queryObject.ScriptColumnRequest;
 	}, function() {
-		if (queryService.queryObject.FilteredColumnRequest != undefined) {
-			for (var i = 0; i < queryService.queryObject.FilteredColumnRequest.length; i++) {
-				if (queryService.queryObject.FilteredColumnRequest[i] != undefined && queryService.queryObject.FilteredColumnRequest[i] != "") {
-					if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("column")) {
-						$scope.selection[i] = angular.toJson(queryService.queryObject.FilteredColumnRequest[i].column);
-					}
-
-//					if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
+		if (queryService.queryObject.ScriptColumnRequest != undefined) {
+			for (var i = 0; i < queryService.queryObject.ScriptColumnRequest.length; i++) {
+				if (queryService.queryObject.ScriptColumnRequest[i] != undefined && queryService.queryObject.ScriptColumnRequest[i] != "") {
+					$scope.selection[i] = angular.toJson(queryService.queryObject.ScriptColumnRequest[i]);
+//					if (queryService.queryObject.ScriptColumnRequest[i].hasOwnProperty("filters")) {
 //
-//						if (queryService.queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterValues")) {
+//						if (queryService.queryObject.ScriptColumnRequest[i].filters.hasOwnProperty("filterValues")) {
 //
 //							$scope.show[i] = true;
 //
-//							if (queryService.queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
+//							if (queryService.queryObject.ScriptColumnRequest[i].filters.filterValues[0].constructor == Object) {
 //
 //								$scope.filterType[i] = "categorical";
-//								var temp = $.map(queryService.queryObject.FilteredColumnRequest[i].filters.filterValues, function(item) {
+//								var temp = $.map(queryService.queryObject.ScriptColumnRequest[i].filters.filterValues, function(item) {
 //									return angular.toJson(item);
 //								});
 //								$scope.filterValues[i] = temp;
 //
-//							} else if (queryService.queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Array) {
+//							} else if (queryService.queryObject.ScriptColumnRequest[i].filters.filterValues[0].constructor == Array) {
 //								$scope.filterType[i] = "continuous";
-//								$scope.filterValues[i] = queryService.queryObject.FilteredColumnRequest[i].filters.filterValues[0];
+//								$scope.filterValues[i] = queryService.queryObject.ScriptColumnRequest[i].filters.filterValues[0];
 //							}
 //						}
-//						if (queryService.queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("enabled")) {
-//							$scope.enabled[i] = queryService.queryObject.FilteredColumnRequest[i].filters.enabled;
+//						if (queryService.queryObject.ScriptColumnRequest[i].filters.hasOwnProperty("enabled")) {
+//							$scope.enabled[i] = queryService.queryObject.ScriptColumnRequest[i].filters.enabled;
 //						}
 //					}
 				}

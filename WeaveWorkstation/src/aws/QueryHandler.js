@@ -25,7 +25,7 @@ aws.QueryHandler = function(queryObject)
 	
 	this.rRequestObject = {};
 	this.rRequestObject.scriptName = "";
-	this.rRequestObject.FilteredColumnRequest = [];
+	this.rRequestObject.ScriptRequest = [];
 	
 	var filterQuery = {
 			filters : [],
@@ -47,41 +47,15 @@ aws.QueryHandler = function(queryObject)
 		}
 	}
 	
-	if(queryObject.hasOwnProperty("FilteredColumnRequest")) {
-		for( var i = 0; i < queryObject.FilteredColumnRequest.length; i++) {
-			this.rRequestObject.FilteredColumnRequest[i] = {
-					id : -1,
-					filters : []
-			};
-			
-			if (queryObject.FilteredColumnRequest[i].hasOwnProperty("column")) {
-				this.rRequestObject.FilteredColumnRequest[i].id = queryObject.FilteredColumnRequest[i].column.id;
-			}
-			
-			if (queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
-				if(queryObject.FilteredColumnRequest[i].filters.hasOwnProperty('enabled')) {
-					if (queryObject.FilteredColumnRequest[i].filters.enabled == true) {
-						var temp = [];
-						if(queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterValues")) {
-							if(queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
-								temp =  $.map(queryObject.FilteredColumnRequest[i].filters.filterValues, function(item){
-									return item.value;
-								});
-							}
-						}						
-						this.rRequestObject.FilteredColumnRequest[i].filters = temp;
-					} else if (queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Array) {
-						temp = [];
-						if(queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterValues")) {
-							if(queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
-								temp =  $.map(queryObject.FilteredColumnRequest[i].filters.filterValues, function(item){
-									return item;
-								});
-							}
-						}
-						this.rRequestObject.FilteredColumnRequest[i].filters = temp;
-					}
-				}
+	if(queryObject.hasOwnProperty("ScriptColumnRequest")) {
+		for( var i = 0; i < queryObject.ScriptColumnRequest.length; i++) {
+
+			if (queryObject.ScriptColumnRequest[i].hasOwnProperty("column")) {
+				this.rRequestObject.ScriptRequest[i].id = {
+						id : queryObject.ScriptColumnRequest[i].column.id,
+						filters : [],
+						getData : true
+				};
 			}
 		}
 	}
@@ -89,6 +63,12 @@ aws.QueryHandler = function(queryObject)
 	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
 		
 	}
+	
+	if(queryObject.hasOwnProperty("GeographyFilter")) {
+		
+	}
+	
+	
 	this.keyType = "";
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
