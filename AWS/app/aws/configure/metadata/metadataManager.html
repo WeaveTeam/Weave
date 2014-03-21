@@ -11,11 +11,8 @@
 	  <br>
       <div id="tree"style="width: 100%; height: 600px; overflow: scroll"></div>
       <br>
-      <input type="button" value="Refresh" ng-click="refresh()">
-      <div class="file-upload">
-			<label for="queryImport">Upload From CSV</label> 
-			<input type="file" file-upload name="queryImport"	ng-submit="UploadFromCSV()"/>
-	  </div>
+      <input class="file-nput-btn" type="button" value="Refresh" ng-click="refresh()">
+      <file-upload label="Upload"></file-upload>
 	  <br><br>
 	  <div ng-show="inProgress" style="width: 175px">
 	      <progressbar value="progressValue" max="maxTasks" animate="false"></progressbar>
