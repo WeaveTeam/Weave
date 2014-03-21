@@ -25,6 +25,11 @@ analysis_mod.controller("BarChartCtrl", function($scope, queryService){
 		}
 	});		
 	
+	if(queryService.queryObject.Indicator.label) {
+		$scope.title = "Bar Chart of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
+		$scope.enableTitle = true;
+	}
+	
 	$scope.$watch('enabled', function() {
 		if($scope.enabled != undefined) {
 			queryService.queryObject.BarChartTool.enabled = $scope.enabled;

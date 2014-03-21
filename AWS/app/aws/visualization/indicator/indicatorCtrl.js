@@ -13,10 +13,10 @@ analysis_mod.controller('IndicatorCtrl', function($scope, queryService){
 		
 		if(queryService.dataObject.columns && queryService.dataObject.columns.length) {
 			for(var i = 0; i  < queryService.dataObject.columns.length; i++) {
-			
+                var metadata = {};
 				if (queryService.dataObject.columns[i].publicMetadata.hasOwnProperty("aws_metadata")) {
 					var column = queryService.dataObject.columns[i];
-					var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
+					metadata = angular.fromJson(column.publicMetadata.aws_metadata);
 				}
 				
 				if(metadata.hasOwnProperty("columnType")) {
@@ -34,7 +34,6 @@ analysis_mod.controller('IndicatorCtrl', function($scope, queryService){
 			if($scope.indicSelection != "") {
 				queryService.queryObject.Indicator = angular.fromJson($scope.indicSelection);
 				$scope.indicator = queryService.queryObject.Indicator;
-				console.log($scope.indicator);
 				for(var i = 0; i  < queryService.dataObject.columns.length; i++) {		
 					var column = queryService.dataObject.columns[i];
 					if(column.id == angular.fromJson($scope.indicSelection).id) {

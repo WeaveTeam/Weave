@@ -25,8 +25,7 @@ aws.QueryHandler = function(queryObject)
 	
 	this.rRequestObject = {};
 	this.rRequestObject.scriptName = "";
-	this.rRequestObject.FilteredColumnRequest = [];
-	this.rRequestObject.FilterOnlyRequest = [];
+	this.rRequestObject.dataRequest = {};
 	
 	if(queryObject.hasOwnProperty("scriptSelected")) {
 		if (queryObject.scriptSelected != "") {
@@ -44,78 +43,84 @@ aws.QueryHandler = function(queryObject)
 		}
 	}
 	
-	if(queryObject.hasOwnProperty("FilteredColumnRequest")) {
-		for( var i = 0; i < queryObject.FilteredColumnRequest.length; i++) {
-			this.rRequestObject.FilteredColumnRequest[i] = {
-					id : -1,
-					filters : [],
-					getData : true
-			};
-			
-			if (queryObject.FilteredColumnRequest[i].hasOwnProperty("column")) {
-				this.rRequestObject.FilteredColumnRequest[i].id = queryObject.FilteredColumnRequest[i].column.id;
-			}
-			
-			if (queryObject.FilteredColumnRequest[i].hasOwnProperty("filters")) {
-				if(queryObject.FilteredColumnRequest[i].filters.hasOwnProperty('enabled')) {
-					if (queryObject.FilteredColumnRequest[i].filters.enabled == true) {
-						var temp = [];
-						if(queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterValues")) {
-							if(queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
-								temp =  $.map(queryObject.FilteredColumnRequest[i].filters.filterValues, function(item){
-									return item.value;
-								});
-							}
-						}						
-						this.rRequestObject.FilteredColumnRequest[i].filters = temp;
-					} else if (queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Array) {
-						temp = [];
-						if(queryObject.FilteredColumnRequest[i].filters.hasOwnProperty("filterValues")) {
-							if(queryObject.FilteredColumnRequest[i].filters.filterValues[0].constructor == Object) {
-								temp =  $.map(queryObject.FilteredColumnRequest[i].filters.filterValues, function(item){
-									return item;
-								});
-							}
-						}
-						this.rRequestObject.FilteredColumnRequest[i].filters = temp;
-					}
-				}
-			}
+	var scriptColumnRequest = [];
+	if(queryObject.hasOwnProperty("ScriptColumnRequest")) {
+		for( var i = 0; i < queryObject.ScriptColumnRequest.length; i++) {
+			scriptColumnRequest.push(queryObject.ScriptColumnRequest[i].id);
 		}
 	}
 	
+	var geoFilter = {};
 	// Create a filter only request where we will pass geography and time-period information.
 	if(queryObject.hasOwnProperty("GeographyFilter")) {
-		//for(var i in queryObject.GeographyFilter) {
-			//var stateFilter = queryObject.GeographyFilter[i];
-			var stateFilter = queryObject.GeographyFilter;
-			// push the state and it's counties
-			if(stateFilter.stateColumn.hasOwnProperty("id") && stateFilter.state.hasOwnProperty("value")) {
-				this.rRequestObject.FilterOnlyRequest.push({
-					id : stateFilter.stateColumn.id, 
-					filters : stateFilter.state.value, 
-					getData : false
+		var geoQuery = {};
+		var stateId = queryObject.GeographyFilter.stateColumn.id;
+		var countyId = queryObject.GeographyFilter.countyColumn.id;
+		
+		geoQuery.or = [];
+		for(var key in queryObject.GeographyFilter.filters) {
+			for(var i in queryObject.GeographyFilter.filters[key].counties) {
+				var countyFilterValue;
+				for(var key2 in queryObject.GeographyFilter.filters[key].counties[i]) {
+					countyFilterValue = key2;
+				}
+				geoQuery.or.push({and : [
+				                         { id : stateId, filter : key},
+				                         { id : countyId, filter : countyFilterValue }
+				                         ]});
+			}
+		}
+		geoFilter = geoQuery;
+	}
+	
+	var timePeriodFilter = {};
+	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
+		var timePeriodQuery = {};
+		var yearId = queryObject.TimePeriodFilter.yearColumn.id;
+		var monthId = queryObject.TimePeriodFilter.monthColumn.id;
+		timePeriodQuery.or = [];
+		for(var key in queryObject.TimePeriodFilter.filters) {
+			console.log(key);
+			for(var i in queryObject.TimePeriodFilter.filters[key].months) {
+				var monthFilterValue;
+				for(var key2 in queryObject.TimePeriodFilter.filters[key].months[i]) {
+					monthFilterValue = key2;
+				}
+				timePeriodQuery.or.push({and : [
+				                         { id : yearId, filter : key},
+				                         { id : monthId, filter : monthFilterValue }
+				                         ]});
+			}
+		}
+		timePeriodFilter = timePeriodQuery;
+	}
+	
+	var byVariableFilter = {};
+	if(queryObject.hasOwnProperty("ByVariableFilter")) {
+		var byVarQuery = {};
+		byVarQuery.and = [];
+		for(var i in queryObject.ByVariableFilter) {
+			var byvar = {or : []};
+			for (var j in queryObject.ByVariableFilter[i].filters) {
+				byvar.or.push({
+					id : queryObject.ByVariableFilter[i].column.id,
+					filter : queryObject.ByVariableFilter[i].filters[j].value
 				});
 			}
-
-			var cfilters = [];
-			
-			for(var j in stateFilter.counties) {
-				var countyFilter = stateFilter.counties[j];
-				cfilters.push(countyFilter.value); 
-			}
-			
-			this.rRequestObject.FilterOnlyRequest.push({id : stateFilter.countyColumn.id, filters : cfilters, getData : false});
-		//}
-	}
+			byVarQuery.and.push( byvar );
+		}
+		
+		byVariableFilter = byVarQuery;
+	}	
 	
-	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
-		
-		
-	}
-		
-		
+	var nestedFilterRequest = { and : [timePeriodFilter, byVariableFilter, geoFilter] };
 	
+	this.rRequestObject.dataRequest = {
+			ids : scriptColumnRequest,
+			NestedColumnFilter : nestedFilterRequest
+	};
+	
+	console.log(angular.toJson(this.rRequestObject));
 	
 	this.keyType = "";
 	
@@ -225,6 +230,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		newWeaveWindow.log("Running Query in R...");
 	};
 	
+	console.log(this.rRequestObject);
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
 		that.resultDataSet = result.data[0].value;

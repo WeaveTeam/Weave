@@ -104,6 +104,12 @@ public class AWSRService extends RService
 		String[] columnsToBeRetrieved;
 		FilteredColumnRequest[] filteredColumnRequests;
 	}
+	
+	public static class RequestObject
+	{
+		String scriptName;
+		FilteredColumnRequest[] ScriptColumnRequest;
+	}
    
 	public class MyResult {
 	
@@ -870,19 +876,18 @@ public class AWSRService extends RService
     
     // this functions intends to run a script with filtered.
 	// essentially this function should eventually be our main run script function.
-	// in the request object, there will be: the script path, the script name
+	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public MyResult runScriptWithFilteredColumns(AWSRequestObject request) throws Exception
+	public MyResult runScriptWithFilteredColumns(RequestObject request) throws Exception
 	{
 		RResult[] returnedColumns;
 
-		String cannedScript = uploadPath + "RScripts/" + request.scriptName;
+		String cannedScript = awsConfigPath + "RScripts/" + request.scriptName;
 		
-		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
 		long startTime = System.currentTimeMillis();
 		
-		Object[][] recordData = DataService.getFilteredRows(request.filteredColumnRequests, null).recordData;
+		Object[][] recordData = DataService.getFilteredRows(request.ScriptColumnRequest, null).recordData;
 		Object[][] columnData = transpose(recordData);
 		recordData = null;
 		
