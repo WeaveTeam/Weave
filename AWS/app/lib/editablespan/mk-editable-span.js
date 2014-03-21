@@ -21,6 +21,7 @@ mod.directive('editablespan', function() {
       var form = angular.element(element.children()[1]);
       var input = angular.element(element.children()[1][0]);
       
+      // altered by Patrick Ryan 3/20/14
       scope.$watch('$parent.editMode',function(currentMode){
         if(currentMode == true){
           span.bind('click', function(event) {
@@ -30,12 +31,9 @@ mod.directive('editablespan', function() {
         }else if(currentMode == false){
           span.unbind('click');
         }
-      })
-      
-      
-      // added by Patrick Ryan 3/20/14
-      form.addClass("inline-form");
-      element.addClass("pull-right");
+      });
+      //form.addClass("inline-form");
+      //element.addClass("pull-right");
       
       function startEdit() {
         bindEditElements();

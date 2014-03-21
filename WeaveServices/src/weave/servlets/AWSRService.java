@@ -854,7 +854,7 @@ public class AWSRService extends RService
 					
 					scriptMetadata = gson.fromJson(br, Object.class);
 					
-					System.out.println(scriptMetadata);
+					//System.out.println(scriptMetadata);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -867,6 +867,17 @@ public class AWSRService extends RService
 		
 		return scriptMetadata;
 	}
+	
+	public String uploadNewScript(String scriptName, Object fileObject){
+		System.out.println(fileObject);
+		return "success";
+	}
+	
+	public String deleteNewScript(String scriptName, String password){
+		
+		return "success";
+	}
+	
     
     // this functions intends to run a script with filtered.
 	// essentially this function should eventually be our main run script function.
