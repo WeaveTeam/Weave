@@ -517,7 +517,51 @@ public class DataService extends WeaveServlet
 		return DataService.getFilteredRows(requestedColumns, keysArray);
 	}
 	
-	public static class FilteredColumnRequest
+	/**
+	 * An object with three modes: "and", "or", and "id+filters"
+	 */
+	public static class NestedColumnFilter
+	{
+		/**
+		 * If this property is specified, the <code>or</code>, <code>id</code>, and <code>filters</code> properties must be null.
+		 * Specifies a list of nested filter objects to be grouped with AND logic.
+		 */
+		public NestedColumnFilter[] and;
+		/**
+		 * If this property is specified, the <code>and</code>, <code>id</code>, and <code>filters</code> properties must be null.
+		 * Specifies a list of nested filter objects to be grouped with OR logic.
+		 */
+		public NestedColumnFilter[] or;
+		/**
+		 * If this property is specified, the <code>and</code> and <code>or</code> properties must be null.
+		 * Specifies a column ID.
+		 */
+		public Integer id;
+		/**
+		 * If this property is specified, the <code>and</code> and <code>or</code> properties must be null.
+		 * This array contains either [[min,max],[min2,max2],...] for numeric values or ["a","b",...] for string values.
+		 */
+		public Object[] filters;
+		
+		/**
+		 * Gets all column IDs referenced by this object and its nested objects.
+		 */
+		public Collection<Integer> getColumnIds()
+		{
+			Set<Integer> ids = new HashSet<Integer>();
+			if (id != null)
+				ids.add(id);
+			else if (and != null)
+				for (NestedColumnFilter nested : and)
+					ids.addAll(nested.getColumnIds());
+			else if (or != null)
+				for (NestedColumnFilter nested : or)
+					ids.addAll(nested.getColumnIds());
+			return ids;
+		}
+	}
+	
+	@Deprecated public static class FilteredColumnRequest
 	{
 		public int id;
 		public boolean getData;
@@ -526,6 +570,48 @@ public class DataService extends WeaveServlet
 		 * Either [[min,max],[min2,max2],...] for numeric values or ["a","b",...] for string values.
 		 */
 		public Object[] filters;
+	}
+	@Deprecated private static FilteredColumnRequest[] getDeprecatedFilters(int[] columns, NestedColumnFilter filters) throws RemoteException
+	{
+		try
+		{
+			Map<Integer, FilteredColumnRequest> map = new HashMap<Integer, FilteredColumnRequest>();
+			Set<Integer> columnSet = new HashSet<Integer>();
+			for (int id : columns)
+				columnSet.add(id);
+			
+			// copy filters
+			for (NestedColumnFilter nested : filters.and)
+			{
+				FilteredColumnRequest fcr = new FilteredColumnRequest();
+				fcr.id = nested.id;
+				fcr.getData = columnSet.remove(nested.id);
+				fcr.filters = nested.filters;
+				map.put(nested.id, fcr);
+			}
+			// remaining columns are requested but have no filters
+			for (int id : columnSet)
+			{
+				FilteredColumnRequest fcr = new FilteredColumnRequest();
+				fcr.id = id;
+				fcr.getData = true;
+				map.put(id, fcr);
+			}
+
+			FilteredColumnRequest[] result = new FilteredColumnRequest[map.size()];
+			int i = 0;
+			// add filters for returned columns
+			for (; i < columns.length; i++)
+				result[i] = map.remove(columns[i]);
+			// add remaining filters for columns not returned
+			for (int id : map.keySet())
+				result[i++] = map.remove(id);
+			return result;
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("FilteredColumnRequest[] cannot be created from the given NestedColumnFilter object", e);
+		}
 	}
 	
 	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
