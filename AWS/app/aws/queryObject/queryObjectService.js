@@ -77,9 +77,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     
     this.getListOfProjectsfromDatabase = function() {
         
-    	if(this.dataObject.listOfProjectsFromDatabase) {
-    		return this.dataObject.listOfProjectsFromDatabase;
-    	}
+//    	if(this.dataObject.listOfProjectsFromDatabase) {
+//    		return this.dataObject.listOfProjectsFromDatabase;
+//    	}
     	
     	
     	var deferred = $q.defer();
