@@ -822,8 +822,8 @@ public class AWSRService extends RService
 		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
 		File file = new File(awsConfigPath + "RScripts", jsonFileName);
 		if (!file.exists()){
-			throw new RemoteException("Metadata file: " + jsonFileName + "does not exist");
-			//file.createNewFile();
+			file.createNewFile();
+			//throw new RemoteException("Metadata file: " + jsonFileName + "does not exist");
 		}
 		
 		FileWriter fw = new FileWriter(file.getAbsolutePath());
@@ -880,12 +880,41 @@ public class AWSRService extends RService
 	}
 	
 	public String uploadNewScript(String scriptName, Object fileObject){
-		System.out.println(fileObject);
+		File file = new File(awsConfigPath + "RScripts", scriptName);
+		if (!file.exists()){
+			try{
+				file.createNewFile();
+				FileWriter fw = new FileWriter(file.getAbsolutePath());
+				BufferedWriter bw = new BufferedWriter(fw);
+				bw.write( (String) fileObject);
+				bw.flush();
+
+				bw.close();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+		
+		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
+		file = new File(awsConfigPath + "RScripts", jsonFileName);
+		if(!file.exists()){
+				try {
+					file.createNewFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+
 		return "success";
 	}
 	
 	public String deleteNewScript(String scriptName, String password){
-		
+		if(password == "weaveworkstation"){
+			File file = new File(awsConfigPath + "RScripts", scriptName);
+			file.delete();
+		}else{
+			return "Failed to provide the right password. Hint, it's weaveworkstation.";
+		}
 		return "success";
 	}
 	
