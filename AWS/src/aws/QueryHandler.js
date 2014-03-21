@@ -49,7 +49,7 @@ aws.QueryHandler = function(queryObject)
 			scriptColumnRequest.push(queryObject.ScriptColumnRequest[i].id);
 		}
 	}
-	
+	this.rRequestObject.ids = scriptColumnRequest;
 	var geoFilter = {};
 	// Create a filter only request where we will pass geography and time-period information.
 	if(queryObject.hasOwnProperty("GeographyFilter")) {
@@ -59,15 +59,25 @@ aws.QueryHandler = function(queryObject)
 		
 		geoQuery.or = [];
 		for(var key in queryObject.GeographyFilter.filters) {
+			var index = geoQuery.or.push({ and : [
+			                          {cond : { 
+			                        	  f : stateId, 
+			                        	  v : [key] 
+			                          }
+			                          },
+			                          {cond: {
+			                        	  f : countyId, 
+			                        	  v : []
+			                          }
+			                          }
+			                          ]
+			});
 			for(var i in queryObject.GeographyFilter.filters[key].counties) {
-				var countyFilterValue;
+				var countyFilterValue = "";
 				for(var key2 in queryObject.GeographyFilter.filters[key].counties[i]) {
 					countyFilterValue = key2;
 				}
-				geoQuery.or.push({and : [
-				                         { id : stateId, filter : key},
-				                         { id : countyId, filter : countyFilterValue }
-				                         ]});
+				geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
 			}
 		}
 		geoFilter = geoQuery;
@@ -78,47 +88,74 @@ aws.QueryHandler = function(queryObject)
 		var timePeriodQuery = {};
 		var yearId = queryObject.TimePeriodFilter.yearColumn.id;
 		var monthId = queryObject.TimePeriodFilter.monthColumn.id;
+		
 		timePeriodQuery.or = [];
 		for(var key in queryObject.TimePeriodFilter.filters) {
-			console.log(key);
+			var index = timePeriodQuery.or.push({ and : [
+			                                 {cond : { 
+			                                	 f : yearId, 
+			                                	 v : [key] 
+			                                 }
+			                                 },
+			                                 {cond: {
+			                                	 f : monthId, 
+			                                	 v : []
+			                                 }
+			                                 }
+			                                 ]
+			});
 			for(var i in queryObject.TimePeriodFilter.filters[key].months) {
-				var monthFilterValue;
+				var monthFilterValue = "";
 				for(var key2 in queryObject.TimePeriodFilter.filters[key].months[i]) {
 					monthFilterValue = key2;
 				}
-				timePeriodQuery.or.push({and : [
-				                         { id : yearId, filter : key},
-				                         { id : monthId, filter : monthFilterValue }
-				                         ]});
+				timePeriodQuery.or[index-1].and[1].cond.v.push(monthFilterValue);
 			}
 		}
 		timePeriodFilter = timePeriodQuery;
 	}
 	
-	var byVariableFilter = {};
+	var byVariableFilter;
 	if(queryObject.hasOwnProperty("ByVariableFilter")) {
-		var byVarQuery = {};
-		byVarQuery.and = [];
+		var byVarQuery = {and : []};
 		for(var i in queryObject.ByVariableFilter) {
-			var byvar = {or : []};
-			for (var j in queryObject.ByVariableFilter[i].filters) {
-				byvar.or.push({
-					id : queryObject.ByVariableFilter[i].column.id,
-					filter : queryObject.ByVariableFilter[i].filters[j].value
-				});
-			}
-			byVarQuery.and.push( byvar );
+			var cond = {f : queryObject.ByVariableFilter[i].column.id };
+			
+			if(queryObject.ByVariableFilter[i].hasOwnProperty("filters")) {
+				cond.v = [];
+				for (var j in queryObject.ByVariableFilter[i].filters) {
+						cond.v.push(queryObject.ByVariableFilter[i].filters[j].value);
+				}
+				byVarQuery.and.push({cond : cond});
+			} else if (queryObject.ByVariableFilter[i].hasOwnProperty("ranges")) {
+				cond.r = [];
+				for (var j in queryObject.ByVariableFilter[i].filters) {
+					cond.r.push(queryObject.ByVariableFilter[i].filters[j]);
+				}
+				byVarQuery.and.push({cond : cond});
+			} 
 		}
-		
-		byVariableFilter = byVarQuery;
+		if(byVarQuery.and.length) {
+			byVariableFilter = byVarQuery;
+		}
 	}	
 	
-	var nestedFilterRequest = { and : [timePeriodFilter, byVariableFilter, geoFilter] };
 	
-	this.rRequestObject.dataRequest = {
-			ids : scriptColumnRequest,
-			NestedColumnFilter : nestedFilterRequest
-	};
+	var nestedFilterRequest = {and : []};
+	if(timePeriodFilter.hasOwnProperty("or") && timePeriodFilter.or.length) {
+		nestedFilterRequest.and.push(timePeriodFilter);
+	}
+	if(geoFilter.hasOwnProperty("or") && geoFilter.or.length) {
+		nestedFilterRequest.and.push(geoFilter);
+	}
+	
+	if(byVariableFilter) {
+		nestedFilterRequest.and.push(byVariableFilter);
+	}
+	
+	if(nestedFilterRequest.and.length) {
+		this.rRequestObject.filters = nestedFilterRequest;
+	}
 	
 	console.log(angular.toJson(this.rRequestObject));
 	
@@ -203,7 +240,6 @@ aws.QueryHandler = function(queryObject)
 //		// computationEngine = new aws.StataClient();
 
 	this.resultDataSet = "";
-
 };
 
 //testing

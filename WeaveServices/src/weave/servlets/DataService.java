@@ -35,9 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -68,6 +66,7 @@ import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
 import weave.utils.SQLUtils.WhereClause.ColumnFilter;
+import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 import weave.utils.Strings;
 /**
  * This class connects to a database and gets data
@@ -503,45 +502,67 @@ public class DataService extends WeaveServlet
 		DataEntityMetadata params = new DataEntityMetadata();
 		params.publicMetadata.put(PublicMetadata.KEYTYPE,keyType);
 		List<Integer> columnIds = new ArrayList<Integer>( dataConfig.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN) );
-
 		if (columnIds.size() > 100)
 			columnIds = columnIds.subList(0, 100);
-
-		FilteredColumnRequest[] requestedColumns = new FilteredColumnRequest[columnIds.size()];
-		for (int i = 0; i < requestedColumns.length; i++)
-		{
-			FilteredColumnRequest fcr = new FilteredColumnRequest();
-			fcr.id = columnIds.get(i);
-			requestedColumns[i] = fcr;
+		return DataService.getFilteredRows(ListUtils.toIntArray(columnIds), null, keysArray);
+	}
+	
+	/**
+	 * Gets all column IDs referenced by this object and its nested objects.
+	 */
+	private static Collection<Integer> getReferencedColumnIds(NestedColumnFilters filters)
+	{
+		Set<Integer> ids = new HashSet<Integer>();
+		if (filters.cond != null)
+			ids.add(((Number)filters.cond.f).intValue());
+		else
+			for (NestedColumnFilters nested : (filters.and != null ? filters.and : filters.or))
+				ids.addAll(getReferencedColumnIds(nested));
+		return ids;
+	}
+	
+	/**
+	 * Converts nested ColumnFilter.f values from a column ID to the corresponding SQL field name.
+	 * @param filters
+	 * @param entities
+	 * @return A copy of filters with field names in place of the column IDs.
+	 * @see ColumnFilter#f
+	 */
+	private static NestedColumnFilters convertColumnIdsToFieldNames(NestedColumnFilters filters, Map<Integer, DataEntity> entities)
+	{
+		if(filters == null) {
+			return null;
 		}
-		return DataService.getFilteredRows(requestedColumns, keysArray);
-	}
-	
-	public static class FilteredColumnRequest
-	{
-		public int id;
-		public boolean getData;
 		
-		/**
-		 * Either [[min,max],[min2,max2],...] for numeric values or ["a","b",...] for string values.
-		 */
-		public Object[] filters;
+		NestedColumnFilters result = new NestedColumnFilters();
+		if (filters.cond != null)
+		{
+			result.cond = new ColumnFilter();
+			result.cond.v = filters.cond.v;
+			result.cond.r = filters.cond.r;
+			result.cond.f = entities.get(((Number)filters.cond.f).intValue()).privateMetadata.get(PrivateMetadata.SQLCOLUMN);
+		}
+		else
+		{
+			NestedColumnFilters[] in = (filters.and != null ? filters.and : filters.or);
+			NestedColumnFilters[] out = new NestedColumnFilters[in.length];
+			for (int i = 0; i < in.length; i++)
+				out[i] = convertColumnIdsToFieldNames(in[i], entities);
+			if (filters.and == in)
+				result.and = out;
+			else
+				result.or = out;
+		}
+		return result;
 	}
 	
-	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
+	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, int[] columns, NestedColumnFilters filters, Map<Integer,DataEntity> entities) throws SQLException
 	{
-		ColumnFilter[] cfArray = new ColumnFilter[columns.length];
-		List<String> quotedFields = new LinkedList<String>();
+		String[] quotedFields = new String[columns.length];
 		for (int i = 0; i < columns.length; i++)
-		{
-			cfArray[i] = new ColumnFilter();
-			cfArray[i].field = entities[i].privateMetadata.get(PrivateMetadata.SQLCOLUMN);
-			cfArray[i].filters = columns[i].filters;
-			if (columns[i].getData)
-				quotedFields.add(SQLUtils.quoteSymbol(conn, cfArray[i].field));
-		}
+			quotedFields[i] = SQLUtils.quoteSymbol(conn, entities.get(columns[i]).privateMetadata.get(PrivateMetadata.SQLCOLUMN));
 		
-		WhereClause<Object> where = WhereClause.fromFilters(conn, cfArray);
+		WhereClause<Object> where = WhereClause.fromFilters(conn, convertColumnIdsToFieldNames(filters, entities));
 
 		String query = String.format(
 			"SELECT %s FROM %s %s",
@@ -553,50 +574,45 @@ public class DataService extends WeaveServlet
 		return SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
 	}
 	
-	/*
-		[
-			{id: 1, getData: true, filters: ["a","b"]},
-			{id: 2, getData: true, filters: [[min,max],[min2,max2]]}
-		]
-	*/
 	@SuppressWarnings("unchecked")
-	public static WeaveRecordList getFilteredRows(FilteredColumnRequest[] columns, String[] keysArray) throws RemoteException
+	public static WeaveRecordList getFilteredRows(int[] columns, NestedColumnFilters filters, String[] keysArray) throws RemoteException
 	{
-		List<Integer> columnIds = new Vector<Integer>();
-		for (FilteredColumnRequest fcr : columns)
-			columnIds.add(fcr.id);
+		if (columns == null || columns.length == 0)
+			throw new RemoteException("At least one column must be specified.");
+		
+		if (filters != null)
+			filters.assertValid();
 		
 		DataConfig dataConfig = getDataConfig();
-		DataEntity[] entities;
-		Map<String,String>[] metadataList;
-		{
-			Collection<DataEntity> unordered = dataConfig.getEntitiesById(columnIds);
-			Map<Integer, DataEntity> lookup = new HashMap<Integer, DataEntity>();
-			for (DataEntity de : unordered)
-				lookup.put(de.id, de);
-			
-			int n = columnIds.size();
-			entities = new DataEntity[n];
-			metadataList = new Map[n];
-			for (int i = 0; i < n; i++)
-			{
-				entities[i] = lookup.get(columnIds.get(i));
-				metadataList[i] = entities[i].publicMetadata;
-			}
-		}
-		
-		if (entities.length < 1)
-			throw new RemoteException("No columns found matching specified ids: "+columnIds);
-		
-		String keyType = entities[0].publicMetadata.get(PublicMetadata.KEYTYPE);
-		for (DataEntity entity : entities)
-		{
-			String keyType2 = entity.publicMetadata.get(PublicMetadata.KEYTYPE);
-			if (keyType != keyType2 && (keyType == null || keyType2 == null || !keyType.equals(keyType2)))
-				throw new RemoteException("Specified columns must all have same keyType.");
-		}
-
 		WeaveRecordList result = new WeaveRecordList();
+		Map<Integer, DataEntity> entityLookup = new HashMap<Integer, DataEntity>();
+		
+		{
+			// get all column IDs whether or not they are to be selected.
+			Set<Integer> allColumnIds = new HashSet<Integer>();
+			if (filters != null)
+				allColumnIds.addAll(getReferencedColumnIds(filters));
+			for (int id : columns)
+				allColumnIds.add(id);
+			// get all corresponding entities
+			for (DataEntity entity : dataConfig.getEntitiesById(allColumnIds))
+				entityLookup.put(entity.id, entity);
+			// check for missing columns
+			for (int id : allColumnIds)
+				if (entityLookup.get(id) == null)
+					throw new RemoteException("No column with ID=" + id);
+			
+			// provide public metadata in the same order as the selected columns
+			result.attributeColumnMetadata = new Map[columns.length];
+			for (int i = 0; i < columns.length; i++)
+				result.attributeColumnMetadata[i] = entityLookup.get(columns[i]).publicMetadata;
+		}
+		
+		String keyType = result.attributeColumnMetadata[0].get(PublicMetadata.KEYTYPE);
+		// make sure all columns have same keyType
+		for (int i = 1; i < columns.length; i++)
+			if (!Strings.equal(keyType, result.attributeColumnMetadata[i].get(PublicMetadata.KEYTYPE)))
+				throw new RemoteException("Specified columns must all have same keyType.");
 
 		if (keysArray == null)
 		{
@@ -605,7 +621,7 @@ public class DataService extends WeaveServlet
 			String connection = null;
 			String sqlSchema = null;
 			String sqlTable = null;
-			for (DataEntity entity : entities)
+			for (DataEntity entity : entityLookup.values())
 			{
 				String c = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 				String s = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
@@ -625,10 +641,10 @@ public class DataService extends WeaveServlet
 			}
 			if (canGenerateSQL)
 			{
-				Connection conn = getColumnConnectionInfo(entities[0]).getStaticReadOnlyConnection();
+				Connection conn = getColumnConnectionInfo(entityLookup.get(columns[0])).getStaticReadOnlyConnection();
 				try
 				{
-					result.recordData = getFilteredRowsFromSQL(conn, sqlSchema, sqlTable, columns, entities).rows;
+					result.recordData = getFilteredRowsFromSQL(conn, sqlSchema, sqlTable, columns, filters, entityLookup).rows;
 				}
 				catch (SQLException e)
 				{
@@ -639,6 +655,8 @@ public class DataService extends WeaveServlet
 		
 		if (result.recordData == null)
 		{
+			throw new Error("Selecting across tables is not supported yet.");
+			/*
 			HashMap<String,Object[]> data = new HashMap<String,Object[]>();
 			if (keysArray != null)
 				for (String key : keysArray)
@@ -646,7 +664,7 @@ public class DataService extends WeaveServlet
 			
 			for (int colIndex = 0; colIndex < entities.length; colIndex++)
 			{
-				Object[] filters = columns[colIndex].filters;
+				Object[] filters = fcrs[colIndex].filters;
 				DataEntity info = entities[colIndex];
 				String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 				String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
@@ -666,15 +684,13 @@ public class DataService extends WeaveServlet
 				try { maxValue = Double.parseDouble(infoMaxStr); } catch (Exception e) { }
 				// override config min,max with param values if given
 				
-				/**
-				 * columnInfoArray = config.getDataEntity(params);
-				 * for each info in columnInfoArray
-				 *      get sql data
-				 *      for each row in sql data
-				 *            if key is in keys array,
-				 *                  add this value to the result
-				 * return result
-				 */
+//				 * columnInfoArray = config.getDataEntity(params);
+//				 * for each info in columnInfoArray
+//				 *      get sql data
+//				 *      for each row in sql data
+//				 *            if key is in keys array,
+//				 *                  add this value to the result
+//				 * return result
 				
 				try
 				{
@@ -781,7 +797,7 @@ public class DataService extends WeaveServlet
 								{
 									for (int i = 0; i < colIndex; i++)
 									{
-										Object[] prevFilters = columns[i].filters;
+										Object[] prevFilters = fcrs[i].filters;
 										if (prevFilters != null)
 										{
 											passedFilters = false;
@@ -839,11 +855,11 @@ public class DataService extends WeaveServlet
 				rows[iKey] = data.get(keysArray[iKey]);
 			
 			result.recordData = rows;
+			*/
 		}
 		
 		result.keyType = keyType;
 		result.recordKeys = keysArray;
-		result.attributeColumnMetadata = metadataList;
 		
 		return result;
 	}

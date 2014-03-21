@@ -4,8 +4,9 @@ angular.module('aws.configure.script')
         scriptName: ""
       };
       var that = this;
+      var refreshNeeded = true;
       this.getListOfScripts = function() {
-        if (this.dataObject.listOfScripts) {
+        if(!refreshNeeded && this.dataObject.listOfScripts){
           return this.dataObject.listOfScripts;
         }
         var deferred = $q.defer();
@@ -15,6 +16,7 @@ angular.module('aws.configure.script')
             deferred.resolve(result);
           });
         });
+        refreshNeeded = false;
         return deferred.promise;
       };
       
@@ -33,6 +35,7 @@ angular.module('aws.configure.script')
           console.log(result); // currently just string returned from servlet
           scope.$safeApply(function() { deferred.resolve(result); });
         });
+        refreshNeeded = true;
         return deferred.promise;
       };
       
@@ -63,7 +66,13 @@ angular.module('aws.configure.script')
         var deferred = $q.defer();
         this.dataObject.scriptMetadata = metadata;
         aws.RClient.saveMetadata(this.dataObject.scriptName ,this.dataObject.scriptMetadata, function(){
-          scope.$safeApply(function(){deferred.resolve(true);});
+          scope.$safeApply(function(result){
+            if(result.error){
+              deferred.reject();
+            } else{
+              deferred.resolve(true);
+            }
+          });
         });
         return deferred.promise;
       };

@@ -125,5 +125,5 @@ aws.RClient.prototype.retriveResultsFromDatabase = function(requestObject){
  *
  */
 aws.RClient.prototype.runScriptWithFilteredColumns = function(callback) {
-	aws.queryService(rServiceURL, 'runScriptWithFilteredColumns', [this.rRequestObject], callback);
+	aws.queryService(rServiceURL, 'runScriptWithFilteredColumns', this.rRequestObject, callback);
 };

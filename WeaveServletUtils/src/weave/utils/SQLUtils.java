@@ -1966,67 +1966,162 @@ public class SQLUtils
 		public String clause;
 		public List<V> params;
 		
-		
-		public static class ColumnFilter
+		/**
+		 * An object with three modes: and, or, and cond.
+		 * If one property is specified, the others must be null.
+		 */
+		public static class NestedColumnFilters
 		{
-			public String field;
 			/**
-			 * Contains a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+			 * Nested filters to be grouped with AND logic.
 			 */
-			public Object[] filters;
+			public NestedColumnFilters[] and;
+			/**
+			 * Nested filters to be grouped with OR logic.
+			 */
+			public NestedColumnFilters[] or;
+			/**
+			 * A condition for a particular field.
+			 */
+			public ColumnFilter cond;
+			
+			/**
+			 * Makes sure the values in this object are specified correctly.
+			 * @throws RemoteException If this object or any of its nested objects are missing required values.
+			 */
+			public void assertValid() throws RemoteException
+			{
+				if ((and==null?0:1) + (or==null?0:1) + (cond==null?0:1) != 1)
+					error("Exactly one of the properties 'and', 'or', 'cond' must be set");
+				
+				if (cond != null)
+					cond.assertValid();
+				if (and != null)
+				{
+					if (and.length == 0)
+						error("'and' must have at least one item");
+					for (NestedColumnFilters nested : and)
+						if (nested != null)
+							nested.assertValid();
+						else
+							error("'and' must not contain null items");
+				}
+				if (or != null)
+				{
+					if (or.length == 0)
+						error("'or' must have at least one item");
+					for (NestedColumnFilters nested : or)
+						if (nested != null)
+							nested.assertValid();
+						else
+							error("'or' must not contain null items");
+				}
+			}
+			private void error(String message) throws RemoteException
+			{
+				throw new RemoteException("NestedColumnFilters: " + message);
+			}
 		}
 		
 		/**
-		 * @param conn
-		 * @param filters Either a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+		 * A condition for filtering query results.
 		 */
-		public static WhereClause<Object> fromFilters(Connection conn, ColumnFilter[] filters) throws SQLException
+		public static class ColumnFilter
 		{
-			WhereClause<Object> result = new WhereClause<Object>("", new Vector<Object>());
-			StringBuilder sb = new StringBuilder();
-			for (ColumnFilter filter : filters)
+			/**
+			 * The unquoted field name.
+			 */
+			public Object f;
+			/**
+			 * Contains a list of String values ["a", "b", ...]
+			 * If <code>v</code> is set, <code>r</code> must be null.
+			 */
+			public Object[] v;
+			/**
+			 * Contains a list of numeric ranges [[min,max], [min2,max2], ...]
+			 * If <code>r</code> is set, <code>v</code> must be null.
+			 */
+			public Object[][] r;
+			
+			/**
+			 * Makes sure the values in this object are specified correctly.
+			 * @throws RemoteException If this object or any of its nested objects are missing required values.
+			 */
+			public void assertValid() throws RemoteException
 			{
-				if (filter.filters == null || filter.filters.length == 0)
-					continue;
-				
-				if (sb.length() == 0)
-					sb.append(" WHERE ");
-				else
-					sb.append(" AND ");
-				
-				sb.append("(");
-				String quotedField = quoteSymbol(conn, filter.field);
+				if (f == null)
+					error("'f' cannot be null");
+				if ((v == null) == (r == null))
+					error("Either 'v' or 'r' must be set, but not both");
+			}
+			private void error(String message) throws RemoteException
+			{
+				throw new RemoteException("ColumnFilter: " + message);
+			}
+		}
+		
+		/**
+		 * Builds a WhereClause from nested filtering logic.
+		 * @param conn
+		 * @param filters
+		 * @return
+		 * @throws SQLException
+		 */
+		public static WhereClause<Object> fromFilters(Connection conn, NestedColumnFilters filters) throws SQLException
+		{
+			WhereClause<Object> where = new WhereClause<Object>("", new Vector<Object>());
+			StringBuilder sb = new StringBuilder(" WHERE ");
+			if (filters != null)
+				build(conn, sb, where.params, filters);
+			if (!where.params.isEmpty())
+				where.clause = sb.toString();
+			return where;
+		}
+		private static void build(Connection conn, StringBuilder clause, List<Object> params, NestedColumnFilters filters) throws SQLException
+		{
+			clause.append("(");
+			if (filters.cond != null)
+			{
+				String quotedField = quoteSymbol(conn, filters.cond.f.toString());
 				String stringCompare = null;
-				for (int i = 0; i < filter.filters.length; i++)
+				Object[] values = filters.cond.v != null ? filters.cond.v : filters.cond.r;
+				for (int i = 0; i < values.length; i++)
 				{
-					Object filterValue = filter.filters[i];
 					if (i > 0)
-						sb.append(" OR ");
+						clause.append(" OR ");
 					
-					if (filterValue instanceof List)
-						filterValue = ((List<?>)filterValue).toArray();
-					
-					if (filterValue.getClass().isArray())
+					if (values == filters.cond.v) // string value
 					{
-						// numeric range
-						sb.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
-						Object[] range = (Object[])filterValue;
-						result.params.add(range[0]);
-						result.params.add(range[1]);
-					}
-					else
-					{
-						// string value
 						if (stringCompare == null)
-							stringCompare = caseSensitiveCompare(conn, quotedField, "?");
-						sb.append(stringCompare);
-						result.params.add(filterValue);
+						{
+							stringCompare = String.format("%s = ?", quotedField);
+							//stringCompare = caseSensitiveCompare(conn, quotedField, "?");
+						}
+						clause.append(stringCompare);
+						params.add(values[i]);
+					}
+					else // numeric range
+					{
+						clause.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
+						Object[] range = (Object[])values[i];
+						params.add(range[0]);
+						params.add(range[1]);
 					}
 				}
-				sb.append(")");
 			}
-			result.clause = sb.toString();
-			return result;
+			else
+			{
+				NestedColumnFilters[] list = filters.and != null ? filters.and : filters.or;
+				int i = 0;
+				for (NestedColumnFilters item : list)
+				{
+					if (i > 0)
+						clause.append(list == filters.and ? " AND " : " OR ");
+					build(conn, clause, params, item);
+					i++;
+				}
+			}
+			clause.append(")");
 		}
 		
 		public WhereClause(String whereClause, List<V> params)

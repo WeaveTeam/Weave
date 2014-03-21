@@ -1,29 +1,35 @@
 angular.module('aws.directives.fileUpload', [])
-    .directive('fileUpload', function() {
-        return {
-          restrict: 'A',
-          link: function($scope, elem, attrs) {
+        .directive('fileUpload', function($q) {
+          return {
+            restrict: 'E',
+            template: "<label class='file-upload'>{{label}}<input type='file'/></label>",
+            replace: true,
+            link: function($scope, elem, attrs) {
+              var deferred;
+              $scope.label = attrs.label;
               $(elem).fileReader({
-                  "debugMode": true,
-                  "filereader": "lib/file-reader/filereader.swf"
+                "debugMode": true,
+                "filereader": "lib/file-reader/filereader.swf"
               });
-
-              $(elem).on("change", function(evt) {
-                  var file = evt.target.files[0];
-                  if(file.name.lenth < 3){
-                    return;
-                  }
-                  $scope.scriptToUpload = file.name;
-                  var reader = new FileReader();
-                  reader.onload = function(e) {
-                      $scope.fileToUpload = e.target.result;
-                      //$scope.$broadcast('fileUploaded');
-                  };
-                  reader.readAsText(file);
+              $(elem).on('click', function(args) {
+                deferred = $q.defer();
+                console.log(args);
+                $scope.fileUpload = deferred.promise;
               });
-//              $scope.$watch('scriptToUpload', function(){
-//                
-//              });
-          }
-        };
-    })
+              $(elem).find('input').on("change", function(evt) {
+                var file = evt.target.files[0];
+                if (file.name == undefined || file.name == "") {
+                  return;
+                }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                  var contents = {filename: file.name,
+                    contents: e.target.result};
+                  $scope.$safeApply(function() { deferred.resolve(contents); });
+                  
+                };
+                reader.readAsText(file);
+              });
+            }
+          };
+        });
