@@ -1998,11 +1998,15 @@ public class SQLUtils
 					cond.assertValid();
 				if (and != null)
 					for (NestedColumnFilters nested : and)
-						if (nested == null)
+						if (nested != null)
+							nested.assertValid();
+						else
 							throw new RemoteException("NestedColumnFilters: 'and' must not contain null items");
 				if (or != null)
 					for (NestedColumnFilters nested : or)
-						if (nested == null)
+						if (nested != null)
+							nested.assertValid();
+						else
 							throw new RemoteException("NestedColumnFilters: 'or' must not contain null items");
 			}
 		}
