@@ -54,6 +54,7 @@ package weave
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -65,7 +66,6 @@ package weave
 	import weave.visualization.layers.LinkableEventListener;
 	import weave.visualization.layers.filters.LinkableDropShadowFilter;
 	import weave.visualization.layers.filters.LinkableGlowFilter;
-
 
 	/**
 	 * A list of global settings for a Weave instance.
@@ -490,7 +490,7 @@ package weave
 		/**
 		 * @see weave.core.LinkableFunction#macroLibraries
 		 */
-		public function get macroLibraries():LinkableString { return LinkableFunction.macroLibraries; }
+		public function get macroLibraries():LinkableVariable { return LinkableFunction.macroLibraries; }
 		/**
 		 * @see weave.core.LinkableFunction#includeMacroLibrary
 		 */
