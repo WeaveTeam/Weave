@@ -50,28 +50,36 @@
 	var main = function(el, options) {
 		return el.each(function(i, input) {
 			input = $(input);
-			var id = input.attr('id');
-			if (!id) {
-				id = 'flashFileInput' + inputsCount;
-				input.attr('id', id);
+			var inputId = input.attr('id'),
+			label,
+			clickableElement;
+
+			if (!inputId) {
+				inputId = 'flashFileInput' + inputsCount;
 				inputsCount++;
 			}
+			label = input.parent('label');
+			clickableElement = label.length > 0 ? label : input;
+			clickableElement.attr('id', clickableElement.attr('id') || inputId);
+
+
 			options.multiple = !!(options.multiple === null ? input.attr('multiple') : options.multiple);
 			options.accept = options.accept === null ? input.attr('accept') : options.accept;
 			
-			FileAPIProxy.inputs[id] = input;
-			FileAPIProxy.swfObject.add(id, options.multiple, options.accept, options.label, options.extensions);
+			FileAPIProxy.inputs[inputId] = input;
+			FileAPIProxy.swfObject.add(clickableElement.attr('id'), options.multiple, options.accept, options.label, options.extensions);
 			
-			input.css('z-index', 0)
+
+			clickableElement.css('z-index', 0)
 				.mouseover(function (e) {
-					if (id !== currentTarget) {
+					if (inputId !== currentTarget) {
 						e = e || window.event;
-						currentTarget = id;
-						FileAPIProxy.swfObject.mouseover(id);
+						currentTarget = inputId;
+						FileAPIProxy.swfObject.mouseover(clickableElement.attr('id'));
 						FileAPIProxy.container
-							.height(input.outerHeight())
-							.width(input.outerWidth())
-							.css(input.offset());
+							.height(clickableElement.outerHeight())
+							.width(clickableElement.outerWidth())
+							.css(clickableElement.offset());
 					}
 				})
 				.click(function(e) {

@@ -41,6 +41,11 @@
 					</div>
 
 				</div>
+				<div style="width: 100%, height: 40px;">
+					<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{projectDescriptionStatement}}</h5>
+
+				</div>
+
 				<div class="dd" id="nestable3">
 					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
 						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems">
@@ -50,35 +55,40 @@
 							</div>
 							<div class= "dd3-content d-list-content">
 								<div style='inline-block'>
-									<ul>
+									<ul style="list-style:initial">
 										<li>
-											<b>Title: </b> {{item.title}}
+											<span class="prj-txt-lbl">Title: </span> 
+											<span class="prj-txt-val"> {{item.title}} </span>
 										</li>
 										<li>
-											<b>Date: </b>{{item.date}}
+											<span class="prj-txt-lbl">Date: </span>
+											<span class="prj-txt-val">{{item.date}}</span>
 										</li>
 										<li>
-											<b>Datatable: </b>{{item.dataTable.title}}
+											<span class="prj-txt-lbl">Datatable: </span>
+											<span class="prj-txt-val">{{item.dataTable.title}}</span>
 										</li>
 										<li>
-											<b>Script: </b> {{item.scriptSelected}}
+											<span class="prj-txt-lbl">Script: </span>
+											<span class="prj-txt-val">{{item.scriptSelected}}</span>
 										</li>
 										<li>
-											<b>Columns: </b> {{columnString}}
+											<span class="prj-txt-lbl">Columns: </span>
+											<span class="prj-txt-val">{{columnString}}</span>
 										</li>
 									</ul>
 								</div>
 								<div class="query-btn-holder">
-									<button ng-click = "runQueryInAnalysisBuilder()" style = "width : 30%" class ="btn btn-sm">
+									<button ng-click = "runQueryInAnalysisBuilder()" class ="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
 										Run Query
 									</button>
-									<button ng-click = "deleteSpecificQueryObject()" style = "width : 30%" class="btn btn-sm">
+									<button ng-click = "deleteSpecificQueryObject()" class="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
 										Delete the query
 									</button>
 									<!--button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button-->
-									<button style = "width : 30%; height: 100%"  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item)" type="button" class="btn btn-sm" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
+									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item)" type="button" class="btn btn-sm query-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
 									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
 										Open in editor
 									</button>

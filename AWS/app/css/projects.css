@@ -97,6 +97,7 @@
 
 	margin-left: 20px;
 	display: inline-block;
+	background-color: rgb(176, 192, 201);
 }
 
 .project-management .prj-contents .panel .widget-selectors .delete-project-button {
@@ -114,9 +115,36 @@
 	width: 95%;
 }
 
-.project-management .prj-contents .panel .aside-dialog{
+.project-management .prj-contents .panel .query-button {
+
+	width: 110px;
+	float: right;
+	display: inline-block;
+	margin-right: 10px;
+	background-color: rgb(139, 148, 163);
+	color: white;
+}
+
+.project-management .prj-contents .panel .aside-dialog {
 	height: 100% !important;
 }
+
+
+ .project-management .prj-contents .panel .prj-txt-lbl{
+ 
+ font-size: 12px;
+font-weight: 600;
+display: inline-block;
+width: 80px;
+ 	
+ }
+ 
+ .project-management .prj-contents .panel .prj-txt-val{
+ 
+ font-size: 12px;
+font-weight: 300;
+ 	
+ }
 
 .d-list-content {
 	list-style: none outside none;
@@ -134,7 +162,6 @@
 	display: block;
 	margin: 0;
 	padding: 0;
-	max-width: 600px;
 	list-style: none;
 	font-size: 13px;
 	line-height: 20px
@@ -264,7 +291,8 @@
 .dd3-content {
 	display: block;
 	margin: 5px 0;
-	padding: 6px 10px 8px 40px;
+	margin-bottom: 0px;
+	padding: 6px 10px 0px 40px;
 	font-size: 15px;
 	color: #333;
 	text-decoration: none;
@@ -342,4 +370,94 @@
 	top: 10px;
 	left: 10px;
 	z-index: 999
+}
+
+.file-button-text{
+
+
+color: black;
+}
+
+.file-nput-btn{
+
+top: 4px;
+right: 4px;
+float: none;
+height: 22px;
+margin: 0;
+padding: 0 14px;
+font-size: 13px;
+line-height: 22px;
+background-color: #3276B1;
+opacity: .8;
+transition: opacity .2s;
+-webkit-transition: opacity .2s;
+float: right;
+height: 31px;
+overflow: hidden;
+margin: 10px 0 0 5px;
+padding: 0 25px;
+outline: 0;
+border: 0;
+font: 300 15px/31px 'Open Sans',Helvetica,Arial,sans-serif;
+text-decoration: none;
+color: #fff;
+cursor: pointer;
+
+}
+
+
+.file-input-textbox{
+	display: block;
+-webkit-box-sizing: border-box;
+box-sizing: border-box;
+-moz-box-sizing: border-box;
+width: 100%;
+height: 32px;
+padding: 8px 10px;
+outline: 0;
+border-width: 1px;
+border-style: solid;
+border-radius: 0;
+background: #fff;
+font: 13px/16px 'Open Sans',Helvetica,Arial,sans-serif;
+color: #404040;
+appearance: normal;
+-moz-appearance: none;
+-webkit-appearance: none;
+border-color: #BDBDBD;
+transition: border-color .3s;
+-webkit-transition: border-color .3s;
+	} 
+
+.file-upload{
+	
+	
+top: 0;
+right: 0;
+padding: 0;
+font-size: 30px;
+cursor: pointer;
+opacity: 0;
+	
+	display: block;
+-webkit-box-sizing: border-box;
+box-sizing: border-box;
+-moz-box-sizing: border-box;
+width: 100%;
+height: 32px;
+padding: 8px 10px;
+outline: 0;
+border-width: 1px;
+border-style: solid;
+border-radius: 0;
+background: #fff;
+font: 13px/16px 'Open Sans',Helvetica,Arial,sans-serif;
+color: #404040;
+appearance: normal;
+-moz-appearance: none;
+-webkit-appearance: none;
+	
+}
+	
 }

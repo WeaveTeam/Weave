@@ -5,6 +5,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	$scope.maxTasks = 100;
 	$scope.progressValue = 0;
 	$scope.selectedColumnId;
+    $scope.fileUpload;
 	
 	var generateTree = function() {
 		queryService.getDataTableList().then(function(dataTableList) {
@@ -144,14 +145,11 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		var node = $("#tree").dynatree("getRoot");
 	    node.sortChildren(cmp, true);
 	};
-	
-	$scope.importQueryObject = function() {
-	
-	};
-			
-	$scope.$on('fileUploaded', function(e) {
-          $scope.$safeApply(function() {
-        	  var metadataArray = queryService.CSVToArray(e.targetScope.file);
+    
+	$scope.$watch('fileUpload', function(n, o) {
+            if ($scope.fileUpload && $scope.fileUpload.then) {
+              $scope.fileUpload.then(function(result) {
+                var metadataArray = queryService.CSVToArray(result.contents);
         	  if($scope.selectedColumnId) {
         		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
         			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
@@ -190,9 +188,14 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
         	  } else {
   					console.log("no selected tables");
         	  };
-            });
-	});
+              });
+            }
+          }, true);
+          
+	$scope.importQueryObject = function() {
 	
+	};
+		
 	var cmp = function(a, b) {
 		a = a.data.key;
 		b = b.data.key;

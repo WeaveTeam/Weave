@@ -1,38 +1,48 @@
 <div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 100%;" ng-controller = "projectAdditionController" >
-    <div class="aside-dialog">
-        <div class="aside-content">
-            <div class="aside-header" ng-show="title">
-                <button type="button" class="close" ng-click="$hide()">
-                    &times;
-                </button>
-                <span class="aside-title" ng-bind-html="title">{{title}}</span>
-            </div>
-            <div class="aside-body">
-            	Name of the Project <input ng-model = "projectName" type = "text" placeholder = "Enter a name for the project"></input>
-				<br></br>
-				Author of the Project<input ng-model = "userName" type = "text" placeholder = "Name of the author"></input>
-				<br></br>
-				Project Description<textarea ng-model = "projtDescription" style = "width:200px; overflow-y : scroll;" type = "text" placeholder = "Enter a brief project description"></textarea>
-				<br> </br>
+	<div class="aside-dialog">
+		<div class="aside-content">
+			<div class="aside-header" ng-show="title">
+				<button type="button" class="close" ng-click="$hide()">
+
+					&times;
+				</button>
+				<span class="aside-title" ng-bind-html="title">{{title}}</span>
+			</div>
+			<div class="aside-body">
+				Name of the Project
+				<input ng-model = "projectName" type = "text" placeholder = "Enter a name for the project">
+				</input>
+				<br>
+				</br>
+				Author of the Project
+				<input ng-model = "userName" type = "text" placeholder = "Name of the author">
+				</input>
+				<br>
+				</br>
+				Project Description 				<textarea ng-model = "projtDescription" style = "width:200px; overflow-y : scroll;" type = "text" placeholder = "Enter a brief project description"></textarea>
+				<br>
+				</br>
 				Query Objects (.json) files to include in the project
-				<br></br>
-				<div>
-					<b>{{uploadStatus}}</b>
-					<div style = "margin-left: 80px" class="file-upload">
-								<label for="queryUpload">Upload</label> 
-								<span class = "glyphicon glyphicon-upload"></span> 
-								<span class = "glyphicon glyphicon-plus-sign" ></span>
-								<input type="file" id="queryUpload" name="queryUpload"	ng-submit="uploadQueryObjects()" file-upload />
-					</div>
-				</div>
-           </div>
-			
-			<div class="aside-footer">
-                <button type="button" class= "btn btn-primary" style = "margin-left : 380px" ng-click = "saveNewProjectToDatabase()">
-                    Save
-                </button>
-				
-            </div>
-        </div>
-    </div>
+				<br>
+				</br>
+                    <b>{{uploadStatus}}</b>
+
+                    <file-upload label="Browse"></file-upload>
+
+
+
+	
+
+			</div>
+		</div>
+	</div>
+
+
+	<div class="aside-footer">
+		<button type="button" class= "btn btn-primary" style = "margin-left : 380px" ng-click = "saveNewProjectToDatabase()">
+			Save
+		</button>
+
+	</div>
 </div>
+
