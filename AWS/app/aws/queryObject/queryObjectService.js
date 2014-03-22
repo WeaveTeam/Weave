@@ -106,11 +106,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     };
     
     
-    this.insertQueryObjectToProject = function(userName, projectName, queryObjectTitle, queryObjectContent) {
+    this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
       	
     	var deferred = $q.defer();
 
-        aws.DataClient.insertQueryObject(userName, projectName, queryObjectTitle, queryObjectContent, function(result) {
+        aws.DataClient.insertQueryObject(userName, projectName, projectDescription,queryObjectTitle,  queryObjectContent, function(result) {
         	console.log("insertQueryObjectStatus", result);
         	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
         	scope.$safeApply(function() {

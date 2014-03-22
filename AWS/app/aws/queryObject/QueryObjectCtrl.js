@@ -2,6 +2,7 @@
  * Left Panel Module LeftPanelCtrl - Manages the model for the left panel.
  */
 //angular.module("aws.queryObject", [])
+
 QueryObject.controller("QueryObjectCtrl",
 		function($scope, $location, queryService, $q) {
 			

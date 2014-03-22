@@ -437,8 +437,8 @@ public class AWSRService extends RService
 			Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
 			queryNames[i] = singleSQLQueryObject.toString();
 			
-			projectDescription = (queryObjectsSQLresult.rows[i][2]).toString();//TODO find better way to do this
 		}
+		projectDescription = (queryObjectsSQLresult.rows[0][2]).toString();//TODO find better way to do this
 		
 		//getting json objects from queryObjectContent
 		JSONObject[] finalQueryObjects = null;
@@ -584,7 +584,7 @@ public class AWSRService extends RService
 		return count;//single row added
 	}
 	
-	public int insertMultipleQueryObjectInProjectFromDatabase(String userName, String projectName, String[] queryObjectTitle, String[] queryObjectContent) throws RemoteException, SQLException
+	public int insertMultipleQueryObjectInProjectFromDatabase(String userName, String projectName,String projectDescription, String[] queryObjectTitle, String[] queryObjectContent) throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
@@ -594,6 +594,7 @@ public class AWSRService extends RService
 			Map<String,Object> record = new HashMap<String, Object>();
 			record.put("userName", userName);
 			record.put("projectName", projectName);
+			record.put("projectDescription", projectDescription);
 			record.put("queryObjectTitle", queryObjectTitle[i]);
 			record.put("queryObjectContent", queryObjectContent[i]);
 			records.add(record);

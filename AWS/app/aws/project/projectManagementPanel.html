@@ -78,12 +78,12 @@
 										</li>
 									</ul>
 								</div>
-								<div class="query-btn-holder">
-									<button ng-click = "runQueryInAnalysisBuilder()" class ="btn btn-sm query-button">
+								<div class="query-btn-holder" ng-controller="RunQueryCtrl_2">
+									<button ng-click = "runQueryInAnalysisBuilder(item)" class ="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
 										Run Query
 									</button>
-									<button ng-click = "deleteSpecificQueryObject()" class="btn btn-sm query-button">
+									<button ng-click = "deleteSpecificQueryObject(item)" class="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
 										Delete the query
 									</button>

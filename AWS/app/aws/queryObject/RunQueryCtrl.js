@@ -2,9 +2,8 @@ var queryHandler = undefined;
 /**
  * RunQueryCtrl. This controller manages the run of queries.
  */
-//angular.module("aws.queryObject", [])
 
-QueryObject.controller("RunQueryCtrl", function($scope, queryService) {
+QueryObject.controller("RunQueryCtrl_2", function($scope, queryService) {
 			
 		$scope.runQuery = function(){
 			queryHandler = new aws.QueryHandler(queryService.queryObject);
