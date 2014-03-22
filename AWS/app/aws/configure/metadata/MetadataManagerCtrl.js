@@ -149,7 +149,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	$scope.$watch('fileUpload', function(n, o) {
             if ($scope.fileUpload && $scope.fileUpload.then) {
               $scope.fileUpload.then(function(result) {
-                var metadataArray = queryService.CSVToArray(e.targetScope.file);
+                var metadataArray = queryService.CSVToArray(result.contents);
         	  if($scope.selectedColumnId) {
         		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
         			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
