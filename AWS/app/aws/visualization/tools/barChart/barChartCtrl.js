@@ -1,14 +1,10 @@
 analysis_mod.controller("BarChartCtrl", function($scope, queryService){
 
-	queryService.queryObject.BarChartTool = { 
-											 enabled : false,
-											 heights : [],
-											 sort : "",
-											 label : "",
-											 enableTitle : false,
-											 title : ""
-											};
-
+	if(queryService.queryObject.Indicator.label) {
+		$scope.title = "Bar Chart of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
+		$scope.enableTitle = true;
+	}
+	
 	$scope.options = [];
 	
 	$scope.$watch(function(){

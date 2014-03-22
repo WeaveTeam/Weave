@@ -1,9 +1,4 @@
 analysis_mod.controller('IndicatorCtrl', function($scope, queryService){
-
-	queryService.queryObject.Indicator = {
-			id : "",
-			label : ""
-	};
 	
 	$scope.$watch(function() {
 		return 	queryService.dataObject.columns;
@@ -55,8 +50,10 @@ analysis_mod.controller('IndicatorCtrl', function($scope, queryService){
 	$scope.$watch(function() {
 		return queryService.queryObject.Indicator;
 	}, function() {
-		if(queryService.queryObject.Indicator.id != "" && queryService.queryObject.Indicator.label != "") {
-			$scope.indicSelection = angular.toJson(queryService.queryObject.Indicator);
+		if(queryService.queryObject.Indicator.hasOwnProperty("id") && queryService.queryObject.Indicator.hasOwnProperty("label")) {
+			if (queryService.queryObject.Indicator.id != "" && queryService.queryObject.Indicatorlabel != "") {
+				$scope.indicSelection = angular.toJson({ id : queryService.queryObject.Indicator.id, label : queryService.queryObject.Indicator.label });
+			}
 		}
 	});
 });

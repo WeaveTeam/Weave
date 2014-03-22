@@ -13,7 +13,15 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			title : "Beta Query Object",
 			date : new Date(),
     		author : "",
-			ComputationEngine : "R"
+			ComputationEngine : "R",
+			Indicator : {},
+			GeographyFilter : {},
+			TimePeriodFilter : {},
+			ByVariableFilter : [],
+			BarChartTool : {},
+			MapTool : {},
+			ScatterPlotTool : {},
+			DataTableTool : {}
 	};    		
     
 	this.dataObject = {};

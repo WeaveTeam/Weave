@@ -1,9 +1,4 @@
 analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
-	queryService.queryObject.TimePeriodFilter = {
-			filters : {},
-			yearColumn : {},
-			monthColumn : {}
-	};
 	
 	var timeTreeData;
 	

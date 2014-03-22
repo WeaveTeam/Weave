@@ -1,12 +1,10 @@
 analysis_mod.controller("ScatterPlotCtrl", function($scope, queryService) {
-	queryService.queryObject.ScatterPlotTool = { 
-											 enabled : false,
-											 X : "",
-											 Y : "",
-											 enableTitle : false,
-											 title : ""
-											};
 
+	if(queryService.queryObject.Indicator.label) {
+		$scope.title = "Scatter Plot of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
+		$scope.enableTitle = true;
+	}
+	
 	$scope.options = [];
 	
 	$scope.$watch(function(){
