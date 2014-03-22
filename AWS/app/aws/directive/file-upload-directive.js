@@ -2,7 +2,7 @@ angular.module('aws.directives.fileUpload', [])
         .directive('fileUpload', function($q) {
           return {
             restrict: 'E',
-            template: "<label class='file-upload'>{{label}}<input type='file'/></label>",
+            template: "<label class='file-nput-btn'>{{label}}<input class='file-upload' type='file'/></label>",
             replace: true,
             link: function($scope, elem, attrs) {
               var deferred;
@@ -33,3 +33,4 @@ angular.module('aws.directives.fileUpload', [])
             }
           };
         });
+        

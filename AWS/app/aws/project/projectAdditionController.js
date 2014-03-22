@@ -34,10 +34,10 @@ angular.module('aws.project')
             if ($scope.fileUpload && $scope.fileUpload.then) {
               $scope.fileUpload.then(function(result) {
                 $scope.uploadStatus = "";
-                fileCount++;
-                var countString = fileCount.toString();
-                console.log("fileUploaded", result);
-                $scope.uploadStatus = countString + " files uploaded";
+//                fileCount++;
+//                var countString = fileCount.toString();
+//                console.log("fileUploaded", result);
+                $scope.uploadStatus = result.filename+ " uploaded";
                 queryObjectJsons.push(result.contents);//filling up the json array
                 var jsonObject = JSON.parse(result.contents);
                 queryObjectTitles.push(jsonObject.title);
