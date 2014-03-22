@@ -1785,7 +1785,7 @@ public class SQLUtils
 	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, WhereClause<V> where) throws SQLException
 	{
 		// VERY IMPORTANT - do not delete if there are no records specified, because that would delete everything.
-		if (where.params.size() == 0)
+		if (Strings.isEmpty(where.clause))
 			return 0;
 		
 		PreparedStatement pstmt = null;
