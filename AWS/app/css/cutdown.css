@@ -1,3 +1,9 @@
+.spanClass{
+display: block;
+width: 100%;	
+}
+
+
 #loading {
 	width: 77px;
 	height: 20px;
