@@ -26,6 +26,7 @@ package weave.ui
 	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
 	import mx.controls.treeClasses.TreeListData;
+	import mx.controls.listClasses.IListItemRenderer;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
 	import mx.utils.ObjectUtil;
@@ -247,7 +248,18 @@ package weave.ui
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
-		
+
+		public function drawItemForced(item:Object,
+ 										selected:Boolean = false,
+ 										highlighted:Boolean = false,
+ 										caret:Boolean = false,
+ 										transition:Boolean = false):void
+		{
+			var renderer:IListItemRenderer = itemToItemRenderer(item);
+			drawItem(renderer, selected, highlighted, caret, transition);
+		}
+
+
 		private var _pendingScrollToIndex:int = -1;
 		override public function scrollToIndex(index:int):Boolean
 		{
