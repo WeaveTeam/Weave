@@ -55,7 +55,7 @@ package weave.ui
 			super.childrenCreated();
 			
 			dataDescriptor = new WeaveTreeDataDescriptor();
-			getCallbackCollection(this).addImmediateCallback(this, EventUtils.generateDelayedCallback(this, refresh, 100), true);
+			getCallbackCollection(this).addImmediateCallback(this, delayedRefresh, true);
 			labelFunction = getNodeLabel;
 			dataTipFunction = getNodeLabel;
 			selectedItemsCompareFunction = compareNodes;
@@ -71,6 +71,9 @@ package weave.ui
 			return node.getLabel();
 		}
 		
+		/**
+		 * Adds a context menu item "Select all child nodes"
+		 */
 		public function setupContextMenu():void
 		{
 			contextMenu = new ContextMenu();
@@ -97,31 +100,49 @@ package weave.ui
 			super.dataProvider = value;
 		}
 		
-		public function set rootNode(node:IWeaveTreeNode):void
-		{
-			dataProvider = _rootNode = node;
-		}
-		
+		/**
+		 * This is the root node of the tree.
+		 * Setting the rootNode will refresh the tree, even if it's the same object.
+		 */
 		public function get rootNode():IWeaveTreeNode
 		{
 			return _rootNode;
 		}
+		public function set rootNode(node:IWeaveTreeNode):void
+		{
+			if (_rootNode != node)
+				dataProvider = _rootNode = node;
+			else
+				delayedRefresh();
+		}
 		
 		override mx_internal function addChildItem(parent:Object, child:Object, index:Number):Boolean
 		{
-			if (parent == null)
-				parent = _rootNode;
-			return super.addChildItem(parent, child, index);
+			// replace null parent with rootNode
+			return super.addChildItem(parent || _rootNode, child, index);
 		}
 		
 		override mx_internal function removeChildItem(parent:Object, child:Object, index:Number):Boolean
 		{
-			if (parent == null)
-				parent = _rootNode;
-			return super.removeChildItem(parent, child, index);
+			// replace null parent with rootNode
+			return super.removeChildItem(parent || _rootNode, child, index);
 		}
 		
-		public function refresh():void
+		/**
+		 * This will refresh the tree and dispatch a change event.
+		 * @param immediately If this is set to true, the table will be refreshed immediately.
+		 *                    Otherwise there will be a small delay before the actual refresh happens.
+		 */
+		public function refresh(immediately:Boolean):void
+		{
+			if (immediately)
+				refreshImmediately();
+			else
+				delayedRefresh();
+		}
+		
+		private const delayedRefresh:Function = EventUtils.generateDelayedCallback(this, refreshImmediately, 100);
+		private function refreshImmediately():void
 		{
 			// Because we are not rendering the root node, we need to explicitly request the children from
 			// the root so that the children will be fetched.

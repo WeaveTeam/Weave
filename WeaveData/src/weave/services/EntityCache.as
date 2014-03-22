@@ -98,7 +98,7 @@ package weave.services
 		 */
 		public function invalidate(id:int, alsoInvalidateRelatives:Boolean = false):void
 		{
-			trace('invalidate',id, alsoInvalidateRelatives, entityCache[id]);
+			//trace('invalidate',id, alsoInvalidateRelatives, entityCache[id]);
 			callbacks.delayCallbacks();
 			
 			// trigger callbacks if we haven't previously decided to fetch this id

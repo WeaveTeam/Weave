@@ -93,19 +93,20 @@
 											columnDisplayGrid.dataProvider = column.keys;
 											keyColumn.keyType.value = column.getMetadata(ColumnMetadata.KEY_TYPE);
 											var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
-											dataColumn.setMetadata(<attribute {ColumnMetadata.TITLE}={
-												dataType ? lang("Value ({0})", dataType) : lang("Value")
-											}/>);
+											var metadata:Object = {};
+											metadata[ColumnMetadata.TITLE] = dataType ? lang("Value ({0})", dataType) : lang("Value");
+											dataColumn.setMetadata(metadata);
 										},
 										true
 									);
 									BindingUtils.bindSetter(
-										function(selectedIndex:int):void
+										function(selectedItem:IWeaveTreeNode):void
 										{
-											columnDisplay.visible = columnDisplay.includeInLayout = selectedIndex >= 0;
+											var ref:IColumnReference = selectedItem as IColumnReference;
+											columnDisplay.visible = columnDisplay.includeInLayout = ref && ref.getColumnMetadata() != null;
 										},
 										browser.explorer.fileView,
-										'selectedIndex'
+										'selectedItem'
 									);
 								]]>
 							</CustomDataGrid:creationComplete>
@@ -132,6 +133,9 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import weave.api.data.IColumnReference;
+				import weave.api.data.IWeaveTreeNode;
+				import weave.utils.EventUtils;
 				import weave.api.data.IAttributeColumn;
 				import weave.api.linkableObjectIsBusy;
 				import weave.compiler.StandardLib;

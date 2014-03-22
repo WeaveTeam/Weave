@@ -84,8 +84,8 @@
 			
 			public function set rootNode(node:IWeaveTreeNode):void
 			{
-				rootWatcher.target = node as ILinkableObject;
 				folderView.rootNode = node;
+				rootWatcher.target = node as ILinkableObject;
 			}
 			
 			public function get selectedFolder():IWeaveTreeNode
@@ -193,6 +193,8 @@
 				if (event.keyCode == Keyboard.RIGHT && selectedFolder && !selectedFolder.hasChildBranches())
 				{
 					fileView.setFocus();
+					if (!fileView.selectedItem)
+						fileView.selectedIndex = 0;
 					event.preventDefault();
 				}
 			}
@@ -211,9 +213,18 @@
 				// press LEFT on folder in file view -> go to parent folder or close file view if there is no parent folder
 				if (event.keyCode == Keyboard.LEFT)
 				{
-					var parent:IWeaveTreeNode = folderView.getParentItem(selectedFolder) as IWeaveTreeNode;
+					var folder:IWeaveTreeNode = selectedFolder;
+					var parent:IWeaveTreeNode = folderView.getParentItem(folder) as IWeaveTreeNode;
 					if (parent)
+					{
+						// go up a folder
 						folderView.selectedItem = parent;
+						folderView.scrollToSelectedItem();
+						// select the folder we just came from
+						refreshFiles();
+						fileView.selectedItem = folder;
+						fileView.scrollToSelectedItem();
+					}
 					else
 					{
 						folderView.selectedItem = null;

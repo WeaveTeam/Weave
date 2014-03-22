@@ -43,7 +43,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.charts.chartClasses.IColumn;
 			
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
@@ -77,7 +76,14 @@
 			
 			public function set dataSource(ds:IDataSource):void
 			{
-				explorer.rootNode = ds.getHierarchyRoot();
+				dataSourceWatcher.target = ds;
+			}
+			private const dataSourceWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleDataSource);
+			private function handleDataSource():void
+			{
+				var ds:IDataSource = dataSourceWatcher.target as IDataSource;
+				explorer.rootNode = ds ? ds.getHierarchyRoot() : null;
+				explorer.folderView.showRoot = !!ds;
 			}
 			
 			override protected function createChildren():void

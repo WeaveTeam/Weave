@@ -159,7 +159,7 @@
 	 */
 	private function refreshTableTree():void
 	{
-		tableTree.refresh();
+		tableTree.refresh(true);
 		if (tableTree.selectedItem && !tableTree.itemToItemRenderer(tableTree.selectedItem))
 			tableTree.scrollToSelectedItem();
 	}

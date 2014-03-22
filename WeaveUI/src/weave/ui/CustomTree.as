@@ -49,6 +49,16 @@ package weave.ui
 			addEventListener("scroll", updateHScrollLater);
 		}
 		
+		override public function set showRoot(value:Boolean):void
+		{
+			super.showRoot = value;
+			if (value && _rootItem)
+			{
+				commitProperties();
+				expandItem(_rootItem, true);
+			}
+		}
+		
 		override protected function addDragData(dragSource:Object):void
 		{
 			dragSource.addHandler(copySelectedItems, "items");

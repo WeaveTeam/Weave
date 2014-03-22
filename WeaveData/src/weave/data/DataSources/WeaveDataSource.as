@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -83,6 +84,7 @@ package weave.data.DataSources
 		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
+		public const rootId:LinkableVariable = newLinkableChild(this, LinkableVariable);
 		
 		/**
 		 * This is an Array of public metadata field names that should be used to uniquely identify columns when querying the server.
@@ -112,16 +114,56 @@ package weave.data.DataSources
 		 */
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			if (_attributeHierarchy.value === null)
+			// backwards compatibility
+			if (_attributeHierarchy.value !== null)
+				return super.getHierarchyRoot();
+			
+			var id:Object = rootId.getSessionState();
+			var isNumber:Boolean = typeof id == 'number';
+			var isObject:Boolean = id != null && typeof id == 'object';
+			
+			if (!isNumber && !isObject)
 			{
+				// no valid id specified
 				if (!(_rootNode is RootNode_TablesAndGeoms))
 					_rootNode = new RootNode_TablesAndGeoms(this);
 				return _rootNode;
 			}
-			else
+			
+			var node:EntityNode = _rootNode as EntityNode;
+			if (!node)
+				_rootNode = node = new EntityNode();
+			node.setEntityCache(entityCache);
+			
+			if (isNumber)
 			{
-				return super.getHierarchyRoot();
+				node.id = id as Number;
 			}
+			else if (detectLinkableObjectChange(getHierarchyRoot, rootId))
+			{
+				node.id = -1;
+				var query:EntitySearchCriteria = new EntitySearchCriteria();
+				query.publicMetadata = id;
+				addAsyncResponder(_service.findEntityIds(query), handleRootId, null, rootId.triggerCounter);
+			}
+			
+			return _rootNode;
+		}
+		private function handleRootId(event:ResultEvent, triggerCount:int):void
+		{
+			var node:EntityNode = getHierarchyRoot() as EntityNode;
+			if (!node || rootId.triggerCounter != triggerCount)
+				return;
+			var ids:Array = event.result as Array || [];
+			if (!ids.length)
+			{
+				reportError("No entity matches specified rootId: " + Compiler.stringify(rootId.getSessionState()));
+				return;
+			}
+			if (ids.length > 1)
+				reportError("Multiple entities (" + ids.length + ") match specified rootId: " + Compiler.stringify(rootId.getSessionState()));
+			node.id = ids[0];
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public function getRows(keys:Array):AsyncToken
