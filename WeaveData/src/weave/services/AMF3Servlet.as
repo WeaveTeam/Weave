@@ -24,6 +24,7 @@ package weave.services
 	import mx.rpc.AsyncToken;
 	
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 
 	/**
 	 * This is an extension of Servlet that deserializes AMF3 result objects and handles special cases where an ErrorMessage is returned.
@@ -32,6 +33,8 @@ package weave.services
 	 */	
 	public class AMF3Servlet extends Servlet
 	{
+		public static var debug:Boolean = false;
+		
 		/**
 		 * @param servletURL The URL of the servlet (everything before the question mark in a URL request).
 		 * @param methodParamName This is the name of the URL parameter that specifies the method to be called on the servlet.
@@ -53,6 +56,9 @@ package weave.services
 		 */
 		override public function invokeAsyncMethod(methodName:String, methodParameters:Object = null):AsyncToken
 		{
+			if (debug)
+				trace('RPC', methodName, Compiler.stringify(methodParameters));
+			
 			var pt:ProxyAsyncToken = new ProxyAsyncToken(super.invokeAsyncMethod, arguments, readCompressedObject);
 			pt.invoke();
 			return pt;
