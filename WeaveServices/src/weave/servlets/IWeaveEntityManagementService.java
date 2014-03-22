@@ -60,20 +60,19 @@ public interface IWeaveEntityManagementService
 	 * @param metadata Metadata for the new entity.
 	 * @param parentId The parent entity ID, or -1 for no parent.
 	 * @param insertAtIndex Specifies insertion index for sort order.
-	 * @return RPC token for an entity ID.
+	 * @return An entity ID.
 	 */
 	public int newEntity(String user, String pass, DataEntityMetadata metadata, int parentId, int index) throws RemoteException;
 	/**
 	 * Removes entities and their children recursively.
 	 * @param entityIds A list of entity IDs to remove.
-	 * @return RPC token for an Array of entity IDs that were removed.
+	 * @return An Array of entity IDs that were removed.
 	 */
 	public int[] removeEntities(String user, String pass, int[] entityIds) throws RemoteException;
 	/**
 	 * Updates the metadata for an existing entity.
 	 * @param entityId An entity ID.
 	 * @param diff Specifies the changes to make to the metadata.
-	 * @return RPC token.
 	 */
 	public void updateEntity(String user, String pass, int entityId, DataEntityMetadata diff) throws RemoteException;
 	/**
@@ -81,14 +80,13 @@ public interface IWeaveEntityManagementService
 	 * @param parentId The ID of the parent entity.
 	 * @param childId The ID of the child entity.
 	 * @param insertAtIndex Specifies insertion index for sort order.
-	 * @return RPC token.
+	 * @return A list of IDs whose relationships have changed as a result of adding the parent-child relationship.
 	 */
-	public void addParentChildRelationship(String user, String pass, int parentId, int childId, int index) throws RemoteException;
+	public int[] addParentChildRelationship(String user, String pass, int parentId, int childId, int index) throws RemoteException;
 	/**
 	 * Removes a parent-child relationship from the server-side entity hierarchy table.
 	 * @param parentId The ID of the parent entity.
 	 * @param childId The ID of the child entity.
-	 * @return RPC token.
 	 */
 	public void removeParentChildRelationship(String user, String pass, int parentId, int childId) throws RemoteException;
 }

@@ -19,6 +19,8 @@
 
 package weave.api.services.beans
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.services.beans.EntityMetadata;
 
@@ -63,7 +65,7 @@ package weave.api.services.beans
 		 */		
 		public function get initialized():Boolean
 		{
-			return id != -1;
+			return id != -1 && parentIds && childIds;
 		}
 		
 		public function getEntityType():String
@@ -73,6 +75,8 @@ package weave.api.services.beans
 		
 		public function hasParent(parentId:int):Boolean
 		{
+			if (!parentIds)
+				return false;
 			if (!_hasParent)
 			{
 				_hasParent = {};
@@ -84,6 +88,8 @@ package weave.api.services.beans
 		
 		public function hasChild(childId:int):Boolean
 		{
+			if (!childIds)
+				return false;
 			if (!_hasChild)
 			{
 				_hasChild = {};
@@ -91,6 +97,11 @@ package weave.api.services.beans
 					_hasChild[cid] = true;
 			}
 			return _hasChild[childId];
+		}
+		
+		override public function toString():String
+		{
+			return ObjectUtil.toString(this);
 		}
 	}
 }

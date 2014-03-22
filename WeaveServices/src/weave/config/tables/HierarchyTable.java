@@ -170,30 +170,6 @@ public class HierarchyTable extends AbstractTable
 	}
 	
 	/**
-	 * Checks if an entity has no parents.
-	 * @param id
-	 * @return
-	 * @throws RemoteException
-	 */
-	public boolean isOrphan(int id) throws RemoteException
-	{
-		for (Relationship r : getRelationships(id))
-			if (r.childId == id)
-				return false;
-		return true;
-	}
-	
-	/**
-	 * Gets a list of parent-child relationships for an entity.
-	 * @param id An entity ID.
-	 * @return An ordered list of parent-child relationships involving the specified entity.
-	 */
-	public RelationshipList getRelationships(int id) throws RemoteException
-	{
-		return getRelationships(Arrays.asList(id));
-	}
-	
-	/**
 	 * Gets a list of parent-child relationships for a set of entities.
 	 * @param ids A collection of entity IDs.
 	 * @return An ordered list of parent-child relationships involving the specified entities.

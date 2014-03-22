@@ -70,6 +70,7 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.DataConfig.Relationship;
 import weave.config.DataConfig.RelationshipList;
 import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
@@ -564,10 +565,13 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	//////////////////////////
 	// DataEntity management
 	
-	public void addParentChildRelationship(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
+	/**
+	 * @return A list of IDs whose relationships have changed as a result of adding the parent-child relationship.
+	 */
+	public int[] addParentChildRelationship(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		getDataConfig().buildHierarchy(parentId, childId, insertAtIndex);
+		return ListUtils.toIntArray( getDataConfig().buildHierarchy(parentId, childId, insertAtIndex) );
 	}
 
 	public void removeParentChildRelationship(String user, String password, int parentId, int childId) throws RemoteException
@@ -1516,16 +1520,13 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				Set<Integer> columnIds = new HashSet<Integer>();
 				for (ColumnInfo info : columnInfoList)
 					columnIds.add(info.existingColumnId);
-				// get parents of matching column ids
-				Map<Integer,String> typeMap = dataConfig.getEntityTypes(dataConfig.getRelationships(columnIds).getParentIds());
-				List<Integer> sortedParentIds = new ArrayList<Integer>(typeMap.keySet());
-				Collections.sort(sortedParentIds);
 				// find first matching parent table id
-				for (int id : sortedParentIds)
+				for (Relationship r : dataConfig.getRelationships(columnIds))
 				{
-					if (Strings.equal(typeMap.get(id), EntityType.TABLE))
+					String parentType = dataConfig.getEntityTypes(Arrays.asList(r.parentId)).get(r.parentId);
+					if (Strings.equal(parentType, EntityType.TABLE))
 					{
-						existingTableId = id;
+						existingTableId = r.parentId;
 						break;
 					}
 				}
@@ -1854,7 +1855,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			{
 				// see if the existing geometry column has the same parent table
 				boolean foundSameTableId = false;
-				for (int parentId : dataConfig.getRelationships(existingGeomId).getParentIds(existingGeomId))
+				for (int parentId : dataConfig.getParentIds(existingGeomId))
 					if (parentId == tableId)
 						foundSameTableId = true;
 				// if it does not have the same parent table, clear the existingGeomId
@@ -1939,7 +1940,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	{
 		authenticate(user, password);
 		DataConfig config = getDataConfig();
-		Collection<Integer> ids = config.getRelationships(table_id).getChildIds(table_id);
+		Collection<Integer> ids = config.getChildIds(table_id);
 		DataEntity[] columns = config.getEntities(ids).toArray(new DataEntity[0]);
 		String query = null;
 		for (DataEntity entity : columns)

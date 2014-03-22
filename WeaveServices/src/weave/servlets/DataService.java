@@ -898,7 +898,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 */
 	@Deprecated public int[] getEntityChildIds(int parentId) throws RemoteException
 	{
-		return ListUtils.toIntArray( getDataConfig().getRelationships(parentId).getChildIds(parentId) );
+		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
 	}
 	
 	/**
@@ -907,7 +907,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 */
 	@Deprecated public int[] getParents(int childId) throws RemoteException
 	{
-		int[] ids = ListUtils.toIntArray( getDataConfig().getRelationships(childId).getParentIds(childId) );
+		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(childId) );
 		Arrays.sort(ids);
 		return ids;
 	}

@@ -52,7 +52,7 @@ package weave.api.services
 		 * @param parentId The ID of the parent entity.
 		 * @param childId The ID of the child entity.
 		 * @param insertAtIndex Specifies insertion index for sort order.
-		 * @return RPC token.
+		 * @return RPC token for an Array of entity IDs whose relationships have changed as a result of adding the parent-child relationship.
 		 */
 		function addParentChildRelationship(parentId:int, childId:int, insertAtIndex:int):AsyncToken;
 		/**

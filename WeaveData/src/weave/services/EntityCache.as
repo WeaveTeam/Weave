@@ -79,6 +79,7 @@ package weave.services
 		 */
 		public function invalidate(id:int, alsoInvalidateRelatives:Boolean = false):void
 		{
+			trace('invalidate',id, alsoInvalidateRelatives, entityCache[id]);
 			callbacks.delayCallbacks();
 			
 			// trigger callbacks if we haven't previously decided to fetch this id
@@ -155,7 +156,7 @@ package weave.services
 			
 			if (adminService && idsToRemove.length)
 			{
-				addAsyncResponder(adminService.removeEntities(idsToRemove), handleRemoveEntities);
+				addAsyncResponder(adminService.removeEntities(idsToRemove), handleIdsToInvalidate, null, true);
 				idsToDelete = {};
 			}
 			
@@ -194,12 +195,12 @@ package weave.services
 			}
         }
 		
-		private function handleRemoveEntities(event:ResultEvent, token:Object):void
+		private function handleIdsToInvalidate(event:ResultEvent, alsoInvalidateRelatives:Boolean):void
 		{
 			callbacks.delayCallbacks();
 			
 			for each (var id:int in event.result as Array)
-				invalidate(id, true);
+				invalidate(id, alsoInvalidateRelatives);
 			
 			callbacks.resumeCallbacks();
 		}
@@ -222,6 +223,10 @@ package weave.services
 			
 			for each (entity in event.result)
 			{
+				if (!entity.parentIds)
+					entity.parentIds = [];
+				if (!entity.childIds)
+					entity.childIds = [];
 				id = entity.id;
 				entityCache[id] = entity;
 				idsDirty[id] = false;
@@ -396,7 +401,7 @@ package weave.services
 				delete idsToDelete[child_id];
 				return;
 			}
-			adminService.addParentChildRelationship(parent_id, child_id, index);
+			addAsyncResponder(adminService.addParentChildRelationship(parent_id, child_id, index), handleIdsToInvalidate, null, false);
 			invalidate(parent_id);
         }
         public function remove_child(parent_id:int, child_id:int):void
@@ -407,11 +412,11 @@ package weave.services
 				return;
 			}
 			
-			// remove from root not supported, but invalidate root anyway in case the child is added via add_child later
+			// remove from root means delete
 			if (parent_id == ROOT_ID)
 			{
-				idsToDelete[child_id] = true;
-				invalidate(ROOT_ID);
+				// delete will actually take effect later - this allows it to be copied to a new parent before it is removed
+				delete_entity(child_id);
 			}
 			else
 			{

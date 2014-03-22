@@ -168,6 +168,14 @@ public class DataConfig
         }
     }
     
+    /**
+     * Creates a new entity and adds it as a child of another entity.
+     * @param properties Metadata for the new entity.
+     * @param parent_id The ID of the parent entity to which the new entity should be added as a child, or NULL for no parent.
+     * @param insert_at_index The new entity's child index, or NULL to add it to the end.
+     * @return The new entity's ID.
+     * @throws RemoteException
+     */
     public int newEntity(DataEntityMetadata properties, int parent_id, int insert_at_index) throws RemoteException
     {
     	detectChange();
@@ -196,22 +204,43 @@ public class DataConfig
         	hierarchy.addChild(parent_id, id, insert_at_index);
         return id;
     }
+    
+    /**
+     * Removes entities.
+     * @param ids A list of IDs specifying entities to remove.
+     * @return A collection of IDs that were removed.
+     * @throws RemoteException
+     */
     public Collection<Integer> removeEntities(Collection<Integer> ids) throws RemoteException
     {
     	detectChange();
-    	Collection<Integer> removed = new LinkedList<Integer>(ids);
+    	Collection<Integer> removed = new HashSet<Integer>(ids);
     	Map<Integer, String> entityTypes = getEntityTypes(ids);
+    	Set<Integer> childIdsToRemove = new HashSet<Integer>();
     	for (int id : ids)
     	{
-    		if (Strings.isEmpty(entityTypes.get(id)))
-    			throw new RemoteException("Entity #" + id + " does not exist");
-    		// remove all children
-	        if (Strings.equal(entityTypes.get(id), EntityType.TABLE))
-	            removed.addAll( removeEntities( hierarchy.getRelationships(id).getChildIds(id) ) );
+    		if (Strings.equal(entityTypes.get(id), EntityType.TABLE))
+	        {
+	        	// remove all children from table
+	        	childIdsToRemove.addAll( getChildIds(id) );
+	        }
+	        else // not a table
+	        {
+	        	// remove only non-column children
+	        	Map<Integer,String> childTypes = getEntityTypes(getChildIds(id));
+	        	for (int childId : childTypes.keySet())
+	        		if (!Strings.equal(childTypes.get(childId), EntityType.COLUMN))
+	        			childIdsToRemove.add(childId);
+	        }
+	        
 	        hierarchy.purge(id);
 	        public_metadata.removeAllProperties(id);
 	        private_metadata.removeAllProperties(id);
     	}
+    	
+    	if (childIdsToRemove.size() > 0)
+    		removed.addAll( removeEntities(childIdsToRemove) );
+    	
     	return removed;
     }
     /**
@@ -309,89 +338,118 @@ public class DataConfig
     }
     
     /**
+     * Adds a copy of an existing child to a parent.
      * @param parentId An existing parent to add a child hierarchy to.
      * @param childId An existing child to copy the hierarchy of.
      * @param insertAtIndex Identifies a child of the parent to insert the new child before.
+	 * @return A collection of IDs whose relationships have changed as a result of modifying the hierarchy.
      * @throws RemoteException
      */
-    public void buildHierarchy(int parentId, int childId, int insertAtIndex) throws RemoteException
+    public Collection<Integer> buildHierarchy(int parentId, int childId, int insertAtIndex) throws RemoteException
     {
-		detectChange();
+    	detectChange();
+    	return buildHierarchy(parentId, childId, insertAtIndex, new HashSet<Integer>());
+    }
+    
+    /**
+     * @private
+     * @see #buildHierarchy(int, int, int)
+     */
+    private Collection<Integer> buildHierarchy(int parentId, int childId, int insertAtIndex, Set<Integer> ignoreList) throws RemoteException
+    {
+    	// prevent infinite recursion
+    	if (ignoreList.contains(childId))
+    		return Collections.emptySet();
 		
+    	Set<Integer> affectedIds = new HashSet<Integer>();
 		int newChildId;
 		Map<Integer,String> types = getEntityTypes(Arrays.asList(parentId, childId));
 		String parentType = types.get(parentId);
 		String childType = types.get(childId);
+		RelationshipList childRelationships = hierarchy.getRelationships(Arrays.asList(childId));
+		
+		//boolean isTable = Strings.equal(childType, EntityType.TABLE);
+		boolean isColumn = Strings.equal(childType, EntityType.COLUMN);
+		boolean isHierarchy = Strings.equal(childType, EntityType.HIERARCHY);
+		boolean isCategory = Strings.equal(childType, EntityType.CATEGORY);
+		boolean isOrphan = childRelationships.getParentIds(childId).isEmpty();
 
-		if (parentId == NULL) // parent is root
+		if (Strings.equal(parentType, EntityType.COLUMN))
 		{
-			if (Strings.equal(childType, EntityType.COLUMN))
+			throw new RemoteException("Cannot add children to a column entity.");
+		}
+		else if (parentId == NULL) // parent is root
+		{
+			if (isColumn) // root > column
 			{
 				// create a new blank hierarchy to contain the child
-				DataEntityMetadata dem = new DataEntityMetadata();
-				dem.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
-				parentId = newEntity(dem, NULL, NULL);
+				DataEntityMetadata metadata = new DataEntityMetadata();
+				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
+				parentId = newEntity(metadata, NULL, NULL);
 				// recursive call with new parent id
-				buildHierarchy(parentId, childId, 0);
-				return; // done
+				return buildHierarchy(parentId, childId, NULL, ignoreList);
 			}
-			else if (Strings.equal(childType, EntityType.HIERARCHY))
+			else if (isHierarchy) // root > hierarchy
 			{
 				// hierarchies are always at root, so do nothing.
-				return;
+				return Collections.emptySet();
 			}
-			else // child is not a column or a hierarchy
+			else if (isOrphan && isCategory) // root > category
+			{
+				// ok to convert orphan category to hierarchy
+				newChildId = childId;
+				// update entityType to hierarchy
+				DataEntityMetadata metadata = new DataEntityMetadata();
+				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
+				updateEntity(childId, metadata);
+			}
+			else // root > non-column
 			{
 				// copy the child as a hierarchy
-				DataEntityMetadata dem = getEntity(childId);
-				dem.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
-				newChildId = newEntity(dem, NULL, NULL);
+				DataEntityMetadata metadata = getEntity(childId);
+				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
+				newChildId = newEntity(metadata, NULL, NULL);
 			}
 		}
-		else // parent is not root
+		else // parent is non-column non-root
         {
-			if (Strings.equal(childType, EntityType.COLUMN)) // child is a column
+			if (isColumn) // add child column
 			{
 				// columns can be added directly to new parents
 				newChildId = childId;
 			}
-			else if (Strings.equal(childType, EntityType.CATEGORY) && hierarchy.isOrphan(childId))
+			else if (isOrphan && isCategory) // add child orphan category
 			{
-				// ok to use existing child category since it has no parents
+				// ok to use orphan category
 				newChildId = childId;
 			}
-			else // need to make a copy
+			else // add child non-column
 			{
 				// copy as a new category
-				DataEntityMetadata dem = getEntity(childId);
-				dem.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.CATEGORY);
-				newChildId = newEntity(dem, parentId, insertAtIndex);
+				DataEntityMetadata metadata = getEntity(childId);
+				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.CATEGORY);
+				newChildId = newEntity(metadata, parentId, insertAtIndex);
 			}
 		}
 		
 		if (newChildId != childId)
 		{
+			// prevent infinite recursion
+			ignoreList.add(newChildId);
 			// recursively copy each child hierarchy element
-			int order = 0;
-			for (int grandChildId : hierarchy.getRelationships(childId).getChildIds(childId))
+			for (int grandChildId : childRelationships.getChildIds(childId))
 				if (grandChildId != newChildId)
-					buildHierarchy(newChildId, grandChildId, order++);
+					affectedIds.addAll( buildHierarchy(newChildId, grandChildId, NULL, ignoreList) );
 		}
 		
 		// add new child to parent
+		affectedIds.add(newChildId);
 		if (parentId != NULL)
 		{
-			// make sure hierarchy relationship is acceptable
-			if (!DataEntity.parentChildRelationshipAllowed(parentType, childType))
-			{
-				throw new RemoteException(String.format(
-						"Invalid parent-child relationship (parent#%s=%s, child#%s=%s).",
-						parentId, parentType,
-						childId, childType
-				));
-			}
+			affectedIds.add(parentId);
 			hierarchy.addChild(parentId, newChildId, insertAtIndex);
 		}
+		return affectedIds;
     }
     
     public void removeChild(int parent_id, int child_id) throws RemoteException
@@ -414,12 +472,31 @@ public class DataConfig
     	return getEntityTypes(Arrays.asList(entityId)).get(entityId);
     }
     
-    public RelationshipList getRelationships(int id) throws RemoteException
+    /**
+     * Shortcut for getRelationships(Arrays.asList(id)).getParentIds(id).
+     * If you need this information for multiple IDs, use getRelationships() instead.
+     * @see #getRelationships(Collection)
+     */
+    public List<Integer> getParentIds(int id) throws RemoteException
     {
-    	detectChange();
-        return hierarchy.getRelationships(id);
+    	return getRelationships(Arrays.asList(id)).getParentIds(id);
     }
     
+    /**
+     * Shortcut for getRelationships(Arrays.asList(id)).getChildIds(id).
+     * If you need this information for multiple IDs, use getRelationships() instead.
+     * @see #getRelationships(Collection)
+     */
+    public List<Integer> getChildIds(int id) throws RemoteException
+    {
+    	return getRelationships(Arrays.asList(id)).getChildIds(id);
+    }
+    
+	/**
+	 * Gets a list of parent-child relationships for a set of entities.
+	 * @param ids A collection of entity IDs.
+	 * @return An ordered list of parent-child relationships involving the specified entities.
+	 */
     public RelationshipList getRelationships(Collection<Integer> ids) throws RemoteException
     {
     	detectChange();
@@ -675,17 +752,6 @@ public class DataConfig
 			for (Relationship r : this)
 				if (r.childId == childId)
 					ids.add(r.parentId);
-			return ids;
-		}
-		/**
-		 * Gets a list of all parent IDs appearing in this list of Relationship objects.
-		 * @return A list of entity IDs.
-		 */
-		public List<Integer> getParentIds()
-		{
-			List<Integer> ids = new LinkedList<Integer>();
-			for (Relationship r : this)
-				ids.add(r.parentId);
 			return ids;
 		}
 	}

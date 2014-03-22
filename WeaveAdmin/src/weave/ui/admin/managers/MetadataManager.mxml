@@ -46,7 +46,7 @@
 	        <mx:HBox width="100%">
 		        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
 	            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
-	            <mx:Button label="{lang('Remove')}" click="removeHierarchy()" enabled="{hierarchyTree.selectedItem}"/>
+	            <mx:Button label="{lang('Delete')}" click="deleteHierarchy()" enabled="{hierarchyTree.selectedItem}"/>
 	        </mx:HBox>
 		</mx:VBox>
     </mx:VBox>
@@ -60,6 +60,7 @@
 	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
+	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.StandardLib;
@@ -72,13 +73,13 @@
 	import weave.utils.PopUpUtils;
 	import weave.utils.VectorUtils;
 	
+    [Bindable] public var selectedItems:Array = [];
+	
 	private function categoryOrHierarchyLabel(hierarchyTreeSelectedItems:Array):String
 	{
 		return hierarchyTreeSelectedItems.length == 1 ? 'category' : 'hierarchy';
 	}
 
-    [Bindable] public var selectedItems:Array = [];
-	
 	override protected function childrenCreated():void
 	{
 		super.childrenCreated();
@@ -305,9 +306,8 @@
         function deleteTableFunction():void
         {
 			for each (var item:EntityNode in tableTree.selectedItems)
-			{
 				Admin.entityCache.delete_entity(item.id);
-	        }
+			
 			tableTree.selectedItem = null;
 		}
     }
@@ -353,48 +353,58 @@
 		else if (!otherTree.selectedItem)
 			this.selectedItems = []; // neither tree has selection
     }
-    public function removeHierarchy():void
+    public function deleteHierarchy(confirmed:Boolean = false):void
     {
-		for each (var item:EntityNode in hierarchyTree.selectedItems)
+		var item:EntityNode;
+		if (!confirmed)
 		{
-			if (item.getEntity().getEntityType() == EntityType.HIERARCHY)
+			for each (item in hierarchyTree.selectedItems)
 			{
-	            PopUpUtils.confirm(
-					this,
-					lang("Remove hierarchy items"),
-					lang('You have selected some root hierarchies.  Remove all selected items?'),
-					removeImmediately,
-					null,
-					lang("Remove"),
-					lang("Cancel")
-				);
-				return;
+				if (item.getEntity().getEntityType() == EntityType.HIERARCHY)
+				{
+		            PopUpUtils.confirm(
+						this,
+						lang("Remove hierarchy items"),
+						lang('You have selected some root hierarchies.  Remove all selected items?'),
+						function():void { deleteHierarchy(true); },
+						null,
+						lang("Remove"),
+						lang("Cancel")
+					);
+					return;
+				}
 			}
 		}
-		removeImmediately();
-	}
-	private function removeImmediately():void
-	{
-		for each (var item:EntityNode in hierarchyTree.selectedItems)
+		
+		for each (item in hierarchyTree.selectedItems)
 		{
-	        var parent:EntityNode = hierarchyTree.getParentItem(item);
-	        if (parent)
-	        {
-				Admin.entityCache.remove_child(parent.id, item.id);
-	        }
-	        else if (item.getEntity().getEntityType() == EntityType.HIERARCHY)
-	        {
+			// only delete hierarchies and categories (do not delete columns)
+			var entity:Entity = item.getEntity();
+			var type:String = entity.getEntityType();
+			if (type == EntityType.HIERARCHY || type == EntityType.CATEGORY)
+			{
+				// delete hierarchy or category
 				Admin.entityCache.delete_entity(item.id);
-	        }
-	        else
-	        {
-				// this occurs when root item is selected.. should never happen
-				weaveTrace("Entity " + item.id + " has no parent and is not a hierarchy");
-	        }
+			}
+			else
+			{
+				// remove column from parent
+				var parent:EntityNode = hierarchyTree.getParentItem(item);
+				if (parent)
+				{
+					Admin.entityCache.remove_child(parent.id, item.id);
+				}
+				else
+				{
+					// this occurs when root item is selected.. should never happen
+					weaveTrace("Entity " + item.id + " has no parent");
+				}
+			}
 		}
+		
 		hierarchyTree.selectedItem = null;
 		selectedItems = [];
-    }
+	}
 ]]>
 </mx:Script>
 </mx:HDividedBox>
