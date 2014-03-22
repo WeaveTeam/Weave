@@ -425,25 +425,25 @@ package weave.services
 		//////////////////////////
 		// DataEntity management
 		
-		public function addParentChildRelationship(parentId:int, childId:int, index:int):AsyncToken
-		{
-			return invokeAdminWithLogin(addParentChildRelationship, arguments);
-		}
-		public function removeParentChildRelationship(parentId:int, childId:int):AsyncToken
-		{
-			return invokeAdminWithLogin(removeParentChildRelationship, arguments);
-		}
 		public function newEntity(metadata:EntityMetadata, parentId:int, index:int):AsyncToken
 		{
 			return invokeAdminWithLogin(newEntity, arguments);
+		}
+		public function updateEntity(entityId:int, diff:EntityMetadata):AsyncToken
+		{
+			return invokeAdminWithLogin(updateEntity, arguments);
 		}
 		public function removeEntities(entityIds:Array):AsyncToken
 		{
 			return invokeAdminWithLogin(removeEntities, arguments);
 		}
-		public function updateEntity(entityId:int, diff:EntityMetadata):AsyncToken
+		public function addChild(parentId:int, childId:int, index:int):AsyncToken
 		{
-			return invokeAdminWithLogin(updateEntity, arguments);
+			return invokeAdminWithLogin(addChild, arguments);
+		}
+		public function removeChild(parentId:int, childId:int):AsyncToken
+		{
+			return invokeAdminWithLogin(removeChild, arguments);
 		}
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{

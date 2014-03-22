@@ -35,18 +35,20 @@ package weave.api.services
 		function newEntity(metadata:EntityMetadata, parentId:int, insertAtIndex:int):AsyncToken;
 		
 		/**
-		 * Removes entities and their children recursively.
-		 * @param entityIds A list of entity IDs to remove.
-		 * @return RPC token for an Array of entity IDs that were removed.
-		 */
-		function removeEntities(entityIds:Array):AsyncToken;
-		/**
 		 * Updates the metadata for an existing entity.
 		 * @param entityId An entity ID.
 		 * @param diff Specifies the changes to make to the metadata.
 		 * @return RPC token.
 		 */
 		function updateEntity(entityId:int, diff:EntityMetadata):AsyncToken;
+		
+		/**
+		 * Removes entities and their children recursively.
+		 * @param entityIds A list of entity IDs to remove.
+		 * @return RPC token for an Array of entity IDs that were removed.
+		 */
+		function removeEntities(entityIds:Array):AsyncToken;
+		
 		/**
 		 * Adds a parent-child relationship to the server-side entity hierarchy table.
 		 * @param parentId The ID of the parent entity.
@@ -54,13 +56,14 @@ package weave.api.services
 		 * @param insertAtIndex Specifies insertion index for sort order.
 		 * @return RPC token for an Array of entity IDs whose relationships have changed as a result of adding the parent-child relationship.
 		 */
-		function addParentChildRelationship(parentId:int, childId:int, insertAtIndex:int):AsyncToken;
+		function addChild(parentId:int, childId:int, insertAtIndex:int):AsyncToken;
+		
 		/**
 		 * Removes a parent-child relationship from the server-side entity hierarchy table.
 		 * @param parentId The ID of the parent entity.
 		 * @param childId The ID of the child entity.
 		 * @return RPC token.
 		 */
-		function removeParentChildRelationship(parentId:int, childId:int):AsyncToken;
+		function removeChild(parentId:int, childId:int):AsyncToken;
 	}
 }

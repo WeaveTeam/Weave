@@ -185,7 +185,9 @@ public class DataConfig
     	if (!connectionConfig.migrationPending())
     	{
 	    	String parentType = getEntityType(parent_id);
-	    	String childType = properties.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+	    	String childType = null;
+	    	if (properties.publicMetadata != null)
+	    		childType = properties.publicMetadata.get(PublicMetadata.ENTITYTYPE);
 	    	if (!DataEntity.parentChildRelationshipAllowed(parentType, childType))
 	    	{
 	    		throw new RemoteException(String.format(
@@ -361,76 +363,59 @@ public class DataConfig
     	if (ignoreList.contains(childId))
     		return Collections.emptySet();
 		
-    	Set<Integer> affectedIds = new HashSet<Integer>();
-		int newChildId;
 		Map<Integer,String> types = getEntityTypes(Arrays.asList(parentId, childId));
-		String parentType = types.get(parentId);
+		
+		if (Strings.equal(types.get(parentId), EntityType.COLUMN))
+			throw new RemoteException("Cannot add children to a column entity.");
+		
 		String childType = types.get(childId);
 		RelationshipList childRelationships = hierarchy.getRelationships(Arrays.asList(childId));
 		
-		//boolean isTable = Strings.equal(childType, EntityType.TABLE);
-		boolean isColumn = Strings.equal(childType, EntityType.COLUMN);
-		boolean isHierarchy = Strings.equal(childType, EntityType.HIERARCHY);
-		boolean isCategory = Strings.equal(childType, EntityType.CATEGORY);
-		boolean isOrphan = childRelationships.getParentIds(childId).isEmpty();
-
-		if (Strings.equal(parentType, EntityType.COLUMN))
+		int newChildId;
+		if (Strings.equal(childType, EntityType.COLUMN))
 		{
-			throw new RemoteException("Cannot add children to a column entity.");
-		}
-		else if (parentId == NULL) // parent is root
-		{
-			if (isColumn) // root > column
-			{
-				// create a new blank hierarchy to contain the child
-				DataEntityMetadata metadata = new DataEntityMetadata();
-				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
-				parentId = newEntity(metadata, NULL, NULL);
-				// recursive call with new parent id
-				return buildHierarchy(parentId, childId, NULL, ignoreList);
-			}
-			else if (isHierarchy) // root > hierarchy
-			{
-				// hierarchies are always at root, so do nothing.
+			// columns can't be at root
+			if (parentId == NULL)
 				return Collections.emptySet();
-			}
-			else if (isOrphan && isCategory) // root > category
+			// columns can be added directly to new parents
+			newChildId = childId;
+		}
+		else if (Strings.equal(childType, EntityType.CATEGORY) && childRelationships.getParentIds(childId).isEmpty())
+		{
+			// ok to use existing orphan category
+			newChildId = childId;
+			// categories become hierarchies at root
+			if (parentId == NULL)
 			{
-				// ok to convert orphan category to hierarchy
-				newChildId = childId;
 				// update entityType to hierarchy
 				DataEntityMetadata metadata = new DataEntityMetadata();
 				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
 				updateEntity(childId, metadata);
 			}
-			else // root > non-column
-			{
-				// copy the child as a hierarchy
-				DataEntityMetadata metadata = getEntity(childId);
-				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
-				newChildId = newEntity(metadata, NULL, NULL);
-			}
 		}
-		else // parent is non-column non-root
-        {
-			if (isColumn) // add child column
+		else // non-column
+		{
+			// copy the child
+			DataEntityMetadata metadata;
+			// if it's a table, only copy the title
+			if (Strings.equal(childType, EntityType.TABLE))
 			{
-				// columns can be added directly to new parents
-				newChildId = childId;
+				metadata = new DataEntityMetadata();
+				String title = public_metadata.getProperty(childId, PublicMetadata.TITLE);
+				metadata.setPublicMetadata(PublicMetadata.TITLE, title);
 			}
-			else if (isOrphan && isCategory) // add child orphan category
+			else
 			{
-				// ok to use orphan category
-				newChildId = childId;
+				metadata = getEntity(childId);
 			}
-			else // add child non-column
-			{
-				// copy as a new category
-				DataEntityMetadata metadata = getEntity(childId);
-				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.CATEGORY);
-				newChildId = newEntity(metadata, parentId, insertAtIndex);
-			}
+			// if parent is root, make it a hierarchy. otherwise, make it a category
+			String newType = parentId == NULL ? EntityType.HIERARCHY : EntityType.CATEGORY;
+			metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, newType);
+			// make the copy
+			newChildId = newEntity(metadata, parentId, insertAtIndex);
 		}
+		
+		Set<Integer> affectedIds = new HashSet<Integer>();
 		
 		if (newChildId != childId)
 		{
@@ -449,6 +434,7 @@ public class DataConfig
 			affectedIds.add(parentId);
 			hierarchy.addChild(parentId, newChildId, insertAtIndex);
 		}
+		
 		return affectedIds;
     }
     

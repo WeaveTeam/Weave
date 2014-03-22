@@ -1,3 +1,22 @@
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package weave.services
 {
     import mx.rpc.AsyncToken;
@@ -394,14 +413,21 @@ package weave.services
 				reportError("Unable to modify hierarchy (Not an admin service)");
 				return;
 			}
-
-			if (parent_id == ROOT_ID && idsToDelete[child_id])
+			
+			if (idsToDelete[child_id]) // move from root
 			{
-				// prevent hierarchy-dragged-to-root from removing the hierarchy
+				// prevent move-from-root from deleting the child
 				delete idsToDelete[child_id];
-				return;
+				if (parent_id == ROOT_ID)
+					return; // nothing to do
+				
+				// change hierarchy to category
+				var diff:EntityMetadata = new EntityMetadata();
+				diff.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.CATEGORY;
+				adminService.updateEntity(child_id, diff);
 			}
-			addAsyncResponder(adminService.addParentChildRelationship(parent_id, child_id, index), handleIdsToInvalidate, null, false);
+				
+			addAsyncResponder(adminService.addChild(parent_id, child_id, index), handleIdsToInvalidate, null, false);
 			invalidate(parent_id);
         }
         public function remove_child(parent_id:int, child_id:int):void
@@ -415,12 +441,13 @@ package weave.services
 			// remove from root means delete
 			if (parent_id == ROOT_ID)
 			{
-				// delete will actually take effect later - this allows it to be copied to a new parent before it is removed
+				// delete_entity() does not take effect immediately.
+				// this allows add_child() to move it to a new parent instead of deleting.
 				delete_entity(child_id);
 			}
 			else
 			{
-				adminService.removeParentChildRelationship(parent_id, child_id);
+				adminService.removeChild(parent_id, child_id);
 			}
 			invalidate(child_id, true);
         }

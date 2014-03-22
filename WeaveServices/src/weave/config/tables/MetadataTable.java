@@ -209,6 +209,13 @@ public class MetadataTable extends AbstractTable
 			throw new RemoteException("Unable to clear properties for a given id.", e);
 		}
 	}
+	/**
+	 * Shortcut for getPropertyMap(Collections.singleton(id), property).get(id)
+	 */
+	public String getProperty(int id, String property) throws RemoteException
+	{
+		return getPropertyMap(Collections.singleton(id), property).get(id);
+	}
 	public Map<Integer, String> getPropertyMap(Collection<Integer> ids, String property) throws RemoteException
 	{
 		ResultSet rs = null;

@@ -60,6 +60,7 @@
 	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntitySearchCriteria;
@@ -391,14 +392,9 @@
 				// remove column from parent
 				var parent:EntityNode = hierarchyTree.getParentItem(item);
 				if (parent)
-				{
 					Admin.entityCache.remove_child(parent.id, item.id);
-				}
 				else
-				{
-					// this occurs when root item is selected.. should never happen
-					weaveTrace("Entity " + item.id + " has no parent");
-				}
+					reportError("Entity " + item.id + " has no parent node"); // should never happen
 			}
 		}
 		

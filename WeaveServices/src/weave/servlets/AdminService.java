@@ -167,21 +167,20 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		return info;
 	}
 	
-    private void tryModify(String user, String pass, int entityId) throws RemoteException
+    private void tryModify(String user, String pass, Integer ...entityIds) throws RemoteException
     {
         if (getConnectionInfo(user, pass).is_superuser)
         	return; // superuser can modify anything
         
-    	DataEntity entity = getDataConfig().getEntity(entityId);
-    	String entityType = entity == null ? null : entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
-    	
-    	// permissions only supported on data tables and columns
-    	if (Strings.equal(entityType, EntityType.TABLE) || Strings.equal(entityType, EntityType.COLUMN))
+    	Collection<DataEntity> entities = getDataConfig().getEntities(Arrays.asList(entityIds));
+    	for (DataEntity entity : entities)
     	{
-	        String owner = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-	        if (!user.equals(owner))
-	        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entityId));
-    	}
+    		String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+	    	// permissions only supported on data tables and columns
+	    	if (Strings.equal(entityType, EntityType.TABLE) || Strings.equal(entityType, EntityType.COLUMN))
+	    		if (!Strings.equal(user, entity.privateMetadata.get(PrivateMetadata.CONNECTION)))
+		        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entity.id));
+	    }
     }
 	
 	//////////////////////////////
@@ -565,24 +564,21 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	//////////////////////////
 	// DataEntity management
 	
-	/**
-	 * @return A list of IDs whose relationships have changed as a result of adding the parent-child relationship.
-	 */
-	public int[] addParentChildRelationship(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
+	public int[] addChild(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
 	{
 		tryModify(user, password, parentId);
 		return ListUtils.toIntArray( getDataConfig().buildHierarchy(parentId, childId, insertAtIndex) );
 	}
-
-	public void removeParentChildRelationship(String user, String password, int parentId, int childId) throws RemoteException
+	
+	public void removeChild(String user, String password, int parentId, int childId) throws RemoteException
 	{
 		if (parentId == DataConfig.NULL)
-			throw new RemoteException("removeParentChildRelationship() called with parentId=" + DataConfig.NULL);
+			throw new RemoteException("removeChild() called with parentId=" + DataConfig.NULL);
 		
 		tryModify(user, password, parentId);
 		getDataConfig().removeChild(parentId, childId);
 	}
-
+	
 	public int newEntity(String user, String password, DataEntityMetadata meta, int parentId, int insertAtIndex) throws RemoteException
 	{
 		tryModify(user, password, parentId);

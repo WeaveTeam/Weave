@@ -35,18 +35,21 @@ public interface IWeaveEntityManagementService
 	 * @return An Array of EntityHierarchyInfo objects, sorted by title.
 	 */
 	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, Map<String,String> publicMetadata) throws RemoteException;
+	
 	/**
 	 * Gets an Array of Entity objects.
 	 * @param ids A list of entity IDs.
 	 * @return An Array of Entity objects.
 	 */
 	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException;
+	
 	/**
 	 * Gets an Array of entity IDs with matching metadata. 
 	 * @param metadata Search criteria containing values to match.
 	 * @return An Array of IDs.
 	 */
 	public int[] findEntityIds(String user, String pass, DataEntitySearchCriteria metadata) throws RemoteException;
+	
 	/**
 	 * Finds matching values for a public metadata field.
 	 * @param feildName The name of the public metadata field to search.
@@ -63,30 +66,34 @@ public interface IWeaveEntityManagementService
 	 * @return An entity ID.
 	 */
 	public int newEntity(String user, String pass, DataEntityMetadata metadata, int parentId, int index) throws RemoteException;
-	/**
-	 * Removes entities and their children recursively.
-	 * @param entityIds A list of entity IDs to remove.
-	 * @return An Array of entity IDs that were removed.
-	 */
-	public int[] removeEntities(String user, String pass, int[] entityIds) throws RemoteException;
+	
 	/**
 	 * Updates the metadata for an existing entity.
 	 * @param entityId An entity ID.
 	 * @param diff Specifies the changes to make to the metadata.
 	 */
 	public void updateEntity(String user, String pass, int entityId, DataEntityMetadata diff) throws RemoteException;
+	
+	/**
+	 * Removes entities and their children recursively.
+	 * @param entityIds A list of entity IDs to remove.
+	 * @return An Array of entity IDs that were removed.
+	 */
+	public int[] removeEntities(String user, String pass, int[] entityIds) throws RemoteException;
+	
 	/**
 	 * Adds a parent-child relationship to the server-side entity hierarchy table.
 	 * @param parentId The ID of the parent entity.
 	 * @param childId The ID of the child entity.
 	 * @param insertAtIndex Specifies insertion index for sort order.
-	 * @return A list of IDs whose relationships have changed as a result of adding the parent-child relationship.
+	 * @return An Array of IDs whose relationships have changed as a result of adding the parent-child relationship.
 	 */
-	public int[] addParentChildRelationship(String user, String pass, int parentId, int childId, int index) throws RemoteException;
+	public int[] addChild(String user, String pass, int parentId, int childId, int insertAtIndex) throws RemoteException;
+	
 	/**
 	 * Removes a parent-child relationship from the server-side entity hierarchy table.
 	 * @param parentId The ID of the parent entity.
 	 * @param childId The ID of the child entity.
 	 */
-	public void removeParentChildRelationship(String user, String pass, int parentId, int childId) throws RemoteException;
+	public void removeChild(String user, String pass, int parentId, int childId) throws RemoteException;
 }
