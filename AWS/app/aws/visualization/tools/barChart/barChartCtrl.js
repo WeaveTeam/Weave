@@ -52,6 +52,18 @@ analysis_mod.controller("BarChartCtrl", function($scope, queryService){
 		$scope.heights = queryService.queryObject.BarChartTool.heights;	
 	});
 
+	$scope.$watch('title', function() {
+		if($scope.title != undefined) {
+			queryService.queryObject.BarChartTool.title = $scope.title;
+		}
+	});
+	
+	$scope.$watch('enableTitle', function() {
+		if($scope.enableTitle != undefined) {
+			queryService.queryObject.BarChartTool.enableTitle = $scope.enableTitle;
+		}
+	});
+	
 	$scope.$watch(function(){
 		return queryService.queryObject.BarChartTool.title;
 	}, function() {
@@ -90,16 +102,6 @@ analysis_mod.controller("BarChartCtrl", function($scope, queryService){
 		$scope.label = queryService.queryObject.BarChartTool.label;	
 	});
 	
-	$scope.$watch('title', function() {
-		if($scope.title != undefined) {
-			queryService.queryObject.BarChartTool.title = $scope.title;
-		}
-	});
 	
-	$scope.$watch('enableTitle', function() {
-		if($scope.enableTitle != undefined) {
-			queryService.queryObject.BarChartTool.enableTitle = $scope.enableTitle;
-		}
-	});
 	
 });
