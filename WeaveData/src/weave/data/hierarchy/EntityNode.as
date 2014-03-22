@@ -167,6 +167,7 @@ package weave.data.hierarchy
 				return _overrideLabel;
 			
 			var title:String;
+			var entity:Entity;
 			var entityType:String;
 			var cache:EntityCache = getEntityCache();
 			var branchInfo:EntityHierarchyInfo = cache.getBranchInfo(id);
@@ -181,7 +182,7 @@ package weave.data.hierarchy
 			}
 			else
 			{
-				var entity:Entity = getEntity();
+				entity = getEntity();
 				
 				title = entity.publicMetadata[ColumnMetadata.TITLE];
 				if (!title)
@@ -201,6 +202,14 @@ package weave.data.hierarchy
 					else
 						title = '...';
 				}
+			}
+			
+			if (cache.entityIsCached(id))
+			{
+				if (!entity)
+					entity = cache.getEntity(id);
+				if (entity.getEntityType() != EntityType.COLUMN && entity.parentIds.length > 1)
+					title += lang(" ; Warning: Multiple parents ({0})", entity.parentIds);
 			}
 			
 			var idStr:String;
