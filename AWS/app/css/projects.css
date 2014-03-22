@@ -129,6 +129,23 @@
 	height: 100% !important;
 }
 
+
+ .project-management .prj-contents .panel .prj-txt-lbl{
+ 
+ font-size: 12px;
+font-weight: 600;
+display: inline-block;
+width: 80px;
+ 	
+ }
+ 
+ .project-management .prj-contents .panel .prj-txt-val{
+ 
+ font-size: 12px;
+font-weight: 300;
+ 	
+ }
+
 .d-list-content {
 	list-style: none outside none;
 	margin: 10px 0 30px;
@@ -274,7 +291,8 @@
 .dd3-content {
 	display: block;
 	margin: 5px 0;
-	padding: 6px 10px 8px 40px;
+	margin-bottom: 0px;
+	padding: 6px 10px 0px 40px;
 	font-size: 15px;
 	color: #333;
 	text-decoration: none;
@@ -352,6 +370,12 @@
 	top: 10px;
 	left: 10px;
 	z-index: 999
+}
+
+.file-button-text{
+
+
+color: black;
 }
 
 .file-nput-btn{

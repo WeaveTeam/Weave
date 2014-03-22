@@ -1,9 +1,9 @@
-
 <div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 100%;" ng-controller = "projectAdditionController" >
 	<div class="aside-dialog">
 		<div class="aside-content">
 			<div class="aside-header" ng-show="title">
 				<button type="button" class="close" ng-click="$hide()">
+
 					&times;
 				</button>
 				<span class="aside-title" ng-bind-html="title">{{title}}</span>
@@ -19,7 +19,7 @@
 				</input>
 				<br>
 				</br>
-				Project Description				<textarea ng-model = "projtDescription" style = "width:200px; overflow-y : scroll;" type = "text" placeholder = "Enter a brief project description"></textarea>
+				Project Description 				<textarea ng-model = "projtDescription" style = "width:200px; overflow-y : scroll;" type = "text" placeholder = "Enter a brief project description"></textarea>
 				<br>
 				</br>
 				Query Objects (.json) files to include in the project
@@ -31,17 +31,18 @@
 
 
 
-				
-				
-				</div> 
-			</div>
-
-			<div class="aside-footer">
-				<button type="button" class= "btn btn-primary" style = "margin-left : 380px" ng-click = "saveNewProjectToDatabase()">
-					Save
-				</button>
+	
 
 			</div>
 		</div>
 	</div>
+
+
+	<div class="aside-footer">
+		<button type="button" class= "btn btn-primary" style = "margin-left : 380px" ng-click = "saveNewProjectToDatabase()">
+			Save
+		</button>
+
+	</div>
 </div>
+
