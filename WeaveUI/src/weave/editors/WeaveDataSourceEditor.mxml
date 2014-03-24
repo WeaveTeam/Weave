@@ -28,11 +28,16 @@
 	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_weaveDataSource ? 'Edit' : 'Add') + ' Weave Data Source' )}"/>
-	<ui:Indent label="{lang('Source Name *')}">
+	<ui:Indent label="{lang('Source name *')}">
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL')}">
 		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/WeaveService" width="100%"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Root hierarchy ID')}">
+		<ui:TextInputWithPrompt id="rootId" prompt="Hierarchy ID" width="100%"/>
+		<mx:Button label="{lang('Choose')}" click="chooseHierarchy()"/>
+		<mx:Button label="{lang('Reset')}" click="rootId.text = '';"/>
 	</ui:Indent>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
@@ -40,8 +45,12 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.api.disposeObject;
+			import weave.api.registerDisposableChild;
+			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
 			import weave.data.DataSources.WeaveDataSource;
+			import weave.ui.WeaveDataSourceHierarchySelector;
 			
 			override protected function createChildren():void
 			{
@@ -66,6 +75,10 @@
 				{
 					sourceName.text = Weave.root.getName(_weaveDataSource);
 					url.text = _weaveDataSource.url.value;
+					
+					var id:Number = StandardLib.asNumber(_weaveDataSource.rootId.getSessionState());
+					rootId.text = isFinite(id) ? String(id) : '';
+					
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 				}
@@ -73,15 +86,38 @@
 			
 			public function hasPendingChanges():Boolean
 			{
-				return StandardLib.asString(_weaveDataSource.url.value) != StandardLib.asString(url.text);
+				return StandardLib.asString(_weaveDataSource.url.value) != StandardLib.asString(url.text)
+					|| StandardLib.asString(_weaveDataSource.rootId.getSessionState()) != StandardLib.asString(rootId.text);
 			}
 			
 			public function applyChanges():void
 			{
+				// set value on data source
 				_weaveDataSource.url.value = url.text;
+				// read from data source in case value is different
 				url.text = _weaveDataSource.url.value;
+				
+				// set value on data source
+				var id:Number = StandardLib.asNumber(rootId.text);
+				_weaveDataSource.rootId.setSessionState(isFinite(id) ? id : null);
+				// read from data source in case value is different
+				id = StandardLib.asNumber(_weaveDataSource.rootId.getSessionState());
+				rootId.text = isFinite(id) ? String(id) : '';
+				
+				disposeObject(_hierarchySelector);
+				_hierarchySelector = null;
 			}
 			
+			private var _hierarchySelector:WeaveDataSourceHierarchySelector;
+			
+			public function chooseHierarchy():void
+			{
+				_hierarchySelector = registerDisposableChild(this, WeaveDataSourceHierarchySelector.show(url.text, handleSelectedHierarchy));
+			}
+			private function handleSelectedHierarchy(id:int):void
+			{
+				rootId.text = String(id);
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

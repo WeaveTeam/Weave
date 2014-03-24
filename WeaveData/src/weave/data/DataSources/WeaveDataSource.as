@@ -119,7 +119,7 @@ package weave.data.DataSources
 				return super.getHierarchyRoot();
 			
 			var id:Object = rootId.getSessionState();
-			var isNumber:Boolean = typeof id == 'number';
+			var isNumber:Boolean = typeof id == 'number' && isFinite(id as Number);
 			var isObject:Boolean = id != null && typeof id == 'object';
 			
 			if (!isNumber && !isObject)
@@ -170,6 +170,10 @@ package weave.data.DataSources
 		{
 			return _service.getRows(keys);
 		}
+		
+		private static const DEFAULT_BASE_URL:String = '/WeaveServices';
+		private static const DEFAULT_SERVLET_NAME:String = '/DataService';
+		
 		/**
 		 * This function prevents url.value from being null.
 		 */
@@ -177,16 +181,13 @@ package weave.data.DataSources
 		{
 			url.delayCallbacks();
 			
-			var defaultBaseURL:String = '/WeaveServices';
-			var defaultServletName:String = '/DataService';
-			
 			var deprecatedBaseURL:String = '/OpenIndicatorsDataService';
-			if (!url.value || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + defaultServletName)
-				url.value = defaultBaseURL + defaultServletName;
+			if (!url.value || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + DEFAULT_SERVLET_NAME)
+				url.value = WeaveDataServlet.DEFAULT_URL;
 			
 			// backwards compatibility -- if url ends in default base url, append default servlet name
-			if (url.value.split('/').pop() == defaultBaseURL.split('/').pop())
-				url.value += defaultServletName;
+			if (url.value.split('/').pop() == DEFAULT_BASE_URL.split('/').pop())
+				url.value += DEFAULT_SERVLET_NAME;
 			
 			// replace old service
 			disposeObject(_service);

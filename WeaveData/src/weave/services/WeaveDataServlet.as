@@ -51,9 +51,11 @@ package weave.services
 		protected var servlet:AMF3Servlet;
 		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
 
-		public function WeaveDataServlet(url:String)
+		public static const DEFAULT_URL:String = '/WeaveServices/DataService';
+				
+		public function WeaveDataServlet(url:String = null)
 		{
-			servlet = new AMF3Servlet(url);
+			servlet = new AMF3Servlet(url || DEFAULT_URL);
 			registerLinkableChild(this, servlet);
 			
 			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
