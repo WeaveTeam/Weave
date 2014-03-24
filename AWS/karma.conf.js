@@ -15,26 +15,26 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'app/lib/jquery/jquery.js',
-      'app/lib/jquery/matchers.js',
-      //'app/lib/jquery/jasmine-jquery.js',
-      'app/lib/jquery/jquery-ui.js',
-      'app/lib/angular/angular.js',
-      'app/lib/angular/angular-mocks.js',
-      'app/lib/angular/ui-bootstrap-0.5.0.js',
-      'app/lib/angular/angular-ui-select2.js',
-      'app/lib/angular/slider.js',
-      // 'app/js/app.js',
-      // 'app/js/directives/directives.js',
-      // 'app/js/controllers/controllers.js',
-      'app/js/*.js',
-      'app/js/**/*.js',
-      'spec/*.js'
+      //'app/lib/jasmine/matchers.js',
+      //'app/lib/jasmine/jasmine-jquery.js',
+      //'app/lib/jquery/jquery-ui.js',
+      'app/lib/angular/1.2/angular.js',
+      'app/lib/angular/1.2/angular-mocks.js',
+      //'app/lib/**/*.js',
+      'app/lib/ng-grid/*.js',
+      'app/lib/editablespan/*.js',
+      'app/aws/configure/script/ScriptManagerCtrl.js',
+      'app/aws/configure/script/scriptManagerService.js',
+      'build/aws.js',
+      //'app/aws/app.js',
+      'spec/scriptManagement_spec.js'
     ],
 
 
     // list of files to exclude
     exclude: [
-      
+
+        'app/lib/jasmine/jasmine-jquery.js'
     ],
 
 
