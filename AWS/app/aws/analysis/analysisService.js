@@ -9,7 +9,7 @@ angular.module('aws.analysisService', [])
 function($filter, queryService) {
 
 	var tool_list = [{
-		id : 'IndicatorFilter',
+		id : 'Indicator',
 		title : 'Indicator',
 		template_url : 'aws/visualization/indicator/indicator.tpl.html',
 		description : 'Choose an Indicator for the Analysis',
@@ -103,39 +103,7 @@ function($filter, queryService) {
 	};
 	
 	this.enable_widget = function(tool_id, enabled){
-		if (tool_id == 'IndicatorFilter')
-		{
-			
-		}
-		else if (tool_id == 'GeographyFilter')
-		{
-			
-		}
-		else if (tool_id == 'TimePeriodFilter')
-		{
-			//queryService.queryObject.BarChartTool.enabled = enabled;
-		}
-		else if (tool_id == 'ByVariableFilter')
-		{
-			//queryService.queryObject.BarChartTool.enabled = enabled;
-		}
-		else if (tool_id == 'BarChartTool')
-		{
-			queryService.queryObject.BarChartTool.enabled = enabled;
-		}
-		else if (tool_id == 'MapTool')
-		{
-			queryService.queryObject.MapTool.enabled = enabled;
-		}
-		else if (tool_id == 'DataTableTool')
-		{
-			queryService.queryObject.DataTableTool.enabled = enabled;
-		}
-		else if (tool_id == 'ScatterPlotTool')
-		{
-			queryService.queryObject.ScatterPlotTool.enabled = enabled;
-		};
-		
+		queryService.queryObject[tool_id].enabled =  enabled;
 	};
 }]);
 

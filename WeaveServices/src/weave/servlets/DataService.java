@@ -530,9 +530,8 @@ public class DataService extends WeaveServlet
 	 */
 	private static NestedColumnFilters convertColumnIdsToFieldNames(NestedColumnFilters filters, Map<Integer, DataEntity> entities)
 	{
-		if(filters == null) {
+		if (filters == null)
 			return null;
-		}
 		
 		NestedColumnFilters result = new NestedColumnFilters();
 		if (filters.cond != null)

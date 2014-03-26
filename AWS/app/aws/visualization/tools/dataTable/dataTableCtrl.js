@@ -1,11 +1,5 @@
 analysis_mod.controller("DataTableCtrl", function($scope, queryService) {
 
-	queryService.queryObject.DataTableTool = {
-		enhabled : false,
-		selected : []
-
-	};
-
 	$scope.options = [];
 
 	$scope.$watch(function() {

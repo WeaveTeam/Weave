@@ -1,12 +1,10 @@
 analysis_mod.controller("ScatterPlotCtrl", function($scope, queryService) {
-	queryService.queryObject.ScatterPlotTool = { 
-											 enabled : false,
-											 X : "",
-											 Y : "",
-											 enableTitle : false,
-											 title : ""
-											};
 
+	if(queryService.queryObject.Indicator.label) {
+		$scope.title = "Scatter Plot of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
+		$scope.enableTitle = true;
+	}
+	
 	$scope.options = [];
 	
 	$scope.$watch(function(){
@@ -31,11 +29,6 @@ analysis_mod.controller("ScatterPlotCtrl", function($scope, queryService) {
 		
 	});
 	
-	if(queryService.queryObject.Indicator.label) {
-		$scope.title = "Scatter plot of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
-		$scope.enableTitle = true;
-	}
-	
 	$scope.$watch(function(){
 		return queryService.queryObject.ScatterPlotTool.enabled;
 	}, function() {
@@ -48,6 +41,14 @@ analysis_mod.controller("ScatterPlotCtrl", function($scope, queryService) {
 		$scope.XSelection = queryService.queryObject.ScatterPlotTool.X;
 	});
 
+	$scope.$watch('title', function() {
+		queryService.queryObject.ScatterPlotTool.title = $scope.title;
+	});
+	
+	$scope.$watch('enableTitle', function() {
+		queryService.queryObject.ScatterPlotTool.enableTitle = $scope.enableTitle;
+	});
+	
 	$scope.$watch(function(){
 		return queryService.queryObject.ScatterPlotTool.title;
 	}, function() {
@@ -75,18 +76,6 @@ analysis_mod.controller("ScatterPlotCtrl", function($scope, queryService) {
 	$scope.$watch('YSelection', function() {
 		if($scope.YSelection != undefined) {
 			queryService.queryObject.ScatterPlotTool.Y = $scope.YSelection;
-		}
-	});
-	
-	$scope.$watch('title', function() {
-		if($scope.title != undefined) {
-			queryService.queryObject.ScatterPlotTool.title = $scope.title;
-		}
-	});
-	
-	$scope.$watch('enableTitle', function() {
-		if($scope.enableTitle != undefined) {
-			queryService.queryObject.ScatterPlotTool.enableTitle = $scope.enableTitle;
 		}
 	});
 });

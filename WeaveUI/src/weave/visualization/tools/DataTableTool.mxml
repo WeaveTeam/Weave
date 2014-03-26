@@ -282,11 +282,6 @@
 				
 				_probe.clearKeys();
 			}
-			private function handleItemHandleRollOut(event:ListEvent):void
-			{
-				if ((dataGrid.mouseY < dataGrid.headerHeight) || (dataGrid.mouseX > dataGrid.width - 16))
-					handleRollOut(null);
-			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
@@ -485,7 +480,8 @@
 //			{
 //				_selection.clearKeys();
 //			}
-			
+			/* TODO: Move this method into an abstract class to extend CustomDataGrid off of;
+			   this functionality is duplicated used in TreeTool */ 
 			private function updateGlobalSelectionChange():void
 			{
 				if (!parent)
@@ -523,8 +519,9 @@
 				if (enableProbing.value == true)
 					callLater(updateGlobalProbeChange);
 			}
-
-			private function updateGlobalProbeChange():void
+			/* TODO: Move this method into an abstract class to extend CustomDataGrid off of;
+			   this functionality is duplicated used in TreeTool */ 
+			private function updateGlobalProbeChange():void 
 			{
 				if (!parent)
 				{

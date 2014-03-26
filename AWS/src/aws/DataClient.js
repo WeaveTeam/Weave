@@ -56,8 +56,8 @@ aws.DataClient.deleteQueryObject = function(projectName, queryObjectTitle, callb
 	aws.queryService(rServiceURL, 'deleteQueryObjectFromProjectFromDatabase',[projectName, queryObjectTitle], callback );
 };
 
-aws.DataClient.insertQueryObject= function(userName, projectName, queryObjectTitle, queryObjectContent, callback){
-	aws.queryService(rServiceURL, "insertMultipleQueryObjectInProjectFromDatabase", [userName, projectName, queryObjectTitle, queryObjectContent], callback);
+aws.DataClient.insertQueryObject= function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent, callback){
+	aws.queryService(rServiceURL, "insertMultipleQueryObjectInProjectFromDatabase", [userName, projectName, projectDescription, queryObjectTitle, queryObjectContent], callback);
 };
 /**
  * This function mirrors the getEntitiesById on the servlet.

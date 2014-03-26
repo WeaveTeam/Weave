@@ -1,11 +1,5 @@
 analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 	
-	queryService.queryObject.GeographyFilter = {
-			filters : {},
-			stateColumn : {},
-			stateColumn : {}
-	};
-	
 	var geoTreeData;
 	
 	var stateValueKey = null;

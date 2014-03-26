@@ -18,6 +18,8 @@ angular.module('aws.queryObjectEditor')//name of module
 				 editor.set(scope.currentJson);
 			 });
 			 
+			 scope.tempEditor = editor;
+			 
 	  } 
   	}; 
 });

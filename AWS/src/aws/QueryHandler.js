@@ -50,108 +50,104 @@ aws.QueryHandler = function(queryObject)
 		}
 	}
 	this.rRequestObject.ids = scriptColumnRequest;
-	var geoFilter = {};
-	// Create a filter only request where we will pass geography and time-period information.
-	if(queryObject.hasOwnProperty("GeographyFilter")) {
-		var geoQuery = {};
-		var stateId = queryObject.GeographyFilter.stateColumn.id;
-		var countyId = queryObject.GeographyFilter.countyColumn.id;
-		
-		geoQuery.or = [];
-		for(var key in queryObject.GeographyFilter.filters) {
-			var index = geoQuery.or.push({ and : [
-			                          {cond : { 
-			                        	  f : stateId, 
-			                        	  v : [key] 
-			                          }
-			                          },
-			                          {cond: {
-			                        	  f : countyId, 
-			                        	  v : []
-			                          }
-			                          }
-			                          ]
-			});
-			for(var i in queryObject.GeographyFilter.filters[key].counties) {
-				var countyFilterValue = "";
-				for(var key2 in queryObject.GeographyFilter.filters[key].counties[i]) {
-					countyFilterValue = key2;
-				}
-				geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
-			}
-		}
-		geoFilter = geoQuery;
-	}
-	
-	var timePeriodFilter = {};
-	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
-		var timePeriodQuery = {};
-		var yearId = queryObject.TimePeriodFilter.yearColumn.id;
-		var monthId = queryObject.TimePeriodFilter.monthColumn.id;
-		
-		timePeriodQuery.or = [];
-		for(var key in queryObject.TimePeriodFilter.filters) {
-			var index = timePeriodQuery.or.push({ and : [
-			                                 {cond : { 
-			                                	 f : yearId, 
-			                                	 v : [key] 
-			                                 }
-			                                 },
-			                                 {cond: {
-			                                	 f : monthId, 
-			                                	 v : []
-			                                 }
-			                                 }
-			                                 ]
-			});
-			for(var i in queryObject.TimePeriodFilter.filters[key].months) {
-				var monthFilterValue = "";
-				for(var key2 in queryObject.TimePeriodFilter.filters[key].months[i]) {
-					monthFilterValue = key2;
-				}
-				timePeriodQuery.or[index-1].and[1].cond.v.push(monthFilterValue);
-			}
-		}
-		timePeriodFilter = timePeriodQuery;
-	}
-	
-	var byVariableFilter;
-	if(queryObject.hasOwnProperty("ByVariableFilter")) {
-		var byVarQuery = {and : []};
-		for(var i in queryObject.ByVariableFilter) {
-			var cond = {f : queryObject.ByVariableFilter[i].column.id };
-			
-			if(queryObject.ByVariableFilter[i].hasOwnProperty("filters")) {
-				cond.v = [];
-				for (var j in queryObject.ByVariableFilter[i].filters) {
-						cond.v.push(queryObject.ByVariableFilter[i].filters[j].value);
-				}
-				byVarQuery.and.push({cond : cond});
-			} else if (queryObject.ByVariableFilter[i].hasOwnProperty("ranges")) {
-				cond.r = [];
-				for (var j in queryObject.ByVariableFilter[i].filters) {
-					cond.r.push(queryObject.ByVariableFilter[i].filters[j]);
-				}
-				byVarQuery.and.push({cond : cond});
-			} 
-		}
-		if(byVarQuery.and.length) {
-			byVariableFilter = byVarQuery;
-		}
-	}	
-	
 	
 	var nestedFilterRequest = {and : []};
-	if(timePeriodFilter.hasOwnProperty("or") && timePeriodFilter.or.length) {
-		nestedFilterRequest.and.push(timePeriodFilter);
-	}
-	if(geoFilter.hasOwnProperty("or") && geoFilter.or.length) {
-		nestedFilterRequest.and.push(geoFilter);
+	
+	if(queryObject.hasOwnProperty("GeographyFilter")) {
+		if(queryObject.GeographyFilter.enabled) {
+			var geoQuery = {};
+			var stateId = queryObject.GeographyFilter.stateColumn.id;
+			var countyId = queryObject.GeographyFilter.countyColumn.id;
+			geoQuery.or = [];
+			for(var key in queryObject.GeographyFilter.filters) {
+				var index = geoQuery.or.push({ and : [
+				                                      {cond : { 
+				                                    	  f : stateId, 
+				                                    	  v : [key] 
+				                                      }
+				                                      },
+				                                      {cond: {
+				                                    	  f : countyId, 
+				                                    	  v : []
+				                                      }
+				                                      }
+				                                      ]
+				});
+				for(var i in queryObject.GeographyFilter.filters[key].counties) {
+					var countyFilterValue = "";
+					for(var key2 in queryObject.GeographyFilter.filters[key].counties[i]) {
+						countyFilterValue = key2;
+					}
+					geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
+				}
+			}
+			if(geoQuery.or.length) {
+				nestedFilterRequest.and.push(geoQuery);
+			}
+		}
 	}
 	
-	if(byVariableFilter) {
-		nestedFilterRequest.and.push(byVariableFilter);
+	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
+		if(queryObject.TimePeriodFilter.enabled) {
+			var timePeriodQuery = {};
+			var yearId = queryObject.TimePeriodFilter.yearColumn.id;
+			var monthId = queryObject.TimePeriodFilter.monthColumn.id;
+			
+			timePeriodQuery.or = [];
+			for(var key in queryObject.TimePeriodFilter.filters) {
+				var index = timePeriodQuery.or.push({ and : [
+				                                             {cond : { 
+				                                            	 f : yearId, 
+				                                            	 v : [key] 
+				                                             }
+				                                             },
+				                                             {cond: {
+				                                            	 f : monthId, 
+				                                            	 v : []
+				                                             }
+				                                             }
+				                                             ]
+				});
+				for(var i in queryObject.TimePeriodFilter.filters[key].months) {
+					var monthFilterValue = "";
+					for(var key2 in queryObject.TimePeriodFilter.filters[key].months[i]) {
+						monthFilterValue = key2;
+					}
+					timePeriodQuery.or[index-1].and[1].cond.v.push(monthFilterValue);
+				}
+			}
+			if(timePeriodQuery.or.length) {
+				nestedFilterRequest.and.push(timePeriodQuery);
+			}
+		} 
 	}
+	
+	if(queryObject.hasOwnProperty("ByVariableFilter")) {
+		var byVarQuery = {and : []};
+		if(queryObject.ByVariableFilter.enabled) {
+			for(var i in queryObject.ByVariableFilter) {
+				var cond = {f : queryObject.ByVariableFilter[i].column.id };
+				
+				if(queryObject.ByVariableFilter[i].hasOwnProperty("filters")) {
+					cond.v = [];
+					for (var j in queryObject.ByVariableFilter[i].filters) {
+						cond.v.push(queryObject.ByVariableFilter[i].filters[j].value);
+					}
+					byVarQuery.and.push({cond : cond});
+				} else if (queryObject.ByVariableFilter[i].hasOwnProperty("ranges")) {
+					cond.r = [];
+					for (var j in queryObject.ByVariableFilter[i].filters) {
+						cond.r.push(queryObject.ByVariableFilter[i].filters[j]);
+					}
+					byVarQuery.and.push({cond : cond});
+				} 
+			}
+			if(byVarQuery.and.length) {
+				nestedFilterRequest.and.push(byVarQuery);
+			}
+			
+		}
+	}	
 	
 	if(nestedFilterRequest.and.length) {
 		this.rRequestObject.filters = nestedFilterRequest;
@@ -162,7 +158,7 @@ aws.QueryHandler = function(queryObject)
 	this.keyType = "";
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
-		if(queryObject.ColorColumn.enabled == true) {
+		if(queryObject.ColorColumn.enabled) {
 			this.ColorColumn = queryObject.ColorColumn.selected;
 		}
 	}
@@ -170,7 +166,7 @@ aws.QueryHandler = function(queryObject)
 	this.visualizations = [];
 	
 	if (queryObject.hasOwnProperty("MapTool")) {
-		if(queryObject.MapTool.enabled == true) {
+		if(queryObject.MapTool.enabled) {
 			this.keyType = queryObject.MapTool.selected.keyType;
 			this.visualizations.push(
 					{
@@ -184,7 +180,7 @@ aws.QueryHandler = function(queryObject)
 	}	
 	
 	if (queryObject.hasOwnProperty("ScatterPlotTool")) {
-		if(queryObject.ScatterPlotTool.enabled == true) {
+		if(queryObject.ScatterPlotTool.enabled) {
 			this.visualizations.push(
 					{
 						type : "ScatterPlotTool",
@@ -197,7 +193,7 @@ aws.QueryHandler = function(queryObject)
 	}	
 	
 	if (queryObject.hasOwnProperty("BarChartTool")) {
-		if(queryObject.BarChartTool.enabled == true) {
+		if(queryObject.BarChartTool.enabled) {
 			this.visualizations.push(
 					{
 						type : "BarChartTool",

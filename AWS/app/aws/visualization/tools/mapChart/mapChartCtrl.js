@@ -1,16 +1,5 @@
 analysis_mod.controller("MapCtrl", function($scope, queryService){
 	
-	queryService.queryObject.MapTool = {
-											enabled : "false",
-											selected : { 
-												id : "",
-												title : "",
-												keyType : ""
-											},
-											 enableTitle : false,
-											 title : ""
-									   };
-	
 	if(queryService.queryObject.Indicator.label) {
 		$scope.title = "Map of " + queryService.queryObject.scriptSelected.split(".")[0] + " for " +  queryService.queryObject.Indicator.label;
 		$scope.enableTitle = true;

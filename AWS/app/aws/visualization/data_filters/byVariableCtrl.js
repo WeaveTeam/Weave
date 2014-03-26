@@ -1,7 +1,6 @@
 analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 	
 	queryService.queryObject.ByVariableFilter = [];
-	$scope.oldVal = [];
 	$scope.byVariableColumns = [];
 	$scope.byVariableSelection = [];
 	$scope.filterType = [];
@@ -48,7 +47,6 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 				queryService.queryObject.ByVariableFilter[i] = { 
 																	column : column
 															   }
-				console.log($scope.filterValues);
 				if(metadata) {
 					if(metadata.hasOwnProperty("varType") && metadata.hasOwnProperty("varValues")) {
 						$scope.filterType[i] = metadata.varType;
