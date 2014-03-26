@@ -1,25 +1,25 @@
-.script-manager-container .script-table-value[
+.script-manager-container .script-table-value{
 
-width: 70px;
-margin-right: 5px;
+  width: 70px;
+  margin-right: 5px;
 
 
 
 }
 
 
- .script-table-container{
-	width: 100%;
-	height: 40px;
-	margin-top: 5px;
-	margin-bottom: 5px;
-	
+.script-table-container{
+  width: 100%;
+  height: 40px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+
 }
 
 .editab-span-script{
 
 
-	
+
 }
 
 
