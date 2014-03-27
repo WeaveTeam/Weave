@@ -27,6 +27,11 @@ width: 100%;
 	z-index: 100;
 }
 
+.dtatable-dropdown{
+	
+	position:inherit !important;
+}
+
 .search-script .search-script-div {
 	display: block;
 padding: 0px;
