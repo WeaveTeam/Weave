@@ -1595,6 +1595,100 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
+			 * @return an Array containing all DraggablePanels on stage that are not minimized
+			 *
+			 * @author kmanohar
+			 */		
+			public static function getWindowsOnStage():Array
+			{
+				var panels:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
+				var panelsOnStage:Array = [];
+				
+				for each (var panel:DraggablePanel in panels)
+				{
+					if (!panel.minimized.value) 
+						panelsOnStage.push(panel);
+				}
+				return panelsOnStage;
+			}
+			/**
+			 * This function tiles all the DraggablePanels on stage
+			 * 
+			 * @TODO create a ui for this so the user can specify how to divide the stage
+			 * 
+			 * @author kmanohar
+			 */		
+			public static function tileWindows():void
+			{
+				var panels:Array = getWindowsOnStage();
+				var numPanels:uint = panels.length;
+				if (!numPanels)
+					return;
+				
+				var gridLength:Number = Math.ceil(Math.sqrt(numPanels));
+				
+				var rows:uint = gridLength; 
+				var columns:uint = gridLength;
+				
+				if (gridLength*gridLength != numPanels)
+				{	
+					rows = Math.round(Math.sqrt(numPanels));
+					columns = gridLength;
+				}			
+				
+				var xPos:Number = 0;
+				var yPos:Number = 0;
+				var firstPanel:DraggablePanel = panels[0] as DraggablePanel;
+				var taller:Boolean = firstPanel.parent.width < firstPanel.parent.height;
+				var width:Number = 100/(taller ? rows : columns);
+				var height:Number = 100/(taller ? columns : rows);
+				
+				var i:int = 0;
+				for each (var dp:DraggablePanel in panels)
+				{				
+					dp.panelX.value = xPos.toString() + "%";
+					dp.panelY.value = yPos.toString() + "%";
+					
+					dp.panelHeight.value = height.toString() + "%";
+					dp.panelWidth.value = width.toString() + "%";
+					if (i == (panels.length - 1))
+					{
+						// expand to fill the width
+						dp.panelWidth.value = (100-xPos).toString() + "%";
+					}
+					
+					xPos += width;
+					if (xPos >= 100)
+						xPos = 0;
+					if (!xPos)
+						yPos += height ;
+					i++;
+				}
+			}
+			/**
+			 * This function arranges all DraggablePanels along a diagonal
+			 * 
+			 * @author kmanohar
+			 */
+			public static function cascadeWindows():void
+			{
+				var panels:Array = getWindowsOnStage();
+				if (!panels.length)
+					return;
+				
+				var increment:Number = 50/panels.length;
+				var dist:Number = 0 ;
+				
+				for each (var dp:DraggablePanel in panels)
+				{				
+					dp.panelX.value = dp.panelY.value = dist.toString()+"%";			
+					dp.panelHeight.value = dp.panelWidth.value = "50%" ;	
+					
+					dist += increment;
+				}
+			}
+			
+			/**
 			 * Embedded cursors
 			 */
 			public static const CURSOR_RESIZE_TOP_BOTTOM:String = "resizeTopBottom";
