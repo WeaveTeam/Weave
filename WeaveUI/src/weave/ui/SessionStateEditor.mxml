@@ -90,9 +90,14 @@ A text editor to change the Session State on the fly.
 						</mx:VBox>
 					</mx:ViewStack>
 					<mx:HBox width="100%">
-						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer grid view')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
+						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer grid view')}"
+									 click="handlePreferDGChange()"
+									 toolTip="{lang('Check this box to prefer the grid view when possible.')}"
+									 enabled="{!useJSON.selected}"
 									 selected="true"/>
-						<mx:CheckBox id="useJSON" label="{lang('Edit as JSON')}" click="loadSessionStateInView()" selected="false"/>
+						<mx:CheckBox id="useJSON" label="{lang('Edit as JSON')}"
+									 change="if (useJSON.selected) preferDataGrid.selected = false; loadSessionStateInView()"
+									 selected="false"/>
 						<mx:CheckBox id="wordWrap" label="{lang('Word wrap')}" selected="false"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
@@ -116,7 +121,6 @@ A text editor to change the Session State on the fly.
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
-			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -572,7 +576,7 @@ A text editor to change the Session State on the fly.
 				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
 					changeView(TEXT_EDITOR);
 				else
-					changeView( (preferDataGrid.selected) ? DATA_GRID : TEXT_EDITOR );
+					changeView( preferDataGrid.selected ? DATA_GRID : TEXT_EDITOR );
 				
 				if (_editor == TEXT_EDITOR)
 				{

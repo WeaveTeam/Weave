@@ -36,7 +36,7 @@ Author: skolman
 		<mx:TextInput id="passwordInput" displayAsPassword="true" enter="login()"/>
 	</ui:Indent>
 	<ui:Center>
-		<mx:Button label="Sign in" click="login()"/>
+		<mx:Button label="Sign in" click="login()" keyDown="if (event.keyCode == Keyboard.ENTER) login()"/>
 	</ui:Center>
 	
 	<mx:Script>

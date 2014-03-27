@@ -5,7 +5,7 @@
                    xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
                    layout="absolute" implements="weave.api.ui.IVisToolWithSelectableAttributes"
                    title="{lang('Tree')}" xmlns:editors="weave.editors.*">
-<mx:Tree width="100%" height="100%" id="treeView" allowMultipleSelection="true" dataDescriptor="{new ParentColumnTreeDescriptor()}"/>
+<ui:CustomTree width="100%" height="100%" id="treeView" allowMultipleSelection="true" dataDescriptor="{new ParentColumnTreeDescriptor()}"/>
 <mx:Script>
 <![CDATA[
 
@@ -36,13 +36,16 @@ public const iconColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, ha
 public const enableProbing:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 public const probeIncludesChildren:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 public const selectIncludesChildren:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+public const expandToShowSelected:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 
-public const expandedItems:KeySet = new KeySet();
+public const expandedItems:KeySet = newLinkableChild(this, KeySet);
 
 private const _probe:KeySet = Weave.defaultProbeKeySet;
 private const _selection:KeySet = Weave.defaultSelectionKeySet;
 
 private const _columnUnion:KeySetUnion = new KeySetUnion();
+
+private var dataDescriptor:ParentColumnTreeDescriptor;
 
 WeaveAPI.registerImplementation(IVisTool, TreeTool, "Tree Tool");
 
@@ -55,16 +58,39 @@ override protected function constructor():void
 
 }
 
-private function handleSelectionChange(event:ListEvent)
+private function handleSelectionChange(event:ListEvent):void
 {
     if (treeView.selectedItems == null) 
     {
-            _selection.clearKeys();
-            return;
+        _selection.clearKeys();
+        return;
     }
 
-    _selection.replaceKeys(treeView.selectedItems);
+    if (!selectIncludesChildren.value)
+    {
+        _selection.replaceKeys(treeView.selectedItems);
+        return;
+    }
 
+    /* This is only reached if we are selecting all children for this node */
+    var all_children = [];
+
+    for (var idx:String in treeView.selectedItems)
+    {
+        var item:IQualifiedKey = treeView.selectedItems[idx] as IQualifiedKey;
+        var children:Array = dataDescriptor.getChildrenRecursive(item).source;
+        all_children = all_children.concat(children);
+    }
+
+    _selection.replaceKeys(all_children);
+
+    return;
+}
+
+private function handleItemExpansion(event:TreeEvent):void
+{
+    if (treeView.openItems as Array != null)
+        expandedItems.replaceKeys(treeView.openItems as Array);
     return;
 }
 
@@ -105,6 +131,22 @@ private function updateSelection():void
 {
     treeView.selectedItems = _selection.keys;
 }
+/* TODO Fix probing */
+private function updateProbe():void
+{
+    for (var idx:String in _probe.keys)
+    {
+        var key:IQualifiedKey = _probe.keys[idx] as IQualifiedKey;
+        treeView.drawItemForced(key, _selection.containsKey(key), false);
+    }
+    return;
+    
+}
+
+private function updateExpanded()
+{
+    treeView.openItems = expandedItems.keys;
+}
 
 override protected function childrenCreated():void
 {
@@ -113,17 +155,24 @@ override protected function childrenCreated():void
     parentColumnComponent.dynamicObject = parentColumn;
     labelColumnComponent.dynamicObject = labelColumn;
     iconColumnComponent.dynamicObject = iconColumn;
+    dataDescriptor = treeView.dataDescriptor as ParentColumnTreeDescriptor;
 
     treeView.addEventListener(ListEvent.ITEM_ROLL_OVER, handleRollOver);
     treeView.addEventListener(MouseEvent.ROLL_OUT, handleRollOut);
     treeView.addEventListener(ListEvent.CHANGE, handleSelectionChange);
+    treeView.addEventListener(TreeEvent.ITEM_CLOSE, handleItemExpansion);
+    treeView.addEventListener(TreeEvent.ITEM_OPEN, handleItemExpansion);
+
     treeView.labelFunction = labelFunction;
 
     _selection.addGroupedCallback(this, updateSelection);
+    _probe.addGroupedCallback(this, updateProbe);
+    expandedItems.addGroupedCallback(this, updateExpanded);
 
     linkBindableProperty(enableProbing, enableProbingCheckBox, "selected");
     linkBindableProperty(probeIncludesChildren, probeIncludesChildrenCheckBox, "selected");
     linkBindableProperty(selectIncludesChildren, selectIncludesChildrenCheckBox, "selected");
+    linkBindableProperty(expandToShowSelected, expandToShowSelectedCheckBox, "selected");
 
 }
 private function handleColumnChanges():void
@@ -165,6 +214,7 @@ public function getSelectableAttributeNames():Array
                 <mx:CheckBox id="probeIncludesChildrenCheckBox" enabled="{enableProbingCheckBox.selected}" label="{lang('Linking includes all children.')}"/>
             </ui:Indent>
             <mx:CheckBox id="selectIncludesChildrenCheckBox" label="{lang('Include children in selections.')}"/>
+            <mx:CheckBox id="expandToShowSelectedCheckBox" label="{lang('Expand to show selected children.')}"/>
         </mx:VBox>
         <editors:WindowSettingsEditor target="{this}"/>
     </ui:ControlPanel>
