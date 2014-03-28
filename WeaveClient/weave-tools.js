@@ -37,7 +37,10 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 	var batch = [];
 	for (var queryId in queryIdToParams)
 		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
-	$.post(url, JSON.stringify(batch), handleBatch, "json");
+	if (batch.length)
+		$.post(url, JSON.stringify(batch), handleBatch, "json");
+	else
+		setTimeout(handleBatch, 0);
 	function handleBatch(batchResponse)
 	{
 		var results = Array.isArray(queryIdToParams) ? [] : {};

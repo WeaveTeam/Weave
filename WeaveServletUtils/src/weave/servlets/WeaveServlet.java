@@ -478,6 +478,8 @@ public class WeaveServlet extends HttpServlet
     	{
     		if (info.jsonResponses.size() == 0)
     		{
+    			// If there are no Response objects contained within the Response array as it is to be sent to the client,
+    			// the server MUST NOT return an empty Array and should return nothing at all.
     			ServletOutputStream out = info.getOutputStream();
     			out.close();
     			out.flush();
