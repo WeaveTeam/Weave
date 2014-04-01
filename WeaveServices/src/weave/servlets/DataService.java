@@ -59,7 +59,6 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
-import weave.config.DataConfig.Relationship;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
@@ -154,20 +153,8 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		if (ids.length > DataConfig.MAX_ENTITY_REQUEST_COUNT)
 			throw new RemoteException(String.format("You cannot request more than %s entities at a time.", DataConfig.MAX_ENTITY_REQUEST_COUNT));
 		
-		DataConfig config = getDataConfig();
-		Set<Integer> idSet = new HashSet<Integer>();
-		for (int id : ids)
-			idSet.add(id);
-		
-		DataEntity[] entities = config.getEntities(idSet).toArray(new DataEntity[0]);
-		List<Relationship> relationships = config.getRelationships(idSet);
-		for (int i = 0; i < entities.length; i++)
-		{
-			// prevent user from receiving private metadata
-			entities[i].privateMetadata = null;
-			entities[i] = new DataEntityWithRelationships(entities[i], relationships);
-		}
-		return Arrays.copyOf(entities, entities.length, DataEntityWithRelationships[].class);
+		// prevent user from receiving private metadata
+		return getDataConfig().getEntitiesWithRelationships(ids, false);
 	}
 	
 	public int[] findEntityIds(Map<String,String> publicMetadata, String[] publicWildcardFields) throws RemoteException
@@ -610,7 +597,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			for (int id : columns)
 				allColumnIds.add(id);
 			// get all corresponding entities
-			for (DataEntity entity : dataConfig.getEntities(allColumnIds))
+			for (DataEntity entity : dataConfig.getEntities(allColumnIds, true))
 				entityLookup.put(entity.id, entity);
 			// check for missing columns
 			for (int id : allColumnIds)

@@ -263,18 +263,7 @@ package weave.data.hierarchy
 			if (_rootFilterEntityType)
 				return true;
 			
-			var cache:EntityCache = getEntityCache();
-			
-			var info:EntityHierarchyInfo = cache.getBranchInfo(id);
-			var entityType:String;
-			if (info)
-				entityType = info.entityType;
-			else
-				entityType = cache.getEntity(id).getEntityType();
-			
-			//TODO - Entity needs info on child types so we can determine whether or not a category has subcategories
-			return entityType == EntityType.HIERARCHY
-				|| entityType == EntityType.CATEGORY; // TEMPORARY SOLUTION FOR CATEGORIES
+			return getEntityCache().getEntity(id).hasChildBranches;
 		}
 		
 		/**

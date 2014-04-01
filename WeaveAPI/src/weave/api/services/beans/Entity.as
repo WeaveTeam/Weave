@@ -43,6 +43,7 @@ package weave.api.services.beans
 		public var id:int;
 		public var parentIds:Array;
 		public var childIds:Array;
+		public var hasChildBranches:Boolean;
 		private var _hasParent:Object;
 		private var _hasChild:Object;
 		

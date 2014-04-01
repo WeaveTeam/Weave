@@ -308,35 +308,102 @@ public class DataConfig
     public DataEntity getEntity(int id) throws RemoteException
     {
     	detectChange();
-    	for (DataEntity result : getEntities(Arrays.asList(id)))
+    	for (DataEntity result : getEntities(Arrays.asList(id), true))
     		return result;
     	return null;
     }
     
     /**
      * @param ids A collection of entity ids.
+     * @param includePrivateMetadata Set this to true to include private metadata in the results.
      * @return A collection of DataEntity objects for the entities in the supplied list of ids that actually exist.
      */
-    public Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException
+    public Collection<DataEntity> getEntities(Collection<Integer> ids, boolean includePrivateMetadata) throws RemoteException
     {
     	detectChange();
         List<DataEntity> results = new LinkedList<DataEntity>();
-        Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
+        Map<Integer,Map<String,String>> publicResults = public_metadata.getProperties(ids);
         
         // only proceed with the ids that actually exist
-        ids = publicresults.keySet();
+        ids = publicResults.keySet();
 
-        Map<Integer,Map<String,String>> privateresults = private_metadata.getProperties(ids);
+        Map<Integer,Map<String,String>> privateResults = null;
+        if (includePrivateMetadata)
+        	privateResults = private_metadata.getProperties(ids);
         for (int id : ids)
         {
             DataEntity entity = new DataEntity();
             entity.id = id;
-            entity.publicMetadata = publicresults.get(id);
-            entity.privateMetadata = privateresults.get(id);
+            entity.publicMetadata = publicResults.get(id);
+            if (includePrivateMetadata)
+            	entity.privateMetadata = privateResults.get(id);
             entity.notNull();
             results.add(entity);
         }
         return results;
+    }
+    
+    public DataEntityWithRelationships[] getEntitiesWithRelationships(int[] ids, boolean includePrivateMetadata) throws RemoteException
+    {
+		Set<Integer> idSet = new HashSet<Integer>();
+		for (int id : ids)
+			idSet.add(id);
+		
+		// Get entities and relationships.
+		Collection<DataEntity> baseEntities = getEntities(idSet, includePrivateMetadata);
+		RelationshipList relationships = getRelationships(idSet);
+		
+		// Combine entities and relationships.
+		DataEntityWithRelationships[] entities = new DataEntityWithRelationships[baseEntities.size()];
+		int i = 0;
+		for (DataEntity input : baseEntities)
+		{
+			DataEntityWithRelationships output = entities[i++] = new DataEntityWithRelationships();
+			output.id = input.id;
+			output.publicMetadata = input.publicMetadata;
+			output.privateMetadata = input.privateMetadata;
+			
+			List<Integer> parentIds = new LinkedList<Integer>();
+			List<Integer> childIds = new LinkedList<Integer>();
+			for (Relationship r : relationships)
+			{
+				if (input.id == r.childId)
+					parentIds.add(r.parentId);
+				else if (input.id == r.parentId)
+					childIds.add(r.childId);
+			}
+			
+			output.parentIds = ListUtils.toIntArray(parentIds);
+			output.childIds = ListUtils.toIntArray(childIds);
+		}
+		
+		// Set hasChildBranches flags.
+		
+		Set<Integer> unknownChildIds = new HashSet<Integer>();
+		// add child IDs of all entities we have
+		for (DataEntityWithRelationships entity : entities)
+			for (int childId : entity.childIds)
+				if (!idSet.contains(childId))
+					unknownChildIds.add(childId);
+		// get types of unknown child entities
+		Map<Integer, String> entityTypeLookup = getEntityTypes(unknownChildIds);
+		// add types of known entities
+		for (DataEntityWithRelationships entity : entities)
+			entityTypeLookup.put(entity.id, entity.publicMetadata.get(PublicMetadata.ENTITYTYPE));
+		// update hasChildBranches property for each entity
+		for (DataEntityWithRelationships entity : entities)
+		{
+			for (int childId : entity.childIds)
+			{
+				if (Strings.equal(entityTypeLookup.get(childId), EntityType.CATEGORY))
+				{
+					entity.hasChildBranches = true;
+					break;
+				}
+			}
+		}
+		
+		return entities;
     }
     
     /**
@@ -497,7 +564,7 @@ public class DataConfig
     
     public EntityHierarchyInfo[] getEntityHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
     {
-    	detectChange();
+    	detectChange(); 	
     	Collection<Integer> ids = public_metadata.filter(publicMetadata, null);
     	EntityHierarchyInfo[] result = new EntityHierarchyInfo[ids.size()];
     	if (result.length == 0)
@@ -746,37 +813,17 @@ public class DataConfig
 	{
 		public int[] parentIds;
 		public int[] childIds;
+		public boolean hasChildBranches = false;
 		
 		public DataEntityWithRelationships() { }
-		
-		public DataEntityWithRelationships(DataEntity base, List<Relationship> relationships)
-		{
-			if (base != null)
-			{
-				this.id = base.id;
-				this.publicMetadata = base.publicMetadata;
-				this.privateMetadata = base.privateMetadata;
-			}
-			
-			List<Integer> parentIds = new LinkedList<Integer>();
-			List<Integer> childIds = new LinkedList<Integer>();
-			for (Relationship r : relationships)
-			{
-				if (id == r.childId)
-					parentIds.add(r.parentId);
-				else if (id == r.parentId)
-					childIds.add(r.childId);
-			}
-			
-			this.parentIds = ListUtils.toIntArray(parentIds);
-			this.childIds = ListUtils.toIntArray(childIds);
-		}
 		
 		public String toString()
 		{
 			return String.format("(%s%s)",
 					MapUtils.fromPairs(
-							"childIds", Arrays.toString(childIds)
+							"childIds", Arrays.toString(childIds),
+							"parentIds", Arrays.toString(parentIds),
+							"hasChildBranches", hasChildBranches
 						).toString(),
 					super.toString()
 				);

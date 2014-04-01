@@ -71,7 +71,6 @@ import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.config.DataConfig.Relationship;
-import weave.config.DataConfig.RelationshipList;
 import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.GeometryStreamConverter;
@@ -172,7 +171,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
         if (getConnectionInfo(user, pass).is_superuser)
         	return; // superuser can modify anything
         
-    	Collection<DataEntity> entities = getDataConfig().getEntities(Arrays.asList(entityIds));
+    	Collection<DataEntity> entities = getDataConfig().getEntities(Arrays.asList(entityIds), true);
     	for (DataEntity entity : entities)
     	{
     		String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
@@ -614,17 +613,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			throw new RemoteException(String.format("You cannot request more than %s entities at a time.", DataConfig.MAX_ENTITY_REQUEST_COUNT));
 		
 		authenticate(user, pass);
-		
-		DataConfig config = getDataConfig();
-		Set<Integer> idSet = new HashSet<Integer>();
-		for (int id : ids)
-			idSet.add(id);
-		
-		DataEntity[] entities = config.getEntities(idSet).toArray(new DataEntity[0]);
-		RelationshipList relationships = config.getRelationships(idSet);
-		for (int i = 0; i < entities.length; i++)
-			entities[i] = new DataEntityWithRelationships(entities[i], relationships);
-		return Arrays.copyOf(entities, entities.length, DataEntityWithRelationships[].class);
+		return getDataConfig().getEntitiesWithRelationships(ids, true);
 	}
 
 	public int[] findEntityIds(String user, String pass, DataEntitySearchCriteria metadata) throws RemoteException
@@ -1937,7 +1926,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		authenticate(user, password);
 		DataConfig config = getDataConfig();
 		Collection<Integer> ids = config.getChildIds(table_id);
-		DataEntity[] columns = config.getEntities(ids).toArray(new DataEntity[0]);
+		DataEntity[] columns = config.getEntities(ids, true).toArray(new DataEntity[0]);
 		String query = null;
 		for (DataEntity entity : columns)
 		{
