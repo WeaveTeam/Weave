@@ -112,7 +112,7 @@ import infomap.beans.SolrClusterObject;
 import infomap.beans.SolrClusterResponseModel;
 import infomap.beans.TopicClassificationResults;
 import infomap.scheduler.RssFeedsJob;
-import weave.servlets.GenericServlet;
+import weave.servlets.WeaveServlet;
 import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
 import weave.utils.FileUtils;
@@ -131,7 +131,7 @@ import java.util.regex.Pattern;
 /**
  * class SolrDataServices
  */
-public class AdminService extends GenericServlet {
+public class AdminService extends WeaveServlet {
 	private static final long serialVersionUID = 1L;
 
 	// Set connection parameters in config.properties
