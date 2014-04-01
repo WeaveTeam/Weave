@@ -33,25 +33,30 @@ package weave.ui
 	 */
     public class WeaveTreeDataDescriptor implements ITreeDataDescriptor
     {
-		public static const FILTER_MODE_ALL:uint = 0;
-		public static const FILTER_MODE_BRANCHES:uint = 1;
-		public static const FILTER_MODE_LEAVES:uint = 2;
+		public static const DISPLAY_MODE_ALL:uint = 0;
+		public static const DISPLAY_MODE_BRANCHES:uint = 1;
+		public static const DISPLAY_MODE_LEAVES:uint = 2;
 		
 		/**
-		 * @param filterMode One of [FILTER_MODE_ALL, FILTER_MODE_BRANCHES, FILTER_MODE_LEAVES]. Default is FILTER_MODE_ALL.
+		 * @param displayMode One of [DISPLAY_MODE_ALL, DISPLAY_MODE_BRANCHES, DISPLAY_MODE_LEAVES]. Default is DISPLAY_MODE_ALL.
+		 * @param nodeFilter A function like <code>function(node:IWeaveTreeNode):Boolean</code> which filters child nodes.
 		 */
-		public function WeaveTreeDataDescriptor(filterMode:uint = 0)
+		public function WeaveTreeDataDescriptor(displayMode:uint = 0, nodeFilter:Function = null)
 		{
-			this._filterMode = filterMode;
+			this._displayMode = displayMode;
+			this._nodeFilter = nodeFilter;
 		}
 		
 		private var _childViews:Dictionary = new Dictionary(true);
-		private var _filterMode:uint;
+		private var _displayMode:uint;
+		private var _nodeFilter:Function;
 		private function filterChildren(node:IWeaveTreeNode):Boolean
 		{
-			if (_filterMode == FILTER_MODE_ALL)
-				return true;
-			return (_filterMode == FILTER_MODE_BRANCHES) == node.isBranch();
+			if (_displayMode == DISPLAY_MODE_BRANCHES && !node.isBranch())
+				return false;
+			if (_displayMode == DISPLAY_MODE_LEAVES && node.isBranch())
+				return false;
+			return _nodeFilter == null || _nodeFilter(node);
 		}
 		
         public function getChildren(node:Object, model:Object = null):ICollectionView
@@ -67,7 +72,7 @@ package weave.ui
 			if (childView.source != childArray)
 				childView.source = childArray;
 			
-			if (_filterMode != FILTER_MODE_ALL)
+			if (_displayMode != DISPLAY_MODE_ALL)
 			{
 				if (childView.filterFunction != filterChildren)
 					childView.filterFunction = filterChildren;
@@ -83,10 +88,10 @@ package weave.ui
 			// so the "expand" arrow icon always shows.
 			// This allows dragging items into an empty branch.
 			// When we're filtering, we assume we won't be modifying the hierarchy.
-			if (_filterMode == FILTER_MODE_ALL)
+			if (_displayMode == DISPLAY_MODE_ALL)
 				return isBranch(node, model);
 			
-			return (_filterMode == FILTER_MODE_BRANCHES)
+			return (_displayMode == DISPLAY_MODE_BRANCHES)
 				&& (node as IWeaveTreeNode).hasChildBranches();
 		}
 		

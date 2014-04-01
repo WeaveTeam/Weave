@@ -29,6 +29,7 @@ package weave.data.hierarchy
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.data.IWeaveTreeNodeWithPathFinding;
     import weave.api.getLinkableOwner;
     import weave.api.reportError;
     import weave.api.services.beans.Entity;
@@ -37,7 +38,7 @@ package weave.data.hierarchy
     import weave.services.EntityCache;
 
 	[RemoteClass]
-    public class EntityNode implements IWeaveTreeNode, IColumnReference
+    public class EntityNode implements IWeaveTreeNodeWithPathFinding, IColumnReference
     {
 		/**
 		 * Dual lookup: (EntityCache -> int) and (int -> EntityCache)
@@ -266,6 +267,23 @@ package weave.data.hierarchy
 			return getEntityCache().getEntity(id).hasChildBranches;
 		}
 		
+		private function getCachedChildNode(childId:int):EntityNode
+		{
+			var child:EntityNode = _childNodeCache[childId] as EntityNode;
+			if (!child)
+			{
+				child = new EntityNode(getEntityCache(), null, _nodeFilterFunction);
+				child.id = childId;
+				_childNodeCache[childId] = child;
+			}
+			if (child.id != childId)
+			{
+				reportError("BUG: EntityNode id has changed since it was first cached");
+				child.id = childId;
+			}
+			return child;
+		}
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -296,19 +314,7 @@ package weave.data.hierarchy
 			for (var i:int = 0; i < childIds.length; i++)
 			{
 				var childId:int = childIds[i];
-				var child:EntityNode = _childNodeCache[childId] as EntityNode;
-				if (!child)
-				{
-					child = new EntityNode(cache, null, _nodeFilterFunction);
-					child.id = childId;
-					_childNodeCache[childId] = child;
-				}
-				
-				if (child.id != childId)
-				{
-					reportError("BUG: EntityNode id has changed since it was first cached");
-					child.id = childId;
-				}
+				var child:EntityNode = getCachedChildNode(childId)
 				
 				if (_nodeFilterFunction != null && !_nodeFilterFunction(child))
 					continue;
@@ -353,6 +359,32 @@ package weave.data.hierarchy
 				return true;
 			}
 			return false;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function findPathToNode(descendant:IWeaveTreeNode):Array
+		{
+			var node:EntityNode = descendant as EntityNode;
+			if (!node || this._cacheId != node._cacheId)
+				return null;
+			
+			// get path of Entity objects
+			var path:Array = getEntityCache().getEntityPath(this.getEntity(), node.getEntity());
+			// get path of EntityNode objects
+			if (path)
+			{
+				for (var i:int = 0; i < path.length; i++)
+				{
+					if (i == 0)
+						node = this;
+					else
+						node = node.getCachedChildNode((path[i] as Entity).id);
+					path[i] = node;
+				}
+			}
+			return path;
 		}
     }
 }

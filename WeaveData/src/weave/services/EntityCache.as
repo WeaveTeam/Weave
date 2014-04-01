@@ -451,5 +451,40 @@ package weave.services
 			}
 			invalidate(child_id, true);
         }
+		
+		/**
+		 * Finds a series of Entity objects which can be traversed as a path from a root Entity to a descendant Entity.
+		 * @param root The root Entity.
+		 * @param descendant The descendant Entity.
+		 * @return An Array of Entity objects which can be followed as a path from the root to the descendant, including the root and the descendant.
+		 *         Returns null if the descendant is unreachable from the root.
+		 */
+		public function getEntityPath(root:Entity, descendant:Entity):Array
+		{
+			if (!root.initialized)
+			{
+				//TODO - when searching for a column under root(-1), a table should always be returned instead of a hierarchy
+				var type:String = descendant.getEntityType();
+				if (type == EntityType.TABLE || type == EntityType.HIERARCHY)
+					return [root, descendant];
+			}
+			
+			if (root.id == descendant.id)
+				return [root];
+			
+			for each (var parentId:int in descendant.parentIds)
+			{
+				var parent:Entity = getEntity(parentId);
+				if (!parent.initialized)
+					continue;
+				var path:Array = getEntityPath(root, parent)
+				if (path)
+				{
+					path.push(descendant);
+					return path;
+				}
+			}
+			return null;
+		}
     }
 }

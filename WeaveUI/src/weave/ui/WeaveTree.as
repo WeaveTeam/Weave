@@ -27,6 +27,7 @@ package weave.ui
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IWeaveTreeNode;
+	import weave.api.data.IWeaveTreeNodeWithPathFinding;
 	import weave.api.getCallbackCollection;
 	import weave.utils.EventUtils;
 	import weave.utils.VectorUtils;
@@ -128,6 +129,20 @@ package weave.ui
 			return super.removeChildItem(parent || _rootNode, child, index);
 		}
 		
+		override public function getParentItem(item:Object):*
+		{
+			// super.getParentItem() only works if item is currently visible.
+			var parent:Object = super.getParentItem(item);
+			if (parent)
+				return parent;
+			
+			// if item is not visible, try to find a path to the node
+			var path:Array = findPathToNode(_rootNode, item as IWeaveTreeNode);
+			if (path)
+				return path[path.length - 2]; // the parent is the second-to-last item
+			return null;
+		}
+		
 		/**
 		 * This will refresh the tree and dispatch a change event.
 		 * @param immediately If this is set to true, the table will be refreshed immediately.
@@ -154,6 +169,35 @@ package weave.ui
 			// since this function may be called some time after the EntityCache updates,
 			// dispatching an event here allows other code to know when data is actually refreshed
 			dispatchEvent(new ListEvent(ListEvent.CHANGE));
+		}
+		
+		/**
+		 * Finds a series of IWeaveTreeNode objects which can be traversed as a path to a descendant node.
+		 * @param descendant The descendant IWeaveTreeNode.
+		 * @return An Array of IWeaveTreeNode objects which can be followed as a path from this node to the descendant, including this node and the descendant node.
+		 *         Returns null if the descendant is unreachable from this node.
+		 */
+		public static function findPathToNode(root:IWeaveTreeNode, descendant:IWeaveTreeNode):Array
+		{
+			if (!root)
+				return null;
+			
+			if (root == descendant)
+				return [root];
+			var path:Array;
+			for each (var child:IWeaveTreeNode in root.getChildren())
+			{
+				if (child is IWeaveTreeNodeWithPathFinding)
+					path = (child as IWeaveTreeNodeWithPathFinding).findPathToNode(descendant);
+				else
+					path = findPathToNode(child, descendant);
+				if (path)
+				{
+					path.unshift(child);
+					return path;
+				}
+			}
+			return null;
 		}
     }
 }
