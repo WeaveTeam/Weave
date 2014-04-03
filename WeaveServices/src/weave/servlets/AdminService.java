@@ -1187,19 +1187,12 @@ public class AdminService
 					fieldLengths[iCol] = Math.max(fieldLengths[iCol], nextLine[iCol].length());
 
 					// Change missing data into NULL, later add more cases to deal with missing data.
-					String[] nullValuesStandard = new String[] {
-							"", ".", "..", " ", "-", "\"NULL\"", "NULL", "NaN" };
-					ALL_NULL_VALUES: for (String[] values : new String[][] {
-							nullValuesStandard, nullValues })
+					for (String nullValue : nullValues)
 					{
-						for (String nullValue : values)
+						if (nextLine[iCol] != null && nextLine[iCol].equalsIgnoreCase(nullValue))
 						{
-							if (nextLine[iCol] != null && nextLine[iCol].equalsIgnoreCase(nullValue))
-							{
-								nextLine[iCol] = null;
-
-								break ALL_NULL_VALUES;
-							}
+							nextLine[iCol] = null;
+							break;
 						}
 					}
 					if (nextLine[iCol] == null)
