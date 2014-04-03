@@ -76,7 +76,7 @@
 				super.constructor();
 				
 				panelWidth.value = "50%";
-				panelHeight.value = "70%";
+				panelHeight.value = "60%";
 				panelX.value = "25%";
 				panelY.value = "15%";
 				minimizable.value = true;
