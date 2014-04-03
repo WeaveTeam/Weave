@@ -24,7 +24,7 @@
 	xmlns="weave.editors.*"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.IDataSourceEditor"
 	creationPolicy="all" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
@@ -53,9 +53,11 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
+			import mx.controls.Alert;
+			
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
 			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.data.DataSources.DBFDataSource;
@@ -68,7 +70,7 @@
 				super.createChildren();
 				addChild(busyIndicator);
 				busyIndicator.visible = false;
-				sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("DBFDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
@@ -85,7 +87,7 @@
 				
 				if (_dbfDataSource)
 				{
-					sourceName.text = Weave.root.getName(_dbfDataSource);
+					sourceName.text = WeaveAPI.globalHashMap.getName(_dbfDataSource);
 					dbfURL.text = _dbfDataSource.dbfUrl.value;
 					shpURL.text = _dbfDataSource.shpUrl.value;
 					keyColumnName.text = _dbfDataSource.keyColName.value;
@@ -111,6 +113,28 @@
 				_dbfDataSource.shpUrl.value = shpURL.text;
 				_dbfDataSource.keyColName.value = keyColumnName.text;
 				_dbfDataSource.keyType.value = keyTypeSelector.selectedKeyType;
+			}
+			
+			public function createDataSource():IDataSource
+			{
+				if (!sourceName.text || !dbfURL.text)
+				{
+					Alert.show(lang("Please fill all required fields"), lang("Error"));
+					return null;
+				}
+				if (WeaveAPI.globalHashMap.getObject(sourceName.text))
+				{
+					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+					return null;
+				}
+				_dbfDataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, DBFDataSource, false);
+				if (!_dbfDataSource)
+				{
+					Alert.show(lang("Unexpected problem. Unable to add the data source."));
+					return null;
+				}
+				applyChanges();
+				return _dbfDataSource;
 			}
 			
 			private function openFile(target:TextInputWithPrompt, fileFilter:FileFilter):void

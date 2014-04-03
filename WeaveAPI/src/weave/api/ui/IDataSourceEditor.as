@@ -15,30 +15,13 @@
 
 package weave.api.ui
 {
-	import mx.core.IUIComponent;
-	
-	import weave.api.core.ILinkableObject;
+	import weave.api.data.IDataSource;
 
-	/**
-	 * This is an interface to an editor for an ILinkableObject.
-	 */
-	public interface ILinkableObjectEditor extends IUIComponent
+	public interface IDataSourceEditor extends ILinkableObjectEditor
 	{
 		/**
-		 * Sets the target object to be edited.
-		 * @param object The target object.
-		 */		
-		function setTarget(object:ILinkableObject):void;
-		
-		/**
-		 * Checks if the user has made any unsaved changes.
-		 * @return true if there are unsaved changes.
-		 */		
-		function hasPendingChanges():Boolean;
-		
-		/**
-		 * Applies any unsaved changes.
+		 * Creates a new data source with the configuration settings which have been selected in the GUI.
 		 */
-		function applyChanges():void;
+		function createDataSource():IDataSource;
 	}
 }
