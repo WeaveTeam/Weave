@@ -209,36 +209,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				var columns:Array = _plotter.columns.getObjects();
-				var inputValues:Array = new Array(); var inputNames:Array;
-				inputNames = ["mymatrix"];
-				var outputNames:Array = ["normOutput"];
-				var script:String = "frame <- data.frame(mymatrix)\n" +
-					"donorm <- function(frame){\n" +
-					"  RR <- nrow(frame)\n"+
-					"  CC <- ncol(frame)\n"+
-					"  for (z in 1:CC){\n"+
-					"    maxr <- max(frame[z])\n"+
-					"    minr <- min(frame[z])\n" +
-					"    rng <- (maxr - minr)\n" +
-					"    if (rng == 0)\n" +
-					"      rng <- 1\n"+
-					"    for(i in 1:RR){\n"+
-					"      frame[i,z] <- (frame[i,z] - minr) / rng\n"+
-					"    }\n"+
-					"  }\n"+
-					"  frame\n"+
-					"}\n"+
-					"normOutput <- donorm(frame)\n";
-				
 				var result:Array = joinColumns(columns);
 				latestjoinedColumnKeys = result[0];
 				var joinedColumns:Array = result[1];
 				
 				if (latestjoinedColumnKeys.length > 0)
 				{
-					inputValues.push(joinedColumns);
-					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-					addAsyncResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
+					addAsyncResponder(
+						Rservice.normalize(joinedColumns),
+						handleNormScriptResult,
+						handleRunScriptFault,
+						latestjoinedColumnKeys
+					);
 				}
 			} 
 			
@@ -250,48 +232,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				normalizedColumns = [];
 				if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
 				
-				var temRObjects:Array = new Array();
-				//Object to stored returned result - Which is array of object{name: , value: }
-				var Robj:Array = event.result as Array;				
-				
-				if (Robj == null)
-				{
-					reportError("R Servlet did not return an Array of results as expected.");
-					return;
-				}
-				
-				//collecting Objects of type RResult(Should Match result object from Java side)
-				for (var i:int = 0; i < (event.result).length; i++)
-				{
-					if (Robj[i] == null)
-					{
-						trace("WARNING! R Service returned null in results array at index "+i);
-						continue;
-					}
-					var rResult:RResult = new RResult(Robj[i]);
-					temRObjects = (rResult.value) as Array;
-					
-					//handles cases when R returns a NaN, (for eg when all records have the same value for a column or when the dataset contains one record)
-					/* for(var f:int = 0; f< temRObjects.length; f++)
-					{
-					if(isNaN(temRObjects[f]))
-					return;
-					} */
-					
-				}	
+				//Object to store returned result
+				var result:Array = event.result as Array;				
 				
 				disposeObject(normalizedColumnsGroup);
 				normalizedColumnsGroup = newDisposableChild(this, CallbackCollection);
-				if(temRObjects== null)
-					return;
-				for (var j:int = 0 ; j < temRObjects.length; j++)
+				for (var j:int = 0; j < result.length; j++)
 				{
-					var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,temRObjects[j],_plotter.columns.getNames()[j]+"norm");
+					var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,result[j],_plotter.columns.getNames()[j]+" norm");
 					normalizedColumns.push(col);
 					registerLinkableChild(normalizedColumnsGroup, col);
 				}
 				//normalizedColumnsGroup.addImmediateCallback(this, classDiscriminatorColumnUpdate);
-				
 			}
 			
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
