@@ -57,6 +57,8 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -90,6 +92,21 @@
 				registerLinkableChild(this, editor);
 				registerLinkableChild(this, columnList);
 				columnList.titleHBox.addChild(addColumnControls);
+				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				columnList.selectorControls.parent.removeChild(columnList.selectorControls);
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				if (detectLinkableObjectChange(updateDisplayList, toolWatcher))
+					handleTool();
+				
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
 			}
 			
 			override public function dispose():void
@@ -107,7 +124,7 @@
 			private var selectableAttributes:Array = [];
 			[Bindable] private var selectableAttributeNames:Array = [];
 			
-			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IVisToolWithSelectableAttributes), handleTool, true);
+			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IVisToolWithSelectableAttributes));
 			
 			private function handleTool():void
 			{
@@ -117,55 +134,56 @@
 				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
 				if (tool)
 				{
-					var selectedIndex:int = dimensionTypeLinks.selectedIndex;
 					var attrs:Array = tool.getSelectableAttributes();
 					var names:Array = tool.getSelectableAttributeNames();
 					
-					// do nothing if nothing changed
-					if (!StandardLib.arrayCompare(attrs, selectableAttributes)
-						&& !StandardLib.arrayCompare(names, selectableAttributeNames))
-						return;
-						
-					selectableAttributes = attrs;
-					selectableAttributeNames = names;
+					if (StandardLib.arrayCompare(attrs, selectableAttributes))
+						selectableAttributes = attrs;
+					
+					if (StandardLib.arrayCompare(names, selectableAttributeNames))
+						selectableAttributeNames = names;
+					
+					var index:int = attrs.indexOf(_linkedObject);
+					if (index < 0)
+						linkToObject(attrs[0]);
+					dimensionTypeLinks.selectedIndex = Math.max(0, index);
+					
 					title = ControlPanel.getControlPanelTitle(tool, TITLE_FORMAT);
-					if (selectedIndex >= 0)
-						linkToObject(selectableAttributes[selectedIndex]);
 				}
 				else
 				{
 					selectableAttributes = [];
 					selectableAttributeNames = [];
 				}
-				showOrHideParamSelector(tool != null);
 				
-				if (!columnList.hashMap && verticalDividedBox == columnList.parent)
-					verticalDividedBox.removeChild(columnList);
-			}
-			
-			private function showOrHideParamSelector(show:Boolean):void
-			{
-				if (show && !paramSelector.parent)
-					outerVBox.addChildAt(paramSelector,0);
-				if (!show && paramSelector.parent)
-					outerVBox.removeChild(paramSelector);
+				paramSelector.visible = paramSelector.includeInLayout = !!tool;
+				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
 			}
 			
 			private static const DEFAULT_TITLE:String = "Attribute selector";
 			private static const TITLE_FORMAT:String = DEFAULT_TITLE + " for {0}";
 			
+			/**
+			 * The last object that was passed in to linkToObject()
+			 */
+			private var _linkedObject:ILinkableObject = null;
 			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
 			{
+				_linkedObject = columnOrHashMap;
+				
 				editor.setTarget(ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
+				columnList.hashMap = columnOrHashMap as ILinkableHashMap;
+				
+				editor.explorer.fileView.allowMultipleSelection = !!columnList.hashMap;
+				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
 
 				var tool:IVisToolWithSelectableAttributes = getVisTool(columnOrHashMap);
 				toolWatcher.target = tool;
-				handleTool();
+				// make sure we call handleTool() later
+				getCallbackCollection(toolWatcher).triggerCallbacks();
 				if (tool)
 				{
 					targets = tool.getSelectableAttributes();
-					
-					dimensionTypeLinks.selectedIndex = tool.getSelectableAttributes().indexOf(columnOrHashMap);
 				}
 				else
 				{
@@ -177,11 +195,10 @@
 						title = lang(DEFAULT_TITLE);
 				}
 				
-				editor.explorer.fileView.allowMultipleSelection = columnOrHashMap is ILinkableHashMap;
-				if (columnOrHashMap is ILinkableHashMap)
+				if (columnList.hashMap)
 				{
 					// copy the session state from the first ReferencedColumn we find.
-					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
+					var columns:Array = columnList.hashMap.getObjects(IAttributeColumn);
 					for each (var column:IAttributeColumn in columns)
 					{
 						if (column is DynamicColumn)
@@ -193,16 +210,7 @@
 						}
 					}
 					
-					var child:DisplayObject = columnList.selectorControls;
-					if (child.parent)
-						child.parent.removeChild(child);
-					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
 					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
-					verticalDividedBox.addChild(columnList);
-				}
-				else if (verticalDividedBox == columnList.parent)
-				{
-					verticalDividedBox.removeChild(columnList);
 				}
 				
 				_instance.editor.clearSearch();

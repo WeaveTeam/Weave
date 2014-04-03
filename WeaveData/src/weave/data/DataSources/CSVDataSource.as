@@ -220,7 +220,7 @@ package weave.data.DataSources
 			return HierarchyUtils.nodeFromMetadata(generateMetadataForColumnId(id));
 		}
 		
-		private function generateMetadataForColumnId(id:Object):Object
+		public function generateMetadataForColumnId(id:Object):Object
 		{
 			if (!parsedRows)
 				return null;
@@ -405,6 +405,23 @@ package weave.data.DataSources
 			{
 				return super.getHierarchyRoot();
 			}
+		}
+		
+		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			if (!metadata)
+				return null;
+			
+			var csvRoot:CSVColumnNode = getHierarchyRoot() as CSVColumnNode;
+			if (!csvRoot)
+				return super.generateHierarchyNode(metadata);
+			
+			if (metadata.hasOwnProperty(METADATA_COLUMN_INDEX))
+				return new CSVColumnNode(this, metadata[METADATA_COLUMN_INDEX]);
+			if (metadata.hasOwnProperty(METADATA_COLUMN_NAME))
+				return new CSVColumnNode(this, getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]));
+			
+			return null;
 		}
 		
 		override protected function handleHierarchyChange():void
@@ -636,10 +653,12 @@ package weave.data.DataSources
 
 import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
+import weave.api.data.IColumnReference;
+import weave.api.data.IDataSource;
 import weave.api.data.IWeaveTreeNode;
 import weave.data.DataSources.CSVDataSource;
 
-internal class CSVColumnNode implements IWeaveTreeNode
+internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
 {
 	private var source:CSVDataSource;
 	public var columnIndex:int;
@@ -651,8 +670,13 @@ internal class CSVColumnNode implements IWeaveTreeNode
 		if (columnIndex < 0)
 			children = [];
 	}
-	public function getSource():Object { return source; }
-	public function equals(other:IWeaveTreeNode):Boolean { return other == this; }
+	public function equals(other:IWeaveTreeNode):Boolean
+	{
+		var that:CSVColumnNode = other as CSVColumnNode;
+		return !!that
+			&& this.source == that.source
+			&& this.columnIndex == that.columnIndex;
+	}
 	public function getLabel():String
 	{
 		if (columnIndex < 0)
@@ -676,4 +700,7 @@ internal class CSVColumnNode implements IWeaveTreeNode
 	
 	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
 	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
+	
+	public function getDataSource():IDataSource { return source; }
+	public function getColumnMetadata():Object { return source.generateMetadataForColumnId(source.getColumnIds()[columnIndex]); }
 }

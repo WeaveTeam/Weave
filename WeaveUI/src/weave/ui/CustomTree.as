@@ -141,6 +141,8 @@ package weave.ui
 		 */
 		public function expandMatchingItems(itemTest:Function, open:Boolean = true):void
 		{
+			if (!collection || !collection.length)
+				return;
 			var cursor:IViewCursor = collection.createCursor();
 			do
 			{
@@ -152,6 +154,8 @@ package weave.ui
 		
 		public function scrollToSelectedItem():void
 		{
+			if (!collection || !collection.length)
+				return;
 			var i:int = 0;
 			var item:Object = selectedItem;
 			var cursor:IViewCursor = collection.createCursor();
@@ -175,6 +179,8 @@ package weave.ui
 		 */		
 		public function scrollToAndSelectMatchingItem(itemTest:Function):Object
 		{
+			if (!collection || !collection.length)
+				return null;
 			var i:int = 0;
 			var cursor:IViewCursor = collection.createCursor();
 			do

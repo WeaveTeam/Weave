@@ -23,12 +23,13 @@ package weave.data.hierarchy
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.data.IWeaveTreeNodeWithPathFinding;
     import weave.data.DataSources.IDataSource_old;
     import weave.data.DataSources.WeaveDataSource;
     import weave.utils.HierarchyUtils;
 
 	[RemoteClass]
-    public class XMLEntityNode implements IWeaveTreeNode, IColumnReference
+    public class XMLEntityNode implements IWeaveTreeNodeWithPathFinding, IColumnReference
     {
 		public function XMLEntityNode(dataSourceName:String = null, xml:XML = null)
 		{
@@ -135,6 +136,14 @@ package weave.data.hierarchy
 		 */
 		public function getChildren():Array
 		{
+			return initChildren(true);
+		}
+		
+		/**
+		 * Initializes child nodes, optionally requesting that the data source initialize the hierarchy subtree if empty.
+		 */
+		private function initChildren(requestHierarchyFromDataSource:Boolean = false):Array
+		{
 			if (!isBranch())
 				return null;
 			
@@ -165,7 +174,7 @@ package weave.data.hierarchy
 			
 			_childNodes.length = children.length();
 			
-			if (_childNodes.length == 0)
+			if (requestHierarchyFromDataSource && _childNodes.length == 0)
 			{
 				if (ds is IDataSource_old)
 					(ds as IDataSource_old).initializeHierarchySubtree(_xml);
@@ -190,6 +199,59 @@ package weave.data.hierarchy
 		{
 			trace(new Error("Not implemented").getStackTrace());
 			return false;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function findPathToNode(descendant:IWeaveTreeNode):Array
+		{
+			if (!descendant)
+				return null;
+			
+			if (this.equals(descendant))
+				return [this];
+
+			var descendantEntityNode:EntityNode = descendant as EntityNode;
+			
+			// make sure to call initChildren() instead of getChildren()
+			for each (var childNode:IWeaveTreeNode in initChildren())
+			{
+				// is the child equivalent to the descendant?
+				if (childNode.equals(descendant))
+					return [this, childNode];
+				
+				// is the child an EntityNode?
+				var childEntityNode:EntityNode = childNode as EntityNode;
+				if (childEntityNode)
+				{
+					// no path from EntityNode to non-EntityNode
+					if (!descendantEntityNode)
+						continue;
+					
+					// is the child a parent of the descendant?
+					var parentIds:Array = descendantEntityNode.getEntity().parentIds;
+					if (parentIds && parentIds.indexOf(childEntityNode.id) >= 0)
+						return [this, childNode, descendant];
+					
+					// otherwise, don't attempt to find the path (avoid calling childEntityNode.getEntity())
+					continue;
+				}
+				
+				// otherwise, the child should be an XMLEntityNode
+				var childXMLEntityNode:XMLEntityNode = childNode as XMLEntityNode;
+				if (!childXMLEntityNode)
+					return null;
+				
+				// find corresponding XML node
+				var path:Array = childXMLEntityNode.findPathToNode(descendant);
+				if (path)
+				{
+					path.unshift(this);
+					return path;
+				}
+			}
+			return null;
 		}
     }
 }

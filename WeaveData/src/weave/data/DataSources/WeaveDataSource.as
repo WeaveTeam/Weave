@@ -166,6 +166,33 @@ package weave.data.DataSources
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
+		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			if (!metadata)
+				return null;
+			
+			// NOTE - this code won't work if idFields are specified and EntityNodes are used in the hierarchy.
+			// This function would have to be made asynchronous in order to support that.
+			
+			var id:Number;
+			if (typeof metadata != 'object')
+			{
+				id = StandardLib.asNumber(metadata);
+			}
+			else if (metadata.hasOwnProperty(ENTITY_ID))
+			{
+				id = metadata[ENTITY_ID]
+			}
+			else
+			{
+				return super.generateHierarchyNode(metadata);
+			}
+			
+			var node:EntityNode = new EntityNode(entityCache);
+			node.id = id;
+			return node;
+		}
+		
 		public function getRows(keys:Array):AsyncToken
 		{
 			return _service.getRows(keys);

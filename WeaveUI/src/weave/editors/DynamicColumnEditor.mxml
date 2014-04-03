@@ -54,13 +54,36 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.compiler.Compiler;
 			import weave.core.LinkableWatcher;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.hierarchy.DataSourceTreeNode;
+			import weave.utils.EventUtils;
 			
 			public const referencedColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn, copyToTarget);
+			private function copyToTarget():void
+			{
+				if (target)
+					target.requestLocalObjectCopy(referencedColumn);
+			}
+			
 			private const targetWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, copyFromTarget);
+			private function copyFromTarget():void
+			{
+				if (target && target.internalObject is ReferencedColumn)
+				{
+					var counter:uint = referencedColumn.triggerCounter;
+					copySessionState(target.internalObject, referencedColumn);
+					// make sure item gets selected even if referencedColumn did not change
+					// because we may have previously cleared explorer.fileView.selectedItem
+					if (counter == referencedColumn.triggerCounter)
+						handleReferencedColumn();
+				}
+				else if (explorer && explorer.fileView)
+					explorer.fileView.selectedItem = null;
+			}
 			
 			public function get target():DynamicColumn
 			{
@@ -102,21 +125,56 @@
 				
 				explorer.folderView.dragEnabled = false;
 				explorer.fileView.dragEnabled = true;
-				//explorer.attributeView.addEventListener(DragEvent.DRAG_START, handleAttributeDrag);
+				
+				getCallbackCollection(explorer).addGroupedCallback(this, handleExplorerGroupedCallback);
+				referencedColumn.addImmediateCallback(this, handleReferencedColumn, true);
 				
 				BindingUtils.bindSetter(handleSelection, explorer.fileView, 'selectedItem');
 //				linkBindableProperty(explorer.folderFilter, folderSearchInput, 'text', 200);
 				linkBindableProperty(explorer.fileFilter, fileSearchInput, 'text', 200);
 			}
 			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			
 			private function handleSelection(node:IWeaveTreeNode):void
 			{
-				var ref:IColumnReference = node as IColumnReference;
+				// don't set session state if tree is not focused.
+				if (!UIUtils.hasFocus(explorer.fileView))
+					return;
+				
+				var ref:IColumnReference = explorer.fileView.selectedItem as IColumnReference;
 				if (ref)
 				{
 					var meta:Object = ref.getColumnMetadata();
 					if (meta)
+					{
+						var counter:uint = referencedColumn.triggerCounter;
 						referencedColumn.setColumnReference(ref.getDataSource(), meta);
+						// when user selects something, make sure we copy to target even if referencedColumn did not change
+						if (counter == referencedColumn.triggerCounter)
+							copyToTarget();
+					}
+				}
+			}
+			
+			private function handleExplorerGroupedCallback():void
+			{
+				// If we have a target and nothing is selected, try to find the item in the newly updated hierarchy
+				if (target && target.internalObject is ReferencedColumn && !explorer.fileView.selectedItem)
+					handleReferencedColumn();
+			}
+			
+			private function handleReferencedColumn():void
+			{
+				var ds:IDataSource = referencedColumn.getDataSource();
+				if (ds)
+				{
+					var meta:Object = referencedColumn.metadata.getSessionState();
+					var node:IWeaveTreeNode = ds.findHierarchyNode(meta);
+					explorer.expandPathAndSelectNode(node);
 				}
 			}
 			
@@ -167,18 +225,6 @@
 				return result;
 			}
 			
-			private function copyToTarget():void
-			{
-				if (target)
-					target.requestLocalObjectCopy(referencedColumn);
-			}
-			
-			private function copyFromTarget():void
-			{
-				if (target && target.internalObject is ReferencedColumn)
-					copySessionState(target.internalObject, referencedColumn);
-			}
-			
 			public function clearSearch():void
 			{
 				fileSearchInput.text = '';
@@ -187,23 +233,6 @@
 				explorer.fileFilter.value = '';
 //				explorer.folderFilter.value = '';
 			}
-			
-			/*
-			private function handleAttributeDrag(event:MouseEvent):void
-			{
-				var ds:DragSource = new DragSource();
-				ds.addData(explorer.attributeView.selectedItems,"items");
-				
-				var targetList:List = (event.currentTarget as List);
-				if (targetList.dataProvider != null)// && targetList.dropEnabled)
-				{
-					var selectedIndex:int = (event.currentTarget as List).selectedIndex;
-					var dragInitiator:IUIComponent = (event.currentTarget as List).indexToItemRenderer(selectedIndex);
-					if (dragInitiator)
-						DragManager.doDrag(dragInitiator,ds,event);
-				}
-			}
-			*/
 		]]>
 	</mx:Script>
 </mx:VBox>

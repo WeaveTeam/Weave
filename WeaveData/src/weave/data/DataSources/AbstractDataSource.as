@@ -36,8 +36,9 @@ package weave.data.DataSources
 	/**
 	 * This is a base class to make it easier to develope a new class that implements IDataSource_old.
 	 * To extend this class, the minimum functions to override are:
-	 *         initialize(), requestHierarchyFromSource() and requestColumnFromSource().
+	 *         initialize(), requestHierarchyFromSource(), requestColumnFromSource().
 	 * Optionally, initializationComplete() can also be overridden to control how long column requests are delayed.
+	 * generateHierarchyNode() should be overridden if the data source does not use XMLEntityNode to build its hierarchy.
 	 * 
 	 * @author adufilie
 	 */
@@ -186,6 +187,9 @@ package weave.data.DataSources
 		 */
 		/* abstract */ protected function requestColumnFromSource(proxyColumn:ProxyColumn):void { }
 
+		/**
+		 * @inheritDoc
+		 */
 		public function refreshHierarchy():void
 		{
 			_attributeHierarchy.setSessionState(null);
@@ -194,7 +198,7 @@ package weave.data.DataSources
 		protected var _rootNode:IWeaveTreeNode;
 		
 		/**
-		 * Gets the root node of the attribute hierarchy.
+		 * @inheritDoc
 		 */
 		public function getHierarchyRoot():IWeaveTreeNode
 		{
@@ -204,7 +208,28 @@ package weave.data.DataSources
 			(_rootNode as XMLEntityNode).xml = _attributeHierarchy.value;
 			return _rootNode;
 		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			var path:Array = HierarchyUtils.findPathToNode(_rootNode, generateHierarchyNode(metadata));
+			if (path)
+				return path[path.length - 1];
+			return null;
+		}
 		
+		/**
+		 * This function should be overridden if the data source does not use XMLEntityNode for its hierarchy nodes.
+		 */
+		protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			if (!metadata)
+				return null;
+			return new XMLEntityNode(WeaveAPI.globalHashMap.getName(this), HierarchyUtils.nodeFromMetadata(metadata));
+		}
+
 		/**
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
 		 */

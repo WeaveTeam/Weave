@@ -75,20 +75,25 @@ package weave.data.DataSources
 		private var xlsSheetsArray:ArrayCollection = null;
 		private function loadXLSData(xlsSheetsArray:ArrayCollection):void
 		{
-			this.xlsSheetsArray = xlsSheetsArray;
-			if (_attributeHierarchy.value == null)
+			try
 			{
-				// loop through column names, adding indicators to hierarchy
-				var firstRow:Array = xlsSheetsArray[0].values[0];
-				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
-				for each (var colName:String in firstRow)
+				this.xlsSheetsArray = xlsSheetsArray;
+				if (_attributeHierarchy.value == null)
 				{
-					root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					// loop through column names, adding indicators to hierarchy
+					var firstRow:Array = xlsSheetsArray[0].values[0];
+					var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
+					for each (var colName:String in firstRow)
+					{
+						root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					}
+					_attributeHierarchy.value = root;
 				}
-				_attributeHierarchy.value = root;
 			}
-			
-			//trace("hierarchy was set to " + attributeHierarchy.xml);
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		/**

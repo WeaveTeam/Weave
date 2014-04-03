@@ -35,6 +35,13 @@ package weave.api.data
 		function getHierarchyRoot():IWeaveTreeNode;
 		
 		/**
+		 * Finds the hierarchy node that corresponds to a set of metadata, or null if there is no such node.
+		 * @param metadata Metadata used to identify a node in the hierarchy, which may or may not reference a column.
+		 * @return The hierarchy node corresponding to the metadata or null if there is no corresponding node.
+		 */
+		function findHierarchyNode(metadata:Object):IWeaveTreeNode;
+		
+		/**
 		 * Retrieves an IAttributeColumn from this IDataSource.
 		 * @param metadata Metadata used to identify a column in this IDataSource.
 		 * @return An IAttributeColumn object that will be updated when the column data is available.

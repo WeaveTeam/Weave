@@ -30,6 +30,7 @@ package weave.ui
 	import weave.api.data.IWeaveTreeNodeWithPathFinding;
 	import weave.api.getCallbackCollection;
 	import weave.utils.EventUtils;
+	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
 	use namespace mx_internal;
@@ -73,16 +74,23 @@ package weave.ui
 		}
 		
 		/**
-		 * Adds a context menu item "Select all child nodes"
+		 * Adds a context menu items "Expand" and "Select all child nodes"
 		 */
 		public function setupContextMenu():void
 		{
 			contextMenu = new ContextMenu();
-			var selectChildren:ContextMenuItem = new ContextMenuItem("Select all child nodes");
-			contextMenu.customItems = [selectChildren];
+			var expandChildren:ContextMenuItem = new ContextMenuItem("Expand");
+			var selectChildren:ContextMenuItem = new ContextMenuItem(lang("Select all child nodes"));
+			contextMenu.customItems = [expandChildren, selectChildren];
 			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, function(event:*):void {
 				var node:IWeaveTreeNode = selectedItem as IWeaveTreeNode;
 				selectChildren.enabled = node && node.isBranch() && node.getChildren() && node.getChildren().length;
+				expandChildren.caption = lang(isItemOpen(node) ? "Collapse" : "Expand");
+			});
+			expandChildren.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event:*):void {
+				var expand:Boolean = !isItemOpen(selectedItem);
+				for each (var item:* in selectedItems)
+					expandChildrenOf(item, expand);
 			});
 			selectChildren.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event:*):void {
 				selectedItems = VectorUtils.flatten(selectedItems.map(function(node:IWeaveTreeNode, i:int, a:Array):*{
@@ -137,7 +145,7 @@ package weave.ui
 				return parent;
 			
 			// if item is not visible, try to find a path to the node
-			var path:Array = findPathToNode(_rootNode, item as IWeaveTreeNode);
+			var path:Array = HierarchyUtils.findPathToNode(_rootNode, item as IWeaveTreeNode);
 			if (path)
 				return path[path.length - 2]; // the parent is the second-to-last item
 			return null;
@@ -171,33 +179,28 @@ package weave.ui
 			dispatchEvent(new ListEvent(ListEvent.CHANGE));
 		}
 		
-		/**
-		 * Finds a series of IWeaveTreeNode objects which can be traversed as a path to a descendant node.
-		 * @param descendant The descendant IWeaveTreeNode.
-		 * @return An Array of IWeaveTreeNode objects which can be followed as a path from this node to the descendant, including this node and the descendant node.
-		 *         Returns null if the descendant is unreachable from this node.
-		 */
-		public static function findPathToNode(root:IWeaveTreeNode, descendant:IWeaveTreeNode):Array
+		public function expandPathAndSelectNode(node:IWeaveTreeNode):void
 		{
-			if (!root)
-				return null;
-			
-			if (root == descendant)
-				return [root];
-			var path:Array;
-			for each (var child:IWeaveTreeNode in root.getChildren())
+			if (!rootNode)
 			{
-				if (child is IWeaveTreeNodeWithPathFinding)
-					path = (child as IWeaveTreeNodeWithPathFinding).findPathToNode(descendant);
-				else
-					path = findPathToNode(child, descendant);
-				if (path)
-				{
-					path.unshift(child);
-					return path;
-				}
+				// if there is no root node, we assume it's only showing a flat list of leaf nodes
+				selectedItem = node;
+				scrollToSelectedItem();
+				return;
 			}
-			return null;
+			var path:Array = HierarchyUtils.findPathToNode(rootNode, node);
+			if (!path)
+				return;
+			// expand every node along the path
+			for each (node in path)
+				if (iterator && dataDescriptor.hasChildren(node, iterator.view))
+					expandItem(node, true);
+			// select the last item in the path (the equivalent node in the hierarchy)
+			selectedItem = path[path.length - 1];
+			// if the node does not appear in the tree, select its parent instead
+			if (!selectedItem)
+				selectedItem = path[path.length - 2];
+			scrollToSelectedItem();
 		}
     }
 }

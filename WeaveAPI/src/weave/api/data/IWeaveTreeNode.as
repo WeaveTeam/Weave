@@ -29,12 +29,6 @@ package weave.api.data
 	 */	
     public interface IWeaveTreeNode
     {
-//		/**
-//		 * Gets the data for this node, which may vary depending on the node implementation.
-//		 * @return The data for this node.
-//		 */
-//		function getData():Object;
-		
 		/**
 		 * Checks if this node is equivalent to another.
 		 * Note that the following should return true:  node.equals(ObjectUtil.copy(node))

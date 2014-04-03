@@ -88,6 +88,13 @@
 				rootWatcher.target = node as ILinkableObject;
 			}
 			
+			public function expandPathAndSelectNode(node:IWeaveTreeNode):void
+			{
+				folderView.expandPathAndSelectNode(node);
+				refreshFiles();
+				fileView.expandPathAndSelectNode(node);
+			}
+			
 			public function get selectedFolder():IWeaveTreeNode
 			{
 				return folderView.selectedItem as IWeaveTreeNode;

@@ -23,6 +23,7 @@ package weave.ui
 
 	/**
 	 * BUG FIX: hiliteSelectedNavItem crashes because it calls getChildAt() with a bad index.
+	 * BUG FIX: selectedIndex is out of sync with _selectedIndex
 	 * 
 	 * @author adufilie
 	 */
@@ -32,6 +33,17 @@ package weave.ui
 		{
 			if (index < numChildren)
 				super.hiliteSelectedNavItem(index);
+		}
+		override public function set selectedIndex(value:int):void
+		{
+			if (value != selectedIndex)
+			{
+				super.selectedIndex = value;
+				commitProperties();
+				return;
+			}
+			
+			super.selectedIndex = value;
 		}
 	}
 }

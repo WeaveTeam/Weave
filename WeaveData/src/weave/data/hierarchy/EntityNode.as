@@ -370,8 +370,19 @@ package weave.data.hierarchy
 			if (!node || this._cacheId != node._cacheId)
 				return null;
 			
+			var cache:EntityCache = getEntityCache();
+			if (_rootFilterEntityType == EntityType.TABLE)
+			{
+				// root table node only has two levels - table, column
+				// return path of EntityNode objects
+				for each (var id:int in node.getEntity().parentIds)
+					if (cache.getEntity(id).getEntityType() == EntityType.TABLE)
+						return [this, getCachedChildNode(id), node];
+				return null;
+			}
+			
 			// get path of Entity objects
-			var path:Array = getEntityCache().getEntityPath(this.getEntity(), node.getEntity());
+			var path:Array = cache.getEntityPath(this.getEntity(), node.getEntity());
 			// get path of EntityNode objects
 			if (path)
 			{

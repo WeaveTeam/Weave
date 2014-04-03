@@ -19,6 +19,9 @@
 
 package weave.utils
 {
+	import weave.api.data.IWeaveTreeNode;
+	import weave.api.data.IWeaveTreeNodeWithPathFinding;
+
 	/**
 	 * An all-static class containing functions for dealing with xml hierarchies and xml hierarchy paths.
 	 * 
@@ -47,7 +50,8 @@ package weave.utils
 		{
 			var node:XML = <attribute/>;
 			for (var key:String in metadata)
-				node['@'+key] = metadata[key];
+				if (metadata[key] != null)
+					node['@'+key] = metadata[key];
 			return node;
 		}
 		
@@ -253,6 +257,39 @@ package weave.utils
 		public static function findEquivalentNode(hierarchy:XML, foreignNode:XML):XML
 		{
 			return getNodeFromPath(hierarchy, getPathFromNode(hierarchy, foreignNode));
+		}
+		
+		/**
+		 * Finds a series of IWeaveTreeNode objects which can be traversed as a path to a descendant node.
+		 * @param root The root IWeaveTreeNode.
+		 * @param descendant The descendant IWeaveTreeNode.
+		 * @return An Array of IWeaveTreeNode objects which can be followed as a path from the root to the descendant, including the root and descendant nodes.
+		 *         The last item in the path may be the equivalent node found in the hierarchy rather than the descendant node that was passed in.
+		 *         Returns null if the descendant is unreachable from this node.
+		 * @see weave.api.data.IWeaveTreeNode#equals()
+		 */
+		public static function findPathToNode(root:IWeaveTreeNode, descendant:IWeaveTreeNode):Array
+		{
+			if (!root || !descendant)
+				return null;
+			
+			if (root is IWeaveTreeNodeWithPathFinding)
+				return (root as IWeaveTreeNodeWithPathFinding).findPathToNode(descendant);
+			
+			if (root.equals(descendant))
+				return [root];
+			
+			for each (var child:IWeaveTreeNode in root.getChildren())
+			{
+				var path:Array = findPathToNode(child, descendant);
+				if (path)
+				{
+					path.unshift(root);
+					return path;
+				}
+			}
+			
+			return null;
 		}
 	}
 }
