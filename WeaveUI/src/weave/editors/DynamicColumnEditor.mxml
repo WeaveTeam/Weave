@@ -129,7 +129,8 @@
 				getCallbackCollection(explorer).addGroupedCallback(this, handleExplorerGroupedCallback);
 				referencedColumn.addImmediateCallback(this, handleReferencedColumn, true);
 				
-				BindingUtils.bindSetter(handleSelection, explorer.fileView, 'selectedItem');
+				BindingUtils.bindSetter(handleFolderSelection, explorer.folderView, 'selectedItem');
+				BindingUtils.bindSetter(handleFileSelection, explorer.fileView, 'selectedItem');
 //				linkBindableProperty(explorer.folderFilter, folderSearchInput, 'text', 200);
 				linkBindableProperty(explorer.fileFilter, fileSearchInput, 'text', 200);
 			}
@@ -139,13 +140,22 @@
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 			}
 			
-			private function handleSelection(node:IWeaveTreeNode):void
+			private function handleFolderSelection(selectedFolder:IWeaveTreeNode):void
+			{
+				if (!UIUtils.hasFocus(explorer.folderView))
+					return;
+				// if we just selected the category corresponding to the referencedColumn,
+				// make sure the corresponding column gets selected
+				if (_lastFoundCategory && selectedFolder == _lastFoundCategory)
+					getCallbackCollection(explorer).triggerCallbacks();
+			}
+			private function handleFileSelection(selectedFile:IWeaveTreeNode):void
 			{
 				// don't set session state if tree is not focused.
 				if (!UIUtils.hasFocus(explorer.fileView))
 					return;
 				
-				var ref:IColumnReference = explorer.fileView.selectedItem as IColumnReference;
+				var ref:IColumnReference = selectedFile as IColumnReference;
 				if (ref)
 				{
 					var meta:Object = ref.getColumnMetadata();
@@ -162,10 +172,20 @@
 			
 			private function handleExplorerGroupedCallback():void
 			{
-				// If we have a target and nothing is selected, try to find the item in the newly updated hierarchy
+				// if we have a target and no leaf node is selected
 				if (target && target.internalObject is ReferencedColumn && !explorer.fileView.selectedItem)
-					handleReferencedColumn();
+				{
+					// if we previously could not find the referenced node or we are in the correct category,
+					// try to find the item in the newly updated hierarchy
+					if (!_lastFoundNode || explorer.selectedFolder == _lastFoundCategory)
+					{
+						handleReferencedColumn();
+					}
+				}
 			}
+			
+			private var _lastFoundCategory:IWeaveTreeNode;
+			private var _lastFoundNode:IWeaveTreeNode;
 			
 			private function handleReferencedColumn():void
 			{
@@ -174,7 +194,14 @@
 				{
 					var meta:Object = referencedColumn.metadata.getSessionState();
 					var node:IWeaveTreeNode = ds.findHierarchyNode(meta);
-					explorer.expandPathAndSelectNode(node);
+					if (!node)
+						node = ds.getHierarchyRoot();
+					_lastFoundNode = explorer.expandPathAndSelectNode(node);
+					_lastFoundCategory = _lastFoundNode ? explorer.selectedFolder : null;
+				}
+				else
+				{
+					_lastFoundNode = null;
 				}
 			}
 			

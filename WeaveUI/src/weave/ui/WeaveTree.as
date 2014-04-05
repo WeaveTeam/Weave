@@ -184,8 +184,7 @@ package weave.ui
 			if (!rootNode)
 			{
 				// if there is no root node, we assume it's only showing a flat list of leaf nodes
-				selectedItem = node;
-				scrollToSelectedItem();
+				scrollToAndSelectMatchingItem(node);
 				return;
 			}
 			var path:Array = HierarchyUtils.findPathToNode(rootNode, node);
@@ -196,11 +195,10 @@ package weave.ui
 				if (iterator && dataDescriptor.hasChildren(node, iterator.view))
 					expandItem(node, true);
 			// select the last item in the path (the equivalent node in the hierarchy)
-			selectedItem = path[path.length - 1];
+			scrollToAndSelectMatchingItem(path[path.length - 1]);
 			// if the node does not appear in the tree, select its parent instead
 			if (!selectedItem)
-				selectedItem = path[path.length - 2];
-			scrollToSelectedItem();
+				scrollToAndSelectMatchingItem(path[path.length - 2]);
 		}
     }
 }

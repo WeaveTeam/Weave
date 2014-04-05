@@ -82,17 +82,24 @@
 				fileView.addEventListener(KeyboardEvent.KEY_DOWN, handleFileKeyDown, false, int.MAX_VALUE);
 			}
 			
+			/**
+			 * The root node.
+			 */
 			public function set rootNode(node:IWeaveTreeNode):void
 			{
 				folderView.rootNode = node;
 				rootWatcher.target = node as ILinkableObject;
 			}
 			
-			public function expandPathAndSelectNode(node:IWeaveTreeNode):void
+			/**
+			 * @return The node that was selected.
+			 */
+			public function expandPathAndSelectNode(node:IWeaveTreeNode):IWeaveTreeNode
 			{
 				folderView.expandPathAndSelectNode(node);
 				refreshFiles();
 				fileView.expandPathAndSelectNode(node);
+				return fileView.selectedItem as IWeaveTreeNode;
 			}
 			
 			public function get selectedFolder():IWeaveTreeNode
@@ -225,12 +232,10 @@
 					if (parent)
 					{
 						// go up a folder
-						folderView.selectedItem = parent;
-						folderView.scrollToSelectedItem();
+						folderView.scrollToAndSelectMatchingItem(parent);
 						// select the folder we just came from
 						refreshFiles();
-						fileView.selectedItem = folder;
-						fileView.scrollToSelectedItem();
+						fileView.scrollToAndSelectMatchingItem(folder);
 					}
 					else
 					{

@@ -124,7 +124,13 @@
 			private var selectableAttributes:Array = [];
 			[Bindable] private var selectableAttributeNames:Array = [];
 			
-			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IVisToolWithSelectableAttributes));
+			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IVisToolWithSelectableAttributes), handleToolImmediately);
+			
+			private function handleToolImmediately():void
+			{
+				if (!toolWatcher.target)
+					title = DEFAULT_TITLE;
+			}
 			
 			private function handleTool():void
 			{
@@ -214,6 +220,12 @@
 				}
 				
 				_instance.editor.clearSearch();
+			}
+			
+			override public function removePanel():void
+			{
+				editor.setTarget(null);
+				super.removePanel();
 			}
 			
 			///////////////////////////////////////////////////////////////////////

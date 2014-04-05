@@ -154,41 +154,39 @@ package weave.ui
 		
 		public function scrollToSelectedItem():void
 		{
-			if (!collection || !collection.length)
-				return;
-			var i:int = 0;
-			var item:Object = selectedItem;
-			var cursor:IViewCursor = collection.createCursor();
-			do
-			{
-				if (selectedItemsCompareFunction == null
-					? (cursor.current == item)
-					: selectedItemsCompareFunction(cursor.current, item))
-				{
-					scrollToIndex(i);
-					return;
-				}
-				i++;
-			}
-			while (cursor.moveNext());
+			scrollToAndSelectMatchingItem(selectedItem);
 		}
 		
 		/**
-		 * @param itemTest A function to test for a matching item:  function(item:Object):Boolean
+		 * @param itemOrTestFunction Either an item or a function to test for a matching item:  function(item:Object):Boolean
 		 * @return The matching item, if found.
 		 */		
-		public function scrollToAndSelectMatchingItem(itemTest:Function):Object
+		public function scrollToAndSelectMatchingItem(itemOrTestFunction:Object):Object
 		{
 			if (!collection || !collection.length)
 				return null;
+			
+			if (itemOrTestFunction == null)
+			{
+				if (selectedItem)
+					selectedItem = null;
+				return null;
+			}
+			
 			var i:int = 0;
 			var cursor:IViewCursor = collection.createCursor();
+			var useBasicEqualityTest:Boolean = itemOrTestFunction == selectedItem || selectedItemsCompareFunction == null;
 			do
 			{
-				if (itemTest(cursor.current))
+				if (useBasicEqualityTest
+					? cursor.current == itemOrTestFunction
+					: (itemOrTestFunction is Function
+						? (itemOrTestFunction as Function)(cursor.current)
+						: selectedItemsCompareFunction(cursor.current, itemOrTestFunction)))
 				{
 					// set selection before scrollToIndex() or it won't scroll
-					selectedItems = [cursor.current];
+					if (selectedItem != cursor.current)
+						selectedItem = cursor.current;
 					scrollToIndex(i);
 					return cursor.current;
 				}
