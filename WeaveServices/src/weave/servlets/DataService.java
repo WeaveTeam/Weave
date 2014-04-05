@@ -52,7 +52,7 @@ import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
-import weave.config.DataConfig.DataEntitySearchCriteria;
+import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
@@ -157,12 +157,9 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		return getDataConfig().getEntitiesWithRelationships(ids, false);
 	}
 	
-	public int[] findEntityIds(Map<String,String> publicMetadata, String[] publicWildcardFields) throws RemoteException
+	public int[] findEntityIds(Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
 	{
-		DataEntitySearchCriteria query = new DataEntitySearchCriteria();
-		query.publicMetadata = publicMetadata;
-		query.publicWildcardFields = publicWildcardFields;
-		int[] ids = ListUtils.toIntArray( getDataConfig().getEntityIds(query) );
+		int[] ids = ListUtils.toIntArray( getDataConfig().searchPublicMetadata(publicMetadata, wildcardFields) );
 		Arrays.sort(ids);
 		return ids;
 	}
@@ -498,12 +495,12 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		DataConfig dataConfig = getDataConfig();
 		
-		DataEntitySearchCriteria params = new DataEntitySearchCriteria();
+		DataEntityMetadata params = new DataEntityMetadata();
 		params.setPublicMetadata(
 				PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 				PublicMetadata.KEYTYPE, keyType
 			);
-		List<Integer> columnIds = new ArrayList<Integer>( dataConfig.getEntityIds(params) );
+		List<Integer> columnIds = new ArrayList<Integer>( dataConfig.searchPublicMetadata(params.publicMetadata, null) );
 
 		if (columnIds.size() > MAX_COLUMN_REQUEST_COUNT)
 			columnIds = columnIds.subList(0, MAX_COLUMN_REQUEST_COUNT);
@@ -932,9 +929,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		if (metadata == null || metadata.size() == 0)
 			throw new RemoteException("No metadata query parameters specified.");
 		
-		DataEntitySearchCriteria query = new DataEntitySearchCriteria();
-		query.publicMetadata = metadata;
-		query.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
+		metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 		
 		final String DATATABLE = "dataTable";
 		final String NAME = "name";
@@ -948,36 +943,33 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		DataConfig dataConfig = getDataConfig();
 		
-		Collection<Integer> ids = dataConfig.getEntityIds(query);
+		Collection<Integer> ids = dataConfig.searchPublicMetadata(metadata, null);
 		
 		// attempt recovery for backwards compatibility
 		if (ids.size() == 0)
 		{
-			String dataType = metadata.get(PublicMetadata.DATATYPE);
 			if (metadata.containsKey(DATATABLE) && metadata.containsKey(NAME))
 			{
 				// try to find columns sqlTable==dataTable and sqlColumn=name
-				DataEntitySearchCriteria sqlInfoQuery = new DataEntitySearchCriteria();
-				sqlInfoQuery.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
+				Map<String,String> privateMetadata = new HashMap<String,String>();
 				String sqlTable = metadata.get(DATATABLE);
 				String sqlColumn = metadata.get(NAME);
 				for (int i = 0; i < 2; i++)
 				{
 					if (i == 1)
 						sqlTable = sqlTable.toLowerCase();
-					sqlInfoQuery.setPrivateMetadata(
-						PrivateMetadata.SQLTABLE, sqlTable,
-						PrivateMetadata.SQLCOLUMN, sqlColumn
-					);
-					ids = dataConfig.getEntityIds(sqlInfoQuery);
+					privateMetadata.put(PrivateMetadata.SQLTABLE, sqlTable);
+					privateMetadata.put(PrivateMetadata.SQLCOLUMN, sqlColumn);
+					ids = dataConfig.searchPrivateMetadata(privateMetadata, null);
 					if (ids.size() > 0)
 						break;
 				}
 			}
-			else if (metadata.containsKey(NAME) && dataType != null && dataType.equals(DataType.GEOMETRY))
+			else if (metadata.containsKey(NAME)
+					&& Strings.equal(metadata.get(PublicMetadata.DATATYPE), DataType.GEOMETRY))
 			{
 				metadata.put(PublicMetadata.TITLE, metadata.remove(NAME));
-				ids = dataConfig.getEntityIds(query);
+				ids = dataConfig.searchPublicMetadata(metadata, null);
 			}
 			if (ids.size() == 0)
 				throw new RemoteException("No column matches metadata query: " + metadata);

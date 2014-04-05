@@ -262,47 +262,39 @@ public class DataConfig
     	public_metadata.setProperties(id, diff.publicMetadata);
     	private_metadata.setProperties(id, diff.privateMetadata);
     }
-    public Collection<Integer> getEntityIds(DataEntitySearchCriteria query) throws RemoteException
+    
+	/**
+	 * Gets an Array of entity IDs with matching public metadata. 
+	 * @param publicMetadata Public metadata to search for.
+	 * @param wildcardFields A list of field names in publicMetadata that should be treated
+	 *                       as search strings with wildcards '?' and '*' for single-character
+	 *                       and multi-character matching, respectively.
+	 * @return An Array of IDs matching the search criteria.
+	 */
+    public Collection<Integer> searchPublicMetadata(Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
     {
     	detectChange();
-        Set<Integer> idsMatchingPublicMetadata = null;
-        Set<Integer> idsMatchingPrivateMetadata = null;
-        boolean filterPublic = query != null && query.publicMetadata != null && query.publicMetadata.size() > 0;
-        boolean filterPrivate = query != null && query.privateMetadata != null && query.privateMetadata.size() > 0;
-        boolean noFiltering = !filterPublic && !filterPrivate;
-        Collection<Integer> ids = null;
-
-        if (filterPublic || noFiltering)
-        {
-        	Set<String> wf = null;
-        	if (query.publicWildcardFields != null)
-        		wf = new HashSet<String>(Arrays.asList(query.publicWildcardFields));
-            idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata, wf);
-        }
-        if (filterPrivate || noFiltering)
-        {
-        	Set<String> wf = null;
-        	if (query.privateWildcardFields != null)
-        		wf = new HashSet<String>(Arrays.asList(query.privateWildcardFields));
-            idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata, wf);
-        }
-        if ((idsMatchingPublicMetadata != null) && (idsMatchingPrivateMetadata != null))
-        {
-        	if (noFiltering) // union
-        		idsMatchingPublicMetadata.addAll(idsMatchingPrivateMetadata);
-        	else // intersection
-        		idsMatchingPublicMetadata.retainAll(idsMatchingPrivateMetadata);
-            ids = idsMatchingPublicMetadata;
-        }
-        else if (idsMatchingPublicMetadata != null)
-            ids = idsMatchingPublicMetadata;
-        else if (idsMatchingPrivateMetadata != null)
-            ids = idsMatchingPrivateMetadata;
-
-        if (ids == null || ids.size() < 1)
-            return Collections.emptyList();
-
-        return ids;
+    	Set<String> wf = null;
+    	if (wildcardFields != null)
+    		wf = new HashSet<String>(Arrays.asList(wildcardFields));
+    	return public_metadata.filter(publicMetadata, wf);
+    }
+    
+    /**
+     * Gets an Array of entity IDs with matching public metadata. 
+     * @param privateMetadata Public metadata to search for.
+     * @param wildcardFields A list of field names in publicMetadata that should be treated
+     *                       as search strings with wildcards '?' and '*' for single-character
+     *                       and multi-character matching, respectively.
+     * @return An Array of IDs matching the search criteria.
+     */
+    public Collection<Integer> searchPrivateMetadata(Map<String,String> privateMetadata, String[] wildcardFields) throws RemoteException
+    {
+    	detectChange();
+    	Set<String> wf = null;
+    	if (wildcardFields != null)
+    		wf = new HashSet<String>(Arrays.asList(wildcardFields));
+    	return private_metadata.filter(privateMetadata, wf);
     }
     
     public DataEntity getEntity(int id) throws RemoteException
@@ -676,32 +668,6 @@ public class DataConfig
 				return NUMBER;
 			else
 				return STRING;
-		}
-	}
-	
-	static public class DataEntitySearchCriteria extends DataEntityMetadata
-	{
-		/**
-		 * A list of field names in publicMetadata that should be treated
-		 * as search strings with wildcards '?' and '*' for single-character
-		 * and multi-character matching, respectively.
-		 */
-		public String[] publicWildcardFields = null;
-		/**
-		 * A list of field names in privateMetadata that should be treated
-		 * as search strings with wildcards '?' and '*' for single-character
-		 * and multi-character matching, respectively.
-		 */
-		public String[] privateWildcardFields = null;
-		
-		public String toString()
-		{
-			return MapUtils.fromPairs(
-					"publicMetadata", publicMetadata,
-					"privateMetadata", privateMetadata,
-					"publicWildcardFields", Arrays.deepToString(publicWildcardFields),
-					"privateWildcardFields", Arrays.deepToString(privateWildcardFields)
-				).toString();
 		}
 	}
 	

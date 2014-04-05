@@ -63,7 +63,6 @@
 	import weave.api.reportError;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
-	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.data.hierarchy.EntityNode;
@@ -196,12 +195,11 @@
 			return;
 		}
 		
-		var query:EntitySearchCriteria = new EntitySearchCriteria();
-		query.publicMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
-		query.publicMetadata[ColumnMetadata.TITLE] = searchStr;
-		query.publicWildcardFields = [ColumnMetadata.TITLE];
+		var query:Object = {};
+		query[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
+		query[ColumnMetadata.TITLE] = searchStr;
 		addAsyncResponder(
-			Admin.service.findEntityIds(query),
+			Admin.service.findEntityIds(query, [ColumnMetadata.TITLE]),
 			function(event:ResultEvent, search:String):void
 			{
 				if (search != columnSearch.text)

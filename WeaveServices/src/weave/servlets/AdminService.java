@@ -63,7 +63,6 @@ import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntitySearchCriteria;
 import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
@@ -616,10 +615,10 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		return getDataConfig().getEntitiesWithRelationships(ids, true);
 	}
 
-	public int[] findEntityIds(String user, String pass, DataEntitySearchCriteria metadata) throws RemoteException
+	public int[] findEntityIds(String user, String pass, Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
 	{
 		authenticate(user, pass);
-		return ListUtils.toIntArray( getDataConfig().getEntityIds(metadata) );
+		return ListUtils.toIntArray( getDataConfig().searchPublicMetadata(publicMetadata, wildcardFields) );
 	}
 	
 	public String[] findPublicFieldValues(String user, String pass, String fieldName, String valueSearch) throws RemoteException
@@ -1430,8 +1429,9 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 						SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable)
 					);
 
-				DataEntitySearchCriteria metaQuery = new DataEntitySearchCriteria();
-				metaQuery.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
+				DataEntityMetadata metaQuery = new DataEntityMetadata();
+				// we don't search public metadata because that would be a separate sql query
+				// and we only know the entityType.
 				metaQuery.setPrivateMetadata(
 						PrivateMetadata.CONNECTION, connectionName,
 						PrivateMetadata.SQLQUERY, query
@@ -1461,7 +1461,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 							// try to find a matching column using private metadata: connection, sqlQuery, and sqlParams
 							metaQuery.setPrivateMetadata(PrivateMetadata.SQLPARAMS, info.sqlParamsStr);
 							info.existingColumnId = ListUtils.getFirstSortedItem(
-									dataConfig.getEntityIds(metaQuery),
+									dataConfig.searchPrivateMetadata(metaQuery.privateMetadata, null),
 									DataConfig.NULL
 								);
 							if (info.existingColumnId != DataConfig.NULL)
@@ -1486,7 +1486,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 					{
 						// try to find a matching column using private metadata: connection and sqlQuery
 						info.existingColumnId = ListUtils.getFirstSortedItem(
-								dataConfig.getEntityIds(metaQuery),
+								dataConfig.searchPrivateMetadata(metaQuery.privateMetadata, null),
 								DataConfig.NULL
 							);
 						if (info.existingColumnId != DataConfig.NULL)
@@ -1820,20 +1820,17 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		try
 		{
 			// prepare metadata for existing column check
-			DataEntitySearchCriteria geomInfo = new DataEntitySearchCriteria();
-			geomInfo.setPublicMetadata(
-					PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
-					PublicMetadata.DATATYPE, DataType.GEOMETRY
-			);
+			DataEntityMetadata geomInfo = new DataEntityMetadata();
+			// we don't search public metadata because that would require two sql queries
 			geomInfo.setPrivateMetadata(
 				PrivateMetadata.CONNECTION, configConnectionName,
 				PrivateMetadata.SQLSCHEMA, sqlSchema,
 				PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix
 			);
 			
-			// check for existing column
+			// check for existing geometry column using private metadata only
 			int existingGeomId = ListUtils.getFirstSortedItem(
-					dataConfig.getEntityIds(geomInfo),
+					dataConfig.searchPrivateMetadata(geomInfo.privateMetadata, null),
 					DataConfig.NULL
 				);
 			if (existingGeomId != DataConfig.NULL)
@@ -1849,15 +1846,17 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 					existingGeomId = DataConfig.NULL;
 			}
 			
-			// set the rest of the metadata
+			// set the new public metadata
 			geomInfo.setPublicMetadata(
+					PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
+					PublicMetadata.DATATYPE, DataType.GEOMETRY,
 					PublicMetadata.KEYTYPE, configKeyType,
 					PublicMetadata.PROJECTION, projectionSRS
 			);
 			
 			if (existingGeomId == DataConfig.NULL)
 			{
-				// only update title if column doesn't already exist
+				// we only update the title if the column doesn't already exist
 				geomInfo.setPublicMetadata(PublicMetadata.TITLE, configTitle);
 				// create new column
 				dataConfig.newEntity(geomInfo, tableId, 0);

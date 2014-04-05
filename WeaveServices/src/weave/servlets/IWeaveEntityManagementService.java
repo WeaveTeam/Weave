@@ -19,7 +19,6 @@ import java.rmi.RemoteException;
 import java.util.Map;
 
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntitySearchCriteria;
 import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.EntityHierarchyInfo;
 	
@@ -44,11 +43,14 @@ public interface IWeaveEntityManagementService
 	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException;
 	
 	/**
-	 * Gets an Array of entity IDs with matching metadata. 
-	 * @param metadata Search criteria containing values to match.
-	 * @return An Array of IDs.
+	 * Gets an Array of entity IDs with matching public metadata. 
+	 * @param publicMetadata Public metadata to search for.
+	 * @param wildcardFields A list of field names in publicMetadata that should be treated
+	 *                       as search strings with wildcards '?' and '*' for single-character
+	 *                       and multi-character matching, respectively.
+	 * @return An Array of IDs matching the search criteria.
 	 */
-	public int[] findEntityIds(String user, String pass, DataEntitySearchCriteria metadata) throws RemoteException;
+	public int[] findEntityIds(String user, String pass, Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException;
 	
 	/**
 	 * Finds matching values for a public metadata field.

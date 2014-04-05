@@ -44,12 +44,12 @@ public interface IWeaveEntityService
 	/**
 	 * Gets an Array of entity IDs with matching public metadata. 
 	 * @param publicMetadata Public metadata to search for.
-	 * @param publicWildcardFields A list of field names in publicMetadata that should be treated
-	 *                             as search strings with wildcards '?' and '*' for single-character
-	 *                             and multi-character matching, respectively.
+	 * @param wildcardFields A list of field names in publicMetadata that should be treated
+	 *                       as search strings with wildcards '?' and '*' for single-character
+	 *                       and multi-character matching, respectively.
 	 * @return An Array of IDs matching the search criteria.
 	 */
-	public int[] findEntityIds(Map<String,String> publicMetadata, String[] publicWildcardFields) throws RemoteException;
+	public int[] findEntityIds(Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException;
 	
 	/**
 	 * Finds matching values for a public metadata field.

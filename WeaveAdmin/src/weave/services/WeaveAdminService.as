@@ -36,7 +36,6 @@ package weave.services
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.registerLinkableChild;
@@ -44,7 +43,6 @@ package weave.services
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
-	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -453,7 +451,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(getEntities, arguments, true, Entity);
 		}
-		public function findEntityIds(query:EntitySearchCriteria):AsyncToken
+		public function findEntityIds(publicMetadata:Object, wildcardFields:Array):AsyncToken
 		{
 			return invokeAdminWithLogin(findEntityIds, arguments);
 		}

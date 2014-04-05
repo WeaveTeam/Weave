@@ -377,6 +377,7 @@ public class MetadataTable extends AbstractTable
 		}
 		catch (SQLException e)
 		{
+			System.err.println(MapUtils.fromPairs("constraints", constraints, "wildcardFields", wildcardFields));
 			e = new SQLExceptionWithQuery(query, e);
 			throw new RemoteException("Unable to get ids given a set of property/value pairs.", e);
 		}

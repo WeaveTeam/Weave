@@ -44,7 +44,6 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.api.services.beans.Entity;
-	import weave.api.services.beans.EntitySearchCriteria;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
@@ -142,9 +141,7 @@ package weave.data.DataSources
 			else if (detectLinkableObjectChange(getHierarchyRoot, rootId))
 			{
 				node.id = -1;
-				var query:EntitySearchCriteria = new EntitySearchCriteria();
-				query.publicMetadata = id;
-				addAsyncResponder(_service.findEntityIds(query), handleRootId, null, rootId.triggerCounter);
+				addAsyncResponder(_service.findEntityIds(id, null), handleRootId, null, rootId.triggerCounter);
 			}
 			
 			return _rootNode;
@@ -340,10 +337,8 @@ package weave.data.DataSources
 			{
 				// backwards compatibility - get columns with matching dataTable metadata
 				var dataTableName:String = subtreeNode.attribute("name");
-				var em:EntitySearchCriteria = new EntitySearchCriteria();
-				em.publicMetadata = {"dataTable": dataTableName, "entityType": EntityType.COLUMN};
 				addAsyncResponder(
-					_service.findEntityIds(em),
+					_service.findEntityIds({"dataTable": dataTableName, "entityType": EntityType.COLUMN}, null),
 					function(event:ResultEvent, subtreeNode:XML):void
 					{
 						var ids:Array = event.result as Array;
