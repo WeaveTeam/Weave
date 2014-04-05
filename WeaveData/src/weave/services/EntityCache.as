@@ -20,6 +20,7 @@
 package weave.services
 {
     import mx.rpc.AsyncToken;
+    import mx.rpc.events.FaultEvent;
     import mx.rpc.events.ResultEvent;
     
     import weave.api.core.ICallbackCollection;
@@ -175,7 +176,7 @@ package weave.services
 			
 			if (adminService && idsToRemove.length)
 			{
-				addAsyncResponder(adminService.removeEntities(idsToRemove), handleIdsToInvalidate, null, true);
+				addAsyncResponder(adminService.removeEntities(idsToRemove), handleIdsToInvalidate, handleServiceFault, true);
 				idsToDelete = {};
 			}
 			
@@ -188,11 +189,11 @@ package weave.services
 				{
 					var tableMetadata:Object = {};
 					tableMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.TABLE;
-					addAsyncResponder(service.getHierarchyInfo(tableMetadata), handleEntityHierarchyInfo, null, tableMetadata);
+					addAsyncResponder(service.getHierarchyInfo(tableMetadata), handleEntityHierarchyInfo, handleServiceFault, tableMetadata);
 					
 					var hierarchyMetadata:Object = {};
 					hierarchyMetadata[ColumnMetadata.ENTITY_TYPE] = EntityType.HIERARCHY;
-					addAsyncResponder(service.getHierarchyInfo(hierarchyMetadata), handleEntityHierarchyInfo, null, hierarchyMetadata);
+					addAsyncResponder(service.getHierarchyInfo(hierarchyMetadata), handleEntityHierarchyInfo, handleServiceFault, hierarchyMetadata);
 				}
 				else
 					ids.push(int(id));
@@ -208,7 +209,7 @@ package weave.services
 				addAsyncResponder(
 					service.getEntities(splicedIds),
 					getEntityHandler,
-					null,
+					handleServiceFault,
 					splicedIds
 				);
 			}
@@ -293,7 +294,7 @@ package weave.services
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{
 			var token:AsyncToken = service.getHierarchyInfo(publicMetadata);
-			addAsyncResponder(token, handleEntityHierarchyInfo, null, publicMetadata);
+			addAsyncResponder(token, handleEntityHierarchyInfo, handleServiceFault, publicMetadata);
 			return token;
 		}
 		
@@ -427,7 +428,7 @@ package weave.services
 				adminService.updateEntity(child_id, diff);
 			}
 				
-			addAsyncResponder(adminService.addChild(parent_id, child_id, index), handleIdsToInvalidate, null, false);
+			addAsyncResponder(adminService.addChild(parent_id, child_id, index), handleIdsToInvalidate, handleServiceFault, false);
 			invalidate(parent_id);
         }
         public function remove_child(parent_id:int, child_id:int):void
@@ -485,6 +486,11 @@ package weave.services
 				}
 			}
 			return null;
+		}
+		
+		private function handleServiceFault(event:FaultEvent, token:Object = null):void
+		{
+			reportError(event);
 		}
     }
 }
