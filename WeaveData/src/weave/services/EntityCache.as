@@ -35,6 +35,7 @@ package weave.services
     import weave.api.services.beans.Entity;
     import weave.api.services.beans.EntityHierarchyInfo;
     import weave.api.services.beans.EntityMetadata;
+    import weave.utils.EventUtils;
     import weave.utils.VectorUtils;
 
 	/**
@@ -74,7 +75,9 @@ package weave.services
 			this.service = service;
 			this.adminService = service as IWeaveEntityManagementService;
 			registerLinkableChild(this, service);
-			callbacks.addGroupedCallback(this, groupedCallback);
+			// Generate a delayed callback so other grouped callbacks would not cause it to trigger immediately.
+			// This is important for grouping entity requests.
+			callbacks.addImmediateCallback(this, EventUtils.generateDelayedCallback(this, delayedCallback, 0));
         }
 		
 		/**
@@ -161,7 +164,7 @@ package weave.services
 			return entity && entity.initialized;
 		}
 		
-		private function groupedCallback(..._):void
+		private function delayedCallback():void
 		{
 			if (!service.entityServiceInitialized)
 				return;
