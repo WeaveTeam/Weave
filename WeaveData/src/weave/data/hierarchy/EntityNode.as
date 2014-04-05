@@ -243,17 +243,15 @@ package weave.data.hierarchy
 			var cache:EntityCache = getEntityCache();
 			
 			var info:EntityHierarchyInfo = cache.getBranchInfo(id);
-			if (info && info.entityType != EntityType.COLUMN)
-				return true;
+			if (info)
+				return info.entityType != EntityType.COLUMN;
 			
 			var entity:Entity = cache.getEntity(id);
 			
-			// columns are leaf nodes
-			if (entity.getEntityType() == EntityType.COLUMN)
-				return false;
-			
 			// treat entities that haven't downloaded yet as leaf nodes
-			return entity.childIds != null;
+			// columns are leaf nodes
+			return entity.initialized
+				&& entity.getEntityType() != EntityType.COLUMN
 		}
 
 		/**
@@ -264,7 +262,14 @@ package weave.data.hierarchy
 			if (_rootFilterEntityType)
 				return true;
 			
-			return getEntityCache().getEntity(id).hasChildBranches;
+			var cache:EntityCache = getEntityCache();
+			
+			var info:EntityHierarchyInfo = cache.getBranchInfo(id);
+			// tables and columns do not have child branches
+			if (info && (info.entityType == EntityType.TABLE || info.entityType == EntityType.COLUMN))
+				return false;
+			
+			return cache.getEntity(id).hasChildBranches;
 		}
 		
 		private function getCachedChildNode(childId:int):EntityNode
