@@ -1368,7 +1368,11 @@ public class SQLUtils
 				{
 					String nextQuery = query;
 					
-					query = String.format("SELECT %s from %s", newIdClause, quotedTable);
+					query = String.format("SELECT %s FROM %s", newIdClause, quotedTable);
+					if (isMySQL)
+						query += " LIMIT 1";
+					if (isOracle)
+						query = String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
 					id = getSingleIntFromQuery(conn, query, 1);
 					
 					values.addFirst(id);
