@@ -76,18 +76,18 @@ package weave.ui
 		 * Shortcut for setting weaveTreeDataDescriptor.displayMode
 		 * @see #weaveTreeDataDescriptor
 		 */
-		public function set displayMode(weaveTreeDataDescriptorDisplayMode:int):void
+		public function set displayMode(value:int):void
 		{
-			weaveTreeDataDescriptor.displayMode = weaveTreeDataDescriptorDisplayMode;
+			weaveTreeDataDescriptor.displayMode = value;
 		}
 		
 		/**
 		 * Shortcut for setting weaveTreeDataDescriptor.nodeFilter
 		 * @see #weaveTreeDataDescriptor
 		 */
-		public function set nodeFilter(weaveTreeDataDescriptorNodeFilter:Function):void
+		public function set nodeFilter(value:Function):void
 		{
-			weaveTreeDataDescriptor.nodeFilter = weaveTreeDataDescriptorNodeFilter;
+			weaveTreeDataDescriptor.nodeFilter = value;
 		}
 		
 		private function compareNodes(a:IWeaveTreeNode, b:IWeaveTreeNode):Boolean

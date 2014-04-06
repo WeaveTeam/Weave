@@ -302,9 +302,9 @@ package weave.data.hierarchy
 			else
 			{
 				var entity:Entity = cache.getEntity(id);
-				childIds = entity.childIds;
 				if (entity.getEntityType() == EntityType.COLUMN)
 					return null; // leaf node
+				childIds = entity.childIds;
 			}
 			
 			if (!childIds)
@@ -313,16 +313,9 @@ package weave.data.hierarchy
 				return isBranch() ? _childNodes : null;
 			}
 			
-			var outputIndex:int = 0;
+			_childNodes.length = childIds.length;
 			for (var i:int = 0; i < childIds.length; i++)
-			{
-				var childId:int = childIds[i];
-				var child:EntityNode = getCachedChildNode(childId)
-				
-				_childNodes[outputIndex] = child;
-				outputIndex++;
-			}
-			_childNodes.length = outputIndex;
+				_childNodes[i] = getCachedChildNode(childIds[i]);
 			
 			return _childNodes;
 		}
