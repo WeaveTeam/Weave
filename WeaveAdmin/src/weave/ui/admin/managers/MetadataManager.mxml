@@ -17,7 +17,7 @@
 					   dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button toggle="true" label="Edit tables" id="editTablesButton" visible="false" includeInLayout="false"/>
+			<mx:Button toggle="true" label="{lang('Edit tables')}" id="editTablesButton" visible="false" includeInLayout="false"/>
             <mx:Button label="{lang('Delete')}" click="deleteTable()" enabled="{tableTree.selectedItem}"/>
 			<mx:Button label="{lang('Refresh')}" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
@@ -86,6 +86,9 @@
 		
 		registerLinkableChild(tableTree, Admin.entityCache);
 		registerLinkableChild(hierarchyTree, Admin.entityCache);
+		
+		tableTree.enableDoubleClickToExpand();
+		hierarchyTree.enableDoubleClickToExpand();
 		
 		tableTree.setupContextMenu();
 		hierarchyTree.setupContextMenu();

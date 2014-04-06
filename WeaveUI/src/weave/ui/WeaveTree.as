@@ -73,6 +73,11 @@ package weave.ui
 			return node.getLabel();
 		}
 		
+		private function getSelectedBranches():Array
+		{
+			return selectedItems.filter(function(item:*, i:*, a:*):Boolean { return dataDescriptor.isBranch(item, iterator.view); });
+		}
+		
 		/**
 		 * Adds a context menu items "Expand" and "Select all child nodes"
 		 */
@@ -83,19 +88,20 @@ package weave.ui
 			var selectChildren:ContextMenuItem = new ContextMenuItem(lang("Select all child nodes"));
 			contextMenu.customItems = [expandChildren, selectChildren];
 			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, function(event:*):void {
-				var node:IWeaveTreeNode = selectedItem as IWeaveTreeNode;
-				selectChildren.enabled = node && node.isBranch() && node.getChildren() && node.getChildren().length;
-				expandChildren.caption = lang(isItemOpen(node) ? "Collapse" : "Expand");
+				var branches:Array = getSelectedBranches();
+				selectChildren.enabled = expandChildren.enabled = branches.length > 0;
+				expandChildren.caption = lang(isItemOpen(branches.pop()) ? "Collapse" : "Expand");
 			});
 			expandChildren.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event:*):void {
-				var expand:Boolean = !isItemOpen(selectedItem);
-				for each (var item:* in selectedItems)
+				var branches:Array = getSelectedBranches();
+				var expand:Boolean = !isItemOpen(branches[branches.length - 1]);
+				for each (var item:* in branches)
 					expandChildrenOf(item, expand);
 			});
 			selectChildren.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event:*):void {
-				selectedItems = VectorUtils.flatten(selectedItems.map(function(node:IWeaveTreeNode, i:int, a:Array):*{
+				selectedItems = VectorUtils.flatten(getSelectedBranches().map(function(node:IWeaveTreeNode, i:int, a:Array):*{
 					expandItem(node, true);
-					return node.getChildren() || [];
+					return node.getChildren();
 				}));
 				dispatchEvent(new ListEvent(ListEvent.CHANGE));
 			});

@@ -20,12 +20,13 @@ package weave.ui
 {
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
-	import mx.controls.treeClasses.TreeListData;
 	import mx.controls.listClasses.IListItemRenderer;
+	import mx.controls.treeClasses.TreeListData;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
 	import mx.utils.ObjectUtil;
@@ -327,6 +328,20 @@ package weave.ui
 		{
 			if (!event.isDefaultPrevented())
 				super.keyDownHandler(event);
+		}
+		
+		public function enableDoubleClickToExpand():void
+		{
+			doubleClickEnabled = true;
+			this.addEventListener(MouseEvent.DOUBLE_CLICK, handleDoubleClickExpand);
+		}
+		private function handleDoubleClickExpand(event:Event):void
+		{
+			// Toggle expanded state.
+			// Note that this will toggle the folder icon whether or not the node has children.
+			// Also note that the same behavior occurs when using the left and right arrow keys.
+			if (selectedItem && dataDescriptor.isBranch(selectedItem, iterator.view))
+				expandItem(selectedItem, !isItemOpen(selectedItem));
 		}
 	}
 }

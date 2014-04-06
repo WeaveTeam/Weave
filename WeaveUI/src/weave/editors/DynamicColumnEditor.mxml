@@ -54,13 +54,11 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.compiler.Compiler;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.hierarchy.DataSourceTreeNode;
-			import weave.utils.EventUtils;
 			
 			public const referencedColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn, copyToTarget);
 			private function copyToTarget():void
