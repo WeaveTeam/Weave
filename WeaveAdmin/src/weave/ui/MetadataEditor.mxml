@@ -71,6 +71,7 @@
 	{
 		super.createChildren();
 		
+		rawChildren.addChild(new BusyIndicator(Admin.entityCache));
 		removeChild(csvWindow);
 		csvWindow.enableZOrder.value = false;
 		csvWindow.minimizable.value = false;
