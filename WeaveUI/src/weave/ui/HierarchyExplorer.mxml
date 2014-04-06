@@ -69,7 +69,7 @@
 				registerLinkableChild(folderView, rootWatcher);
 				registerLinkableChild(fileView, rootWatcher);
 				
-				folderView.enableDoubleClickToExpand();
+				folderView.enableClickToExpand(false);
 				folderView.dataDescriptor = new WeaveTreeDataDescriptor(1);
 //				folderFilter.addGroupedCallback(this, refreshFolders);
 				// using a delayed callback to avoid clearing the file list during an update

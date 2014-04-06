@@ -87,8 +87,8 @@
 		registerLinkableChild(tableTree, Admin.entityCache);
 		registerLinkableChild(hierarchyTree, Admin.entityCache);
 		
-		tableTree.enableDoubleClickToExpand();
-		hierarchyTree.enableDoubleClickToExpand();
+		tableTree.enableClickToExpand();
+		hierarchyTree.enableClickToExpand();
 		
 		tableTree.setupContextMenu();
 		hierarchyTree.setupContextMenu();

@@ -21,7 +21,9 @@ package weave.ui
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
+	import flash.ui.Mouse;
 	
+	import mx.binding.utils.BindingUtils;
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
@@ -29,8 +31,10 @@ package weave.ui
 	import mx.controls.treeClasses.TreeListData;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
+	import mx.events.ListEvent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.core.StageUtils;
 	import weave.utils.EventUtils;
 	
 	use namespace mx_internal;
@@ -330,18 +334,39 @@ package weave.ui
 				super.keyDownHandler(event);
 		}
 		
-		public function enableDoubleClickToExpand():void
+		/**
+		 * Enables click-to-expand and double-click-to-collapse.
+		 * @param singleClickExpands If set to false, double-click is required to expand a branch.
+		 */
+		public function enableClickToExpand(singleClickExpands:Boolean = true):void
 		{
+			if (singleClickExpands)
+				this.addEventListener(ListEvent.ITEM_CLICK, handleClickExpand);
 			doubleClickEnabled = true;
-			this.addEventListener(MouseEvent.DOUBLE_CLICK, handleDoubleClickExpand);
+			this.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, handleDoubleClickExpand);
 		}
-		private function handleDoubleClickExpand(event:Event):void
+		private var _preMouseDownSelectedItem:*; // remembers the selectedItem before mouseDown occurred
+		override protected function mouseDownHandler(event:MouseEvent):void
 		{
+			// remember which item was selected prior to mouseDown
+			_preMouseDownSelectedItem = selectedItem;
+			super.mouseDownHandler(event);
+		}
+		private function handleClickExpand(event:ListEvent):void
+		{
+			var item:* = event.itemRenderer ? event.itemRenderer.data : null;
+			// only expand if this item was not selected prior to mouseDown
+			if (item && item != _preMouseDownSelectedItem && dataDescriptor.isBranch(item, iterator.view))
+				expandItem(item, true);
+		}
+		private function handleDoubleClickExpand(event:ListEvent):void
+		{
+			var item:* = event.itemRenderer ? event.itemRenderer.data : null;
 			// Toggle expanded state.
 			// Note that this will toggle the folder icon whether or not the node has children.
 			// Also note that the same behavior occurs when using the left and right arrow keys.
-			if (selectedItem && dataDescriptor.isBranch(selectedItem, iterator.view))
-				expandItem(selectedItem, !isItemOpen(selectedItem));
+			if (item && dataDescriptor.isBranch(item, iterator.view))
+				expandItem(item, !isItemOpen(item));
 		}
 	}
 }
