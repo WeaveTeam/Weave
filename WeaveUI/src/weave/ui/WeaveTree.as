@@ -27,7 +27,6 @@ package weave.ui
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.data.IWeaveTreeNodeWithPathFinding;
 	import weave.api.getCallbackCollection;
 	import weave.utils.EventUtils;
 	import weave.utils.HierarchyUtils;
@@ -40,12 +39,15 @@ package weave.ui
 	 * To make this tree automatically refresh, register dependencies of the
 	 * rootNode as linkable children of the WeaveTree.
 	 * 
+	 * The dataDescriptor is an instance of WeaveTreeDataDescriptor.
+	 * 
 	 * @author adufilie
 	 */
     public class WeaveTree extends CustomTree implements ILinkableObject
     {
 		public function WeaveTree()
 		{
+			_dataDescriptor = new WeaveTreeDataDescriptor();
 			setStyle('openDuration', 0);
 			dragEnabled = true;
 			allowMultipleSelection = true;
@@ -56,11 +58,36 @@ package weave.ui
 		{
 			super.childrenCreated();
 			
-			dataDescriptor = new WeaveTreeDataDescriptor();
 			getCallbackCollection(this).addImmediateCallback(this, delayedRefresh, true);
 			labelFunction = getNodeLabel;
 			dataTipFunction = getNodeLabel;
 			selectedItemsCompareFunction = compareNodes;
+		}
+		
+		/**
+		 * The dataDescriptor for this WeaveTree.
+		 */
+		public function get weaveTreeDataDescriptor():WeaveTreeDataDescriptor
+		{
+			return _dataDescriptor as WeaveTreeDataDescriptor;
+		}
+		
+		/**
+		 * Shortcut for setting weaveTreeDataDescriptor.displayMode
+		 * @see #weaveTreeDataDescriptor
+		 */
+		public function set displayMode(weaveTreeDataDescriptorDisplayMode:int):void
+		{
+			weaveTreeDataDescriptor.displayMode = weaveTreeDataDescriptorDisplayMode;
+		}
+		
+		/**
+		 * Shortcut for setting weaveTreeDataDescriptor.nodeFilter
+		 * @see #weaveTreeDataDescriptor
+		 */
+		public function set nodeFilter(weaveTreeDataDescriptorNodeFilter:Function):void
+		{
+			weaveTreeDataDescriptor.nodeFilter = weaveTreeDataDescriptorNodeFilter;
 		}
 		
 		private function compareNodes(a:IWeaveTreeNode, b:IWeaveTreeNode):Boolean

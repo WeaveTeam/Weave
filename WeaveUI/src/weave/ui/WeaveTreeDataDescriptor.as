@@ -37,28 +37,41 @@ package weave.ui
 		public static const DISPLAY_MODE_BRANCHES:uint = 1;
 		public static const DISPLAY_MODE_LEAVES:uint = 2;
 		
-		/**
-		 * @param displayMode One of [DISPLAY_MODE_ALL, DISPLAY_MODE_BRANCHES, DISPLAY_MODE_LEAVES]. Default is DISPLAY_MODE_ALL.
-		 * @param nodeFilter A function like <code>function(node:IWeaveTreeNode):Boolean</code> which filters child nodes.
-		 */
-		public function WeaveTreeDataDescriptor(displayMode:uint = 0, nodeFilter:Function = null)
+		public function WeaveTreeDataDescriptor()
 		{
-			this._displayMode = displayMode;
-			this._nodeFilter = nodeFilter;
 		}
 		
+		/**
+		 * One of [DISPLAY_MODE_ALL, DISPLAY_MODE_BRANCHES, DISPLAY_MODE_LEAVES].
+		 * Default is DISPLAY_MODE_ALL.
+		 */
+		public var displayMode:int = DISPLAY_MODE_ALL;
+		
+		/**
+		 * A function like <code>function(node:IWeaveTreeNode):Boolean</code> which filters child nodes.
+		 */
+		public var nodeFilter:Function = null;
+		
+		/**
+		 * Maps a node to a cached ArrayCollection with the appropriate filterFunction set.
+		 */
 		private var _childViews:Dictionary = new Dictionary(true);
-		private var _displayMode:uint;
-		private var _nodeFilter:Function;
+		
+		/**
+		 * Used as the filterFunction of ArrayCollections cached in _childViews.
+		 */
 		private function filterChildren(node:IWeaveTreeNode):Boolean
 		{
-			if (_displayMode == DISPLAY_MODE_BRANCHES && !node.isBranch())
+			if (displayMode == DISPLAY_MODE_BRANCHES && !node.isBranch())
 				return false;
-			if (_displayMode == DISPLAY_MODE_LEAVES && node.isBranch())
+			if (displayMode == DISPLAY_MODE_LEAVES && node.isBranch())
 				return false;
-			return _nodeFilter == null || _nodeFilter(node);
+			return nodeFilter == null || nodeFilter(node);
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
         public function getChildren(node:Object, model:Object = null):ICollectionView
         {
 			var childArray:Array = (node as IWeaveTreeNode).getChildren();
@@ -72,29 +85,46 @@ package weave.ui
 			if (childView.source != childArray)
 				childView.source = childArray;
 			
-			if (_displayMode != DISPLAY_MODE_ALL)
+			if (displayMode == DISPLAY_MODE_ALL && nodeFilter == null)
 			{
+				// no filtering
+				if (childView.filterFunction != null)
+				{
+					childView.filterFunction = null;
+					childView.refresh();
+				}
+			}
+			else
+			{
+				// make sure filterFunction is set
 				if (childView.filterFunction != filterChildren)
 					childView.filterFunction = filterChildren;
+				// need to refresh every time children are requested
 				childView.refresh();
 			}
 			
 			return childView;
         }
         
+		/**
+		 * @inheritDoc
+		 */
 		public function hasChildren(node:Object, model:Object = null):Boolean
         {
 			// When we're not filtering anything, always behave as if branches have children
 			// so the "expand" arrow icon always shows.
 			// This allows dragging items into an empty branch.
 			// When we're filtering, we assume we won't be modifying the hierarchy.
-			if (_displayMode == DISPLAY_MODE_ALL)
+			if (displayMode == DISPLAY_MODE_ALL)
 				return isBranch(node, model);
 			
-			return (_displayMode == DISPLAY_MODE_BRANCHES)
+			return (displayMode == DISPLAY_MODE_BRANCHES)
 				&& (node as IWeaveTreeNode).hasChildBranches();
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function isBranch(node:Object, model:Object = null):Boolean
         {
 			return (node as IWeaveTreeNode).isBranch();
@@ -111,6 +141,9 @@ package weave.ui
 			return node;
         }
         
+		/**
+		 * @inheritDoc
+		 */
 		public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
 			var parentNode:IWeaveTreeNode = parent as IWeaveTreeNode;
@@ -120,6 +153,9 @@ package weave.ui
 			return false;
         }
         
+		/**
+		 * @inheritDoc
+		 */
 		public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
 			var parentNode:IWeaveTreeNode = parent as IWeaveTreeNode;

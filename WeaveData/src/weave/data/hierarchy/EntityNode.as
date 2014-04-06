@@ -53,16 +53,14 @@ package weave.data.hierarchy
 		 * @param rootFilterEntityType To be used by root node only.
 		 * @param nodeFilterFunction Used for filtering children.
 		 */
-		public function EntityNode(entityCache:EntityCache = null, rootFilterEntityType:String = null, nodeFilterFunction:Function = null, overrideLabel:String = null)
+		public function EntityNode(entityCache:EntityCache = null, rootFilterEntityType:String = null, overrideLabel:String = null)
 		{
 			setEntityCache(entityCache);
 			this._rootFilterEntityType = rootFilterEntityType;
-			this._nodeFilterFunction = nodeFilterFunction;
 			this._overrideLabel = overrideLabel;
 		}
 		
 		private var _rootFilterEntityType:String = null;
-		private var _nodeFilterFunction:Function = null;
 		/**
 		 * @private
 		 */
@@ -277,7 +275,7 @@ package weave.data.hierarchy
 			var child:EntityNode = _childNodeCache[childId] as EntityNode;
 			if (!child)
 			{
-				child = new EntityNode(getEntityCache(), null, _nodeFilterFunction);
+				child = new EntityNode(getEntityCache());
 				child.id = childId;
 				_childNodeCache[childId] = child;
 			}
@@ -320,9 +318,6 @@ package weave.data.hierarchy
 			{
 				var childId:int = childIds[i];
 				var child:EntityNode = getCachedChildNode(childId)
-				
-				if (_nodeFilterFunction != null && !_nodeFilterFunction(child))
-					continue;
 				
 				_childNodes[outputIndex] = child;
 				outputIndex++;
