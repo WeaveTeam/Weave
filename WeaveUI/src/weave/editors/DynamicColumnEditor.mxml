@@ -140,7 +140,7 @@
 			
 			private function handleFolderSelection(selectedFolder:IWeaveTreeNode):void
 			{
-				if (!UIUtils.hasFocus(explorer.folderView))
+				if (!UIUtils.hasFocus(explorer.folderView) && !UIUtils.hasFocus(explorer.fileView))
 					return;
 				// if we just selected the category corresponding to the referencedColumn,
 				// make sure the corresponding column gets selected
@@ -192,8 +192,6 @@
 				{
 					var meta:Object = referencedColumn.metadata.getSessionState();
 					var node:IWeaveTreeNode = ds.findHierarchyNode(meta);
-					if (!node)
-						node = ds.getHierarchyRoot();
 					_lastFoundNode = explorer.expandPathAndSelectNode(node);
 					_lastFoundCategory = _lastFoundNode ? explorer.selectedFolder : null;
 				}

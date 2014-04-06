@@ -181,6 +181,7 @@
 							return folder == node;
 						}
 					);
+					refreshFiles();
 				}
 			}
 			
