@@ -18,19 +18,19 @@
 */
 package weave.services
 {
-	import flash.external.ExternalInterface;
 	import flash.utils.Dictionary;
 	
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
+	import mx.utils.URLUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.EntityType;
 	import weave.api.linkBindableProperty;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
-	import weave.compiler.StandardLib;
 	import weave.services.beans.DatabaseConfigInfo;
 
 	public class Admin
@@ -406,20 +406,20 @@ package weave.services
 		
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
-			var url:String = 'weave.html?';
+			var params:Object = {};
 			if (fileName)
-				url += 'file=' + fileName + '&'
-			url += 'adminSession=' + createWeaveSession();
-			
+				params['file'] = fileName;
+			params['adminSession'] = createWeaveSession();
 			if (recover)
-				url += '&recover=true';
-			
-			var target:String = '_blank';
-			var params:String = 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1';
-			
-			// use setTimeout so it will call later without blocking ActionScript
-			var script:String = StandardLib.substitute('setTimeout(function(){ window.open("{0}", "{1}", "{2}"); }, 0)', url, target, params);
-			ExternalInterface.call(script);
+				params['recover'] = true;
+			WeaveAPI.executeJavaScript(
+				{
+					url: 'weave.html?' + URLUtil.objectToString(params, '&'),
+					target: '_blank',
+					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
+				},
+				'window.open(url, target, windowParams);'
+			);
 		}
 		
 
