@@ -29,16 +29,8 @@
 	>
 	<ui:HierarchyExplorer id="explorer"/>
 	<ui:BusyIndicator id="busyIndicator" targets="{[explorer]}"/>
-	<mx:HBox id="dummyHBox" minWidth="0" width="100%"
-			 borderColor="#000000" 
-			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
-		<ui:TextInputWithPrompt id="folderSearchInput"
-					  prompt="{lang('Search')}"
-					  width="100%"/>
-		<ui:TextInputWithPrompt id="fileSearchInput"
-					  prompt="{lang('Search')}"
-					  width="100%"/>
-	</mx:HBox>
+	<ui:TextInputWithPrompt id="folderSearchInput" prompt="{lang('Search tree')}" width="100%"/>
+	<ui:TextInputWithPrompt id="fileSearchInput" prompt="{lang('Search')}" width="100%"/>
 	
 	<mx:Script>
 		<![CDATA[
@@ -59,6 +51,8 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.hierarchy.DataSourceTreeNode;
+			import weave.data.hierarchy.EntityNodeSearch;
+			import weave.utils.EventUtils;
 			
 			public const referencedColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn, copyToTarget);
 			private function copyToTarget():void
@@ -107,14 +101,13 @@
 				explorer.folderView.showRoot = !!ds;
 			}
 			
+			private const entityNodeSearch:EntityNodeSearch = newLinkableChild(this, EntityNodeSearch);
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				
-				// remove the dummy because we don't want it on the screen
-				removeChild(dummyHBox);
-				
-//				explorer.folderVBox.addChildAt(folderSearchInput, 0);
+				explorer.folderVBox.addChildAt(folderSearchInput, 0);
 				explorer.fileVBox.addChildAt(fileSearchInput, 0);
 				
 				registerLinkableChild(this, explorer);
@@ -129,13 +122,25 @@
 				
 				BindingUtils.bindSetter(handleFolderSelection, explorer.folderView, 'selectedItem');
 				BindingUtils.bindSetter(handleFileSelection, explorer.fileView, 'selectedItem');
-//				linkBindableProperty(explorer.folderFilter, folderSearchInput, 'text', 200);
-				linkBindableProperty(explorer.fileFilter, fileSearchInput, 'text', 200);
+				
+//				linkBindableProperty(explorer.folderFilter, folderSearchInput, 'text', 500);
+				linkBindableProperty(explorer.fileFilter, fileSearchInput, 'text', 100);
+				
+				registerLinkableChild(explorer.folderView, entityNodeSearch);
+				registerLinkableChild(explorer.fileView, entityNodeSearch);
+				explorer.folderView.nodeFilter = entityNodeSearch.nodeFilter;
+				explorer.fileView.nodeFilter = entityNodeSearch.nodeFilter;
+				EventUtils.addDelayedEventCallback(folderSearchInput, Event.CHANGE, handleFolderSearch, 500);
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			
+			private function handleFolderSearch():void
+			{
+				entityNodeSearch.searchString = EntityNodeSearch.replaceSpacesWithWildcards(folderSearchInput.text);
 			}
 			
 			private function handleFolderSelection(selectedFolder:IWeaveTreeNode):void

@@ -20,8 +20,6 @@ package weave.data.hierarchy
 {
     import flash.utils.Dictionary;
     
-    import mx.utils.ObjectUtil;
-    
     import weave.api.WeaveAPI;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
@@ -34,7 +32,6 @@ package weave.data.hierarchy
     import weave.api.reportError;
     import weave.api.services.beans.Entity;
     import weave.api.services.beans.EntityHierarchyInfo;
-    import weave.data.DataSources.WeaveDataSource;
     import weave.services.EntityCache;
 
 	[RemoteClass]

@@ -21,9 +21,7 @@ package weave.ui
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
-	import flash.ui.Mouse;
 	
-	import mx.binding.utils.BindingUtils;
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
@@ -34,7 +32,6 @@ package weave.ui
 	import mx.events.ListEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.core.StageUtils;
 	import weave.utils.EventUtils;
 	
 	use namespace mx_internal;
@@ -155,6 +152,16 @@ package weave.ui
 					expandItem(cursor.current, open);
 			}
 			while (cursor.moveNext());
+		}
+		
+		/**
+		 * Gets children of an item using the dataDescriptor.
+		 */
+		public function getChildren(item:Object):ICollectionView
+		{
+			if (!item)
+				return null;
+			return _dataDescriptor.getChildren(item, iterator.view);
 		}
 		
 		public function scrollToSelectedItem():void

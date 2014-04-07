@@ -81,6 +81,14 @@ package weave.services
         }
 		
 		/**
+		 * Gets the IWeaveEntityService that was passed to the constructor.
+		 */
+		public function getService():IWeaveEntityService
+		{
+			return service;
+		}
+		
+		/**
 		 * Checks if a specific parent-child relationship has been cached.
 		 * @param parentId The ID of the parent entity.
 		 * @param childId The ID of the child entity.

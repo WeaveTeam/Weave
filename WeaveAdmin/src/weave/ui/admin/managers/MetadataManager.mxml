@@ -67,6 +67,7 @@
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.data.hierarchy.EntityNode;
+	import weave.data.hierarchy.EntityNodeSearch;
 	import weave.services.Admin;
 	import weave.services.addAsyncResponder;
 	import weave.ui.WeaveTree;
@@ -138,26 +139,6 @@
 	}
 	
 	/**
-	 * Surrounds a string with '*' and replaces ' ' with '*'
-	 */
-	private function addWildcards(str:String):String
-	{
-		return StandardLib.replace('*' + str + '*', ' ', '*');
-	}
-
-	private function strToRegExp(strToSrch:String, flags:String = "i"):RegExp
-	{
-		var resultStr:String;
-		//excape metacharacters other than "*" and "?"
-		resultStr = strToSrch.replace(/[\^\$\\\.\+\(\)\[\]\{\}\|]/g, "\\$&");
-		//replace strToSrch "?" with reg exp equivalent "."
-		resultStr = resultStr.replace(/[\?]/g, ".");
-		//replace strToSrch "*" with reg exp equivalent ".*?"
-		resultStr = resultStr.replace(/[\*]/g, ".*?");
-		return new RegExp("^" + resultStr + "$", flags);
-	}
-	
-	/**
 	 * Refreshes tableTree and scrolls to selectedItem.
 	 */
 	private function refreshTableTree():void
@@ -169,8 +150,8 @@
 
 	private function handleTableSearch():void
 	{
-		var searchStr:String = addWildcards(tableSearch.text.toLowerCase());
-		filterTableRegExp = strToRegExp(searchStr);
+		var searchStr:String = EntityNodeSearch.replaceSpacesWithWildcards(tableSearch.text.toLowerCase());
+		filterTableRegExp = EntityNodeSearch.strToRegExp(searchStr);
 		filterByTableId = isUnsignedInt(tableSearch.text) ? uint(tableSearch.text) : -1;
 		Admin.instance.setFocusEntityId(filterByTableId);
 		refreshTableTree();
@@ -178,7 +159,7 @@
 	
 	private function handleColumnSearch():void
 	{
-		var searchStr:String = addWildcards(columnSearch.text.toLowerCase());
+		var searchStr:String = EntityNodeSearch.replaceSpacesWithWildcards(columnSearch.text.toLowerCase());
 		filterByColumnIds = null;
 		filterByTableIdLookup = null;
 		filterByColumnIdLookup = null;
