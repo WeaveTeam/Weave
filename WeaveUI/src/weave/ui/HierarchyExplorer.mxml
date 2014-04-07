@@ -37,6 +37,7 @@
 	<mx:VBox id="fileVBox" width="100%" height="100%"
 			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<ui:WeaveTree id="fileView" width="100%" height="100%"
+					  displayMode="{WeaveTreeDataDescriptor.DISPLAY_MODE_ALL}"
 					  showDataTips="true"
 					  disclosureClosedIcon="{null}" disclosureOpenIcon="{null}"
 					  itemOpen="handleFileDoubleClick()"
@@ -55,6 +56,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableWatcher;
 			import weave.utils.EventUtils;
+			import weave.utils.VectorUtils;
 			
 			private const rootWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 			
@@ -110,11 +112,17 @@
 				
 				fileVBox.visible = fileVBox.includeInLayout = !!folder;
 				
-				//fileView.refreshDataProvider(folder ? folder.getChildren() || [] : []);
-				//fileView.refreshDataProvider(fileView.getChildren(folder) || []);
-				fileView.refreshDataProvider(folder);
-				if (fileView.openItems.length)
-					fileView.openItems = [];
+				// use fileView.getChildren() so the files will be filtered
+				fileView.refreshDataProvider(VectorUtils.getArrayFromCollection(fileView.getChildren(folder)));
+				
+				//TODO - why does this ICollectionView approach cause file selection to malfunction?
+				//fileView.refreshDataProvider(fileView.getChildren(folder));
+				
+				//TODO - why does this rootNode approach cause file selection to malfunction?
+//				fileView.refreshDataProvider(folder);
+//				var newOpenItems:Array = [folder];
+//				if (StandardLib.arrayCompare(fileView.openItems, newOpenItems))
+//					fileView.openItems = newOpenItems;
 			}
 
 			private function handleFolderCollapse(event:TreeEvent):void
@@ -193,7 +201,7 @@
 				{
 					var folder:IWeaveTreeNode = selectedFolder;
 					var parent:IWeaveTreeNode = folderView.getParentItem(folder) as IWeaveTreeNode;
-					if (parent)
+					if (parent && parent != folderView.rootNode)
 					{
 						// go up a folder
 						folderView.scrollToAndSelectMatchingItem(parent);
