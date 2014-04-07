@@ -29,7 +29,7 @@
 	>
 	<mx:HBox width="100%">
 		<ui:TextInputWithPrompt id="searchInput" prompt="{lang('Search')}" width="100%"/>
-		<mx:Button label="{lang('Reset')}" click="searchInput.text = '';"/>
+		<mx:Button label="{lang('Show all')}" enabled="{!!searchInput.text}" click="searchInput.text = '';"/>
 		<ui:CustomCheckBox id="filterCheckbox" label="{lang('Filter descendants')}"
 						   toolTip="{lang('Apply search filter to descendants of matching categories')}"
 						   creationComplete="filterCheckbox.selected = !entityNodeSearch.includeAllDescendants;"
@@ -148,7 +148,7 @@
 					return;
 				// if we just selected the category corresponding to the referencedColumn,
 				// make sure the corresponding column gets selected
-				if (_lastFoundCategory && selectedFolder == _lastFoundCategory)
+				if (lastFoundCategoryIsSelectedFolder)
 					getCallbackCollection(explorer).triggerCallbacks();
 			}
 			private function handleFileSelection(selectedFile:IWeaveTreeNode):void
@@ -179,13 +179,18 @@
 				{
 					// if we previously could not find the referenced node or we are in the correct category,
 					// try to find the item in the newly updated hierarchy
-					if (!_lastFoundNode || explorer.selectedFolder == _lastFoundCategory)
+					if (!_lastFoundNode || lastFoundCategoryIsSelectedFolder)
 					{
 						handleReferencedColumn();
 					}
 				}
 			}
 			
+			private function get lastFoundCategoryIsSelectedFolder():Boolean
+			{
+				return _lastFoundCategory && explorer.selectedFolder
+					&& _lastFoundCategory.equals(explorer.selectedFolder);
+			}
 			private var _lastFoundCategory:IWeaveTreeNode;
 			private var _lastFoundNode:IWeaveTreeNode;
 			
