@@ -53,7 +53,7 @@ public interface IWeaveEntityService
 	
 	/**
 	 * Finds matching values for a public metadata field.
-	 * @param feildName The name of the public metadata field to search.
+	 * @param fieldName The name of the public metadata field to search.
 	 * @param valueSearch A search string.
 	 * @return An Array of matching values for the specified public metadata field.
 	 */

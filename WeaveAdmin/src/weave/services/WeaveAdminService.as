@@ -423,7 +423,7 @@ package weave.services
 		//////////////////////////
 		// DataEntity management
 		
-		public function newEntity(metadata:EntityMetadata, parentId:int, index:int):AsyncToken
+		public function newEntity(metadata:EntityMetadata, parentId:int, insertAtIndex:int):AsyncToken
 		{
 			return invokeAdminWithLogin(newEntity, arguments);
 		}
@@ -435,7 +435,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(removeEntities, arguments);
 		}
-		public function addChild(parentId:int, childId:int, index:int):AsyncToken
+		public function addChild(parentId:int, childId:int, insertAtIndex:int):AsyncToken
 		{
 			return invokeAdminWithLogin(addChild, arguments);
 		}

@@ -592,13 +592,15 @@ public class SQLUtils
 	}
 	
 	/**
+	 * Example usage:
+	 * {@code
+	 *     getResultFromQuery(conn, "SELECT a, b FROM mytable WHERE c = ? and d = ?", new Object[]&#124; "my-c-value", 0xDDDD &#125;, false)
+	 * }
 	 * @param connection An SQL Connection
 	 * @param query An SQL Query with '?' place holders for parameters
 	 * @param params Parameters for the SQL query for all '?' place holders, or null if there are no parameters.
 	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
-	 * @example
-	 * getResultFromQuery(conn, "SELECT a, b FROM mytable WHERE c = ? and d = ?", new Object[]{ "my-c-value", 0xDDDD }, false)
 	 */
 	public static <TYPE> SQLResult getResultFromQuery(Connection connection, String query, TYPE[] params, boolean convertToStrings)
 		throws SQLException
@@ -1314,7 +1316,7 @@ public class SQLUtils
 	 * @param tableName
 	 * @param data Unquoted field names mapped to raw values.
 	 * @param idField
-	 * @return
+	 * @return The ID of the new row.
 	 * @throws SQLException
 	 */
 	public static int insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
@@ -2090,7 +2092,7 @@ public class SQLUtils
 		 * Builds a WhereClause from nested filtering logic.
 		 * @param conn
 		 * @param filters
-		 * @return
+		 * @return The WhereClause.
 		 * @throws SQLException
 		 */
 		public static WhereClause<Object> fromFilters(Connection conn, NestedColumnFilters filters) throws SQLException
@@ -2153,8 +2155,8 @@ public class SQLUtils
 	
 	/**
 	 * The escape character (backslash) used by convertWildcards() and getLikeEscapeClause()
-	 * @see #convertWildcards()
-	 * @see #getLikeEscapeClause()
+	 * @see #convertWildcards(String)
+	 * @see #getLikeEscapeClause(Connection)
 	 */
 	public static final char WILDCARD_ESCAPE = '\\';
 	
@@ -2162,7 +2164,7 @@ public class SQLUtils
 	 * Converts a search string which uses basic '?' and '*' wildcards into an equivalent SQL search string.
 	 * @param searchString A search string which uses basic '?' and '*' wildcards
 	 * @return The equivalent SQL search string using a backslash (\) as an escape character.
-	 * @see #getLikeEscapeClause()
+	 * @see #getLikeEscapeClause(Connection)
 	 */
 	public static String convertWildcards(String searchString)
 	{
@@ -2178,7 +2180,7 @@ public class SQLUtils
 	 * Returns an ESCAPE clause for use with a LIKE comparison.
 	 * @param conn The SQL Connection where the ESCAPE clause will be used.
 	 * @return The ESCAPE clause specifying a backslash (\) as the escape character.
-	 * @see #convertWildcards()
+	 * @see #convertWildcards(String)
 	 */
 	public static String getLikeEscapeClause(Connection conn)
 	{
@@ -2218,7 +2220,7 @@ public class SQLUtils
 		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param caseSensitiveFields A set of field names which should use case sensitive compare.
 		 * @param wildcardFields A set of field names which should use a "LIKE" SQL clause for wildcard search.
-		 * @see weave.utils.SQLUtils#convertWildcards()
+		 * @see weave.utils.SQLUtils#convertWildcards(String)
 		 */
 		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> fieldsAndValues, Set<String> caseSensitiveFields, Set<String> wildcardFields) throws SQLException
 		{
@@ -2238,7 +2240,7 @@ public class SQLUtils
 		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
 		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param compareModes Field names mapped to compare modes
-		 * @see weave.utils.SQLUtils#convertWildcards()
+		 * @see weave.utils.SQLUtils#convertWildcards(String)
 		 */
 		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> fieldsAndValues, Map<String,CompareMode> compareModes) throws SQLException
 		{
