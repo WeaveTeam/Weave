@@ -161,6 +161,12 @@ package weave.ui
 		{
 			if (!item)
 				return null;
+			// iterator could be null if dataProvider has not been set yet.
+			if (!iterator)
+			{
+				dataProvider = [];
+				iterator = _rootModel.createCursor();
+			}
 			return _dataDescriptor.getChildren(item, iterator.view);
 		}
 		

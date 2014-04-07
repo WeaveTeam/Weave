@@ -366,8 +366,11 @@ package weave.utils
 		 */
 		public static function getArrayFromCollection(collection:ICollectionView, alwaysMakeCopy:Boolean = true):Array
 		{
+			if (!collection || !collection.length)
+				return [];
+			
 			var array:Array = null;
-			if (collection is ArrayCollection)
+			if (collection is ArrayCollection && collection.filterFunction == null)
 				array = (collection as ArrayCollection).source;
 			if (array)
 				return alwaysMakeCopy ? array.concat() : array;
