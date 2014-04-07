@@ -108,7 +108,17 @@ package weave.data.AttributeColumns
 		{
 			if (_prevTriggerCounter != triggerCounter)
 			{
-				_columnWatcher.target = _internalColumn = WeaveAPI.AttributeColumnCache.getColumn(getDataSource(), metadata.getSessionState());
+				var col:IAttributeColumn = null;
+				if (dataSourceName.value && !_dataSource)
+				{
+					// data source was named but not found
+				}
+				else
+				{
+					col = WeaveAPI.AttributeColumnCache.getColumn(_dataSource, metadata.getSessionState());
+				}
+				_columnWatcher.target = _internalColumn = col;
+				
 				_prevTriggerCounter = triggerCounter;
 			}
 			return _internalColumn;

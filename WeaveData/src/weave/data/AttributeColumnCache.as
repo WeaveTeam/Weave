@@ -46,7 +46,11 @@ package weave.data
 			{
 				if (!metadata)
 					return null;
-				var name:String = metadata as String || metadata['name'] as String;
+				var name:String;
+				if (typeof metadata == 'object')
+					name = metadata['name'];
+				else
+					name = String(metadata);
 				return WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
 			}
 
