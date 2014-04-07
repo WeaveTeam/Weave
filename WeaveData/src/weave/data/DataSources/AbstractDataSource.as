@@ -146,9 +146,6 @@ package weave.data.DataSources
 		 */
 		protected function initialize():void
 		{
-			// just in case the XML was modified, detect those changes now.
-			_attributeHierarchy.detectChanges();
-
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
 
