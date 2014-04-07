@@ -79,6 +79,7 @@ package weave.ui
 		public function set displayMode(value:int):void
 		{
 			weaveTreeDataDescriptor.displayMode = value;
+			delayedRefresh();
 		}
 		
 		/**
@@ -88,6 +89,7 @@ package weave.ui
 		public function set nodeFilter(value:Function):void
 		{
 			weaveTreeDataDescriptor.nodeFilter = value;
+			delayedRefresh();
 		}
 		
 		private function compareNodes(a:IWeaveTreeNode, b:IWeaveTreeNode):Boolean
@@ -152,8 +154,10 @@ package weave.ui
 		}
 		public function set rootNode(node:IWeaveTreeNode):void
 		{
-			if (_rootNode != node)
-				dataProvider = _rootNode = node;
+			if (node == null)
+				dataProvider = null;
+			else if (_rootNode != node)
+				refreshDataProvider(node);
 			else
 				delayedRefresh();
 		}

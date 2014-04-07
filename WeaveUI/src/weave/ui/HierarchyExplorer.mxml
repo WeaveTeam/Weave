@@ -37,7 +37,6 @@
 	<mx:VBox id="fileVBox" width="100%" height="100%"
 			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<ui:WeaveTree id="fileView" width="100%" height="100%"
-					  displayMode="{WeaveTreeDataDescriptor.DISPLAY_MODE_LEAVES}"
 					  showDataTips="true"
 					  disclosureClosedIcon="{null}" disclosureOpenIcon="{null}"
 					  itemOpen="handleFileDoubleClick()"
@@ -54,12 +53,9 @@
 			import weave.api.data.IWeaveTreeNode;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.core.LinkableString;
 			import weave.core.LinkableWatcher;
 			import weave.utils.EventUtils;
 			
-//			public const folderFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull));
-			public const fileFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull));
 			private const rootWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 			
 			private function isNonNull(value:String):Boolean { return value != null; }
@@ -71,12 +67,10 @@
 				registerLinkableChild(folderView, rootWatcher);
 				registerLinkableChild(fileView, rootWatcher);
 				
-				folderView.enableClickToExpand(false);
-//				folderFilter.addGroupedCallback(this, refreshFolders);
+				folderView.enableClickToExpand();
+				
 				// using a delayed callback to avoid clearing the file list during an update
 				BindingUtils.bindSetter(EventUtils.generateDelayedCallback(this, refreshFiles, 0, true), folderView, 'selectedItem');
-				
-				fileFilter.addGroupedCallback(this, refreshFiles);
 				
 				folderView.addEventListener(KeyboardEvent.KEY_DOWN, handleFolderKeyDown, false, int.MAX_VALUE);
 				fileView.addEventListener(KeyboardEvent.KEY_DOWN, handleFileKeyDown, false, int.MAX_VALUE);
@@ -116,32 +110,11 @@
 				
 				fileVBox.visible = fileVBox.includeInLayout = !!folder;
 				
-				if (_prevFolder != folder)
-				{
-					_prevFolder = folder;
-					if (folder && folder.hasChildBranches())
-						folderView.expandItem(folder, true);
-					fileFilter.value = '';
-				}
-				
-				var files:Array;
-				if (folder)
-				{
-					files = folder.getChildren();
-					if (files)
-						files = files.filter(fileFilterFunction);
-				}
-				fileView.refreshDataProvider(files || []);
-			}
-
-//			private function folderFilterFunction(node:IWeaveTreeNode):Boolean
-//			{
-//				return node.getLabel().toLowerCase().search(folderFilter.value.toLowerCase()) >= 0;
-//			}
-
-			private function fileFilterFunction(node:IWeaveTreeNode, i:int, a:Array):Boolean
-			{
-				return node.getLabel().toLowerCase().search(fileFilter.value.toLowerCase()) >= 0;
+				//fileView.refreshDataProvider(folder ? folder.getChildren() || [] : []);
+				//fileView.refreshDataProvider(fileView.getChildren(folder) || []);
+				fileView.refreshDataProvider(folder);
+				if (fileView.openItems.length)
+					fileView.openItems = [];
 			}
 
 			private function handleFolderCollapse(event:TreeEvent):void

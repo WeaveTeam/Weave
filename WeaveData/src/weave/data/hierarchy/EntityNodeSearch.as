@@ -38,6 +38,24 @@ package weave.data.hierarchy
 		private var _searchString:String = ''; // the search string containing ?* wildcards
 		private var _searchRegExp:RegExp = null; // used for local comparisons
 		private var _cachedNodeMatches:Dictionary = new Dictionary(true); // node -> true
+		private var _includeAllDescendants:Boolean = true;
+		
+		/**
+		 * Set this to true to include all descendants of matching nodes
+		 * whether or not the descendants also matched the search.
+		 */
+		public function get includeAllDescendants():Boolean
+		{
+			return _includeAllDescendants;
+		}
+		public function set includeAllDescendants(value:Boolean):void
+		{
+			if (_includeAllDescendants != value)
+			{
+				_includeAllDescendants = value;
+				getCallbackCollection(this).triggerCallbacks();
+			}
+		}
 		
 		/**
 		 * The public metadata field used for searching.
@@ -106,7 +124,11 @@ package weave.data.hierarchy
 					results.rebuildLookup(cache);
 				
 				// The idLookup determines whether or not we want to include this EntityNode.
-				return results.idLookup[en.id];
+				var lookup:uint = results.idLookup[en.id];
+				if (_includeAllDescendants)
+					return !!lookup;
+				else
+					return !!(lookup & SearchResults.LOOKUP_MATCH_OR_ANCESTOR);
 			}
 			else if (xen)
 			{
@@ -146,7 +168,7 @@ package weave.data.hierarchy
 		/**
 		 * Generates a RegExp that matches a search string using '?' and '*' wildcards.
 		 */
-		public static function strToRegExp(searchString:String):RegExp
+		public static function strToRegExp(searchString:String, flags:String = "i"):RegExp
 		{
 			var resultStr:String;
 			//excape metacharacters other than "*" and "?"
@@ -155,7 +177,7 @@ package weave.data.hierarchy
 			resultStr = resultStr.replace(/[\?]/g, ".");
 			//replace strToSrch "*" with reg exp equivalent ".*?"
 			resultStr = resultStr.replace(/[\*]/g, ".*?");
-			return new RegExp("^" + resultStr + "$", "i");
+			return new RegExp("^" + resultStr + "$", flags);
 		}
     }
 }
@@ -174,6 +196,15 @@ import weave.services.addAsyncResponder;
 
 internal class SearchResults
 {
+	/**
+	 * Usage: if (idLookup[id] & LOOKUP_MATCH_OR_ANCESTOR) ...
+	 */
+	public static const LOOKUP_MATCH_OR_ANCESTOR:uint = 1;
+	/**
+	 * Usage: if (idLookup[id] & LOOKUP_DESCENDANT) ...
+	 */
+	public static const LOOKUP_DESCENDANT:uint = 2;
+	
 	/**
 	 * The value of searchField from the last time remoteSearch() was called
 	 */
@@ -240,25 +271,25 @@ internal class SearchResults
 		// as long as there is at least one id in the lookup, include the root node.
 		for (var id:* in idLookup)
 		{
-			idLookup[EntityCache.ROOT_ID] = 1;
+			idLookup[EntityCache.ROOT_ID] = LOOKUP_MATCH_OR_ANCESTOR;
 			break;
 		}
 	}
 	private var _tempCache:EntityCache; // temporary variable used by includeAncestors() and includeDescendants()
 	private function includeAncestors(id:int, i:*, a:*):void
 	{
-		if (idLookup[id] & 1)
+		if (idLookup[id] & LOOKUP_MATCH_OR_ANCESTOR)
 			return;
-		idLookup[id] |= 1;
+		idLookup[id] |= LOOKUP_MATCH_OR_ANCESTOR;
 		var entity:Entity = _tempCache.getEntity(id);
 		if (entity.parentIds)
 			entity.parentIds.forEach(includeAncestors);
 	}
 	private function includeDescendants(id:int, i:*, a:*):void
 	{
-		if (idLookup[id] & 2)
+		if (idLookup[id] & LOOKUP_DESCENDANT)
 			return;
-		idLookup[id] |= 2;
+		idLookup[id] |= LOOKUP_DESCENDANT;
 		var entity:Entity = _tempCache.getEntity(id);
 		if (entity.childIds)
 			entity.childIds.forEach(includeDescendants);
