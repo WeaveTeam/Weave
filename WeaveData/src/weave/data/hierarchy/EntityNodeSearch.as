@@ -39,7 +39,7 @@ package weave.data.hierarchy
 		private var _searchRegExp:RegExp = null; // used for local comparisons
 		
 		private var _entityCacheSearchResults:Dictionary = new Dictionary(true); // EntityCache -> SearchResults
-		private var _cachedLookup:Dictionary = new Dictionary(true); // node -> true
+		private var _xmlNodeLookup:Dictionary = new Dictionary(true); // XMLEntityNode -> true
 		
 		/**
 		 * Set this to true to include all descendants of matching nodes
@@ -72,7 +72,7 @@ package weave.data.hierarchy
 			if (_searchField != value)
 			{
 				_searchField = value;
-				_cachedLookup = new Dictionary(true);
+				_xmlNodeLookup = new Dictionary(true);
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
@@ -92,7 +92,7 @@ package weave.data.hierarchy
 			{
 				_searchString = value;
 				_searchRegExp = strToRegExp(value);
-				_cachedLookup = new Dictionary(true);
+				_xmlNodeLookup = new Dictionary(true);
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
@@ -124,7 +124,7 @@ package weave.data.hierarchy
 				// if cache updated, rebuild idLookup
 				if (detectLinkableObjectChange(results, cache))
 				{
-					_cachedLookup = new Dictionary(true);
+					_xmlNodeLookup = new Dictionary(true);
 					results.rebuildLookup(cache);
 				}
 				
@@ -135,40 +135,46 @@ package weave.data.hierarchy
 			}
 			
 			var xen:XMLEntityNode = node as XMLEntityNode;
-			if (xen && detectLinkableObjectChange(this, xen.getDataSource()))
-				_cachedLookup = new Dictionary(true);
-			
-			lookup = _cachedLookup[node];
-			if (lookup)
-				return !!(lookup & SearchResults.LOOKUP_MATCH_OR_ANCESTOR)
-					|| (_includeAllDescendants && (lookup & SearchResults.LOOKUP_DESCENDANT));
-			
-			if (xen && _searchRegExp.test(xen.xml.attribute(_searchField)))
+			if (xen)
 			{
-				_cachedLookup[node] |= SearchResults.LOOKUP_MATCH_OR_ANCESTOR;
-				_cacheXMLDescendants(xen);
-				return true;
+				if (detectLinkableObjectChange(this, xen.getDataSource()))
+					_xmlNodeLookup = new Dictionary(true);
+				
+				lookup = _xmlNodeLookup[xen];
+				if (lookup)
+					return !!(lookup & SearchResults.LOOKUP_MATCH_OR_ANCESTOR)
+						|| (_includeAllDescendants && (lookup & SearchResults.LOOKUP_DESCENDANT));
+			
+				if (_searchRegExp.test(xen.xml.attribute(_searchField)))
+				{
+					_xmlNodeLookup[xen] |= SearchResults.LOOKUP_MATCH_OR_ANCESTOR;
+					_cacheXMLDescendants(xen);
+					return true;
+				}
 			}
 
-			// if not an EntityNode or XMLEntityNode, we still want to include the node if there are any matching descendants
+			// see if there are any matching descendants
 			if (!node.isBranch())
 			{
-				_cachedLookup[node] |= SearchResults.LOOKUP_VISITED;
+				if (xen)
+					_xmlNodeLookup[xen] |= SearchResults.LOOKUP_VISITED;
 				return false;
 			}
 			var children:Array = xen ? xen.getChildrenExt() : node.getChildren();
 			if (children && children.filter(arrayFilter).length)
 			{
-				_cachedLookup[node] |= SearchResults.LOOKUP_MATCH_OR_ANCESTOR;
+				if (xen)
+					_xmlNodeLookup[xen] |= SearchResults.LOOKUP_MATCH_OR_ANCESTOR;
 				return true;
 			}
-			_cachedLookup[node] |= SearchResults.LOOKUP_VISITED;
+			if (xen)
+				_xmlNodeLookup[xen] |= SearchResults.LOOKUP_VISITED;
 			return false;
 		}
 		
 		private function _cacheXMLDescendants(xen:XMLEntityNode):void
 		{
-			_cachedLookup[xen] |= SearchResults.LOOKUP_DESCENDANT;
+			_xmlNodeLookup[xen] |= SearchResults.LOOKUP_DESCENDANT;
 			for each (var child:IWeaveTreeNode in xen.getChildrenExt())
 			{
 				var xc:XMLEntityNode = child as XMLEntityNode;
