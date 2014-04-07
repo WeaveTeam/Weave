@@ -363,7 +363,9 @@ package weave.ui
 		{
 			var item:* = event.itemRenderer ? event.itemRenderer.data : null;
 			// only expand if this item was not selected prior to mouseDown
-			if (item && item != _preMouseDownSelectedItem && dataDescriptor.isBranch(item, iterator.view))
+			if (item && item != _preMouseDownSelectedItem
+				&& dataDescriptor.isBranch(item, iterator.view)
+				&& dataDescriptor.hasChildren(item, iterator.view))
 				expandItem(item, true);
 		}
 		private function handleDoubleClickExpand(event:ListEvent):void
