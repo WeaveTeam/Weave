@@ -2204,7 +2204,6 @@ public class SQLUtils
 		private boolean _conjunctive = false;
 		
 		/**
-		 * @param conn A SQL connection.
 		 * @param conjunctive Set to <code>true</code> for Conjunctive Normal Form: (a OR b) AND (x OR y).
 		 *                    Set to <code>false</code> for Disjunctive Normal Form: (a AND b) OR (x AND y).
 		 */
