@@ -33,12 +33,13 @@ package weave.data.hierarchy
 
     public class EntityNodeSearch implements ILinkableObject
     {
-		private var _entityCacheSearchResults:Dictionary = new Dictionary(true); // EntityCache -> SearchResults
+		private var _includeAllDescendants:Boolean = true;
 		private var _searchField:String = ColumnMetadata.TITLE; // the field to search
 		private var _searchString:String = ''; // the search string containing ?* wildcards
 		private var _searchRegExp:RegExp = null; // used for local comparisons
-		private var _cachedNodeMatches:Dictionary = new Dictionary(true); // node -> true
-		private var _includeAllDescendants:Boolean = true;
+		
+		private var _entityCacheSearchResults:Dictionary = new Dictionary(true); // EntityCache -> SearchResults
+		private var _cachedLookup:Dictionary = new Dictionary(true); // node -> true
 		
 		/**
 		 * Set this to true to include all descendants of matching nodes
@@ -71,7 +72,7 @@ package weave.data.hierarchy
 			if (_searchField != value)
 			{
 				_searchField = value;
-				_cachedNodeMatches = new Dictionary(true);
+				_cachedLookup = new Dictionary(true);
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
@@ -91,7 +92,7 @@ package weave.data.hierarchy
 			{
 				_searchString = value;
 				_searchRegExp = strToRegExp(value);
-				_cachedNodeMatches = new Dictionary(true);
+				_cachedLookup = new Dictionary(true);
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
@@ -103,11 +104,12 @@ package weave.data.hierarchy
 		 */
 		public function nodeFilter(node:IWeaveTreeNode):Boolean
 		{
-			if (!_searchField || !_searchString || _cachedNodeMatches[node])
+			if (!_searchField || !_searchString)
 				return true;
 			
+			var lookup:uint;
+			
 			var en:EntityNode = node as EntityNode;
-			var xen:XMLEntityNode = node as XMLEntityNode;
 			if (en)
 			{
 				var cache:EntityCache = en.getEntityCache();
@@ -121,35 +123,61 @@ package weave.data.hierarchy
 				
 				// if cache updated, rebuild idLookup
 				if (detectLinkableObjectChange(results, cache))
+				{
+					_cachedLookup = new Dictionary(true);
 					results.rebuildLookup(cache);
+				}
 				
 				// The idLookup determines whether or not we want to include this EntityNode.
-				var lookup:uint = results.idLookup[en.id];
-				if (_includeAllDescendants)
-					return !!lookup;
-				else
-					return !!(lookup & SearchResults.LOOKUP_MATCH_OR_ANCESTOR);
-			}
-			else if (xen)
-			{
-				// does the field match the search string?
-				if (_searchRegExp.test(xen.xml.attribute(_searchField)))
-				{
-					_cachedNodeMatches[node] = true;
-					return true;
-				}
+				lookup = results.idLookup[en.id];
+				return !!(lookup & SearchResults.LOOKUP_MATCH_OR_ANCESTOR)
+					|| (_includeAllDescendants && (lookup & SearchResults.LOOKUP_DESCENDANT));
 			}
 			
-			// if not an EntityNode and doesn't match search string, we still want to include the node if there are any matching descendants
-			if (!node.isBranch())
-				return false;
-			var children:Array = node.getChildren();
-			if (children && children.filter(arrayFilter).length)
+			var xen:XMLEntityNode = node as XMLEntityNode;
+			if (xen && detectLinkableObjectChange(this, xen.getDataSource()))
+				_cachedLookup = new Dictionary(true);
+			
+			lookup = _cachedLookup[node];
+			if (lookup)
+				return !!(lookup & SearchResults.LOOKUP_MATCH_OR_ANCESTOR)
+					|| (_includeAllDescendants && (lookup & SearchResults.LOOKUP_DESCENDANT));
+			
+			if (xen && _searchRegExp.test(xen.xml.attribute(_searchField)))
 			{
-				_cachedNodeMatches[node] = true;
+				_cachedLookup[node] |= SearchResults.LOOKUP_MATCH_OR_ANCESTOR;
+				_cacheXMLDescendants(xen);
 				return true;
 			}
+
+			// if not an EntityNode or XMLEntityNode, we still want to include the node if there are any matching descendants
+			if (!node.isBranch())
+			{
+				_cachedLookup[node] |= SearchResults.LOOKUP_VISITED;
+				return false;
+			}
+			var children:Array = xen ? xen.getChildrenExt() : node.getChildren();
+			if (children && children.filter(arrayFilter).length)
+			{
+				_cachedLookup[node] |= SearchResults.LOOKUP_MATCH_OR_ANCESTOR;
+				return true;
+			}
+			_cachedLookup[node] |= SearchResults.LOOKUP_VISITED;
 			return false;
+		}
+		
+		private function _cacheXMLDescendants(xen:XMLEntityNode):void
+		{
+			_cachedLookup[xen] |= SearchResults.LOOKUP_DESCENDANT;
+			for each (var child:IWeaveTreeNode in xen.getChildrenExt())
+			{
+				var xc:XMLEntityNode = child as XMLEntityNode;
+				if (xc)
+				{
+					nodeFilter(xc);
+					_cacheXMLDescendants(xc);
+				}
+			}
 		}
 		
 		private function arrayFilter(node:IWeaveTreeNode, i:int, a:Array):Boolean
@@ -204,6 +232,10 @@ internal class SearchResults
 	 * Usage: if (idLookup[id] & LOOKUP_DESCENDANT) ...
 	 */
 	public static const LOOKUP_DESCENDANT:uint = 2;
+	/**
+	 * Usage: if (idLookup[id] & LOOKUP_VISITED) ...
+	 */
+	public static const LOOKUP_VISITED:uint = 4;
 	
 	/**
 	 * The value of searchField from the last time remoteSearch() was called

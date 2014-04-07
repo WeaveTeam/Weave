@@ -136,13 +136,13 @@ package weave.data.hierarchy
 		 */
 		public function getChildren():Array
 		{
-			return initChildren(true);
+			return getChildrenExt(true);
 		}
 		
 		/**
 		 * Initializes child nodes, optionally requesting that the data source initialize the hierarchy subtree if empty.
 		 */
-		private function initChildren(requestHierarchyFromDataSource:Boolean = false):Array
+		public function getChildrenExt(requestHierarchyFromDataSource:Boolean = false):Array
 		{
 			if (!isBranch())
 				return null;
@@ -215,7 +215,7 @@ package weave.data.hierarchy
 			var descendantEntityNode:EntityNode = descendant as EntityNode;
 			
 			// make sure to call initChildren() instead of getChildren()
-			for each (var childNode:IWeaveTreeNode in initChildren())
+			for each (var childNode:IWeaveTreeNode in getChildrenExt())
 			{
 				// is the child equivalent to the descendant?
 				if (childNode.equals(descendant))
