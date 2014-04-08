@@ -1,6 +1,12 @@
 package infomap.admin;
 
 
+import infomap.beans.EntityDistributionObject;
+import infomap.beans.QueryResultWithWordCount;
+import infomap.beans.SolrClusterResponseModel;
+import infomap.beans.TopicClassificationResults;
+import infomap.scheduler.RssFeedsJob;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -10,30 +16,35 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
-
-import org.xml.sax.ContentHandler;
-
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.rmi.RemoteException;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
-import javax.security.auth.callback.LanguageCallback;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,9 +53,8 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrResponse;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -57,7 +67,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.GroupParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
@@ -69,14 +78,30 @@ import org.carrot2.core.ProcessingResult;
 import org.carrot2.util.CloseableUtils;
 import org.carrot2.util.attribute.AttributeValueSets;
 import org.w3c.dom.Document;
+import org.xml.sax.ContentHandler;
 
-import cc.mallet.types.*;
-import cc.mallet.pipe.*;
-import cc.mallet.pipe.iterator.*;
-import cc.mallet.topics.*;
-
-import java.util.*;
-import java.io.*;
+import weave.servlets.WeaveServlet;
+import weave.utils.CSVParser;
+import weave.utils.DebugTimer;
+import weave.utils.FileUtils;
+import weave.utils.SQLResult;
+import weave.utils.SQLUtils;
+import weave.utils.XMLUtils;
+import cc.mallet.pipe.CharSequence2TokenSequence;
+import cc.mallet.pipe.CharSequenceLowercase;
+import cc.mallet.pipe.Pipe;
+import cc.mallet.pipe.SerialPipes;
+import cc.mallet.pipe.TokenSequence2FeatureSequence;
+import cc.mallet.pipe.TokenSequenceRemoveNonAlpha;
+import cc.mallet.pipe.TokenSequenceRemoveStopwords;
+import cc.mallet.pipe.iterator.CsvIterator;
+import cc.mallet.topics.ParallelTopicModel;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.IDSorter;
+import cc.mallet.types.Instance;
+import cc.mallet.types.InstanceList;
+import cc.mallet.types.Token;
+import cc.mallet.types.TokenSequence;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.DropboxAPI.Entry;
@@ -105,28 +130,6 @@ import edu.mit.jwi.morph.WordnetStemmer;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import edu.stanford.nlp.process.PTBTokenizer;
-
-import infomap.beans.EntityDistributionObject;
-import infomap.beans.QueryResultWithWordCount;
-import infomap.beans.SolrClusterObject;
-import infomap.beans.SolrClusterResponseModel;
-import infomap.beans.TopicClassificationResults;
-import infomap.scheduler.RssFeedsJob;
-import weave.servlets.WeaveServlet;
-import weave.utils.CSVParser;
-import weave.utils.DebugTimer;
-import weave.utils.FileUtils;
-import weave.utils.SQLResult;
-import weave.utils.SQLUtils;
-import weave.utils.XMLUtils;
-
-import opennlp.tools.sentdetect.SentenceDetectorME;
-import opennlp.tools.sentdetect.SentenceModel;
-
-import java.util.Iterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Pattern;
 
 /**
  * class SolrDataServices
@@ -407,7 +410,7 @@ public class AdminService extends WeaveServlet {
 			
 			String query = String.format("DELETE FROM %s WHERE url = '%s'", table, url);
 
-			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
+			SQLUtils.executeUpdate(conn, query);
 
 			return "RSS Feed was deleted";
 		} catch (Exception e) {
@@ -885,8 +888,6 @@ public class AdminService extends WeaveServlet {
 			int numOfKeywordsInEachTopic,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
-		ArrayList<String[]> r = new ArrayList<String[]>();
-		
 		String[] uncategoried = null;
         Set<String> tempuncategoried = new HashSet<String>();
 
@@ -972,9 +973,8 @@ public class AdminService extends WeaveServlet {
 			// Note that the first parameter is passed as the sum over topics,
 			// while the second is the parameter for a single dimension of the
 			// Dirichlet prior.
-			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0,
-					0.01);
-			model.logger.setLevel(java.util.logging.Level.OFF);
+			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0, 0.01);
+			ParallelTopicModel.logger.setLevel(java.util.logging.Level.OFF);
 			model.addInstances(instances);
 
 			//two parallel samplers
@@ -1249,7 +1249,7 @@ public class AdminService extends WeaveServlet {
 			
 			
 			// Clustering documents			
-			Map<String,Object> docsToLabel = new HashMap<String, Object>();
+			Map<String,Map<String,String>> docsToLabel = new HashMap<String, Map<String,String>>();
 			
 			for (int i=0; i < numOfDocs; i++)
 			{
@@ -1287,7 +1287,7 @@ public class AdminService extends WeaveServlet {
 				String doc = docIterator.next();
 				Map<String, String> recordObject = new HashMap<String, String>();
 				recordObject.put("document", doc);
-				recordObject.putAll((Map<String, String>)docsToLabel.get(doc));
+				recordObject.putAll(docsToLabel.get(doc));
 				records.add(recordObject);
 			}
 			
@@ -1356,7 +1356,8 @@ public class AdminService extends WeaveServlet {
 				labelClusterLinkedHashMap.remove(keysToRemove.get(i));
 			}
 			
-			Map<String, String>[] rs = records.toArray(new HashMap[records.size()]);
+			@SuppressWarnings("unchecked")
+			Map<String, String>[] rs = records.toArray(new Map[records.size()]);
 			
 			result = new CSVParser().convertRecordsToRows(rs);
 
