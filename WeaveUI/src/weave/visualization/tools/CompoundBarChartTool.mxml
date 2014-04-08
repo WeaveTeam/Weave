@@ -409,12 +409,13 @@
 				if (_plotter.heightColumns.getObjects().length < 1)
 					return;
 
+				var columns:Array;
 				if (linkHeightAndColorColumns.value)
 				{
 					_plotter.heightColumns.delayCallbacks();
 					
 					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
-					var columns:Array = _plotter.heightColumns.getObjects();
+					columns = _plotter.heightColumns.getObjects();
 					copySessionState(columns[0], ColumnUtils.hack_findInternalDynamicColumn(_plotter.colorColumn));
 					
 					_plotter.heightColumns.resumeCallbacks();
@@ -424,7 +425,7 @@
 					_plotter.heightColumns.delayCallbacks();
 					
 					ColumnUtils.forceFirstColumnDynamic(_plotter.heightColumns);
-					var columns:Array = _plotter.heightColumns.getObjects();
+					columns = _plotter.heightColumns.getObjects();
 					copySessionState(columns[0], _plotter.sortColumn);
 					
 					_plotter.heightColumns.resumeCallbacks();

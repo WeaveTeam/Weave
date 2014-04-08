@@ -72,7 +72,7 @@ package weave.data.AttributeColumns
 			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			
 			setMetadataProperty(ColumnMetadata.TITLE, "Untitled Equation");
-			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
+			//setMetadataProperty(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
 			
 			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
 		}

@@ -22,59 +22,57 @@ package weave.data
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IAttributeColumnCache;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
-	import weave.data.DataSources.MultiDataSource;
+	import weave.compiler.Compiler;
+	import weave.utils.Dictionary2D;
 	import weave.utils.WeakReference;
 	
 	/**
-	 * This is a cache that maps IColumnReference hash values to IAttributeColumns.
-	 * The getAttributeColumn() function is used to avoid making duplicate column requests.
-	 * 
-	 * @author adufilie
+	 * @inheritDoc
 	 */
 	public class AttributeColumnCache implements IAttributeColumnCache
 	{
 		/**
-		 * This function will return the same IAttributeColumn for two IColumnReference objects having the same hash value.
-		 * Use this function to avoid duplicate data downloads.
-		 * @param columnReference A reference to a column.
-		 * @return The column that the reference refers to.
+		 * @inheritDoc
 		 */
-		public function getColumn(columnReference:IColumnReference):IAttributeColumn
+		public function getColumn(dataSource:IDataSource, metadata:Object):IAttributeColumn
 		{
-			if (columnReference == null)
+			// null means no column
+			if (metadata === null)
 				return null;
-			var dataSource:IDataSource = columnReference.getDataSource();
+			
+			// special case - if dataSource is null, use WeaveAPI.globalHashMap
 			if (dataSource == null)
 			{
-				// HACK
-				return MultiDataSource.instance.getAttributeColumn(columnReference);
+				if (!metadata)
+					return null;
+				var name:String;
+				if (typeof metadata == 'object')
+					name = metadata['name'];
+				else
+					name = String(metadata);
+				return WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
 			}
 
 			// Get the column pointer associated with the hash value.
-			var hashCode:String = columnReference.getHashCode();
-			var weakRef:WeakReference = _hashToWeakColumnRefMap[hashCode] as WeakReference;
+			var hashCode:String = Compiler.stringify(metadata);
+			var weakRef:WeakReference = d2d_dataSource_metadataHash.get(dataSource, hashCode) as WeakReference;
 			if (weakRef != null && weakRef.value != null)
 			{
 				if (WeaveAPI.SessionManager.objectWasDisposed(weakRef.value))
-					delete _hashToWeakColumnRefMap[hashCode];
+					d2d_dataSource_metadataHash.remove(dataSource, hashCode);
 				else
 					return weakRef.value as IAttributeColumn;
 			}
 			
 			// If no column is associated with this hash value, request the
 			// column from its data source and save the column pointer.
-			var column:IAttributeColumn = dataSource.getAttributeColumn(columnReference);
-			// backwards compatibility: get hash value again in case getAttributeColumn() modified it
-			_hashToWeakColumnRefMap[columnReference.getHashCode()] = new WeakReference(column);
+			var column:IAttributeColumn = dataSource.getAttributeColumn(metadata);
+			d2d_dataSource_metadataHash.set(dataSource, hashCode, new WeakReference(column));
 
 			return column;
 		}
-
-		/**
-		 * This object maps a hash value from an IColumnReference to a WeakReference that points to an IAttributeColumn.
-		 */
-		private const _hashToWeakColumnRefMap:Object = new Object();
+		
+		private const d2d_dataSource_metadataHash:Dictionary2D = new Dictionary2D(true, true);
 	}
 }

@@ -27,13 +27,6 @@ package weave.services.beans
 		[Bindable] public var connectString:String = "" ;
 		[Bindable] public var is_superuser:Boolean = false;
 		
-		public function ConnectionInfo(obj:Object)
-		{
-			for (var name:String in obj)
-				if (this.hasOwnProperty(name))
-					this[name] = obj[name];
-		}
-
 		/**
 		 * This is a list of supported DBMS values.
 		 */

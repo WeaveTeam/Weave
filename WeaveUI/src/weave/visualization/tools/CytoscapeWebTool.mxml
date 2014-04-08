@@ -19,7 +19,6 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.ColumnMetadata;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -27,9 +26,9 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.FilteredKeySet;

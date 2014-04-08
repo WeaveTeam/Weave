@@ -20,12 +20,10 @@
 package weave.utils
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
-	import mx.utils.ObjectUtil;
 	
 	/**
 	 * This class contains static functions that manipulate Vectors and Arrays.
@@ -361,13 +359,21 @@ package weave.utils
 			return exactMatchOnly ? -1 : i;
 		}
 		
-		public static function getArrayFromCollection(collection:ICollectionView):Array
+		/**
+		 * Gets an Array of items from an ICollectionView.
+		 * @param collection The ICollectionView.
+		 * @param alwaysMakeCopy If set to false and the collection is an ArrayCollection, returns original source Array.
+		 */
+		public static function getArrayFromCollection(collection:ICollectionView, alwaysMakeCopy:Boolean = true):Array
 		{
+			if (!collection || !collection.length)
+				return [];
+			
 			var array:Array = null;
-			if (collection is ArrayCollection)
+			if (collection is ArrayCollection && collection.filterFunction == null)
 				array = (collection as ArrayCollection).source;
 			if (array)
-				return array.concat();
+				return alwaysMakeCopy ? array.concat() : array;
 			
 			array = [];
 			var cursor:IViewCursor = collection.createCursor();

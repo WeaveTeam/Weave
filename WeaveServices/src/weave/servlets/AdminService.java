@@ -56,7 +56,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import weave.beans.UploadFileFilter;
-import weave.beans.UploadedFile;
 import weave.beans.WeaveFileInfo;
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
@@ -67,8 +66,10 @@ import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
+import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.DataConfig.Relationship;
 import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.GeometryStreamConverter;
@@ -85,8 +86,7 @@ import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.Strings;
 
-public class AdminService
-		extends WeaveServlet
+public class AdminService extends WeaveServlet implements IWeaveEntityManagementService
 {
 	private static final long serialVersionUID = 1L;
 	private RemoteException initializationError = null;
@@ -100,11 +100,6 @@ public class AdminService
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
-	}
-	
-	private boolean isEmpty(String str)
-	{
-		return str == null || str.length() == 0;
 	}
 	
 	/**
@@ -170,20 +165,20 @@ public class AdminService
 		return info;
 	}
 	
-    private void tryModify(String user, String pass, int entityId) throws RemoteException
+    private void tryModify(String user, String pass, Integer ...entityIds) throws RemoteException
     {
         if (getConnectionInfo(user, pass).is_superuser)
         	return; // superuser can modify anything
         
-    	DataEntity entity = getDataConfig().getEntity(entityId);
-    	
-    	// permissions only supported on data tables and columns
-    	if (entity != null && (entity.type == DataEntity.TYPE_DATATABLE || entity.type == DataEntity.TYPE_COLUMN))
+    	Collection<DataEntity> entities = getDataConfig().getEntities(Arrays.asList(entityIds), true);
+    	for (DataEntity entity : entities)
     	{
-	        String owner = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-	        if (!user.equals(owner))
-	        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entityId));
-    	}
+    		String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+	    	// permissions only supported on data tables and columns
+	    	if (Strings.equal(entityType, EntityType.TABLE) || Strings.equal(entityType, EntityType.COLUMN))
+	    		if (!Strings.equal(user, entity.privateMetadata.get(PrivateMetadata.CONNECTION)))
+		        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entity.id));
+	    }
     }
 	
 	//////////////////////////////
@@ -234,7 +229,7 @@ public class AdminService
 		}
 
 		String path = getDocrootPath();
-		if (!showAllFiles && !isEmpty(info.folderName))
+		if (!showAllFiles && !Strings.isEmpty(info.folderName))
 			path = path + info.folderName + "/";
 
 		File docrootFolder = new File(path);
@@ -247,7 +242,7 @@ public class AdminService
 			{
 				if (file.isFile())
 				{
-					listOfFiles.add(((!showAllFiles && !isEmpty(info.folderName))
+					listOfFiles.add(((!showAllFiles && !Strings.isEmpty(info.folderName))
 							? info.folderName + "/" : "") + file.getName().toString());
 				}
 			}
@@ -285,7 +280,7 @@ public class AdminService
 				fileName += ".weave";
 
 			String path = getDocrootPath();
-			if (!isEmpty(info.folderName))
+			if (!Strings.isEmpty(info.folderName))
 				path = path + info.folderName + "/";
 
 			File file = new File(path + fileName);
@@ -294,7 +289,7 @@ public class AdminService
 			{
 				if (!overwriteFile)
 					return String.format("File already exists and was not changed: \"%s\"", fileName);
-				if (!info.is_superuser && isEmpty(info.folderName))
+				if (!info.is_superuser && Strings.isEmpty(info.folderName))
 					return String.format(
 							"User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.",
 							user);
@@ -321,12 +316,12 @@ public class AdminService
 	{
 		ConnectionInfo info = getConnectionInfo(user, password);
 
-		if (!info.is_superuser && isEmpty(info.folderName))
+		if (!info.is_superuser && Strings.isEmpty(info.folderName))
 			return String.format(
 					"User \"%s\" does not have permission to remove configuration files.", user);
 
 		String path = getDocrootPath();
-		if (!isEmpty(info.folderName))
+		if (!Strings.isEmpty(info.folderName))
 			path = path + info.folderName + "/";
 
 		File f = new File(path + fileName);
@@ -478,7 +473,7 @@ public class AdminService
 					break;
 			}
 			// sanity check
-			if (currentUser == newUser && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
+			if (Strings.equal(currentUser, newUser) && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
 				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 
 			config.saveConnectionInfo(newConnectionInfo);
@@ -567,25 +562,25 @@ public class AdminService
 	//////////////////////////
 	// DataEntity management
 	
-	public void addParentChildRelationship(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
+	public int[] addChild(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		getDataConfig().buildHierarchy(parentId, childId, insertAtIndex);
+		return ListUtils.toIntArray( getDataConfig().buildHierarchy(parentId, childId, insertAtIndex) );
 	}
-
-	public void removeParentChildRelationship(String user, String password, int parentId, int childId) throws RemoteException
+	
+	public void removeChild(String user, String password, int parentId, int childId) throws RemoteException
 	{
 		if (parentId == DataConfig.NULL)
-			throw new RemoteException("removeParentChildRelationship() called with parentId=" + DataConfig.NULL);
+			throw new RemoteException("removeChild() called with parentId=" + DataConfig.NULL);
 		
 		tryModify(user, password, parentId);
 		getDataConfig().removeChild(parentId, childId);
 	}
-
-	public int newEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId, int insertAtIndex) throws RemoteException
+	
+	public int newEntity(String user, String password, DataEntityMetadata meta, int parentId, int insertAtIndex) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		return getDataConfig().newEntity(entityType, meta, parentId, insertAtIndex);
+		return getDataConfig().newEntity(meta, parentId, insertAtIndex);
 	}
 
 	public int[] removeEntities(String user, String password, int[] entityIds) throws RemoteException
@@ -605,36 +600,33 @@ public class AdminService
 		getDataConfig().updateEntity(entityId, diff);
 	}
 	
-	public EntityHierarchyInfo[] getEntityHierarchyInfo(String user, String password, int entityType) throws RemoteException
+	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, Map<String,String> publicMetadata) throws RemoteException
 	{
-		authenticate(user, password);
-		return getDataConfig().getEntityHierarchyInfo(entityType);
+		authenticate(user, pass);
+		return getDataConfig().getEntityHierarchyInfo(publicMetadata);
 	}
 
-	public int[] getEntityIdsByMetadata(String user, String password, DataEntityMetadata meta, int entityType) throws RemoteException
+	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException
 	{
-		authenticate(user, password);
-		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(meta, entityType) );
+		if (ids.length > DataConfig.MAX_ENTITY_REQUEST_COUNT)
+			throw new RemoteException(String.format("You cannot request more than %s entities at a time.", DataConfig.MAX_ENTITY_REQUEST_COUNT));
+		
+		authenticate(user, pass);
+		return getDataConfig().getEntitiesWithRelationships(ids, true);
 	}
 
-	public DataEntityWithRelationships[] getEntitiesById(String user, String password, int[] ids) throws RemoteException
+	public int[] findEntityIds(String user, String pass, Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
 	{
-		authenticate(user, password);
-		DataConfig config = getDataConfig();
-		Set<Integer> idSet = new HashSet<Integer>();
-		for (int id : ids)
-			idSet.add(id);
-		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
-		for (int i = 0; i < result.length; i++)
-		{
-			int id = result[i].id;
-			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
-			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
-			result[i] = new DataEntityWithRelationships(result[i], parentIds, childIds);
-		}
-		return Arrays.copyOf(result, result.length, DataEntityWithRelationships[].class);
+		authenticate(user, pass);
+		return ListUtils.toIntArray( getDataConfig().searchPublicMetadata(publicMetadata, wildcardFields) );
 	}
-
+	
+	public String[] findPublicFieldValues(String user, String pass, String fieldName, String valueSearch) throws RemoteException
+	{
+		authenticate(user, pass);
+		throw new RemoteException("Not implemented yet");
+	}
+	
 	///////////////////////
 	// SQL info retrieval
 	
@@ -734,66 +726,35 @@ public class AdminService
 		}
 	}
 
-	public UploadedFile[] getUploadedCSVFiles()
-		throws RemoteException
+	public WeaveFileInfo[] getUploadedCSVFiles() throws RemoteException
 	{
-		File directory = new File(getUploadPath());
-		List<UploadedFile> list = new ArrayList<UploadedFile>();
-		File[] listOfFiles = null;
-
-		try
-		{
-			if (directory.isDirectory())
-			{
-				listOfFiles = directory.listFiles(new UploadFileFilter("csv"));
-				for (File file : listOfFiles)
-				{
-					if (file.isFile())
-					{
-						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
-						list.add(uploadedFile);
-					}
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-
-		int n = list.size();
-		return list.toArray(new UploadedFile[n]);
+		return getUploadedFiles("csv");
 	}
-
-	public UploadedFile[] getUploadedSHPFiles()
-		throws RemoteException
+	
+	public WeaveFileInfo[] getUploadedSHPFiles() throws RemoteException
+	{
+		return getUploadedFiles("shp");
+	}
+	
+	private WeaveFileInfo[] getUploadedFiles(String extension) throws RemoteException
 	{
 		File directory = new File(getUploadPath());
-		List<UploadedFile> list = new ArrayList<UploadedFile>();
-		File[] listOfFiles = null;
-
+		List<WeaveFileInfo> list = new ArrayList<WeaveFileInfo>();
 		try
 		{
 			if (directory.isDirectory())
 			{
-				listOfFiles = directory.listFiles(new UploadFileFilter("shp"));
+				File[] listOfFiles = directory.listFiles(new UploadFileFilter(extension));
 				for (File file : listOfFiles)
-				{
 					if (file.isFile())
-					{
-						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
-						list.add(uploadedFile);
-					}
-				}
+						list.add(new WeaveFileInfo(file));
 			}
 		}
 		catch (Exception e)
 		{
 			throw new RemoteException(e.getMessage());
 		}
-
-		int n = list.size();
-		return list.toArray(new UploadedFile[n]);
+		return list.toArray(new WeaveFileInfo[list.size()]);
 	}
 
 	/**
@@ -1051,9 +1012,9 @@ public class AdminService
 	{
 		ConnectionInfo connInfo = getConnectionInfo(connectionName, password);
 		
-		if (isEmpty(sqlSchema))
+		if (Strings.isEmpty(sqlSchema))
 			throw new RemoteException("SQL schema must be specified.");
-		if (isEmpty(sqlTable))
+		if (Strings.isEmpty(sqlTable))
 			throw new RemoteException("SQL table must be specified.");
 		
 		final int StringType = 0;
@@ -1124,7 +1085,7 @@ public class AdminService
 			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
 				String colName = sqlColumnNames[iCol];
-				if (isEmpty(colName))
+				if (Strings.isEmpty(colName))
 					colName = "Column " + (iCol + 1);
 				// save original column name
 				csvColumnNames[iCol] = colName;
@@ -1187,19 +1148,12 @@ public class AdminService
 					fieldLengths[iCol] = Math.max(fieldLengths[iCol], nextLine[iCol].length());
 
 					// Change missing data into NULL, later add more cases to deal with missing data.
-					String[] nullValuesStandard = new String[] {
-							"", ".", "..", " ", "-", "\"NULL\"", "NULL", "NaN" };
-					ALL_NULL_VALUES: for (String[] values : new String[][] {
-							nullValuesStandard, nullValues })
+					for (String nullValue : nullValues)
 					{
-						for (String nullValue : values)
+						if (nextLine[iCol] != null && nextLine[iCol].equalsIgnoreCase(nullValue))
 						{
-							if (nextLine[iCol] != null && nextLine[iCol].equalsIgnoreCase(nullValue))
-							{
-								nextLine[iCol] = null;
-
-								break ALL_NULL_VALUES;
-							}
+							nextLine[iCol] = null;
+							break;
 						}
 					}
 					if (nextLine[iCol] == null)
@@ -1339,9 +1293,9 @@ public class AdminService
 	{
 		authenticate(connectionName, password);
 		
-		if (isEmpty(schemaName))
+		if (Strings.isEmpty(schemaName))
 			throw new RemoteException("SQL schema must be specified.");
-		if (isEmpty(tableName))
+		if (Strings.isEmpty(tableName))
 			throw new RemoteException("SQL table must be specified.");
 		
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
@@ -1476,6 +1430,8 @@ public class AdminService
 					);
 
 				DataEntityMetadata metaQuery = new DataEntityMetadata();
+				// we don't search public metadata because that would be a separate sql query
+				// and we only know the entityType.
 				metaQuery.setPrivateMetadata(
 						PrivateMetadata.CONNECTION, connectionName,
 						PrivateMetadata.SQLQUERY, query
@@ -1505,7 +1461,7 @@ public class AdminService
 							// try to find a matching column using private metadata: connection, sqlQuery, and sqlParams
 							metaQuery.setPrivateMetadata(PrivateMetadata.SQLPARAMS, info.sqlParamsStr);
 							info.existingColumnId = ListUtils.getFirstSortedItem(
-									dataConfig.getEntityIdsByMetadata(metaQuery, DataEntity.TYPE_COLUMN),
+									dataConfig.searchPrivateMetadata(metaQuery.privateMetadata, null),
 									DataConfig.NULL
 								);
 							if (info.existingColumnId != DataConfig.NULL)
@@ -1530,7 +1486,7 @@ public class AdminService
 					{
 						// try to find a matching column using private metadata: connection and sqlQuery
 						info.existingColumnId = ListUtils.getFirstSortedItem(
-								dataConfig.getEntityIdsByMetadata(metaQuery, DataEntity.TYPE_COLUMN),
+								dataConfig.searchPrivateMetadata(metaQuery.privateMetadata, null),
 								DataConfig.NULL
 							);
 						if (info.existingColumnId != DataConfig.NULL)
@@ -1549,22 +1505,20 @@ public class AdminService
 				Set<Integer> columnIds = new HashSet<Integer>();
 				for (ColumnInfo info : columnInfoList)
 					columnIds.add(info.existingColumnId);
-				// get parents of matching column ids
-				Map<Integer,Integer> typeMap = dataConfig.getEntityTypes(dataConfig.getParentIds(columnIds));
-				List<Integer> sortedParentIds = new ArrayList<Integer>(typeMap.keySet());
-				Collections.sort(sortedParentIds);
 				// find first matching parent table id
-				for (int id : sortedParentIds)
+				for (Relationship r : dataConfig.getRelationships(columnIds))
 				{
-					if (typeMap.get(id) == DataEntity.TYPE_DATATABLE)
+					String parentType = dataConfig.getEntityTypes(Arrays.asList(r.parentId)).get(r.parentId);
+					if (Strings.equal(parentType, EntityType.TABLE))
 					{
-						existingTableId = id;
+						existingTableId = r.parentId;
 						break;
 					}
 				}
 			}
 			
 			DataEntityMetadata tableInfo = tableImportInfo == null ? new DataEntityMetadata() : tableImportInfo;
+			tableInfo.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.TABLE);
         	tableInfo.setPrivateMetadata(
         		PrivateMetadata.CONNECTION, connectionName,
         		PrivateMetadata.SQLSCHEMA, sqlSchema,
@@ -1576,7 +1530,7 @@ public class AdminService
         	{
         		// only set title if creating a new table
         		tableInfo.setPublicMetadata(PublicMetadata.TITLE, configDataTableName);
-				table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableInfo, DataConfig.NULL, DataConfig.NULL);
+				table_id = dataConfig.newEntity(tableInfo, DataConfig.NULL, DataConfig.NULL);
         	}
         	else
         	{
@@ -1595,6 +1549,7 @@ public class AdminService
 					newMeta.setPublicMetadata(PublicMetadata.TITLE, info.title);
 					
 				newMeta.setPublicMetadata(
+					PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 					PublicMetadata.KEYTYPE, keyType,
 					PublicMetadata.DATATYPE, info.dataType,
 					PublicMetadata.PROJECTION, info.projection
@@ -1617,7 +1572,7 @@ public class AdminService
 
 				// if not updating an existing column, create a new one
 				if (existingTableId == DataConfig.NULL || info.existingColumnId == DataConfig.NULL)
-					dataConfig.newEntity(DataEntity.TYPE_COLUMN, newMeta, table_id, DataConfig.NULL);
+					dataConfig.newEntity(newMeta, table_id, DataConfig.NULL);
 				else
 					dataConfig.updateEntity(info.existingColumnId, newMeta);
 			}
@@ -1769,9 +1724,9 @@ public class AdminService
 		ConnectionInfo connInfo = getConnectionInfo(configConnectionName, password);
 		DataConfig dataConfig = getDataConfig();
 		
-		if (isEmpty(sqlSchema))
+		if (Strings.isEmpty(sqlSchema))
 			throw new RemoteException("SQL schema must be specified.");
-		if (isEmpty(sqlTablePrefix))
+		if (Strings.isEmpty(sqlTablePrefix))
 			throw new RemoteException("SQL table prefix must be specified.");
 		
 		// use lower case sql table names (fix for mysql linux problems)
@@ -1855,31 +1810,34 @@ public class AdminService
 		}
 		else
 		{
-			tableInfo.setPublicMetadata(PublicMetadata.TITLE, configTitle);
-            tableId = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableInfo, DataConfig.NULL, DataConfig.NULL);
+			tableInfo.setPublicMetadata(
+				PublicMetadata.ENTITYTYPE, EntityType.TABLE,
+				PublicMetadata.TITLE, configTitle
+			);
+            tableId = dataConfig.newEntity(tableInfo, DataConfig.NULL, DataConfig.NULL);
 		}
 
 		try
 		{
 			// prepare metadata for existing column check
 			DataEntityMetadata geomInfo = new DataEntityMetadata();
+			// we don't search public metadata because that would require two sql queries
 			geomInfo.setPrivateMetadata(
 				PrivateMetadata.CONNECTION, configConnectionName,
 				PrivateMetadata.SQLSCHEMA, sqlSchema,
 				PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix
 			);
-			geomInfo.setPublicMetadata(PublicMetadata.DATATYPE, DataType.GEOMETRY);
 			
-			// check for existing column
+			// check for existing geometry column using private metadata only
 			int existingGeomId = ListUtils.getFirstSortedItem(
-					dataConfig.getEntityIdsByMetadata(geomInfo, DataEntity.TYPE_COLUMN),
+					dataConfig.searchPrivateMetadata(geomInfo.privateMetadata, null),
 					DataConfig.NULL
 				);
 			if (existingGeomId != DataConfig.NULL)
 			{
 				// see if the existing geometry column has the same parent table
 				boolean foundSameTableId = false;
-				for (int parentId : dataConfig.getParentIds(Arrays.asList(existingGeomId)))
+				for (int parentId : dataConfig.getParentIds(existingGeomId))
 					if (parentId == tableId)
 						foundSameTableId = true;
 				// if it does not have the same parent table, clear the existingGeomId
@@ -1888,19 +1846,20 @@ public class AdminService
 					existingGeomId = DataConfig.NULL;
 			}
 			
-			// set the rest of the metadata
+			// set the new public metadata
 			geomInfo.setPublicMetadata(
-					PublicMetadata.KEYTYPE, configKeyType,
+					PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 					PublicMetadata.DATATYPE, DataType.GEOMETRY,
+					PublicMetadata.KEYTYPE, configKeyType,
 					PublicMetadata.PROJECTION, projectionSRS
 			);
 			
 			if (existingGeomId == DataConfig.NULL)
 			{
-				// only update title if column doesn't already exist
+				// we only update the title if the column doesn't already exist
 				geomInfo.setPublicMetadata(PublicMetadata.TITLE, configTitle);
 				// create new column
-				dataConfig.newEntity(DataEntity.TYPE_COLUMN, geomInfo, tableId, 0);
+				dataConfig.newEntity(geomInfo, tableId, 0);
 			}
 			else
 			{
@@ -1923,7 +1882,7 @@ public class AdminService
 	{
 		ConnectionInfo info = getConnectionInfo(configConnectionName, password);
 		
-		if (isEmpty(sqlSchema))
+		if (Strings.isEmpty(sqlSchema))
 			throw new RemoteException("Schema must be specified.");
 		
 		// use lower case sql table names (fix for mysql linux problems)
@@ -1966,7 +1925,7 @@ public class AdminService
 		authenticate(user, password);
 		DataConfig config = getDataConfig();
 		Collection<Integer> ids = config.getChildIds(table_id);
-		DataEntity[] columns = config.getEntitiesById(ids).toArray(new DataEntity[0]);
+		DataEntity[] columns = config.getEntities(ids, true).toArray(new DataEntity[0]);
 		String query = null;
 		for (DataEntity entity : columns)
 		{
@@ -1979,7 +1938,7 @@ public class AdminService
 				Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 
 				String[] sqlParamsArray = null;
-				if (!isEmpty(sqlParams))
+				if (!Strings.isEmpty(sqlParams))
 					sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
 				
 				result = SQLUtils.getResultFromQuery(conn, query, sqlParamsArray, false);

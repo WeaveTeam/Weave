@@ -13,17 +13,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.data
+package weave.api.ui
 {
-	import weave.api.core.ILinkableObject;
-	
-	/**
-	 * TODO: Instead of XML, this should be a hierarchy of IColumnReference
-	 *       objects that can be passed to IDataSource.getAttributeColumn().
-	 * 
-	 * @author adufilie
-	 */
-	public interface IAttributeHierarchy extends ILinkableObject
+	import weave.api.data.IDataSource;
+
+	public interface IDataSourceEditor extends ILinkableObjectEditor
 	{
+		/**
+		 * Creates a new data source with the configuration settings which have been selected in the GUI.
+		 */
+		function createDataSource():IDataSource;
 	}
 }

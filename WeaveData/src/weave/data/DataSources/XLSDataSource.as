@@ -32,7 +32,6 @@ package weave.data.DataSources
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
@@ -42,8 +41,6 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 
 	/**
@@ -78,20 +75,25 @@ package weave.data.DataSources
 		private var xlsSheetsArray:ArrayCollection = null;
 		private function loadXLSData(xlsSheetsArray:ArrayCollection):void
 		{
-			this.xlsSheetsArray = xlsSheetsArray;
-			if (_attributeHierarchy.value == null)
+			try
 			{
-				// loop through column names, adding indicators to hierarchy
-				var firstRow:Array = xlsSheetsArray[0].values[0];
-				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
-				for each (var colName:String in firstRow)
+				this.xlsSheetsArray = xlsSheetsArray;
+				if (_attributeHierarchy.value == null)
 				{
-					root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					// loop through column names, adding indicators to hierarchy
+					var firstRow:Array = xlsSheetsArray[0].values[0];
+					var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
+					for each (var colName:String in firstRow)
+					{
+						root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					}
+					_attributeHierarchy.value = root;
 				}
-				_attributeHierarchy.value = root;
 			}
-			
-			//trace("hierarchy was set to " + attributeHierarchy.xml);
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		/**
@@ -121,23 +123,11 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * requestColumnFromSource
-		 * This function must be implemented by classes by extend AbstractDataSource.
-		 * This function should make a request to the source to fill in the proxy column.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
-		 * @param A ProxyColumn object that will be updated when the column data is ready.
+		 * @inheritDoc
 		 */
-		override protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var hierarchyRef:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-			if (!hierarchyRef)
-				return handleUnsupportedColumnReference(columnReference, proxyColumn);
-
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
 			var colName:String = String(proxyColumn.getMetadata("name"));
-			trace(xlsSheetsArray[0].values[0]);
 			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],colName);
 			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],keyColName.value);
 			if (keyColIndex == -1)
@@ -151,7 +141,7 @@ package weave.data.DataSources
 			// loop through values, determine column type
 			var nullValues:Array = ["null", "\\N", "NaN"];
 			var nullValue:String;
-			var isNumericColumn:Boolean = true
+			var isNumericColumn:Boolean = true;
 			//check if it is a numeric column.
 			for each (var columnValue:String in xlsDataColumn)
 			{
@@ -171,12 +161,12 @@ package weave.data.DataSources
 			var newColumn:IAttributeColumn;
 			if (isNumericColumn)
 			{
-				newColumn = new NumberColumn(leafNode);
+				newColumn = new NumberColumn(proxyColumn.getProxyMetadata());
 				(newColumn as NumberColumn).setRecords(keysVector, Vector.<Number>(xlsDataColumn));
 			}
 			else
 			{
-				newColumn = new StringColumn(leafNode);
+				newColumn = new StringColumn(proxyColumn.getProxyMetadata());
 				(newColumn as StringColumn).setRecords(keysVector, Vector.<String>(xlsDataColumn));
 			}
 			proxyColumn.setInternalColumn(newColumn);

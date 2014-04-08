@@ -23,14 +23,6 @@ package weave.services.beans
 
 	public class GeometryStreamMetadata
 	{
-		public function GeometryStreamMetadata(result:Object)
-		{
-			this.id = result.id;
-			this.metadata = result.metadata;
-			this.metadataTileDescriptors = ByteArray(result.metadataTileDescriptors);
-			this.geometryTileDescriptors = ByteArray(result.geometryTileDescriptors);
-		}
-		
 		public var id:int;
 		public var metadata:Object;
 		public var metadataTileDescriptors:ByteArray;

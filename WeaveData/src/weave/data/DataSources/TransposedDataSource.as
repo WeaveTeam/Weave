@@ -24,7 +24,6 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -37,10 +36,8 @@ package weave.data.DataSources
 	import weave.core.LinkableHashMap;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
-	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.utils.ColumnUtils;
-	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
 	public class TransposedDataSource extends AbstractDataSource
@@ -173,29 +170,16 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * This function must be implemented by classes by extend AbstractDataSource.
-		 * This function should make a request to the source to fill in the proxy column.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
-		 * @param A ProxyColumn object that will be updated when the column data is ready.
+		 * @inheritDoc
 		 */
-		override protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var hierarchyRef:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-			if (!hierarchyRef)
-				return handleUnsupportedColumnReference(columnReference, proxyColumn);
-
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			//delete leafNode.@title;
-			proxyColumn.setMetadata(leafNode);
-
 			var recordKey:String = proxyColumn.getMetadata(RECORD_KEY);
 			var propertyName:String = proxyColumn.getMetadata(PROPERTY_NAME);
-			
 			if (recordKey)
 			{
-				var csv:Array = WeaveAPI.CSVParser.parseCSV(recordKey);
-				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(csv[0][0], csv[0][1]);
+				var csv:Array = WeaveAPI.CSVParser.parseCSVRow(recordKey);
+				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(csv[0], csv[1]);
 				proxyColumn.setInternalColumn(new TransposedRecord(this, internalData, key, null));
 			}
 			else if (propertyName)

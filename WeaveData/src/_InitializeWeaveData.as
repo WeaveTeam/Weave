@@ -54,11 +54,9 @@ package
 			"weave.data.AttributeColumns",
 			"weave.data.BinClassifiers",
 			"weave.data.BinningDefinitions",
-			"weave.data.ColumnReferences",
 			"weave.data.DataSources",
 			"weave.data.KeySets",
 			"weave.primitives",
-			"weave.Reports",
 			"weave.services.wms"
 		);
 	}

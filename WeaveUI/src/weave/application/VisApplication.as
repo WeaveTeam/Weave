@@ -77,15 +77,12 @@ package weave.application
 	import weave.api.ui.IVisTool;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.compiler.StandardLib;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.editors.managers.DataSourceManager;
-	import weave.primitives.AttributeHierarchy;
-	import weave.services.DelayedAsyncInvocation;
 	import weave.services.InfoMapAdminInterface;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
@@ -845,7 +842,7 @@ package weave.application
 							function ():void {
 								var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
 								for each (var source:IDataSource in sources)
-									(source.attributeHierarchy as AttributeHierarchy).value = null;
+									source.refreshHierarchy();
 							}
 						)
 					);
@@ -1330,9 +1327,9 @@ package weave.application
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 			
 			if (Weave.properties.enableTileAllWindows.value)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Tile all windows"), tileWindows));
+				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Tile all windows"), DraggablePanel.tileWindows));
 			if (Weave.properties.enableCascadeAllWindows.value)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Cascade all windows"), cascadeWindows));
+				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Cascade all windows"), DraggablePanel.cascadeWindows));
 			
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 
@@ -1431,100 +1428,6 @@ package weave.application
 			return newToolMenuItem;
 		}
 
-		/**
-		 * This function arranges all DraggablePanels along a diagonal
-		 * 
-		 * @author kmanohar
-		 */
-		private function cascadeWindows():void
-		{
-			var panels:Array = getWindowsOnStage();
-			if (!panels.length)
-				return;
-			
-			var increment:Number = 50/panels.length;
-			var dist:Number = 0 ;
-			
-			for each (var dp:DraggablePanel in panels)
-			{				
-				dp.panelX.value = dp.panelY.value = dist.toString()+"%";			
-				dp.panelHeight.value = dp.panelWidth.value = "50%" ;	
-				
-				dist += increment;
-			}
-		}
-		
-		/**
-		 * This function tiles all the DraggablePanels on stage
-		 * 
-		 * @TODO create a ui for this so the user can specify how to divide the stage
-		 * 
-		 * @author kmanohar
-		 */		
-		private function tileWindows():void
-		{
-			var panels:Array = getWindowsOnStage();
- 			var numPanels:uint = panels.length;
-			if (!numPanels)
-				return;
-			
-			var gridLength:Number = Math.ceil(Math.sqrt(numPanels));
-			
-			var rows:uint = gridLength; 
-			var columns:uint = gridLength;
-			
-			if (gridLength*gridLength != numPanels)
-			{	
-				rows = Math.round(Math.sqrt(numPanels));
-				columns = gridLength;
-			}			
-						
-			var xPos:Number = 0;
-			var yPos:Number = 0 ;
-			var width:Number = 100/((stage.stageWidth > stage.stageHeight) ? rows : columns);
-			var height:Number = 100/((stage.stageWidth > stage.stageHeight) ? columns : rows);
-			
-			var i:int = 0;
-			for each (var dp:DraggablePanel in panels)
-			{				
-				dp.panelX.value = xPos.toString() + "%";
-				dp.panelY.value = yPos.toString() + "%";
-				
-				dp.panelHeight.value = height.toString() + "%";
-				dp.panelWidth.value = width.toString() + "%";
-				if (i == (panels.length - 1))
-				{
-					// expand to fill the width of stage
-					dp.panelWidth.value = (100-xPos).toString() + "%";
-				}
-				
-				xPos += width;
-				if (xPos >= 100)
-					xPos = 0;
-				if (!xPos)
-					yPos += height ;
-				i++;
-			}
-		}
-		
-		/**
-		 * @return an Array containing all DraggablePanels on stage that are not minimized
-		 *
- 		 * @author kmanohar
-		 */		
-		private function getWindowsOnStage():Array
-		{
-			var panels:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
-			var panelsOnStage:Array = [];
-			
-			for each (var panel:DraggablePanel in panels)
-			{
-				if (!panel.minimized.value) 
-					panelsOnStage.push(panel);
-			}
-			return panelsOnStage;
-		}
-		
 		private var _printToolMenuItem:ContextMenuItem = null;
 		
 		/**

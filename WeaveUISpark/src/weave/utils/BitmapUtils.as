@@ -29,11 +29,8 @@ package weave.utils
 	
 	import mx.core.UIComponent;
 	import mx.graphics.ImageSnapshot;
-	import mx.graphics.codec.JPEGEncoder;
 	import mx.graphics.codec.PNGEncoder;
 	import mx.utils.Base64Encoder;
-	
-	import weave.api.copySessionState;
 	
 	/**
 	 * BitmapUtils

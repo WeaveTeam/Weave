@@ -15,15 +15,13 @@
 
 package weave.api.data
 {
-	import weave.api.core.ILinkableObject;
-
 	/**
 	 * A column reference contains all the information required to retrieve a column of data.
 	 * This interface requires a function to get a hash value for the column reference that can be used to tell if two references are equal.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IColumnReference extends ILinkableObject
+	public interface IColumnReference
 	{
 		/**
 		 * This function returns the IDataSource that knows how to get the column this object refers to.
@@ -32,17 +30,11 @@ package weave.api.data
 		function getDataSource():IDataSource;
 		
 		/**
-		 * This function gets a hash code that can be used to compare two IColumnReference objects for equality.
-		 * @return The hash code for comparing two IColumnReferences.
-		 */
-		function getHashCode():String;
-		
-		/**
 		 * This function gets metadata associated with the column.
+		 * Make sure to test for a null return value.
 		 * For standard metadata property names, refer to the ColumnMetadata class.
-		 * @param propertyName The name of the metadata property to retrieve.
-		 * @result The value of the specified metadata property.
+		 * @return An Object mapping metadata property names to values, or null if there is no column referenced.
 		 */
-		function getMetadata(propertyName:String):String;
+		function getColumnMetadata():Object;
 	}
 }

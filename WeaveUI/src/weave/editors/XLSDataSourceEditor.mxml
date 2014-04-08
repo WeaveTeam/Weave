@@ -25,7 +25,7 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
-	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
+	implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_xlsDataSource ? 'Edit' : 'Add') + ' XLS Data Source' )}"/>
 	<ui:Indent label="{lang('Source Name *')}">
@@ -66,18 +66,19 @@
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
 			import weave.api.reportError;
 			import weave.compiler.StandardLib;
+			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.XLSDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				sourceName.text = Weave.root.generateUniqueName("XLSDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("XLSDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
@@ -94,7 +95,7 @@
 				
 				if (_xlsDataSource)
 				{
-					sourceName.text = Weave.root.getName(_xlsDataSource);
+					sourceName.text = WeaveAPI.globalHashMap.getName(_xlsDataSource);
 					url.text = _xlsDataSource.url.value;
 					keyColumnName.text = _xlsDataSource.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(_xlsDataSource.keyType.value);
@@ -117,6 +118,44 @@
 				_xlsDataSource.url.value = url.text;
 				_xlsDataSource.keyColName.value = keyColumnName.text;
 				_xlsDataSource.keyType.value = keyTypeSelector.selectedKeyType;
+			}
+			
+			public function createDataSource():IDataSource
+			{
+				if (!sourceName.text || (!url.text && !xlsFile))
+				{
+					Alert.show(lang("Please fill all required fields"), lang("Error"));
+					return null;
+				}
+				if (WeaveAPI.globalHashMap.getObject(sourceName.text))
+				{
+					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+					return null;
+				}
+				//if an XLS file has been loaded we create and add it to a CSVDataSource
+				if (xlsFile)
+				{
+					var csvSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, CSVDataSource, false);
+					if (!csvSource)
+					{
+						Alert.show(lang("Unexpected problem. Unable to add the data source."));
+						return null;
+					}
+					csvSource.url.value = url.text;
+					csvSource.setCSVDataString(WeaveAPI.CSVParser.createCSV(xlsDataArray));
+					csvSource.keyColName.value = keyColumnName.text;
+					csvSource.keyType.value = keyTypeSelector.selectedKeyType;
+					return csvSource;
+				}
+				
+				_xlsDataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, XLSDataSource, false);
+				if (!_xlsDataSource)
+				{
+					Alert.show(lang("Unexpected problem. Unable to add the data source."));
+					return null;
+				}
+				applyChanges();
+				return _xlsDataSource;
 			}
 			
 			

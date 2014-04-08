@@ -21,6 +21,7 @@ package weave.config;
 
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,14 +30,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
-import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataType;
+import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.tables.MetadataTable;
 import weave.utils.ListUtils;
 import weave.utils.ProgressManager;
+import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLUtils;
+import weave.utils.Strings;
 
 /**
  * This class is responsible for migrating from the old SQL config format to a DataConfig object.
@@ -167,9 +171,9 @@ import weave.utils.SQLUtils;
 				geomRecord.put(PrivateMetadata.SQLTABLEPREFIX, geomRecord.remove(PrivateMetadata_TABLEPREFIX));
 				
 				// create an entity for the geometry column
-				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
+				DataEntityMetadata geomMetadata = toColumnMetadata(geomRecord);
 				int tableId = getTableId(name);
-				dataConfig.newEntity(DataEntity.TYPE_COLUMN, geomMetadata, tableId, order++);
+				dataConfig.newEntity(geomMetadata, tableId, order++);
 				
 				progress.tick();
 				autoFlush();
@@ -189,15 +193,15 @@ import weave.utils.SQLUtils;
 				// if key type isn't specified but geometryCollection is, use the keyType of the geometry collection.
 				String keyType = columnRecord.get(PublicMetadata.KEYTYPE);
 				String geom = columnRecord.get(PublicMetadata_GEOMETRYCOLLECTION);
-				if (isEmpty(keyType) && !isEmpty(geom))
+				if (Strings.isEmpty(keyType) && !Strings.isEmpty(geom))
 					columnRecord.put(PublicMetadata.KEYTYPE, geomKeyTypeLookup.get(geom));
 				
 				// make sure title is set
-				if (isEmpty(columnRecord.get(PublicMetadata.TITLE)))
+				if (Strings.isEmpty(columnRecord.get(PublicMetadata.TITLE)))
 				{
 					String name = columnRecord.get(PublicMetadata_NAME);
 					String year = columnRecord.get(PublicMetadata_YEAR);
-					String title = isEmpty(year) ? name : String.format("%s (%s)", name, year);
+					String title = Strings.isEmpty(year) ? name : String.format("%s (%s)", name, year);
 					columnRecord.put(PublicMetadata.TITLE, title);
 				}
 				
@@ -209,9 +213,9 @@ import weave.utils.SQLUtils;
                 }
 				
                 // create the column entity as a child of the table
-                DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
+                DataEntityMetadata columnMetadata = toColumnMetadata(columnRecord);
                 int tableId = getTableId(dataTableName);
-				dataConfig.newEntity(DataEntity.TYPE_COLUMN, columnMetadata, tableId, order++);
+				dataConfig.newEntity(columnMetadata, tableId, order++);
 				progress.tick();
 				autoFlush();
 			}
@@ -267,24 +271,22 @@ import weave.utils.SQLUtils;
 			// lazily create table metadata
 			DataEntityMetadata metadata = tableMetadataLookup.get(tableName);
 			if (metadata == null)
+			{
 				metadata = new DataEntityMetadata();
+				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.TABLE);
+			}
 			
 			// copy tableName to "title" property if missing
 			if (metadata.publicMetadata.get(PublicMetadata.TITLE) == null) // use get() instead of containsKey() because value may be null
 				metadata.publicMetadata.put(PublicMetadata.TITLE, tableName);
 			
 			// create the data table entity and remember the new id
-			tableId = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, metadata, DataConfig.NULL, DataConfig.NULL);
+			tableId = dataConfig.newEntity(metadata, DataConfig.NULL, DataConfig.NULL);
 			tableIdLookup.put(tableName, tableId);
 		}
 		
 		progress.resume();
 		return tableId;
-	}
-	
-	private static boolean isEmpty(String str)
-	{
-		return str == null || str.length() == 0;
 	}
 	
 	private static Map<String,String> getRecord(ResultSet rs, String[] columnNames) throws SQLException
@@ -295,19 +297,20 @@ import weave.utils.SQLUtils;
 		return record;
 	}
 	
-	private static DataEntityMetadata toDataEntityMetadata(Map<String,String> record)
+	private static DataEntityMetadata toColumnMetadata(Map<String,String> record)
 	{
 		DataEntityMetadata result = new DataEntityMetadata();
 		for (String field : record.keySet())
 		{
 			String value = record.get(field);
-			if (isEmpty(value))
+			if (Strings.isEmpty(value))
 				continue;
 			if (fieldIsPrivate(field))
 				result.privateMetadata.put(field, value);
 			else
 				result.publicMetadata.put(field, value);
 		}
+		result.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 		return result;
 	}
 
@@ -335,5 +338,72 @@ import weave.utils.SQLUtils;
 				PrivateMetadata_IMPORTNOTES
 		};
 		return ListUtils.findString(propertyName, names) >= 0;
+	}
+	
+	/**
+	 * This will migrate entityType values from the deprecated manifest table to the public metadata table
+	 * if there is no existing entityType values in the public metadata table.
+	 * @param conn
+	 * @param schema
+	 * @param publicMetadataTable
+	 * @throws SQLException
+	 */
+	public static void migrateManifestData(Connection conn, String schema, String publicMetadataTable) throws SQLException
+	{
+		String query = null;
+		CallableStatement cstmt = null;
+		try
+		{
+			final String MANIFEST_TABLE = "weave_manifest";
+			final String MANIFEST_ID = "entity_id";
+			final String MANIFEST_TYPE = "type_id";
+			
+			if (!SQLUtils.tableExists(conn, schema, MANIFEST_TABLE))
+				return;
+			
+			String q_publicMetadataTable = SQLUtils.quoteSchemaTable(conn, schema, publicMetadataTable);
+			String q_idField = SQLUtils.quoteSymbol(conn, MetadataTable.FIELD_ID);
+			String q_nameField = SQLUtils.quoteSymbol(conn, MetadataTable.FIELD_NAME);
+			String q_valueField = SQLUtils.quoteSymbol(conn, MetadataTable.FIELD_VALUE);
+			
+			// if there is any existing entityType metadata, don't migrate
+			query = String.format(
+				"select count(*) from %s where %s=?",
+				q_publicMetadataTable,
+				q_nameField
+			);
+			if (SQLUtils.getSingleIntFromQuery(conn, query, new Object[]{PublicMetadata.ENTITYTYPE}, 0) > 0)
+				return;
+			
+			String q_manifestTable = SQLUtils.quoteSchemaTable(conn, schema, MANIFEST_TABLE);
+			String q_manifestIdField = SQLUtils.quoteSymbol(conn, MANIFEST_ID);
+			String q_manifestTypeField = SQLUtils.quoteSymbol(conn, MANIFEST_TYPE);
+			
+			query = String.format(
+				"insert into %s (%s,%s,%s) (select %s,?,? from %s where %s=?)",
+				q_publicMetadataTable, q_idField, q_nameField, q_valueField,
+				q_manifestIdField, q_manifestTable, q_manifestTypeField
+			);
+			
+			cstmt = conn.prepareCall(query);
+			// 0=table,1=column,2=hierarchy,3=category
+			String[] types = {EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY};
+			int count = 0;
+			for (int typeId = 0; typeId < types.length; typeId++)
+			{
+				SQLUtils.setPreparedStatementParams(cstmt, new Object[]{PublicMetadata.ENTITYTYPE, types[typeId], typeId});
+				count += cstmt.executeUpdate();
+			}
+			if (count > 0)
+				System.out.println(String.format("Migrated %s type entries from %s to %s", count, MANIFEST_TABLE, publicMetadataTable));
+		}
+		catch (SQLException cause)
+		{
+			throw new SQLExceptionWithQuery(query, cause);
+		}
+		finally
+		{
+			SQLUtils.cleanup(cstmt);
+		}
 	}
 }

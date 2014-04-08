@@ -20,7 +20,6 @@
 package weave.core
 {
 	import flash.external.ExternalInterface;
-	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -147,9 +146,13 @@ package weave.core
 			if (!objectPath || !objectPath.length)
 				return false;
 			
-			var classDef:Class = WeaveXMLDecoder.getClassDefinition(objectType);
+			var classQName:String = WeaveXMLDecoder.getClassName(objectType);
+			var classDef:Class = ClassUtils.getClassDefinition(classQName);
 			if (classDef == null)
 				return false;
+			
+			if (ClassUtils.isClassDeprecated(classQName))
+				WeaveAPI.externalTrace("Warning: " + objectType + " is deprecated.");
 			
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();

@@ -100,13 +100,15 @@
 			</ui:Indent>
 			<ui:IndentTextInput label="{lang('Password')}" id="migratePasswordInput" displayAsPassword="true"/>
 			<ui:IndentTextInput label="{lang('Schema to use')}" id="migrateSchemaInput" text="{Admin.instance.databaseConfigInfo.schema}"/>
-			<ui:Paragraph trim="false" text="{lang('The following tables will be created in the schema specified above:\n    weave_manifest, weave_hierarchy, weave_meta_private, weave_meta_public\nIf they already exist, no changes will be made.')}"/>
+			<ui:Paragraph trim="false"
+						  text="{lang('The following tables will be created in the schema specified above:\n    weave_hierarchy, weave_meta_private, weave_meta_public\nIf they already exist, no changes will be made.')}"/>
 			<mx:Button id="migrateButton" label="{lang('Store Weave configuration at this location')}" click="saveDatabaseConfigInfo()" />
 		</mx:VBox>
 	</mx:Canvas>
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.services.beans.ConnectionInfo;
 			import mx.rpc.AsyncToken;
 			import mx.binding.utils.BindingUtils;
 			import mx.rpc.events.ResultEvent;
@@ -206,7 +208,7 @@
 					if (treeWithSearch.tree.selectedItem.label != name)
 						return;
 					clearConnectionFields(false);
-					var info:ConnectionInfo = new ConnectionInfo(event.result);
+					var info:ConnectionInfo = ConnectionInfo(event.result) || new ConnectionInfo();
 					connectionNameInput.text = info.name;
 					connectionPasswordInput.text = info.pass;
 					superuserCheckbox.selected = info.is_superuser;
@@ -229,6 +231,8 @@
 			
 			protected function clearConnectionFields(resetConnectString:Boolean):void
 			{
+				if (resetConnectString)
+					treeWithSearch.tree.selectedItem = null;
 				connectionNameInput.text = "";
 				connectionPasswordInput.text = "";
 				folderNameInput.text = "";
@@ -242,7 +246,7 @@
 			
 			private function saveConnectionInfo():void
 			{
-				var info:ConnectionInfo = new ConnectionInfo(null);
+				var info:ConnectionInfo = new ConnectionInfo();
 				info.name = connectionNameInput.text;
 				info.pass = connectionPasswordInput.text;
 				info.is_superuser = superuserCheckbox.selected;

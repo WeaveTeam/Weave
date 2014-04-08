@@ -54,6 +54,7 @@ package weave
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -65,7 +66,6 @@ package weave
 	import weave.visualization.layers.LinkableEventListener;
 	import weave.visualization.layers.filters.LinkableDropShadowFilter;
 	import weave.visualization.layers.filters.LinkableGlowFilter;
-
 
 	/**
 	 * A list of global settings for a Weave instance.
@@ -100,6 +100,7 @@ package weave
 				}
 			);
 
+			_toggleToolsMenuItem("TreeTool", false);
 			_toggleToolsMenuItem("CytoscapeWebTool", false);
 			_toggleToolsMenuItem("GraphTool", false);
 			_toggleToolsMenuItem("CustomGraphicsTool", false);
@@ -261,7 +262,6 @@ package weave
 		public const showVisToolCloseDialog:LinkableBoolean = new LinkableBoolean(false);
 		
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
-		public const showAddAllButton:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyNonNegativeNumber); // maximum number of records shown in the probe toolTips
 		public const showSelectedRecordsText:LinkableBoolean = new LinkableBoolean(true); // show the tooltip in the lower-right corner of the application
@@ -493,7 +493,7 @@ package weave
 		/**
 		 * @see weave.core.LinkableFunction#macroLibraries
 		 */
-		public function get macroLibraries():LinkableString { return LinkableFunction.macroLibraries; }
+		public function get macroLibraries():LinkableVariable { return LinkableFunction.macroLibraries; }
 		/**
 		 * @see weave.core.LinkableFunction#includeMacroLibrary
 		 */

@@ -74,7 +74,7 @@ package weave.services
 		// NEED TO INSTALL (fpc) PACKAGE FROM R 
 		
 		// async result will be of type DensityBasedClusteringResult
-		/*public function DensityBasedClustering(dataX:Array, dataY:Array):DelayedAsyncInvocation
+		/*public function DensityBasedClustering(dataX:Array, dataY:Array):AsyncToken
 		{
 			return servlet.invokeAsyncMethod("densityBasedClustering", arguments);
 		}*/		

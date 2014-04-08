@@ -204,7 +204,16 @@ package weave.core
 		/**
 		 * This is a list of libraries to include in the static compiler for macros.
 		 */
-		public static const macroLibraries:LinkableString = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableString(getQualifiedClassName(WeaveAPI)));
+		public static const macroLibraries:LinkableVariable = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableVariable(null, verifyLibraries, [getQualifiedClassName(WeaveAPI)]));
+
+		private static function verifyLibraries(state:Object):Boolean
+		{
+			// hack to convert old session state String
+			if (state is String)
+				macroLibraries.setSessionState(WeaveAPI.CSVParser.parseCSVRow(state as String));
+			
+			return StandardLib.getArrayType(state as Array) == String;
+		}
 		
 		/**
 		 * This function will add a library to the static list of macro libraries if it is not already added.
@@ -212,12 +221,12 @@ package weave.core
 		 */
 		public static function includeMacroLibrary(libraryQName:String):void
 		{
-			var rows:Array = WeaveAPI.CSVParser.parseCSV(macroLibraries.value);
-			for each (var row:Array in rows)
-				if (row.indexOf(libraryQName) >= 0)
-					return;
-			rows.push([libraryQName]);
-			macroLibraries.value = WeaveAPI.CSVParser.createCSV(rows);
+			var array:Array = macroLibraries.getSessionState() as Array || [];
+			if (array.indexOf(libraryQName) < 0)
+			{
+				array.push(libraryQName);
+				macroLibraries.setSessionState(array);
+			}
 		}
 		
 		/**
@@ -234,17 +243,14 @@ package weave.core
 		private static function _getNewCompiler(reportErrors:Boolean):Compiler
 		{
 			var compiler:Compiler = new Compiler();
-			for each (var row:Array in WeaveAPI.CSVParser.parseCSV(macroLibraries.value))
+			try
 			{
-				try
-				{
-					compiler.includeLibraries.apply(null, row);
-				}
-				catch (e:Error)
-				{
-					if (reportErrors)
-						reportError(e);
-				}
+				compiler.includeLibraries.apply(null, macroLibraries.getSessionState() as Array);
+			}
+			catch (e:Error)
+			{
+				if (reportErrors)
+					reportError(e);
 			}
 			return compiler;
 		}
