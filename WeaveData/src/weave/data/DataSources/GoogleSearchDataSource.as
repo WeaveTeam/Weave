@@ -30,7 +30,7 @@ package weave.data.DataSources
 		}
 		
 		private function getKeyValueForColumn(csvColumnName:String, key:IQualifiedKey):* {
-			var col:IAttributeColumn = getColumnByName(csvColumnName);
+			var col:IAttributeColumn = getColumnById(csvColumnName);
 			
 			return col.getValueFromKey(key);
 		}
@@ -44,7 +44,7 @@ package weave.data.DataSources
 		}
 		
 		private function getColumnValueForURL(csvColumnName:String, url:String):* {
-			var col:IAttributeColumn = getColumnByName(csvColumnName);
+			var col:IAttributeColumn = getColumnById(csvColumnName);
 			var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(DOC_KEYTYPE, url);
 			
 			return col.getValueFromKey(key);

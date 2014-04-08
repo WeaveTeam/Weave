@@ -2,21 +2,14 @@ package weave.services
 {
 		import flash.net.FileReference;
 		import flash.utils.ByteArray;
-		import flash.utils.Dictionary;
 		import flash.utils.getDefinitionByName;
 		
 		import mx.rpc.AsyncToken;
-		import mx.rpc.Fault;
 		import mx.rpc.events.FaultEvent;
 		import mx.rpc.events.ResultEvent;
 		import mx.utils.StringUtil;
 		
-		import weave.api.objectWasDisposed;
-		import weave.api.services.IAsyncService;
 		import weave.core.CallbackCollection;
-		import weave.services.AMF3Servlet;
-		import weave.services.AsyncInvocationQueue;
-		import weave.services.DelayedAsyncInvocation;
 		
 		public class InfoMapAdminInterface
 		{
@@ -57,9 +50,9 @@ package weave.services
 			private var queue:AsyncInvocationQueue;
 			private var service:AMF3Servlet;
 			
-			private function generateQueryAndAddToQueue(methodName:String, parameters:Array):DelayedAsyncInvocation
+			private function generateQueryAndAddToQueue(methodName:String, parameters:Array):ProxyAsyncToken
 			{
-				var query:DelayedAsyncInvocation = new DelayedAsyncInvocation(service, methodName, parameters);
+				var query:ProxyAsyncToken = new ProxyAsyncToken(service.invokeAsyncMethod, [methodName, parameters]);
 				// we want to use a queue so the admin functions will execute in the correct order.
 				queue.addToQueue(query);
 				// automatically display FaultEvent error messages as alert boxes
@@ -78,16 +71,17 @@ package weave.services
 				messageDisplay(null,String(event.result),false);
 			}
 			// this function displays an error message from a FaultEvent in an Alert box.
-			private function alertFault(event:FaultEvent, token:Object = null):void
+			private function alertFault(event:FaultEvent, query:ProxyAsyncToken):void
 			{
-				var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
+				var method:String = query._params[0];
+				var params:Array = query._params[1];
 				
 				var paramDebugStr:String = '';
-				if (query.parameters.length > 0)
-					paramDebugStr = '"' + query.parameters.join('", "') + '"';
+				if (params.length > 0)
+					paramDebugStr = '"' + params.join('", "') + '"';
 				trace(StringUtil.substitute(
 					"Received error on {0}({1}):\n\t{2}",
-					query.methodName,
+					method,
 					paramDebugStr,
 					event.fault.faultString
 				));
@@ -158,9 +152,9 @@ package weave.services
 				}
 			}
 			
-			public function searchInDocuments(entities:Array, docs:Array):DelayedAsyncInvocation
+			public function searchInDocuments(entities:Array, docs:Array):ProxyAsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("searchInDocuments",[entities,docs]);
+				var query:ProxyAsyncToken = generateQueryAndAddToQueue("searchInDocuments",[entities,docs]);
 				return query;
 			}
 			

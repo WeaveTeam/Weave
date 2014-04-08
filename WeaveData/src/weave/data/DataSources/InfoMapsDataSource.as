@@ -1,44 +1,23 @@
 package weave.data.DataSources
 {
-	import com.as3xls.xls.formula.Tokens;
-	
-	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.net.URLLoader;
-	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.utils.Timer;
 	
-	import mx.graphics.SolidColor;
-	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
-	import mx.rpc.IResponder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
-	
-	import org.igniterealtime.xiff.events.BookmarkChangedEvent;
 	
 	import weave.*;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IAttributeHierarchy;
-	import weave.api.data.IColumnReference;
-	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.api.services.IURLRequestToken;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
 	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.DateRangeFilter;
-	import weave.services.DelayedAsyncInvocation;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.InfoMapAdminInterface;
-	import weave.services.addAsyncResponder;
 	import weave.utils.DateUtils;
 	import weave.utils.VectorUtils;
 
@@ -76,7 +55,7 @@ package weave.data.DataSources
 		
 		private function getKeyValueForColumn(csvColumnName:String,key:IQualifiedKey):*
 		{
-			var col:IAttributeColumn = getColumnByName(csvColumnName);
+			var col:IAttributeColumn = getColumnById(csvColumnName);
 			
 			return col.getValueFromKey(key);
 		}
@@ -109,7 +88,7 @@ package weave.data.DataSources
 		
 		private function getColumnValueForURL(csvColumnName:String,url:String):*
 		{
-			var col:IAttributeColumn = getColumnByName(csvColumnName);
+			var col:IAttributeColumn = getColumnById(csvColumnName);
 			
 			var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(DOC_KEYTYPE,url);
 			
@@ -361,7 +340,7 @@ package weave.data.DataSources
 			var docsToAdd:Array = [];
 			var keys:Array = [];
 			
-			var urlCol:IAttributeColumn =getColumnByName('url'); 
+			var urlCol:IAttributeColumn = getColumnById('url'); 
 			
 			for (var i:int = 0; i < docsArray.length; i++)
 			{

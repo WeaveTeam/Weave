@@ -42,38 +42,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Style>
 	<mx:Script>
 		<![CDATA[
-			import com.as3xls.cdf.Directory;
 			import com.cartogrammar.drawing.DashedLine;
 			
-			import mx.binding.utils.BindingUtils;
-			import mx.collections.ArrayCollection;
-			import mx.collections.Sort;
-			import mx.collections.SortField;
 			import mx.controls.Alert;
-			import mx.controls.Image;
 			import mx.controls.List;
-			import mx.controls.Text;
 			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.core.Application;
 			import mx.core.IFlexDisplayObject;
-			import mx.core.IUIComponent;
-			import mx.core.UIComponent;
-			import mx.core.UITextField;
-			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
-			import mx.events.CollectionEvent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
-			import mx.rpc.IResponder;
-			import mx.rpc.Responder;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.Base64Encoder;
-			import mx.utils.ObjectProxy;
 			import mx.utils.StringUtil;
-			import mx.utils.XMLUtil;
 			
 			import spark.components.Label;
 			
@@ -84,59 +67,43 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.data.IColumnReference;
 			import weave.api.data.IDataSource;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableDescendants;
 			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.unlinkBindableProperty;
+			import weave.api.services.IWeaveEntityService;
+			import weave.api.services.beans.Entity;
 			import weave.compiler.StandardLib;
-			import weave.core.ErrorManager;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.core.StageUtils;
 			import weave.core.UIUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.GoogleSearchDataSource;
 			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
-			import weave.data.QKeyManager;
 			import weave.primitives.ColorRamp;
 			import weave.primitives.DateRangeFilter;
-			import weave.services.DelayedAsyncInvocation;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.InfoMapAdminInterface;
 			import weave.services.WeaveDataServlet;
 			import weave.services.addAsyncResponder;
-			import weave.services.jquery.JQueryCaller;
-			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.CustomContextMenuManager;
-			import weave.ui.SubMenu;
 			import weave.ui.infomap.InfoMapLoader;
-			import weave.ui.infomap.core.FilterableInfoMapNode;
-			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.QueryObject;
-			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.DateUtils;
 			import weave.utils.NumberUtils;
 			import weave.utils.PopUpUtils;
-			import weave.utils.ProbeTextUtils;
-			import weave.utils.WordProcessingUtils;
+			import weave.utils.VectorUtils;
 			
 			WeaveAPI.registerImplementation(IVisTool, InfoMapPanel, "InfoMaps Tool");
 			WeaveXMLDecoder.includePackages(InfoMapPanel);
@@ -420,7 +387,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _referencedColumns:Array = [];
 			private function extractEntityColumns():void
 			{
-				_checkedDataSources = null;
+				_tempEntityColumns.removeAllObjects();
+				
+				// Get all the referenced Columns
+				_referencedColumns = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root,ReferencedColumn);
+				
+				if (!_referencedColumns.length)
+					return;
+				
 				_checkedDataSources = new Dictionary();
 				_loadingText = new InfoMapsProgressBar();
 				
@@ -428,73 +402,96 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_loadingText.label= "Selecting Entity Columns";
 				
-				_tempEntityColumns.removeAllObjects();
-				/* Get all the referenced Columns*/
-				_referencedColumns = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root,ReferencedColumn);
-				if(_referencedColumns.length == 0)
-					handleEmptyEntityExtraction();
+				_itemCount = 0;
+				_totalItems = 0;
 				/* Iterate through each referenced column and get its parent */
 				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_3_PARSING);
 			}
 			
+			private var _itemCount:int = 0;
+			private var _totalItems:int = 0;
 			private var _checkedDataSources:Dictionary = null;
 			private function _iterateReferencedColumns():Number
 			{
 				if(_referencedColumns.length == 0)
 					return 1;
-				_parentCount= 0;
-				_totalParents= 0;
 				
 				var col:ReferencedColumn = _referencedColumns.pop() as ReferencedColumn;
-				if(col.dynamicColumnReference.internalObject is IColumnReference)
+				var dataSource:IDataSource = col.getDataSource();
+				
+				// get siblings of the column
+				if (dataSource is WeaveDataSource)
 				{
-					var colRef:IColumnReference = col.dynamicColumnReference.internalObject as IColumnReference;
-					var dataSource:IDataSource = colRef.getDataSource();
-					
-					/* If it is a Weave Data Sourcfe get parents from Weave Data Server*/
-					if(dataSource is WeaveDataSource)
-					{
-						var colID:String = col.getMetadata('weaveEntityId');
-						var dataService:WeaveDataServlet = new WeaveDataServlet((dataSource as WeaveDataSource).url.value);
-						var token:AsyncToken = dataService.getParents(NumberUtils.getNumberFromNumberOrPercent(colID,0));
-						var sourceName:String  = Weave.root.getName(dataSource);
-						addAsyncResponder(token,handleGetParents,handleGetParentsFault,sourceName);
-					}
-					else if(dataSource is CSVDataSource)
-					{
-						if(!_checkedDataSources[dataSource])
-						{
-							_checkedDataSources[dataSource] = true;
-							var columnNames:Array = (dataSource as CSVDataSource).getColumnIds();
-							if(columnNames.length == 0)
-							{
-								handleEmptyEntityExtraction();
-							}
-							else
-							{
-								for each(var colname:* in columnNames)
+					_totalItems++;
+					var service:IWeaveEntityService = (dataSource as WeaveDataSource).entityCache.getService();
+					var colID:int = StandardLib.asNumber(col.getMetadata('weaveEntityId'));
+					addAsyncResponder(service.getEntities([colID]), function(event:ResultEvent, _:*):void {
+						var columnEntities:Array = event.result as Array;
+						var parentIds:Array = VectorUtils.flatten(columnEntities.map(function(entity:Entity, ..._):*{ return entity.parentIds; }));
+						addAsyncResponder(service.getEntities(parentIds), function(event:ResultEvent, _:*):void {
+							var parentEntities:Array = event.result as Array;
+							var siblingIds:Array = VectorUtils.flatten(parentEntities.map(function(entity:Entity, ..._):*{ return entity.childIds; }));
+							addAsyncResponder(service.getEntities(siblingIds), function(event:ResultEvent, _:*):void {
+								_itemCount++;
+								var siblingEntities:Array = event.result as Array;
+								for each (var entity:Entity in siblingEntities)
 								{
-									var attrCol:IAttributeColumn = (dataSource as CSVDataSource).getColumnById(colname);
-									var attrColKeys:Array = attrCol.keys;
-									var minTest:Number = Math.min(attrColKeys.length,3);
-									var isEntityColumn:Boolean = false;
-									for(var count:int = 0; count<minTest; count++)
+									if (entity.publicMetadata.dataType == 'string')
 									{
-										var check:Boolean = testForValidEntity(attrCol.getValueFromKey(attrColKeys[count]));
-										isEntityColumn = isEntityColumn || check;
+										var objName:String = "";
+										if (entity.publicMetadata.name)
+											objName = entity.publicMetadata.name;
+										else if (entity.publicMetadata.title)
+											objName = entity.publicMetadata.title;
+										objName += "-" + entity.id;
+										if (!_tempEntityColumns.getObject(objName))
+										{
+											var col:ReferencedColumn = _tempEntityColumns.requestObject(objName, ReferencedColumn, false);
+											col.setColumnReference(dataSource, entity.id);
+										}
 									}
-									if(isEntityColumn)
+									if (entity.publicMetadata.dataType != null && entity.publicMetadata.dataType != 'geometry')
 									{
-										(dataSource as CSVDataSource).putColumnInHashMap(colname,_tempEntityColumns);
+										if (entity.publicMetadata.name)
+											_columnsText += " " + entity.publicMetadata.name;
+										else if (entity.publicMetadata.title)
+											_columnsText += " " + entity.publicMetadata.title;
 									}
 								}
+								finishEntitySelection();
+							}, handleWeaveDataServiceError);
+						}, handleWeaveDataServiceError);
+					}, handleWeaveDataServiceError);
+				}
+				else if (dataSource is CSVDataSource)
+				{
+					if(!_checkedDataSources[dataSource])
+					{
+						_checkedDataSources[dataSource] = true;
+						var columnNames:Array = (dataSource as CSVDataSource).getColumnIds();
+						for each (var colname:* in columnNames)
+						{
+							var attrCol:IAttributeColumn = (dataSource as CSVDataSource).getColumnById(colname);
+							var attrColKeys:Array = attrCol.keys;
+							var minTest:Number = Math.min(attrColKeys.length,3);
+							var isEntityColumn:Boolean = false;
+							for(var count:int = 0; count < minTest; count++)
+							{
+								var check:Boolean = testForValidEntity(attrCol.getValueFromKey(attrColKeys[count]));
+								isEntityColumn = isEntityColumn || check;
+							}
+							if(isEntityColumn)
+							{
+								(dataSource as CSVDataSource).putColumnInHashMap(colname,_tempEntityColumns);
 							}
 						}
-						finishEntitySelection();
 					}
 				}
-				if(_referencedColumns.length == 0)
+				if (_referencedColumns.length == 0)
+				{
+					finishEntitySelection();
 					return 1;
+				}
 				else 
 					return 0;
 			}
@@ -505,116 +502,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return regex.test(val);
 			}
 			
-			private var _parentCount:int = 0;
-			private var _totalParents:int = 0;
-			private var _refColsCount:int = 0;
-			private function handleGetParents(event:ResultEvent,token:Object=null):void
+			private function handleWeaveDataServiceError(event:FaultEvent, token:Object):void
 			{
-				var parents:Array = event.result as Array;
-				/* We use this count to keep track of when all the parents' children have been iterated */
-				_parentCount += parents.length;
-				_totalParents += _parentCount;
-				if(_parentCount ==0)
-				{
-					handleEmptyEntityExtraction();
-				}
-				for each (var parent:Number in parents)
-				{
-					var source:WeaveDataSource = Weave.root.getObject(token as String) as WeaveDataSource;
-					var servlet:WeaveDataServlet = new WeaveDataServlet(source.url.value);
-					var asyncToken:AsyncToken = servlet.getEntityChildIds(parent);
-					addAsyncResponder(asyncToken,handleGetChildIds,handleGetChildIdsFault,token);
-				}
+				reportError(event);
 			}
 			
-			private function handleGetParentsFault(event:FaultEvent,token:Object=null):void
-			{
-				reportError("Error getting parent ID");				
-			}
-			
-			private function handleEmptyEntityExtraction():void
-			{
-				if(contains(_loadingText))
-					removeChild(_loadingText);
-			}
-			
-			
-			private function handleGetChildIds(event:ResultEvent, token:Object = null):void
-			{
-				var cols:Array = (event.result as Array);
-				var source:WeaveDataSource = Weave.root.getObject(token as String) as WeaveDataSource;
-				var servlet:WeaveDataServlet = new WeaveDataServlet(source.url.value);
-				var asyncToken:AsyncToken = servlet.getEntitiesById(cols);
-				addAsyncResponder(asyncToken,handleGetChildEntities,handleGetChildEntitiesFault,token);
-			}
-			
-			private function handleGetChildIdsFault(event:FaultEvent,token:Object=null):void
-			{
-				reportError("Error getting Child IDs");
-			}
-			
-			private var _childEntities:Array = [];
 			private var _columnsText:String = "";
-			private var _tempEntityColumns:LinkableHashMap = newDisposableChild(this,LinkableHashMap);
-			private function handleGetChildEntities(event:ResultEvent,token:Object = null):void
-			{
-				_parentCount--;
-				_childEntities = event.result as Array;
-				WeaveAPI.StageUtils.startTask(this,function():Number{
-					if(_childEntities.length == 0)
-					{
-						return 1;					
-					}
-					var obj:Object = _childEntities.pop();
-					if(obj.publicMetadata.dataType == 'string')
-					{
-						var objName:String = "";
-						if(obj.publicMetadata.name)
-						{
-							objName = obj.publicMetadata.name;
-						}else if (obj.publicMetadata.title)
-						{
-							objName = obj.publicMetadata.title;
-						}
-						objName += "-" + obj.id;
-						if(_tempEntityColumns.getObject(objName) ==null)
-						{
-							var col:ReferencedColumn = _tempEntityColumns.requestObject(objName,ReferencedColumn,false);
-							col.delayCallbacks();
-							var attrCol:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference,false);
-							var attrNode:XML = <attribute weaveEntityId={obj.id}/>;
-							attrCol.hierarchyPath.value = attrNode;
-							attrCol.dataSourceName.value = token as String;
-							col.resumeCallbacks();
-						}
-					}
-					if(obj.publicMetadata.dataType != null && obj.publicMetadata.dataType != 'geometry')
-					{
-						if(obj.publicMetadata.name)
-						{
-							_columnsText += " " + obj.publicMetadata.name;
-						}else if (obj.publicMetadata.title)
-						{
-							_columnsText += " " +obj.publicMetadata.title;
-						}
-					}
-					
-					if(_childEntities.length == 0)
-					{
-						return 1;					
-					}
-					else
-					{
-						return 0;
-					}
-				},WeaveAPI.TASK_PRIORITY_3_PARSING,finishEntitySelection);
-			}
+			private const _tempEntityColumns:LinkableHashMap = newDisposableChild(this,LinkableHashMap);
 			
 			private var _entityColumnList:EntityColumnsList = null;
 			private function finishEntitySelection():void
 			{
 				/* If all the children for all the parent IDs have been iterated we are done with Entity Selection */
-				if(_parentCount<=0)
+				if (_itemCount >= _totalItems)
 				{
 					if(_entityColumnList == null)
 					{
@@ -629,8 +529,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_entityColumnList.finishButton.addEventListener(MouseEvent.CLICK,handleFinishButtonClick);
 					_entityColumnList.addEventListener(CloseEvent.CLOSE,handleClose);
 					PopUpManager.centerPopUp(_entityColumnList);
+					
+					if(contains(_loadingText))
+						removeChild(_loadingText);
 				}
-				_loadingText.setProgress(_totalParents-_parentCount,_totalParents);
+				else
+					_loadingText.setProgress(_itemCount, _totalItems);
 			}
 			
 			private function handleClose(event:CloseEvent):void

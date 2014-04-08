@@ -27,136 +27,79 @@
 	</mx:Sequence>
 	<mx:Script>
 		<![CDATA[
-			import flash.events.MouseEvent;
-			import flash.geom.Point;
-			import flash.net.URLRequest;
-			import flash.net.navigateToURL;
-			import flash.utils.Dictionary;
-			import flash.utils.getDefinitionByName;
-			
-			import mx.collections.ArrayCollection;
-			import mx.containers.TabNavigator;
 			import mx.controls.Alert;
 			import mx.controls.Image;
 			import mx.controls.Label;
 			import mx.controls.List;
-			import mx.controls.Text;
-			import mx.controls.TextArea;
 			import mx.core.Application;
-			import mx.core.IUIComponent;
 			import mx.core.UIComponent;
-			import mx.core.UITextField;
 			import mx.core.mx_internal;
-			import mx.effects.Effect;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.EffectEvent;
-			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.events.SandboxMouseEvent;
-			import mx.managers.CursorManager;
-			import mx.managers.CursorManagerPriority;
 			import mx.managers.DragManager;
-			import mx.managers.FocusManager;
 			import mx.managers.PopUpManager;
-			import mx.managers.PopUpManagerChildList;
 			import mx.rpc.AsyncToken;
-			import mx.rpc.Fault;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
-			
-			import org.igniterealtime.xiff.data.ping.PingExtension;
-			
-			import spark.accessibility.ToggleButtonAccImpl;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
-			import weave.api.linkableObjectIsBusy;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
-			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
-			import weave.core.SessionStateLog;
 			import weave.core.StageUtils;
-			import weave.core.UIUtils;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.KeyColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.CSVParser;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.GoogleSearchDataSource;
 			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
-			import weave.data.QKeyManager;
 			import weave.primitives.ColorRamp;
-			import weave.primitives.DateRangeFilter;
-			import weave.services.DelayedAsyncInvocation;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.InfoMapAdminInterface;
 			import weave.services.addAsyncResponder;
-			import weave.services.beans.RResult;
-			import weave.services.beans.SolrClusterObject;
-			import weave.services.beans.TopicClassificationResults;
 			import weave.ui.ControlPanel;
 			import weave.ui.CustomLabel;
 			import weave.ui.DraggablePanel;
-			import weave.ui.ResizableBox;
-			import weave.ui.SubMenu;
-			import weave.ui.infomap.core.FilterableInfoMapNode;
-			import weave.ui.infomap.core.InfoMapDocument;
-			import weave.ui.infomap.core.InfoMapNode;
+			import weave.ui.SubMenuItem;
 			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.ui.AbstractListView;
 			import weave.ui.infomap.ui.BasicSettingsComponent;
-			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
 			import weave.ui.infomap.ui.DocumentListView;
 			import weave.ui.infomap.ui.GoogleSearchListView;
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
-			import weave.ui.infomap.ui.NodeSettingsComponent;
 			import weave.ui.infomap.ui.PointsLayout;
 			import weave.ui.infomap.ui.RadialMenu;
-			import weave.ui.infomap.ui.RelatedKeywordsListItemObject;
 			import weave.ui.infomap.ui.TagCloud;
 			import weave.ui.infomap.ui.TagCloudSettingComponent;
-			import weave.ui.infomap.ui.ThumbnailsLayout;
 			import weave.ui.infomap.ui.ThumbnailsListView;
 			import weave.ui.infomap.ui.TopicNodeComponent;
-			import weave.ui.infomap.ui.TopicNodeSettingComponent;
-			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
-			import weave.utils.DebugTimer;
-			import weave.utils.EventUtils;
-			import weave.utils.TickMarkUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
-			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.tools.CompoundBarChartTool;
 			import weave.visualization.tools.RadVizTool;
 			
@@ -347,12 +290,12 @@
 				
 				for each(var filterOption:String in QueryObject.filterByOptions)
 				{
-					nodeBase.filterSubMenu.addSubMenuItem(filterOption,filterNodeBy);
+					nodeBase.filterSubMenu.menuItems.push(new SubMenuItem(filterOption, filterNodeBy));
 				}
 				
 				for each(var sortOption:String in QueryObject.sortByOptions.concat(["New Documents"]))
 				{
-					nodeBase.sortSubMenu.addSubMenuItem(sortOption,sortNodeBy);
+					nodeBase.sortSubMenu.menuItems.push(new SubMenuItem(sortOption, sortNodeBy));
 				}
 				
 				
@@ -2437,7 +2380,7 @@
 				var tempLabelWithCluster:String = "";
 				for (var i:int = 0; i < tempColumnNames.length; i++)
 				{
-					tempLabelWithCluster = (object._plotter.columns.getObject(tempColumnNames[i]) as ReferencedColumn).internalColumnReference.getMetadata("title");
+					tempLabelWithCluster = (object._plotter.columns.getObject(tempColumnNames[i]) as ReferencedColumn).getMetadata("title");
 					tempLabelCluster = tempLabelWithCluster.substring(tempLabelWithCluster.lastIndexOf('_cluster_') + 9); // ToDo temp hack to remove label cluster string
 					if(!tempDictionary.hasOwnProperty(tempLabelCluster))
 						tempDictionary[tempLabelCluster] = new Array();
