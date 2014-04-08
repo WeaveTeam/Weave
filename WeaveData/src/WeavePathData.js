@@ -73,15 +73,16 @@ weave.WeavePath.prototype.setKeys = function(/* [name], keyStringArray */)
     };
     return this;
 };
-
-weave.WeavePath.prototype.containsKey = function (/* [name], keyString */)
+weave.WeavePath.prototype.filterKeys = function (/* [name], keyStringArray */)
 {
     var args = this._A(arguments, 2);
-    if (this._assertParams('containsKey', args))
+    if (this._assertParams('containsKeys', args))
     {
-        var keyString = args.pop();
-        var keyObject = this.stringToQKey(keyString);
-        return this.push(args).vars({containsKeyArgs: keyObject}).getValue('containsKey(containsKeyArgs)');
+        var keyStringArray = args.pop();
+        var keyObjects = keyStringArray.map(this.stringToQKey, this);
+        var resultArray = this.push(args).libs("weave.api.WeaveAPI").vars({containsKeysArgs: keyObjects}).getValue(
+            'WeaveAPI.QKeyManager.convertToQKeys(containsKeysArgs).filter(function(d) { return containsKey(d); })'
+        );
+        return resultArray.map(this.qkeyToString, this);
     }
-    return null;
-};
+}
