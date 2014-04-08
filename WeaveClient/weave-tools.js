@@ -81,7 +81,7 @@ function queryDataService(method, params, resultHandler, queryId)
  */
 function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
 {
-	queryDataService("findEntityIds", [{"title": dataTableTitle}, 0], function(tableIds) {
+	queryDataService("findEntityIds", [{"title": dataTableTitle}, []], function(tableIds) {
 		if (tableIds.length == 0)
 			return fail();
 		queryDataService("getEntities", [tableIds.pop()], function(tables) {
@@ -239,7 +239,7 @@ function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyC
  */
 function weaveAdminUpdateColumns(user, pass, tableId, entityUpdater) {
 	var url = '/WeaveServices/AdminService';
-	var getEntities = queryService.bind(null, url, 'getEntitiesById');
+	var getEntities = queryService.bind(null, url, 'getEntities');
 	var bulkUpdateEntities = bulkQueryService.bind(null, url, 'updateEntity');
 	getEntities([user, pass, [tableId]], function(tables) {
 		getEntities([user, pass, tables[0].childIds], function(columns) {
