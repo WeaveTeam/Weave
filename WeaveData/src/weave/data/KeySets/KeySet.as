@@ -155,7 +155,7 @@ package weave.data.KeySets
 			if (_locked)
 				return false;
 			
-			WeaveAPI.QKeyManager.mapQKeys(newKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(newKeys);
 			if (newKeys == _keys)
 				_keys = _keys.concat();
 			
@@ -250,7 +250,7 @@ package weave.data.KeySets
 				return false;
 			
 			var changeDetected:Boolean = false;
-			WeaveAPI.QKeyManager.mapQKeys(additionalKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(additionalKeys);
 			for each (var key:IQualifiedKey in additionalKeys)
 			{
 				if (_keyIndex[key] == undefined)
@@ -284,7 +284,7 @@ package weave.data.KeySets
 				return clearKeys();
 			
 			var changeDetected:Boolean = false;
-			WeaveAPI.QKeyManager.mapQKeys(unwantedKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(unwantedKeys);
 			for each (var key:IQualifiedKey in unwantedKeys)
 			{
 				if (_keyIndex[key] != undefined)

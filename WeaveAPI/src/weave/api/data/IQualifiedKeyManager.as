@@ -50,7 +50,7 @@ package weave.api.data
 		 * @param objects An Array to modify.
 		 * @return The same Array that was passed in, modified.
 		 */
-		function mapQKeys(objects:Array):Array;
+		function convertToQKeys(objects:Array):Array;
 		
 		/**
 		 * Get a list of all previoused key types.

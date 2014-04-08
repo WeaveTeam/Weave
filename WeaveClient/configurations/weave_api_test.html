@@ -134,10 +134,10 @@ function testServerQuery(secondMethodName)
 {
 	var keyType = keyTypeInput.value;
 	queryDataService(
-		'getEntityIdsByMetadata',
+		'findEntityIds',
 		{
-			publicMetadata: {keyType: keyType},
-			entityType: 1
+			publicMetadata: {entityType: 'column', keyType: keyType},
+			wildcardFields: []
 		},
 		function(ids)
 		{
