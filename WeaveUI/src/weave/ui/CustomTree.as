@@ -45,6 +45,8 @@ package weave.ui
 	 */
 	public class CustomTree extends Tree
 	{
+		[Bindable] public var highlightedItems:Array = [];
+		
 		public function CustomTree()
 		{
 			super();
@@ -286,6 +288,13 @@ package weave.ui
 			actualIterator = ai;
 		}
 		
+		
+
+		protected function drawHighlightedItems():void
+		{
+
+		}
+
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			updateHScrollLater();
@@ -316,6 +325,7 @@ package weave.ui
 			drawItem(renderer, selected, highlighted, caret, transition);
 		}
 
+			
 
 		private var _pendingScrollToIndex:int = -1;
 		override public function scrollToIndex(index:int):Boolean

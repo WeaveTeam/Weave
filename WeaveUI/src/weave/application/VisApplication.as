@@ -203,6 +203,7 @@ package weave.application
 			if (ExternalInterface.available)
 				ExternalInterface.addCallback('loadFile', loadFile);
 			WeaveAPI.initializeExternalInterface();
+			WeaveAPI.executeJavaScript(new _InitializeWeaveData.WeavePathData());
 
 			getFlashVars();
 			handleFlashVarPresentation();
