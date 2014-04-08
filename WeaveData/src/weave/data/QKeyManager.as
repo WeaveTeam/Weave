@@ -116,7 +116,7 @@ package weave.data
 		 * @param objects An Array to modify.
 		 * @return The same Array that was passed in, modified.
 		 */
-		public function mapQKeys(objects:Array):Array
+		public function convertToQKeys(objects:Array):Array
 		{
 			var i:int = objects.length;
 			while (i--)

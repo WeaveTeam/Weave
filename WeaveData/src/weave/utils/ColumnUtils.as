@@ -222,17 +222,9 @@ package weave.utils
 			return result;
 		}
 		
-		/**
-		 * This is mostly a convenience function to call through Javascript. For example,
-		 * a user could invoke 'KeySet.replaceKeys( getQKeys(keyObjects) )' where keyObjects
-		 * is an array of generic objects in Javascript.  
-		 * @param genericObjects An array of generic objects with <code>keyType</code>
-		 * and <code>localName</code> properties.
-		 * @return An array of IQualifiedKey objects.
-		 */
-		[Deprecated(replacement="WeaveAPI.QKeyManager.mapQKeys()")] public static function getQKeys(genericObjects:Array):Array
+		[Deprecated(replacement="WeaveAPI.QKeyManager.convertToQKeys()")] public static function getQKeys(genericObjects:Array):Array
 		{
-			return WeaveAPI.QKeyManager.mapQKeys(genericObjects);
+			return WeaveAPI.QKeyManager.convertToQKeys(genericObjects);
 		}
 			
 		/**
