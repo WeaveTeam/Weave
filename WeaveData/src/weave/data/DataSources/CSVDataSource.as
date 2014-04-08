@@ -24,7 +24,6 @@ package weave.data.DataSources
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.core.DesignLayer;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -48,7 +47,6 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
-	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.core.UntypedLinkableVariable;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -269,7 +267,6 @@ package weave.data.DataSources
 		 */		
 		public function putColumnInHashMap(columnNameOrIndex:Object, destinationHashMap:ILinkableHashMap):IAttributeColumn
 		{
-			var object:* = getLinkableOwner(this);
 			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 			if (!sourceOwner)
 				return null;

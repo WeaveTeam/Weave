@@ -36,7 +36,7 @@ package weave.core
 	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
-		public static var debug:Boolean = true;
+		public static var debug:Boolean = false;
 		
 		/**
 		 * For debugging, returns debugIds for active tasks.
