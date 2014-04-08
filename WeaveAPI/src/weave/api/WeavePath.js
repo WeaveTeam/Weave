@@ -213,14 +213,11 @@ weave.WeavePath.prototype.weave = weave;
 weave.WeavePath.prototype.push = function(/*...relativePath*/)
 {
 	var args = this._A(arguments, 1);
-	if (this._assertParams('push', args))
-	{
-		var newWeavePath = new weave.WeavePath(this._path.concat(args));
-		newWeavePath._parent = this;
-		newWeavePath._reconstructArgs = this._reconstructArgs;
-		return newWeavePath;
-	}
-	return null;
+	// note: we accept the arguments even if there are none
+	var newWeavePath = new weave.WeavePath(this._path.concat(args));
+	newWeavePath._parent = this;
+	newWeavePath._reconstructArgs = this._reconstructArgs;
+	return newWeavePath;
 };
 
 /**
