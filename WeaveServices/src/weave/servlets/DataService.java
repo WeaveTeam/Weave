@@ -386,7 +386,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		catch (NullPointerException e)
 		{
 			e.printStackTrace();
-			throw(new RemoteException(e.getMessage()));
+			throw new RemoteException("Unexpected error", e);
 		}
 
 		AttributeColumnData result = new AttributeColumnData();
@@ -414,6 +414,8 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 */
 	public WeaveJsonDataSet getDataSet(int[] columnIds) throws RemoteException
 	{
+		if (columnIds == null)
+			columnIds = new int[0];
 		if (columnIds.length > MAX_COLUMN_REQUEST_COUNT)
 			throw new RemoteException(String.format("You cannot request more than %s columns at a time.", MAX_COLUMN_REQUEST_COUNT));
 		
