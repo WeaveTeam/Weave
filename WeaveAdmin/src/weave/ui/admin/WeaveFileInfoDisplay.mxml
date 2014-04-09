@@ -77,21 +77,9 @@
 				
 				visible = true;
 				
-				var _LM:Number = info.lastModified as Number;
-				var _FS:Number = info.fileSize as Number;
-				
-				if( info.thumb == null )
-				{
-					_thumbByteArray = null;
-					img.graphics.clear();
-				} 
-				else
-				{
-					_thumbByteArray = info.thumb;
-				}
-				
-				_lastMod = StandardLib.formatDate(_LM, "MM/DD/YYYY L:NN A", false);
-				_fileSize = FileUtils.parse(_FS, 2);
+				_thumbByteArray = info.thumb;
+				_lastMod = StandardLib.formatDate(info.lastModified, "MM/DD/YYYY L:NN A", false);
+				_fileSize = FileUtils.parse(info.fileSize, 2);
 			}
 			
 		]]>

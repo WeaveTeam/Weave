@@ -23,8 +23,8 @@ package weave.services.beans
 
 	public class WeaveFileInfo
 	{
-		public var lastModified:int;
-		public var fileSize:int;
+		public var lastModified:Number;
+		public var fileSize:Number;
 		public var thumb:ByteArray;
 		public var fileName:String;
 	}
