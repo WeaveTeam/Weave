@@ -1309,7 +1309,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				conditions = [
 					Weave.properties.enableToolControls.value && _controlPanel,
 					enableSubMenu.value,
-					Weave.properties.enableToolControls.value && this is IVisToolWithSelectableAttributes
+					Weave.properties.enableToolControls.value && this is IVisToolWithSelectableAttributes && (this as IVisToolWithSelectableAttributes).getSelectableAttributes().length
 				];
 				for (i = 0; i < buttons.length; i++)
 				{
