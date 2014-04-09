@@ -768,7 +768,7 @@
 					
 					//last column gets width to adjust in datgrid, so its necessay to get that width.					
 					if (j == _currentDataGridColumns.length -1) 
-						tempWidth = NaN;//allottedDisplayWidth - displayedColumnsTotalWidth;
+						tempWidth = allottedDisplayWidth - displayedColumnsTotalWidth;
 					if (tempWidth <= _minSuggestedColumnSize || isNaN(tempWidth))
 						tempWidth = _minSuggestedColumnSize;
 					if (tempWidth >= allottedDisplayWidth - _minSuggestedColumnSize)
@@ -783,7 +783,7 @@
 					{
 						dgc.filterComponent.width = dgc.width;
 					}
-					//add those columns which are dispalyed on datagrid
+					//add those columns which are displayed on datagrid
 					if (j >= dataGridHorizontalScrollPosition.value)
 					{
 						displayedColumnsTotalWidth = displayedColumnsTotalWidth + dgc.width;
