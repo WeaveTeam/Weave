@@ -72,15 +72,19 @@
 			{
 				super.constructor();
 				
-				panelWidth.value = "50%";
-				panelHeight.value = "60%";
-				panelX.value = "25%";
-				panelY.value = "15%";
 				minimizable.value = true;
 				maximizable.value = true;
 				
 				closeable.value = true;
 				closeable.lock();
+			}
+			
+			override public function reposition():void
+			{
+				panelX.value = '' + int(22 + Math.random() * 6) + "%";
+				panelY.value = '' + int(17 + Math.random() * 6) + "%";
+				panelWidth.value = "50%";
+				panelHeight.value = "60%";
 			}
 			
 			override protected function createChildren():void
@@ -247,7 +251,9 @@
 				
 				if (!_instance.parent)
 					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
-				_instance.restorePanel();
+				_instance.sendWindowToForeground();
+				_instance.reposition();
+				_instance.copyCoordinatesFromSessionedProperties();
 			}
 			public static function getVisTool(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IVisToolWithSelectableAttributes
 			{
