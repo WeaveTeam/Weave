@@ -15,3 +15,15 @@ var adminServiceURL = '/WeaveServices/AdminService';
 aws.AdminClient.updateEntity = function(user, password, entityId, diff, handleResult) {
 	aws.queryService(adminServiceURL, "updateEntity", [user, password, entityId, diff], handleResult);
 };
+
+/**
+ * This function calls the authenticate method on the server
+ * @param {String} user
+ * @param {String} password
+ * 
+ * @returns Boolean
+ */
+aws.AdminClient.authenticate = function(user, password, handleResult) {
+	aws.queryService(adminServiceURL, "updateEntity", [user, password], handleResult);
+};
+ 
