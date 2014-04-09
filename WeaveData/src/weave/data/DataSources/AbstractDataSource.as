@@ -19,35 +19,30 @@
 
 package weave.data.DataSources
 {
-	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
-	
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IAttributeHierarchy;
-	import weave.api.data.IColumnReference;
-	import weave.api.data.IDataSource;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.reportError;
-	import weave.core.ClassUtils;
+	import weave.core.LinkableXML;
 	import weave.data.AttributeColumns.ProxyColumn;
-	import weave.primitives.AttributeHierarchy;
+	import weave.data.hierarchy.XMLEntityNode;
+	import weave.utils.HierarchyUtils;
 	
 	/**
-	 * This is a base class to make it easier to develope a new class that implements IDataSource.
+	 * This is a base class to make it easier to develope a new class that implements IDataSource_old.
 	 * To extend this class, the minimum functions to override are:
-	 *         initialize(), requestHierarchyFromSource() and requestColumnFromSource().
+	 *         initialize(), requestHierarchyFromSource(), requestColumnFromSource().
 	 * Optionally, initializationComplete() can also be overridden to control how long column requests are delayed.
+	 * generateHierarchyNode() should be overridden if the data source does not use XMLEntityNode to build its hierarchy.
 	 * 
 	 * @author adufilie
 	 */
-	public class AbstractDataSource implements IDataSource, IDisposableObject
+	public class AbstractDataSource implements IDataSource_old, IDisposableObject
 	{
 		public function AbstractDataSource()
 		{
@@ -151,9 +146,6 @@ package weave.data.DataSources
 		 */
 		protected function initialize():void
 		{
-			// just in case the XML was modified, detect those changes now.
-			_attributeHierarchy.detectChanges();
-
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
 
@@ -188,24 +180,66 @@ package weave.data.DataSources
 		/**
 		 * This function must be implemented by classes that extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the proxy column.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
-		 * @param A ProxyColumn object that will be updated when the column data is ready.
+		 * @param proxyColumn Contains metadata for the column request and will be used to store column data when it is ready.
 		 */
-		/* abstract */ protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void { }
+		/* abstract */ protected function requestColumnFromSource(proxyColumn:ProxyColumn):void { }
+
+		/**
+		 * @inheritDoc
+		 */
+		public function refreshHierarchy():void
+		{
+			_attributeHierarchy.setSessionState(null);
+		}
+
+		protected var _rootNode:IWeaveTreeNode;
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getHierarchyRoot():IWeaveTreeNode
+		{
+			if (!(_rootNode is XMLEntityNode))
+				_rootNode = new XMLEntityNode();
+			(_rootNode as XMLEntityNode).dataSourceName = WeaveAPI.globalHashMap.getName(this);
+			(_rootNode as XMLEntityNode).xml = _attributeHierarchy.value;
+			return _rootNode;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			var path:Array = HierarchyUtils.findPathToNode(_rootNode, generateHierarchyNode(metadata));
+			if (path)
+				return path[path.length - 1];
+			return null;
+		}
+		
+		/**
+		 * This function should be overridden if the data source does not use XMLEntityNode for its hierarchy nodes.
+		 */
+		protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			if (!metadata)
+				return null;
+			return new XMLEntityNode(WeaveAPI.globalHashMap.getName(this), HierarchyUtils.nodeFromMetadata(metadata));
+		}
 
 		/**
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
 		 */
-		public function get attributeHierarchy():IAttributeHierarchy
+		public function get attributeHierarchy():LinkableXML
 		{
 			return _attributeHierarchy;
 		}
 
 		// this is returned by a public getter
-		protected const _attributeHierarchy:AttributeHierarchy = newLinkableChild(this, AttributeHierarchy, handleHierarchyChange);
+		protected const _attributeHierarchy:LinkableXML = newLinkableChild(this, LinkableXML, handleHierarchyChange);
 
 		/**
-		 * This is a list of DelayedColumnRequest objects.
+		 * This is a list of ProxyColumn objects.
 		 */
 		private var _pendingColumnRequests:Array = [];
 		
@@ -230,7 +264,7 @@ package weave.data.DataSources
 			}
 			else
 			{
-				var path:XML = _attributeHierarchy.getPathFromNode(subtreeNode);
+				var path:XML = HierarchyUtils.getPathFromNode(_attributeHierarchy.value, subtreeNode);
 				// do nothing if path does not exist or node already has children
 				if (path == null || subtreeNode.children().length() > 0)
 					return;
@@ -257,32 +291,16 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * This function creates a new ProxyColumn object corresponding to the columnReference and queues up the request for the column.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
+		 * This function creates a new ProxyColumn object corresponding to the metadata and queues up the request for the column.
+		 * @param metadata An object that contains all the information required to request the column from this IDataSource. 
 		 * @return A ProxyColumn object that will be updated when the column data is ready.
 		 */
-		public function getAttributeColumn(columnReference:IColumnReference):IAttributeColumn
+		public function getAttributeColumn(metadata:Object):IAttributeColumn
 		{
-			if (columnReference.getDataSource() != this)
-				return ProxyColumn.undefinedColumn;
-			
-			// we need to make a copy of the column reference because we don't want
-			// the session state to change before we actually request the column.
-			var refClass:Class = ClassUtils.getClassDefinition(getQualifiedClassName(columnReference));
-			var refCopy:IColumnReference = newDisposableChild(this, refClass);
-			copySessionState(columnReference, refCopy);
-			
 			var proxyColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
-
-			// Save pointers to the column and the reference.
-			_proxyColumnToReferenceMap[proxyColumn] = refCopy;
-
-			debug('getAttributeColumn', refCopy.getHashCode());
-			
-			var dcr:DelayedColumnRequest = new DelayedColumnRequest(refCopy, proxyColumn);
-			WeaveAPI.ProgressIndicator.addTask(dcr, proxyColumn);
-			handlePendingColumnRequest(dcr);
-			
+			proxyColumn.setMetadata(metadata);
+			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn);
+			handlePendingColumnRequest(proxyColumn);
 			return proxyColumn;
 		}
 
@@ -294,35 +312,20 @@ package weave.data.DataSources
 		 * for the pending column, it is recommended to call super.handlePendingColumnRequest() instead.
 		 * @param request The request that needs to be handled.
 		 */
-		private function handlePendingColumnRequest(request:DelayedColumnRequest):void
+		private function handlePendingColumnRequest(column:ProxyColumn):void
 		{
 			// If data source is already initialized (session state is stable, not currently changing), we can request the column now.
 			// Otherwise, we have to wait.
 			if (initializationComplete)
 			{
-				debug('requestColumnFromSource', request.columnReference.getHashCode());
-				
-				WeaveAPI.StageUtils.callLater(request.proxyColumn, requestColumnFromSource, [request.columnReference, request.proxyColumn]);
-				WeaveAPI.StageUtils.callLater(request.proxyColumn, WeaveAPI.ProgressIndicator.removeTask, [request]);
-				//requestColumnFromSource(request.columnReference, request.proxyColumn);
+				WeaveAPI.StageUtils.callLater(column, requestColumnFromSource, [column]);
+				WeaveAPI.StageUtils.callLater(column, WeaveAPI.ProgressIndicator.removeTask, [column]);
+				//requestColumnFromSource(column);
 			}
 			else
 			{
-				delayColumnRequest(request);
+				_pendingColumnRequests.push(column);
 			}
-		}
-
-		/**
-		 * This will put an initialized proxy column into the list of pending requests.
-		 * It will also call initializeHierarchySubtree() for a subtree of the hierarchy, if a subtree is missing.
-		 * This function can be overridden to have different behavior, but this definition is recommended.
-		 * @param request The request that needs to be handled.
-		 */
-		private function delayColumnRequest(request:DelayedColumnRequest):void
-		{
-			debug('delayColumnRequest', request.columnReference.getHashCode());
-			
-			_pendingColumnRequests.push(request);
 		}
 		
 		/**
@@ -333,28 +336,9 @@ package weave.data.DataSources
 			// swap out pending requests with a new array so we don't go in an infinite loop.
 			var oldRequests:Array = _pendingColumnRequests;
 			_pendingColumnRequests = [];
-			for each (var oldRequest:DelayedColumnRequest in oldRequests)
+			for each (var oldRequest:ProxyColumn in oldRequests)
 				handlePendingColumnRequest(oldRequest);
 		}
-		
-		/**
-		 * Use this function to report an error for an unsupported column reference.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
-		 * @return A ProxyColumn object that will be updated when the column data is ready.
-		 */
-		protected function handleUnsupportedColumnReference(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
-		{
-			reportError(this + " Unsupported column reference type: " + getQualifiedClassName(columnReference));
-			proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
-			return;
-		}
-		
-		/**
-		 * The keys in this Dictionary are ProxyColumn objects created by this data source.
-		 * The values in this Dictionary are the corresponding IColumnReference objects.
-		 * This dictionary uses strong keys to prevent garbage-collection.
-		 */		
-		private const _proxyColumnToReferenceMap:Dictionary = new Dictionary(false);
 		
 		/**
 		 * This function should be called when the IDataSource is no longer in use.
@@ -366,38 +350,6 @@ package weave.data.DataSources
 			
 			_initializeCalled = false;
 			_pendingColumnRequests.length = 0;
-			var key:*
-			for (key in _proxyColumnToReferenceMap)
-			{
-				var proxyColumn:ProxyColumn = key as ProxyColumn;
-				// clear the data and allow callbacks to run.
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
-				while (proxyColumn.callbacksAreDelayed)
-					proxyColumn.resumeCallbacks();
-			}
-			// clean up pointers to columns
-			for (key in _proxyColumnToReferenceMap)
-				delete _proxyColumnToReferenceMap[key];
 		}
 	}
-}
-
-import weave.api.data.IColumnReference;
-import weave.data.AttributeColumns.ProxyColumn;
-
-/**
- * @private
- * This is used internally as an Array item in the list of pending column requests.
- * A DelayedColumnRequest object has a pointer to a ProxyColumn object that still needs to be filled in with data,
- * along with the corresponding IColumnReference that was given to getAttributeColumn().
- */
-internal class DelayedColumnRequest
-{
-	public function DelayedColumnRequest(columnReference:IColumnReference, proxyColumn:ProxyColumn)
-	{
-		this.columnReference = columnReference;
-		this.proxyColumn = proxyColumn;
-	}
-	public var columnReference:IColumnReference;
-	public var proxyColumn:ProxyColumn;
 }

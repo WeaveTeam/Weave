@@ -521,6 +521,9 @@ package weave.api
 		 */
 		private static const _singletonDictionary:Dictionary = new Dictionary();
 		
+		/**
+		 * Outputs to external console.log
+		 */
 		public static function externalTrace(...params):void
 		{
 			params.unshift('console.log');

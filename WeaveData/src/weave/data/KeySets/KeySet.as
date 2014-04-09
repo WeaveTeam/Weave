@@ -29,6 +29,7 @@ package weave.data.KeySets
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
 	import weave.api.setSessionState;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
@@ -154,7 +155,7 @@ package weave.data.KeySets
 			if (_locked)
 				return false;
 			
-			WeaveAPI.QKeyManager.mapQKeys(newKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(newKeys);
 			if (newKeys == _keys)
 				_keys = _keys.concat();
 			
@@ -249,7 +250,7 @@ package weave.data.KeySets
 				return false;
 			
 			var changeDetected:Boolean = false;
-			WeaveAPI.QKeyManager.mapQKeys(additionalKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(additionalKeys);
 			for each (var key:IQualifiedKey in additionalKeys)
 			{
 				if (_keyIndex[key] == undefined)
@@ -283,7 +284,7 @@ package weave.data.KeySets
 				return clearKeys();
 			
 			var changeDetected:Boolean = false;
-			WeaveAPI.QKeyManager.mapQKeys(unwantedKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(unwantedKeys);
 			for each (var key:IQualifiedKey in unwantedKeys)
 			{
 				if (_keyIndex[key] != undefined)
@@ -376,7 +377,7 @@ package weave.data.KeySets
 		private static function traceKeySet(keySet:KeySet):void
 		{
 			trace(' ->', getKeyStrings(keySet.keys));
-			trace('   ', ObjectUtil.toString(getSessionState(keySet)));
+			trace('   ', Compiler.stringify(getSessionState(keySet)));
 		}
 		private static function testFunction(keySet:KeySet, func:Function, comment:String, keyType:String, keys:Array, expectedResultKeyType:String, expectedResultKeys:Array, expectedResultKeyType2:String = null, expectedResultKeys2:Array = null):void
 		{

@@ -20,6 +20,7 @@
  * @private
  */
 
+//"use strict";
 
 // browser backwards compatibility
 if (!Array.isArray)
@@ -212,14 +213,11 @@ weave.WeavePath.prototype.weave = weave;
 weave.WeavePath.prototype.push = function(/*...relativePath*/)
 {
 	var args = this._A(arguments, 1);
-	if (assertParams('push', args))
-	{
-		var newWeavePath = new weave.WeavePath(this._path.concat(args));
-		newWeavePath._parent = this;
-		newWeavePath._reconstructArgs = this._reconstructArgs;
-		return newWeavePath;
-	}
-	return null;
+	// note: we accept the arguments even if there are none
+	var newWeavePath = new weave.WeavePath(this._path.concat(args));
+	newWeavePath._parent = this;
+	newWeavePath._reconstructArgs = this._reconstructArgs;
+	return newWeavePath;
 };
 
 /**
@@ -231,9 +229,9 @@ weave.WeavePath.prototype.pop = function()
 	if (this._parent)
 		return this._parent;
 	else if (this._reconstructArgs)
-		failMessage('pop', 'stack is empty after naturalize()')
+		this._failMessage('pop', 'stack is empty after naturalize()')
 	else
-		failMessage('pop', 'stack is empty');
+		this._failMessage('pop', 'stack is empty');
 	return null;
 };
 
@@ -248,12 +246,12 @@ weave.WeavePath.prototype.pop = function()
 weave.WeavePath.prototype.request = function(/*...relativePath, objectType*/)
 {
 	var args = this._A(arguments, 2);
-	if (assertParams('request', args))
+	if (this._assertParams('request', args))
 	{
 		var type = args.pop();
 		var pathcopy = this._path.concat(args);
 		this.weave.requestObject(pathcopy, type)
-			|| failPath('request', pathcopy);
+			|| this._failPath('request', pathcopy);
 	}
 	return this;
 };
@@ -268,7 +266,7 @@ weave.WeavePath.prototype.remove = function(/*...relativePath*/)
 {
 	var pathcopy = this._path.concat(this._A(arguments, 1));
 	weave.removeObject(pathcopy)
-		|| failPath('remove', pathcopy);
+		|| this._failPath('remove', pathcopy);
 	return this;
 };
 
@@ -280,10 +278,10 @@ weave.WeavePath.prototype.remove = function(/*...relativePath*/)
 weave.WeavePath.prototype.reorder = function(/*...orderedNames*/)
 {
 	var args = this._A(arguments, 1);
-	if (assertParams('reorder', args))
+	if (this._assertParams('reorder', args))
 	{
 		this.weave.setChildNameOrder(this._path, args)
-			|| failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + this._path);
+			|| this._failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + this._path);
 	}
 	return this;
 };
@@ -299,12 +297,12 @@ weave.WeavePath.prototype.reorder = function(/*...orderedNames*/)
 weave.WeavePath.prototype.state = function(/*...relativePath, state*/)
 {
 	var args = this._A(arguments, 2);
-	if (assertParams('state', args))
+	if (this._assertParams('state', args))
 	{
 		var state = args.pop();
 		var pathcopy = this._path.concat(args);
 		this.weave.setSessionState(pathcopy, state, true)
-			|| failObject('state', pathcopy);
+			|| this._failObject('state', pathcopy);
 	}
 	return this;
 };
@@ -320,12 +318,12 @@ weave.WeavePath.prototype.state = function(/*...relativePath, state*/)
 weave.WeavePath.prototype.diff = function(/*...relativePath, diff*/)
 {
 	var args = this._A(arguments, 2);
-	if (assertParams('diff', args))
+	if (this._assertParams('diff', args))
 	{
 		var diff = args.pop();
 		var pathcopy = this._path.concat(args);
 		this.weave.setSessionState(pathcopy, diff, false)
-			|| failObject('diff', pathcopy);
+			|| this._failObject('diff', pathcopy);
 	}
 	return this;
 };
@@ -341,11 +339,11 @@ weave.WeavePath.prototype.diff = function(/*...relativePath, diff*/)
  */
 weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, immediateMode)
 {
-	if (assertParams('addCallback', arguments))
+	if (this._assertParams('addCallback', arguments))
 	{
 		callback = this.weave.callbackToString(callback, new this.constructor(this._path));
 		this.weave.addCallback(this._path, callback, triggerCallbackNow, immediateMode)
-			|| failObject('addCallback', this._path);
+			|| this._failObject('addCallback', this._path);
 	}
 	return this;
 };
@@ -358,10 +356,10 @@ weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, i
  */
 weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
 {
-	if (assertParams('removeCallback', arguments))
+	if (this._assertParams('removeCallback', arguments))
 	{
 		this.weave.removeCallback(this._path, callback, everywhere)
-			|| failObject('removeCallback', this._path);
+			|| this._failObject('removeCallback', this._path);
 	}
 	return this;
 };
@@ -393,7 +391,7 @@ weave.WeavePath.prototype.vars = function(newVars)
 weave.WeavePath.prototype.libs = function(/*...libraries*/)
 {
 	var args = this._A(arguments, 1);
-	if (assertParams('libs', args))
+	if (this._assertParams('libs', args))
 	{
 		// include libraries for future evaluations
 		this.weave.evaluateExpression(null, null, null, args);
@@ -437,7 +435,7 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
  */
 weave.WeavePath.prototype.call = function(func/*[, ...args]*/)
 {
-	if (assertParams('call', arguments))
+	if (this._assertParams('call', arguments))
 	{
 		var a = this._A(arguments);
 		a.shift().apply(this, a);
@@ -455,7 +453,7 @@ weave.WeavePath.prototype.call = function(func/*[, ...args]*/)
  */
 weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 {
-	if (assertParams('forEach', arguments, 2))
+	if (this._assertParams('forEach', arguments, 2))
 	{
 		if (Array.isArray(items) && Array.prototype.forEach)
 			items.forEach(visitorFunction, this);
@@ -537,7 +535,7 @@ weave.WeavePath.prototype.getState = function(/*...relativePath*/)
 weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 {
 	var args = this._A(arguments, 2);
-	if (assertParams('getDiff', args))
+	if (this._assertParams('getDiff', args))
 	{
 		var otherState = args.pop();
 		var pathcopy = this._path.concat(args);
@@ -559,7 +557,7 @@ weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherState*/)
 {
 	var args = this._A(arguments, 2);
-	if (assertParams('getReverseDiff', args))
+	if (this._assertParams('getReverseDiff', args))
 	{
 		var otherState = args.pop();
 		var pathcopy = this._path.concat(args);
@@ -585,29 +583,32 @@ weave.WeavePath.prototype.getValue = function(script_or_variableName)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // helper functions
-function assertParams(methodName, args, minLength)
+weave.WeavePath.prototype._assertParams = function(methodName, args, minLength)
 {
 	if (!minLength)
 		minLength = 1;
 	if (args.length < minLength)
 	{
 		var msg = 'requires at least ' + ((minLength == 1) ? 'one parameter' : (minLength + ' parameters'));
-		failMessage(methodName, msg);
+		this._failMessage(methodName, msg);
 		return false;
 	}
 	return true;
-}
-function failPath(methodName, path)
+};
+
+weave.WeavePath.prototype._failPath = function(methodName, path)
 {
 	var msg = 'command failed (path: ' + path + ')';
-	failMessage(methodName, msg);
-}
-function failObject(methodName, path)
+	this._failMessage(methodName, msg);
+};
+
+weave.WeavePath.prototype._failObject = function(methodName, path)
 {
 	var msg = 'object does not exist (path: ' + path + ')';
-	failMessage(methodName, msg);
-}
-function failMessage(methodName, message)
+	this._failMessage(methodName, msg);
+};
+
+weave.WeavePath.prototype._failMessage = function(methodName, message)
 {
 	var str = 'WeavePath.' + methodName + '(): ' + message;
 	
@@ -615,4 +616,4 @@ function failMessage(methodName, message)
 	//console.log(str);
 	
 	throw new Error(str);
-}
+};

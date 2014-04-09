@@ -78,7 +78,6 @@
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.IColumnReference;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.linkableObjectIsBusy;
@@ -91,8 +90,8 @@
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.core.UIUtils;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.utils.AsyncSort;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.VectorUtils;
@@ -102,7 +101,7 @@
 	
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
-	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
+	public static const refCols:ArrayCollection = new ArrayCollection();
 	private static const layoutChoices:Array = ['HSlider', 'List', 'Combo']
 	
 	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -212,7 +211,7 @@
 	 * @param ref A reference to an attribute tag in an AttributeHierarchy.
 	 * @return An Array of values from the referenced column.
 	 */
-	protected function getValuesFromColHier(ref:HierarchyColumnReference):Array 
+	protected function getValuesFromColHier(ref:ReferencedColumn):Array 
 	{
 		return null;
 	}
@@ -333,15 +332,15 @@
 	{
 		//loop through the columns, getting the possible time values for each
 		//step one - just get first one
-		var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root, HierarchyColumnReference);
+		var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root, ReferencedColumn);
 		var len:int = descendants.length;
 		var newValues:Array = [];
 		var lookingForLabels:Boolean = true;
 		var countOfYearsFound:Number = 0;
 		for (var i:int = 0; i < len; i++)
 		{
-			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
-			var years:Array = getValuesFromColHier(ref);
+			var rc:ReferencedColumn = descendants[i] as ReferencedColumn;
+			var years:Array = getValuesFromColHier(rc);
 			//for a default, we choose the dimension with the most values
 			// the user/admin can change which dimension is used, but this is a best guess at a first default
 			if (years.length > countOfYearsFound)
@@ -360,40 +359,42 @@
 	private function dimensionChange():void
 	{
 		var index:int = attrListCombo.selectedIndex;
-		if (index >= dimensionsRefs.length)
+		if (index >= refCols.length)
 			return;
-		var ref:HierarchyColumnReference = dimensionsRefs.getItemAt(index) as HierarchyColumnReference;
-		filterValues.setSessionState(getValuesFromColHier(ref));
+		filterValues.setSessionState(getValuesFromColHier(refCols.getItemAt(index) as ReferencedColumn));
 	}
 
 	
-	protected function addToListOfDims(ref:HierarchyColumnReference):void
+	protected function addToListOfDims(rc:ReferencedColumn):void
 	{
 		// stop if already in list
-		for (var i:int = 0; i < dimensionsRefs.length; i++)
-			if ((dimensionsRefs.getItemAt(i) as HierarchyColumnReference).getHashCode() == ref.getHashCode())
+		for (var i:int = 0; i < refCols.length; i++)
+			if ((refCols.getItemAt(i) as ReferencedColumn).getInternalColumn() == rc.getInternalColumn())
 				return;
 		
 		// create sort function if not created yet
-		if (!dimensionsRefs.sort)
+		if (!refCols.sort)
 		{
-			dimensionsRefs.sort = new Sort();
-			dimensionsRefs.sort.compareFunction = compareRefs;
-			function compareRefs(a:IColumnReference, b:IColumnReference):int
+			refCols.sort = new Sort();
+			refCols.sort.compareFunction = compareRefs;
+			function compareRefs(a:ReferencedColumn, b:ReferencedColumn):int
 			{
-				return AsyncSort.compareCaseInsensitive(getRefLabel(a), getRefLabel(b));
+				return AsyncSort.compareCaseInsensitive(
+					a.getMetadata(ColumnMetadata.TITLE),
+					b.getMetadata(ColumnMetadata.TITLE)
+				);
 			}
 		}
 		
 		// add to list
-		dimensionsRefs.addItem(ref);
+		refCols.addItem(rc);
 		if (!getFilterValues().length)
 			dimensionChange();
 	}
 	
-	private function getRefLabel(ref:IColumnReference):String
+	private function getRefColLabel(refCol:ReferencedColumn):String
 	{
-		return WeaveAPI.AttributeColumnCache.getColumn(ref).getMetadata(ColumnMetadata.TITLE);
+		return refCol.getMetadata(ColumnMetadata.TITLE);
 	}
 	
 	/**
@@ -458,7 +459,7 @@
 			currentSliderPosition.value = dimensionSlider.minimum;
 	}
 	
-	[Deprecated] public function set labelsLinkableString(str:String):void
+	[Deprecated(replacement="filterValues")] public function set labelsLinkableString(str:String):void
 	{
 		filterValues.setSessionState(str.split(','));
 	}
@@ -490,7 +491,7 @@
 				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
 			</ui:Indent>
 			<mx:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
-			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
+			<ui:CustomComboBox id="attrListCombo" dataProvider="{refCols}" labelFunction="{getRefColLabel}" change="dimensionChange()"/>
 			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
 			<mx:VBox width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
 				<ui:CustomCheckBox label="{lang('Link global columns')}" creationComplete="linkBindableProperty(linkGlobalColumns, event.target, 'selected')"/>

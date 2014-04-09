@@ -12,14 +12,20 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/.
  * 
  * ***** END LICENSE BLOCK ***** */
-package weave.api.ui
+
+package weave.data.DataSources
 {
-	import mx.core.UIComponent;
+	import weave.api.data.IDataSource;
+	import weave.core.LinkableXML;
 	
-	public interface IProbeDisplay
-	{		
-		function createFromComplexProbeData(data:XML):UIComponent;
-	
-		function createFromSimpleProbeData(data:String):UIComponent;
+	/**
+	 * This is a simple and generic interface for getting columns of data from a source.
+	 * 
+	 * @author adufilie
+	 */
+	public interface IDataSource_old extends IDataSource
+	{
+		function get attributeHierarchy():LinkableXML;
+		function initializeHierarchySubtree(subtreeNode:XML = null):void;
 	}
 }

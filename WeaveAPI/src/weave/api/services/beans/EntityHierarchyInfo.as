@@ -17,39 +17,13 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services.beans
+package weave.api.services.beans
 {
 	public class EntityHierarchyInfo
 	{
 		public var id:int;
-		public var type:int;
+		public var entityType:String;
 		public var title:String;
 		public var numChildren:int;
-		
-		public function EntityHierarchyInfo(obj:Object, entityType:int)
-		{
-			type = entityType;
-			for (var name:String in obj)
-				if (this.hasOwnProperty(name))
-					this[name] = obj[name];
-		}
-		
-		public function getLabel(debug:Boolean = false):String
-		{
-			var branchInfo:EntityHierarchyInfo = this;
-			var typeStr:String = EntityType.getTypeString(type) || lang('Entity');
-			var tableTitle:String = branchInfo.title || lang("Untitled {0}#{1}", typeStr, branchInfo.id);
-			
-			// this is a table node, so avoid calling getEntity()
-			var str:String = tableTitle;
-			
-			if (type == EntityType.TABLE)
-				str = lang("{0} ({1})", str, branchInfo.numChildren);
-			
-			if (debug)
-				str = lang("({0}#{1}) {2}", typeStr, branchInfo.id, str);
-			
-			return str;
-		}
 	}
 }

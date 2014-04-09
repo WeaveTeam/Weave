@@ -36,7 +36,6 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObject;
@@ -50,10 +49,8 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.ColumnUtils;
-	import weave.utils.HierarchyUtils;
 	import weave.utils.ShpFileReader;
 
 	/**
@@ -240,27 +237,16 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * This function must be implemented by classes by extend AbstractDataSource.
-		 * This function should make a request to the source to fill in the proxy column.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
-		 * @param A ProxyColumn object that will be updated when the column data is ready.
+		 * @inheritDoc
 		 */
-		override protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var hierarchyRef:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-			if (!hierarchyRef)
-				return handleUnsupportedColumnReference(columnReference, proxyColumn);
-
-			//trace("requestColumnFromSource "+proxyColumn);
-
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
+			var metadata:Object = proxyColumn.getProxyMetadata();
 				
 			//The column names
-			var colName:String = proxyColumn.getMetadata('name');
-			if (!proxyColumn.getMetadata(ColumnMetadata.TITLE))
-				leafNode['@'+ColumnMetadata.TITLE] = colName;
+			var colName:String = metadata['name'];
+			if (!metadata[ColumnMetadata.TITLE])
+				metadata[ColumnMetadata.TITLE] = colName;
 			var _keyColName:String = this.keyColName.value;
 			if (_keyColName == null)
 				_keyColName = (dbfHeader.fields[0] as DbfField).name;
@@ -273,7 +259,7 @@ package weave.data.DataSources
 			var newColumn:IAttributeColumn;
 			if (ObjectUtil.stringCompare(ColumnUtils.getDataType(proxyColumn), DataTypes.GEOMETRY, true) == 0)
 			{
-				newColumn = new GeometryColumn(leafNode);
+				newColumn = new GeometryColumn(metadata);
 				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(dbfDataColumn));
 			}
 			else
@@ -299,16 +285,17 @@ package weave.data.DataSources
 				// fill in initializedProxyColumn.internalAttributeColumn based on column type (numeric or string)
 				if (isNumericColumn)
 				{
-					newColumn = new NumberColumn(leafNode);
+					newColumn = new NumberColumn(metadata);
 					(newColumn as NumberColumn).setRecords(keysVector, Vector.<Number>(dbfDataColumn));
 				}
 				else
 				{
-					newColumn = new StringColumn(leafNode);
+					newColumn = new StringColumn(metadata);
 					(newColumn as StringColumn).setRecords(keysVector, Vector.<String>(dbfDataColumn));
 				}
 			}
 
+			proxyColumn.setMetadata(metadata);
 			proxyColumn.setInternalColumn(newColumn);
 		}
 

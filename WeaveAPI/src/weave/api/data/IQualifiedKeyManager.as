@@ -50,7 +50,7 @@ package weave.api.data
 		 * @param objects An Array to modify.
 		 * @return The same Array that was passed in, modified.
 		 */
-		function mapQKeys(objects:Array):Array;
+		function convertToQKeys(objects:Array):Array;
 		
 		/**
 		 * Get a list of all previoused key types.
@@ -64,26 +64,5 @@ package weave.api.data
 		 * @return An array of QKeys
 		 */
 		function getAllQKeys(keyType:String):Array;
-		
-		/**
-		 * This function should be called to register a column as a key mapping between two key types.
-		 * @param column A reference to the column that maps keys of one key type to corresponding keys of another type.
-		 */
-		function registerKeyMapping(column:IColumnReference):void;
-		
-		/**
-		 * This function returns an Array of IColumnReference objects that refer to columns that provide a mapping from one key type to another.
-		 * @param sourceKeyType The desired input key type.
-		 * @param destinationKeyType The desired output key type.
-		 * @return An Array of IColumnReference objects that refer to columns that provide a mapping from the source key type to the destination key type.
-		 */
-		function getKeyMappings(sourceKeyType:String, destinationKeyType:String):Array;
-		
-		/**
-		 * This function returns an array of key types (Strings) for which there exist mappings to or from the given key type.
-		 * @param keyType A key type.
-		 * @return A list of compatible types.
-		 */		
-		function getCompatibleKeyTypes(keyType:String):Array;
 	}
 }

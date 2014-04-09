@@ -162,10 +162,10 @@ package weave.core
 			// create new component
 			try
 			{
-				var classDef:Class = WeaveXMLDecoder.getClassDefinition(className.value)
+				var classQName:String = WeaveXMLDecoder.getClassName(className.value);
+				var classDef:Class = ClassUtils.getClassDefinition(classQName);
 				if (!classDef)
 					return;
-				var classQName:String = getQualifiedClassName(classDef);
 				// stop if class doesn't extend DisplayObject
 				if (!ClassUtils.classIs(classQName, getQualifiedClassName(DisplayObject)))
 					return;

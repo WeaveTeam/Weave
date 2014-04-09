@@ -28,19 +28,18 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
 
 import weave.config.ConnectionConfig;
+import weave.config.DataConfig.Relationship;
+import weave.config.DataConfig.RelationshipList;
 import weave.utils.MapUtils;
 import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
-import weave.utils.Strings;
 import weave.utils.SQLUtils.WhereClause;
+import weave.utils.SQLUtils.WhereClauseBuilder;
+import weave.utils.Strings;
 
 
 /**
@@ -55,22 +54,17 @@ public class HierarchyTable extends AbstractTable
 	
 	private static final int NULL = -1;
 	
-	private ManifestTable manifest = null;
 	private int migrationOrder = 0;
     
-	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
+	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{
 		super(connectionConfig, schemaName, tableName, FIELD_PARENT, FIELD_CHILD, FIELD_ORDER);
-		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
 	}
 
 	protected void initTable() throws RemoteException
 	{
-		if (manifest == null)
-			return;
-		
 		Connection conn;
 		try
 		{
@@ -85,9 +79,6 @@ public class HierarchyTable extends AbstractTable
 					Arrays.asList(FIELD_PARENT, FIELD_CHILD)
 			);
 
-//			addForeignKey(FIELD_PARENT, manifest, ManifestTable.FIELD_ID);
-//			addForeignKey(FIELD_CHILD, manifest, ManifestTable.FIELD_ID);
-			
 			// index speeds up purgeByChild()
 			SQLUtils.createIndex(conn, schemaName, tableName, new String[]{FIELD_CHILD});
 		}
@@ -177,12 +168,13 @@ public class HierarchyTable extends AbstractTable
 			SQLUtils.cleanup(stmt);
 		}
 	}
-
+	
 	/**
-	 * @param child_ids A collection of child entity ids.
-	 * @return A collection of parent ids associated with the given child ids.
+	 * Gets a list of parent-child relationships for a set of entities.
+	 * @param ids A collection of entity IDs.
+	 * @return An ordered list of parent-child relationships involving the specified entities.
 	 */
-	public Collection<Integer> getParents(Collection<Integer> child_ids) throws RemoteException
+	public RelationshipList getRelationships(Collection<Integer> ids) throws RemoteException
 	{
 		ResultSet rs = null;
 		PreparedStatement stmt = null;
@@ -190,57 +182,36 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Set<Integer> parent_ids = new HashSet<Integer>();
-			if (child_ids.size() == 0)
-				return parent_ids;
+			RelationshipList result = new RelationshipList();
+			if (ids.size() == 0)
+				return result;
 			
 			// build query
+			String idList = Strings.join(",", ids);
 			query = String.format(
-					"SELECT * FROM %s WHERE %s IN (%s)",
+					"SELECT * FROM %s WHERE %s IN (%s) OR %s IN (%s) ORDER BY %s",
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-					SQLUtils.quoteSymbol(conn, FIELD_CHILD),
-					Strings.join(",", child_ids)
+					SQLUtils.quoteSymbol(conn, FIELD_PARENT), idList,
+					SQLUtils.quoteSymbol(conn, FIELD_CHILD), idList,
+					SQLUtils.quoteSymbol(conn, FIELD_ORDER)
 				);
 			stmt = conn.prepareStatement(query);
 			rs = stmt.executeQuery();
 			rs.setFetchSize(SQLResult.FETCH_SIZE);
 			while (rs.next())
-				parent_ids.add(rs.getInt(FIELD_PARENT));
-			
-			return parent_ids;
+				result.add(new Relationship(rs.getInt(FIELD_PARENT), rs.getInt(FIELD_CHILD)));
+			return result;
 		}
 		catch (SQLException e)
 		{
 			if (query != null)
 				e = new SQLExceptionWithQuery(query, e);
-			throw new RemoteException("Unable to retrieve parents.", e);
+			throw new RemoteException("Unable to retrieve relationships.", e);
 		}
 		finally
 		{
 			SQLUtils.cleanup(rs);
 			SQLUtils.cleanup(stmt);
-		}
-	}
-	/* getChildren(null) will return all ids that appear in the 'child' column */
-	public List<Integer> getChildren(int parent_id) throws RemoteException
-	{
-		try
-		{
-			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_PARENT, parent_id);
-			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, true);
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, FIELD_ORDER, Object.class);
-			List<Integer> children = new Vector<Integer>(rows.size());
-			for (Map<String,Object> row : rows)
-			{
-				Number child = (Number)row.get(FIELD_CHILD);
-				children.add(child.intValue());
-			}
-			return children;
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to retrieve children.", e);
 		}
 	}
 	
@@ -256,7 +227,7 @@ public class HierarchyTable extends AbstractTable
 			if (ids.size() == 0)
 				return result;
 			
-			// build query
+			// Note: This query is built dynamically based on the ids.  This is ok as long as they are Integers and not Strings.
 			String quotedParentField = SQLUtils.quoteSymbol(conn, FIELD_PARENT);
 			query = String.format(
 					"SELECT %s,count(*) FROM %s WHERE %s IN (%s) GROUP BY %s",
@@ -300,7 +271,9 @@ public class HierarchyTable extends AbstractTable
 				whereParams.put(FIELD_CHILD, child_id);
 			if (parent_id != NULL)
 				whereParams.put(FIELD_PARENT, parent_id);
-			WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, null, true);
+			WhereClause<Object> where = new WhereClauseBuilder<Object>(false)
+				.addGroupedConditions(whereParams, null)
+				.build(conn);
 			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)

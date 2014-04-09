@@ -26,7 +26,7 @@ package weave.data.AttributeColumns
 
 	public class KeyColumn extends AbstractAttributeColumn
 	{
-		public function KeyColumn(metadata:XML=null)
+		public function KeyColumn(metadata:Object = null)
 		{
 			super(metadata);
 		}

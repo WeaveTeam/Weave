@@ -47,6 +47,7 @@ import weave.utils.FileUtils;
 import weave.utils.MapUtils;
 import weave.utils.ProgressManager;
 import weave.utils.SQLUtils;
+import weave.utils.Strings;
 import weave.utils.XMLUtils;
 
 /**
@@ -412,16 +413,14 @@ public class ConnectionConfig
 		{
 		}
 		
-		private boolean isEmpty(String str) { return str == null || str.length() == 0; }
-		
 		public void validate() throws RemoteException
 		{
 			String missingField = null;
-			if (isEmpty(name))
+			if (Strings.isEmpty(name))
 				missingField = "name";
-			else if (isEmpty(pass))
+			else if (Strings.isEmpty(pass))
 				missingField = "password";
-			else if (isEmpty(connectString))
+			else if (Strings.isEmpty(connectString))
 				missingField = "connectString";
 			if (missingField != null)
 				throw new RemoteException(String.format("Connection %s must be specified", missingField));

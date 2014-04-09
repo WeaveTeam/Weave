@@ -26,83 +26,15 @@
 		 height="100%" width="100%"
 		 >
 	<TextInputWithPrompt id="searchTerm" width="100%" prompt="{prompt}" clear="search()" change="search()"/><!-- toolTip="would show tree as flat list with columns (date, creator, etc) that could be sorted" -->
-	<mx:Tree id="tree" dataProvider="{treeSource}" showRoot="false" width="100%" height="100%" dragEnabled="true" dragMoveEnabled="true"/>
-<!--
-	<mx:HBox height="100%" width="100%">
-		<mx:List id="list" dataProvider="{treeSource.children}" width="100%" height="100%" horizontalScrollPolicy="off">
-			<mx:itemRenderer>
-				<mx:Component>
-					<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" creationComplete="creationCompleteHandler(event)" >
-						<mx:Label text="{_label}" />
-						<mx:Button id="modButton" label="Modify" visible="false" />
-						<mx:Button id="delButton" label="Delete" visible="false" />
-						<mx:Script>
-							<![CDATA[
-								import mx.controls.Alert;
-								import mx.events.FlexEvent;
-								import mx.events.ListEvent;
-								
-								[Bindable] private var _label:String = "";
-								
-								override public function set data(value:Object):void
-								{
-									if( outerDocument.treeSource != null ) {
-										_label = value.label;
-									}
-									if(value == data)
-										return;
-									
-									super.data = value;
-								}
-								
-								private function handleRollOver(event:MouseEvent):void
-								{
-									modButton.visible = true;
-									delButton.visible = true;
-								}
-								private function handleRollOut(event:MouseEvent):void
-								{
-									modButton.visible = false;
-									delButton.visible = false;
-								}
-								private function handleModClick(event:MouseEvent):void
-								{
-									Alert.show("Mod Button", "ALERT");
-								}
-								private function handleDelClick(event:MouseEvent):void
-								{
-									Alert.show("Delete Button", "ALERT");
-								}
-								private function creationCompleteHandler(event:FlexEvent):void
-								{
-									addEventListener(MouseEvent.MOUSE_OVER, handleRollOver);
-									addEventListener(MouseEvent.MOUSE_OUT, handleRollOut);
-									modButton.addEventListener(MouseEvent.CLICK, handleModClick);
-									delButton.addEventListener(MouseEvent.CLICK, handleDelClick);
-								}
-
-							]]>
-						</mx:Script>
-					</mx:HBox>
-				</mx:Component>
-			</mx:itemRenderer>
-		</mx:List>
-	</mx:HBox>
-	-->
+	<CustomTree id="tree" dataProvider="{treeSource}" showRoot="false" width="100%" height="100%" dragEnabled="true" dragMoveEnabled="true"/>
 	
 <mx:Script>
 	<![CDATA[
-		import mx.collections.ArrayCollection;
-		import mx.utils.ObjectUtil;
-		[Bindable]
-		public var treeSource:Object = null;
 		
+		
+		[Bindable] public var treeSource:Object = null;
 		[Bindable] public var prompt:String = "Enter search text";
-                /**
-                 * This will set the treesource to a tree generated from a list of categories and columns.
-                 * @param categories A map of Objects with keys, "name", "parent_id"
-                 * @param columns A map of Objects with keys, "name", "parent_id"
-                 */
+		
 		/**
 		 * This will set the treeSource to a flat tree, generated from a list of labels.
 		 * @param labels A flat list of labels to use as items in the tree.
@@ -145,16 +77,9 @@
 		
 		private function search():void
 		{
-			if(searchTerm.text.length > 0)
-			{
-				tree.dataProvider = getFilteredTree(treeSource);
-//				list.dataProvider = getFilteredTree(treeSource.children);
-//				datagrid.dataProvider = getFilteredTree(treeSource.children);
-			}else{
-				tree.dataProvider = treeSource;
-//				list.dataProvider = treeSource.children;
-//				datagrid.dataProvider = treeSource.children;
-			}
+			tree.refreshDataProvider(getFilteredTree(treeSource) || []);
+			if (tree.selectedItem && !tree.itemToItemRenderer(tree.selectedItem))
+				tree.scrollToAndSelectMatchingItem(function(item:Object):Boolean { return tree.selectedItem == item; });
 		}
 		
 		private function clear():void
@@ -164,8 +89,8 @@
 		}
 		private function getFilteredTree(node:Object):Object
 		{
-			if (node == null)
-				return null;
+			if (!searchTerm.text || node == null)
+				return node;
 
 			var result:Object = {label: node.label, object: node.object, children: []};
 			

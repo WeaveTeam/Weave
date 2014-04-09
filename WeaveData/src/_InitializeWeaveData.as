@@ -45,7 +45,8 @@ package
 		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
 		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
 		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
-		
+		[Embed(source="WeavePathData.js", mimeType="application/octet-stream")]
+		public static const WeavePathData:Class;
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 		 */
@@ -54,11 +55,9 @@ package
 			"weave.data.AttributeColumns",
 			"weave.data.BinClassifiers",
 			"weave.data.BinningDefinitions",
-			"weave.data.ColumnReferences",
 			"weave.data.DataSources",
 			"weave.data.KeySets",
 			"weave.primitives",
-			"weave.Reports",
 			"weave.services.wms"
 		);
 	}

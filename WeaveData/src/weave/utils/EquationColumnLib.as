@@ -25,7 +25,6 @@ package weave.utils
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.StandardLib;
@@ -48,14 +47,6 @@ package weave.utils
 		 * This value should be set before calling any of the functions below that get values from IAttributeColumns.
 		 */
 		public static var currentRecordKey:IQualifiedKey = null;
-		
-		/**
-		 * @return columnReference.getAttributeColumn()
-		 */
-		public static function getReferencedColumn(columnReference:IColumnReference):IAttributeColumn
-		{
-			return WeaveAPI.AttributeColumnCache.getColumn(columnReference);
-		}
 		
 		/**
 		 * This function calls column.getValueFromKey(currentRecordKey, IQualifiedKey)

@@ -19,21 +19,16 @@
 
 package weave.data.AttributeColumns
 {
-	import flash.utils.getQualifiedClassName;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableString;
 	import weave.core.LinkableWatcher;
-	import weave.core.SessionManager;
 	import weave.utils.ColumnUtils;
 
 	/**

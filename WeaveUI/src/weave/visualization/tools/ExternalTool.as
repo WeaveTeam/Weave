@@ -22,6 +22,8 @@ package weave.visualization.tools
 	import weave.compiler.Compiler;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
+	import weave.utils.getExternalObjectID;
+	import weave.utils.EventUtils;
 
 	public class ExternalTool extends LinkableHashMap
 	{
@@ -32,7 +34,7 @@ package weave.visualization.tools
 		public function ExternalTool()
 		{
 			toolUrl = requestObject("toolUrl", LinkableString, true);
-			toolUrl.addImmediateCallback(this, toolPropertiesChanged);
+			toolUrl.addImmediateCallback(this, EventUtils.generateDelayedCallback(this, toolPropertiesChanged, 0));
 		}
 		private function toolPropertiesChanged():void
 		{
@@ -43,9 +45,10 @@ package weave.visualization.tools
 		}
 		public function launch():void
 		{
-			if (toolPath == null)
+			if (toolPath == null || windowName == null)
 			{
 				toolPath = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
+				toolPath.unshift(weave.utils.getExternalObjectID());
 				windowName = Compiler.stringify(toolPath);
 			}
 			WeaveAPI.executeJavaScript(
@@ -56,10 +59,7 @@ package weave.visualization.tools
 					features: "menubar=no,status=no,toolbar=no"
 				},
 				"if (!weave.external_tools) weave.external_tools = {};",
-				"weave.external_tools[windowName] = window.open(url, windowName, features);",
-				"console.log(toolPath);",
-				"weave.external_tools[windowName].toolPath = toolPath;",
-				"weave.external_tools[windowName].weave = weave;"
+				"weave.external_tools[windowName] = window.open(url, windowName, features);"
 			);
 		}
 		override public function dispose():void
@@ -67,8 +67,7 @@ package weave.visualization.tools
 			super.dispose();
 			WeaveAPI.executeJavaScript(
 				{windowName: windowName},
-				"if (weave.external_tools && weave.external_tools[windowName])\
-					weave.external_tools[windowName].close();"
+				"if (weave.external_tools && weave.external_tools[windowName]) weave.external_tools[windowName].close();"
 			);
 		}
 	}

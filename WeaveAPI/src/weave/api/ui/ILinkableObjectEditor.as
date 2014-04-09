@@ -20,9 +20,7 @@ package weave.api.ui
 	import weave.api.core.ILinkableObject;
 
 	/**
-	 * This is an interface to a LinkableObject Editor
-	 * 
-	 * @author skolman
+	 * This is an interface to an editor for an ILinkableObject.
 	 */
 	public interface ILinkableObjectEditor extends IUIComponent
 	{
@@ -40,7 +38,7 @@ package weave.api.ui
 		
 		/**
 		 * Applies any unsaved changes.
-		 */		
+		 */
 		function applyChanges():void;
 	}
 }

@@ -17,23 +17,15 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services.beans
+package weave.api.data
 {
 	public class EntityType
 	{
-		public static const ANY:int = -1;
-		public static const TABLE:int = 0;
-		public static const COLUMN:int = 1;
-		public static const HIERARCHY:int = 2;
-		public static const CATEGORY:int = 3;
+		public static const ALL_TYPES:Array = [TABLE, COLUMN, HIERARCHY, CATEGORY];
 		
-		public static function getTypeString(type:int):String
-		{
-			if (type == ANY)
-				return null;
-			var typeInts:Array = [TABLE, COLUMN, HIERARCHY, CATEGORY];
-			var typeStrs:Array = [lang('Table'), lang('Column'), lang('Hierarchy'), lang('Category')];
-			return typeStrs[typeInts.indexOf(type)];
-		}
+		public static const TABLE:String = 'table';
+		public static const COLUMN:String = 'column';
+		public static const HIERARCHY:String = 'hierarchy';
+		public static const CATEGORY:String = 'category';
 	}
 }

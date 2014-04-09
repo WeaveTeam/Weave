@@ -32,7 +32,8 @@ import java.util.Map;
 import java.util.Vector;
 
 /**
- * This is an all-static class containing functions to parse and generate valid CSV-encoded tables of Strings.
+ * Parses and generates CSV-encoded tables.
+ * Also supports custom delimiters and quotes.
  * 
  * @author adufilie
  */	
@@ -48,7 +49,8 @@ public class CSVParser
 	}
 
 	/**
-	 * This creates a CSVParser having a custom delimiter.
+	 * Use this to specify a custom delimiter.
+	 * @param delimiter The character used to separate values in a single line.
 	 */
 	public CSVParser(char delimiter)
 	{
@@ -56,7 +58,9 @@ public class CSVParser
 	}
 	
 	/**
-	 * This creates a CSVParser having a custom delimiter and quote symbol.
+	 * Use this to specify custom delimiter and quote symbols.
+	 * @param delimiter The character used to separate values in a single line.
+	 * @param quote The character used to surround values so that they may contain the delimiter.
 	 */
 	public CSVParser(char delimiter, char quote)
 	{

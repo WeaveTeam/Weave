@@ -19,7 +19,7 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" visible="false">
 	<mx:VBox width="100%" horizontalAlign="center">
 		<mx:Label id="title" text="{_fileName}" />
 		<mx:VBox>
@@ -43,6 +43,7 @@
 			import weave.compiler.StandardLib;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
+			import weave.services.beans.WeaveFileInfo;
 			import weave.utils.FileUtils;
 			
 			[Bindable] private var _fileName:String = "";
@@ -64,31 +65,21 @@
 			{
 				clearPreview();
 				_fileName = fileName;
-				addAsyncResponder(Admin.service.getWeaveFileInfo(fileName), handleInfo);
+				addAsyncResponder(Admin.service.getWeaveFileInfo(fileName), handleInfo, null, fileName);
 			}
-			private function handleInfo(event:ResultEvent, token:Object = null):void
+			private function handleInfo(event:ResultEvent, fileName:String):void
 			{
 				// ignore old requests
-				if (_fileName != event.result.fileName)
+				if (_fileName != fileName)
 					return;
+				
+				var info:WeaveFileInfo = WeaveFileInfo(event.result);
 				
 				visible = true;
 				
-				var _LM:Number = event.result.lastModified as Number;
-				var _FS:Number = event.result.fileSize as Number;
-				
-				if( event.result.thumb as ByteArray == null )
-				{
-					_thumbByteArray = null;
-					img.graphics.clear();
-				} 
-				else
-				{
-					_thumbByteArray = event.result.thumb as ByteArray;
-				}
-				
-				_lastMod = StandardLib.formatDate(_LM, "MM/DD/YYYY L:NN A", false);
-				_fileSize = FileUtils.parse(_FS, 2);
+				_thumbByteArray = info.thumb;
+				_lastMod = StandardLib.formatDate(info.lastModified, "MM/DD/YYYY L:NN A", false);
+				_fileSize = FileUtils.parse(info.fileSize, 2);
 			}
 			
 		]]>

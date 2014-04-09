@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.net.registerClassAlias;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -223,8 +224,6 @@ package weave.core
 		{
 			if (className)
 			{
-				className = _deprecatedClassReplacements[className] || className;
-				
 				// if no name is specified, generate a unique one now.
 				if (!name)
 					name = generateUniqueName(className.split("::").pop());
@@ -476,15 +475,6 @@ package weave.core
 			setNameOrder(newNameOrder);
 			
 			resumeCallbacks();
-		}
-		
-		private static const _deprecatedClassReplacements:Object = {};
-		/**
-		 * For backwards compatibility, registers a deprecated class with its replacement.
-		 */
-		public static function registerDeprecatedClassReplacement(deprecatedClassName:String, replacementClassName:String):void
-		{
-			_deprecatedClassReplacements[deprecatedClassName] = replacementClassName;
 		}
 	}
 }
