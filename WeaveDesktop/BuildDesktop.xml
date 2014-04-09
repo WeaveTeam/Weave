@@ -11,8 +11,8 @@
 		export ANT_OPTS='-XX:MaxPermSize=1024m -Xms256M -Xmx512M'
 		export FRAMEWORK=frameworks/air-config.xml
 
-		export AIR_CERT=~/IVPR/tmp/Weave/cert.p12
-		export AIR_CERT_PASS=i3weave
+		export AIR_CERT=~/PATH/TO/cert.p12
+		export AIR_CERT_PASS=PASSWORD
 
 		export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
 
