@@ -1239,6 +1239,50 @@ public class SQLUtils
 			cleanup(stmt);
 		}
 	}
+	
+	/**
+	 * Modifies a query so it will only return a single row.
+	 * @param dbms The target DBMS.
+	 * @param query A SQL Query.
+	 * @return The modified query.
+	 */
+	private static String limitQueryToOneRow(String dbms, String query)
+	{
+		if (dbms.equals(ORACLE))
+			return String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
+		
+		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL))
+			return query + " LIMIT 1";
+		
+		throw new InvalidParameterException("DBMS not supported: " + dbms);
+	}
+	private static String newIdClause(String dbms, String quotedIdField, String quotedTable)
+	{
+		if (dbms.equals(SQLSERVER))
+		{
+			return String.format(
+					"(SELECT TOP 1 CASE WHEN MAX(%s) IS NULL THEN 1 ELSE MAX(%s)+1 END FROM %s)",
+					quotedIdField,
+					quotedIdField,
+					quotedTable
+			);
+		}
+		
+		if (dbms.equals(ORACLE))
+		{
+			String query = String.format("SELECT MAX(%s)+1 FROM %s", quotedIdField, quotedTable);
+			query = limitQueryToOneRow(dbms, query);
+			return String.format("GREATEST(1, (%s))", query);
+		}
+		
+		// MySQL/PostgreSQL
+		return String.format(
+				"GREATEST(1, (SELECT MAX(%s)+1 FROM %s LIMIT 1))",
+				quotedIdField,
+				quotedTable
+			);
+	}
+	
 	/**
 	 * Generates a new id manually using MAX(idField)+1.
 	 * @param conn
@@ -1269,20 +1313,19 @@ public class SQLUtils
 		String quotedIdField = quoteSymbol(conn, idField);
 		String quotedTable = quoteSchemaTable(conn, schemaName, tableName);
 		
-		String newIdClause = String.format(
-				"GREATEST(1, (SELECT MAX(%s)+1 FROM %s))",
-				quotedIdField,
-				quotedTable
-			);
 		String fields_string = quotedIdField + "," + Strings.join(",", columns);
-		String values_string;
+		
+		String id_string;
 		if (isMySQL || isOracle)
-			values_string = Strings.mult(",", "?", values.size() + 1);
+			id_string = "?"; // we get the new id below and then give it as a param
 		else
-			values_string = newIdClause + "," + Strings.mult(",", "?", values.size());
+			id_string = newIdClause(dbms, quotedIdField, quotedTable);
 		
+		String values_string = id_string + "," + Strings.mult(",", "?", values.size());
+		
+		// build query
 		query = String.format("INSERT INTO %s (%s)", quotedTable, fields_string);
-		
+
 		if (isSQLServer)
 			query += String.format(" OUTPUT INSERTED.%s", quotedIdField);
 		
@@ -1300,11 +1343,12 @@ public class SQLUtils
 				{
 					String nextQuery = query;
 					
-					query = String.format("SELECT %s FROM %s", newIdClause, quotedTable);
-					if (isMySQL)
-						query += " LIMIT 1";
-					if (isOracle)
-						query = String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
+					query = String.format(
+							"SELECT %s FROM %s",
+							newIdClause(dbms, quotedIdField, quotedTable),
+							quotedTable
+						);
+					query = limitQueryToOneRow(dbms, query);
 					id = getSingleIntFromQuery(conn, query, 1);
 					
 					values.addFirst(id);
