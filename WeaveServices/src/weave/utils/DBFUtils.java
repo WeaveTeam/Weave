@@ -199,8 +199,9 @@ public class DBFUtils
 			// create the table
 			if (overwriteTables)
 				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
-			fieldNames.add(0, "the_geom_id");
-			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeyTypeString(conn));
+			final String ID_FIELD = "the_geom_id";
+			fieldNames.add(0, ID_FIELD);
+			fieldTypes.add(0, SQLUtils.getBigIntTypeString(conn) + " NOT NULL");
 
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes, null);
 			
@@ -213,6 +214,7 @@ public class DBFUtils
 				for (int r = 0; r < numRecords; r++)
 				{
 					Map<String,Object> record = new HashMap<String, Object>();
+					record.put(ID_FIELD, r);
 					Object[] entry = readers[f].readEntry();
 					for (int c = 0; c < numFields; c++)
 					{
