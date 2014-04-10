@@ -62,6 +62,8 @@ public class SQLUtils
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
 	
+	public static String DEFAULT_SQLITE_DATABASE = "sqlite_master";
+	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @return A driver name that can be used in the getConnection() function.
@@ -449,11 +451,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = '`';
 		}
-		else if (dbms.equalsIgnoreCase(SQLITE) )
-		{
-			openQuote = closeQuote = '\'';
-		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = '"';
 		}
@@ -517,6 +515,7 @@ public class SQLUtils
 	
 	/**
 	 * This will wrap a query expression in a string cast.
+	 * If the database is not supported by this function, the queryExpression will not be altered.
 	 * @param conn An SQL Connection.
 	 * @param queryExpression An expression to be used in a SQL Query.
 	 * @return The query expression wrapped in a string cast.
@@ -526,10 +525,8 @@ public class SQLUtils
 		String dbms = getDbmsFromConnection(conn);
 		if (dbms.equals(MYSQL))
 			return String.format("cast(%s as char)", queryExpression);
-		if (dbms.equals(POSTGRESQL))
+		if (dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
 			return String.format("cast(%s as varchar)", queryExpression);
-		if (dbms.equals(SQLITE))
-			return String.format("cast(%s as text)", queryExpression);
 		
 		// dbms type not supported by this function yet
 		return queryExpression;
@@ -1062,7 +1059,38 @@ public class SQLUtils
 		return columns;
 	}
 	
+	// not implemented by SQLite JDBC driver
+	/* *
+	 * Attaches a database to an SQLite instance.
+	 * @param conn A SQLite connection.
+	 * @param databaseName The name of the database.
+	 * @param filePath The path to the file where the database either exists or should be created.
+	 * @throws SQLException
+	 * /
+	public static void createSQLiteDatabase(Connection conn, String databaseName, String filePath) throws SQLException
+	{
+		if (SQLUtils.schemaExists(conn, databaseName))
+			return;
+		
+		String query = String.format("ATTACH DATABASE ? AS %s", quoteSymbol(conn, databaseName));
+		PreparedStatement stmt = null;
+		try
+		{
+			stmt = prepareStatement(conn, query, new String[]{ filePath });
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}*/
+	
 	/**
+	 * Creates a schema in a non-SQLite database.  For SQLite, this does nothing.
 	 * @param conn An existing SQL Connection
 	 * @param schema The value to be used as the Schema name
 	 * @throws SQLException If the query fails.
@@ -1070,10 +1098,13 @@ public class SQLUtils
 	public static void createSchema(Connection conn, String schema)
 		throws SQLException
 	{
+		if (isSQLite(conn))
+			return;
+		
 		if (SQLUtils.schemaExists(conn, schema))
 			return;
 
-		String query = "CREATE SCHEMA " + schema;
+		String query = String.format("CREATE SCHEMA %s", schema);
 		Statement stmt = null;
 		try
 		{
@@ -1282,13 +1313,23 @@ public class SQLUtils
 		if (dbms.equals(ORACLE))
 			return String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
 		
-		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL))
+		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
 			return query + " LIMIT 1";
 		
 		throw new InvalidParameterException("DBMS not supported: " + dbms);
 	}
 	private static String newIdClause(String dbms, String quotedIdField, String quotedTable)
 	{
+		if (dbms.equals(SQLITE))
+		{
+			return String.format(
+					"(SELECT CASE WHEN MAX(%s) IS NULL THEN 1 ELSE MAX(%s)+1 END FROM %s LIMIT 1)",
+					quotedIdField,
+					quotedIdField,
+					quotedTable
+			);
+		}
+		
 		if (dbms.equals(SQLSERVER))
 		{
 			return String.format(
@@ -1331,6 +1372,8 @@ public class SQLUtils
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
 		boolean isPostgreSQL = dbms.equals(POSTGRESQL);
+		boolean isSQLite = dbms.equals(SQLITE);
+		boolean useTwoQueries = isMySQL || isOracle || isSQLite;
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
@@ -1347,7 +1390,7 @@ public class SQLUtils
 		String fields_string = quotedIdField + "," + Strings.join(",", columns);
 		
 		String id_string;
-		if (isMySQL || isOracle)
+		if (useTwoQueries)
 			id_string = "?"; // we get the new id below and then give it as a param
 		else
 			id_string = newIdClause(dbms, quotedIdField, quotedTable);
@@ -1370,7 +1413,7 @@ public class SQLUtils
 			int id;
 			synchronized (conn)
 			{
-				if (isMySQL || isOracle)
+				if (useTwoQueries)
 				{
 					String nextQuery = query;
 					
@@ -1448,7 +1491,7 @@ public class SQLUtils
 	 * @param conn A SQL Connection.
 	 * @return A value of true if the Connection is for a SQLite Server.
 	 */
-	public static boolean isSQLiteServer(Connection conn)
+	public static boolean isSQLite(Connection conn)
 	{
 		return getDbmsFromConnection(conn).equals(SQLITE);
 	}
@@ -1796,14 +1839,21 @@ public class SQLUtils
 
 	/**
 	 * This will escape special characters in a SQL search string.
+	 * Not reliable on SQLite since there is no escape character.
 	 * @param conn A SQL Connection.
 	 * @param searchString A SQL search string containing special characters to be escaped.
 	 * @return The searchString with special characters escaped.
 	 * @throws SQLException 
 	 */
-	public static String escapeSearchString(Connection conn, String searchString) throws SQLException
+	private static String escapeSearchString(Connection conn, String searchString) throws SQLException
 	{
 		String escape = conn.getMetaData().getSearchStringEscape();
+		
+		if (escape == null)
+		{
+			return searchString;
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		int n = searchString.length();
 		for (int i = 0; i < n; i++)
