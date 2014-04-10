@@ -60,6 +60,9 @@ Author: skolman
 			
 			private function login():void
 			{
+				if (!connectionInput.text && !passwordInput.text)
+					return;
+				
 				// disable while authenticating
 				enabled = false;
 				
