@@ -214,7 +214,7 @@ public class DBFUtils
 				for (int r = 0; r < numRecords; r++)
 				{
 					Map<String,Object> record = new HashMap<String, Object>();
-					record.put(ID_FIELD, r);
+					record.put(ID_FIELD, r + 1);
 					Object[] entry = readers[f].readEntry();
 					for (int c = 0; c < numFields; c++)
 					{
