@@ -105,7 +105,7 @@
 			<ui:IndentTextInput label="{lang('Password')}" id="migratePasswordInput" displayAsPassword="true"/>
 			<ui:IndentTextInput label="{lang('Schema to use')}" id="migrateSchemaInput" text="{Admin.instance.databaseConfigInfo.schema}"/>
 			<ui:Paragraph trim="false"
-						  text="{lang('The following tables will be created in the schema specified above:\n    weave_hierarchy, weave_meta_private, weave_meta_public\nIf they already exist, no changes will be made.')}"/>
+						  text="{lang('The following tables will be created{0}:\n    weave_hierarchy, weave_meta_private, weave_meta_public\nIf they already exist, no changes will be made.', migrateSchemaInput.visible ? ' in the schema specified above' : '')}"/>
 			<mx:Button id="migrateButton" label="{lang('Store Weave configuration at this location')}" click="saveDatabaseConfigInfo()" />
 		</mx:VBox>
 	</mx:Canvas>

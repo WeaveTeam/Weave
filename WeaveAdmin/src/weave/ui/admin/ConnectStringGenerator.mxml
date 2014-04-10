@@ -127,7 +127,7 @@
 				else
 					host = ip + ":" + port;
 				
-				// in format strings: 0=dbms,1=host,2=database,3=user,4=pass
+				// in format strings: {0}=dbms,{1}=host,{2}=database,{3}=user,{4}=pass
 				
 				var format:String = null;
 				if (dbms == ConnectionInfo.SQLSERVER)
