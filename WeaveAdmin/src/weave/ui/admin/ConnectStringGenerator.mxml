@@ -33,8 +33,7 @@
 	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="false" includeInLayout="false">
 		<mx:TextInput id="sqliteDBFile" change="{generate()}" width="130" />
 		<ui:HelpComponent id="sqliteDBHelp">
-			Please enter the canonical file path of the SQLite Database file.
-			You may copy and paste directly into this text input field.
+			Enter the absolute file path of the SQLite Database file on the server.
 		</ui:HelpComponent>
 	</ui:Indent>
 	<ui:IndentTextInput label="{lang('Server IP')}" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
