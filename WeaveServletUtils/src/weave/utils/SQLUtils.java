@@ -1949,9 +1949,6 @@ public class SQLUtils
 				return "\\N";
 			else if (dbms.equals(POSTGRESQL) || dbms.equals(SQLSERVER) || dbms.equals(ORACLE))
 				return ""; // empty string (no quotes)
-			else if(dbms.equals(SQLITE))
-				//Need to test this.
-				return "NULL";
 			else
 				throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 		}
