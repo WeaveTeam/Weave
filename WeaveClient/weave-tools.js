@@ -72,6 +72,38 @@ function queryDataService(method, params, resultHandler, queryId)
 }
 
 /**
+ * Gets a complete tree of Entity objects.
+ * @param dataServiceUrl The URL to the Weave data service, such as "/WeaveServices/DataService".
+ * @param rootEntityId The ID of a Weave entity.
+ * @param callback A function which will receive the root Entity object with a 'children' property
+ *                 which will be an Array of child Entity objects, also having 'children' properties, and so on.
+ */
+function getEntityTree(dataServiceUrl, rootEntityId, callback)
+{
+	var lookup = {};
+	function cacheEntityTree(ids) {
+		queryService(dataServiceUrl, 'getEntities', [ids], function(entities) {
+			// compile a list of all child ids
+			var allChildIds = [];
+			entities.forEach(function(entity) {
+				lookup[entity.id] = entity;
+				allChildIds = allChildIds.concat(entity.childIds);
+			});
+			// filter out cached ids
+			allChildIds = allChildIds.filter(function(id) { return !lookup[id]; });
+			// recursive call if we are still missing some entities
+			if (allChildIds.length)
+				return cacheEntityTree(allChildIds);
+			// all done, so fill in 'children' property of all entities and return the root entity
+			for (var id in lookup)
+				lookup[id].children = lookup[id].childIds.map(function(id){ return lookup[id]; });
+			callback(lookup[rootEntityId]);
+		});
+	}
+	cacheEntityTree([rootEntityId], callback);
+}
+
+/**
  * This will find a column using its title and its parent table's title as search criteria.
  * Note that title metadata can be changed by the admin, and there is nothing preventing multiple columns or tables from having identical titles.
  * If there are multiple data tables with the same title, only the last matching table will be checked.
