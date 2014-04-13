@@ -34,7 +34,7 @@
 			</mx:HBox>
 			<mx:Button id="minusButton" width="{minusButton.height}"
 					   toolTip="{lang('Hide Custom Hierarchies')}"
-					   click="hierarchyDiv.width = plusButton.height;"
+					   click="hierarchyDiv.width = plusButton.height; hierarchyTree.selectedItem = null; this.selectedItems = tableTree.selectedItems;"
 					   icon="@Embed(source='/weave/resources/images/minus.png')"/>
 			<mx:Button id="plusButton" width="{plusButton.height}" visible="false"
 					   toolTip="{lang('Show Custom Hierarchies')}"
