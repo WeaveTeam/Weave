@@ -298,6 +298,7 @@ import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.events.ProgressEvent;
 import flash.events.SecurityErrorEvent;
+import flash.external.ExternalInterface;
 import flash.net.URLLoader;
 import flash.net.URLRequest;
 import flash.utils.ByteArray;
@@ -316,6 +317,7 @@ import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
 import weave.compiler.StandardLib;
 import weave.services.URLRequestUtils;
+import weave.services.jquery.JQueryCaller;
 
 internal class CustomURLLoader extends URLLoader
 {
@@ -518,7 +520,7 @@ internal class CustomURLLoader extends URLLoader
 	private function handleSecurityError(event:SecurityErrorEvent):void
 	{
 		fixErrorMessage(event);
-		if (false)
+		if (ExternalInterface.available)
 		{
 			// call the JQueryCaller to use JQuery to try to download a file that we had a security error
 			// on - this is to get around the Flash player's security restrictions for downloading files
@@ -526,7 +528,7 @@ internal class CustomURLLoader extends URLLoader
 			/** NOTE: this will not work for anything other than text data - it can be used to access data
 			 *        in formats such as XML from a server that does not have a crossdomain.xml that is 
 			 *        permissive, this will NOT work for binary data such as images **/
-			//JQueryCaller.getFileFromURL(_urlRequest.url, _asyncToken);
+			JQueryCaller.getFileFromURL(_urlRequest.url, _asyncToken);
 		}
 		else
 		{
