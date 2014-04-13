@@ -71,12 +71,7 @@
 			
 			[Bindable] public var connectString:String = '';
 			
-			private function get hostUrl():String
-			{
-				return URLUtil.getServerName(WeaveAPI.topLevelApplication.url);
-			}
-			
-			private const hostIP:String = hostUrl.split(':')[0];
+			private const hostIP:String = URLUtil.getServerName(WeaveAPI.topLevelApplication.url);
 			
 			public function resetFields(resetConnectString:Boolean = true):void
 			{
