@@ -28,7 +28,7 @@
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
 	<ui:Indent label="{lang('Server Type')}" group="{indentGroup}">
-		<ui:CustomComboBox id="dbmsCombo" change="{generate()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
+		<ui:CustomComboBox id="dbmsCombo" valueCommit="generate()" change="generate()" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 	</ui:Indent>
 	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="false" includeInLayout="false">
 		<mx:TextInput id="sqliteDBFile" change="{generate()}" width="130" />
@@ -58,10 +58,13 @@
 	<ui:IndentTextInput label="Password" id="passInput" change="{generate()}" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.core.UIComponent;
+			import mx.utils.URLUtil;
+			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
-			import weave.compiler.StandardLib;
 			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.services.beans.ConnectionInfo;
 			
 			[Bindable] public var indentGroup:Object = this;
@@ -70,9 +73,7 @@
 			
 			private function get hostUrl():String
 			{
-				var result:Array = WeaveAPI.topLevelApplication.url.split("http://");
-				result = (result.pop() as String).split("/");
-				return result[0] as String;
+				return URLUtil.getServerName(WeaveAPI.topLevelApplication.url);
 			}
 			
 			private const hostIP:String = hostUrl.split(':')[0];
@@ -80,6 +81,7 @@
 			public function resetFields(resetConnectString:Boolean = true):void
 			{
 				dbmsCombo.selectedIndex = 0;
+				sqliteDBFile.text = "";
 				ipInput.text = hostIP;
 				databaseInput.text = "";
 				userInput.text = "";
@@ -96,12 +98,16 @@
 					return;
 				}
 				
-				if( dbmsCombo.text == ConnectionInfo.SQLITE ) 
+				var isSQLite:Boolean = dbmsCombo.text == ConnectionInfo.SQLITE;
+				if (isSQLite)
 					connectString = getConnectString(dbmsCombo.text, "", "", sqliteDBFile.text, "", "");
 				else
 					connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
 					
-				isSQLiteSelected( dbmsCombo.text == ConnectionInfo.SQLITE );
+				sqliteIndent.visible = sqliteIndent.includeInLayout = isSQLite;
+				for each (var o:UIComponent in [ipInput, portInput, sqlDatabaseName, databaseInput, userInput, passInput])
+					o.visible = o.includeInLayout = !isSQLite;
+				
 				triggerCallbacks();
 			}
 			
@@ -162,17 +168,6 @@
 				var result:String = StandardLib.substitute(format, dbms.toLowerCase(), host, database, user, pass);
 				
 				return result;
-			}
-			
-			private function isSQLiteSelected( bool:Boolean ):void
-			{
-				sqliteIndent.visible = bool;		sqliteIndent.includeInLayout = bool;
-				ipInput.visible = !bool;			ipInput.includeInLayout = !bool;
-				portInput.visible = !bool;			portInput.includeInLayout = !bool;
-				sqlDatabaseName.visible = !bool;	sqlDatabaseName.includeInLayout = !bool;
-				databaseInput.visible = !bool;		databaseInput.includeInLayout = !bool;
-				userInput.visible = !bool;			userInput.includeInLayout = !bool;
-				passInput.visible = !bool;			passInput.includeInLayout = !bool;
 			}
 		]]>
 	</mx:Script>
