@@ -31,15 +31,15 @@
 		<ui:CustomComboBox id="dbmsCombo" valueCommit="generate()" change="generate()" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 	</ui:Indent>
 	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="false" includeInLayout="false">
-		<mx:TextInput id="sqliteDBFile" change="{generate()}" width="130" />
+		<mx:TextInput id="sqliteDBFile" change="generate()" width="130" />
 		<ui:HelpComponent id="sqliteDBHelp">
 			Enter the absolute file path of the SQLite Database file on the server.
 		</ui:HelpComponent>
 	</ui:Indent>
-	<ui:IndentTextInput label="{lang('Server IP')}" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="{lang('Server IP')}" id="ipInput" change="generate()" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="generate()" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
 	<ui:Indent id="sqlDatabaseName" label="{dbmsCombo.text == ConnectionInfo.SQLSERVER ? 'Instance name' : 'Database name'}" group="{indentGroup}">
-		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
+		<mx:TextInput id="databaseInput" change="generate()" width="130"/>
 		<mx:Label id="optionalText" text="(Optional)" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}"/>
 		<ui:HelpComponent id="optionalHelp" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}">
 			This field is optional.
@@ -54,8 +54,8 @@
 			If there is no instance name for your server, you may leave this blank.
 		-->
 	</ui:Indent>
-	<ui:IndentTextInput label="User Name" id="userInput" change="{generate()}" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="Password" id="passInput" change="{generate()}" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="User Name" id="userInput" change="generate()" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="Password" id="passInput" change="generate()" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
