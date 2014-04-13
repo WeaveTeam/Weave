@@ -30,6 +30,7 @@ package weave.ui
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
 	import mx.events.ListEvent;
+	import mx.events.TreeEvent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.utils.EventUtils;
@@ -392,6 +393,38 @@ package weave.ui
 			// Also note that the same behavior occurs when using the left and right arrow keys.
 			if (item && dataDescriptor.isBranch(item, iterator.view))
 				expandItem(item, !isItemOpen(item));
+		}
+		
+		/**
+		 * If set to true, a collapsed item becomes selected when it causes selected items to become hidden.
+		 */
+		public function set handleCollapseSelection(value:Boolean):void
+		{
+			if (value)
+				this.addEventListener(TreeEvent.ITEM_CLOSE, handleItemCollapse);
+			else
+				this.removeEventListener(TreeEvent.ITEM_CLOSE, handleItemCollapse);
+		}
+		private function handleItemCollapse(event:TreeEvent):void
+		{
+			// if collapsing a node would make the current selection disappear, select the collapsing node
+			if (isItemDescendantSelected(event.item))
+				selectedItem = event.item;
+		}
+		
+		/**
+		 * Checks if there are any selected items in the descendants of an item.
+		 * Only expanded items will be considered when checking descendants.
+		 * @param item The item.
+		 * @return true if there is a descendant item selected and shown.
+		 */
+		public function isItemDescendantSelected(item:Object):Boolean
+		{
+			for each (var child:Object in _dataDescriptor.getChildren(item, iterator.view))
+				if (isItemSelected(child) || (isItemOpen(child) && isItemDescendantSelected(child)))
+					return true;
+			
+			return false;
 		}
 	}
 }

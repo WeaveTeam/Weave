@@ -15,6 +15,7 @@
         <ui:WeaveTree id="tableTree" width="100%" height="100%"
 					  rootNode="{new EntityNode(Admin.entityCache, EntityType.TABLE)}"
 					  nodeFilter="{filterTableTreeNodes}"
+					  handleCollapseSelection="true"
 					  dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
@@ -42,8 +43,9 @@
 		</mx:HBox>
 		<mx:VBox height="100%" width="100%" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}">
 	        <ui:WeaveTree id="hierarchyTree" width="100%" height="100%"
-						   rootNode="{new EntityNode(Admin.entityCache, EntityType.HIERARCHY)}"
-						   dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
+						  rootNode="{new EntityNode(Admin.entityCache, EntityType.HIERARCHY)}"
+						  handleCollapseSelection="true"
+						  dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
 	        <mx:HBox width="100%">
 		        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
 	            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
@@ -54,6 +56,7 @@
 	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>
 <![CDATA[
+	import mx.events.FlexEvent;
 	import mx.events.ListEvent;
 	import mx.rpc.events.ResultEvent;
 	
@@ -97,6 +100,10 @@
 		
         tableTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
         hierarchyTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
+		
+		// valueCommit occurs when selectedItem is set through code.
+        tableTree.addEventListener(FlexEvent.VALUE_COMMIT, selectionsChanged);
+        hierarchyTree.addEventListener(FlexEvent.VALUE_COMMIT, selectionsChanged);
 		
 		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, function():void { filterByTableIdLookup = null; });
 		
@@ -323,7 +330,7 @@
    	    categoryNameInput.text = "";
 		hierarchyTree.expandItem(node, true); // expand so new child can be selected
     }
-    public function selectionsChanged(event:ListEvent):void
+    public function selectionsChanged(event:Event):void
     {
 		var tree:WeaveTree = event.currentTarget as WeaveTree;
 		var otherTree:WeaveTree = tree === tableTree ? hierarchyTree : tableTree;
