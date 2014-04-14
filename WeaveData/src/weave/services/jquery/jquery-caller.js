@@ -6,10 +6,26 @@ WeaveJQueryCaller.getFile = function (url, id) {
 			type: "GET",
 			dataType: "text",
 			success: function( data, textStatus, jqXHR ) {
-				weave.jqueryResult(id, data);
+				try
+				{
+					//console.log('success', arguments);
+					weave.jqueryResult(id, data);
+				}
+				catch (e)
+				{
+					console.log("Unable to pass result to Weave", arguments, e);
+				}
 			},
 			error: function (qXHR, textStatus, errorThrown) {
-				weave.jqueryFault(id, errorThrown);
+				try
+				{
+					//console.log('error', arguments);
+					weave.jqueryFault(id, qXHR, textStatus, errorThrown);
+				}
+				catch (e)
+				{
+					console.log("Unable to pass error to Weave", arguments, e);
+				}
 			}
 		});
 }

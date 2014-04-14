@@ -189,7 +189,9 @@ package weave.data.DataSources
 		 */
 		public function refreshHierarchy():void
 		{
+			_rootNode = null;
 			_attributeHierarchy.setSessionState(null);
+			getCallbackCollection(this).triggerCallbacks();
 		}
 
 		protected var _rootNode:IWeaveTreeNode;

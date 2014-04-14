@@ -301,6 +301,7 @@ import flash.events.SecurityErrorEvent;
 import flash.external.ExternalInterface;
 import flash.net.URLLoader;
 import flash.net.URLRequest;
+import flash.net.URLVariables;
 import flash.utils.ByteArray;
 
 import mx.core.mx_internal;
@@ -528,7 +529,10 @@ internal class CustomURLLoader extends URLLoader
 			/** NOTE: this will not work for anything other than text data - it can be used to access data
 			 *        in formats such as XML from a server that does not have a crossdomain.xml that is 
 			 *        permissive, this will NOT work for binary data such as images **/
-			JQueryCaller.getFileFromURL(_urlRequest.url, _asyncToken);
+			var url:String = _urlRequest.url;
+			if (_urlRequest.data is URLVariables)
+				url += "?" + _urlRequest.data;
+			JQueryCaller.getFileFromURL(url, _asyncToken);
 		}
 		else
 		{

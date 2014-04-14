@@ -28,16 +28,18 @@ package weave.services.jquery
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.Base64Decoder;
+	import mx.utils.ObjectUtil;
 	import mx.utils.UIDUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.reportError;
 
 	public class JQueryCaller
 	{
 		[Embed(source="jquery-caller.js", mimeType="application/octet-stream")]
-		private static const JQCaller:Class;
+		private static const JS_jquery_caller:Class;
 		[Embed(source="jquery-1.7.1.min.js", mimeType="application/octet-stream")]
-		private static const JQ:Class;
+		private static const JS_jquery:Class;
 		
 		/**
 		 * This maps a unique ID (generated when a request is made to download from a URL through this class)
@@ -54,14 +56,8 @@ package weave.services.jquery
 			
 			try
 			{
-				// load the embedded jquery javascript file so it can be used as any other loaded
-				// javascript file would
-				var jq:String = String(new JQ());
-				ExternalInterface.call('function(){' + jq + '}');
-				
-				// do the same for the javascript file that makes use of jquery
-				var jqc:String = String(new JQCaller());
-				ExternalInterface.call('function(){' + jqc + '}');
+				// execute embedded scripts
+				WeaveAPI.executeJavaScript(new JS_jquery(), new JS_jquery_caller());
 				
 				// expose the result and fault callbacks for javascript to use by jquery
 				ExternalInterface.addCallback("jqueryResult", jqueryResult);
@@ -82,7 +78,7 @@ package weave.services.jquery
 			var uniqueID:String = UIDUtil.createUID();
 			uniqueIDToTokenMap[uniqueID] = new QueryToken(url, token);
 			
-			ExternalInterface.call("WeaveJQueryCaller.getFile('"+url+"', '"+uniqueID+"')");
+			ExternalInterface.call("WeaveJQueryCaller.getFile", url, uniqueID);
 		}
 		
 		public static function jqueryResult(id:String, data:Object):void
@@ -95,12 +91,13 @@ package weave.services.jquery
 			delete uniqueIDToTokenMap[id];
 		}
 		
-		public static function jqueryFault(id:String, errorThrown:Object):void
+		public static function jqueryFault(id:String, qXHR:Object, textStatus:String, errorThrown:Object):void
 		{
 			var qt:QueryToken = uniqueIDToTokenMap[id] as QueryToken;
 			
-			var fault:Fault = new Fault(SecurityErrorEvent.SECURITY_ERROR, SecurityErrorEvent.SECURITY_ERROR, "JQuery failed to download from url.");
+			var fault:Fault = new Fault(SecurityErrorEvent.SECURITY_ERROR, SecurityErrorEvent.SECURITY_ERROR, "JQuery failed to download from url: " + qt.url);
 			fault.rootCause = errorThrown;
+			fault.content = qXHR.responseText;
 			qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
 			trace("FAULT! getting " + qt.url);
 			
