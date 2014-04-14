@@ -230,7 +230,7 @@ package weave
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
 		// Collaboration
-		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(true); // collaboration menu bar (bottom of screen)
+		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar (bottom of screen)
 		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(false); // menu item
 		public const collabServerIP:LinkableString = new LinkableString("129.63.16.54");
 		public const collabServerName:LinkableString = new LinkableString("weave-demo");

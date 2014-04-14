@@ -400,6 +400,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				disConButtonPushed = true;
 				disconnect();
 				resetUserMice();
+				//Need to callLater due to a race condition existing.
+				callLater(closeChildren);					
+			}
+			
+			/*
+			* Function for closing the extra windows added. Needs to be used with callLater to account for frame later value changes.
+			*/
+			private function closeChildren():void
+			{
 				if(CHAT)
 				{
 					PopUpManager.removePopUp(CHAT);
@@ -415,7 +424,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					PopUpManager.removePopUp(PARTICIPANTS);
 					PARTICIPANTS = null;
 				}
-					
 			}
 			
 			private function connect(e:CollaborationEvent = null):void
