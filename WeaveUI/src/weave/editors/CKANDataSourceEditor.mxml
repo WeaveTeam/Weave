@@ -63,6 +63,7 @@
 				
 				if (_dataSource)
 				{
+					sourceName.text = WeaveAPI.globalHashMap.getName(_dataSource);
 					url.text = _dataSource.url.value;
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");

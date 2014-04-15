@@ -30,6 +30,7 @@ package weave.services.jquery
 	import mx.utils.Base64Decoder;
 	import mx.utils.ObjectUtil;
 	import mx.utils.UIDUtil;
+	import mx.utils.URLUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
@@ -71,37 +72,46 @@ package weave.services.jquery
 			}
 		}
 		
-		public static function getFileFromURL(url:String, token:AsyncToken):void
+		public static function getFileFromURL(url:String, token:AsyncToken, onFail:Function):void
 		{
 			initialize();
 				
 			var uniqueID:String = UIDUtil.createUID();
-			uniqueIDToTokenMap[uniqueID] = new QueryToken(url, token);
+			uniqueIDToTokenMap[uniqueID] = new QueryToken(url, token, onFail);
 			
 			ExternalInterface.call("WeaveJQueryCaller.getFile", url, uniqueID);
 		}
 		
-		public static function jqueryResult(id:String, data:Object):void
+		public static function jqueryResult(id:String, data:String, base64encoded:Boolean, success:Boolean):void
 		{
-			trace("RESULT!", data);
 			var qt:QueryToken = uniqueIDToTokenMap[id] as QueryToken;
-
-			qt.asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data, qt.asyncToken));
-			
 			delete uniqueIDToTokenMap[id];
+			
+			if (!success)
+			{	
+				qt.onFail();
+				return;
+			}
+			
+			if (base64encoded)
+			{
+				var decoder:Base64Decoder = new Base64Decoder();
+				decoder.decode(data);
+				data = decoder.flush().toString();
+			}
+			qt.asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data, qt.asyncToken));
 		}
 		
-		public static function jqueryFault(id:String, qXHR:Object, textStatus:String, errorThrown:Object):void
+		public static function jqueryFault(id:String, jqXHR:Object, textStatus:String, errorThrown:String):void
 		{
 			var qt:QueryToken = uniqueIDToTokenMap[id] as QueryToken;
-			
-			var fault:Fault = new Fault(SecurityErrorEvent.SECURITY_ERROR, SecurityErrorEvent.SECURITY_ERROR, "JQuery failed to download from url: " + qt.url);
-			fault.rootCause = errorThrown;
-			fault.content = qXHR.responseText;
-			qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
-			trace("FAULT! getting " + qt.url);
-			
 			delete uniqueIDToTokenMap[id];
+			
+			var fault:Fault = new Fault(SecurityErrorEvent.SECURITY_ERROR, SecurityErrorEvent.SECURITY_ERROR, "Cross-domain access is not permitted for URL: " + qt.url);
+			fault.rootCause = errorThrown;
+			fault.content = jqXHR.responseText;
+			qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
+			//trace("FAULT! getting " + qt.url);
 		}
 	}
 }
@@ -109,12 +119,14 @@ import mx.rpc.AsyncToken;
 
 internal class QueryToken
 {
-	public function QueryToken(url:String, asyncToken:AsyncToken)
+	public function QueryToken(url:String, asyncToken:AsyncToken, onFail:Function)
 	{
 		this.url = url;
 		this.asyncToken = asyncToken;
+		this.onFail = onFail;
 	}
 	
 	public var url:String;
 	public var asyncToken:AsyncToken;
+	public var onFail:Function;
 }

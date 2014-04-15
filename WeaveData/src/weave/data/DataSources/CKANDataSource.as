@@ -72,7 +72,7 @@ package weave.data.DataSources
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!(_rootNode is CKANAction))
-				_rootNode = new CKANAction(this, CKANAction.PACKAGE_LIST);
+				_rootNode = new CKANAction(this);
 			return _rootNode;
 		}
 		
@@ -89,7 +89,8 @@ package weave.data.DataSources
 			if (!internalNode)
 				return null;
 			
-			var node:CKANAction = new CKANAction(this, CKANAction.GET_COLUMN);
+			var node:CKANAction = new CKANAction(this);
+			node.action = CKANAction.GET_COLUMN;
 			node.params = {};
 			node.params[PARAMS_CKAN_ID] = metadata[PARAMS_CKAN_ID];
 			node.params[PARAMS_CKAN_URL] = metadata[PARAMS_CKAN_URL];
@@ -188,6 +189,10 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 {
 	public static const PACKAGE_LIST:String = 'package_list';
 	public static const PACKAGE_SHOW:String = 'package_show';
+	public static const GROUP_LIST:String = 'group_list';
+	public static const GROUP_SHOW:String = 'group_show';
+	public static const TAG_LIST:String = 'tag_list';
+	public static const TAG_SHOW:String = 'tag_show';
 	
 	public static const GET_DATASOURCE:String = 'get_datasource';
 	public static const GET_COLUMN:String = 'get_column';
@@ -210,10 +215,9 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	
 	private var _result:Object = {};
 	
-	public function CKANAction(source:CKANDataSource, action:String)
+	public function CKANAction(source:CKANDataSource)
 	{
 		this.source = source;
-		this.action = action;
 	}
 	
 	/**
@@ -223,7 +227,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	{
 		if (detectLinkableObjectChange(this, source.url))
 		{
-			if (action == PACKAGE_LIST || action == PACKAGE_SHOW)
+			if ([PACKAGE_LIST, PACKAGE_SHOW, GROUP_LIST, GROUP_SHOW, TAG_LIST, TAG_SHOW].indexOf(action) >= 0)
 			{
 				// make CKAN API request
 				_result = {};
@@ -299,11 +303,20 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (internalNode)
 			return internalNode.getLabel();
 		
-		if (action == PACKAGE_LIST)
+		if (!action)
 			return WeaveAPI.globalHashMap.getName(source);
 		
-		if (action == PACKAGE_SHOW)
-			return result['title'] || result['name'] || params['id'];
+		if (action == PACKAGE_LIST)
+			return lang("Datsets");
+		if (action == GROUP_LIST)
+			return lang("Groups");
+		if (action == TAG_LIST)
+			return lang("Tags");
+		
+		if (action == PACKAGE_SHOW || action == GROUP_SHOW || action == TAG_SHOW)
+			return metadata['name'] || metadata['description'] || metadata['url']
+				|| result['title'] || result['display_name'] || result['name']
+				|| params['id'];
 		
 		if (action == GET_DATASOURCE)
 		{
@@ -323,8 +336,6 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (internalNode)
 			return internalNode.isBranch();
 		
-		if (action == PACKAGE_LIST || action == PACKAGE_SHOW)
-			return true;
 		if (action == GET_DATASOURCE)
 		{
 			var format:String = String(metadata['format']).toLowerCase();
@@ -332,15 +343,15 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				|| format == 'xls'
 				|| format == 'wfs';
 		}
-		return false;
+		
+		return true;
 	}
 	public function hasChildBranches():Boolean
 	{
 		if (internalNode)
 			return internalNode.hasChildBranches();
 		
-		return action == PACKAGE_LIST
-			|| action == PACKAGE_SHOW;
+		return action != GET_DATASOURCE;
 	}
 	
 	private var _childNodes:Array = [];
@@ -350,15 +361,14 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	 * @param updater A function like function(node:CKANAction, item:Object):void which receives the child node and its corresponding input metadata item.
 	 * @return The updated _childNodes Array. 
 	 */
-	private function updateChildren(input:Array, childAction:String, updater:Function = null):Array
+	private function updateChildren(input:Array, updater:Function = null):Array
 	{
 		var outputIndex:int = 0;
 		for each (var item:Object in input)
 		{
 			var node:CKANAction = _childNodes[outputIndex];
 			if (!node)
-				_childNodes[outputIndex] = node = new CKANAction(source, childAction);
-			node.action = childAction;
+				_childNodes[outputIndex] = node = new CKANAction(source);
 			
 			updater(node, item);
 			
@@ -373,23 +383,34 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (internalNode)
 			return internalNode.getChildren();
 		
-		if (action == PACKAGE_LIST)
-			return updateChildren(result as Array, PACKAGE_SHOW, function(node:CKANAction, id:String):void {
-				node.metadata = id;
-				node.params = {id: id};
+		if (!action)
+			return updateChildren([PACKAGE_LIST, GROUP_LIST, TAG_LIST], function(node:CKANAction, action:String):void {
+				node.action = action;
+			});
+		
+		if (action == PACKAGE_LIST || action == GROUP_LIST || action == TAG_LIST)
+			return updateChildren(result as Array, function(node:CKANAction, id:String):void {
+				node.action = StandardLib.replace(action, "_list", "_show");
+				node.metadata = node.params = {"id": id};
+			});
+		
+		if (action == GROUP_SHOW || action == TAG_SHOW)
+			return updateChildren(result['packages'], function(node:CKANAction, pkg:Object):void {
+				node.action = PACKAGE_SHOW;
+				node.metadata = pkg;
+				node.params = {"id": pkg.id};
 			});
 		
 		if (action == PACKAGE_SHOW)
 		{
-			var resources:Array = result['resources'];
-			if (resources)
-				return updateChildren(result['resources'], GET_DATASOURCE, function(node:CKANAction, properties:Object):void {
-					node.metadata = properties;
-					node.params = {};
-					node.params[CKANDataSource.PARAMS_CKAN_ID] = properties['id'];
-					node.params[CKANDataSource.PARAMS_CKAN_URL] = properties['url'];
-					node.params[CKANDataSource.PARAMS_CKAN_FORMAT] = properties['format'];
-				});
+			return updateChildren(result['resources'], function(node:CKANAction, resource:Object):void {
+				node.action = GET_DATASOURCE;
+				node.metadata = resource;
+				node.params = {};
+				node.params[CKANDataSource.PARAMS_CKAN_ID] = resource['id'];
+				node.params[CKANDataSource.PARAMS_CKAN_URL] = resource['url'];
+				node.params[CKANDataSource.PARAMS_CKAN_FORMAT] = resource['format'];
+			});
 		}
 		
 		if (action == GET_DATASOURCE)
@@ -398,7 +419,8 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			if (ds)
 			{
 				var root:IWeaveTreeNode = ds.getHierarchyRoot();
-				return updateChildren(root.getChildren(), GET_COLUMN, function(node:CKANAction, otherNode:IWeaveTreeNode):void {
+				return updateChildren(root.getChildren(), function(node:CKANAction, otherNode:IWeaveTreeNode):void {
+					node.action = GET_COLUMN;
 					node.internalNode = otherNode;
 					node.params = params; // copy params from parent
 				});

@@ -532,7 +532,7 @@ internal class CustomURLLoader extends URLLoader
 			var url:String = _urlRequest.url;
 			if (_urlRequest.data is URLVariables)
 				url += "?" + _urlRequest.data;
-			JQueryCaller.getFileFromURL(url, _asyncToken);
+			JQueryCaller.getFileFromURL(url, _asyncToken, function():void { handleGetError(event); });
 		}
 		else
 		{

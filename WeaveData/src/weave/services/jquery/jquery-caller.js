@@ -1,4 +1,3 @@
-//$.support.cors = true;
 WeaveJQueryCaller = {};
 WeaveJQueryCaller.getFile = function (url, id) {
 	$.ajax({
@@ -9,18 +8,19 @@ WeaveJQueryCaller.getFile = function (url, id) {
 				try
 				{
 					//console.log('success', arguments);
-					weave.jqueryResult(id, data);
+					weave.jqueryResult(id, btoa ? btoa(data) : data, !!btoa, true);
 				}
 				catch (e)
 				{
-					console.log("Unable to pass result to Weave", arguments, e);
+					// error encoding base64
+					weave.jqueryResult(id, null, false, false);
 				}
 			},
-			error: function (qXHR, textStatus, errorThrown) {
+			error: function (jqXHR, textStatus, errorThrown) {
 				try
 				{
 					//console.log('error', arguments);
-					weave.jqueryFault(id, qXHR, textStatus, errorThrown);
+					weave.jqueryFault(id, jqXHR, textStatus, errorThrown);
 				}
 				catch (e)
 				{
