@@ -258,10 +258,15 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			response = (event as FaultEvent).fault.content;
 		
 		response = parseJSON(response as String);
-		if (response['success'])
+		if (response.hasOwnProperty('success') && response['success'])
+		{
 			_result = response['result'];
+		}
 		else
-			reportError("CKAN action failed: " + this.toString() + "; error=" + Compiler.stringify(response['error']));
+		{
+			var error:Object = response.hasOwnProperty('error') ? response['error'] : response;
+			reportError("CKAN action failed: " + this.toString() + "; error=" + Compiler.stringify(error));
+		}
 	}
 	private function parseJSON(json:String):Object
 	{
@@ -307,7 +312,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return WeaveAPI.globalHashMap.getName(source);
 		
 		if (action == PACKAGE_LIST)
-			return lang("Datsets");
+			return lang("Datasets");
 		if (action == GROUP_LIST)
 			return lang("Groups");
 		if (action == TAG_LIST)
