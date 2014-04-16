@@ -55,6 +55,13 @@ package weave.data.DataSources
 		{
 		}
 		
+		override protected function get initializationComplete():Boolean
+		{
+			return super.initializationComplete
+				&& xlsSheetsArray
+				&& xlsSheetsArray.length > 0;
+		}
+		
 		override protected function initialize():void
 		{
 			super.initialize();
@@ -78,7 +85,7 @@ package weave.data.DataSources
 			try
 			{
 				this.xlsSheetsArray = xlsSheetsArray;
-				if (_attributeHierarchy.value == null)
+				if (_attributeHierarchy.value == null && xlsSheetsArray.length > 0)
 				{
 					// loop through column names, adding indicators to hierarchy
 					var firstRow:Array = xlsSheetsArray[0].values[0];
@@ -130,8 +137,6 @@ package weave.data.DataSources
 			var colName:String = String(proxyColumn.getMetadata("name"));
 			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],colName);
 			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],keyColName.value);
-			if (keyColIndex == -1)
-				keyColIndex = 0; // default to first column (temp solution)
 
 			var xlsDataColumn:Vector.<String> = getColumnValues(colIndex);
 			var keyStringsArray:Array = VectorUtils.copy(getColumnValues(keyColIndex), []);
@@ -175,8 +180,14 @@ package weave.data.DataSources
 		private function getColumnValues(columnIndex:int):Vector.<String>
 		{
 			var values:Vector.<String> = new Vector.<String>();
-			for (var i:int = 1; i < xlsSheetsArray[0].values.length; i++)
-				values[i-1] = xlsSheetsArray[0].values[i][columnIndex];
+			values.length = xlsSheetsArray[0].values.length - 1;
+			for (var i:int = 0; i < values.length; i++)
+			{
+				if (columnIndex < 0)
+					values[i] = String(i + 1);
+				else
+					values[i] = xlsSheetsArray[0].values[i + 1][columnIndex];
+			}
 			return values;
 		}
 		
