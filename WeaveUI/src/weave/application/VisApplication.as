@@ -212,13 +212,13 @@ package weave.application
 			// disable application until it's ready
 			enabled = false;
 			
-			if (getFlashVarAdminConnectionName())
+			if (getAdminConnectionName())
 			{
 				// disable interface while connecting to admin console
 				var _this:VisApplication = this;
 				_this.enabled = false;
 				
-				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
+				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getAdminConnectionName());
 				addAsyncResponder(
 					pendingAdminService.invokeAsyncMethod("ping"),
 					function(event:ResultEvent, token:Object = null):void
@@ -330,7 +330,7 @@ package weave.application
 				WeaveAPI.globalHashMap.requestObject(null, WeaveDataSource, false);
 				
 				// if not opened from admin console, enable interface now
-				if (!getFlashVarAdminConnectionName())
+				if (!getAdminConnectionName())
 					this.enabled = true;
 				WeaveAPI.callExternalWeaveReady();
 			}
@@ -381,9 +381,16 @@ package weave.application
 			}
 		}
 		
-		private function getFlashVarAdminConnectionName():String
+		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession=";
+		private function getAdminConnectionName():String
 		{
-			return _flashVars['adminSession'] as String;
+			if (ExternalInterface.available)
+			{
+				var windowName:String = ExternalInterface.call("function(){ return window.name; }");
+				if (windowName.indexOf(ADMIN_SESSION_WINDOW_NAME_PREFIX) == 0)
+					return windowName.substr(ADMIN_SESSION_WINDOW_NAME_PREFIX.length);
+			}
+			return null;
 		}
 		private function getFlashVarRecover():Boolean
 		{
@@ -1066,7 +1073,7 @@ package weave.application
 			}
 			callLater(toggleMenuBar);
 			
-			if (!getFlashVarAdminConnectionName())
+			if (!getAdminConnectionName())
 				enabled = true;
 			
 
