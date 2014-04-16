@@ -34,7 +34,7 @@ package weave.api
 		moreLinkableObjects.unshift(linkableObject);
 		// it's important not to short-circuit like a boolean OR (||) because we need to clear the 'changed' flag on each object.
 		for each (linkableObject in moreLinkableObjects)
-			if (Internal.detectLinkableObjectChange(observer, linkableObject, true)) // clear 'changed' flag
+			if (linkableObject && Internal.detectLinkableObjectChange(observer, linkableObject, true)) // clear 'changed' flag
 				changeDetected = true;
 		return changeDetected;
 	}
