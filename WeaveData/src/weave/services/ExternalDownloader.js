@@ -21,13 +21,21 @@
  */
 
 /**
- * @param {string} id
- * @param {string} url
+ * Makes a URL request and calls weave.ExternalDownloader_callback() when done.
+ * @param {string} id Identifies the request
+ * @param {string} method Either "GET" or "POST"
+ * @param {string} url The URL
+ * @param {Object.<String,String>} Maps request header names to values
+ * @param {string} base64data Base64-encoded data, specified if method is "POST"
  */
-weave.ExternalDownloader_get = function (id, url) {
-	var handled = false;
+weave.ExternalDownloader_request = function (id, method, url, requestHeaders, base64data) {
+	console.log('request', url, requestHeaders, base64data);
+	var done = false;
 	var request = new XMLHttpRequest();
-	request.open("GET", url, true);
+	request.open(method, url, true);
+	//request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	for (var name in requestHeaders)
+		request.setRequestHeader(name, requestHeaders[name], false);
 	request.responseType = "blob";
 	request.onload = function(event) {
 		var blob = request.response;
@@ -35,32 +43,42 @@ weave.ExternalDownloader_get = function (id, url) {
 		reader.onloadend = function(event) {
 			var url = reader.result;
 			var base64data = url.split(',').pop();
-			weave.ExternalDownloader_result(id, base64data);
-			handled = true;
+			weave.ExternalDownloader_callback(id, request.status, base64data);
+			done = true;
 		};
 		reader.onerror = function(event) {
-			weave.ExternalDownloader_fault(id);
-			handled = true;
+			weave.ExternalDownloader_callback(id, request.status, null);
+			done = true;
 		};
 		reader.readAsDataURL(blob);
 	};
 	request.onerror = function(event) {
-		if (!handled)
-			weave.ExternalDownloader_fault(id);
-		handled = true;
+		if (!done)
+			weave.ExternalDownloader_callback(id, request.status, null);
+		done = true;
 	}
 	request.onreadystatechange = function() {
 		if (request.readyState == 4 && request.status != 200)
 		{
 			setTimeout(
 				function() {
-					if (!handled)
-						weave.ExternalDownloader_fault(id);
-					handled = true;
+					if (!done)
+						weave.ExternalDownloader_callback(id, request.status, null);
+					done = true;
 				},
 				1000
 			);
 		}
 	};
-	request.send();
+	var data = null;
+	if (method == "POST" && base64data)
+	{
+		var byteCharacters = atob(base64data);
+		var myArray = new ArrayBuffer(byteCharacters.length);
+		var longInt8View = new Uint8Array(myArray);
+        for (var i = 0; i < byteCharacters.length; i++)
+        	longInt8View[i] = byteCharacters.charCodeAt(i);
+        data = myArray;
+	}
+	request.send(data);
 };

@@ -18,12 +18,12 @@
 */
 package weave.services
 {
-	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
+	import flash.net.URLRequestHeader;
+	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
 	
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncToken;
@@ -31,9 +31,8 @@ package weave.services
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.Base64Decoder;
-	import mx.utils.ObjectUtil;
+	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
-	import mx.utils.URLUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
@@ -62,8 +61,7 @@ package weave.services
 				WeaveAPI.executeJavaScript(new JS_ExternalDownloader());
 				
 				// expose the result and fault callbacks for javascript to use by jquery
-				ExternalInterface.addCallback("ExternalDownloader_result", externalResult);
-				ExternalInterface.addCallback("ExternalDownloader_fault",  externalFault);
+				ExternalInterface.addCallback("ExternalDownloader_callback", callback);
 				
 				_initialized = true;
 			}
@@ -73,68 +71,150 @@ package weave.services
 			}
 		}
 		
-		public static function download(urlRequest:URLRequest, dataFormat:String, token:AsyncToken, onFail:Function):void
+		public static function download(urlRequest:URLRequest, dataFormat:String, token:AsyncToken):void
 		{
 			initialize();
 			
-			//TODO: support HTTP POST with binary data
-			// https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Sending_and_Receiving_Binary_Data#Sending_binary_data
-			
+			var id:String = UIDUtil.createUID();
 			var url:String = urlRequest.url;
-			if (urlRequest.data is URLVariables)
-				url += "?" + urlRequest.data;
-				
-			var uniqueID:String = UIDUtil.createUID();
-			uniqueIDToTokenMap[uniqueID] = new QueryToken(url, dataFormat, token, onFail);
+			var method:String = urlRequest.method;
+			var requestHeaders:Object = {};
+			var base64data:String = null;
 			
-			WeaveAPI.executeJavaScript("weave.ExternalDownloader_get(id, url);", {"id": uniqueID, "url": url});
+			for each (var header:URLRequestHeader in urlRequest.requestHeaders)
+				requestHeaders[header.name] = header.value;
+
+			if (method == URLRequestMethod.POST)
+			{
+				var bytes:ByteArray = urlRequest.data as ByteArray;
+				var string:String = urlRequest.data as String;
+				
+				var encoder:Base64Encoder = new Base64Encoder();
+				if (bytes)
+					encoder.encodeBytes(urlRequest.data as ByteArray);
+				else if (string)
+					encoder.encode(string);
+				base64data = encoder.drain();
+			}
+			else
+			{
+				if (urlRequest.data is URLVariables)
+					url += "?" + urlRequest.data;
+			}
+			
+			uniqueIDToTokenMap[id] = new QueryToken(url, dataFormat, token);
+			
+			WeaveAPI.executeJavaScript(
+				{"id": id, "method": method, "url": url, "requestHeaders": requestHeaders, "base64data": base64data},
+				"weave.ExternalDownloader_request(id, method, url, requestHeaders, base64data);"
+			);
 		}
 		
-		private static function externalResult(id:String, base64data:String):void
+		/**
+		 * @param id The id that was passed to weave.ExternalDownloader_get().
+		 * @param status The HTTP status (200 = OK)
+		 * @param base64data The data, encoded as a base64 String
+		 */
+		private static function callback(id:String, status:int, base64data:String):void
 		{
 			var qt:QueryToken = uniqueIDToTokenMap[id] as QueryToken;
 			delete uniqueIDToTokenMap[id];
 			if (!qt)
 				return;
-			
-			var decoder:Base64Decoder = new Base64Decoder();
-			decoder.decode(base64data);
 			
 			var result:Object;
-			if (qt.dataFormat == URLRequestUtils.DATA_FORMAT_BINARY)
-				result = decoder.flush();
-			else
-				result = decoder.flush().toString();
+			if (base64data)
+			{
+				var decoder:Base64Decoder = new Base64Decoder();
+				decoder.decode(base64data);
+				if (qt.dataFormat == URLRequestUtils.DATA_FORMAT_BINARY)
+					result = decoder.flush();
+				else
+					result = decoder.flush().toString();
+			}
 			
-			qt.asyncToken.mx_internal::applyResult(ResultEvent.createEvent(result, qt.asyncToken));
+			if (status == 200)
+			{
+				qt.asyncToken.mx_internal::applyResult(ResultEvent.createEvent(result, qt.asyncToken));
+			}
+			else
+			{
+				var faultCode:String = null;
+				if (HTTP_STATUS_CODES[status])
+					faultCode = status + " " + lang(HTTP_STATUS_CODES[status]);
+				else if (status)
+					faultCode = "" + status;
+				else
+					faultCode = lang("Error");
+				
+				var fault:Fault = new Fault(faultCode, lang("HTTP GET failed"), qt.url);
+				fault.content = result;
+				qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
+			}
 		}
 		
-		private static function externalFault(id:String):void
-		{
-			var qt:QueryToken = uniqueIDToTokenMap[id] as QueryToken;
-			delete uniqueIDToTokenMap[id];
-			if (!qt)
-				return;
-			
-			var fault:Fault = new Fault(SecurityErrorEvent.SECURITY_ERROR, SecurityErrorEvent.SECURITY_ERROR, "Cross-domain access is not permitted for URL: " + qt.url);
-			qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
-		}
+		/**
+		 * Maps a status code to a description.
+		 */
+		public static const HTTP_STATUS_CODES:Object = {
+			"100": "Continue",
+			"101": "Switching Protocol",
+			"200": "OK",
+			"201": "Created",
+			"202": "Accepted",
+			"203": "Non-Authoritative Information",
+			"204": "No Content",
+			"205": "Reset Content",
+			"206": "Partial Content",
+			"300": "Multiple Choice",
+			"301": "Moved Permanently",
+			"302": "Found",
+			"303": "See Other",
+			"304": "Not Modified",
+			"305": "Use Proxy",
+			"306": "unused",
+			"307": "Temporary Redirect",
+			"308": "Permanent Redirect",
+			"400": "Bad Request",
+			"401": "Unauthorized",
+			"402": "Payment Required",
+			"403": "Forbidden",
+			"404": "Not Found",
+			"405": "Method Not Allowed",
+			"406": "Not Acceptable",
+			"407": "Proxy Authentication Required",
+			"408": "Request Timeout",
+			"409": "Conflict",
+			"410": "Gone",
+			"411": "Length Required",
+			"412": "Precondition Failed",
+			"413": "Request Entity Too Large",
+			"414": "Request-URI Too Long",
+			"415": "Unsupported Media Type",
+			"416": "Requested Range Not Satisfiable",
+			"417": "Expectation Failed",
+			"500": "Internal Server Error",
+			"501": "Not Implemented",
+			"502": "Bad Gateway",
+			"503": "Service Unavailable",
+			"504": "Gateway Timeout",
+			"505": "HTTP Version Not Supported"
+		};
 	}
 }
+
 import mx.rpc.AsyncToken;
 
 internal class QueryToken
 {
-	public function QueryToken(url:String, dataFormat:String, asyncToken:AsyncToken, onFail:Function)
+	public function QueryToken(url:String, dataFormat:String, asyncToken:AsyncToken)
 	{
 		this.url = url;
 		this.dataFormat = dataFormat;
 		this.asyncToken = asyncToken;
-		this.onFail = onFail;
 	}
 	
 	public var url:String;
 	public var dataFormat:String;
 	public var asyncToken:AsyncToken;
-	public var onFail:Function;
 }
