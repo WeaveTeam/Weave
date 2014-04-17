@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.external.ExternalInterface;
 	import flash.xml.XMLDocument;
 	import flash.xml.XMLNode;
 	import flash.xml.XMLNodeType;
@@ -29,6 +28,7 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -212,8 +212,8 @@ package weave.core
 			var json:Object = ClassUtils.getClassDefinition('JSON');
 			if (json)
 				str = json.stringify(obj, null, 2);
-			else if (ExternalInterface.available)
-				str = ExternalInterface.call('JSON.stringify', obj, null, 2);
+			else
+				str = Compiler.stringify(obj);
 			
 			if (str == null)
 				return null;

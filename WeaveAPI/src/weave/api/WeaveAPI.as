@@ -299,6 +299,15 @@ package weave.api
 			var pNames:Array = [];
 			var pValues:Array = [];
 			var code:String = '';
+			var json:Object;
+			
+			// Try to get the JSON interface - if not available, settle with the flawed ExternalInterface.call() parameters feature.
+			// If a parameter is an Object, we can't trust ExternalInterface.call() since it doesn't quote keys in object literals.
+			// For example, if you give {"Content-Type": "foo"} as a parameter, ExternalInterface generates the following invalid
+			// object literal: {Content-Type: "foo"}.
+			try {
+				json = getDefinitionByName("JSON");
+			} catch (e:Error) { }
 			
 			// insert weave variable declaration
 			paramsAndCode.unshift(JS_var_weave);
@@ -308,10 +317,22 @@ package weave.api
 			{
 				if (value.constructor == Object)
 				{
+					// We assume that all the keys in the Object are valid JavaScript identifiers,
+					// since they are to be used in the code as variables.
 					for (var key:String in value)
 					{
-						pNames.push(key);
-						pValues.push(value[key]);
+						var param:Object = value[key];
+						if (json)
+						{
+							// put a variable declaration at the beginning of the code
+							code = "var " + key + " = " + json.stringify(param) + ";\n" + code;
+						}
+						else
+						{
+							// JSON unavailable
+							pNames.push(key);
+							pValues.push(param);
+						}
 					}
 				}
 				else
@@ -320,6 +341,10 @@ package weave.api
 			
 			// concatenate all code inside a function wrapper
 			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
+			
+			// if there are no parameters, just run the code
+			if (pNames.length == 0)
+				return ExternalInterface.call(code);
 			
 			// call the function with the specified parameters
 			pValues.unshift(code);
