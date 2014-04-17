@@ -342,6 +342,13 @@ internal class CustomURLLoader extends URLLoader
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			
+			if (failedHosts[getHost()])
+			{
+				// don't bother trying a URLLoader with the same host that previously failed due to a security error
+				ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);
+				return;
+			}
+			
 			// set up event listeners
 			addEventListener(Event.COMPLETE, handleGetResult);
 			addEventListener(IOErrorEvent.IO_ERROR, handleGetError);
@@ -352,6 +359,19 @@ internal class CustomURLLoader extends URLLoader
 				trace(debugId(this), 'request', request.url);
 			super.load(request);
 		}
+	}
+	
+	/**
+	 * Lookup for hosts that previously failed due to crossdomain.xml security error
+	 */
+	private static const failedHosts:Object = {}; // host -> true
+	private function getHost():String
+	{
+		var url:String = _urlRequest.url;
+		var start:int = url.indexOf("/") + 2;
+		var length:int = url.indexOf("/", start);
+		var host:String = url.substr(0, length);
+		return host;
 	}
 	
 	internal var label:String;
@@ -523,7 +543,8 @@ internal class CustomURLLoader extends URLLoader
 		if (ExternalInterface.available)
 		{
 			// Server did not have a permissive crossdomain.xml, so try JavaScript/CORS
-			ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken, function():void { handleGetError(event); });
+			failedHosts[getHost()] = true;
+			ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);
 		}
 		else
 		{
