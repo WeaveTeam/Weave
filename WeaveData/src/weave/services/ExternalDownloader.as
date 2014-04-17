@@ -94,6 +94,8 @@ package weave.services
 		{
 			var qt:QueryToken = uniqueIDToTokenMap[id] as QueryToken;
 			delete uniqueIDToTokenMap[id];
+			if (!qt)
+				return;
 			
 			var decoder:Base64Decoder = new Base64Decoder();
 			decoder.decode(base64data);
@@ -107,16 +109,15 @@ package weave.services
 			qt.asyncToken.mx_internal::applyResult(ResultEvent.createEvent(result, qt.asyncToken));
 		}
 		
-		private static function externalFault(id:String, request:Object, error:Object):void
+		private static function externalFault(id:String):void
 		{
 			var qt:QueryToken = uniqueIDToTokenMap[id] as QueryToken;
 			delete uniqueIDToTokenMap[id];
+			if (!qt)
+				return;
 			
 			var fault:Fault = new Fault(SecurityErrorEvent.SECURITY_ERROR, SecurityErrorEvent.SECURITY_ERROR, "Cross-domain access is not permitted for URL: " + qt.url);
-			fault.rootCause = error;
-			fault.content = request;
 			qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
-			//trace("FAULT! getting " + qt.url);
 		}
 	}
 }

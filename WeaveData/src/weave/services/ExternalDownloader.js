@@ -25,6 +25,7 @@
  * @param {string} url
  */
 weave.ExternalDownloader_get = function (id, url) {
+	var handled = false;
 	var request = new XMLHttpRequest();
 	request.open("GET", url, true);
 	request.responseType = "blob";
@@ -35,22 +36,30 @@ weave.ExternalDownloader_get = function (id, url) {
 			var url = reader.result;
 			var base64data = url.split(',').pop();
 			weave.ExternalDownloader_result(id, base64data);
+			handled = true;
 		};
 		reader.onerror = function(event) {
-			weave.ExternalDownloader_fault(id, reader, event);
+			weave.ExternalDownloader_fault(id);
+			handled = true;
 		};
 		reader.readAsDataURL(blob);
 	};
 	request.onerror = function(event) {
-		console.log("onerror", url, request, event);
-		weave.ExternalDownloader_fault(id, request, event);
+		if (!handled)
+			weave.ExternalDownloader_fault(id);
+		handled = true;
 	}
 	request.onreadystatechange = function() {
-		//console.log("onreadystatechange", url, request);
 		if (request.readyState == 4 && request.status != 200)
 		{
-			console.log("Request failed", url, request.status, weave.externalRequestFailed = request);
-			weave.ExternalDownloader_fault(id, request, request.response);
+			setTimeout(
+				function() {
+					if (!handled)
+						weave.ExternalDownloader_fault(id);
+					handled = true;
+				},
+				1000
+			);
 		}
 	};
 	request.send();

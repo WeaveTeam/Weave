@@ -162,7 +162,6 @@ package weave.data.DataSources
 	}
 }
 
-import flash.events.Event;
 import flash.external.ExternalInterface;
 import flash.net.URLRequest;
 import flash.net.URLVariables;
@@ -240,24 +239,18 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				request.data = new URLVariables();
 				for (var key:String in params)
 					request.data[key] = params[key];
-				WeaveAPI.URLRequestUtils.getURL(source, request, handleResponse, handleResponse, _result, URLRequestUtils.DATA_FORMAT_TEXT);
+				WeaveAPI.URLRequestUtils.getURL(source, request, handleResponse, handleFault, _result, URLRequestUtils.DATA_FORMAT_TEXT);
 			}
 		}
 		return _result || {};
 	}
-	private function handleResponse(event:Event, result:Object):void
+	private function handleResponse(event:ResultEvent, result:Object):void
 	{
 		// ignore old results
 		if (_result != result)
 			return;
 		
-		var response:Object;
-		if (event is ResultEvent)
-			response = (event as ResultEvent).result;
-		else
-			response = (event as FaultEvent).fault.content;
-		
-		response = parseJSON(response as String);
+		var response:Object = parseJSON(event.result as String);
 		if (response.hasOwnProperty('success') && response['success'])
 		{
 			_result = response['result'];
@@ -267,6 +260,15 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			var error:Object = response.hasOwnProperty('error') ? response['error'] : response;
 			reportError("CKAN action failed: " + this.toString() + "; error=" + Compiler.stringify(error));
 		}
+	}
+	private function handleFault(event:FaultEvent, result:Object):void
+	{
+		// ignore old results
+		if (_result != result)
+			return;
+		
+		// do nothing(?)
+		//reportError(event);
 	}
 	private function parseJSON(json:String):Object
 	{
