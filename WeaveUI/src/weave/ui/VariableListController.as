@@ -369,6 +369,9 @@ package weave.ui
 			{
 				event.preventDefault();
 				
+				var ref:IColumnReference;
+				var refCol:ReferencedColumn;
+				var meta:Object;
 				var items:Array = event.dragSource.dataForFormat("items") as Array;
 				if (hashMap)
 				{
@@ -387,13 +390,13 @@ package weave.ui
 							newNames.push(hashMap.getName(newObject));
 						}
 						
-						var ref:IColumnReference = items[i] as IColumnReference;
+						ref = items[i] as IColumnReference;
 						if (ref)
 						{
-							var meta:Object = ref.getColumnMetadata();
+							meta = ref.getColumnMetadata();
 							if (meta)
 							{
-								var refCol:ReferencedColumn = hashMap.requestObject(null, ReferencedColumn, false);
+								refCol = hashMap.requestObject(null, ReferencedColumn, false);
 								refCol.setColumnReference(ref.getDataSource(), meta);
 								newObject = refCol;
 								newNames.push(hashMap.getName(newObject));
@@ -413,7 +416,20 @@ package weave.ui
 				else if (dynamicObject && items.length > 0)
 				{
 					// only copy the first item in the list
-					dynamicObject.requestLocalObjectCopy(items[0]);
+					var item:Object = items[0];
+					if (item is ILinkableObject)
+						dynamicObject.requestLocalObjectCopy(item as ILinkableObject);
+					
+					ref = item as IColumnReference;
+					if (ref)
+					{
+						meta = ref.getColumnMetadata();
+						if (meta)
+						{
+							refCol = dynamicObject.requestLocalObject(ReferencedColumn, false);
+							refCol.setColumnReference(ref.getDataSource(), meta);
+						}
+					}
 				}
 			}
 		}

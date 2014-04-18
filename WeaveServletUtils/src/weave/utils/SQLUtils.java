@@ -43,7 +43,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
-
 /**
  * SQLUtils
  * 
@@ -52,15 +51,18 @@ import java.util.Vector;
  * @author Kyle Monico
  * @author Yen-Fu Luo
  * @author Philip Kovac
+ * @author Patrick Stickney
+ * @author John Fallon
  */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
+	public static String SQLITE = "SQLite";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
 	
-	public static String SQLUTILS_SERIAL_TRIGGER_TYPE = "SQLUTILS_SERIAL_TRIGGER_TYPE"; // used internally in createTable(), not an actual valid type
+	public static String DEFAULT_SQLITE_DATABASE = "sqlite_master";
 	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
@@ -70,6 +72,8 @@ public class SQLUtils
 	{
 		if (dbms.equalsIgnoreCase(MYSQL))
 			return "com.mysql.jdbc.Driver";
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return "org.sqlite.JDBC";
 		if (dbms.equalsIgnoreCase(POSTGRESQL))
 			return "org.postgis.DriverWrapper";
 		if (dbms.equalsIgnoreCase(SQLSERVER))
@@ -85,7 +89,7 @@ public class SQLUtils
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
-			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, SQLITE, POSTGRESQL })
 				if (dbms.equalsIgnoreCase(match))
 					return match;
 			return dbms;
@@ -104,6 +108,8 @@ public class SQLUtils
 			return ORACLE;
 		if (connectString.startsWith("jdbc:mysql"))
 			return MYSQL;
+		if (connectString.startsWith("jdbc:sqlite"))
+			return SQLITE;
 		if (connectString.startsWith("jdbc:postgresql"))
 			return POSTGRESQL;
 		
@@ -138,7 +144,12 @@ public class SQLUtils
 			format = "jdbc:%s:thin:%s/%s@%s:%s";
 			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
-		else // MySQL or PostgreSQL
+		else if(SQLITE.equalsIgnoreCase(dbms))
+		{
+			format = "jdbc:%s:%s";
+			// "jdbc:sqlite:C:/path/to/file/DataBase.db"
+		}
+		else // MySQL or PostGreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
 		}
@@ -164,6 +175,8 @@ public class SQLUtils
 		String result = "";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			result = String.format(format, dbms.toLowerCase(), user, pass, host, database);
+		else if( dbms.equalsIgnoreCase(SQLITE))
+			result = String.format(format, dbms.toLowerCase(), database);
 		else
 			result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
 
@@ -396,7 +409,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = "`";
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = "\"";
 		}
@@ -438,7 +451,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = '`';
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = '"';
 		}
@@ -502,6 +515,7 @@ public class SQLUtils
 	
 	/**
 	 * This will wrap a query expression in a string cast.
+	 * If the database is not supported by this function, the queryExpression will not be altered.
 	 * @param conn An SQL Connection.
 	 * @param queryExpression An expression to be used in a SQL Query.
 	 * @return The query expression wrapped in a string cast.
@@ -511,7 +525,7 @@ public class SQLUtils
 		String dbms = getDbmsFromConnection(conn);
 		if (dbms.equals(MYSQL))
 			return String.format("cast(%s as char)", queryExpression);
-		if (dbms.equals(POSTGRESQL))
+		if (dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
 			return String.format("cast(%s as varchar)", queryExpression);
 		
 		// dbms type not supported by this function yet
@@ -548,6 +562,9 @@ public class SQLUtils
 		
 		if (dbms.equalsIgnoreCase(ORACLE))
 			schema = schema.toUpperCase();
+		
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return quoteSymbol(dbms, table);
 		
 		return quoteSymbol(dbms, schema) + "." + quoteSymbol(dbms, table);
 	}
@@ -934,6 +951,10 @@ public class SQLUtils
 				while (rs.next())
 					schemas.add(rs.getString(1)); // table_catalog
 			}
+			else if( md.getDatabaseProductName().equalsIgnoreCase(SQLITE))
+			{
+				schemas.add("sqlite_master");
+			}
 			else
 			{
 				rs = md.getSchemas();
@@ -981,6 +1002,8 @@ public class SQLUtils
 			else
 				rs = md.getTables(null, schemaName, null, types);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			// column indices: 1=table_cat,2=table_schem,3=table_name,4=table_type,5=remarks
 			while (rs.next())
@@ -1022,6 +1045,8 @@ public class SQLUtils
 			else
 				rs = md.getColumns(null, schemaName, tableName, null);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
 				columns.add(rs.getString(4)); // column_name
@@ -1034,7 +1059,38 @@ public class SQLUtils
 		return columns;
 	}
 	
+	// not implemented by SQLite JDBC driver
+	/* *
+	 * Attaches a database to an SQLite instance.
+	 * @param conn A SQLite connection.
+	 * @param databaseName The name of the database.
+	 * @param filePath The path to the file where the database either exists or should be created.
+	 * @throws SQLException
+	 * /
+	public static void createSQLiteDatabase(Connection conn, String databaseName, String filePath) throws SQLException
+	{
+		if (SQLUtils.schemaExists(conn, databaseName))
+			return;
+		
+		String query = String.format("ATTACH DATABASE ? AS %s", quoteSymbol(conn, databaseName));
+		PreparedStatement stmt = null;
+		try
+		{
+			stmt = prepareStatement(conn, query, new String[]{ filePath });
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}*/
+	
 	/**
+	 * Creates a schema in a non-SQLite database.  For SQLite, this does nothing.
 	 * @param conn An existing SQL Connection
 	 * @param schema The value to be used as the Schema name
 	 * @throws SQLException If the query fails.
@@ -1042,10 +1098,13 @@ public class SQLUtils
 	public static void createSchema(Connection conn, String schema)
 		throws SQLException
 	{
+		if (isSQLite(conn))
+			return;
+		
 		if (SQLUtils.schemaExists(conn, schema))
 			return;
 
-		String query = "CREATE SCHEMA " + schema;
+		String query = String.format("CREATE SCHEMA %s", schema);
 		Statement stmt = null;
 		try
 		{
@@ -1088,22 +1147,13 @@ public class SQLUtils
 			return;
 		
 		StringBuilder columnClause = new StringBuilder();
-		int primaryKeyColumn = -1;
 		for (int i = 0; i < columnNames.size(); i++)
 		{
 			if( i > 0 )
 				columnClause.append(',');
 			String type = columnTypes.get(i);
-			if (SQLUTILS_SERIAL_TRIGGER_TYPE.equals(type))
-			{
-				type = getBigIntTypeString(conn) + " NOT NULL";
-				primaryKeyColumn = i;
-			}
 			columnClause.append(String.format("%s %s", quoteSymbol(conn, columnNames.get(i)), type));
 		}
-		
-		if (primaryKeyColumns == null && primaryKeyColumn >= 0)
-			primaryKeyColumns = Arrays.asList(columnNames.get(primaryKeyColumn));
 		
 		if (primaryKeyColumns != null && primaryKeyColumns.size() > 0)
 		{
@@ -1132,64 +1182,6 @@ public class SQLUtils
 		{
 			stmt = conn.createStatement();
 			stmt.executeUpdate(query);
-			
-			if (primaryKeyColumn >= 0)
-			{
-				String dbms = getDbmsFromConnection(conn);
-				
-				String quotedSequenceName = getQuotedSequenceName(dbms, schemaName, tableName);
-				String unquotedSequenceName = getUnquotedSequenceName(schemaName, tableName);
-				
-				if (dbms.equals(ORACLE))
-				{
-					if (getSequences(conn, schemaName).indexOf(unquotedSequenceName) >= 0)
-						stmt.executeUpdate(query = String.format("drop sequence %s", quotedSequenceName));
-					
-					stmt.executeUpdate(query = String.format("create sequence %s start with 1 increment by 1", quotedSequenceName));
-					
-					String quotedTriggerName = quoteSchemaTable(ORACLE, schemaName, "trigger_" + unquotedSequenceName);
-					String quotedIdColumn = quoteSymbol(ORACLE, columnNames.get(primaryKeyColumn));
-					// http://earlruby.org/2009/01/creating-auto-increment-columns-in-oracle/
-					query = String.format("create or replace trigger %s\n", quotedTriggerName) +
-						String.format("before insert on %s\n", quotedSchemaTable) +
-						              "for each row\n" +
-						              "declare\n" +
-						              "  max_id number;\n" +
-						              "  cur_seq number;\n" +
-						              "begin\n" +
-						String.format("  if :new.%s is null then\n", quotedIdColumn) +
-						String.format("    select %s.nextval into :new.%s from dual;\n", quotedSequenceName, quotedIdColumn) +
-						              "  else\n" +
-						String.format("    select greatest(nvl(max(%s),0), :new.%s) into max_id from %s;\n", quotedIdColumn, quotedIdColumn, quotedSchemaTable) +
-						String.format("    select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
-						              "    while cur_seq < max_id\n" +
-						              "    loop\n" +
-						String.format("      select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
-						              "    end loop;\n" +
-						              "  end if;\n" +
-						              "end;\n";
-				}
-				else if (dbms.equals(POSTGRESQL))
-				{
-					// TODO http://stackoverflow.com/questions/3905378/manual-inserts-on-a-postgres-table-with-a-primary-key-sequence
-					throw new InvalidParameterException("PostgreSQL support not implemented for column type " + SQLUTILS_SERIAL_TRIGGER_TYPE);
-					/*
-					String quotedTriggerName = quoteSchemaTable(POSTGRESQL, schemaName, "trigger_" + unquotedSequenceName);
-					String quotedIdColumn = quoteSymbol(POSTGRESQL, columnNames.get(primaryKeyColumn));
-					String quotedFuncName = generateQuotedSymbolName("function", conn, schemaName, tableName);
-					query = String.format("create or replace function %s() returns trigger language plpgsql as\n", quotedFuncName) +
-					                      "$$ begin\n" +
-					        String.format("  if ( currval('test_id_seq')<NEW.id ) then\n" +
-					"    raise exception 'currval(test_id_seq)<id';\n" +
-					"  end if;\n" +
-					"  return NEW;\n" +
-					"end; $$;\n" +
-					"create trigger test_id_seq_check before insert or update of id on test\n" +
-					"  for each row execute procedure test_id_check();";
-					*/
-				}
-				stmt.executeUpdate(query);
-			}
 		}
 		catch (SQLException e)
 		{
@@ -1309,6 +1301,60 @@ public class SQLUtils
 			cleanup(stmt);
 		}
 	}
+	
+	/**
+	 * Modifies a query so it will only return a single row.
+	 * @param dbms The target DBMS.
+	 * @param query A SQL Query.
+	 * @return The modified query.
+	 */
+	private static String limitQueryToOneRow(String dbms, String query)
+	{
+		if (dbms.equals(ORACLE))
+			return String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
+		
+		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
+			return query + " LIMIT 1";
+		
+		throw new InvalidParameterException("DBMS not supported: " + dbms);
+	}
+	private static String newIdClause(String dbms, String quotedIdField, String quotedTable)
+	{
+		if (dbms.equals(SQLITE))
+		{
+			return String.format(
+					"(SELECT CASE WHEN MAX(%s) IS NULL THEN 1 ELSE MAX(%s)+1 END FROM %s LIMIT 1)",
+					quotedIdField,
+					quotedIdField,
+					quotedTable
+			);
+		}
+		
+		if (dbms.equals(SQLSERVER))
+		{
+			return String.format(
+					"(SELECT TOP 1 CASE WHEN MAX(%s) IS NULL THEN 1 ELSE MAX(%s)+1 END FROM %s)",
+					quotedIdField,
+					quotedIdField,
+					quotedTable
+			);
+		}
+		
+		if (dbms.equals(ORACLE))
+		{
+			String query = String.format("SELECT MAX(%s)+1 FROM %s", quotedIdField, quotedTable);
+			query = limitQueryToOneRow(dbms, query);
+			return String.format("GREATEST(1, (%s))", query);
+		}
+		
+		// MySQL/PostgreSQL
+		return String.format(
+				"GREATEST(1, (SELECT MAX(%s)+1 FROM %s LIMIT 1))",
+				quotedIdField,
+				quotedTable
+			);
+	}
+	
 	/**
 	 * Generates a new id manually using MAX(idField)+1.
 	 * @param conn
@@ -1326,6 +1372,8 @@ public class SQLUtils
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
 		boolean isPostgreSQL = dbms.equals(POSTGRESQL);
+		boolean isSQLite = dbms.equals(SQLITE);
+		boolean useTwoQueries = isMySQL || isOracle || isSQLite;
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
@@ -1339,20 +1387,19 @@ public class SQLUtils
 		String quotedIdField = quoteSymbol(conn, idField);
 		String quotedTable = quoteSchemaTable(conn, schemaName, tableName);
 		
-		String newIdClause = String.format(
-				"GREATEST(1, (SELECT MAX(%s)+1 FROM %s))",
-				quotedIdField,
-				quotedTable
-			);
 		String fields_string = quotedIdField + "," + Strings.join(",", columns);
-		String values_string;
-		if (isMySQL || isOracle)
-			values_string = Strings.mult(",", "?", values.size() + 1);
+		
+		String id_string;
+		if (useTwoQueries)
+			id_string = "?"; // we get the new id below and then give it as a param
 		else
-			values_string = newIdClause + "," + Strings.mult(",", "?", values.size());
+			id_string = newIdClause(dbms, quotedIdField, quotedTable);
 		
+		String values_string = id_string + "," + Strings.mult(",", "?", values.size());
+		
+		// build query
 		query = String.format("INSERT INTO %s (%s)", quotedTable, fields_string);
-		
+
 		if (isSQLServer)
 			query += String.format(" OUTPUT INSERTED.%s", quotedIdField);
 		
@@ -1366,15 +1413,16 @@ public class SQLUtils
 			int id;
 			synchronized (conn)
 			{
-				if (isMySQL || isOracle)
+				if (useTwoQueries)
 				{
 					String nextQuery = query;
 					
-					query = String.format("SELECT %s FROM %s", newIdClause, quotedTable);
-					if (isMySQL)
-						query += " LIMIT 1";
-					if (isOracle)
-						query = String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
+					query = String.format(
+							"SELECT %s FROM %s",
+							newIdClause(dbms, quotedIdField, quotedTable),
+							quotedTable
+						);
+					query = limitQueryToOneRow(dbms, query);
 					id = getSingleIntFromQuery(conn, query, 1);
 					
 					values.addFirst(id);
@@ -1393,40 +1441,6 @@ public class SQLUtils
 		{
 			throw new SQLExceptionWithQuery(query, e);
 		}
-	}
-	
-	
-	/**
-	 * This function is for use with an Oracle connection
-	 * @param conn An existing Oracle SQL Connection
-	 * @param schemaName A schema name accessible through the given connection
-	 * @return A List of sequence names in the given schema
-	 * @throws SQLException If the query fails.
-	 */
-	protected static List<String> getSequences(Connection conn, String schemaName) throws SQLException
-	{
-		List<String> sequences = new Vector<String>();
-		ResultSet rs = null;
-		try
-		{
-			DatabaseMetaData md = conn.getMetaData();
-			String[] types = new String[]{"SEQUENCE"};
-			
-			rs = md.getTables(null, schemaName.toUpperCase(), null, types);
-			
-			// use column index instead of name because sometimes the names are lower case, sometimes upper.
-			// column indices: 1=sequence_cat,2=sequence_schem,3=sequence_name,4=sequence_type,5=remarks
-			while (rs.next())
-				sequences.add(rs.getString(3)); // sequence_name
-			
-			Collections.sort(sequences, String.CASE_INSENSITIVE_ORDER);
-		}
-		finally
-		{
-			// close everything in reverse order
-			cleanup(rs);
-		}
-		return sequences;
 	}
 	
 	/**
@@ -1470,6 +1484,16 @@ public class SQLUtils
 	public static boolean isSQLServer(Connection conn)
 	{
 		return getDbmsFromConnection(conn).equals(SQLSERVER);
+	}
+	
+	/**
+	 * This function checks if a connection is for a SQLite server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a SQLite Server.
+	 */
+	public static boolean isSQLite(Connection conn)
+	{
+		return getDbmsFromConnection(conn).equals(SQLITE);
 	}
 	
 	private static String truncate(String str, int maxLength)
@@ -1815,14 +1839,21 @@ public class SQLUtils
 
 	/**
 	 * This will escape special characters in a SQL search string.
+	 * Not reliable on SQLite since there is no escape character.
 	 * @param conn A SQL Connection.
 	 * @param searchString A SQL search string containing special characters to be escaped.
 	 * @return The searchString with special characters escaped.
 	 * @throws SQLException 
 	 */
-	public static String escapeSearchString(Connection conn, String searchString) throws SQLException
+	private static String escapeSearchString(Connection conn, String searchString) throws SQLException
 	{
 		String escape = conn.getMetaData().getSearchStringEscape();
+		
+		if (escape == null)
+		{
+			return searchString;
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		int n = searchString.length();
 		for (int i = 0; i < n; i++)
@@ -1908,29 +1939,6 @@ public class SQLUtils
 		return "DATETIME";
 	}
 	
-	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException
-	{
-		String dbms = getDbmsFromConnection(conn);
-		if (dbms.equals(SQLSERVER))
-			return "BIGINT PRIMARY KEY IDENTITY";
-		
-		if (dbms.equals(ORACLE))
-			return SQLUTILS_SERIAL_TRIGGER_TYPE;
-		
-		// for mysql or postgresql, return the following.
-		return "SERIAL PRIMARY KEY";
-	}
-	
-	private static String getUnquotedSequenceName(String schema, String table)
-	{
-		return generateSymbolName("sequence", schema, table);
-	}
-	
-	private static String getQuotedSequenceName(String dbms, String schema, String table)
-	{
-		return quoteSchemaTable(dbms, schema, getUnquotedSequenceName(schema, table));
-	}
-
 	protected static String getCSVNullValue(Connection conn)
 	{
 		try

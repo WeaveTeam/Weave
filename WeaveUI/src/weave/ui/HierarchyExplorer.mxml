@@ -32,7 +32,7 @@
 					  displayMode="{WeaveTreeDataDescriptor.DISPLAY_MODE_BRANCHES}"
 					  showDataTips="true"
 					  allowMultipleSelection="false"
-					  itemClose="handleFolderCollapse(event)"/>
+					  handleCollapseSelection="true"/>
 	</mx:VBox>
 	<mx:VBox id="fileVBox" width="100%" height="100%"
 			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
@@ -103,8 +103,6 @@
 				return folderView.selectedItem as IWeaveTreeNode;
 			}
 			
-			private var _prevFolder:IWeaveTreeNode;
-			
 			private function refreshFiles(folder:IWeaveTreeNode = null):void
 			{
 				if (!folder)
@@ -123,31 +121,6 @@
 //				var newOpenItems:Array = [folder];
 //				if (StandardLib.arrayCompare(fileView.openItems, newOpenItems))
 //					fileView.openItems = newOpenItems;
-			}
-
-			private function handleFolderCollapse(event:TreeEvent):void
-			{
-				// if collapsing a node would make the current selection disappear, select the collapsing node
-				var collapsing:IWeaveTreeNode = event.item as IWeaveTreeNode;
-				if (selectionWouldDisappear(folderView, collapsing, selectedFolder))
-					folderView.selectedItem = _prevFolder = collapsing;
-			}
-			
-			private function selectionWouldDisappear(tree:Tree, collapsing:IWeaveTreeNode, selected:IWeaveTreeNode):Boolean
-			{
-				if (!collapsing || !selected)
-					return false;
-				
-				var children:Array = collapsing.getChildren();
-				if (children.indexOf(selected) >= 0)
-					return true;
-				
-				// first test if child item is open before requesting children with the recursive call
-				for each (var child:IWeaveTreeNode in children)
-					if (tree.isItemOpen(child) && selectionWouldDisappear(tree, child, selected))
-						return true;
-				
-				return false;
 			}
 			
 			private function handleFileDoubleClick():void

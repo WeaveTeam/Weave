@@ -152,6 +152,10 @@ package weave.data.hierarchy
 					return true;
 				}
 			}
+			
+			// see if the title matches
+			if (!xen && _searchField == ColumnMetadata.TITLE && _searchRegExp.test(node.getLabel()))
+				return true;
 
 			// see if there are any matching descendants
 			if (!node.isBranch())

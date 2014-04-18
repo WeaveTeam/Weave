@@ -96,10 +96,12 @@ public class DataConfig
 				{
 					SQLUtils.createSchema(conn, dbInfo.schema);
 				}
-				catch (Exception e)
+				catch (SQLException e)
 				{
-					// do nothing if schema creation fails -- this is a temporary workaround for postgresql issue
-					// e.printStackTrace();
+					// temporary(?) workaround for postgres issue - crashes if the schema already exists... so we expect an error
+					// for other databases, we need to report the error
+					if (!SQLUtils.isPostgreSQL(conn))
+						throw e;
 				}
 				
 				// init SQL tables

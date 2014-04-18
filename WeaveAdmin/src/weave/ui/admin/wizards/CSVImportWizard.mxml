@@ -338,7 +338,7 @@
 						tableSelector.tableOverwriteCheck.selected,
 						dataTableNameInput.text,
 						generateKeyColumnCheckBox.selected ? dataTableNameInput.text : keyOptions.keyTypeSelector.selectedKeyType,
-						nullFlagInput.text,
+						nullFlagValues,
 						keyOptions.filteredKeyColumns,
 						!noAppendCheckBox.selected
 					),

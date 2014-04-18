@@ -20,20 +20,33 @@
 package weave.utils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class CommandUtils
 {
+	
     public static int runCommand(String[] args) throws IOException
     {
-    	return runCommand(args, false);
+    	return runCommand(args, null, null, false);
     }
+    
     public static int runCommand(String[] args, boolean debug) throws IOException
     {
-        Runtime run = Runtime.getRuntime();
+    	return runCommand(args, null, null, debug);
+    }
+    
+	public static int runCommand(String[] args, String[] envp, File dir) throws IOException
+	{
+		return runCommand(args, envp, dir, false);
+	}
+
+    public static int runCommand(String[] args, String[] envp, File dir, boolean debug) throws IOException
+	{
+		Runtime run = Runtime.getRuntime();
         Process proc = null;
-        proc = run.exec(args);
+        proc = run.exec(args, envp, dir);
         BufferedReader stdout = new BufferedReader( new InputStreamReader(proc.getInputStream()) );
         BufferedReader stderr = new BufferedReader( new InputStreamReader(proc.getErrorStream()) );
         while (true)

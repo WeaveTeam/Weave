@@ -404,18 +404,19 @@ package weave.services
 		//////////////////////////////////////////
 		// LocalConnection Code
 		
+		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession=";
+
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
 			var params:Object = {};
 			if (fileName)
 				params['file'] = fileName;
-			params['adminSession'] = createWeaveSession();
 			if (recover)
 				params['recover'] = true;
 			WeaveAPI.executeJavaScript(
 				{
 					url: 'weave.html?' + URLUtil.objectToString(params, '&'),
-					target: '_blank',
+					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),
 					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
 				},
 				'window.open(url, target, windowParams);'
@@ -438,7 +439,7 @@ package weave.services
 				oldWeaveServices[weaveService] = null; // keep a pointer to this old service object until the popup window is closed.
 			}
 			// create a new service with a new name
-			var connectionName:String = UIDUtil.createUID(); // NameUtil.createUniqueName(this);
+			var connectionName:String = UIDUtil.createUID();
 			weaveService = new LocalAsyncService(service, true, connectionName);
 			return connectionName;
 		}
