@@ -90,6 +90,7 @@ package weave.services
 				var string:String = urlRequest.data as String;
 				
 				var encoder:Base64Encoder = new Base64Encoder();
+				encoder.insertNewLines = false;
 				if (bytes)
 					encoder.encodeBytes(urlRequest.data as ByteArray);
 				else if (string)

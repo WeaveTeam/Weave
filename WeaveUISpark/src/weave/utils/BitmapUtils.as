@@ -186,6 +186,7 @@ package weave.utils
 			
 			var byteArray:ByteArray = ImageSnapshot.captureImage(component).data; 
 			var encoder:Base64Encoder = new Base64Encoder();
+			encoder.insertNewLines = false;
 			encoder.encodeBytes(byteArray);
 			
 			return encoder.drain();
