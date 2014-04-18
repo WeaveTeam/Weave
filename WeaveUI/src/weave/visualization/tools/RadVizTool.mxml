@@ -237,11 +237,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				disposeObject(normalizedColumnsGroup);
 				normalizedColumnsGroup = newDisposableChild(this, CallbackCollection);
-				for (var j:int = 0; j < result.length; j++)
+				if(result)
 				{
-					var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,result[j],_plotter.columns.getNames()[j]+" norm");
-					normalizedColumns.push(col);
-					registerLinkableChild(normalizedColumnsGroup, col);
+					for (var j:int = 0; j < result.length; j++)
+					{
+						var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,result[j],_plotter.columns.getNames()[j]+" norm");
+						normalizedColumns.push(col);
+						registerLinkableChild(normalizedColumnsGroup, col);
+					}
 				}
 				//normalizedColumnsGroup.addImmediateCallback(this, classDiscriminatorColumnUpdate);
 			}
