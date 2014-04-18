@@ -36,6 +36,11 @@ package weave.data.DataSources
 	public class CKANDataSource extends AbstractDataSource
 	{
 		WeaveAPI.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
+		
+		/**
+		 * Set to false to use URL params instead of POST/JSON
+		 */
+		public var usePost:Boolean = true;
 
 		public function CKANDataSource()
 		{
@@ -241,14 +246,18 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				var request:URLRequest = new URLRequest(url);
 				if (params)
 				{
-					request.data = new URLVariables();
-					for (var key:String in params)
-						request.data[key] = params[key];
-
-//					request.method = URLRequestMethod.POST;
-//					request.requestHeaders = [new URLRequestHeader("Content-Type", "application/json; charset=utf-8")];
-//					//request.requestHeaders = [new URLRequestHeader("Content-Type", "application/x-www-form-urlencoded")];
-//					request.data = Compiler.stringify(params);
+					if (source.usePost)
+					{
+						request.method = URLRequestMethod.POST;
+						request.requestHeaders = [new URLRequestHeader("Content-Type", "application/json; charset=utf-8")];
+						request.data = Compiler.stringify(params);
+					}
+					else
+					{
+						request.data = new URLVariables();
+						for (var key:String in params)
+							request.data[key] = params[key];
+					}
 				}
 				WeaveAPI.URLRequestUtils.getURL(source, request, handleResponse, handleResponse, _result, URLRequestUtils.DATA_FORMAT_TEXT);
 			}
