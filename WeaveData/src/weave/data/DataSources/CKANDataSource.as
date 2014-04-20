@@ -25,6 +25,8 @@ package weave.data.DataSources
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.Compiler;
+	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -37,17 +39,19 @@ package weave.data.DataSources
 	{
 		WeaveAPI.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
 		
-		/**
-		 * Set to false to use URL params instead of POST/JSON
-		 */
-		public var usePost:Boolean = true;
-
 		public function CKANDataSource()
 		{
 			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _attributeHierarchy);
 		}
 
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString());
+		public const apiVersion:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, validateApiVersion));
+		public const useHttpPost:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const showPackages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const showGroups:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const showTags:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		
+		private function validateApiVersion(value:Number):Boolean { return [1, 2, 3].indexOf(value) >= 0; }
 		
 		/**
 		 * This gets called when callbacks are triggered.
@@ -232,37 +236,61 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	 */
 	public function get result():Object
 	{
-		if (detectLinkableObjectChange(this, source.url))
+		if (detectLinkableObjectChange(this, source.url, source.apiVersion, source.useHttpPost))
 		{
 			if ([PACKAGE_LIST, PACKAGE_SHOW, GROUP_LIST, GROUP_SHOW, TAG_LIST, TAG_SHOW].indexOf(action) >= 0)
 			{
 				// make CKAN API request
 				_result = {};
-				var url:String = source.url.value || '';
-				var i:int = url.lastIndexOf('/api');
-				if (i >= 0)
-					url = url.substr(0, i);
-				url = URLUtil.getFullURL(url, "/api/3/action/" + action);
-				var request:URLRequest = new URLRequest(url);
-				if (params)
-				{
-					if (source.usePost)
-					{
-						request.method = URLRequestMethod.POST;
-						request.requestHeaders = [new URLRequestHeader("Content-Type", "application/json; charset=utf-8")];
-						request.data = Compiler.stringify(params);
-					}
-					else
-					{
-						request.data = new URLVariables();
-						for (var key:String in params)
-							request.data[key] = params[key];
-					}
-				}
-				WeaveAPI.URLRequestUtils.getURL(source, request, handleResponse, handleResponse, _result, URLRequestUtils.DATA_FORMAT_TEXT);
+				WeaveAPI.URLRequestUtils.getURL(source, getURLRequest(), handleResponse, handleResponse, _result, URLRequestUtils.DATA_FORMAT_TEXT);
 			}
 		}
 		return _result || {};
+	}
+	
+	private function get apiVersion3():Boolean
+	{
+		return source.apiVersion.value == 3;
+	}
+	private function getURLRequest():URLRequest
+	{
+		// get base url
+		var url:String = source.url.value || '';
+		var i:int = url.lastIndexOf('/api');
+		if (i >= 0)
+			url = url.substr(0, i);
+		
+		// append api command to url
+		var request:URLRequest;
+		if (apiVersion3)
+		{
+			url = URLUtil.getFullURL(url, "api/3/action/" + action);
+			request = new URLRequest(url);
+			if (params)
+			{
+				if (source.useHttpPost.value)
+				{
+					request.method = URLRequestMethod.POST;
+					request.requestHeaders = [new URLRequestHeader("Content-Type", "application/json; charset=utf-8")];
+					request.data = stringifyJSON(params);
+				}
+				else
+				{
+					request.data = new URLVariables();
+					for (var key:String in params)
+						request.data[key] = params[key];
+				}
+			}
+		}
+		else
+		{
+			var cmd:String = 'api/' + source.apiVersion.value + '/rest/' + action.split('_')[0];
+			if (params)
+				cmd += '/' + params['id'];
+			url = URLUtil.getFullURL(url, cmd);
+			request = new URLRequest(url);
+		}
+		return request;
 	}
 	private function handleResponse(event:Event, result:Object):void
 	{
@@ -286,15 +314,27 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		}
 		
 		response = parseJSON(response as String);
-		if (response && response.hasOwnProperty('success') && response['success'])
+		if (apiVersion3 && response && response.hasOwnProperty('success') && response['success'])
 		{
 			_result = response['result'];
+		}
+		else if (!apiVersion3 && response)
+		{
+			_result = response;
 		}
 		else
 		{
 			var error:Object = response.hasOwnProperty('error') ? response['error'] : response;
 			reportError("CKAN action failed: " + this.toString() + "; error=" + Compiler.stringify(error));
 		}
+	}
+	private function stringifyJSON(obj:Object):Object
+	{
+		var JSON:Object = ClassUtils.getClassDefinition('JSON');
+		if (JSON)
+			return JSON.stringify(obj);
+		else
+			return Compiler.stringify(obj);
 	}
 	private function parseJSON(json:String):Object
 	{
@@ -313,7 +353,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			reportError("Unable to parse JSON result");
 			trace(json);
 		}
-		return {};
+		return null;
 	}
 	
 	public function equals(other:IWeaveTreeNode):Boolean
@@ -340,7 +380,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return WeaveAPI.globalHashMap.getName(source);
 		
 		if (action == PACKAGE_LIST)
-			return lang("Datasets");
+			return lang("Packages");
 		if (action == GROUP_LIST)
 			return lang("Groups");
 		if (action == TAG_LIST)
@@ -403,7 +443,14 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			if (!node)
 				_childNodes[outputIndex] = node = new CKANAction(source);
 			
+			var oldAction:String = node.action;
+			var oldParams:Object = node.params;
+			
 			updater(node, item);
+			
+			// if something changed, clear the previous result
+			if (oldAction != node.action || ObjectUtil.compare(oldParams, node.params))
+				node._result = null;
 			
 			outputIndex++;
 		}
@@ -417,11 +464,22 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return internalNode.getChildren();
 		
 		if (!action)
-			return updateChildren([PACKAGE_LIST, GROUP_LIST, TAG_LIST], function(node:CKANAction, action:String):void {
+		{
+			var list:Array = [];
+			if (source.showPackages.value)
+				list.push(PACKAGE_LIST);
+			if (source.showGroups.value)
+				list.push(GROUP_LIST);
+			if (source.showTags.value)
+				list.push(TAG_LIST);
+			return updateChildren(list, function(node:CKANAction, action:String):void {
 				node.action = action;
+				node.metadata = node.params = null;
 			});
+		}
 		
-		if (action == PACKAGE_LIST || action == GROUP_LIST || action == TAG_LIST)
+		// handle all situations where result is just an array of IDs
+		if (action == PACKAGE_LIST || action == GROUP_LIST || action == TAG_LIST || (action == TAG_SHOW && !apiVersion3))
 			return updateChildren(result as Array, function(node:CKANAction, id:String):void {
 				node.action = StandardLib.replace(action, "_list", "_show");
 				node.metadata = node.params = {"id": id};
