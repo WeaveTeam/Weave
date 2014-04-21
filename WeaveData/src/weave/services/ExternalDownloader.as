@@ -150,7 +150,7 @@ package weave.services
 				else
 					faultCode = lang("Error");
 				
-				var fault:Fault = new Fault(faultCode, lang("HTTP GET failed"), qt.url);
+				var fault:Fault = new Fault(faultCode, lang("HTTP GET failed. Check that the server allows Cross-Origin Resource Sharing (CORS)."), qt.url);
 				fault.content = result;
 				qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
 			}
