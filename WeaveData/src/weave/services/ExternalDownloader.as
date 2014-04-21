@@ -87,14 +87,16 @@ package weave.services
 			if (method == URLRequestMethod.POST)
 			{
 				var bytes:ByteArray = urlRequest.data as ByteArray;
-				var string:String = urlRequest.data as String;
+				if (urlRequest.data is String)
+				{
+					bytes = new ByteArray();
+					bytes.writeUTFBytes(urlRequest.data as String);
+				}
 				
 				var encoder:Base64Encoder = new Base64Encoder();
 				encoder.insertNewLines = false;
 				if (bytes)
-					encoder.encodeBytes(urlRequest.data as ByteArray);
-				else if (string)
-					encoder.encode(string);
+					encoder.encodeBytes(bytes);
 				base64data = encoder.drain();
 			}
 			else
