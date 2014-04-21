@@ -259,6 +259,8 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		var i:int = url.lastIndexOf('/api');
 		if (i >= 0)
 			url = url.substr(0, i);
+		if (url.charAt(url.length - 1) != '/')
+			url += '/';
 		
 		// append api command to url
 		var request:URLRequest;
