@@ -403,7 +403,8 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			var str:String = metadata['name'] || metadata['description'] || metadata['url'] || metadata['id'];
 			
 			// also display the format
-			str = StandardLib.substitute("{0} ({1})", str, metadata['format']);
+			if (metadata['format'])
+				str = StandardLib.substitute("{0} ({1})", str, metadata['format']);
 			
 			return str;
 		}
@@ -551,7 +552,14 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		return _childNodes;
 	}
 	
-	private const _KEY_ORDER:Array = ['title', 'display_name', 'name', 'description', 'format', 'resource_type', 'url', 'mimetype', 'created', 'revision_timestamp'];
+	private const _KEY_ORDER:Array = [
+		'title', 'display_name', 'name', 'description',
+		'format', 'resource_type', 'mimetype',
+		'url',
+		'url_type',
+		'created', 'publish-date',
+		'last_modified', 'revision_timestamp'
+	];
 	private function keySort(a:Object, b:Object):int
 	{
 		var order:Array = _KEY_ORDER;
