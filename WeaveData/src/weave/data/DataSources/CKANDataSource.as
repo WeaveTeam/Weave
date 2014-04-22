@@ -171,6 +171,8 @@ package weave.data.DataSources
 	}
 }
 
+import com.hurlant.util.asn1.parser.nulll;
+
 import flash.events.Event;
 import flash.external.ExternalInterface;
 import flash.net.URLRequest;
@@ -186,6 +188,7 @@ import mx.utils.URLUtil;
 import weave.api.WeaveAPI;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
+import weave.api.data.IExternalLink;
 import weave.api.data.IWeaveTreeNode;
 import weave.api.data.IWeaveTreeNodeWithPathFinding;
 import weave.api.detectLinkableObjectChange;
@@ -195,6 +198,7 @@ import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
 import weave.data.DataSources.CKANDataSource;
 import weave.services.URLRequestUtils;
+import weave.utils.VectorUtils;
 
 internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding
 {
@@ -207,6 +211,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	
 	public static const GET_DATASOURCE:String = 'get_datasource';
 	public static const GET_COLUMN:String = 'get_column';
+	public static const NO_ACTION:String = 'no_action';
 	
 	private var source:CKANDataSource;
 	/**
@@ -397,9 +402,8 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		{
 			var str:String = metadata['name'] || metadata['description'] || metadata['url'] || metadata['id'];
 			
-			// if we don't support this resource format, also display the format
-			if (!isBranch())
-				str = StandardLib.substitute("{0} ({1})", str, metadata['format']);
+			// also display the format
+			str = StandardLib.substitute("{0} ({1})", str, metadata['format']);
 			
 			return str;
 		}
@@ -412,21 +416,21 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return internalNode.isBranch();
 		
 		if (action == GET_DATASOURCE)
-		{
-			var format:String = String(metadata['format']).toLowerCase();
-			return format == 'csv'
-				|| format == 'xls'
-				|| format == 'wfs';
-		}
+			return true;
 		
-		return true;
+		return action != NO_ACTION;
 	}
 	public function hasChildBranches():Boolean
 	{
 		if (internalNode)
 			return internalNode.hasChildBranches();
 		
-		return action != GET_DATASOURCE;
+		if (action == PACKAGE_SHOW)
+			return result['resources'] is Array && (result['resources'] as Array).length;
+		if (action == GROUP_SHOW || action == TAG_SHOW)
+			return result['packages'] is Array && (result['packages'] as Array).length;
+		
+		return action != GET_DATASOURCE && action != NO_ACTION;
 	}
 	
 	private var _childNodes:Array = [];
@@ -436,14 +440,16 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	 * @param updater A function like function(node:CKANAction, item:Object):void which receives the child node and its corresponding input metadata item.
 	 * @return The updated _childNodes Array. 
 	 */
-	private function updateChildren(input:Array, updater:Function = null):Array
+	private function updateChildren(input:Array, updater:Function = null, nodeType:Class = null):Array
 	{
+		if (!nodeType)
+			nodeType = CKANAction;
 		var outputIndex:int = 0;
 		for each (var item:Object in input)
 		{
 			var node:CKANAction = _childNodes[outputIndex];
-			if (!node)
-				_childNodes[outputIndex] = node = new CKANAction(source);
+			if (!node || Object(node).constructor != nodeType)
+				_childNodes[outputIndex] = node = new nodeType(source);
 			
 			var oldAction:String = node.action;
 			var oldParams:Object = node.params;
@@ -518,11 +524,40 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 					node.params = params; // copy params from parent
 				});
 			}
+			else
+			{
+				var keys:Array = VectorUtils.getKeys(metadata);
+				keys = keys.filter(function(key:String, i:*, a:*):Boolean {
+					return metadata[key] != null && metadata[key] != '';
+				});
+				StandardLib.sort(keys, keySort);
+				return updateChildren(keys, function(node:MetadataNode, key:String):void {
+					node.metadata = metadata;
+					node.params = key;
+				}, MetadataNode);
+			}
 		}
 		
 		_childNodes.length = 0;
 		return _childNodes;
 	}
+	
+	private const _KEY_ORDER:Array = ['title', 'display_name', 'name', 'description', 'format', 'url', 'mimetype', 'created', 'revision_timestamp'];
+	private function keySort(a:Object, b:Object):int
+	{
+		var order:Array = _KEY_ORDER;
+		var ia:int = order.indexOf(a);
+		var ib:int = order.indexOf(b);
+		if (ia >= 0 && ib >= 0)
+			return ObjectUtil.numericCompare(ia, ib);
+		if (ia >= 0)
+			return -1;
+		if (ib >= 0)
+			return 1;
+		
+		return ObjectUtil.stringCompare(a as String, b as String, true);
+	}
+
 	
 	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
 	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
@@ -569,5 +604,28 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (!action && !params)
 			return Compiler.stringify(metadata);
 		return Compiler.stringify({action: action, params: params});
+	}
+}
+
+/**
+ * No CKAN action is associated with this type of node.
+ * Uses the 'params' property as a key for the 'metadata' object.
+ */
+internal class MetadataNode extends CKANAction implements IExternalLink
+{
+	public function MetadataNode(source:CKANDataSource)
+	{
+		super(source);
+		action = NO_ACTION;
+	}
+	
+	public function getURL():String
+	{
+		return params == 'url' ? metadata[params] : null;
+	}
+	
+	override public function toString():String
+	{
+		return lang("{0}: {1}", params, Compiler.stringify(metadata[params]));
 	}
 }

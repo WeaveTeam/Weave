@@ -40,13 +40,17 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import flash.net.navigateToURL;
+			
 			import mx.binding.utils.BindingUtils;
+			import mx.events.ListEvent;
 			
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IColumnReference;
 			import weave.api.data.IDataSource;
+			import weave.api.data.IExternalLink;
 			import weave.api.data.IWeaveTreeNode;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
@@ -130,6 +134,13 @@
 				explorer.folderView.nodeFilter = entityNodeSearch.nodeFilter;
 				explorer.fileView.nodeFilter = entityNodeSearch.nodeFilter;
 				EventUtils.addDelayedEventCallback(searchInput, "textChanged", handleFolderSearch, 500);
+				
+				// when a URL node (IExternalLink) is clicked, visit the URL
+				explorer.fileView.addEventListener(ListEvent.ITEM_CLICK, function(event:ListEvent):void {
+					var link:IExternalLink = event.itemRenderer.data as IExternalLink;
+					if (link && link.getURL())
+						navigateToURL(new URLRequest(link.getURL()), '_blank');
+				});
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
