@@ -914,13 +914,15 @@ public class WeaveServlet extends HttpServlet
     	exception.printStackTrace();
     	
     	String message;
-    	if (exception instanceof RuntimeException)
+    	if (exception instanceof NullPointerException)
     	{
     		StringWriter sw = new StringWriter();
     		PrintWriter pw = new PrintWriter(sw, true);
     		exception.printStackTrace(pw);
     		message = sw.getBuffer().toString();
     	}
+    	else if (exception instanceof RuntimeException)
+    		message = exception.toString();
     	else
     		message = exception.getMessage();
     	
