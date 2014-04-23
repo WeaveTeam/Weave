@@ -417,7 +417,6 @@ public class WeaveServlet extends HttpServlet
 			/*If first character is { then it is a single request. We add it to the array jsonRequests and continue*/
 			if (streamString.charAt(0) == '{')
 			{
-				//TODO:CHeck parse error for this
 				JsonRpcRequestModel req = GSON.fromJson(streamString, JsonRpcRequestModel.class);
 				jsonRequests = new JsonRpcRequestModel[] { req };
 				info.isBatchRequest = false;
@@ -453,7 +452,7 @@ public class WeaveServlet extends HttpServlet
 				}
 				
 				/*Check if Method exists*/
-				if (!methodMap.containsKey(info.currentJsonRequest.method))
+				if (methodMap.get(info.currentJsonRequest.method) != null)
 				{
 					sendJsonError(JSON_RPC_METHOD_ERROR_MESSAGE, info.currentJsonRequest.method);
 					continue;
@@ -553,9 +552,8 @@ public class WeaveServlet extends HttpServlet
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Object[] getParamsFromMap(String methodName, Map params)
+	private Object[] getParamsFromMap(ExposedMethod exposedMethod, Map params)
 	{
-		ExposedMethod exposedMethod = methodMap.get(methodName);
 		String[] argNames = exposedMethod.paramNames;
 		Class[] argTypes = exposedMethod.method.getParameterTypes();
 		Object[] argValues = new Object[argTypes.length];
@@ -565,7 +563,6 @@ public class WeaveServlet extends HttpServlet
 		// For each method parameter, get the corresponding url parameter value.
 		if (argNames != null && params != null)
 		{
-			//TODO: check why params is null
 			for (Object parameterName : params.keySet())
 			{
 				Object parameterValue = params.get(parameterName);
@@ -602,7 +599,7 @@ public class WeaveServlet extends HttpServlet
 		}
 		if (extraParameters != null)
 		{
-			System.out.println("Received servlet request: " + methodToString(methodName, argValues));
+			System.out.println("Received servlet request: " + methodToString(exposedMethod.method.getName(), argValues));
 			System.out.println("Unused parameters: "+extraParameters.entrySet());
 		}
 		
@@ -616,9 +613,14 @@ public class WeaveServlet extends HttpServlet
 	private void invokeMethod(String methodName, Object methodParams) throws IOException
 	{
 		ServletRequestInfo info = getServletRequestInfo();
-		if (!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
+		
+		ExposedMethod exposedMethod = methodMap.get(methodName);
+		if (exposedMethod == null)
 		{
-			sendError(new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)), null);
+			String message = methodName == null
+					? "No method specified."
+					: String.format("Unknown method: \"%s\"", methodName);
+			sendError(new IllegalArgumentException(message), null);
 			return;
 		}
 		
@@ -626,7 +628,7 @@ public class WeaveServlet extends HttpServlet
 			methodParams = new Object[0];
 		
 		if (methodParams instanceof Map)
-			methodParams = getParamsFromMap(methodName, (Map<?,?>)methodParams);
+			methodParams = getParamsFromMap(exposedMethod, (Map<?,?>)methodParams);
 		
 		if (methodParams instanceof List<?>)
 			methodParams = ((List<?>)methodParams).toArray();
@@ -639,14 +641,6 @@ public class WeaveServlet extends HttpServlet
 		}
 			
 		Object[] params = (Object[])methodParams;
-		
-		// get method by name
-		ExposedMethod exposedMethod = methodMap.get(methodName);
-		if (exposedMethod == null)
-		{
-			sendError(new IllegalArgumentException("Unknown method: "+methodName), null);
-			return;
-		}
 		
 		// cast input values to appropriate types if necessary
 		Class<?>[] expectedArgTypes = exposedMethod.method.getParameterTypes();
