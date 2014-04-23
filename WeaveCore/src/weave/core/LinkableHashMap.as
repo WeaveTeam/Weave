@@ -336,7 +336,7 @@ package weave.core
 		public function removeAllObjects():void
 		{
 			delayCallbacks();
-			for each (var name:String in getNames())
+			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
 				removeObject(name);
 			resumeCallbacks();
 		}
@@ -460,10 +460,8 @@ package weave.core
 			if (removeMissingDynamicObjects)
 			{
 				// third pass: remove objects based on the Boolean flags in remainingObjects.
-				i = _orderedNames.length;
-				while (i--)
+				for each (objectName in _orderedNames.concat()) // iterate over a copy of the list
 				{
-					objectName = _orderedNames[i];
 					if (remainingObjects[objectName] !== true)
 					{
 						//trace(LinkableHashMap, "missing value: "+objectName);
