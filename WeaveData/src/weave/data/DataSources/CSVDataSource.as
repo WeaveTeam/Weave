@@ -309,8 +309,6 @@ package weave.data.DataSources
 		}
 		
 		
-		private const _proxyColumnSet:Dictionary = new Dictionary();
-		
 		override protected function get initializationComplete():Boolean
 		{
 			// make sure csv data is set before column requests are handled.
@@ -377,15 +375,14 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * This gets called when callbacks are triggered.
+		 * This gets called as a grouped callback.
 		 */		
 		override protected function initialize():void
 		{
 			handleURLChange();
 			
 			// recalculate all columns previously requested because CSV data may have changed.
-			for (var proxyColumn:* in _proxyColumnSet)
-				requestColumnFromSource(proxyColumn);
+			refreshAllProxyColumns();
 
 			super.initialize();
 		}
@@ -589,7 +586,6 @@ package weave.data.DataSources
 					}
 				}
 				proxyColumn.setInternalColumn(newColumn);
-				_proxyColumnSet[proxyColumn] = true;
 				
 				debug("initialized column",proxyColumn);
 			}

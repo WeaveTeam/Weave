@@ -19,6 +19,8 @@
 
 package weave.data.DataSources
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
@@ -131,9 +133,9 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * This function sets initialized to false.
+		 * This function is called as an immediate callback and sets initialized to false.
 		 */
-		private function uninitialize():void
+		protected function uninitialize():void
 		{
 			debug("uninitialize");
 			_initializeCalled = false;
@@ -241,11 +243,6 @@ package weave.data.DataSources
 		protected const _attributeHierarchy:LinkableXML = newLinkableChild(this, LinkableXML, handleHierarchyChange);
 
 		/**
-		 * This is a list of ProxyColumn objects.
-		 */
-		private var _pendingColumnRequests:Array = [];
-		
-		/**
 		 * This maps a requested hierarchy subtree xml string to a value of true.
 		 * If a subtree node has not been requested yet, it will not appear in this Object.
 		 */
@@ -305,7 +302,12 @@ package weave.data.DataSources
 			handlePendingColumnRequest(proxyColumn);
 			return proxyColumn;
 		}
-
+		
+		/**
+		 * ProxyColumn -> true if pending, false if not pending
+		 */
+		private var _proxyColumns:Dictionary = new Dictionary(true);
+		
 		/**
 		 * This function will call requestColumnFromSource() if the hierarchyPointer in the column is now valid.
 		 * Otherwise, it will call delayColumnRequest() again.
@@ -320,13 +322,13 @@ package weave.data.DataSources
 			// Otherwise, we have to wait.
 			if (initializationComplete)
 			{
+				_proxyColumns[column] = false; // no longer pending
 				WeaveAPI.StageUtils.callLater(column, requestColumnFromSource, [column]);
 				WeaveAPI.StageUtils.callLater(column, WeaveAPI.ProgressIndicator.removeTask, [column]);
-				//requestColumnFromSource(column);
 			}
 			else
 			{
-				_pendingColumnRequests.push(column);
+				_proxyColumns[column] = true; // pending
 			}
 		}
 		
@@ -336,10 +338,18 @@ package weave.data.DataSources
 		private function handleAllPendingColumnRequests():void
 		{
 			// swap out pending requests with a new array so we don't go in an infinite loop.
-			var oldRequests:Array = _pendingColumnRequests;
-			_pendingColumnRequests = [];
-			for each (var oldRequest:ProxyColumn in oldRequests)
-				handlePendingColumnRequest(oldRequest);
+			for (var proxyColumn:Object in _proxyColumns)
+				if (_proxyColumns[proxyColumn]) // pending?
+					handlePendingColumnRequest(proxyColumn as ProxyColumn);
+		}
+		
+		/**
+		 * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
+		 */
+		protected function refreshAllProxyColumns():void
+		{
+			for (var proxyColumn:Object in _proxyColumns)
+				handlePendingColumnRequest(proxyColumn as ProxyColumn);
 		}
 		
 		/**
@@ -351,7 +361,7 @@ package weave.data.DataSources
 			debug('dispose');
 			
 			_initializeCalled = false;
-			_pendingColumnRequests.length = 0;
+			_proxyColumns = null;
 		}
 	}
 }

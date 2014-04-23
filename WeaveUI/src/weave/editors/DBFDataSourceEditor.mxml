@@ -27,11 +27,11 @@
 	implements="weave.api.ui.IDataSourceEditor"
 	creationPolicy="all" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{target ? 'Edit' : 'Add'} DBF Data Source"/>
 	<ui:Indent label="{lang('Source Name *')}">
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('DBF URL *')}">
+	<ui:Indent label="{lang('DBF URL')}">
 		<ui:TextInputWithPrompt id="dbfURL" width="100%" prompt="http://www.example.com/example.dbf"/>
 		<mx:Button label="{lang('Open file')}" click="openFile(dbfURL, new FileFilter('DBF', '*.dbf'));"/>
 	</ui:Indent>
@@ -39,14 +39,17 @@
 		<ui:TextInputWithPrompt id="shpURL" width="100%"  prompt="http://www.example.com/example.shp"/>
 		<mx:Button label="{lang('Open file')}" click="openFile(shpURL, new FileFilter('SHP', '*.shp'));"/>
 	</ui:Indent>
+	<ui:Indent label="{lang('Projection')}">
+		<ui:TextInputWithPrompt id="projection" width="100%" prompt="Example: EPSG:4326"/>
+	</ui:Indent>
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Key Type *')}">
-		<ui:KeyTypesMenu id="keyTypeSelector" creationComplete="{if(_dbfDataSource)
+	<ui:Indent label="{lang('Key Type')}">
+		<ui:KeyTypesMenu id="keyTypeSelector" text="{sourceName}" creationComplete="{if (target)
 						 {
-						 	(event.target as KeyTypesMenu).addKeyTypeToMenu(_dbfDataSource.keyType.value);
-						 	(event.target as KeyTypesMenu).selectedItem = _dbfDataSource.keyType.value;
+						 	(event.target as KeyTypesMenu).addKeyTypeToMenu(target.getKeyType());
+						 	(event.target as KeyTypesMenu).selectedItem = target.getKeyType();
 						 }}"/>
 	</ui:Indent>
 	<mx:Spacer height="20"/>
@@ -74,10 +77,10 @@
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
-			[Bindable] private var _dbfDataSource:DBFDataSource = null;
+			[Bindable] private var target:DBFDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
-				_dbfDataSource = object as DBFDataSource;
+				target = object as DBFDataSource;
 				
 				if (!parent)
 				{
@@ -85,56 +88,63 @@
 					return;
 				}
 				
-				if (_dbfDataSource)
+				if (target)
 				{
-					sourceName.text = WeaveAPI.globalHashMap.getName(_dbfDataSource);
-					dbfURL.text = _dbfDataSource.dbfUrl.value;
-					shpURL.text = _dbfDataSource.shpUrl.value;
-					keyColumnName.text = _dbfDataSource.keyColName.value;
-					keyTypeSelector.addKeyTypeToMenu(_dbfDataSource.keyType.value);
-					keyTypeSelector.selectedKeyType = _dbfDataSource.keyType.value;
+					sourceName.text = WeaveAPI.globalHashMap.getName(target);
+					dbfURL.text = target.dbfUrl.value;
+					shpURL.text = target.shpUrl.value;
+					projection.text = target.projection.value;
+					keyColumnName.text = target.keyColName.value;
+					keyTypeSelector.addKeyTypeToMenu(target.getKeyType());
+					keyTypeSelector.selectedKeyType = target.getKeyType();
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
-
 			}
 			
 			public function hasPendingChanges():Boolean
 			{
-				return StandardLib.asString(_dbfDataSource.dbfUrl.value) != StandardLib.asString(dbfURL.text)
-					|| StandardLib.asString(_dbfDataSource.shpUrl.value) != StandardLib.asString(shpURL.text)
-					|| StandardLib.asString(_dbfDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
-					|| StandardLib.asString(_dbfDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedKeyType);
+				return StandardLib.asString(target.dbfUrl.value) != StandardLib.asString(dbfURL.text)
+					|| StandardLib.asString(target.shpUrl.value) != StandardLib.asString(shpURL.text)
+					|| StandardLib.asString(target.projection.value) != StandardLib.asString(projection.text)
+					|| StandardLib.asString(target.keyColName.value) != StandardLib.asString(keyColumnName.text)
+					|| StandardLib.asString(target.getKeyType()) != StandardLib.asString(keyTypeSelector.selectedKeyType);
 			}
 
 			public function applyChanges():void
 			{
-				_dbfDataSource.dbfUrl.value = dbfURL.text;
-				_dbfDataSource.shpUrl.value = shpURL.text;
-				_dbfDataSource.keyColName.value = keyColumnName.text;
-				_dbfDataSource.keyType.value = keyTypeSelector.selectedKeyType;
+				target.dbfUrl.value = dbfURL.text;
+				target.shpUrl.value = shpURL.text;
+				target.projection.value = projection.text;
+				target.keyColName.value = keyColumnName.text;
+				target.keyType.value = keyTypeSelector.selectedKeyType;
 			}
 			
 			public function createDataSource():IDataSource
 			{
-				if (!sourceName.text || !dbfURL.text)
+				if (!sourceName.text)
 				{
-					Alert.show(lang("Please fill all required fields"), lang("Error"));
+					Alert.show(lang("Please enter a name for this data source."), lang("Error"));
+					return null;
+				}
+				if (!dbfURL.text && !shpURL.text)
+				{
+					Alert.show(lang("Please specify URL(s) for SHP and/or DBF."), lang("Error"));
 					return null;
 				}
 				if (WeaveAPI.globalHashMap.getObject(sourceName.text))
 				{
-					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+					Alert.show(lang("Source Name already being used. Please give a different name."), lang("Error"));
 					return null;
 				}
-				_dbfDataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, DBFDataSource, false);
-				if (!_dbfDataSource)
+				target = WeaveAPI.globalHashMap.requestObject(sourceName.text, DBFDataSource, false);
+				if (!target)
 				{
 					Alert.show(lang("Unexpected problem. Unable to add the data source."));
 					return null;
 				}
 				applyChanges();
-				return _dbfDataSource;
+				return target;
 			}
 			
 			private function openFile(target:TextInputWithPrompt, fileFilter:FileFilter):void

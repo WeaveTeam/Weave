@@ -22,6 +22,7 @@ package weave.api.data
 	 */
 	public class DataTypes
 	{
+		//public static const BOOLEAN:String = "boolean";
 		public static const NUMBER:String = "number";
 		public static const STRING:String = "string";
 		public static const DATE:String = "date";
