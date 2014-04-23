@@ -102,11 +102,11 @@ public class WeaveServlet extends HttpServlet
 	protected final String STREAM_PARAMETER_INDEX = "streamParameterIndex";
 	
 	private Map<String, ExposedMethod> methodMap = new HashMap<String, ExposedMethod>(); //Key: methodName
-    private Paranamer paranamer = new BytecodeReadingParanamer(); // this gets parameter names from Methods
-    
-    /**
-     * This class contains a Method with its parameter names and class instance.
-     */
+	private Paranamer paranamer = new BytecodeReadingParanamer(); // this gets parameter names from Methods
+	
+	/**
+	 * This class contains a Method with its parameter names and class instance.
+	 */
 	private class ExposedMethod
 	{
 		public ExposedMethod(Object instance, Method method, String[] paramNames)
@@ -178,26 +178,26 @@ public class WeaveServlet extends HttpServlet
 		// for debugging
 		printExposedMethods();
 	}
-    
-    /**
-     * @param serviceObject The instance of an object to use in the servlet.
-     * @param method The method to expose on serviceObject.
-     */
-    synchronized protected void initMethod(Object serviceObject, Method method)
-    {
-    	// only expose public methods
-    	if (!Modifier.isPublic(method.getModifiers()))
-    		return;
+	
+	/**
+	 * @param serviceObject The instance of an object to use in the servlet.
+	 * @param method The method to expose on serviceObject.
+	 */
+	synchronized protected void initMethod(Object serviceObject, Method method)
+	{
+		// only expose public methods
+		if (!Modifier.isPublic(method.getModifiers()))
+			return;
 		String methodName = method.getName();
 		if (methodMap.containsKey(methodName))
-    	{
+		{
 			methodMap.put(methodName, null);
-
+	
 			System.err.println(String.format(
-    				"Method %s.%s will not be supported because there are multiple definitions.",
-    				this.getClass().getName(), methodName
-    			));
-    	}
+					"Method %s.%s will not be supported because there are multiple definitions.",
+					this.getClass().getName(), methodName
+				));
+		}
 		else
 		{
 			String[] paramNames = null;
@@ -205,21 +205,21 @@ public class WeaveServlet extends HttpServlet
 			
 			methodMap.put(methodName, new ExposedMethod(serviceObject, method, paramNames));
 		}
-    }
-    
-    protected void printExposedMethods()
-    {
-    	String output = "";
-    	List<String> methodNames = new Vector<String>(methodMap.keySet());
-    	Collections.sort(methodNames);
-    	for (String methodName : methodNames)
-    	{
-    		ExposedMethod m = methodMap.get(methodName);
-    		if (m != null)
-    		{
-    			if (m.method.getAnnotation(Deprecated.class) != null)
-    				continue;
-    			output += String.format(
+	}
+	
+	protected void printExposedMethods()
+	{
+		String output = "";
+		List<String> methodNames = new Vector<String>(methodMap.keySet());
+		Collections.sort(methodNames);
+		for (String methodName : methodNames)
+		{
+			ExposedMethod m = methodMap.get(methodName);
+			if (m != null)
+			{
+				if (m.method.getAnnotation(Deprecated.class) != null)
+					continue;
+				output += String.format(
 	    				"Exposed servlet method: %s.%s\n",
 	    				m.instance.getClass().getName(),
 	    				formatFunctionSignature(
@@ -228,116 +228,116 @@ public class WeaveServlet extends HttpServlet
 	    						m.paramNames
 	    					)
 	    			);
-    		}
-    		else
-    			output += "Not exposed: "+methodName;
-    	}
-    	System.out.print(output);
-    }
-    
-    private static class ServletRequestInfo
-    {
-    	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
-    	{
-    		this.request = request;
-    		this.response = response;
-    		this.inputStream = new PeekableInputStream(request.getInputStream());
-    	}
-    	
-    	private ServletOutputStream _servletOutputStream = null;
-    	public ServletOutputStream getOutputStream() throws IOException
-    	{
-    		if (_servletOutputStream == null)
-    			_servletOutputStream = response.getOutputStream();
-    		return _servletOutputStream;
-    	}
-    	
-    	@SuppressWarnings("unused")
+			}
+			else
+				output += "Not exposed: "+methodName;
+		}
+		System.out.print(output);
+	}
+	
+	private static class ServletRequestInfo
+	{
+		public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
+		{
+			this.request = request;
+			this.response = response;
+			this.inputStream = new PeekableInputStream(request.getInputStream());
+		}
+		
+		private ServletOutputStream _servletOutputStream = null;
+		public ServletOutputStream getOutputStream() throws IOException
+		{
+			if (_servletOutputStream == null)
+				_servletOutputStream = response.getOutputStream();
+			return _servletOutputStream;
+		}
+		
+		@SuppressWarnings("unused")
 		public HttpServletRequest request;
-    	public HttpServletResponse response;
-    	public JsonRpcRequestModel currentJsonRequest;
-    	public List<JsonRpcResponseModel> jsonResponses = new Vector<JsonRpcResponseModel>();
-    	public Number streamParameterIndex = null;
-    	public PeekableInputStream inputStream;
-    	public Boolean isBatchRequest = false;
-    }
-    
-    /**
-     * This maps a thread to the corresponding RequestInfo for the doGet() or doPost() call that thread is handling.
-     */
-    private Map<Thread,ServletRequestInfo> _servletRequestInfo = new HashMap<Thread,ServletRequestInfo>();
-    
-    /**
-     * This function retrieves the ServletOutputStream associated with the current thread's doGet() or doPost() call.
-     * In a public function with a void return type, you can use the ServletOutputStream for full control over the output.
-     */
-    protected ServletOutputStream getServletOutputStream() throws IOException
-    {
-    	return getServletRequestInfo().getOutputStream();
-    }
-    
-    private ServletRequestInfo getServletRequestInfo()
-    {
-    	synchronized (_servletRequestInfo)
-    	{
-    		return _servletRequestInfo.get(Thread.currentThread());
-    	}
-    }
-    
-    private ServletRequestInfo setServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
-    {
-    	synchronized (_servletRequestInfo)
-    	{
-    		ServletRequestInfo info = new ServletRequestInfo(request, response);
-    		_servletRequestInfo.put(Thread.currentThread(), info);
-    		return info;
-    	}
-    }
-    
-    private void removeServletRequestInfo()
-    {
+		public HttpServletResponse response;
+		public JsonRpcRequestModel currentJsonRequest;
+		public List<JsonRpcResponseModel> jsonResponses = new Vector<JsonRpcResponseModel>();
+		public Number streamParameterIndex = null;
+		public PeekableInputStream inputStream;
+		public Boolean isBatchRequest = false;
+	}
+	
+	/**
+	 * This maps a thread to the corresponding RequestInfo for the doGet() or doPost() call that thread is handling.
+	 */
+	private Map<Thread,ServletRequestInfo> _servletRequestInfo = new HashMap<Thread,ServletRequestInfo>();
+	
+	/**
+	 * This function retrieves the ServletOutputStream associated with the current thread's doGet() or doPost() call.
+	 * In a public function with a void return type, you can use the ServletOutputStream for full control over the output.
+	 */
+	protected ServletOutputStream getServletOutputStream() throws IOException
+	{
+		return getServletRequestInfo().getOutputStream();
+	}
+	
+	private ServletRequestInfo getServletRequestInfo()
+	{
+		synchronized (_servletRequestInfo)
+		{
+			return _servletRequestInfo.get(Thread.currentThread());
+		}
+	}
+	
+	private ServletRequestInfo setServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
+	{
+		synchronized (_servletRequestInfo)
+		{
+			ServletRequestInfo info = new ServletRequestInfo(request, response);
+			_servletRequestInfo.put(Thread.currentThread(), info);
+			return info;
+		}
+	}
+	
+	private void removeServletRequestInfo()
+	{
 		synchronized (_servletRequestInfo)
 		{
 			_servletRequestInfo.remove(Thread.currentThread());
 		}
-    }
-    
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-    	handleServletRequest(request, response);
-    }
-    
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-    	handleServletRequest(request, response);
-    }
-
-    @SuppressWarnings("unchecked")
+	}
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	{
+		handleServletRequest(request, response);
+	}
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	{
+		handleServletRequest(request, response);
+	}
+	
+	@SuppressWarnings("unchecked")
 	private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
-    {
-    	try
-    	{
-    		ServletRequestInfo info = setServletRequestInfo(request, response);
-    		
-    		if (request.getMethod().equals("GET"))
-    		{
-        		List<String> urlParamNames = Collections.list(request.getParameterNames());
-        		
-    			HashMap<String, String> params = new HashMap<String,String>();
-    			
-    			for (String paramName : urlParamNames)
-    				params.put(paramName, request.getParameter(paramName));
-    			JsonRpcRequestModel json = new JsonRpcRequestModel();
-    			json.jsonrpc = JSONRPC_VERSION;
-    			json.id = "";
-    			json.method = params.remove(METHOD);
-    			json.params = params;
-    			
+	{
+		try
+		{
+			ServletRequestInfo info = setServletRequestInfo(request, response);
+			
+			if (request.getMethod().equals("GET"))
+			{
+	    		List<String> urlParamNames = Collections.list(request.getParameterNames());
+	    		
+				HashMap<String, String> params = new HashMap<String,String>();
+				
+				for (String paramName : urlParamNames)
+					params.put(paramName, request.getParameter(paramName));
+				JsonRpcRequestModel json = new JsonRpcRequestModel();
+				json.jsonrpc = JSONRPC_VERSION;
+				json.id = "";
+				json.method = params.remove(METHOD);
+				json.params = params;
+				
 	    		info.currentJsonRequest = json;
 	    		invokeMethod(json.method, params);
-    		}
-    		else // post
-    		{
+			}
+			else // post
+			{
 	    		try
 	    		{
 	    			String methodName;
@@ -364,13 +364,13 @@ public class WeaveServlet extends HttpServlet
 		    		sendError(e, null);
 		    	}
 		    	
-    		}
-    		handleJsonResponses();
-    	}
-    	finally
-    	{
-    		removeServletRequestInfo();
-    	}
+			}
+			handleJsonResponses();
+		}
+		finally
+		{
+			removeServletRequestInfo();
+		}
 	}
 	
 	public static final String JSONRPC_VERSION = "2.0";
@@ -406,32 +406,32 @@ public class WeaveServlet extends HttpServlet
 		}
 	}
 	
-    private void handleArrayOfJsonRequests(PeekableInputStream inputStream,HttpServletResponse response) throws IOException
-    {
-    	try
-    	{
-    		JsonRpcRequestModel[] jsonRequests;
-    		String streamString = IOUtils.toString(inputStream, "UTF-8");
-    		
-    		ServletRequestInfo info = getServletRequestInfo();
-    		/*If first character is { then it is a single request. We add it to the array jsonRequests and continue*/
-    		if (streamString.charAt(0) == '{')
-    		{
-    			//TODO:CHeck parse error for this
-    			JsonRpcRequestModel req = GSON.fromJson(streamString, JsonRpcRequestModel.class);
-    			jsonRequests = new JsonRpcRequestModel[] { req };
-    			info.isBatchRequest = false;
-    		}
-    		else
-    		{
-    			jsonRequests = GSON.fromJson(streamString, JsonRpcRequestModel[].class);
-    			info.isBatchRequest = true;
-    		}
-    		
-    		
-    		/* we loop through each request, get results or check error and add repsonses to an array*/ 
-    		for (int i = 0; i < jsonRequests.length; i++)
-    		{
+	private void handleArrayOfJsonRequests(PeekableInputStream inputStream,HttpServletResponse response) throws IOException
+	{
+		try
+		{
+			JsonRpcRequestModel[] jsonRequests;
+			String streamString = IOUtils.toString(inputStream, "UTF-8");
+			
+			ServletRequestInfo info = getServletRequestInfo();
+			/*If first character is { then it is a single request. We add it to the array jsonRequests and continue*/
+			if (streamString.charAt(0) == '{')
+			{
+				//TODO:CHeck parse error for this
+				JsonRpcRequestModel req = GSON.fromJson(streamString, JsonRpcRequestModel.class);
+				jsonRequests = new JsonRpcRequestModel[] { req };
+				info.isBatchRequest = false;
+			}
+			else
+			{
+				jsonRequests = GSON.fromJson(streamString, JsonRpcRequestModel[].class);
+				info.isBatchRequest = true;
+			}
+			
+			
+			/* we loop through each request, get results or check error and add repsonses to an array*/ 
+			for (int i = 0; i < jsonRequests.length; i++)
+			{
 				info.currentJsonRequest = jsonRequests[i];
 				
 				/* Check to see if JSON-RPC protocol is 2.0*/
@@ -460,70 +460,70 @@ public class WeaveServlet extends HttpServlet
 				}
 				
 				invokeMethod(info.currentJsonRequest.method, info.currentJsonRequest.params);
-    		}
-    		
-    	}
-    	catch (JsonParseException e)
-    	{
-    		sendError(e, JSON_RPC_PARSE_ERROR_MESSAGE);
-    	}
-    }
-    
-    private void handleJsonResponses()
-    {
-    	ServletRequestInfo info = getServletRequestInfo();
-    	
-    	if (info.currentJsonRequest == null)
-    		return;
-    	
-    	info.response.setContentType("application/json");
-    	info.response.setCharacterEncoding("UTF-8");
+			}
+			
+		}
+		catch (JsonParseException e)
+		{
+			sendError(e, JSON_RPC_PARSE_ERROR_MESSAGE);
+		}
+	}
+	
+	private void handleJsonResponses()
+	{
+		ServletRequestInfo info = getServletRequestInfo();
+		
+		if (info.currentJsonRequest == null)
+			return;
+		
+		info.response.setContentType("application/json");
+		info.response.setCharacterEncoding("UTF-8");
 		String result;
-    	try
-    	{
-    		if (info.jsonResponses.size() == 0)
-    		{
-    			// If there are no Response objects contained within the Response array as it is to be sent to the client,
-    			// the server MUST NOT return an empty Array and should return nothing at all.
-    			ServletOutputStream out = info.getOutputStream();
-    			out.close();
-    			out.flush();
-    			return;
-    		}
-    		if (!info.isBatchRequest)
-    		{
-   				result = GSON.toJson(info.jsonResponses.get(0));
-    		}
-    		else
-    		{
-    			result = GSON.toJson(info.jsonResponses);
-    		}
-    		
-    		PrintWriter writer = new PrintWriter(info.getOutputStream());
+		try
+		{
+			if (info.jsonResponses.size() == 0)
+			{
+				// If there are no Response objects contained within the Response array as it is to be sent to the client,
+				// the server MUST NOT return an empty Array and should return nothing at all.
+				ServletOutputStream out = info.getOutputStream();
+				out.close();
+				out.flush();
+				return;
+			}
+			if (!info.isBatchRequest)
+			{
+				result = GSON.toJson(info.jsonResponses.get(0));
+			}
+			else
+			{
+				result = GSON.toJson(info.jsonResponses);
+			}
+			
+			PrintWriter writer = new PrintWriter(info.getOutputStream());
 			writer.print(result);
 			writer.close();
 			writer.flush();
 			
-    	}
-    	catch (Exception e)
-    	{
+		}
+		catch (Exception e)
+		{
 			e.printStackTrace();
 		}
-    }
-    
-    private static String JSON_RPC_PROTOCOL_ERROR_MESSAGE = "JSON-RPC protocol must be 2.0";
-    private static String JSON_RPC_ID_ERROR_MESSAGE = "ID cannot contain fractional parts";
-    private static String JSON_RPC_METHOD_ERROR_MESSAGE = "The method does not exist or is not available.";
-    private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.";
-    private void sendJsonError(String message, Object data)
-    {
-    	ServletRequestInfo info = getServletRequestInfo();
-    	Object id = info.currentJsonRequest.id;
-    	
+	}
+	
+	private static String JSON_RPC_PROTOCOL_ERROR_MESSAGE = "JSON-RPC protocol must be 2.0";
+	private static String JSON_RPC_ID_ERROR_MESSAGE = "ID cannot contain fractional parts";
+	private static String JSON_RPC_METHOD_ERROR_MESSAGE = "The method does not exist or is not available.";
+	private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.";
+	private void sendJsonError(String message, Object data)
+	{
+		ServletRequestInfo info = getServletRequestInfo();
+		Object id = info.currentJsonRequest.id;
+		
 		// If ID is empty then it is a notification and we send nothing back
 		if (id == null)
 			return;
-    	
+		
 	    JsonRpcResponseModel result = new JsonRpcResponseModel();
 	    result.id = id;
 	    result.jsonrpc = "2.0";
@@ -550,8 +550,8 @@ public class WeaveServlet extends HttpServlet
 	    }
 	    
 	    info.jsonResponses.add(result);
-    }
-    
+	}
+	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Object[] getParamsFromMap(String methodName, Map params)
 	{
@@ -656,11 +656,11 @@ public class WeaveServlet extends HttpServlet
 			{
 				params[index] = cast(params[index], expectedArgTypes[index]);
 			}
-    	}
-
-    	// prepare to output the result of the method call
-    	long startTime = System.currentTimeMillis();
-    	
+		}
+	
+		// prepare to output the result of the method call
+		long startTime = System.currentTimeMillis();
+		
 		// Invoke the method on the object with the arguments 
 		try
 		{
@@ -712,8 +712,8 @@ public class WeaveServlet extends HttpServlet
 		// debug
 		if (endTime - startTime >= debugThreshold)
 			System.out.println(String.format("[%sms] %s", endTime - startTime, methodToString(methodName, params)));
-    }
-    
+	}
+	
 	/**
 	 * Tries to convert value to the given type.
 	 * @param value The value to cast to a new type.
@@ -724,7 +724,7 @@ public class WeaveServlet extends HttpServlet
 	{
 		if (type.isInstance(value))
 			return value;
-
+	
 		try
 		{
 			if (value == null) // null -> NaN
@@ -766,7 +766,7 @@ public class WeaveServlet extends HttpServlet
 					return output;
 				}
 			}
-
+	
 			if (Collection.class.isAssignableFrom(type)) // ? -> <? extends Collection>
 			{
 				value = cast(value, Object[].class); // ? -> Object[]
@@ -844,137 +844,137 @@ public class WeaveServlet extends HttpServlet
 		return value;
 	}
 	
-    /**
-     * This function formats a Java function signature as a String.
-     * @param methodName The name of the method.
-     * @param paramValuesOrTypes A list of Class objects or arbitrary Objects to get the class names from.
-     * @param paramNames The names of the parameters, may be null.
-     * @return A readable Java function signature.
-     */
-    private String formatFunctionSignature(String methodName, Object[] paramValuesOrTypes, String[] paramNames)
-    {
-    	// don't use paramNames if the length doesn't match the paramValuesOrTypes length.
-    	if (paramNames != null && paramNames.length != paramValuesOrTypes.length)
-    		paramNames = null;
-    	
-    	List<String> names = new Vector<String>(paramValuesOrTypes.length);
-    	for (int i = 0; i < paramValuesOrTypes.length; i++)
-    	{
-    		Object valueOrType = paramValuesOrTypes[i];
-    		String name = "null";
-    		if (valueOrType instanceof Class)
-    			name = ((Class<?>)valueOrType).getName();
-    		else if (valueOrType != null)
-    			name = valueOrType.getClass().getName();
-    		
-    		// decode output of Class.getName()
-    		while (name.charAt(0) == '[') // array type
-    		{
-    			name = name.substring(1) + "[]";
-    			// decode element type encoding
-    			String type = "";
-    			switch (name.charAt(0))
-    			{
-    				case 'Z': type = "boolean"; break;
-    				case 'B': type = "byte"; break;
-    				case 'C': type = "char"; break;
-    				case 'D': type = "double"; break;
-    				case 'F': type = "float"; break;
-    				case 'I': type = "int"; break;
-    				case 'J': type = "long"; break;
-    				case 'S': type = "short"; break;
-    				case 'L':
-    					// remove ';'
-    					name = name.replace(";", "");
-    					break;
-    				default: continue;
-    			}
-    			// remove first char encoding
-    			name = type + name.substring(1);
-    		}
+	/**
+	 * This function formats a Java function signature as a String.
+	 * @param methodName The name of the method.
+	 * @param paramValuesOrTypes A list of Class objects or arbitrary Objects to get the class names from.
+	 * @param paramNames The names of the parameters, may be null.
+	 * @return A readable Java function signature.
+	 */
+	private String formatFunctionSignature(String methodName, Object[] paramValuesOrTypes, String[] paramNames)
+	{
+		// don't use paramNames if the length doesn't match the paramValuesOrTypes length.
+		if (paramNames != null && paramNames.length != paramValuesOrTypes.length)
+			paramNames = null;
+		
+		List<String> names = new Vector<String>(paramValuesOrTypes.length);
+		for (int i = 0; i < paramValuesOrTypes.length; i++)
+		{
+			Object valueOrType = paramValuesOrTypes[i];
+			String name = "null";
+			if (valueOrType instanceof Class)
+				name = ((Class<?>)valueOrType).getName();
+			else if (valueOrType != null)
+				name = valueOrType.getClass().getName();
+			
+			// decode output of Class.getName()
+			while (name.charAt(0) == '[') // array type
+			{
+				name = name.substring(1) + "[]";
+				// decode element type encoding
+				String type = "";
+				switch (name.charAt(0))
+				{
+					case 'Z': type = "boolean"; break;
+					case 'B': type = "byte"; break;
+					case 'C': type = "char"; break;
+					case 'D': type = "double"; break;
+					case 'F': type = "float"; break;
+					case 'I': type = "int"; break;
+					case 'J': type = "long"; break;
+					case 'S': type = "short"; break;
+					case 'L':
+						// remove ';'
+						name = name.replace(";", "");
+						break;
+					default: continue;
+				}
+				// remove first char encoding
+				name = type + name.substring(1);
+			}
 			// hide package names
 			if (name.indexOf('.') >= 0)
 				name = name.substring(name.lastIndexOf('.') + 1);
-    		
+			
 			if (paramNames != null)
 				name += " " + paramNames[i];
 			
-    		names.add(name);
-    	}
-    	String result = names.toString();
-    	return String.format("%s(%s)", methodName, result.substring(1, result.length() - 1));
-    }
-    
-    private void sendError(Throwable exception, String moreInfo) throws IOException
-	{
-    	if (exception instanceof InvocationTargetException)
-    		exception = exception.getCause();
-    	
-    	// log errors
-    	exception.printStackTrace();
-    	
-    	String message;
-    	if (exception instanceof NullPointerException)
-    	{
-    		StringWriter sw = new StringWriter();
-    		PrintWriter pw = new PrintWriter(sw, true);
-    		exception.printStackTrace(pw);
-    		message = sw.getBuffer().toString();
-    	}
-    	else if (exception instanceof RuntimeException)
-    		message = exception.toString();
-    	else
-    		message = exception.getMessage();
-    	
-    	if (moreInfo != null)
-    		message += "\n" + moreInfo;
-    	
-    	System.err.println("Serializing ErrorMessage: "+message);
-    	
-    	ServletRequestInfo info = getServletRequestInfo();
-    	if (info.currentJsonRequest == null)
-    	{
-    		ServletOutputStream servletOutputStream = info.getOutputStream();
-        	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
-        	errorMessage.faultCode = exception.getClass().getSimpleName();
-        	serializeCompressedAmf3(errorMessage, servletOutputStream);
-    	}
-    	else
-    	{
-    		sendJsonError(message, null);
-    	}
+			names.add(name);
+		}
+		String result = names.toString();
+		return String.format("%s(%s)", methodName, result.substring(1, result.length() - 1));
 	}
-    
-    protected static SerializationContext getSerializationContext()
-    {
-    	SerializationContext context = SerializationContext.getSerializationContext();
-    	
-    	// set serialization context properties
-    	context.enableSmallMessages = true;
-    	context.instantiateTypes = true;
-       	context.supportRemoteClass = true;
-    	context.legacyCollection = false;
-    	context.legacyMap = false;
-    	context.legacyXMLDocument = false;
-    	context.legacyXMLNamespaces = false;
-    	context.legacyThrowable = false;
-    	context.legacyBigNumbers = false;
-    	context.restoreReferences = false;
-    	context.logPropertyErrors = false;
-    	context.ignorePropertyErrors = true;
-    	
-    	return context;
-    }
-    
-    // Serialize a Java Object to AMF3 ByteArray
-    protected void serializeCompressedAmf3(Object objToSerialize, ServletOutputStream servletOutputStream)
-    {
-    	try
-    	{
-    		SerializationContext context = getSerializationContext();
-
-    		DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(servletOutputStream);
-    		
+	
+	private void sendError(Throwable exception, String moreInfo) throws IOException
+	{
+		if (exception instanceof InvocationTargetException)
+			exception = exception.getCause();
+		
+		// log errors
+		exception.printStackTrace();
+		
+		String message;
+		if (exception instanceof NullPointerException)
+		{
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw, true);
+			exception.printStackTrace(pw);
+			message = sw.getBuffer().toString();
+		}
+		else if (exception instanceof RuntimeException)
+			message = exception.toString();
+		else
+			message = exception.getMessage();
+		
+		if (moreInfo != null)
+			message += "\n" + moreInfo;
+		
+		System.err.println("Serializing ErrorMessage: "+message);
+		
+		ServletRequestInfo info = getServletRequestInfo();
+		if (info.currentJsonRequest == null)
+		{
+			ServletOutputStream servletOutputStream = info.getOutputStream();
+	    	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
+	    	errorMessage.faultCode = exception.getClass().getSimpleName();
+	    	serializeCompressedAmf3(errorMessage, servletOutputStream);
+		}
+		else
+		{
+			sendJsonError(message, null);
+		}
+	}
+	
+	protected static SerializationContext getSerializationContext()
+	{
+		SerializationContext context = SerializationContext.getSerializationContext();
+		
+		// set serialization context properties
+		context.enableSmallMessages = true;
+		context.instantiateTypes = true;
+	   	context.supportRemoteClass = true;
+		context.legacyCollection = false;
+		context.legacyMap = false;
+		context.legacyXMLDocument = false;
+		context.legacyXMLNamespaces = false;
+		context.legacyThrowable = false;
+		context.legacyBigNumbers = false;
+		context.restoreReferences = false;
+		context.logPropertyErrors = false;
+		context.ignorePropertyErrors = true;
+		
+		return context;
+	}
+	
+	// Serialize a Java Object to AMF3 ByteArray
+	protected void serializeCompressedAmf3(Object objToSerialize, ServletOutputStream servletOutputStream)
+	{
+		try
+		{
+			SerializationContext context = getSerializationContext();
+	
+			DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(servletOutputStream);
+			
 			Amf3Output amf3Output = new Amf3Output(context);
 			amf3Output.setOutputStream(deflaterOutputStream); // compress
 			amf3Output.writeObject(objToSerialize);
@@ -988,34 +988,34 @@ public class WeaveServlet extends HttpServlet
 			 * 
 			 * http://viveklakhanpal.wordpress.com/2010/07/01/error-2032ioerror/
 			 */
-    	}
-    	catch (Exception e)
-    	{
-    		e.printStackTrace();
-    	}
-    }
-
-    //  De-serialize a ByteArray/AMF3/Flex object to a Java object  
-    protected ASObject deserializeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
-    {
-    	ASObject deSerializedObj = null;
-
-    	SerializationContext context = getSerializationContext();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	//  De-serialize a ByteArray/AMF3/Flex object to a Java object  
+	protected ASObject deserializeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
+	{
+		ASObject deSerializedObj = null;
+	
+		SerializationContext context = getSerializationContext();
 		
-    	Amf3Input amf3Input = new Amf3Input(context);
+		Amf3Input amf3Input = new Amf3Input(context);
 		amf3Input.setInputStream(inputStream); // uncompress
 		deSerializedObj = (ASObject) amf3Input.readObject();
 		//amf3Input.close();
-    	
+		
 		return deSerializedObj;
-    }
-    
-    protected String methodToString(String name, Object[] params)
-    {
+	}
+	
+	protected String methodToString(String name, Object[] params)
+	{
 		String str = name + Arrays.deepToString(params);
 		int max = 1024;
 		if (str.length() > max)
 			str = str.substring(0, max) + "...";
-    	return str;
-    }
+		return str;
+	}
 }
