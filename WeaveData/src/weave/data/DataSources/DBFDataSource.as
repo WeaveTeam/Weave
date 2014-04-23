@@ -248,8 +248,6 @@ package weave.data.DataSources
 			if (!metadata[ColumnMetadata.TITLE])
 				metadata[ColumnMetadata.TITLE] = colName;
 			var _keyColName:String = this.keyColName.value;
-			if (_keyColName == null)
-				_keyColName = (dbfHeader.fields[0] as DbfField).name;
 
 			//Get a vector of all elements in that column
 			var dbfDataColumn:Array = getColumnValues(colName);
@@ -309,8 +307,13 @@ package weave.data.DataSources
 			var record:DbfRecord = null; 
 			for( var i:int = 0; i < dbfHeader.recordCount; i++ )
 			{ 
-				record = DbfTools.getRecord(dbfData, dbfHeader, i);
-				values.push( record.values[columnName] );
+				if (columnName)
+				{
+					record = DbfTools.getRecord(dbfData, dbfHeader, i);
+					values.push( record.values[columnName] );
+				}
+				else
+					values.push(String(i + 1));
 			}
 			return values;
 		}
