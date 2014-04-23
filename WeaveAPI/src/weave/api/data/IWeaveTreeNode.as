@@ -60,20 +60,5 @@ package weave.api.data
 		 * @return A list of children implementing IWeaveTreeNode or null if this node has no children.
 		 */
 		function getChildren():Array;
-		
-		/**
-		 * Adds a child node.
-		 * @param child The child to add.
-		 * @param index The new child index.
-		 * @return true if successful.
-		 */
-		function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean;
-		
-		/**
-		 * Removes a child node.
-		 * @param child The child to remove.
-		 * @return true if successful.
-		 */
-		function removeChild(child:IWeaveTreeNode):Boolean;
     }
 }

@@ -575,10 +575,6 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		return ObjectUtil.stringCompare(a as String, b as String, true);
 	}
 
-	
-	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
-	
 	public function getDataSource():IDataSource
 	{
 		return source;

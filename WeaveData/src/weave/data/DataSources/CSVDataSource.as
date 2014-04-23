@@ -698,9 +698,6 @@ internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
 		return children;
 	}
 	
-	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
-	
 	public function getDataSource():IDataSource { return source; }
 	public function getColumnMetadata():Object { return source.generateMetadataForColumnId(source.getColumnIds()[columnIndex]); }
 }

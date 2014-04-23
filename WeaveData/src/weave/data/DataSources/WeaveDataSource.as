@@ -727,9 +727,6 @@ internal class RootNode_TablesAndGeoms implements IWeaveTreeNode
 		
 		return children;
 	}
-	
-	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
 }
 
 /**
@@ -782,7 +779,4 @@ internal class GeomListNode implements IWeaveTreeNode
 		}
 		getCallbackCollection(source).triggerCallbacks();
 	}
-	
-	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
 }

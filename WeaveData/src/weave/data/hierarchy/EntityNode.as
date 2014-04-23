@@ -27,6 +27,7 @@ package weave.data.hierarchy
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.data.IWeaveTreeNodeWithEditableChildren;
     import weave.api.data.IWeaveTreeNodeWithPathFinding;
     import weave.api.getLinkableOwner;
     import weave.api.reportError;
@@ -35,7 +36,7 @@ package weave.data.hierarchy
     import weave.services.EntityCache;
 
 	[RemoteClass]
-    public class EntityNode implements IWeaveTreeNodeWithPathFinding, IColumnReference
+    public class EntityNode implements IWeaveTreeNodeWithEditableChildren, IWeaveTreeNodeWithPathFinding, IColumnReference
     {
 		/**
 		 * Dual lookup: (EntityCache -> int) and (int -> EntityCache)
