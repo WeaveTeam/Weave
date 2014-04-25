@@ -46,7 +46,7 @@
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Type')}">
-		<ui:KeyTypesMenu id="keyTypeSelector" text="{sourceName}" creationComplete="{if (target)
+		<ui:KeyTypesMenu id="keyTypeSelector" text="{sourceName.text}" creationComplete="{if (target)
 						 {
 						 	(event.target as KeyTypesMenu).addKeyTypeToMenu(target.getKeyType());
 						 	(event.target as KeyTypesMenu).selectedItem = target.getKeyType();
