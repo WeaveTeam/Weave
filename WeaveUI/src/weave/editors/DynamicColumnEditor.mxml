@@ -40,8 +40,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.net.navigateToURL;
-			
 			import mx.binding.utils.BindingUtils;
 			import mx.events.ListEvent;
 			
@@ -266,11 +264,6 @@
 				referencedColumn.resumeCallbacks();
 				
 				return result;
-			}
-			
-			public function clearSearch():void
-			{
-				searchInput.text = '';
 			}
 		]]>
 	</mx:Script>
