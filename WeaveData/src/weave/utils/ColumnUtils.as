@@ -111,7 +111,11 @@ package weave.utils
 		{
 			var name:String;
 			var nameMap:Object = {};
-			var cols:Array = getLinkableDescendants(column, ReferencedColumn);
+			var cols:Array;
+			if (column is ReferencedColumn)
+				cols = [column];
+			else
+				cols = getLinkableDescendants(column, ReferencedColumn);
 			for (var i:int = 0; i < cols.length; i++)
 			{
 				var col:ReferencedColumn = cols[i];
