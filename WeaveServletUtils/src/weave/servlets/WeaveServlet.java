@@ -452,7 +452,7 @@ public class WeaveServlet extends HttpServlet
 				}
 				
 				/*Check if Method exists*/
-				if (methodMap.get(info.currentJsonRequest.method) != null)
+				if (methodMap.get(info.currentJsonRequest.method) == null)
 				{
 					sendJsonError(JSON_RPC_METHOD_ERROR_MESSAGE, info.currentJsonRequest.method);
 					continue;
