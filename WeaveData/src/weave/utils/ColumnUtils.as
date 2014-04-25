@@ -27,6 +27,7 @@ package weave.utils
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
@@ -83,6 +84,13 @@ package weave.utils
 			var title:String = ColumnUtils.getTitle(column);
 			var keyType:String = ColumnUtils.getKeyType(column);
 			var dataType:String = ColumnUtils.getDataType(column);
+			var projection:String = column.getMetadata(ColumnMetadata.PROJECTION);
+			var dateFormat:String = column.getMetadata(ColumnMetadata.DATE_FORMAT);
+			
+			if (dataType == DataTypes.DATE && dateFormat)
+				dataType = dataType + '; ' + dateFormat;
+			if (dataType == DataTypes.GEOMETRY && projection)
+				dataType = dataType + '; ' + projection;
 			
 			if (dataType && keyType)
 				return StandardLib.substitute("{0} ({1} -> {2})", title, keyType, dataType);
