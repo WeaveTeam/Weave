@@ -33,6 +33,7 @@ package weave.data.hierarchy
     import weave.api.reportError;
     import weave.api.services.beans.Entity;
     import weave.api.services.beans.EntityHierarchyInfo;
+    import weave.data.DataSources.WeaveDataSource;
     import weave.services.EntityCache;
 
 	[RemoteClass]
@@ -150,9 +151,14 @@ package weave.data.hierarchy
 		 */
 		public function getColumnMetadata():Object
 		{
-			if (getEntity().getEntityType() == EntityType.COLUMN)
-				return id;
-			return null; // not a column
+			var meta:Object = {};
+			var entity:Entity = getEntity();
+			if (entity.getEntityType() != EntityType.COLUMN)
+				return null; // not a column
+			for (var key:String in entity.publicMetadata)
+				meta[key] = entity.publicMetadata[key];
+			meta[WeaveDataSource.ENTITY_ID] = id;
+			return meta;
 		}
 		
 		/**
