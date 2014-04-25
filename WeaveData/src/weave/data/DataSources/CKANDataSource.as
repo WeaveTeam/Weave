@@ -292,7 +292,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		else
 		{
 			var cmd:String = 'api/' + source.apiVersion.value + '/rest/' + action.split('_')[0];
-			if (params)
+			if (params && params.hasOwnProperty('id'))
 				cmd += '/' + params['id'];
 			url = URLUtil.getFullURL(url, cmd);
 			request = new URLRequest(url);
@@ -394,7 +394,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return lang("Tags");
 		
 		if (action == PACKAGE_SHOW || action == GROUP_SHOW || action == TAG_SHOW)
-			return metadata['name'] || metadata['description'] || metadata['url']
+			return metadata['display_name'] || metadata['name'] || metadata['description'] || metadata['url']
 				|| (result is String ? result as String : (result['title'] || result['display_name'] || result['name']))
 				|| params['id'];
 		
@@ -429,7 +429,14 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (action == PACKAGE_SHOW)
 			return getChildren().length > 0;
 		if (action == GROUP_SHOW || action == TAG_SHOW)
+		{
+			var metapkg:Object = metadata['packages'];
+			if (metapkg is Number)
+				return metapkg > 0;
+			if (metapkg is Array)
+				return (metapkg as Array).length > 0;
 			return getChildren().length > 0;
+		}
 		
 		return action != GET_DATASOURCE && action != NO_ACTION;
 	}
@@ -476,29 +483,38 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		{
 			var list:Array = [];
 			if (source.showPackages.value)
-				list.push(PACKAGE_LIST);
+				list.push([PACKAGE_LIST, null]);
 			if (source.showGroups.value)
-				list.push(GROUP_LIST);
+				list.push([GROUP_LIST, {"all_fields": true}]);
 			if (source.showTags.value)
-				list.push(TAG_LIST);
-			return updateChildren(list, function(node:CKANAction, action:String):void {
-				node.action = action;
-				node.metadata = node.params = null;
+				list.push([TAG_LIST, {"all_fields": true}]);
+			return updateChildren(list, function(node:CKANAction, actionAndParams:Array):void {
+				node.action = actionAndParams[0];
+				node.params = actionAndParams[1];
+				node.metadata = null;
 			});
 		}
 		
 		// handle all situations where result is just an array of IDs
-		if (action == PACKAGE_LIST || action == GROUP_LIST || action == TAG_LIST || (action == TAG_SHOW && !apiVersion3))
+		if (StandardLib.getArrayType(result as Array) == String)
 			return updateChildren(result as Array, function(node:CKANAction, id:String):void {
-				if (action == PACKAGE_LIST)
+				if (action == PACKAGE_LIST || action == TAG_SHOW)
 					node.action = PACKAGE_SHOW;
 				if (action == GROUP_LIST)
 					node.action = GROUP_SHOW;
 				if (action == TAG_LIST)
 					node.action = TAG_SHOW;
-				if (action == TAG_SHOW)
-					node.action = PACKAGE_SHOW;
 				node.metadata = node.params = {"id": id};
+			});
+		
+		if (action == GROUP_LIST || action == TAG_LIST)
+			return updateChildren(result as Array, function(node:CKANAction, meta:Object):void {
+				if (action == GROUP_LIST)
+					node.action = GROUP_SHOW;
+				if (action == TAG_LIST)
+					node.action = TAG_SHOW;
+				node.metadata = meta;
+				node.params = {"id": meta['id']};
 			});
 		
 		if ((action == GROUP_SHOW || action == TAG_SHOW) && result.hasOwnProperty('packages'))
@@ -507,7 +523,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 					pkg = {"id": pkg};
 				node.action = PACKAGE_SHOW;
 				node.metadata = pkg;
-				node.params = {"id": pkg.id};
+				node.params = {"id": pkg['id']};
 			});
 		
 		if (action == PACKAGE_SHOW && result.hasOwnProperty('resources'))
