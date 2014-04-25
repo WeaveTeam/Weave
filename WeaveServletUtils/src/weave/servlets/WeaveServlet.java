@@ -786,21 +786,15 @@ public class WeaveServlet extends HttpServlet
 			{
 				String string = (String)value;
 				
-				try // String -> primitive
-				{
-					if (type == char.class || type == Character.class) return string.charAt(0);
-					if (type == byte.class || type == Byte.class) return Byte.parseByte(string);
-					if (type == long.class || type == Long.class) return Long.parseLong(string);
-					if (type == int.class || type == Integer.class) return Integer.parseInt(string);
-					if (type == short.class || type == Short.class) return Short.parseShort(string);
-					if (type == float.class || type == Float.class) return Float.parseFloat(string);
-					if (type == double.class || type == Double.class) return Double.parseDouble(string);
-					if (type == boolean.class || type == Boolean.class) return string.equalsIgnoreCase("true");
-				}
-				catch (NumberFormatException e)
-				{
-					// if number parsing fails, leave the original value untouched
-				}
+				// String -> primitive
+				if (type == char.class || type == Character.class) return string.charAt(0);
+				if (type == byte.class || type == Byte.class) return Byte.parseByte(string);
+				if (type == long.class || type == Long.class) return Long.parseLong(string);
+				if (type == int.class || type == Integer.class) return Integer.parseInt(string);
+				if (type == short.class || type == Short.class) return Short.parseShort(string);
+				if (type == float.class || type == Float.class) return Float.parseFloat(string);
+				if (type == double.class || type == Double.class) return Double.parseDouble(string);
+				if (type == boolean.class || type == Boolean.class) return string.equalsIgnoreCase("true");
 				
 				if (type == InputStream.class) // String -> InputStream
 				{
@@ -830,7 +824,7 @@ public class WeaveServlet extends HttpServlet
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException(String.format("Unable to cast %s to %s", value.getClass().getName(), type.getName()), e);
+			throw new RemoteException(String.format("Unable to cast %s to %s", value.getClass().getSimpleName(), type.getSimpleName()), e);
 		}
 		
 		// Return original value if not handled above.
@@ -857,35 +851,10 @@ public class WeaveServlet extends HttpServlet
 			Object valueOrType = paramValuesOrTypes[i];
 			String name = "null";
 			if (valueOrType instanceof Class)
-				name = ((Class<?>)valueOrType).getName();
+				name = ((Class<?>)valueOrType).getSimpleName();
 			else if (valueOrType != null)
-				name = valueOrType.getClass().getName();
+				name = valueOrType.getClass().getSimpleName();
 			
-			// decode output of Class.getName()
-			while (name.charAt(0) == '[') // array type
-			{
-				name = name.substring(1) + "[]";
-				// decode element type encoding
-				String type = "";
-				switch (name.charAt(0))
-				{
-					case 'Z': type = "boolean"; break;
-					case 'B': type = "byte"; break;
-					case 'C': type = "char"; break;
-					case 'D': type = "double"; break;
-					case 'F': type = "float"; break;
-					case 'I': type = "int"; break;
-					case 'J': type = "long"; break;
-					case 'S': type = "short"; break;
-					case 'L':
-						// remove ';'
-						name = name.replace(";", "");
-						break;
-					default: continue;
-				}
-				// remove first char encoding
-				name = type + name.substring(1);
-			}
 			// hide package names
 			if (name.indexOf('.') >= 0)
 				name = name.substring(name.lastIndexOf('.') + 1);
