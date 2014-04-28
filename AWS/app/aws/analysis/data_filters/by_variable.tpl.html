@@ -5,7 +5,7 @@
 				<option></option>
 				<option value="{{col}}" ng-repeat="col in $parent.byVariableColumns"> {{col.title}}</option>
 			</select>
-			<a style="display: inline-block; margin-left: 10px;" ng-click='removeByVariable($index)'>Remove</a>
+			<a style="display: inline-block; margin-left: 50px;" ng-click='removeByVariable($index)'>Remove</a>
 			<br>
 			<div  ng-if="$parent.filterType[$index] == 'continuous'" style="padding-top: 5px">
 	 			<div ui-slider="$parent.filterOptions[$index]" ng-model="$parent.filterValues[$index]"></div>

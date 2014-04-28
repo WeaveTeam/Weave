@@ -103,19 +103,19 @@
 
 	</div>
 	<!--Indicator Content-->
-	<div style="height: 100%" class ng-controller="AnalysisFiltersControllers">
-		<div class='masonry-parent' masonry="{ transitionDuration: '0.0s', gutter: 20 }">
-			<div style="width: 22%;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in filter_widget_bricks" ng-model="widtget_bricks">
+	<!--<div ng-controller="AnalysisFiltersControllers">
+		<div class='masonry-parent' masonry="{ transitionDuration: '0.0s', gutter: 40 }">
+			<div class="masonry-brick panel panel-default" ng-repeat="widget_brick in widtget_bricks" ng-model="widtget_bricks">
 				<div class="panel-heading">
 					<h2>{{widget_brick.title}}</h2>
 					<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="remove_widget($index)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
 				</div>
 				<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>
 				<h6 style = "font-size: 13px" class="widget-description" ng-show = "widget_brick.note"> {{widget_brick.note}} </h6>
-				<div  class="" ng-include="widget_brick.template_url"></div>
+				<div class="" ng-include="widget_brick.template_url"></div>
 			</div>
 		</div>
-	</div>
+	</div>-->
 
 	<!-- The Dashboard Content-->
 	<div style="height: 100%" >
@@ -129,7 +129,7 @@
 
 				<div class="tool-bar">
 					<ul class="tool-list" >
-						<!--<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
+						<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
 							<span class="checkbox">
 								<input type="checkbox"  ng-model = "box_enabled[general_tool.id]" ng-change = "enable_widget(general_tool.id)">
 							</span>
@@ -149,7 +149,7 @@
 							<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)">
 								<i class="glyphicon glyphicon-plus"></i>
 							</button>
-						</li>-->
+						</li>
 						<li>
 							<h4 class='tool-category'>Visualization Tools</h4>
 						</li>

@@ -4,11 +4,11 @@
 
 var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
 
-analysis_mod.controller('AnalysisFiltersControllers', function($scope, $filter, dasboard_widget_service) {
+/*analysis_mod.controller('AnalysisFiltersControllers', function($scope, $filter, dasboard_widget_service) {
 
-	$scope.filter_widget_bricks = dasboard_widget_service.get_filter_widget_bricks();
+	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
 	
-});
+});*/
 
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 

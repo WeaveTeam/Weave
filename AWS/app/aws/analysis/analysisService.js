@@ -8,17 +8,17 @@ angular.module('aws.analysisService', [])
 .service('dasboard_widget_service', ['$filter', 'queryService', 
 function($filter, queryService) {
 
-	var content_tools = [{
+	var tool_list = [{
 		id : 'Indicator',
 		title : 'Indicator',
-		template_url : 'aws/analysis/indicator/indicator.tpl.html',
+		template_url : 'aws/visualization/indicator/indicator.tpl.html',
 		description : 'Choose an Indicator for the Analysis',
 		category : 'indicatorfilter'
 	},
 	{
 		id : 'GeographyFilter',
 		title : 'Geography Filter',
-		template_url : 'aws/analysis/data_filters/geography.tpl.html',
+		template_url : 'aws/visualization/data_filters/geography.tpl.html',
 		description : 'Filter data by States and Counties',
 		category : 'datafilter'
 
@@ -26,20 +26,17 @@ function($filter, queryService) {
 	{
 		id : 'TimePeriodFilter',
 		title : 'Time Period Filter',
-		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+		template_url : 'aws/visualization/data_filters/time_period.tpl.html',
 		description : 'Filter data by Time Period',
 		category : 'datafilter'
 	},
 	{
 		id : 'ByVariableFilter',
 		title : 'By Variable Filter',
-		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+		template_url : 'aws/visualization/data_filters/by_variable.tpl.html',
 		description : 'Filter data by Variables',
 		category : 'datafilter'
-	}];
-	
-	
-	var tool_list = [
+	},
 	{
 		id : 'BarChartTool',
 		title : 'Bar Chart Tool',
@@ -70,11 +67,6 @@ function($filter, queryService) {
 	/*Model to hold the widgets that are being displayed in dashboard*/
 	var widget_bricks = [];
 
-	this.get_filter_widget_bricks = function(){
-		
-		return content_tools
-	}
-	
 	this.get_widget_bricks = function() {
 
 		return widget_bricks;
