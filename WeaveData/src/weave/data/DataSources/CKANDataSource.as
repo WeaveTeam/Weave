@@ -237,7 +237,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	}
 	
 	/**
-	 * The result received from the action RPC
+	 * The result received from the RPC
 	 */
 	public function get result():Object
 	{
