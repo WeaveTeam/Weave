@@ -71,7 +71,7 @@ package weave.services
 			{
 				response = (event as FaultEvent).fault.content;
 				if (response)
-					reportError("Request failed: " + url + "; response=" + Compiler.stringify(response));
+					reportError("Request failed: " + url + "; " + response);
 				else
 					reportError(event);
 			}
