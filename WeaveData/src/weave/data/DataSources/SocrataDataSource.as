@@ -300,6 +300,7 @@ import mx.utils.URLUtil;
 import weave.api.WeaveAPI;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
+import weave.api.data.IExternalLink;
 import weave.api.data.IWeaveTreeNode;
 import weave.api.data.IWeaveTreeNodeWithPathFinding;
 import weave.api.detectLinkableObjectChange;
@@ -311,7 +312,7 @@ import weave.data.DataSources.SocrataDataSource;
 import weave.services.URLRequestUtils;
 import weave.utils.VectorUtils;
 
-internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding
+internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding, IExternalLink
 {
 	public static const VIEW_LIST:String = 'view_list';
 	public static const CATEGORY_LIST:String = 'category_list';
@@ -321,6 +322,8 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 	
 	public static const GET_DATASOURCE:String = 'get_datasource';
 	public static const GET_COLUMN:String = 'get_column';
+	public static const METADATA_LIST:String = 'metadata_list';
+	public static const METADATA_SHOW:String = 'metadata_show';
 	
 	private var source:SocrataDataSource;
 	/**
@@ -365,7 +368,7 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		
 		if (!action)
 			return WeaveAPI.globalHashMap.getName(source);
-		
+
 		if (action == VIEW_LIST)
 			return lang("Views");
 		if (action == CATEGORY_LIST)
@@ -379,6 +382,12 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (action == GET_DATASOURCE)
 			return metadata['name'] || id;
 		
+		if (action == METADATA_LIST)
+			return id;
+		
+		if (action == METADATA_SHOW)
+			return lang("{0}: {1}", id, Compiler.stringify(metadata));
+		
 		return null;
 	}
 	public function isBranch():Boolean
@@ -386,7 +395,7 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (internalNode)
 			return internalNode.isBranch();
 		
-		return true;
+		return action != METADATA_SHOW;
 	}
 	public function hasChildBranches():Boolean
 	{
@@ -394,6 +403,8 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 			return internalNode.hasChildBranches();
 		
 		if (action == GET_DATASOURCE)
+			return false;
+		if (action == METADATA_LIST || action == METADATA_SHOW)
 			return false;
 		
 		return getChildren().length > 0;
@@ -469,8 +480,16 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 			list = source.getTagLookup()[id];
 		if (list)
 			return updateChildren(list, function(node:SocrataNode, view:Object):void {
-				node.action = GET_DATASOURCE;
-				node.id = view['id'];
+				if (view.viewType == 'tabular')
+				{
+					node.action = GET_DATASOURCE;
+					node.id = view['id'];
+				}
+				else
+				{
+					node.action = METADATA_LIST;
+					node.id = view['name'] || view['id'];
+				}
 				node.metadata = view;
 			});
 		
@@ -487,6 +506,21 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 					node.metadata = null;
 				});
 			}
+		}
+		
+		if (action == METADATA_LIST)
+		{
+			var flattened:Object = VectorUtils.flattenObject(metadata);
+			var keys:Array = VectorUtils.getKeys(flattened);
+			keys = keys.filter(function(key:String, i:*, a:*):Boolean {
+				return flattened[key] != null && flattened[key] != '';
+			});
+			StandardLib.sort(keys);
+			return updateChildren(keys, function(node:SocrataNode, key:String):void {
+				node.action = METADATA_SHOW;
+				node.metadata = flattened[key];
+				node.id = key;
+			});
 		}
 		
 		_childNodes.length = 0;
@@ -525,6 +559,13 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 				return path;
 			}
 		}
+		return null;
+	}
+	
+	public function getURL():String
+	{
+		if (action == METADATA_SHOW && id.split('.').pop() == 'href')
+			return metadata as String;
 		return null;
 	}
 }
