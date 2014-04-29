@@ -1,4 +1,4 @@
-<div class="container-fluid analysis-tpl" style="width: 100%; height: 100%">
+<div class="container-fluid analysis-tpl" style="width: 100%; height: 100%" ng-controller="AnalysisMainCtrl">
 	<div class="row analysis-wizard" ng-controller="ScriptsBarController">
 		<div class="wizard-vertical">
 
@@ -92,32 +92,42 @@
 
 					<h1><i class="glyphicon glyphicon-th-large"></i>&nbsp; Dashboard</h1>
 
-					
-
 					<span style="font-size: 10px; font-weight: 400" class="indicator-float" ng-show="indicator.label"> <span>Indicator: {{indicator.label}}</span>
 						<br />
 						<span style="font-size: 10px;">{{ indicatorDescription}}</span> </span>
 				</div>
+
 			</div>
+			
 		</div>
 
 	</div>
+	<div style="height: 3px; width: 100%; background-color: #ccc">
+		
+	</div>
 	<!--Indicator Content-->
-	<!--<div ng-controller="AnalysisFiltersControllers">
-		<div class='masonry-parent' masonry="{ transitionDuration: '0.0s', gutter: 40 }">
-			<div class="masonry-brick panel panel-default" ng-repeat="widget_brick in widtget_bricks" ng-model="widtget_bricks">
+	<div style="height: 100%" class ng-controller="AnalysisFiltersControllers">
+		<div class='masonry-parent' masonry="{ transitionDuration: '0.0s', gutter: 20 }">
+			<div style="width: 18%;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in filter_widget_bricks" ng-model="widtget_bricks">
 				<div class="panel-heading">
 					<h2>{{widget_brick.title}}</h2>
 					<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="remove_widget($index)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
 				</div>
 				<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>
 				<h6 style = "font-size: 13px" class="widget-description" ng-show = "widget_brick.note"> {{widget_brick.note}} </h6>
-				<div class="" ng-include="widget_brick.template_url"></div>
+				<div  class="" ng-include="widget_brick.template_url"></div>
 			</div>
 		</div>
-	</div>-->
+	</div>
 
 	<!-- The Dashboard Content-->
+	<div id='configure_visuals' style="height: 20px; border-top: 2px solid #CCCCCC">
+		Configure Visuals	
+		
+	<div style='float: right'>
+		<a ng-click="scrollTo('heading')">Back to Dashboard</a>
+	</div>	
+	</div>
 	<div style="height: 100%" >
 		<div style="height: 100%" class="row dashboard-content" ng-controller="WidgetsController">
 
@@ -129,27 +139,27 @@
 
 				<div class="tool-bar">
 					<ul class="tool-list" >
-						<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
-							<span class="checkbox">
-								<input type="checkbox"  ng-model = "box_enabled[general_tool.id]" ng-change = "enable_widget(general_tool.id)">
-							</span>
-							<a href='javascript: void()'> {{general_tool.title}}</a>
-							<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)">
-								<i class="glyphicon glyphicon-plus"></i>
-							</button>
+						<!--<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
+						<span class="checkbox">
+						<input type="checkbox"  ng-model = "box_enabled[general_tool.id]" ng-change = "enable_widget(general_tool.id)">
+						</span>
+						<a href='javascript: void()'> {{general_tool.title}}</a>
+						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)">
+						<i class="glyphicon glyphicon-plus"></i>
+						</button>
 						</li>
 						<li >
-							<h4 class='tool-category'>Data Filters</h4>
+						<h4 class='tool-category'>Data Filters</h4>
 						</li>
 						<li id= "filter_tool.id" ng-repeat="filter_tool in filter_tools">
-							<span class="checkbox">
-								<input type="checkbox" ng-model = "box_enabled[filter_tool.id]" ng-change = "enable_widget(filter_tool.id)">
-							</span>
-							<a href='javascript: void()'> {{filter_tool.title}}</a>
-							<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)">
-								<i class="glyphicon glyphicon-plus"></i>
-							</button>
-						</li>
+						<span class="checkbox">
+						<input type="checkbox" ng-model = "box_enabled[filter_tool.id]" ng-change = "enable_widget(filter_tool.id)">
+						</span>
+						<a href='javascript: void()'> {{filter_tool.title}}</a>
+						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)">
+						<i class="glyphicon glyphicon-plus"></i>
+						</button>
+						</li>-->
 						<li>
 							<h4 class='tool-category'>Visualization Tools</h4>
 						</li>
