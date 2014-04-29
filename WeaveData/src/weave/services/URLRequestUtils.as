@@ -26,6 +26,7 @@ package weave.services
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
 	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
@@ -189,14 +190,14 @@ package weave.services
 		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
-		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
+		 * @param useCache A boolean indicating whether to use the cached images for HTTP GET requests. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
 		 */
 		public function getContent(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
 		{
 			addBaseURL(request);
 			
-			if (useCache)
+			if (useCache && request.method == URLRequestMethod.GET)
 			{
 				var content:Object = _contentCache[request.url]; 
 				if (content)
