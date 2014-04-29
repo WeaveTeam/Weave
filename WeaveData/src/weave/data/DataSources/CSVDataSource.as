@@ -121,7 +121,7 @@ package weave.data.DataSources
 		{
 			// save parsedRows only if csvData has non-null session state
 			var rows:Array = csvData.getSessionState() as Array;
-			if (rows != null)
+			if (rows != null && rows.length)
 			{
 				// clear url value when we specify csvData session state
 				if (url.value)
@@ -139,7 +139,7 @@ package weave.data.DataSources
 		private function handleParsedRows(rows:Array):void
 		{
 			parsedRows = rows;
-			columnIds = rows[0] ? (rows[0] as Array).concat() : [];
+			columnIds = rows && rows[0] is Array ? (rows[0] as Array).concat() : [];
 			// make sure column names are unique - if not, use index values for columns with duplicate names
 			var nameLookup:Object = {};
 			for (var i:int = 0; i < columnIds.length; i++)
