@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.data.DataSources
@@ -43,18 +43,18 @@ package weave.data.DataSources
 	 * 
 	 * @author adufilie
 	 */
-	public class SODADataSource extends AbstractDataSource
+	public class SocrataDataSource extends AbstractDataSource
 	{
-		//WeaveAPI.registerImplementation(IDataSource, SODADataSource, "Socrata Open Data Portal");
+		WeaveAPI.registerImplementation(IDataSource, SocrataDataSource, "Socrata Open Data Portal");
 		
-		public function SODADataSource()
+		public function SocrataDataSource()
 		{
 			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _attributeHierarchy);
 		}
 		
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString());
 		public const showViews:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const showGroups:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const showCategories:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const showTags:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		private function validateApiVersion(value:Number):Boolean { return [1, 2, 3].indexOf(value) >= 0; }
@@ -88,8 +88,8 @@ package weave.data.DataSources
 		 */
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			if (!(_rootNode is SODANode))
-				_rootNode = new SODANode(this);
+			if (!(_rootNode is SocrataNode))
+				_rootNode = new SocrataNode(this);
 			return _rootNode;
 		}
 		
@@ -98,7 +98,7 @@ package weave.data.DataSources
 			if (!metadata)
 				return null;
 
-			var id:String = metadata[PARAMS_SODA_ID];
+			var id:String = metadata[PARAMS_SOCRATA_ID];
 			
 			var ds:IDataSource = getChildDataSource(id);
 			if (!ds)
@@ -108,9 +108,9 @@ package weave.data.DataSources
 			if (!internalNode)
 				return null;
 			
-			var node:SODANode = new SODANode(this);
-			node.action = SODANode.GET_COLUMN;
-			node.id = metadata[PARAMS_SODA_ID];
+			var node:SocrataNode = new SocrataNode(this);
+			node.action = SocrataNode.GET_COLUMN;
+			node.id = metadata[PARAMS_SOCRATA_ID];
 			node.internalNode = internalNode
 			return node;
 		}
@@ -121,14 +121,14 @@ package weave.data.DataSources
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			var metadata:Object = proxyColumn.getProxyMetadata();
-			var dataSource:IDataSource = getChildDataSource(metadata[PARAMS_SODA_ID]);
+			var dataSource:IDataSource = getChildDataSource(metadata[PARAMS_SOCRATA_ID]);
 			if (dataSource)
 				proxyColumn.setInternalColumn(dataSource.getAttributeColumn(metadata));
 			else
 				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 		}
 		
-		public static const PARAMS_SODA_ID:String = 'soda_id';
+		public static const PARAMS_SOCRATA_ID:String = 'socrata_id';
 		
 		public const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
 		
@@ -164,7 +164,7 @@ package weave.data.DataSources
 				_cachedTags = [];
 				_categoryLookup = {};
 				_tagLookup = {};
-				for (var view:Object in views)
+				for each (var view:Object in views)
 				{
 					// handle category
 					var cat:String = view.category || UNCATEGORIZED;
@@ -183,7 +183,7 @@ package weave.data.DataSources
 						if (!array)
 						{
 							_tagLookup[tag] = array = [];
-							_cachedTags.push(cat);
+							_cachedTags.push(tag);
 						}
 						array.push(view);
 					}
@@ -259,11 +259,12 @@ package weave.data.DataSources
 								dataType = DataTypes.DATE;
 								//output[ColumnMetadata.DATE_FORMAT] = 'YYYY-MM-DDTHH:NN:SS';
 							}
+							output[ColumnMetadata.DATA_TYPE] = dataType;
 						});
 						ds = new CSVDataSource();
 						ds.keyType.value = url;
 						ds.metadata.setSessionState(metadata);
-						ds.csvData.setSessionState(headerRow.concat(result.data));
+						ds.csvData.setSessionState([headerRow].concat(result.data));
 						
 						_dataSourceCache[url] = registerLinkableChild(this, ds);
 					}
@@ -272,7 +273,7 @@ package weave.data.DataSources
 			}
 			catch (e:Error)
 			{
-				reportError(e, "Unexpected JSON format: " + url);
+				reportError(e);
 			}
 			return null;
 		}
@@ -306,11 +307,11 @@ import weave.api.reportError;
 import weave.compiler.Compiler;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
-import weave.data.DataSources.SODADataSource;
+import weave.data.DataSources.SocrataDataSource;
 import weave.services.URLRequestUtils;
 import weave.utils.VectorUtils;
 
-internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding
+internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding
 {
 	public static const VIEW_LIST:String = 'view_list';
 	public static const CATEGORY_LIST:String = 'category_list';
@@ -321,7 +322,7 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 	public static const GET_DATASOURCE:String = 'get_datasource';
 	public static const GET_COLUMN:String = 'get_column';
 	
-	private var source:SODADataSource;
+	private var source:SocrataDataSource;
 	/**
 	 * The metadata associated with the node
 	 */
@@ -337,14 +338,14 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 	
 	public var internalNode:IWeaveTreeNode;
 	
-	public function SODANode(source:SODADataSource)
+	public function SocrataNode(source:SocrataDataSource)
 	{
 		this.source = source;
 	}
 	
 	public function equals(other:IWeaveTreeNode):Boolean
 	{
-		var that:SODANode = other as SODANode;
+		var that:SocrataNode = other as SocrataNode;
 		if (!that)
 			return false;
 		
@@ -403,17 +404,17 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 	/**
 	 * @param input The input metadata items for generating child nodes
 	 * @param childAction The action property of the child nodes
-	 * @param updater A function like function(node:SODANode, item:Object):void which receives the child node and its corresponding input metadata item.
+	 * @param updater A function like function(node:SocrataNode, item:Object):void which receives the child node and its corresponding input metadata item.
 	 * @return The updated _childNodes Array. 
 	 */
 	private function updateChildren(input:Array, updater:Function = null, nodeType:Class = null):Array
 	{
 		if (!nodeType)
-			nodeType = SODANode;
+			nodeType = SocrataNode;
 		var outputIndex:int = 0;
 		for each (var item:Object in input)
 		{
-			var node:SODANode = _childNodes[outputIndex];
+			var node:SocrataNode = _childNodes[outputIndex];
 			if (!node || Object(node).constructor != nodeType)
 				_childNodes[outputIndex] = node = new nodeType(source);
 			
@@ -436,11 +437,11 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 			list = [];
 			if (source.showViews.value)
 				list.push(VIEW_LIST);
-			if (source.showGroups.value)
+			if (source.showCategories.value)
 				list.push(CATEGORY_LIST);
 			if (source.showTags.value)
 				list.push(TAG_LIST);
-			return updateChildren(list, function(node:SODANode, action:String):void {
+			return updateChildren(list, function(node:SocrataNode, action:String):void {
 				node.action = action;
 				node.id = null;
 				node.metadata = null;
@@ -448,13 +449,13 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 		}
 		
 		if (action == CATEGORY_LIST)
-			return updateChildren(source.getCategories(), function(node:SODANode, category:String):void {
+			return updateChildren(source.getCategories(), function(node:SocrataNode, category:String):void {
 				node.action = CATEGORY_SHOW;
 				node.id = category;
 				node.metadata = null;
 			});
 		if (action == TAG_LIST)
-			return updateChildren(source.getTags(), function(node:SODANode, tag:String):void {
+			return updateChildren(source.getTags(), function(node:SocrataNode, tag:String):void {
 				node.action = TAG_SHOW;
 				node.id = tag;
 				node.metadata = null;
@@ -467,7 +468,7 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 		if (action == TAG_SHOW)
 			list = source.getTagLookup()[id];
 		if (list)
-			return updateChildren(list, function(node:SODANode, view:Object):void {
+			return updateChildren(list, function(node:SocrataNode, view:Object):void {
 				node.action = GET_DATASOURCE;
 				node.id = view['id'];
 				node.metadata = view;
@@ -479,7 +480,7 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 			if (ds)
 			{
 				var root:IWeaveTreeNode = ds.getHierarchyRoot();
-				return updateChildren(root.getChildren(), function(node:SODANode, otherNode:IWeaveTreeNode):void {
+				return updateChildren(root.getChildren(), function(node:SocrataNode, otherNode:IWeaveTreeNode):void {
 					node.action = GET_COLUMN;
 					node.internalNode = otherNode;
 					node.id = id; // copy from parent
@@ -501,7 +502,7 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 		if (internalNode is IColumnReference)
 		{
 			var meta:Object = (internalNode as IColumnReference).getColumnMetadata();
-			meta[SODADataSource.PARAMS_SODA_ID] = id;
+			meta[SocrataDataSource.PARAMS_SOCRATA_ID] = id;
 			return meta;
 		}
 		return null;
@@ -515,7 +516,7 @@ internal class SODANode implements IWeaveTreeNode, IColumnReference, IWeaveTreeN
 			return [this];
 		
 		// search cached children only
-		for each (var child:SODANode in _childNodes)
+		for each (var child:SocrataNode in _childNodes)
 		{
 			var path:Array = child.findPathToNode(descendant);
 			if (path)
