@@ -285,7 +285,7 @@ package weave.utils
 		 * @param destination An Array or Vector to append items to.  If none specified, a new one will be created.
 		 * @return The destination Array with all the nested items in the source appended to it.
 		 */
-		public static function flatten(source:Array, destination:* = null):*
+		public static function flatten(source:*, destination:* = null):*
 		{
 			if (destination == null)
 				destination = [];
@@ -298,6 +298,21 @@ package weave.utils
 				else
 					destination.push(source[i]);
 			return destination;
+		}
+		
+		public static function flattenObject(input:Object, output:Object = null, prefix:String = ''):Object
+		{
+			if (output == null)
+				output = {};
+			if (input == null)
+				return output;
+			
+			for (var key:String in input)
+				if (typeof input[key] == 'object')
+					flattenObject(input[key], output, prefix + key + '.');
+				else
+					output[prefix + key] = input[key];
+			return output;
 		}
 		
 		/**
