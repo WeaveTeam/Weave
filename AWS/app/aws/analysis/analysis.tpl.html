@@ -108,7 +108,7 @@
 	<!--Indicator Content-->
 	<div style="height: 100%" class ng-controller="AnalysisFiltersControllers">
 		<div class='masonry-parent' masonry="{ transitionDuration: '0.0s', gutter: 20 }">
-			<div style="width: 18%;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in filter_widget_bricks" ng-model="widtget_bricks">
+			<div style="width: 22%%;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in filter_widget_bricks" ng-model="widtget_bricks">
 				<div class="panel-heading">
 					<h2>{{widget_brick.title}}</h2>
 					<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="remove_widget($index)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
@@ -124,9 +124,9 @@
 	<div id='configure_visuals' style="height: 20px; border-top: 2px solid #CCCCCC">
 		Configure Visuals	
 		
-	<div style='float: right'>
+	<!--<div style='float: right'>
 		<a ng-click="scrollTo('heading')">Back to Dashboard</a>
-	</div>	
+	</div>	-->
 	</div>
 	<div style="height: 100%" >
 		<div style="height: 100%" class="row dashboard-content" ng-controller="WidgetsController">

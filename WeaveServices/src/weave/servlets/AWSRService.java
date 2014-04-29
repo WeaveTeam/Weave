@@ -61,6 +61,7 @@ import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
 import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
+import weave.utils.SQLUtils.WhereClauseBuilder;
 
 import com.google.gson.Gson;
 
@@ -367,19 +368,7 @@ public class AWSRService extends RService
 //		finalQueryObjectCollection[1] = queryNames;
 //
 //	}
-		/*
- 	    * @param userName author of a given Project
-	    * @param projectName project which contains the requested query
-	    * @param queryObjectName the filename that contains the requested queryObject
-	    * @return the requested single queryObject 
-	    * @throws Exception
-	    */
-	public SQLResult getSingleQueryObjectInProjectFromDatabase(String username, String projectName, String queryObjectName){
-		SQLResult singleQueryObject = null;//the queryObject requested
 		
-		return singleQueryObject;
-	};
-
 	//Gets the sub-directories (projects) in the 'Projects' folder
 //	public String[] getListOfProjects() 
 //	{
@@ -428,54 +417,56 @@ public class AWSRService extends RService
 		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
 		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
 		
-		
-		
-		//getting names from queryObjectTitle
-		String[] queryNames =  new String[queryObjectsSQLresult.rows.length];
-		String projectDescription = null;
-		for(int i = 0; i < queryObjectsSQLresult.rows.length; i++){
-			Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
-			queryNames[i] = singleSQLQueryObject.toString();
-			
-		}
-		projectDescription = (queryObjectsSQLresult.rows[0][2]).toString();//TODO find better way to do this
-		
-		//getting json objects from queryObjectContent
-		JSONObject[] finalQueryObjects = null;
-		if(queryObjectsSQLresult.rows.length != 0)
+		if(queryObjectsSQLresult.rows.length != 0)//run this code only if the project contains rows
 		{
-			ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
-			JSONParser parser = new JSONParser();
-			finalQueryObjects = new JSONObject[queryObjectsSQLresult.rows.length];
-			
-			
-			for(int i = 0; i < queryObjectsSQLresult.rows.length; i++)
-			{
-				Object singleObject = queryObjectsSQLresult.rows[i][1];//TODO find better way to do this
-				String singleObjectString = singleObject.toString();
-				try{
-					
-					 Object parsedObject = parser.parse(singleObjectString);
-					 JSONObject currentJSONObject = (JSONObject) parsedObject;
-					
-					 jsonlist.add(currentJSONObject);
-				}
-				catch (ParseException pe){
-					
-				}
+			//getting names from queryObjectTitle
+			String[] queryNames =  new String[queryObjectsSQLresult.rows.length];
+			String projectDescription = null;
+			for(int i = 0; i < queryObjectsSQLresult.rows.length; i++){
+				Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
+				queryNames[i] = singleSQLQueryObject.toString();
 				
-			}//end of for loop
+			}
+			projectDescription = (queryObjectsSQLresult.rows[0][2]).toString();//TODO find better way to do this
 			
-			finalQueryObjects = jsonlist.toArray(finalQueryObjects);
+			//getting json objects from queryObjectContent
+			JSONObject[] finalQueryObjects = null;
+			if(queryObjectsSQLresult.rows.length != 0)
+			{
+				ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
+				JSONParser parser = new JSONParser();
+				finalQueryObjects = new JSONObject[queryObjectsSQLresult.rows.length];
+				
+				
+				for(int i = 0; i < queryObjectsSQLresult.rows.length; i++)
+				{
+					Object singleObject = queryObjectsSQLresult.rows[i][1];//TODO find better way to do this
+					String singleObjectString = singleObject.toString();
+					try{
+						
+						 Object parsedObject = parser.parse(singleObjectString);
+						 JSONObject currentJSONObject = (JSONObject) parsedObject;
+						
+						 jsonlist.add(currentJSONObject);
+					}
+					catch (ParseException pe){
+						
+					}
+					
+				}//end of for loop
+				
+				finalQueryObjects = jsonlist.toArray(finalQueryObjects);
+				
+			}
+			else{
+				finalQueryObjects = null;
+			}
 			
-		}
-		else{
-			finalQueryObjects = null;
-		}
+			finalQueryObjectCollection[0] = finalQueryObjects;
+			finalQueryObjectCollection[1] = queryNames;
+			finalQueryObjectCollection[2] = projectDescription;
+		}//end of if statement
 		
-		finalQueryObjectCollection[0] = finalQueryObjects;
-		finalQueryObjectCollection[1] = queryNames;
-		finalQueryObjectCollection[2] = projectDescription;
 		con.close();
 		return finalQueryObjectCollection;
 		
@@ -543,11 +534,13 @@ public class AWSRService extends RService
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		
-		
 		//Set<String> caseSensitiveFields  = new HashSet<String>(); 
 		Map<String,Object> whereParams = new HashMap<String, Object>();
 		whereParams.put("projectName", projectName);
-		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
+		
+		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
+		builder.addGroupedConditions(whereParams, null,null);
+		WhereClause<Object> clause = builder.build(con);
 		
 		int count = SQLUtils.deleteRows(con, schema, "stored_query_objects",clause);
 		con.close();
@@ -562,7 +555,10 @@ public class AWSRService extends RService
 		Map<String,Object> whereParams = new HashMap<String, Object>();
 		whereParams.put("projectName", projectName);
 		whereParams.put("queryObjectTitle", queryObjectTitle);
-		WhereClause<Object> clause = new WhereClause<Object>(con, whereParams, null, true);
+		
+		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
+		builder.addGroupedConditions(whereParams, null,null);
+		WhereClause<Object> clause = builder.build(con);
 		
 		int count = SQLUtils.deleteRows(con, schema, "stored_query_objects",clause);
 		con.close();

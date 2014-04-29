@@ -56,12 +56,14 @@ import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
+import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
+import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -74,9 +76,11 @@ import weave.utils.Strings;
  * 
  * @author Andy Dufilie
  */
-public class DataService extends WeaveServlet
+public class DataService extends WeaveServlet implements IWeaveEntityService
 {
 	private static final long serialVersionUID = 1L;
+	
+	public static final int MAX_COLUMN_REQUEST_COUNT = 100;
 	
 	public DataService()
 	{
@@ -94,8 +98,14 @@ public class DataService extends WeaveServlet
 	private DataEntity getColumnEntity(int columnId) throws RemoteException
 	{
 		DataEntity entity = getDataConfig().getEntity(columnId);
-		if (entity == null || entity.type != DataEntity.TYPE_COLUMN)
+		
+		if (entity == null)
 			throw new RemoteException("No column with id " + columnId);
+		
+		String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+		if (!Strings.equal(entityType, EntityType.COLUMN))
+			throw new RemoteException(String.format("Entity with id=%s is not a column (entityType: %s)", columnId, entityType));
+		
 		return entity;
 	}
 	
@@ -133,52 +143,32 @@ public class DataService extends WeaveServlet
 	////////////////////
 	// DataEntity info
 	
-	public EntityHierarchyInfo[] getDataTableList() throws RemoteException
+	public EntityHierarchyInfo[] getHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
 	{
-		return getDataConfig().getEntityHierarchyInfo(DataEntity.TYPE_DATATABLE);
+		return getDataConfig().getEntityHierarchyInfo(publicMetadata);
 	}
-
-	public int[] getEntityChildIds(int parentId) throws RemoteException
+	
+	public DataEntityWithRelationships[] getEntities(int[] ids) throws RemoteException
 	{
-		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
+		if (ids.length > DataConfig.MAX_ENTITY_REQUEST_COUNT)
+			throw new RemoteException(String.format("You cannot request more than %s entities at a time.", DataConfig.MAX_ENTITY_REQUEST_COUNT));
+		
+		// prevent user from receiving private metadata
+		return getDataConfig().getEntitiesWithRelationships(ids, false);
 	}
-
-	public int[] getEntityIdsByMetadata(Map<String,String> publicMetadata, int entityType) throws RemoteException
+	
+	public int[] findEntityIds(Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
 	{
-		DataEntityMetadata dem = new DataEntityMetadata();
-		dem.publicMetadata = publicMetadata;
-		int[] ids = ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
+		int[] ids = ListUtils.toIntArray( getDataConfig().searchPublicMetadata(publicMetadata, wildcardFields) );
 		Arrays.sort(ids);
 		return ids;
 	}
 
-	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
+	public String[] findPublicFieldValues(String fieldName, String valueSearch) throws RemoteException
 	{
-		DataConfig config = getDataConfig();
-		Set<Integer> idSet = new HashSet<Integer>();
-		for (int id : ids)
-			idSet.add(id);
-		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
-		for (int i = 0; i < result.length; i++)
-		{
-			int id = result[i].id;
-			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
-			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
-			result[i] = new DataEntityWithRelationships(result[i], parentIds, childIds);
-			
-			// prevent user from receiving private metadata
-			result[i].privateMetadata = null;
-		}
-		return result;
+		throw new RemoteException("Not implemented yet");
 	}
-	
-	public int[] getParents(int childId) throws RemoteException
-	{
-		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(Arrays.asList(childId)) );
-		Arrays.sort(ids);
-		return ids;
-	}
-	
+
 	////////////
 	// Columns
 	
@@ -204,6 +194,7 @@ public class DataService extends WeaveServlet
 	 * @return The column data.
 	 * @throws RemoteException
 	 */
+	@SuppressWarnings("unchecked")
 	public AttributeColumnData getColumn(Object columnId, double minParam, double maxParam, String[] sqlParams)
 		throws RemoteException
 	{
@@ -215,8 +206,10 @@ public class DataService extends WeaveServlet
 		}
 		else if (columnId instanceof Map)
 		{
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			int[] ids = getEntityIdsByMetadata((Map)columnId, DataEntity.TYPE_COLUMN);
+			@SuppressWarnings({ "rawtypes" })
+			Map metadata = (Map)columnId;
+			metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
+			int[] ids = findEntityIds(metadata, null);
 			if (ids.length == 0)
 				throw new RemoteException("No column with id " + columnId);
 			if (ids.length > 1)
@@ -393,7 +386,7 @@ public class DataService extends WeaveServlet
 		catch (NullPointerException e)
 		{
 			e.printStackTrace();
-			throw(new RemoteException(e.getMessage()));
+			throw new RemoteException("Unexpected error", e);
 		}
 
 		AttributeColumnData result = new AttributeColumnData();
@@ -421,6 +414,11 @@ public class DataService extends WeaveServlet
 	 */
 	public WeaveJsonDataSet getDataSet(int[] columnIds) throws RemoteException
 	{
+		if (columnIds == null)
+			columnIds = new int[0];
+		if (columnIds.length > MAX_COLUMN_REQUEST_COUNT)
+			throw new RemoteException(String.format("You cannot request more than %s columns at a time.", MAX_COLUMN_REQUEST_COUNT));
+		
 		WeaveJsonDataSet result = new WeaveJsonDataSet();
 		for (Integer columnId : columnIds)
 		{
@@ -500,10 +498,14 @@ public class DataService extends WeaveServlet
 		DataConfig dataConfig = getDataConfig();
 		
 		DataEntityMetadata params = new DataEntityMetadata();
-		params.publicMetadata.put(PublicMetadata.KEYTYPE,keyType);
-		List<Integer> columnIds = new ArrayList<Integer>( dataConfig.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN) );
-		if (columnIds.size() > 100)
-			columnIds = columnIds.subList(0, 100);
+		params.setPublicMetadata(
+				PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
+				PublicMetadata.KEYTYPE, keyType
+			);
+		List<Integer> columnIds = new ArrayList<Integer>( dataConfig.searchPublicMetadata(params.publicMetadata, null) );
+
+		if (columnIds.size() > MAX_COLUMN_REQUEST_COUNT)
+			columnIds = columnIds.subList(0, MAX_COLUMN_REQUEST_COUNT);
 		return DataService.getFilteredRows(ListUtils.toIntArray(columnIds), null, keysArray);
 	}
 	
@@ -594,7 +596,7 @@ public class DataService extends WeaveServlet
 			for (int id : columns)
 				allColumnIds.add(id);
 			// get all corresponding entities
-			for (DataEntity entity : dataConfig.getEntitiesById(allColumnIds))
+			for (DataEntity entity : dataConfig.getEntities(allColumnIds, true))
 				entityLookup.put(entity.id, entity);
 			// check for missing columns
 			for (int id : allColumnIds)
@@ -842,7 +844,7 @@ public class DataService extends WeaveServlet
 			
 			if (keysArray == null)
 			{
-				LinkedList<String> keys = new LinkedList<String>();
+				List<String> keys = new LinkedList<String>();
 				for (Entry<String,Object[]> entry : data.entrySet())
 					if (entry.getValue() != null)
 						keys.add(entry.getKey());
@@ -866,6 +868,57 @@ public class DataService extends WeaveServlet
 	/////////////////////////////
 	// backwards compatibility
 	
+	
+	/**
+	 * Use getHierarchyInfo() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated public EntityHierarchyInfo[] getDataTableList() throws RemoteException
+	{
+		return getDataConfig().getEntityHierarchyInfo(MapUtils.<String,String>fromPairs(PublicMetadata.ENTITYTYPE, EntityType.TABLE));
+	}
+
+	/**
+	 * Use getEntities() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated public int[] getEntityChildIds(int parentId) throws RemoteException
+	{
+		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
+	}
+	
+	/**
+	 * Use getEntities() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated public int[] getParents(int childId) throws RemoteException
+	{
+		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(childId) );
+		Arrays.sort(ids);
+		return ids;
+	}
+	
+	/**
+	 * Use findEntityIds() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated
+	public int[] getEntityIdsByMetadata(Map<String,String> publicMetadata, int entityType) throws RemoteException
+	{
+		publicMetadata.put(PublicMetadata.ENTITYTYPE, EntityType.fromInt(entityType));
+		return findEntityIds(publicMetadata, null);
+	}
+	
+	/**
+	 * Use getEntities() instead. This function is provided for backwards compatibility only.
+	 * @deprecated
+	 */
+	@Deprecated
+	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
+	{
+		return getEntities(ids);
+	}
+	
 	/**
 	 * @param metadata The metadata query.
 	 * @return The id of the matching column.
@@ -878,8 +931,7 @@ public class DataService extends WeaveServlet
 		if (metadata == null || metadata.size() == 0)
 			throw new RemoteException("No metadata query parameters specified.");
 		
-		DataEntityMetadata query = new DataEntityMetadata();
-		query.publicMetadata = metadata;
+		metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 		
 		final String DATATABLE = "dataTable";
 		final String NAME = "name";
@@ -893,35 +945,33 @@ public class DataService extends WeaveServlet
 		
 		DataConfig dataConfig = getDataConfig();
 		
-		Collection<Integer> ids = dataConfig.getEntityIdsByMetadata(query, DataEntity.TYPE_COLUMN);
+		Collection<Integer> ids = dataConfig.searchPublicMetadata(metadata, null);
 		
 		// attempt recovery for backwards compatibility
 		if (ids.size() == 0)
 		{
-			String dataType = metadata.get(PublicMetadata.DATATYPE);
 			if (metadata.containsKey(DATATABLE) && metadata.containsKey(NAME))
 			{
 				// try to find columns sqlTable==dataTable and sqlColumn=name
-				DataEntityMetadata sqlInfoQuery = new DataEntityMetadata();
+				Map<String,String> privateMetadata = new HashMap<String,String>();
 				String sqlTable = metadata.get(DATATABLE);
 				String sqlColumn = metadata.get(NAME);
 				for (int i = 0; i < 2; i++)
 				{
 					if (i == 1)
 						sqlTable = sqlTable.toLowerCase();
-					sqlInfoQuery.setPrivateMetadata(
-						PrivateMetadata.SQLTABLE, sqlTable,
-						PrivateMetadata.SQLCOLUMN, sqlColumn
-					);
-					ids = dataConfig.getEntityIdsByMetadata(sqlInfoQuery, DataEntity.TYPE_COLUMN);
+					privateMetadata.put(PrivateMetadata.SQLTABLE, sqlTable);
+					privateMetadata.put(PrivateMetadata.SQLCOLUMN, sqlColumn);
+					ids = dataConfig.searchPrivateMetadata(privateMetadata, null);
 					if (ids.size() > 0)
 						break;
 				}
 			}
-			else if (metadata.containsKey(NAME) && dataType != null && dataType.equals(DataType.GEOMETRY))
+			else if (metadata.containsKey(NAME)
+					&& Strings.equal(metadata.get(PublicMetadata.DATATYPE), DataType.GEOMETRY))
 			{
 				metadata.put(PublicMetadata.TITLE, metadata.remove(NAME));
-				ids = dataConfig.getEntityIdsByMetadata(query, DataEntity.TYPE_COLUMN);
+				ids = dataConfig.searchPublicMetadata(metadata, null);
 			}
 			if (ids.size() == 0)
 				throw new RemoteException("No column matches metadata query: " + metadata);

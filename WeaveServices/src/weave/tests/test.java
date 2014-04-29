@@ -19,7 +19,7 @@
 package weave.tests;
 
 
-import java.rmi.RemoteException;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,11 +37,11 @@ public class test
 	
 	public static Map<String, String> connectionObject = new HashMap<String, String>();
 	public static Map<String, Object> requestObject = new HashMap<String, Object>();
-
 		
 	public static void call(String[] keys, String[]inputNames, Object[]inputValues, String[]resultNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList)
 	throws Exception
 	{
+		Connection con = null;
 
 	    for(int i = 0; i < 4; i++)
 	    {
@@ -54,9 +54,11 @@ public class test
 			try {
 				
 				scriptResult = ws.runScript(null, inputNames, inputValues, resultNames, script, plotScript, showIntermediateResults, showWarnings, useColumnAsList);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+				
+				} 
+//				catch (RemoteException e) {
+//					e.printStackTrace();
+//				}
 				finally
 				{
 					System.out.println(Arrays.asList(scriptResult));
@@ -69,9 +71,6 @@ public class test
 
 	public static void main(String[] args) throws Exception
 	{
-		ws = new RService();
-		aws = new AWSRService();
-		
 		
 //		HashMap<String, Object> algorithmObject = new HashMap<String, Object>();
 //		algorithmObject.put("startClusterNumber", 4);

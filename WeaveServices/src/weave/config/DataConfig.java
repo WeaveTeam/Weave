@@ -33,14 +33,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.tables.HierarchyTable;
-import weave.config.tables.ManifestTable;
 import weave.config.tables.MetadataTable;
+import weave.utils.ListUtils;
 import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
+import weave.utils.Strings;
 
 
 /**
@@ -51,16 +51,19 @@ import weave.utils.SQLUtils;
  */
 public class DataConfig
 {
+	/**
+	 * This is a recommended maximum number of entities a remote user should be able to request at a time.
+	 */
+	public static final int MAX_ENTITY_REQUEST_COUNT = 1000;
+
 	static private final String SUFFIX_META_PRIVATE = "_meta_private";
 	static private final String SUFFIX_META_PUBLIC = "_meta_public";
-	static private final String SUFFIX_MANIFEST = "_manifest";
 	static private final String SUFFIX_HIERARCHY = "_hierarchy";
 	
 	static public final int NULL = -1;
 
 	private MetadataTable public_metadata;
 	private MetadataTable private_metadata;
-	private ManifestTable manifest;
 	private HierarchyTable hierarchy;
 	private ConnectionConfig connectionConfig;
 	private long lastModified = -1L;
@@ -73,6 +76,7 @@ public class DataConfig
 //			deleteTables();
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void detectChange() throws RemoteException
 	{
 		long lastMod = connectionConfig.getLastModified();
@@ -102,13 +106,13 @@ public class DataConfig
 				String tablePrefix = "weave";
 				String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
 				String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
-				String table_manifest = tablePrefix + SUFFIX_MANIFEST;
 				String table_hierarchy = tablePrefix + SUFFIX_HIERARCHY;
 
-				manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
-				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_hierarchy, manifest);
-				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private, manifest);
-				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public, manifest);
+				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_hierarchy);
+				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public, PublicMetadata.ENTITYTYPE);
+				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private, null);
+				
+				weave.config.DeprecatedConfig.migrateManifestData(conn, dbInfo.schema, table_meta_public);
 			}
 			catch (SQLException e)
 			{
@@ -122,7 +126,7 @@ public class DataConfig
 	public boolean isEmpty() throws RemoteException
 	{
 		detectChange();
-		return manifest.getByType().size() == 0;
+		return public_metadata.isEmpty() && private_metadata.isEmpty();
 	}
 
 //	private void deleteTables() throws RemoteException
@@ -130,7 +134,6 @@ public class DataConfig
 //		String tablePrefix = "weave";
 //		String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
 //		String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
-//		String table_manifest = tablePrefix + SUFFIX_MANIFEST;
 //		String table_hierarchy = tablePrefix + SUFFIX_HIERARCHY;
 //		
 //		try
@@ -140,7 +143,6 @@ public class DataConfig
 //			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_meta_private);
 //			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_meta_public);
 //			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_hierarchy);
-//			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_manifest);
 //		}
 //		catch (SQLException e)
 //		{
@@ -156,265 +158,406 @@ public class DataConfig
     	detectChange();
         try 
         {
-        	manifest.flushInserts();
         	hierarchy.flushInserts();
+        	public_metadata.flushInserts();
             private_metadata.flushInserts();
-            public_metadata.flushInserts();
         }
         catch (SQLException e)
         {
             throw new RemoteException("Failed flushing inserts.", e);
         }
     }
-
-    public int newEntity(int type_id, DataEntityMetadata properties, int parent_id, int insert_at_index) throws RemoteException
+    
+    /**
+     * Creates a new entity and adds it as a child of another entity.
+     * @param properties Metadata for the new entity.
+     * @param parent_id The ID of the parent entity to which the new entity should be added as a child, or NULL for no parent.
+     * @param insert_at_index The new entity's child index, or NULL to add it to the end.
+     * @return The new entity's ID.
+     * @throws RemoteException
+     */
+    public int newEntity(DataEntityMetadata properties, int parent_id, int insert_at_index) throws RemoteException
     {
     	detectChange();
     	
+    	properties.notNull();
+    	
     	if (!connectionConfig.migrationPending())
     	{
-	    	int parentType = manifest.getEntryType(parent_id);
-	    	if (!DataEntity.parentChildRelationshipAllowed(parentType, type_id))
+	    	String parentType = getEntityType(parent_id);
+	    	String childType = null;
+	    	if (properties.publicMetadata != null)
+	    		childType = properties.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+	    	if (!DataEntity.parentChildRelationshipAllowed(parentType, childType))
 	    	{
 	    		throw new RemoteException(String.format(
 	    				"Invalid parent-child relationship (parent#%s=%s, child=%s).",
 	    				parent_id,
-	    				DataEntity.getTypeString(parentType),
-	    				DataEntity.getTypeString(type_id)
+	    				parentType,
+	    				childType
 	    			));
 	    	}
     	}
     	
-        int id = manifest.newEntry(type_id);
-        if (properties != null)
-            updateEntity(id, properties);
+        int id = public_metadata.setProperties(NULL, properties.publicMetadata);
+    	private_metadata.setProperties(id, properties.privateMetadata);
+    	
         if (parent_id != NULL)
         	hierarchy.addChild(parent_id, id, insert_at_index);
         return id;
     }
+    
+    /**
+     * Removes entities.
+     * @param ids A list of IDs specifying entities to remove.
+     * @return A collection of IDs that were removed.
+     * @throws RemoteException
+     */
     public Collection<Integer> removeEntities(Collection<Integer> ids) throws RemoteException
     {
     	detectChange();
-    	Collection<Integer> removed = new LinkedList<Integer>(ids);
-    	detectChange();
+    	Collection<Integer> removed = new HashSet<Integer>(ids);
+    	Map<Integer, String> entityTypes = getEntityTypes(ids);
+    	Set<Integer> childIdsToRemove = new HashSet<Integer>();
     	for (int id : ids)
     	{
-    		// remove all children
-	        if (manifest.getEntryType(id) == DataEntity.TYPE_DATATABLE)
-	            removed.addAll( removeEntities( hierarchy.getChildren(id) ) );
-	        manifest.removeEntry(id);
+    		if (Strings.equal(entityTypes.get(id), EntityType.TABLE))
+	        {
+	        	// remove all children from table
+	        	childIdsToRemove.addAll( getChildIds(id) );
+	        }
+	        else // not a table
+	        {
+	        	// remove only non-column children
+	        	Map<Integer,String> childTypes = getEntityTypes(getChildIds(id));
+	        	for (int childId : childTypes.keySet())
+	        		if (!Strings.equal(childTypes.get(childId), EntityType.COLUMN))
+	        			childIdsToRemove.add(childId);
+	        }
+	        
 	        hierarchy.purge(id);
 	        public_metadata.removeAllProperties(id);
 	        private_metadata.removeAllProperties(id);
     	}
+    	
+    	if (childIdsToRemove.size() > 0)
+    		removed.addAll( removeEntities(childIdsToRemove) );
+    	
     	return removed;
     }
+    /**
+	 * @param id The id of an existing entity.
+	 * @param diff The properties to set.
+     */
     public void updateEntity(int id, DataEntityMetadata diff) throws RemoteException
     {
+    	if (id == NULL)
+    		throw new RemoteException("id parameter cannot be " + NULL);
     	detectChange();
+    	if (Strings.isEmpty(getEntityType(id)))
+    	{
+    		if (diff.publicMetadata == null || Strings.isEmpty(diff.publicMetadata.get(PublicMetadata.ENTITYTYPE)))
+	    		throw new RemoteException("Unable to update entity #" + id + " because it does not exist.");
+    	}
     	public_metadata.setProperties(id, diff.publicMetadata);
     	private_metadata.setProperties(id, diff.privateMetadata);
     }
-    public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata query, int type_id) throws RemoteException
+    
+	/**
+	 * Gets an Array of entity IDs with matching public metadata. 
+	 * @param publicMetadata Public metadata to search for.
+	 * @param wildcardFields A list of field names in publicMetadata that should be treated
+	 *                       as search strings with wildcards '?' and '*' for single-character
+	 *                       and multi-character matching, respectively.
+	 * @return An Array of IDs matching the search criteria.
+	 */
+    public Collection<Integer> searchPublicMetadata(Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
     {
     	detectChange();
-        Set<Integer> idsMatchingPublicMetadata = null;
-        Set<Integer> idsMatchingPrivateMetadata = null;
-        Collection<Integer> idsMatchingAllMetadata = null;
-
-        if (query != null && query.publicMetadata != null && query.publicMetadata.size() > 0)
-            idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata);
-        if (query != null && query.privateMetadata != null && query.privateMetadata.size() > 0)
-            idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata);
-        if ((idsMatchingPublicMetadata != null) && (idsMatchingPrivateMetadata != null))
-        {
-        	// intersection
-            idsMatchingPublicMetadata.retainAll(idsMatchingPrivateMetadata);
-            idsMatchingAllMetadata = idsMatchingPublicMetadata;
-        }
-        else if (idsMatchingPublicMetadata != null)
-            idsMatchingAllMetadata = idsMatchingPublicMetadata;
-        else if (idsMatchingPrivateMetadata != null)
-            idsMatchingAllMetadata = idsMatchingPrivateMetadata;
-        else
-        	idsMatchingAllMetadata = manifest.getByType(type_id); // all
-
-        if (idsMatchingAllMetadata == null || idsMatchingAllMetadata.size() < 1)
-        {
-            return Collections.emptyList();
-        }
-        else
-        {
-        	// filter by type
-            if (type_id != NULL)
-                idsMatchingAllMetadata.retainAll(manifest.getByType(type_id));
-            return idsMatchingAllMetadata;
-        }
+    	Set<String> wf = null;
+    	if (wildcardFields != null)
+    		wf = new HashSet<String>(Arrays.asList(wildcardFields));
+    	return public_metadata.filter(publicMetadata, wf);
+    }
+    
+    /**
+     * Gets an Array of entity IDs with matching public metadata. 
+     * @param privateMetadata Public metadata to search for.
+     * @param wildcardFields A list of field names in publicMetadata that should be treated
+     *                       as search strings with wildcards '?' and '*' for single-character
+     *                       and multi-character matching, respectively.
+     * @return An Array of IDs matching the search criteria.
+     */
+    public Collection<Integer> searchPrivateMetadata(Map<String,String> privateMetadata, String[] wildcardFields) throws RemoteException
+    {
+    	detectChange();
+    	Set<String> wf = null;
+    	if (wildcardFields != null)
+    		wf = new HashSet<String>(Arrays.asList(wildcardFields));
+    	return private_metadata.filter(privateMetadata, wf);
     }
     
     public DataEntity getEntity(int id) throws RemoteException
     {
     	detectChange();
-    	for (DataEntity result : getEntitiesById(Arrays.asList(id)))
+    	for (DataEntity result : getEntities(Arrays.asList(id), true))
     		return result;
     	return null;
     }
     
     /**
      * @param ids A collection of entity ids.
+     * @param includePrivateMetadata Set this to true to include private metadata in the results.
      * @return A collection of DataEntity objects for the entities in the supplied list of ids that actually exist.
      */
-    public Collection<DataEntity> getEntitiesById(Collection<Integer> ids) throws RemoteException
+    public Collection<DataEntity> getEntities(Collection<Integer> ids, boolean includePrivateMetadata) throws RemoteException
     {
     	detectChange();
         List<DataEntity> results = new LinkedList<DataEntity>();
-        Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
+        Map<Integer,Map<String,String>> publicResults = public_metadata.getProperties(ids);
         
         // only proceed with the ids that actually exist
-        ids = typeresults.keySet();
-        
-        Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
-        Map<Integer,Map<String,String>> privateresults = private_metadata.getProperties(ids);
+        ids = publicResults.keySet();
+
+        Map<Integer,Map<String,String>> privateResults = null;
+        if (includePrivateMetadata)
+        	privateResults = private_metadata.getProperties(ids);
         for (int id : ids)
         {
             DataEntity entity = new DataEntity();
             entity.id = id;
-           	entity.type = typeresults.get(id);
-            entity.publicMetadata = publicresults.get(id);
-            entity.privateMetadata = privateresults.get(id);
+            entity.publicMetadata = publicResults.get(id);
+            if (includePrivateMetadata)
+            	entity.privateMetadata = privateResults.get(id);
+            entity.notNull();
             results.add(entity);
         }
         return results;
     }
     
+    public DataEntityWithRelationships[] getEntitiesWithRelationships(int[] ids, boolean includePrivateMetadata) throws RemoteException
+    {
+		Set<Integer> idSet = new HashSet<Integer>();
+		for (int id : ids)
+			idSet.add(id);
+		
+		// Get entities and relationships.
+		Collection<DataEntity> baseEntities = getEntities(idSet, includePrivateMetadata);
+		RelationshipList relationships = getRelationships(idSet);
+		
+		// Combine entities and relationships.
+		DataEntityWithRelationships[] entities = new DataEntityWithRelationships[baseEntities.size()];
+		int i = 0;
+		for (DataEntity input : baseEntities)
+		{
+			DataEntityWithRelationships output = entities[i++] = new DataEntityWithRelationships();
+			output.id = input.id;
+			output.publicMetadata = input.publicMetadata;
+			output.privateMetadata = input.privateMetadata;
+			
+			List<Integer> parentIds = new LinkedList<Integer>();
+			List<Integer> childIds = new LinkedList<Integer>();
+			for (Relationship r : relationships)
+			{
+				if (input.id == r.childId)
+					parentIds.add(r.parentId);
+				else if (input.id == r.parentId)
+					childIds.add(r.childId);
+			}
+			
+			output.parentIds = ListUtils.toIntArray(parentIds);
+			output.childIds = ListUtils.toIntArray(childIds);
+		}
+		
+		// Set hasChildBranches flags.
+		
+		Set<Integer> unknownChildIds = new HashSet<Integer>();
+		// add child IDs of all entities we have
+		for (DataEntityWithRelationships entity : entities)
+			for (int childId : entity.childIds)
+				if (!idSet.contains(childId))
+					unknownChildIds.add(childId);
+		// get types of unknown child entities
+		Map<Integer, String> entityTypeLookup = getEntityTypes(unknownChildIds);
+		// add types of known entities
+		for (DataEntityWithRelationships entity : entities)
+			entityTypeLookup.put(entity.id, entity.publicMetadata.get(PublicMetadata.ENTITYTYPE));
+		// update hasChildBranches property for each entity
+		for (DataEntityWithRelationships entity : entities)
+		{
+			for (int childId : entity.childIds)
+			{
+				if (Strings.equal(entityTypeLookup.get(childId), EntityType.CATEGORY))
+				{
+					entity.hasChildBranches = true;
+					break;
+				}
+			}
+		}
+		
+		return entities;
+    }
+    
     /**
+     * Adds a copy of an existing child to a parent.
      * @param parentId An existing parent to add a child hierarchy to.
      * @param childId An existing child to copy the hierarchy of.
      * @param insertAtIndex Identifies a child of the parent to insert the new child before.
+	 * @return A collection of IDs whose relationships have changed as a result of modifying the hierarchy.
      * @throws RemoteException
      */
-    public void buildHierarchy(int parentId, int childId, int insertAtIndex) throws RemoteException
+    public Collection<Integer> buildHierarchy(int parentId, int childId, int insertAtIndex) throws RemoteException
     {
-		detectChange();
+    	detectChange();
+    	return buildHierarchy(parentId, childId, insertAtIndex, new HashSet<Integer>());
+    }
+    
+    /**
+     * @private
+     * @see #buildHierarchy(int, int, int)
+     */
+    private Collection<Integer> buildHierarchy(int parentId, int childId, int insertAtIndex, Set<Integer> ignoreList) throws RemoteException
+    {
+    	// prevent infinite recursion
+    	if (ignoreList.contains(childId))
+    		return Collections.emptySet();
+		
+		Map<Integer,String> types = getEntityTypes(Arrays.asList(parentId, childId));
+		
+		if (Strings.equal(types.get(parentId), EntityType.COLUMN))
+			throw new RemoteException("Cannot add children to a column entity.");
+		
+		String childType = types.get(childId);
+		RelationshipList childRelationships = hierarchy.getRelationships(Arrays.asList(childId));
 		
 		int newChildId;
-		Map<Integer,Integer> types = manifest.getEntryTypes(Arrays.asList(parentId, childId));
-		int parentType = types.containsKey(parentId) ? types.get(parentId) : DataEntity.TYPE_UNSPECIFIED;
-		int childType = types.containsKey(childId) ? types.get(childId) : DataEntity.TYPE_UNSPECIFIED;
-
-		if (parentId == NULL) // parent is root
+		if (Strings.equal(childType, EntityType.COLUMN))
 		{
-			if (childType == DataEntity.TYPE_COLUMN)
+			// columns can't be at root
+			if (parentId == NULL)
+				return Collections.emptySet();
+			// columns can be added directly to new parents
+			newChildId = childId;
+		}
+		else if (Strings.equal(childType, EntityType.CATEGORY) && childRelationships.getParentIds(childId).isEmpty())
+		{
+			// ok to use existing orphan category
+			newChildId = childId;
+			// categories become hierarchies at root
+			if (parentId == NULL)
 			{
-				// create a new blank hierarchy to contain the child
-				parentType = DataEntity.TYPE_HIERARCHY;
-				parentId = newEntity(parentType, null, NULL, NULL);
-				// recursive call with new parent id
-				buildHierarchy(parentId, childId, 0);
-				return; // done
-			}
-			else if (childType == DataEntity.TYPE_HIERARCHY)
-			{
-				// hierarchies are always at root, so do nothing.
-				return;
-			}
-			else // child is not a column or a hierarchy
-			{
-				// copy the child as a hierarchy
-				childType = DataEntity.TYPE_HIERARCHY;
-				newChildId = newEntity(childType, getEntity(childId), NULL, NULL);
+				// update entityType to hierarchy
+				DataEntityMetadata metadata = new DataEntityMetadata();
+				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
+				updateEntity(childId, metadata);
 			}
 		}
-		else // parent is not root
-        {
-			if (childType == DataEntity.TYPE_COLUMN) // child is a column
+		else // non-column
+		{
+			// copy the child
+			DataEntityMetadata metadata;
+			// if it's a table, only copy the title
+			if (Strings.equal(childType, EntityType.TABLE))
 			{
-				// columns can be added directly to new parents
-				newChildId = childId;
+				metadata = new DataEntityMetadata();
+				String title = public_metadata.getProperty(childId, PublicMetadata.TITLE);
+				metadata.setPublicMetadata(PublicMetadata.TITLE, title);
 			}
-			else if (childType == DataEntity.TYPE_CATEGORY && hierarchy.getParents(Arrays.asList(childId)).size() == 0)
+			else
 			{
-				// ok to use existing child category since it has no parents
-				newChildId = childId;
+				metadata = getEntity(childId);
 			}
-			else // need to make a copy
-			{
-				// copy as a new category
-				childType = DataEntity.TYPE_CATEGORY;
-				newChildId = newEntity(childType, getEntity(childId), parentId, insertAtIndex);
-			}
+			// if parent is root, make it a hierarchy. otherwise, make it a category
+			String newType = parentId == NULL ? EntityType.HIERARCHY : EntityType.CATEGORY;
+			metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, newType);
+			// make the copy
+			newChildId = newEntity(metadata, parentId, insertAtIndex);
 		}
+		
+		Set<Integer> affectedIds = new HashSet<Integer>();
 		
 		if (newChildId != childId)
 		{
-			// important to get the child list before we add a new child!
-			List<Integer> childIds = hierarchy.getChildren(childId);
-			
+			// prevent infinite recursion
+			ignoreList.add(newChildId);
 			// recursively copy each child hierarchy element
-			int order = 0;
-			for (int grandChildId : childIds)
-			{
+			for (int grandChildId : childRelationships.getChildIds(childId))
 				if (grandChildId != newChildId)
-					buildHierarchy(newChildId, grandChildId, order++);
-			}
+					affectedIds.addAll( buildHierarchy(newChildId, grandChildId, NULL, ignoreList) );
 		}
 		
 		// add new child to parent
+		affectedIds.add(newChildId);
 		if (parentId != NULL)
 		{
-			// make sure hierarchy relationship is acceptable
-			if (!DataEntity.parentChildRelationshipAllowed(parentType, childType))
-			{
-				throw new RemoteException(String.format(
-						"Invalid parent-child relationship (parent#%s=%s, child#%s=%s).",
-						parentId, DataEntity.getTypeString(parentType),
-						childId, DataEntity.getTypeString(childType)
-				));
-			}
+			affectedIds.add(parentId);
 			hierarchy.addChild(parentId, newChildId, insertAtIndex);
 		}
+		
+		return affectedIds;
     }
     
     public void removeChild(int parent_id, int child_id) throws RemoteException
     {
     	detectChange();
-        if (manifest.getEntryType(parent_id) == DataEntity.TYPE_DATATABLE)
+        if (Strings.equal(getEntityType(parent_id), EntityType.TABLE))
         {
             throw new RemoteException("Can't remove children from a datatable.", null);
         }
         hierarchy.removeChild(parent_id, child_id);
     }
     
-    public Map<Integer,Integer> getEntityTypes(Collection<Integer> ids) throws RemoteException
+    public Map<Integer,String> getEntityTypes(Collection<Integer> ids) throws RemoteException
     {
-    	return manifest.getEntryTypes(ids);
+    	return public_metadata.getPropertyMap(ids, PublicMetadata.ENTITYTYPE);
     }
     
-    public Collection<Integer> getParentIds(Collection<Integer> childIds) throws RemoteException
+    private String getEntityType(int entityId) throws RemoteException
     {
-    	detectChange();
-    	return hierarchy.getParents(childIds);
+    	return getEntityTypes(Arrays.asList(entityId)).get(entityId);
     }
     
+    /**
+     * Shortcut for getRelationships(Arrays.asList(id)).getParentIds(id).
+     * If you need this information for multiple IDs, use getRelationships() instead.
+     * @see #getRelationships(Collection)
+     */
+    public List<Integer> getParentIds(int id) throws RemoteException
+    {
+    	return getRelationships(Arrays.asList(id)).getParentIds(id);
+    }
+    
+    /**
+     * Shortcut for getRelationships(Arrays.asList(id)).getChildIds(id).
+     * If you need this information for multiple IDs, use getRelationships() instead.
+     * @see #getRelationships(Collection)
+     */
     public List<Integer> getChildIds(int id) throws RemoteException
     {
-    	detectChange();
-    	// if id is NULL, we want ids of all entities without parents
-        if (id == NULL)
-        {
-        	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY));
-        }
-        return hierarchy.getChildren(id);
+    	return getRelationships(Arrays.asList(id)).getChildIds(id);
     }
+    
+	/**
+	 * Gets a list of parent-child relationships for a set of entities.
+	 * @param ids A collection of entity IDs.
+	 * @return An ordered list of parent-child relationships involving the specified entities.
+	 */
+    public RelationshipList getRelationships(Collection<Integer> ids) throws RemoteException
+    {
+    	detectChange();
+    	return hierarchy.getRelationships(ids);
+    }
+    
     public Collection<String> getUniquePublicValues(String property) throws RemoteException
     {
     	detectChange();
     	return new HashSet<String>(public_metadata.getPropertyMap(null, property).values());
     }
-    public EntityHierarchyInfo[] getEntityHierarchyInfo(int entityType) throws RemoteException
+    
+    public EntityHierarchyInfo[] getEntityHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
     {
-    	detectChange();
-    	Collection<Integer> ids = manifest.getByType(entityType);
+    	detectChange(); 	
+    	Collection<Integer> ids = public_metadata.filter(publicMetadata, null);
     	EntityHierarchyInfo[] result = new EntityHierarchyInfo[ids.size()];
     	if (result.length == 0)
     		return result;
@@ -474,6 +617,7 @@ public class DataConfig
 	
 	static public class PublicMetadata
 	{
+		static public final String ENTITYTYPE = "entityType";
 		static public final String TITLE = "title";
 		static public final String KEYTYPE = "keyType";
 		static public final String DATATYPE = "dataType";
@@ -482,6 +626,27 @@ public class DataConfig
 		static public final String MAX = "max";
 		static public final String NUMBER = "number";
 		static public final String STRING = "string";
+	}
+	
+	static public class EntityType
+	{
+		public static final String TABLE = "table";
+		public static final String COLUMN = "column";
+		public static final String HIERARCHY = "hierarchy";
+		public static final String CATEGORY = "category";
+		
+		@Deprecated public static String fromInt(int type)
+		{
+			switch (type)
+			{
+				case NULL: return "UNSPECIFIED";
+				case 0: return TABLE;
+				case 1: return COLUMN;
+				case 2: return HIERARCHY;
+				case 3: return CATEGORY;
+			}
+			throw new InvalidParameterException("Invalid type: " + type);
+		}
 	}
 	
 	static public class DataType
@@ -506,14 +671,30 @@ public class DataConfig
 		}
 	}
 	
-	
 	/**
 	 * This class contains public and private metadata for an entity.
 	 */
 	static public class DataEntityMetadata
 	{
+		/**
+		 * Private metadata, mapping field names to values.
+		 */
 		public Map<String,String> privateMetadata = new HashMap<String, String>();
+		/**
+		 * Public metadata, mapping field names to values.
+		 */
 		public Map<String,String> publicMetadata = new HashMap<String, String>();
+		
+		/**
+		 * Makes sure privateMetadata and publicMetadata are not null.
+		 */
+		public void notNull()
+		{
+			if (privateMetadata == null)
+				privateMetadata = new HashMap<String, String>();
+			if (publicMetadata == null)
+				publicMetadata = new HashMap<String, String>();
+		}
 		
 		/**
 		 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
@@ -540,31 +721,75 @@ public class DataConfig
 		}
 	}
 	
+	/**
+	 * Represents a parent-child relationship between two entities.
+	 */
+	public static class Relationship
+	{
+		public Relationship() { }
+		public Relationship(int parentId, int childId)
+		{
+			this.parentId = parentId;
+			this.childId = childId;
+		}
+		public int parentId;
+		public int childId;
+		
+		public String toString()
+		{
+			return String.format("%s>%s", parentId, childId);
+		}
+	}
+	
+	/**
+	 * An ordered List of Relationship objects which adds two functions: getChildIds() and getParentIds().
+	 */
+	public static class RelationshipList extends LinkedList<Relationship>
+	{
+		private static final long serialVersionUID = 1L;
+		/**
+		 * Gets an ordered list of child IDs for a specified parent.
+		 * @param parentId A parent entity ID.
+		 * @return An ordered list of child entity IDs.
+		 */
+		public List<Integer> getChildIds(int parentId)
+		{
+			List<Integer> ids = new LinkedList<Integer>();
+			for (Relationship r : this)
+				if (r.parentId == parentId)
+					ids.add(r.childId);
+			return ids;
+		}
+		/**
+		 * Gets a list of IDs for parents having a specified child.
+		 * @param childId A child entity ID.
+		 * @return A list of parent entity IDs.
+		 */
+		public List<Integer> getParentIds(int childId)
+		{
+			List<Integer> ids = new LinkedList<Integer>();
+			for (Relationship r : this)
+				if (r.childId == childId)
+					ids.add(r.parentId);
+			return ids;
+		}
+	}
+
 	static public class DataEntityWithRelationships extends DataEntity
 	{
 		public int[] parentIds;
 		public int[] childIds;
+		public boolean hasChildBranches = false;
 		
 		public DataEntityWithRelationships() { }
-		
-		public DataEntityWithRelationships(DataEntity base, int[] parentIds, int[] childIds)
-		{
-			if (base != null)
-			{
-				this.id = base.id;
-				this.type = base.type;
-				this.publicMetadata = base.publicMetadata;
-				this.privateMetadata = base.privateMetadata;
-			}
-			this.parentIds = parentIds;
-			this.childIds = childIds;
-		}
 		
 		public String toString()
 		{
 			return String.format("(%s%s)",
 					MapUtils.fromPairs(
-							"childIds", Arrays.toString(childIds)
+							"childIds", Arrays.toString(childIds),
+							"parentIds", Arrays.toString(parentIds),
+							"hasChildBranches", hasChildBranches
 						).toString(),
 					super.toString()
 				);
@@ -576,48 +801,31 @@ public class DataConfig
 	 */
 	static public class DataEntity extends DataEntityMetadata
 	{
-		public int id = TYPE_UNSPECIFIED;
-		public int type;
+		public int id = NULL;
 		
-		public static final int TYPE_UNSPECIFIED = NULL;
-		public static final int TYPE_DATATABLE = 0;
-		public static final int TYPE_COLUMN = 1;
-		public static final int TYPE_HIERARCHY = 2;
-		public static final int TYPE_CATEGORY = 3;
-		
-	    public static boolean parentChildRelationshipAllowed(int parentType, int childType)
-	    {
-	    	return (parentType == TYPE_UNSPECIFIED && childType == TYPE_DATATABLE)
-	    		|| (parentType == TYPE_UNSPECIFIED && childType == TYPE_HIERARCHY)
-	    		|| (parentType == TYPE_DATATABLE && childType == TYPE_COLUMN)
-		    	|| (parentType == TYPE_HIERARCHY && childType == TYPE_CATEGORY)
-		    	|| (parentType == TYPE_HIERARCHY && childType == TYPE_COLUMN)
-		    	|| (parentType == TYPE_CATEGORY && childType == TYPE_CATEGORY)
-		    	|| (parentType == TYPE_CATEGORY && childType == TYPE_COLUMN);
-	    }
-	    
-		public static String getTypeString(int type)
+		private static boolean equalPairs(String a1, String a2, String b1, String b2)
 		{
-			switch (type)
-			{
-				case TYPE_UNSPECIFIED: return "UNSPECIFIED";
-				case TYPE_HIERARCHY: return "HIERARCHY";
-				case TYPE_DATATABLE: return "DATATABLE";
-				case TYPE_CATEGORY: return "CATEGORY";
-				case TYPE_COLUMN: return "COLUMN";
-			}
-			throw new InvalidParameterException("Invalid type: " + type);
+			return Strings.equal(a1, a2) && Strings.equal(b1, b2);
 		}
 		
+	    public static boolean parentChildRelationshipAllowed(String parentType, String childType)
+	    {
+	    	return (Strings.isEmpty(parentType) && Strings.equal(childType, EntityType.TABLE))
+	    		|| (Strings.isEmpty(parentType) && Strings.equal(childType, EntityType.HIERARCHY))
+	    		|| equalPairs(parentType, EntityType.TABLE, childType, EntityType.COLUMN)
+		    	|| equalPairs(parentType, EntityType.HIERARCHY, childType, EntityType.CATEGORY)
+		    	|| equalPairs(parentType, EntityType.HIERARCHY, childType, EntityType.COLUMN)
+		    	|| equalPairs(parentType, EntityType.CATEGORY, childType, EntityType.CATEGORY)
+		    	|| equalPairs(parentType, EntityType.CATEGORY, childType, EntityType.COLUMN);
+	    }
+	    
 		public String toString()
 		{
-			return String.format("(%s%s)",
-					MapUtils.fromPairs(
-							"id", id,
-							"type", DataEntity.getTypeString(type)
-						).toString(),
-					super.toString()
-				);
+			return MapUtils.fromPairs(
+					"id", id,
+					"publicMetadata", publicMetadata,
+					"privateMetadata", privateMetadata
+				).toString();
 		}
 	}
 	

@@ -1,7 +1,7 @@
-<project name="WeaveServletUtils" basedir=".">
+<project name="WeaveServletUtils" basedir="." default="build">
     <path id="classpath">
         <fileset dir="lib" includes="**/*.jar"/>
-        <fileset dir="/usr/share/java/" includes="servlet-api-2.5.jar"/>
+        <fileset dir="lib" includes="servlet-api.jar"/>
     </path>
     <target name="clean">
         <delete dir="bin"/>

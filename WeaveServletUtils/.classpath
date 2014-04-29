@@ -58,6 +58,7 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/sqlite-jdbc-3.7.15-M1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/sqlite-jdbc-3.7.15-M1.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Tomcat/lib/servlet-api.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

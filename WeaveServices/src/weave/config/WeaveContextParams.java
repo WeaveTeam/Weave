@@ -57,7 +57,7 @@ public class WeaveContextParams
 	 * This constructor sets all public variables.
 	 * @param context The context of a servlet containing context params.
 	 */
-	private WeaveContextParams(ServletContext context) throws ServletException
+	public WeaveContextParams(ServletContext context) throws ServletException
 	{
 		String[] paths = context.getInitParameter("docrootPath").split("\\|");
 		for (int i = 0; i < paths.length; i++)

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <display-name>WeaveAnalystServices</display-name>
+  <welcome-file-list>
+  	<welcome-file>index.html</welcome-file>
+  </welcome-file-list>	
+  
+  <context-param>
+  	<param-name>awsconfigPath</param-name>
+	<param-value>../aws-config/</param-value>
+  </context-param>
+   <context-param>
+	<!--
+		configPath
+		This is the location where the AdminService looks for sqlconfig.xml.
+		Relative paths will be resolved from the folder above WEB-INF, where the web application was extracted to.
+	-->
+    <param-name>configPath</param-name>
+    <param-value>../weave-config/</param-value>
+  </context-param>
+  <context-param>
+	<!--
+		This is the base URL where you want the Admin Console to look for Weave client configuration XMLs.
+
+		A value of "../ROOT" is suitable for a typical Tomcat installation.
+
+		A value of "../../../docroot" is suitable for a typical Glassfish installation, where the webapp was
+		extracted to a folder such as "C:\Sun\SDK\domains\domain1\applications\j2ee-modules\MyWebApp" and the
+		docroot folder is like "C:\Sun\SDK\domains\domain1\docroot".
+	-->
+    <param-name>docrootPath</param-name>
+    <param-value>../ROOT|../../docroot|../../../docroot</param-value>
+  </context-param>
+  
+  <!-- This is the path of RServe.  Example value: C:/Program Files/R/R-2.15.1/library/Rserve/Rserve.exe -->
+  <context-param>
+  	<param-name>RServePath</param-name>
+  	<param-value></param-value>
+  </context-param>
+  
+  <servlet>
+    <servlet-name>ComputationalServlet</servlet-name>
+    <servlet-class>weave.servlets.ComputationalServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ComputationalServlet</servlet-name>
+    <url-pattern>/ComputationalServlet</url-pattern>
+  </servlet-mapping>
+
+<servlet>
+    <servlet-name>ProjectManagementServlet</servlet-name>
+    <servlet-class>weave.servlets.ProjectManagementServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ProjectManagementServlet</servlet-name>
+    <url-pattern>/ProjectManagementServlet</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ScriptManagementServlet</servlet-name>
+    <servlet-class>weave.servlets.ScriptManagementServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ScriptManagementServlet</servlet-name>
+    <url-pattern>/ScriptManagementServlet</url-pattern>
+  </servlet-mapping>
+
+
+</web-app>

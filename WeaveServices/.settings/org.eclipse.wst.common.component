@@ -3,6 +3,7 @@
     <wb-module deploy-name="WeaveServices">
         <wb-resource deploy-path="/" source-path="/WebContent"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src.java.main"/>
         <property name="java-output-path"/>
         <property name="context-root" value="WeaveServices"/>
     </wb-module>

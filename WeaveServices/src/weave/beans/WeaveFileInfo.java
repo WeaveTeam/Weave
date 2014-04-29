@@ -35,18 +35,27 @@ public class WeaveFileInfo
 	public byte[] thumb 	 = null;
 	public String fileName 	 = null;
 
+	public WeaveFileInfo(File file)
+	{
+		init(file);
+	}
+	
 	public WeaveFileInfo(String startingPath, String relativeFilePath)
 	{
-		File weaveFile = new File(startingPath, relativeFilePath);
-		
-		this.fileName 		= relativeFilePath;
-		this.lastModified 	= weaveFile.lastModified();
-		this.fileSize 		= weaveFile.length();
-		if( getExtension(fileName).equals("weave") )
+		init(new File(startingPath, relativeFilePath));
+		fileName = relativeFilePath;
+	}
+	
+	private void init(File file)
+	{
+		fileName = file.getName();
+		lastModified = file.lastModified();
+		fileSize = file.length();
+		if (getExtension(fileName).equals("weave"))
 		{
 			try
 			{
-				this.thumb = getArchiveThumbnail(weaveFile);
+				this.thumb = getArchiveThumbnail(file);
 			}
 			catch (IOException e)
 			{

@@ -36,14 +36,14 @@ function($filter, queryService) {
 		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
 		description : 'Filter data by Variables',
 		category : 'datafilter'
-	},
-	{
+	}
+	/*{
 		id : 'Visualization',
 		title : 'Configure Visulas',
 		template_url : 'aws/analysis/visualization.tpl.html',
 		description : 'Configure output chart for Weave',
 		category : 'visualization'
-	}];
+	}*/];
 	
 	
 	var tool_list = [
