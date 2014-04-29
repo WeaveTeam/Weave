@@ -25,6 +25,7 @@ package weave.services
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -71,7 +72,7 @@ package weave.services
 			{
 				response = (event as FaultEvent).fault.content;
 				if (response)
-					reportError("Request failed: " + url + "; " + response);
+					reportError("Request failed: " + url + "\n" + StringUtil.trim(String(response)));
 				else
 					reportError(event);
 			}

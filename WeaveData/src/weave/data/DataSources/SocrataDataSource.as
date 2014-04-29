@@ -98,20 +98,14 @@ package weave.data.DataSources
 			if (!metadata)
 				return null;
 
-			var id:String = metadata[PARAMS_SOCRATA_ID];
-			
-			var ds:IDataSource = getChildDataSource(id);
-			if (!ds)
-				return null;
-			
-			var internalNode:IWeaveTreeNode = ds.findHierarchyNode(metadata);
-			if (!internalNode)
+			var id:String = metadata[SOCRATA_ID];
+			if (!id || !metadata[CSVDataSource.METADATA_COLUMN_NAME])
 				return null;
 			
 			var node:SocrataNode = new SocrataNode(this);
 			node.action = SocrataNode.GET_COLUMN;
-			node.id = metadata[PARAMS_SOCRATA_ID];
-			node.internalNode = internalNode
+			node.id = metadata[SOCRATA_ID];
+			node.metadata = metadata;
 			return node;
 		}
 		
@@ -121,14 +115,14 @@ package weave.data.DataSources
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			var metadata:Object = proxyColumn.getProxyMetadata();
-			var dataSource:IDataSource = getChildDataSource(metadata[PARAMS_SOCRATA_ID]);
+			var dataSource:IDataSource = getChildDataSource(metadata[SOCRATA_ID]);
 			if (dataSource)
 				proxyColumn.setInternalColumn(dataSource.getAttributeColumn(metadata));
 			else
 				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 		}
 		
-		public static const PARAMS_SOCRATA_ID:String = 'socrata_id';
+		public static const SOCRATA_ID:String = 'socrata_id';
 		
 		public const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
 		
@@ -249,10 +243,54 @@ package weave.data.DataSources
 			return _tagLookup;
 		}
 		
-		/**
-		 * @private
-		 */
-		public function getChildDataSource(id:String):IDataSource
+		public function getChildDataSourceColumnMetadata(id:String):Array
+		{
+			var url:String = getViewsURL() + '/' + id;
+			var ds:CSVDataSource = _dataSourceCache[url] as CSVDataSource;
+			if (ds)
+			{
+				return ds.metadata.getSessionState() as Array;
+			}
+			else if (!_dataSourceCache[url])
+			{
+				var view:Object = jsonCache.getJsonObject(url);
+				_dataSourceCache[url] = _getColumnMetadataFromView(view);
+			}
+			return _dataSourceCache[url] as Array;
+		}
+		
+		private function _getColumnMetadataFromView(view:Object):Array
+		{
+			var columns:Array = view.columns as Array;
+			if (!columns)
+				return null;
+			var metadata:Array = columns.map(function(input:Object, i:int, a:Array):Object {
+				var output:Object = {};
+				output[SOCRATA_ID] = view.id;
+				output[CSVDataSource.METADATA_COLUMN_NAME] = input['fieldName'];
+				output[ColumnMetadata.TITLE] = input['name'];
+				var dataType:String = input['dataTypeName'];
+				if (dataType == 'text')
+				{
+					dataType = DataTypes.STRING;
+				}
+				if (dataType == 'percent')
+				{
+					dataType = DataTypes.STRING;
+					output[ColumnMetadata.NUMBER] = "asNumber(replace(string,'%',''))";
+				}
+				if (dataType == 'calendar_date')
+				{
+					dataType = DataTypes.DATE;
+					//output[ColumnMetadata.DATE_FORMAT] = 'YYYY-MM-DDTHH:NN:SS';
+				}
+				output[ColumnMetadata.DATA_TYPE] = dataType;
+				return output;
+			});
+			return metadata;
+		}
+		
+		private function getChildDataSource(id:String):IDataSource
 		{
 			if (!id)
 				return null;
@@ -263,31 +301,12 @@ package weave.data.DataSources
 			{
 				if (result && result.meta && result.data)
 				{
-					var ds:CSVDataSource = _dataSourceCache[url];
+					var ds:CSVDataSource = _dataSourceCache[url] as CSVDataSource;
 					if (!ds)
 					{
-						var metadata:Array = [];
-						var headerRow:Array = [];
-						(result.meta.view.columns as Array).forEach(function(input:Object, i:int, a:Array):void {
-							var output:Object = metadata[i] = {};
-							output[CSVDataSource.METADATA_COLUMN_NAME] = input['fieldName'];
-							headerRow[i] = output[ColumnMetadata.TITLE] = input['name'];
-							var dataType:String = input['dataTypeName'];
-							if (dataType == 'text')
-							{
-								dataType = DataTypes.STRING;
-							}
-							if (dataType == 'percent')
-							{
-								dataType = DataTypes.STRING;
-								output[ColumnMetadata.NUMBER] = "asNumber(replace(string,'%',''))";
-							}
-							if (dataType == 'calendar_date')
-							{
-								dataType = DataTypes.DATE;
-								//output[ColumnMetadata.DATE_FORMAT] = 'YYYY-MM-DDTHH:NN:SS';
-							}
-							output[ColumnMetadata.DATA_TYPE] = dataType;
+						var metadata:Array = _getColumnMetadataFromView(result.meta.view);
+						var headerRow:Array = metadata.map(function(metadata:Object, i:*, a:*):String {
+							return metadata[CSVDataSource.METADATA_COLUMN_NAME];
 						});
 						ds = new CSVDataSource();
 						ds.keyType.value = url;
@@ -326,6 +345,7 @@ import mx.utils.ObjectUtil;
 import mx.utils.URLUtil;
 
 import weave.api.WeaveAPI;
+import weave.api.data.ColumnMetadata;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
 import weave.api.data.IExternalLink;
@@ -368,8 +388,6 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 	 */
 	public var id:String;
 	
-	public var internalNode:IWeaveTreeNode;
-	
 	public function SocrataNode(source:SocrataDataSource)
 	{
 		this.source = source;
@@ -381,20 +399,13 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (!that)
 			return false;
 		
-		if (this.internalNode && that.internalNode)
-			return this.source && that.source
-				&& this.internalNode.equals(that.internalNode);
-		
-		return !this.internalNode == !that.internalNode
-			&& this.source == that.source
+		return this.source == that.source
 			&& this.action == that.action
-			&& ObjectUtil.compare(this.id, that.id) == 0;
+			&& this.id == that.id
+			&& ObjectUtil.compare(this.metadata, that.metadata) == 0;
 	}
 	public function getLabel():String
 	{
-		if (internalNode)
-			return internalNode.getLabel();
-		
 		if (!action)
 			return WeaveAPI.globalHashMap.getName(source);
 
@@ -414,23 +425,18 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (action == METADATA_SHOW)
 			return lang("{0}: {1}", id, Compiler.stringify(metadata));
 		
+		if (action == GET_COLUMN)
+			return metadata[ColumnMetadata.TITLE];
+		
 		return null;
 	}
 	public function isBranch():Boolean
 	{
-		if (internalNode)
-			return internalNode.isBranch();
-		
-		return action != METADATA_SHOW;
+		return action != METADATA_SHOW && action != GET_COLUMN;
 	}
 	public function hasChildBranches():Boolean
 	{
-		if (internalNode)
-			return internalNode.hasChildBranches();
-		
-		if (action == GET_DATASOURCE)
-			return false;
-		if (action == METADATA_LIST || action == METADATA_SHOW)
+		if (action == GET_DATASOURCE || action == GET_COLUMN || action == METADATA_LIST || action == METADATA_SHOW)
 			return false;
 		
 		return getChildren().length > 0;
@@ -465,9 +471,6 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 	
 	public function getChildren():Array
 	{
-		if (internalNode)
-			return internalNode.getChildren();
-		
 		var list:Array;
 		if (!action)
 		{
@@ -521,19 +524,11 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 			});
 		
 		if (action == GET_DATASOURCE)
-		{
-			var ds:IDataSource = source.getChildDataSource(id);
-			if (ds)
-			{
-				var root:IWeaveTreeNode = ds.getHierarchyRoot();
-				return updateChildren(root.getChildren(), function(node:SocrataNode, otherNode:IWeaveTreeNode):void {
-					node.action = GET_COLUMN;
-					node.internalNode = otherNode;
-					node.id = id; // copy from parent
-					node.metadata = null;
-				});
-			}
-		}
+			return updateChildren(source.getChildDataSourceColumnMetadata(id), function(node:SocrataNode, meta:Object):void {
+				node.action = GET_COLUMN;
+				node.id = id; // copy from parent
+				node.metadata = meta;
+			});
 		
 		if (action == METADATA_LIST)
 		{
@@ -560,12 +555,9 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 	}
 	public function getColumnMetadata():Object
 	{
-		if (internalNode is IColumnReference)
-		{
-			var meta:Object = (internalNode as IColumnReference).getColumnMetadata();
-			meta[SocrataDataSource.PARAMS_SOCRATA_ID] = id;
-			return meta;
-		}
+		if (action == GET_COLUMN)
+			return metadata;
+		
 		return null;
 	}
 	
