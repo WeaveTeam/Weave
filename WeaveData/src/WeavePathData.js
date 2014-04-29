@@ -43,7 +43,7 @@ weave.WeavePath.prototype.newProperty = function(name, type, callback)
     return this;
 };
 
-weave.WeavePath.prototype.getKeys = function(/* [name] */)
+weave.WeavePath.prototype.getKeys = function(/* [relpath] */)
 {
     var raw_keys = this.weave.evaluateExpression(this._path.concat(this._A(arguments, 1)), "this.keys", this._vars);
     var length = raw_keys.length;
@@ -55,7 +55,7 @@ weave.WeavePath.prototype.getKeys = function(/* [name] */)
     return result;
 };
 
-weave.WeavePath.prototype.setKeys = function(/* [name], keyStringArray */)
+weave.WeavePath.prototype.setKeys = function(/* [relpath], keyStringArray */)
 {
     var args = this._A(arguments, 2);
     if (this._assertParams('setKeys', args))
@@ -73,10 +73,10 @@ weave.WeavePath.prototype.setKeys = function(/* [name], keyStringArray */)
     };
     return this;
 };
-weave.WeavePath.prototype.filterKeys = function (/* [name], keyStringArray */)
+weave.WeavePath.prototype.filterKeys = function (/* [relpath], keyStringArray */)
 {
     var args = this._A(arguments, 2);
-    if (this._assertParams('containsKeys', args))
+    if (this._assertParams('filterKeys', args))
     {
         var keyStringArray = args.pop();
         var keyObjects = keyStringArray.map(this.stringToQKey, this);
@@ -84,5 +84,20 @@ weave.WeavePath.prototype.filterKeys = function (/* [name], keyStringArray */)
             'WeaveAPI.QKeyManager.convertToQKeys(containsKeysArgs).filter(function(d) { return containsKey(d); })'
         );
         return resultArray.map(this.qkeyToString, this);
+    }
+}
+weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArray */)
+{
+    var args = this._A(arguments, 2);
+    if (this._assertParams('retrieveColumns', args))
+    {
+        var columnNameArray = args.pop();
+
+        var results = this.push(args).libs("weave.utils.ColumnUtils").vars({retrieveColumnsArgs: columnNameArray}).getValue(
+            'ColumnUtils.joinColumns(retrieveColumnsArgs.map(function(name){ return getObject(name); }, this),  null, true)'
+        );
+        /* Convert the keys to strings */
+        results[0] = results[0].map(this.qkeyToString, this);
+        return results;
     }
 }
