@@ -53,7 +53,7 @@ package weave.data.DataSources
 		}
 		
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString());
-		public const showViews:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const showViewTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const showCategories:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const showTags:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
@@ -147,8 +147,10 @@ package weave.data.DataSources
 		
 		private static const UNCATEGORIZED:String = lang("Uncategorized");
 		private var _cachedViews:Array;
+		private var _cachedViewTypes:Array;
 		private var _cachedCategories:Array;
 		private var _cachedTags:Array;
+		private var _viewTypeLookup:Object;
 		private var _categoryLookup:Object;
 		private var _tagLookup:Object;
 		/**
@@ -160,15 +162,28 @@ package weave.data.DataSources
 			if (_cachedViews != views)
 			{
 				_cachedViews = views;
+				_cachedViewTypes = [];
 				_cachedCategories = [];
 				_cachedTags = [];
+				_viewTypeLookup = {};
 				_categoryLookup = {};
 				_tagLookup = {};
+				var array:Array;
 				for each (var view:Object in views)
 				{
+					// handle viewType
+					var type:String = view.viewType;
+					array = _viewTypeLookup[type];
+					if (!array)
+					{
+						_viewTypeLookup[type] = array = [];
+						_cachedViewTypes.push(type);
+					}
+					array.push(view);
+					
 					// handle category
 					var cat:String = view.category || UNCATEGORIZED;
-					var array:Array = _categoryLookup[cat];
+					array = _categoryLookup[cat];
 					if (!array)
 					{
 						_categoryLookup[cat] = array = [];
@@ -194,6 +209,11 @@ package weave.data.DataSources
 			}
 			return views;
 		}
+		public function getViewTypes():Array
+		{
+			getViews();
+			return _cachedViewTypes;
+		}
 		public function getCategories():Array
 		{
 			getViews();
@@ -203,6 +223,14 @@ package weave.data.DataSources
 		{
 			getViews();
 			return _cachedTags;
+		}
+		/**
+		 * viewType -> Array of views with that viewType
+		 */
+		public function getViewTypeLookup():Object
+		{
+			getViews();
+			return _viewTypeLookup;
 		}
 		/**
 		 * category -> Array of views with that category
@@ -314,7 +342,8 @@ import weave.utils.VectorUtils;
 
 internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding, IExternalLink
 {
-	public static const VIEW_LIST:String = 'view_list';
+	public static const VIEWTYPE_LIST:String = 'viewtype_list';
+	public static const VIEWTYPE_SHOW:String = 'viewtype_show';
 	public static const CATEGORY_LIST:String = 'category_list';
 	public static const CATEGORY_SHOW:String = 'category_show';
 	public static const TAG_LIST:String = 'tag_list';
@@ -369,21 +398,18 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (!action)
 			return WeaveAPI.globalHashMap.getName(source);
 
-		if (action == VIEW_LIST)
-			return lang("Views");
+		if (action == VIEWTYPE_LIST)
+			return lang("View types");
 		if (action == CATEGORY_LIST)
 			return lang("Categories");
 		if (action == TAG_LIST)
 			return lang("Tags");
 		
-		if (action == CATEGORY_SHOW || action == TAG_SHOW)
+		if (action == VIEWTYPE_SHOW || action == CATEGORY_SHOW || action == TAG_SHOW)
 			return id;
 		
-		if (action == GET_DATASOURCE)
-			return metadata['name'] || id;
-		
-		if (action == METADATA_LIST)
-			return id;
+		if (action == GET_DATASOURCE || action == METADATA_LIST)
+			return lang("{0} ({1})", metadata['name'] || id, metadata['viewType']);
 		
 		if (action == METADATA_SHOW)
 			return lang("{0}: {1}", id, Compiler.stringify(metadata));
@@ -446,8 +472,8 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (!action)
 		{
 			list = [];
-			if (source.showViews.value)
-				list.push(VIEW_LIST);
+			if (source.showViewTypes.value)
+				list.push(VIEWTYPE_LIST);
 			if (source.showCategories.value)
 				list.push(CATEGORY_LIST);
 			if (source.showTags.value)
@@ -459,6 +485,12 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 			});
 		}
 		
+		if (action == VIEWTYPE_LIST)
+			return updateChildren(source.getViewTypes(), function(node:SocrataNode, viewType:String):void {
+				node.action = VIEWTYPE_SHOW;
+				node.id = viewType;
+				node.metadata = null;
+			});
 		if (action == CATEGORY_LIST)
 			return updateChildren(source.getCategories(), function(node:SocrataNode, category:String):void {
 				node.action = CATEGORY_SHOW;
@@ -472,8 +504,8 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 				node.metadata = null;
 			});
 		
-		if (action == VIEW_LIST)
-			list = source.getViews();
+		if (action == VIEWTYPE_SHOW)
+			list = source.getViewTypeLookup()[id];
 		if (action == CATEGORY_SHOW)
 			list = source.getCategoryLookup()[id];
 		if (action == TAG_SHOW)
@@ -481,15 +513,10 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (list)
 			return updateChildren(list, function(node:SocrataNode, view:Object):void {
 				if (view.viewType == 'tabular')
-				{
 					node.action = GET_DATASOURCE;
-					node.id = view['id'];
-				}
 				else
-				{
 					node.action = METADATA_LIST;
-					node.id = view['name'] || view['id'];
-				}
+				node.id = view['id'];
 				node.metadata = view;
 			});
 		
@@ -564,8 +591,9 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 	
 	public function getURL():String
 	{
-		if (action == METADATA_SHOW && id.split('.').pop() == 'href')
-			return metadata as String;
+		var str:String = metadata as String;
+		if (action == METADATA_SHOW && str && str.indexOf("/") >= 0)
+			return URLUtil.getFullURL(source.url.value, metadata as String);
 		return null;
 	}
 }

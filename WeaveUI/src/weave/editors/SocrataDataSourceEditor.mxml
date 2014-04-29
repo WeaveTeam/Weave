@@ -35,7 +35,7 @@
 		<ui:TextInputWithPrompt id="url" width="100%" prompt="http://www.example.com/" text="https://opendata.socrata.com"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Items to show in hierarchy')}" verticalAlign="top">
-		<ui:CustomCheckBox id="showViews" label="{lang('Views')}" selected="true"/>
+		<ui:CustomCheckBox id="showViews" label="{lang('View types')}" selected="true"/>
 		<ui:CustomCheckBox id="showCategories" label="{lang('Categories')}" selected="true"/>
 		<ui:CustomCheckBox id="showTags" label="{lang('Tags')}" selected="true"/>
 	</ui:Indent>
@@ -74,7 +74,7 @@
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 					
 					url.text = target.url.value;
-					showViews.selected = target.showViews.value;
+					showViews.selected = target.showViewTypes.value;
 					showCategories.selected = target.showCategories.value;
 					showTags.selected = target.showTags.value;
 				}
@@ -83,7 +83,7 @@
 			public function hasPendingChanges():Boolean
 			{
 				return (target.url.value || '') != (url.text || '')
-					|| target.showViews.value != showViews.selected
+					|| target.showViewTypes.value != showViews.selected
 					|| target.showCategories.value != showCategories.selected
 					|| target.showTags.value != showTags.selected;
 			}
@@ -91,7 +91,7 @@
 			public function applyChanges():void
 			{
 				target.url.value = url.text;
-				target.showViews.value = showViews.selected;
+				target.showViewTypes.value = showViews.selected;
 				target.showCategories.value = showCategories.selected;
 				target.showTags.value = showTags.selected;
 			}
