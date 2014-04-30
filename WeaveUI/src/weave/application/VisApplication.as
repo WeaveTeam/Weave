@@ -201,9 +201,11 @@ package weave.application
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
 			if (ExternalInterface.available)
+			{
 				ExternalInterface.addCallback('loadFile', loadFile);
-			WeaveAPI.initializeExternalInterface();
-			WeaveAPI.executeJavaScript(new _InitializeWeaveData.WeavePathData());
+				WeaveAPI.initializeExternalInterface();
+				WeaveAPI.executeJavaScript(new _InitializeWeaveData.WeavePathData());
+			}
 
 			getFlashVars();
 			handleFlashVarPresentation();
