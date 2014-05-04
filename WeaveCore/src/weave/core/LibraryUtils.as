@@ -135,8 +135,6 @@ import mx.rpc.Fault;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
-import nochump.util.zip.ZipFile;
-
 import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
 import weave.core.ClassUtils;
@@ -223,10 +221,11 @@ internal class Library implements IDisposableObject
 		try
 		{
 			// Extract the files from the SWC archive
-			var zipFile:ZipFile = new ZipFile(event.result as ByteArray);
-			_library_swf = zipFile.getInput(zipFile.getEntry("library.swf"));
-			_catalog_xml = XML(zipFile.getInput(zipFile.getEntry("catalog.xml")));
-			zipFile = null;
+			var swc:Object = weave.utils.readZip(event.result as ByteArray);
+			if (!swc)
+				throw new Error("Unable to read SWC archive");
+			_library_swf = swc["library.swf"];
+			_catalog_xml = swc["catalog.xml"];
 			
 			_swfLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSWFFault);
 			_swfLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSWFFault);

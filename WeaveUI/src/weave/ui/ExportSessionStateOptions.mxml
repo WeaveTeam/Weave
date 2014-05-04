@@ -203,6 +203,11 @@
 						if (event.confirm)
 						{
 							var content:Object = options.export();
+							if (content == null)
+							{
+								reportError("Unable to create Weave archive.");
+								return;
+							}
 							try
 							{
 								if (exportContentHandler != null)
