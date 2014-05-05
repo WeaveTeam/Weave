@@ -9,16 +9,14 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
+import org.apache.commons.io.FilenameUtils;
 
-import weave.config.WeaveContextParams;
 import weave.servlets.WeaveServlet;
+import weave.utils.AWSUtils;
 
 import com.google.gson.Gson;
-import weave.config.AwsContextParams;
+import com.google.gson.JsonObject;
 
 public class ScriptManagerService extends WeaveServlet{
 
@@ -29,18 +27,19 @@ public class ScriptManagerService extends WeaveServlet{
 		
 	}
 	
-	/**
-	 * Gives an object containing the script contents
-	 * 
-	 * @param scriptName
-	 * @return
-	 */
-	public static String getScript(String awsConfigPath, Map<String, Object> params) throws Exception{
-    	File directory = new File(awsConfigPath, "RScripts");
+	
+		 /**
+		  * 
+		  * @param directory The location of the script
+		  * @param scriptName The name of the script
+		  *
+		  * @return The script content as a string
+		  * @throws Exception
+		  */
+		public static String getScript(File directory, String scriptName) throws Exception{
 		String[] files = directory.list();
 		String scriptContents = new String();
 		BufferedReader bufr = null;
-		String scriptName = params.get("scriptName").toString(); 
 		
 		for (int i = 0; i < files.length; i++)
 		{
@@ -67,35 +66,58 @@ public class ScriptManagerService extends WeaveServlet{
 		return scriptContents;
     }
 
-	public static String[] getListOfScripts(String awsConfigPath) {
 
-		File directory = new File(awsConfigPath, "RScripts");
-		String[] files = directory.list();
-		List<String> rFiles = new ArrayList<String>(); 
-		String extension = "";
-
-		for (int i = 0; i < files.length; i++) {
-			extension = files[i].substring(files[i].lastIndexOf(".") + 1,
-					files[i].length());
-			if (extension.equalsIgnoreCase("r"))
-				rFiles.add(files[i]);
-		}
-		return rFiles.toArray(new String[rFiles.size()]);
+	/**
+	 * This function navigates all the given directories and return the list of all known scripts
+	 *
+	 * @param directories
+	 * 
+	 * @return Array of script names
+	 */
+		public static String[] getListOfScripts(File[] directories) {
+	
+			List<String> listOfScripts = new ArrayList<String>();
+	
+	 	for(int i = 0; i < directories.length; i++)
+	 	{
+	 		File directory = directories[i];
+	 		String[] files = directory.list();
+	 		if(files != null)
+	 			{
+	 				
+	 				for (int j = 0; j < files.length; j++) 
+	 				{
+	 					if(AWSUtils.getScriptType(files[j]) != AWSUtils.SCRIPT_TYPE.UNKNOWN)
+	 					{
+	 						listOfScripts.add(files[j]);
+	 					}
+	 				}
+	 			}
+	 	}
+	 	
+	 	return listOfScripts.toArray(new String[listOfScripts.size()]);
 	}
 
-	public static String saveMetadata(String awsConfigPath,Map<String,Object>params) throws Exception {
-		String status = "";
-		String scriptName = params.get("scriptName").toString();
-		Object scriptMetadata = params.get("scriptMetadata");
-		if(scriptName.length() < 3){
-			return "The script Name is invalid";
-		}
-		
-		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
-		File file = new File(awsConfigPath + "RScripts", jsonFileName);
+	/**
+	 * 
+	 * This function saves the script metadata at the same location as the script.
+	 * 
+ 	 * @param directory The location of the script
+ 	 * @param scriptName The script name
+ 	 * @param scriptMetadata The metadata to be saved
+ 	 * 
+ 	 * @return Returns true if the metadata was saved.
+ 	 * @throws Exception
+ 	 */
+ 	public static boolean saveScriptMetadata(File directory, String scriptName, JsonObject scriptMetadata) throws Exception {
+ 
+ 		// create json file name
+ 		String jsonFileName = FilenameUtils.removeExtension(scriptName).concat(".json");
+ 
+ 		File file = new File(directory, jsonFileName);
+ 
 		if (!file.exists()){
 			file.createNewFile();
-			//throw new RemoteException("Metadata file: " + jsonFileName + "does not exist");
 		}
 		
 		FileWriter fw = new FileWriter(file.getAbsolutePath());
@@ -104,93 +126,108 @@ public class ScriptManagerService extends WeaveServlet{
 		gson.toJson(scriptMetadata, bw);
 		bw.close();
 		
-		status = "success";
-		return status;
-	}
-
-	public static Object getScriptMetadata(String awsConfigPath, Map<String,Object> params) throws Exception {
-		File directory = new File(awsConfigPath, "RScripts");
-		String[] files = directory.list();
-		String scriptName = params.get("scriptName").toString();
-		int filecount = 0;
-		// this object will get the metadata from the json file
-		Object scriptMetadata = new Object();
-		
-		// we replace scriptname.R with scriptname.json
-		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
-
-		// we will check if there is a json file with the same name in the directory.
-		for (int i = 0; i < files.length; i++)
-		{
-			if (jsonFileName.equalsIgnoreCase(files[i]))
-			{
-				filecount++;
-				// do the work
-				Gson gson = new Gson();
-				
-				if(filecount > 1) {
-					throw new RemoteException("multiple copies of " + jsonFileName + "found!");
-				}
-				
-				try {
-					
-					BufferedReader br = new BufferedReader(new FileReader(new File(directory, jsonFileName)));
-					
-					scriptMetadata = gson.fromJson(br, Object.class);
-					
-					//System.out.println(scriptMetadata);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		// 
-		if(filecount == 0) {
-			throw new RemoteException("Could not find the file " + jsonFileName + "!");
-		}
-		
-		return scriptMetadata;
-	}
-	
-	public static Boolean uploadNewScript(String awsConfigPath, Map<String, Object> params){
-		String scriptName = params.get("scriptName").toString();
-		Object fileObject = params.get("fileObject");
-		File file = new File(awsConfigPath + "RScripts", scriptName);
-		if (!file.exists()){
-			try{
-				file.createNewFile();
-				FileWriter fw = new FileWriter(file.getAbsolutePath());
-				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write( (String) fileObject);
-				bw.flush();
-
-				bw.close();
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-		}
-		
-		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
-		file = new File(awsConfigPath + "RScripts", jsonFileName);
-		if(!file.exists()){
-				try {
-					file.createNewFile();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-
 		return true;
 	}
-	
-	public Boolean deleteScript(String scriptName, String password) throws RemoteException
-	{
-//		if(authenticate()){
-//			File file = new File(awsConfigPath + "RScripts", scriptName);
-//			file.delete();
-//		}else{
-//			throw new RemoteException("Authentication Failure");
-//		}
-		return false;
+
+	/**
+	 * 
+	 * @param directory The directory where the script is located
+	 * @param scriptName The script name relative
+	 * 
+	 * @return The script metadata as a Json object
+	 * @throws Exception
+	 */
+ 	public static Object getScriptMetadata(File directory, String scriptName) throws Exception {
+	// this object will get the metadata from the json file
+ 		Object scriptMetadata;
+ 		Gson gson = new Gson();
+ 		String jsonFileName = FilenameUtils.removeExtension(scriptName).concat(".json");
+ 		File metadataFile = new File(directory, jsonFileName);
+ 		if(metadataFile.exists())
+ 		{
+ 			BufferedReader br = new BufferedReader(new FileReader(new File(directory, jsonFileName)));
+ 			scriptMetadata = gson.fromJson(br, Object.class);
+ 			return scriptMetadata;
+ 		}
+ 		
+ 		else
+ 		{
+ 				throw new RemoteException("Could not find script metadata");
+ 		}
 	}
+	
+ 	/**
+	 * 
+	 * This function uploads a new script with a blank metadata file
+	 * 
+	 * @param directory
+	 * @param scriptName
+	 * @param content
+	 * @return
+	 * @throws Exception
+	 */
+	public static Boolean uploadNewScript(File directory, String scriptName, String content) throws Exception
+	{
+		JsonObject metadata = new JsonObject();
+		return uploadNewScript(directory, scriptName, content, metadata);
+	}
+
+ 	
+   /**
+	 * 
+	 * This function uploads a new script with metadata
+	 * 
+	 * @param directory
+	 * @param scriptName
+	 * @param content
+	 * @param metadata
+	 * @return
+	 * @throws Exception
+	 */
+	public static Boolean uploadNewScript(File directory, String scriptName, String content, JsonObject metadata) throws Exception
+	{
+		File file = new File(directory, scriptName);
+
+ 		try
+ 		{
+ 			file.createNewFile();
+ 			FileWriter fw = new FileWriter(file);
+ 			BufferedWriter bw = new BufferedWriter(fw);
+ 			bw.write(content);
+ 			bw.flush();
+ 			bw.close();
+ 		}catch(IOException e){
+ 			e.printStackTrace();
+  		}
+  
+ 		saveScriptMetadata(directory, scriptName, metadata);
+ 
+  		return true;
+  	}
+	
+	
+	/**
+ 	 * 
+ 	 * Delete a script and its metadata
+ 	 * 
+ 	 * @param directory
+ 	 * @param scriptName
+ 	 * @return
+ 	 * @throws RemoteException
+ 	 */
+ 	public static Boolean deleteScript(File directory, String scriptName) throws RemoteException
+  	{
+			File script = new File(directory, scriptName);
+	 		File metadata = new File(directory, FilenameUtils.removeExtension(scriptName).concat(".json"));
+	 
+	 		if(script.delete() && metadata.delete())
+	 		{
+	 			return true;
+	 		}
+	 		else
+	 		{
+	 			throw new RemoteException("Could not properly delete script and metadata");
+	 		}
+	}
+	  	
 }

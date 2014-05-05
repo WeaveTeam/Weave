@@ -1,16 +1,16 @@
 package weave.servlets;
 
-import java.util.Map;
+import java.io.File;
+import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import weave.servlets.WeaveServlet;
-
 import weave.config.AwsContextParams;
-import weave.config.WeaveContextParams;
 import weave.models.ScriptManagerService;
+import weave.utils.AWSUtils;
+
+import com.google.gson.JsonObject;
 
 public class ScriptManagementServlet extends WeaveServlet
 {
@@ -21,49 +21,86 @@ public class ScriptManagementServlet extends WeaveServlet
 	}
 
 	private static String awsConfigPath = "";
+	private File rDirectory;
+	private File stataDirectory;
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		awsConfigPath = AwsContextParams.getInstance(config.getServletContext()).getAwsConfigPath(); 
+		rDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath());
+		stataDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath());
+		
 	}
 	
-	
-	
-	public Object delegateToScriptManagementMethods(String action, Map<String, Object> params){
-		Object returnStatus = null;
-		
-		if(action.matches("REPORT_SCRIPTS_LIST")){
-				returnStatus = ScriptManagerService.getListOfScripts(awsConfigPath);
-		}
-		else if(action.matches("REPORT_SCRIPT_CONTENTS")){
-			try {
-				returnStatus = ScriptManagerService.getScript(awsConfigPath,params);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} 
-		}
-		else if(action.matches("SAVE_METADATA")){
-			try{
-				returnStatus = ScriptManagerService.saveMetadata(awsConfigPath, params);
-			}
-			catch(Exception e){
-				e.printStackTrace();
-			}
-		}
-		else if(action.matches("REPORT_SCRIPT_METADATA")){
-			try{
-				returnStatus = ScriptManagerService.getScriptMetadata(awsConfigPath, params);
-			}
-			catch(Exception e){
-				e.printStackTrace();
-			}
-		}
-		else if(action.matches("UPLOAD_NEW_SCRIPT")){
-				returnStatus = ScriptManagerService.uploadNewScript(awsConfigPath, params);
-		}
-	
-		
-		
-		
-		return returnStatus;
+	public String getScript(String scriptName) throws Exception {
+		 
+ 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+ 		{
+ 			return ScriptManagerService.getScript(rDirectory, scriptName);
+ 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+ 		{
+ 			return ScriptManagerService.getScript(stataDirectory, scriptName);
+ 		} else {
+ 			throw new RemoteException("Unknown Script Type");
+  		}
+
 	}
+	
+	public String[] getListOfScripts() throws Exception{
+		
+ 		File[] directories = {rDirectory, stataDirectory};
+ 		return ScriptManagerService.getListOfScripts(directories);
+	}
+		 
+ 	public boolean saveScriptMetadata (String scriptName, JsonObject metadata) throws Exception {
+ 
+ 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+ 		{
+ 			return ScriptManagerService.saveScriptMetadata(rDirectory, scriptName, metadata);
+ 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+ 		{
+ 			return ScriptManagerService.saveScriptMetadata(stataDirectory, scriptName, metadata);
+ 		} else {
+ 			throw new RemoteException("Unknown Script Type");
+  		}
+	 }
+	
+ 	public boolean uploadNewScript(String scriptName, String content) throws Exception {
+ 		 
+ 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+ 		{
+ 			return ScriptManagerService.uploadNewScript(rDirectory, scriptName, content);
+ 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+ 		{
+ 			return ScriptManagerService.uploadNewScript(stataDirectory, scriptName, content);
+ 		} else {
+ 			throw new RemoteException("Unknown Script Type");
+  		}
+ 	}
+ 	
+ 	
+ 	public boolean uploadNewScript(String scriptName, String content, JsonObject metadata) throws Exception {
+ 		 
+ 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+ 		{
+ 			return ScriptManagerService.uploadNewScript(rDirectory, scriptName, content, metadata);
+ 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+ 		{
+ 			return ScriptManagerService.uploadNewScript(stataDirectory, scriptName, content, metadata);
+ 		} else {
+ 			throw new RemoteException("Unknown Script Type");
+  		}
+ 	}
+ 	
+ 	public boolean deleteScript(String scriptName) throws Exception {
+ 		 
+ 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+ 		{
+ 			return ScriptManagerService.deleteScript(rDirectory, scriptName);
+ 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+ 		{
+ 			return ScriptManagerService.deleteScript(stataDirectory, scriptName);
+ 		} else {
+ 			throw new RemoteException("Unknown Script Type");
+ 		}
+ 	}
 }

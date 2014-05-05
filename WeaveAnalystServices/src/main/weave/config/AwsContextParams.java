@@ -3,9 +3,12 @@ package weave.config;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
+import org.apache.commons.io.FilenameUtils;
+
 public class AwsContextParams
 {
 	private static String awsConfigPath = "";
+	private static String StataPath = "";
 	private static String rScriptsPath = "";
 	private static String stataScriptsPath = "";
 	
@@ -23,6 +26,9 @@ public class AwsContextParams
 		awsConfigPath = context.getRealPath(context.getInitParameter("awsconfigPath")).replace('\\','/');
 		rScriptsPath= awsConfigPath + "RScripts/";
 		stataScriptsPath = awsConfigPath + "StataScripts/";
+		StataPath = context.getRealPath(context.getInitParameter("StataPath")).replace('\\','/');
+		rScriptsPath= FilenameUtils.concat(awsConfigPath, "RScripts");
+		stataScriptsPath = FilenameUtils.concat(awsConfigPath, "StataScripts");
 	}
 	
 	
@@ -47,5 +53,13 @@ public class AwsContextParams
 	public String getStataScriptsPath() {
 		return stataScriptsPath;
 	}
+	
+	/**
+	 * @return The path where stata is installed, ending in "/"
+	 */
+	 	public String getStataPath(){
+	 
+	 		return StataPath;
+	 	}
 	
 }

@@ -19,7 +19,7 @@ import weave.models.computations.IScriptEngine;
 
 public class AwsStataService implements IScriptEngine {
 
-	public static Object runScript(String scriptAbsPath, Object[][] dataSet, String programPath, String tempDirPath) throws Exception {
+	public static Object runScript(String scriptName, Object[][] dataSet, String programPath, String tempDirPath, String scriptPath) throws Exception {
 
 		int exitValue = -1;
 		CSVParser parser = new CSVParser();
@@ -37,7 +37,7 @@ public class AwsStataService implements IScriptEngine {
 
 		try 
 		{
-			dataSetCSV = new File(FilenameUtils.concat(tempDirectory.getAbsolutePath(), "data.csv"));
+			dataSetCSV = new File(FilenameUtils.concat(tempDirectory.getCanonicalPath(), "data.csv"));
 			BufferedWriter out = new BufferedWriter(new FileWriter(dataSetCSV));
 			parser.createCSV(dataSet, true, out, true);
 			//jsonParser.toJson(dataSet, out);
@@ -52,11 +52,13 @@ public class AwsStataService implements IScriptEngine {
 
 		try 
 		{
-			// TODO set up the csv variables name
-			tempScript += "insheet using " + dataSetCSV.getAbsolutePath() + ", clear \n" +
-					"noisily do " + scriptAbsPath;
-
-			tempScriptFile = new File(tempDirectory.getAbsolutePath() + "tempScript.do");
+			tempScript += "insheet using " + dataSetCSV.getAbsolutePath() + ", clear" + "\n" +
+			 	"global path=\"" + tempDirPath + "\"\n" +
+			 	"cd \"$path/\" \n" +
+			 	"noisily do " + new File(FilenameUtils.concat(scriptPath, scriptName)).getAbsolutePath() + "\n" +
+			 	"capture erase tempScript.log\n";
+			 	// "capture erase " +  tempDirPath + "tempScript.log";
+			tempScriptFile = new File(FilenameUtils.concat(tempDirectory.getAbsolutePath(), "tempScript.do"));
 			BufferedWriter out = new BufferedWriter(new FileWriter(tempScriptFile));
 			out.write(tempScript);
 			out.close();
@@ -69,13 +71,13 @@ public class AwsStataService implements IScriptEngine {
 
 		if(AWSUtils.getOSType() == OS_TYPE.LINUX || AWSUtils.getOSType() == OS_TYPE.OSX)
 		{
-			args = new String[] {programPath, "-b", "-q", "do", tempScriptFile.getCanonicalPath()};
+			args = new String[] {programPath, "-b", "-q", "do", FilenameUtils.concat(tempDirPath, "tempScript.do")};
 
 		}
 
 		else if(AWSUtils.getOSType() == OS_TYPE.WINDOWS)
 		{
-			args = new String[] {programPath, "/e", "/q", "do", tempScriptFile.getCanonicalPath()};
+			args = new String[] {programPath, "/e", "/q", "do", FilenameUtils.concat(tempDirPath, "tempScript.do")}
 		}
 
 		else if(AWSUtils.getOSType() == OS_TYPE.UNKNOWN)
@@ -101,7 +103,7 @@ public class AwsStataService implements IScriptEngine {
 		File logFile = new File(FilenameUtils.removeExtension(tempScriptFile.getAbsolutePath()).concat(".log"));
 
 		// for now we assume result is always in result.csv
-		File scriptResult = new File(tempDirectory.getAbsolutePath() + "result.csv");
+		File scriptResult = new File(tempDirectory.getAbsolutePath(), "result.csv");
 
 		if(logFile.exists()) {
 			// parse log file for ouput only
@@ -131,7 +133,7 @@ public class AwsStataService implements IScriptEngine {
 
 		String line;
 		while ((line = br.readLine()) != null) {
-		   if (line.startsWith(".") || line.startsWith(">")|| line.startsWith("runn") || line.startsWith("\n")) // run skips output lines for do files
+			 if (line.startsWith(".") || line.startsWith(">")|| line.startsWith("runn") || line.startsWith("\n")|| line.startsWith(" ")) // run skips output lines for do files
 		   {
 			   // this is a command input.. skip
 			   continue;

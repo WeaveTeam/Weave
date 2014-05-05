@@ -137,7 +137,12 @@ public class AwsProjectService extends WeaveServlet
 		
 	}
 	
-	
+	/** 
+	   * deletes an entire project from a database
+	   * @param params map of key value pairs to construct the where clause
+	   * @return count number of rows(query Objects in the project) deleted from the database
+	   * @throws Exception
+	   */
 	public static int deleteProjectFromDatabase(Map<String, Object> params)throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
@@ -158,7 +163,12 @@ public class AwsProjectService extends WeaveServlet
 		return count;//number of rows deleted
 	}
 	
-	
+	/** 
+	   * deletes a query Object from a database
+	   * @param params map of key value pairs to construct the where clause
+	   * @return count number of rows(query Objects) deleted from the database
+	   * @throws Exception
+	   */
 	public static int deleteQueryObjectFromProjectFromDatabase(Map<String, Object> params)throws RemoteException, SQLException{
 		
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
@@ -176,7 +186,13 @@ public class AwsProjectService extends WeaveServlet
 		con.close();
 		return count;//number of rows deleted
 	}
-	//adds a queryObject to the database
+	
+	/** 
+	   * adds one query Objects to a project in a database
+	   * @param params map of key value pairs to construct the where clause
+	   * @return count number of rows(query Objects in the project) added to the database
+	   * @throws Exception
+	   */
 	public int insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent) throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
@@ -192,6 +208,13 @@ public class AwsProjectService extends WeaveServlet
 		return count;//single row added
 	}
 	
+	
+	/** 
+	   * adds one/more query Objects to a project in a database
+	   * @param params map of key value pairs to construct the where clause
+	   * @return count number of rows(query Objects in the project) added to the database
+	   * @throws Exception
+	   */
 	public static int insertMultipleQueryObjectInProjectFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
