@@ -225,7 +225,7 @@ internal class Library implements IDisposableObject
 			if (!swc)
 				throw new Error("Unable to read SWC archive");
 			_library_swf = swc["library.swf"];
-			_catalog_xml = swc["catalog.xml"];
+			_catalog_xml = XML(swc["catalog.xml"]);
 			
 			_swfLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSWFFault);
 			_swfLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSWFFault);
