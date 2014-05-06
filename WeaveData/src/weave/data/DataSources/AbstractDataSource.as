@@ -309,14 +309,14 @@ package weave.data.DataSources
 		private var _proxyColumns:Dictionary = new Dictionary(true);
 		
 		/**
-		 * This function will call requestColumnFromSource() if the hierarchyPointer in the column is now valid.
-		 * Otherwise, it will call delayColumnRequest() again.
+		 * This function will call requestColumnFromSource() if initializationComplete==true.
+		 * Otherwise, it will delay the column request again.
 		 * This function may be overridden by classes that extend AbstractDataSource.
 		 * However, if the extending class decides it wants to call requestColumnFromSource()
 		 * for the pending column, it is recommended to call super.handlePendingColumnRequest() instead.
 		 * @param request The request that needs to be handled.
 		 */
-		private function handlePendingColumnRequest(column:ProxyColumn):void
+		protected function handlePendingColumnRequest(column:ProxyColumn):void
 		{
 			// If data source is already initialized (session state is stable, not currently changing), we can request the column now.
 			// Otherwise, we have to wait.

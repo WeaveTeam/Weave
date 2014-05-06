@@ -19,6 +19,8 @@
 
 package weave.data.DataSources
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
@@ -28,6 +30,7 @@ package weave.data.DataSources
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
@@ -50,6 +53,9 @@ package weave.data.DataSources
 		public function SocrataDataSource()
 		{
 			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _attributeHierarchy);
+			
+			// trigger pending columns when cache updates (new child data sources may be available)
+			getCallbackCollection(jsonCache).addImmediateCallback(jsonCache, pendingColumn.triggerCallbacks, false, true);
 		}
 		
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString());
@@ -119,12 +125,31 @@ package weave.data.DataSources
 			if (dataSource)
 				proxyColumn.setInternalColumn(dataSource.getAttributeColumn(metadata));
 			else
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				_pendingColumns[proxyColumn] = true;
 		}
+		
+		private const _pendingColumns:Dictionary = new Dictionary(true);
+		
+		private function handleJsonCache():void
+		{
+			for (var proxyColumn:Object in _pendingColumns)
+			{
+				if (_pendingColumns[proxyColumn]) // pending?
+				{
+					_pendingColumns[proxyColumn] = false;
+					handlePendingColumnRequest(proxyColumn as ProxyColumn);
+				}
+			}
+		}
+		
+		/**
+		 * Used as a placeholder for a column from a child data source which isn't available yet.
+		 */
+		private const pendingColumn:ProxyColumn = registerDisposableChild(this, new ProxyColumn(<attribute title="..."/>));
 		
 		public static const SOCRATA_ID:String = 'socrata_id';
 		
-		public const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
+		public const jsonCache:JsonCache = newLinkableChild(this, JsonCache, handleJsonCache);
 		
 		public function getViewsURL():String
 		{
@@ -439,7 +464,7 @@ internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTr
 		if (action == GET_DATASOURCE || action == GET_COLUMN || action == METADATA_LIST || action == METADATA_SHOW)
 			return false;
 		
-		return getChildren().length > 0;
+		return true;
 	}
 	
 	private var _childNodes:Array = [];
