@@ -178,11 +178,7 @@ package weave.core
 						shouldRemoveEntry = WeaveAPI.SessionManager.objectWasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
-						if (debug && entry.callback != null)
-							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
-						// help the garbage-collector a bit
-						entry.context = null;
-						entry.callback = null;
+						entry.dispose();
 						// remove the empty callback reference from the list
 						var removed:Array = _callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
 						if (debug)
@@ -227,10 +223,7 @@ package weave.core
 					{
 						// Remove the callback by setting the function pointer to null.
 						// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
-						entry.context = null;
-						entry.callback = null;
-						if (debug)
-							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
+						entry.dispose();
 					}
 				}
 			}
@@ -393,6 +386,18 @@ internal class CallbackEntry
 	 * This is a stack trace from when the callback was removed.
 	 */
 	public var removeCallback_stackTrace:String = null;
+	
+	/**
+	 * Call this when the callback entry is no longer needed.
+	 */
+	public function dispose():void
+	{
+		if (CallbackCollection.debug && callback != null)
+			removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
+		
+		context = null;
+		callback = null;
+	}
 }
 
 /**
@@ -432,23 +437,52 @@ internal class GroupedCallbackEntry extends CallbackEntry
 	/**
 	 * This function gets called once per frame and allows grouped callbacks to run.
 	 */
-	public static function _handleGroupedCallbacks():void
+	private static function _handleGroupedCallbacks():void
 	{
+		var i:int;
 		var entry:GroupedCallbackEntry;
 		
-		// Handle grouped callbacks in the order they were triggered,
-		// anticipating that more may be added to the end of the list in the process.
-		for (var i:int = 0; i < _triggeredEntries.length; i++)
+		_handlingGroupedCallbacks = true;
 		{
-			entry = _triggeredEntries[i] as GroupedCallbackEntry;
-			entry.handleGroupedCallback();
+			// Handle grouped callbacks in the order they were triggered,
+			// anticipating that more may be added to the end of the list in the process.
+			// This first pass does not allow grouped callbacks to call each other immediately.
+			for (i = 0; i < _triggeredEntries.length; i++)
+			{
+				entry = _triggeredEntries[i] as GroupedCallbackEntry;
+				entry.handleGroupedCallback();
+			}
+			
+			// after all grouped callbacks have been handled once, run those which were triggered recursively and allow them to call other grouped callbacks immediately.
+			_handlingRecursiveGroupedCallbacks = true;
+			{
+				// handle grouped callbacks that were triggered recursively
+				for (i = 0; i < _triggeredEntries.length; i++)
+				{
+					entry = _triggeredEntries[i] as GroupedCallbackEntry;
+					if (entry.triggeredAgain)
+						entry.handleGroupedCallback();
+				}
+			}
+			_handlingRecursiveGroupedCallbacks = false;
 		}
+		_handlingGroupedCallbacks = false;
 		
 		// reset for next frame
 		for each (entry in _triggeredEntries)
-			entry.triggered = false;
+			entry.triggered = entry.triggeredAgain = false;
 		_triggeredEntries.length = 0;
 	}
+	
+	/**
+	 * True while handling grouped callbacks.
+	 */
+	private static var _handlingGroupedCallbacks:Boolean = false;
+	
+	/**
+	 * True while handling grouped callbacks called recursively from other grouped callbacks.
+	 */
+	private static var _handlingRecursiveGroupedCallbacks:Boolean = false;
 	
 	/**
 	 * This gets set to true when the static _handleGroupedCallbacks() callback has been added as a frame listener.
@@ -486,15 +520,31 @@ internal class GroupedCallbackEntry extends CallbackEntry
 	public var triggered:Boolean = false;
 	
 	/**
+	 * If true, the callback was triggered again from another grouped callback.
+	 */
+	public var triggeredAgain:Boolean = false;
+	
+	/**
 	 * Marks the entry to be handled later (unless already triggered this frame).
 	 * This also takes care of preventing recursion.
 	 */
 	public function trigger():void
 	{
-		if (!triggered)
+		// if handling recursive callbacks, call now
+		if (_handlingRecursiveGroupedCallbacks)
 		{
+			handleGroupedCallback();
+		}
+		else if (!triggered)
+		{
+			// not previously triggered
 			_triggeredEntries.push(this);
 			triggered = true;
+		}
+		else if (_handlingGroupedCallbacks)
+		{
+			// triggered recursively - call later
+			triggeredAgain = true;
 		}
 	}
 	
@@ -503,6 +553,9 @@ internal class GroupedCallbackEntry extends CallbackEntry
 	 */
 	public function handleGroupedCallback():void
 	{
+		if (!context)
+			return;
+		
 		// first, make sure there is at least one relevant context for this callback.
 		var allContexts:Array = context as Array;
 		// remove the contexts that have been disposed of.
@@ -512,14 +565,38 @@ internal class GroupedCallbackEntry extends CallbackEntry
 		// if there are no more relevant contexts for this callback, don't run it.
 		if (allContexts.length == 0)
 		{
-			if (CallbackCollection.debug)
-				removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
-			// clean up and remove this entry
-			callback = null; // help the garbage-collector a bit
+			dispose();
 			delete _entryLookup[callback];
 			return;
 		}
 		
-		callback();
+		// avoid immediate recursion
+		if (recursionCount == 0)
+		{
+			recursionCount++;
+			callback();
+			recursionCount--;
+		}
+		// avoid delayed recursion
+		triggeredAgain = false;
 	}
 }
+/*
+weave.path('a').remove().request('LinkableString')
+	.addCallback(function(){
+		console.log('1');
+	})
+	.addCallback(function(){
+		var newState = this.getState() + 'x';
+		console.log(2, newState);
+		this.exec("Class('flash.debugger.enterDebugger')()");
+		this.state(newState);
+	})
+	.addCallback(function(){
+		var newState = this.getState() + 'y';
+		console.log(3, newState);
+		this.exec("Class('flash.debugger.enterDebugger')()");
+		this.state(newState);
+	})
+	.state('hello');
+*/
