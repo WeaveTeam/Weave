@@ -317,14 +317,14 @@
 			private function openServerBrowser():void
 			{
 				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_SHP);
-				_serverFileBrowser.datagrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
+				_serverFileBrowser.dataGrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
 				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{
 				fileUploadCount = targetFileUploadCount = 0;
 				
-				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
+				var tableName:String = _serverFileBrowser.selectedFileInfo.fileName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
 				
 				shpFileNameInput.text = tableName;

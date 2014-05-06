@@ -15,6 +15,7 @@
     <mx:TabNavigator width="{width}" height="100%">
         <ui:MetadataGrid id="publicMetaGrid"
 			label="{lang(PUBLIC_META_GRID_LABEL_FORMAT, publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0, publicMetaGrid.metadataChanged?'*':'')}"
+			propertyIgnoreList="{[ColumnMetadata.ENTITY_TYPE]}"
 			preferredMetadataOrder="{preferredMetadataOrder}"
 			initialize="UIUtils.pad(event, 5);"/>
         <ui:MetadataGrid id="privateMetaGrid"
@@ -53,22 +54,24 @@
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.reportError;
+	import weave.api.services.beans.Entity;
+	import weave.api.services.beans.EntityHierarchyInfo;
+	import weave.api.services.beans.EntityMetadata;
 	import weave.core.UIUtils;
+	import weave.data.hierarchy.EntityNode;
 	import weave.services.Admin;
 	import weave.services.EntityCache;
-	import weave.services.beans.Entity;
-	import weave.services.beans.EntityHierarchyInfo;
-	import weave.services.beans.EntityMetadata;
-	import weave.services.beans.EntityType;
 	import weave.utils.AsyncSort;
 	
 	override protected function createChildren():void
 	{
 		super.createChildren();
 		
+		rawChildren.addChild(new BusyIndicator(Admin.entityCache));
 		removeChild(csvWindow);
 		csvWindow.enableZOrder.value = false;
 		csvWindow.minimizable.value = false;
@@ -80,7 +83,7 @@
 	private static const PRIVATE_META_GRID_LABEL_FORMAT:String = 'Private ({0}){1}';
 	
 	// namespaces, public metadata names, and private metadata names are all in this same Array because it's convenient and it doesn't matter much.
-	private const preferredMetadataOrder:Array = 'internal,public,private,id,type,parent,title,keyType,dataType,number,string,dateFormat,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
+	private const preferredMetadataOrder:Array = 'internal,public,private,id,parent,type,title,keyType,dataType,number,string,dateFormat,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
 	private function sortFieldChains(chain1:Array, chain2:Array):int
 	{
 		var level:int = (chain1[0] != chain2[0]) ? 0 : 1;
@@ -166,7 +169,7 @@
 			{
 				if (_targetItems.length == 1)
 				{
-					var type:String = entity.getTypeString() || lang('item');
+					var type:String = entity.getEntityType() || lang('item');
 					title.text = lang('Metadata for selected {0}', type.toLowerCase());
 					idDisplay.text = lang('id={0}', entity.id);
 				}
@@ -219,14 +222,21 @@
 		{
 			var entity:Entity = getEntityFromSelectedItem(item);
 			
+			// make a copy of publicMetadata because we want to make changes
+			var publicMetadata:Object = ObjectUtil.copy(entity.publicMetadata);
+			
 			var internalMetadata:Object = {};
 			internalMetadata[INTERNAL_ID] = entity.id;
-			internalMetadata[INTERNAL_TYPE] = entity.type;
+			internalMetadata[INTERNAL_TYPE] = publicMetadata[ColumnMetadata.ENTITY_TYPE];
 			internalMetadata[INTERNAL_PARENT] = '';
+			
+			// delete entityType from the copy
+			delete publicMetadata[ColumnMetadata.ENTITY_TYPE];
+			
 			for each (var pid:int in entity.parentIds)
 			{
 				var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(pid);
-				if (info && info.type == EntityType.TABLE)
+				if (info && info.entityType == EntityType.TABLE)
 				{
 					internalMetadata[INTERNAL_PARENT] = pid;
 					break;
@@ -235,7 +245,7 @@
 			
 			var record:Object = {};
 			record[INTERNAL] = internalMetadata;
-			record[PUBLIC] = entity.publicMetadata;
+			record[PUBLIC] = publicMetadata;
 			record[PRIVATE] = entity.privateMetadata;
 			records.push(record);
 		}
@@ -256,15 +266,32 @@
 		csvTextArea.text = '';
 	}
 	
-	private function getInternalField(record:Object, field:String):int
+	private function getInternalId(record:Object):int
 	{
 		var obj:Object = record[INTERNAL];
-		var str:String = obj ? obj[field] : null;
+		var str:String = obj ? obj[INTERNAL_ID] : null;
 		if (str)
 			return int(str);
 		return EntityCache.ROOT_ID;
 	}
 	
+	private function getInternalParent(record:Object):int
+	{
+		var obj:Object = record[INTERNAL];
+		var str:String = obj ? obj[INTERNAL_PARENT] : null;
+		if (str)
+			return int(str);
+		return EntityCache.ROOT_ID;
+	}
+	
+	private function getInternalType(record:Object):String
+	{
+		var obj:Object = record[INTERNAL];
+		var entityType:String = obj ? obj[INTERNAL_TYPE] || null : null;
+		// backwards compatibility - see if entityType is an integer
+		return EntityType.ALL_TYPES[entityType] || entityType;
+	}
+
 	private function saveCSV():void
 	{
 		if (!_csvChanged)
@@ -281,43 +308,58 @@
 		var records:Array = WeaveAPI.CSVParser.convertRowsToRecords(rows, 2);
 		var record:Object;
 		var id:int;
-		var type:int;
+		var entityType:String;
 		var parent:int;
 		
-		// error checking - stop when error occurs
+		// local error checking - stop when error occurs
 		for each (record in records)
 		{
-			id = getInternalField(record, INTERNAL_ID);
-			if (id != EntityCache.ROOT_ID)
-				continue;
+			id = getInternalId(record);
 			
-			type = getInternalField(record, INTERNAL_TYPE);
-			if (!EntityType.getTypeString(type))
+			if (id == EntityCache.ROOT_ID) // new entity
 			{
-				Alert.show("Missing internal type field for new item.", "Error");
-				return;
+				entityType = getInternalType(record);
+				if (!entityType)
+				{
+					Alert.show('Missing internal "type" field for new item.', "Error");
+					return;
+				}
+				if (EntityType.ALL_TYPES.indexOf(entityType) < 0)
+				{
+					Alert.show('The internal "type" field for a new item must have one of the following values: ' + EntityType.ALL_TYPES.join(', '), "Error");
+					return;
+				}
+				
+				parent = getInternalParent(record);
+				
+				if ((entityType == EntityType.HIERARCHY || entityType == EntityType.TABLE) && parent != EntityCache.ROOT_ID)
+				{
+					Alert.show('The internal "parent" field must be blank when creating new table or hierarchy items.', "Error");
+					return;
+				}
+				if (entityType == EntityType.CATEGORY && parent == EntityCache.ROOT_ID)
+				{
+					Alert.show('Missing internal "parent" field for new category item.', "Error");
+					return;
+				}
+				
+				var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(parent);
+				var parentType:String = (info && info.entityType) || null;
+				if (entityType == EntityType.COLUMN && parentType != EntityType.TABLE)
+				{
+					Alert.show("A new column must reference a table as its parent.", "Error");
+					return;
+				}
+			}
+			else // existing entity
+			{
+				if (!Admin.entityCache.entityIsCached(id))
+				{
+					Alert.show('Item with id ' + id + ' does not exist yet. To create new items, leave the internal "id" field blank.', "Error");
+					return;
+				}
 			}
 			
-			parent = getInternalField(record, INTERNAL_PARENT);
-			
-			if ((type == EntityType.HIERARCHY || type == EntityType.TABLE) && parent != EntityCache.ROOT_ID)
-			{
-				Alert.show("Parent field must be blank when creating new table or hierarchy items.", "Error");
-				return;
-			}
-			if (type == EntityType.CATEGORY && parent == EntityCache.ROOT_ID)
-			{
-				Alert.show("Missing internal parent field for new category item.", "Error");
-				return;
-			}
-			
-			var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(parent);
-			var parentType:int = info ? info.type : EntityType.ANY;
-			if (type == EntityType.COLUMN && parentType != EntityType.TABLE)
-			{
-				Alert.show("A new column must reference a table as its parent.", "Error");
-				return;
-			}
 		}
 		
 		// save
@@ -326,7 +368,7 @@
 		{
 			try
 			{
-				id = getInternalField(record, INTERNAL_ID);
+				id = getInternalId(record);
 				
 				var diff:EntityMetadata = new EntityMetadata();
 				diff.publicMetadata = record[PUBLIC];
@@ -334,12 +376,17 @@
 				
 				if (id < 0)
 				{
-					type = getInternalField(record, INTERNAL_TYPE);
-					parent = getInternalField(record, INTERNAL_PARENT);
-					Admin.service.newEntity(type, diff, parent, -1);
+					entityType = getInternalType(record);
+					
+					// use internal type for new item
+					diff.publicMetadata[ColumnMetadata.ENTITY_TYPE] = entityType;
+					parent = getInternalParent(record);
+					Admin.service.newEntity(diff, parent, -1);
 				}
 				else
 				{
+					// ignore changes to entityType for existing item
+					delete diff.publicMetadata[ColumnMetadata.ENTITY_TYPE];
 					Admin.entityCache.update_metadata(id, diff);
 				}
 			}
@@ -365,14 +412,14 @@
 	private static const INTERNAL_TYPE:String = 'type';
 	private static const INTERNAL_PARENT:String = 'parent';
 	
-	private static const csvEditorExplanation:String = "" +
-		"The first header row specifies the namespace, and the second header row specifies the metadata field names.\n" +
-		"The internal 'id' field specifies which item the row corresponds to, and if you save your changes it will overwrite metadata for the listed items.\n" +
-		"Changes to the internal 'type' and 'parent' field will be ignored for existing items.\n" +
-		"\n" +
-		"New items can be created by leaving the internal 'id' field blank.\n" +
-		"The internal 'type' field is required for new items.  Possible values are: 0=table, 1=column, 2=hierarchy, 3=category.\n" +
-		"The internal 'parent' field is required for new column or category items, and must be blank for others.";
+	private static const csvEditorExplanation:String = '' +
+		'The first header row specifies the namespace, and the second header row specifies the metadata field names.\n' +
+		'The internal "id" field specifies which item the row corresponds to, and if you save your changes it will overwrite metadata for the listed items.\n' +
+		'Changes to the internal "type" and "parent" field will be ignored for existing items.\n' +
+		'\n' +
+		'New items can be created by leaving the internal "id" field blank.\n' +
+		'The internal "type" field is required for new items.  Possible values are: "table", "column", "hierarchy", "category".\n' +
+		'The internal "parent" field is required for new column or category items, and must be blank for others.';
 	
     private function detectChange(..._):void
     {

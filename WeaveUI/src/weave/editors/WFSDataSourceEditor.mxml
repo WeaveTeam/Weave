@@ -24,7 +24,7 @@
 	xmlns="weave.editors.*"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.IDataSourceEditor"
 	creationPolicy="all" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_wfsDataSource ? 'Edit' : 'Add') + ' WFS Data Source')}"/>
@@ -39,8 +39,11 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
+			import mx.controls.Alert;
+			
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
 			import weave.compiler.StandardLib;
 			import weave.data.DataSources.WFSDataSource;
 			
@@ -48,7 +51,7 @@
 			{
 				super.createChildren();
 				
-				sourceName.text = Weave.root.generateUniqueName("WFSDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("WFSDataSource");
 			}
 			
 			[Bindable] private var _wfsDataSource:WFSDataSource = null;
@@ -64,7 +67,7 @@
 				
 				if (_wfsDataSource)
 				{
-					sourceName.text = Weave.root.getName(_wfsDataSource);
+					sourceName.text = WeaveAPI.globalHashMap.getName(_wfsDataSource);
 					url.text = _wfsDataSource.url.value;
 					swapXY.selected = _wfsDataSource.swapXY.value;
 					sourceName.editable = false;
@@ -84,6 +87,27 @@
 				_wfsDataSource.swapXY.value = swapXY.selected;
 			}
 			
+			public function createDataSource():IDataSource
+			{
+				if (!sourceName.text || !url.text)
+				{
+					Alert.show(lang("Please fill all required fields"), lang("Error"));
+					return null;
+				}
+				if (WeaveAPI.globalHashMap.getObject(sourceName.text))
+				{
+					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+					return null;
+				}
+				_wfsDataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, WFSDataSource, false);
+				if (!_wfsDataSource)
+				{
+					Alert.show(lang("Unexpected problem. Unable to add the data source."));
+					return null;
+				}
+				applyChanges();
+				return _wfsDataSource;
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

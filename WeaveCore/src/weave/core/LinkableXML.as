@@ -122,5 +122,15 @@ package weave.core
 		 * This is the trigger count at the time when _sessionStateXML was last updated.
 		 */		
 		private var _prevTriggerCount:uint = triggerCounter;
+		
+		/**
+		 * Converts a session state object to XML the same way a LinkableXML object would.
+		 */
+		public static function xmlFromState(state:Object):XML
+		{
+			if (state && state.hasOwnProperty(XML_STRING))
+				state = state[XML_STRING];
+			return XML(state);
+		}
 	}
 }

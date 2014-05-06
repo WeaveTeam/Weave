@@ -34,6 +34,7 @@ package weave.ui.DataMiningEditors
 	
 	import weave.Weave;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
@@ -45,6 +46,7 @@ package weave.ui.DataMiningEditors
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.PartitionAroundMedoidsClusteringResult;
 	import weave.services.beans.RResult;
+	import weave.utils.ResultUtils;
 	import weave.utils.VectorUtils;
 
 	public class PartitionAroundMedoidsClustering implements ILinkableObject
@@ -120,44 +122,9 @@ package weave.ui.DataMiningEditors
 					if(checkingIfFilled != null)
 						checkingIfFilled(finalResult);
 				}
-				
-				
 				else 
 				{
-					//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
-					for (var p:int = 0;p < RresultArray.length; p++)
-					{
-						
-						if(RresultArray[p].value is Array){
-							if(keys){
-								if ((RresultArray[p].value).length == keys.length){
-									if (RresultArray[p].value[0] is String)	{
-										var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
-										var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-										var dataVec:Vector.<String> = new Vector.<String>();
-										VectorUtils.copy(keys, keyVec);
-										VectorUtils.copy(Robj[p].value, dataVec);
-										testStringColumn.setRecords(keyVec, dataVec);
-										if (keys.length > 0)
-											testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
-										testStringColumn.metadata.@name = RresultArray[p].name;
-									}
-									else{
-										var table:Array = [];
-										for (var k:int = 0; k < keys.length; k++)
-											table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
-										
-										//testColumn are named after respective Objects Name (i.e) object{name: , value:}
-										var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
-										testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
-										testColumn.numericMode.value = true;
-										testColumn.data.setSessionState(table);
-										testColumn.title.value = RresultArray[p].name;
-									}
-								}
-							}						
-						}										
-					}
+					ResultUtils.rResultToColumn(keys, RresultArray, Robj);
 			    }
 	    }
 			

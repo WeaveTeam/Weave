@@ -20,17 +20,22 @@
 package weave.data.AttributeColumns
 {
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
+	import weave.core.ClassUtils;
 	import weave.core.LinkableDynamicObject;
+	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.core.LinkableWatcher;
 	import weave.utils.ColumnUtils;
+	import weave.utils.HierarchyUtils;
 	
 	/**
 	 * This provides a wrapper for a referenced column.
@@ -39,10 +44,51 @@ package weave.data.AttributeColumns
 	 */
 	public class ReferencedColumn extends CallbackCollection implements IColumnWrapper
 	{
+		public function ReferencedColumn()
+		{
+			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateDataSource);
+		}
+		
+		private var _dataSource:IDataSource;
+		
+		private function updateDataSource():void
+		{
+			var ds:IDataSource = WeaveAPI.globalHashMap.getObject(dataSourceName.value) as IDataSource;
+			if (_dataSource != ds)
+			{
+				_dataSource = ds;
+				triggerCallbacks();
+			}
+		}
+		
 		/**
-		 * This is a reference to another column.
+		 * This is the name of an IDataSource in the top level session state.
 		 */
-		public const dynamicColumnReference:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IColumnReference));
+		public const dataSourceName:LinkableString = newLinkableChild(this, LinkableString, updateDataSource);
+		
+		/**
+		 * This holds the metadata used to identify a column.
+		 */
+		public const metadata:LinkableVariable = newLinkableChild(this, LinkableVariable);
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getDataSource():IDataSource
+		{
+			return _dataSource;
+		}
+		
+		/**
+		 * Updates the session state to refer to a new column.
+		 */
+		public function setColumnReference(dataSource:IDataSource, metadata:Object):void
+		{
+			delayCallbacks();
+			dataSourceName.value = WeaveAPI.globalHashMap.getName(dataSource);
+			this.metadata.setSessionState(metadata);
+			resumeCallbacks();
+		}
 		
 		/**
 		 * The trigger counter value at the last time the internal column was retrieved.
@@ -56,21 +102,23 @@ package weave.data.AttributeColumns
 		private const _columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		/**
-		 * This is the actual IColumnReference object inside dynamicColumnReference.
-		 */
-		public function get internalColumnReference():IColumnReference
-		{
-			return dynamicColumnReference.internalObject as IColumnReference;
-		}
-		
-		/**
 		 * @inheritDoc 
 		 */		
 		public function getInternalColumn():IAttributeColumn
 		{
 			if (_prevTriggerCounter != triggerCounter)
 			{
-				_columnWatcher.target = _internalColumn = WeaveAPI.AttributeColumnCache.getColumn(internalColumnReference);
+				var col:IAttributeColumn = null;
+				if (dataSourceName.value && !_dataSource)
+				{
+					// data source was named but not found
+				}
+				else
+				{
+					col = WeaveAPI.AttributeColumnCache.getColumn(_dataSource, metadata.getSessionState());
+				}
+				_columnWatcher.target = _internalColumn = col;
+				
 				_prevTriggerCounter = triggerCounter;
 			}
 			return _internalColumn;
@@ -134,9 +182,41 @@ package weave.data.AttributeColumns
 		}
 		
 		// backwards compatibility
-		[Deprecated(replacement="dynamicColumnReference")] public function set columnReference(value:Object):void
+		[Deprecated] public function set columnReference(value:Object):void { setSessionState(this['dynamicColumnReference'], value); }
+		[Deprecated] public function get dynamicColumnReference():ILinkableDynamicObject
 		{
-			setSessionState(dynamicColumnReference, value);
+			if (!_dcr)
+			{
+				ClassUtils.registerDeprecatedClass("weave.data.ColumnReferences::HierarchyColumnReference", HierarchyColumnReference);
+				_dcr = newDisposableChild(this, LinkableDynamicObject);
+				var hcr:HierarchyColumnReference = _dcr.requestLocalObject(HierarchyColumnReference, true);
+				hcr.referencedColumn = this;
+			}
+			return _dcr;
 		}
+		private var _dcr:ILinkableDynamicObject;
+	}
+}
+
+import weave.api.core.ILinkableObject;
+import weave.api.newLinkableChild;
+import weave.core.LinkableString;
+import weave.core.LinkableXML;
+import weave.data.AttributeColumns.ReferencedColumn;
+import weave.utils.HierarchyUtils;
+
+// for backwards compatibility
+internal class HierarchyColumnReference implements ILinkableObject
+{
+	public var referencedColumn:ReferencedColumn;
+	[Deprecated] public function set dataSourceName(state:String):void
+	{
+		if (referencedColumn)
+			referencedColumn.dataSourceName.setSessionState(state);
+	}
+	[Deprecated] public function set hierarchyPath(state:Object):void
+	{
+		if (referencedColumn)
+			referencedColumn.metadata.setSessionState(HierarchyUtils.getMetadata(LinkableXML.xmlFromState(state)));
 	}
 }

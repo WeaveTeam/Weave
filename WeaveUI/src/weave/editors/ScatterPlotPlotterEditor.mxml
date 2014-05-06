@@ -21,19 +21,23 @@
 			
 			use namespace mx_internal;
 			
-			[Bindable] private var _plotter:ScatterPlotPlotter = null;
+			[Bindable] private var target:ScatterPlotPlotter = null;
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				if(_plotter)
+				if (target)
 				{
-					unlinkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
-					unlinkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
-					unlinkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
-					unlinkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
-					_plotter.fill.color.removeCallback(handleColorColumnChange);
-					_plotter.fill.color.removeCallback(handlePlotterFillColor);
-					getCallbackCollection(_plotter).removeCallback(handlePlotterChange);
+					unlinkBindableProperty(target.fill.alpha.defaultValue, alphaSlider, "value");
+					unlinkBindableProperty(target.colorNegative, colorNegativePicker, 'selectedColor');
+					unlinkBindableProperty(target.colorPositive, colorPositivePicker, 'selectedColor');
+					unlinkBindableProperty(target.colorBySize, colorBySizeCheckBox, 'selected');
+					unlinkBindableProperty(target.sourceProjection, sourceProjection, 'text');
+					unlinkBindableProperty(target.destinationProjection, destinationProjection, 'text');
+					target.sourceProjection.removeCallback(handleProjections);
+					target.destinationProjection.removeCallback(handleProjections);
+					target.fill.color.removeCallback(handleColorColumnChange);
+					target.fill.color.removeCallback(handlePlotterFillColor);
+					getCallbackCollection(target).removeCallback(handlePlotterChange);
 					
 					dataXCol.dynamicObject = null;
 					dataYCol.dynamicObject = null;
@@ -41,34 +45,45 @@
 					sizeCol.dynamicObject = null;
 				}
 				
-				_plotter = object as ScatterPlotPlotter;
+				target = object as ScatterPlotPlotter;
 				
-				if(_plotter)
+				if (target)
 				{
 					if (!initialized)
 						initialize();
-					linkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
-					linkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
-					linkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
-					linkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
-					_plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
-					_plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
-					getCallbackCollection(_plotter).addGroupedCallback(this, handlePlotterChange, true);
+					linkBindableProperty(target.fill.alpha.defaultValue, alphaSlider, "value");
+					linkBindableProperty(target.colorNegative, colorNegativePicker, 'selectedColor');
+					linkBindableProperty(target.colorPositive, colorPositivePicker, 'selectedColor');
+					linkBindableProperty(target.colorBySize, colorBySizeCheckBox, 'selected');
+					linkBindableProperty(target.sourceProjection, sourceProjection, 'text');
+					linkBindableProperty(target.destinationProjection, destinationProjection, 'text');
+					target.sourceProjection.addGroupedCallback(this, handleProjections, true);
+					target.destinationProjection.addGroupedCallback(this, handleProjections, true);
+					target.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
+					target.fill.color.addGroupedCallback(this, handlePlotterFillColor);
+					getCallbackCollection(target).addGroupedCallback(this, handlePlotterChange, true);
 					
-					dataXCol.dynamicObject = _plotter.dataX;
-					dataYCol.dynamicObject = _plotter.dataY;
-					colorCol.columnWrapper = _plotter.fill.color;
-					sizeCol.dynamicObject = _plotter.sizeBy;
+					dataXCol.dynamicObject = target.dataX;
+					dataYCol.dynamicObject = target.dataY;
+					colorCol.columnWrapper = target.fill.color;
+					sizeCol.dynamicObject = target.sizeBy;
 				}
 			}
 			
 			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }
 			
+			private function handleProjections():void
+			{
+				// show or hide controls depending on whether or not a projection is specified
+				if (!UIUtils.hasFocus(sourceProjection) && !UIUtils.hasFocus(destinationProjection))
+					enableReprojection.selected = !!(target.sourceProjection.value || target.destinationProjection.value);
+			}
+			
 			private var _prevGlobalColorColumnName:String = null;
 			private function handleColorColumnChange():void
 			{
-				var newName:String = _plotter.fill.color.internalDynamicColumn.globalName;
+				var newName:String = target.fill.color.internalDynamicColumn.globalName;
 				if (newName)
 					_prevGlobalColorColumnName = newName;
 			}
@@ -76,20 +91,20 @@
 			private function handlePlotterChange():void
 			{
 				// when the plotter settings change, update the slider interface
-				if (_plotter.colorBySize.value)
+				if (target.colorBySize.value)
 				{
 					sizeBySlider.thumbCount = 1;
-					sizeBySlider.value = _plotter.maxScreenRadius.value;
+					sizeBySlider.value = target.maxScreenRadius.value;
 				}
-				else if (_plotter.sizeBy.internalObject)
+				else if (target.sizeBy.internalObject)
 				{
 					sizeBySlider.thumbCount = 2;
-					sizeBySlider.values = [_plotter.minScreenRadius.value, _plotter.maxScreenRadius.value];
+					sizeBySlider.values = [target.minScreenRadius.value, target.maxScreenRadius.value];
 				}
 				else
 				{
 					sizeBySlider.thumbCount = 1;
-					sizeBySlider.value = _plotter.defaultScreenRadius.value;
+					sizeBySlider.value = target.defaultScreenRadius.value;
 				}
 			}
 			private function handleSizeSliderChange(event:SliderEvent):void
@@ -98,30 +113,30 @@
 					return;
 				
 				// when user interacts with slider, update session state
-				if (_plotter.colorBySize.value)
+				if (target.colorBySize.value)
 				{
-					_plotter.maxScreenRadius.value = event.value;
+					target.maxScreenRadius.value = event.value;
 				}
-				else if (_plotter.sizeBy.internalObject)
+				else if (target.sizeBy.internalObject)
 				{
-					if(event.thumbIndex == 0)
+					if (event.thumbIndex == 0)
 					{
-						_plotter.minScreenRadius.value = event.value;
+						target.minScreenRadius.value = event.value;
 					}
 					else
 					{
-						_plotter.maxScreenRadius.value = event.value;
+						target.maxScreenRadius.value = event.value;
 					}
 				}
 				else
 				{
-					_plotter.defaultScreenRadius.value = event.value;
+					target.defaultScreenRadius.value = event.value;
 				}
 			}
 			private function handlePlotterFillColor():void
 			{
-				overrideColorCheckBox.setSelected(!_plotter.fill.color.getInternalColumn());
-				var color:Number = StandardLib.asNumber(_plotter.fill.color.defaultValue.value);
+				overrideColorCheckBox.setSelected(!target.fill.color.getInternalColumn());
+				var color:Number = StandardLib.asNumber(target.fill.color.defaultValue.value);
 				if (isFinite(color))
 					overrideColorPicker.selectedColor = color;
 			}
@@ -132,13 +147,13 @@
 				if (overrideColorCheckBox.selected)
 				{
 					colorBySizeCheckBox.selected = false;
-					_plotter.fill.color.defaultValue.value = overrideColorPicker.selectedColor;
-					_plotter.fill.color.internalDynamicColumn.removeObject();
+					target.fill.color.defaultValue.value = overrideColorPicker.selectedColor;
+					target.fill.color.internalDynamicColumn.removeObject();
 				}
 				else
 				{
-					_plotter.fill.color.defaultValue.value = NaN;
-					_plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
+					target.fill.color.defaultValue.value = NaN;
+					target.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
 				}
 			}
 		]]>
@@ -200,6 +215,36 @@
 		<ui:Indent label="{lang('Color for negative size values')}">
 			<ui:CustomColorPicker id="colorNegativePicker" 
 								  enabled="{colorBySizeCheckBox.selected}" />
+		</ui:Indent>
+	</ui:CheckBoxWithNestedOptions>
+	
+	<ui:CheckBoxWithNestedOptions id="enableReprojection" label="{lang('Geographic reprojection')}">
+		<ui:change>
+			<![CDATA[
+			if (UIUtils.hasFocus(enableReprojection))
+			{
+				if (enableReprojection.selected)
+				{
+					// recall previously saved values
+					sourceProjection.text = sourceProjection.data as String;
+					destinationProjection.text = destinationProjection.data as String;
+				}
+				else
+				{
+					// save values for later
+					sourceProjection.data = sourceProjection.text;
+					destinationProjection.data = destinationProjection.text;
+					sourceProjection.text = destinationProjection.text = '';
+				}
+			}
+			]]>
+		</ui:change>
+		<ui:Indent label="from" translate="true">
+			<ui:TextInputWithPrompt id="sourceProjection" width="100%" prompt="{lang('Source projection')}"/>
+			<mx:Button label="{lang('Lat/Long')}" click="sourceProjection.text = 'EPSG:4326';"/>
+		</ui:Indent>
+		<ui:Indent label="to" translate="true">
+			<ui:TextInputWithPrompt id="destinationProjection" width="100%" prompt="{lang('Destination projection')}"/>
 		</ui:Indent>
 	</ui:CheckBoxWithNestedOptions>
 </mx:VBox>

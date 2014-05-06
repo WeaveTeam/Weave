@@ -63,9 +63,10 @@ package weave.core
 		{
 			try
 			{
-				var newType:Class = WeaveXMLDecoder.getClassDefinition(objectType.value);
-				if (_typeRestrictionQName == null || ClassUtils.classIs(getQualifiedClassName(newType), _typeRestrictionQName))
+				var typeQName:String = WeaveXMLDecoder.getClassName(objectType.value)
+				if (_typeRestrictionQName == null || ClassUtils.classIs(typeQName, _typeRestrictionQName))
 				{
+					var newType:Class = ClassUtils.getClassDefinition(typeQName);
 					_generatedObject = updateObject(_generatedObject, newType, properties.value);
 					properties.value = _generatedObject;
 				}

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -180,7 +181,7 @@ public class SQLGeometryStreamReader
 	{
 		DataOutputStream data = new DataOutputStream(output);
 	
-		CallableStatement cstmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		SQLException pg = null;
 		try
@@ -191,7 +192,7 @@ public class SQLGeometryStreamReader
 				try
 				{
 					// loop through tileIDs, copying binary data to stream
-					cstmt = conn.prepareCall(
+					stmt = conn.prepareStatement(
 							"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA.toLowerCase()) +
 							" FROM " + SQLUtils.quoteSchemaTable(conn, schema, table) +
 							" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID.toLowerCase()) +
@@ -201,9 +202,9 @@ public class SQLGeometryStreamReader
 					
 					int i = 1;
 					for (int id : tileIDs)
-						cstmt.setInt(i++, id);
+						stmt.setInt(i++, id);
 					
-					rs = cstmt.executeQuery();
+					rs = stmt.executeQuery();
 					while (rs.next())
 						data.write(rs.getBytes(1));
 					
@@ -217,7 +218,7 @@ public class SQLGeometryStreamReader
 			}////////////////////////////////////////////////////////////////////////////////
 			
 			// loop through tileIDs, copying binary data to stream
-			cstmt = conn.prepareCall(
+			stmt = conn.prepareStatement(
 					"SELECT " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_DATA) +
 					" FROM " + SQLUtils.quoteSchemaTable(conn, schema, table) +
 					" WHERE " + SQLUtils.quoteSymbol(conn, SQLGeometryStreamDestination.TILE_ID) +
@@ -227,9 +228,9 @@ public class SQLGeometryStreamReader
 			
 			int i = 1;
 			for (int id : tileIDs)
-				cstmt.setInt(i++, id);
+				stmt.setInt(i++, id);
 			
-			rs = cstmt.executeQuery();
+			rs = stmt.executeQuery();
 			while (rs.next())
 				data.write(rs.getBytes(1));
 		}
@@ -248,7 +249,7 @@ public class SQLGeometryStreamReader
 		{
 			// close everything in reverse order
 			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(cstmt);
+			SQLUtils.cleanup(stmt);
 		}
 	}
 //	private static String getHexString(byte bytes[])

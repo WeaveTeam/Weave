@@ -48,10 +48,8 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.KeySets.KeySet;
-			import weave.primitives.AttributeHierarchy;
 			import weave.primitives.Bounds2D;
 			import weave.services.WeavePDBServlet;
 			import weave.services.WeaveRServlet;
@@ -328,41 +326,17 @@
 				csvDataSource.csvData.setSessionState(residueData);
 				csvDataSource.keyType.value = uniqueName;
 				pdbDataSourceKeyType = uniqueName;
-				assignXYColumnsFromSource(csvDataSource,uniqueName);	
+				assignXYColumnsFromSource(csvDataSource);	
 				
 			}
 			
-			private function assignXYColumnsFromSource(source:CSVDataSource,sourceName:String):void
+			private function assignXYColumnsFromSource(source:CSVDataSource):void
 			{
-				var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
-				//checks whether source availabe to run this function
-				if(xml == null)
-					callLater(assignXYColumnsFromSource,[source,sourceName]);
-				else{
-					var columnNodes:XMLList = xml.descendants();					
-					var numOfColumns:int = columnNodes.length();					
-					var hashMap:ILinkableHashMap = ProbeTextUtils.probedColumns;
-					
-					//adding phi and psi column to plotter x and y columns
-					var column1:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[5]);
-					var refCol1:ReferencedColumn = _plotter.dataX.requestLocalObject(ReferencedColumn, false);
-					var hierarchyColRef1:HierarchyColumnReference =  refCol1.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-					hierarchyColRef1.hierarchyPath.value = column1;
-					hierarchyColRef1.dataSourceName.value = sourceName;
-					
-					var column2:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[6]);
-					var refCol2:ReferencedColumn = _plotter.dataY.requestLocalObject(ReferencedColumn, false);
-					var hierarchyColRef2:HierarchyColumnReference =  refCol2.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-					hierarchyColRef2.dataSourceName.value = sourceName;
-					hierarchyColRef2.hierarchyPath.value = column2;
-					
-					//adding resName to histogram column
-					var column3:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[7]);
-					var refCol3:ReferencedColumn = histogramColumn.requestLocalObject(ReferencedColumn,false);
-					var hierarchyColRef3:HierarchyColumnReference =  refCol3.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-					hierarchyColRef3.dataSourceName.value = sourceName;
-					hierarchyColRef3.hierarchyPath.value = column3;
-				}
+				//adding phi and psi column to plotter x and y columns
+				source.putColumn(5, _plotter.dataX);
+				source.putColumn(6, _plotter.dataY);
+				//adding resName to histogram column
+				source.putColumn(7, histogramColumn);
 			}
 			
 			private function handleGetPhiPsiValuesFault(event:FaultEvent, token:Object = null):void

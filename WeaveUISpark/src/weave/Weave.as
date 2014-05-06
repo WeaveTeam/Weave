@@ -400,7 +400,7 @@ package weave
 							loadWeaveFileContent(String(content));
 							return;
 						} catch (e:Error) { }
-						throw new Error("Invalid Weave session state.");
+						throw e;
 					}
 				}
 				

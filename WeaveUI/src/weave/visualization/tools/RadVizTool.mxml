@@ -28,7 +28,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
 			   layout="absolute"
-			   resize="handleResize(event)">
+			  >
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
@@ -132,10 +132,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				probeSprite.mouseChildren = false;
 				selectionProbeSprite.mouseChildren = false;
+				anchorProbeSprite.mouseChildren = false;
 				//visualization.rawChildren.addChild(probeSprite);
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
 				sprCont.addChild(probeSprite);
 				sprCont.addChild(selectionProbeSprite);
+				sprCont.addChild(anchorProbeSprite);
 				visualization.addElement(sprCont);
 				
 				visualization.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
@@ -157,6 +159,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var probeSprite:Sprite = new Sprite() ;	
 			private var selectionProbeSprite:Sprite = new Sprite();
+			private var anchorProbeSprite:Sprite = new Sprite();
 			
 			//this function is called whenver a column is selected to do the class discrimination
 			private function classDiscriminatorColumnUpdate():void
@@ -175,9 +178,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			private function handleResize(event:Event):void
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
 				drawProbeLinesForSelectionKeySet();
+				drawProbeLinesForSelectedAnchor();
 			}
 			
 			private function handlePlotterChanges():void
@@ -204,36 +209,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				var columns:Array = _plotter.columns.getObjects();
-				var inputValues:Array = new Array(); var inputNames:Array;
-				inputNames = ["mymatrix"];
-				var outputNames:Array = ["normOutput"];
-				var script:String = "frame <- data.frame(mymatrix)\n" +
-					"donorm <- function(frame){\n" +
-					"  RR <- nrow(frame)\n"+
-					"  CC <- ncol(frame)\n"+
-					"  for (z in 1:CC){\n"+
-					"    maxr <- max(frame[z])\n"+
-					"    minr <- min(frame[z])\n" +
-					"    rng <- (maxr - minr)\n" +
-					"    if (rng == 0)\n" +
-					"      rng <- 1\n"+
-					"    for(i in 1:RR){\n"+
-					"      frame[i,z] <- (frame[i,z] - minr) / rng\n"+
-					"    }\n"+
-					"  }\n"+
-					"  frame\n"+
-					"}\n"+
-					"normOutput <- donorm(frame)\n";
-				
 				var result:Array = joinColumns(columns);
 				latestjoinedColumnKeys = result[0];
 				var joinedColumns:Array = result[1];
 				
 				if (latestjoinedColumnKeys.length > 0)
 				{
-					inputValues.push(joinedColumns);
-					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-					addAsyncResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
+					addAsyncResponder(
+						Rservice.normalize(joinedColumns),
+						handleNormScriptResult,
+						handleRunScriptFault,
+						latestjoinedColumnKeys
+					);
 				}
 			} 
 			
@@ -245,46 +232,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				normalizedColumns = [];
 				if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
 				
-				var temRObjects:Array = new Array();
-				//Object to stored returned result - Which is array of object{name: , value: }
-				var Robj:Array = event.result as Array;				
-				
-				if (Robj == null)
-				{
-					reportError("R Servlet did not return an Array of results as expected.");
-					return;
-				}
-				
-				//collecting Objects of type RResult(Should Match result object from Java side)
-				for (var i:int = 0; i < (event.result).length; i++)
-				{
-					if (Robj[i] == null)
-					{
-						trace("WARNING! R Service returned null in results array at index "+i);
-						continue;
-					}
-					var rResult:RResult = new RResult(Robj[i]);
-					temRObjects = (rResult.value) as Array;
-					
-					//handles cases when R returns a NaN, (for eg when all records have the same value for a column or when the dataset contains one record)
-					/* for(var f:int = 0; f< temRObjects.length; f++)
-					{
-					if(isNaN(temRObjects[f]))
-					return;
-					} */
-					
-				}	
+				//Object to store returned result
+				var result:Array = event.result as Array;				
 				
 				disposeObject(normalizedColumnsGroup);
 				normalizedColumnsGroup = newDisposableChild(this, CallbackCollection);
-				for (var j:int = 0 ; j < temRObjects.length; j++)
+				if(result)
 				{
-					var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,temRObjects[j],_plotter.columns.getNames()[j]+"norm");
-					normalizedColumns.push(col);
-					registerLinkableChild(normalizedColumnsGroup, col);
+					for (var j:int = 0; j < result.length; j++)
+					{
+						var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,result[j],_plotter.columns.getNames()[j]+" norm");
+						normalizedColumns.push(col);
+						registerLinkableChild(normalizedColumnsGroup, col);
+					}
 				}
 				//normalizedColumnsGroup.addImmediateCallback(this, classDiscriminatorColumnUpdate);
-				
 			}
 			
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
@@ -364,23 +326,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
 				if (!_probedKeys.length)
+				{
+					anchorProbeSprite.graphics.clear();					
 					return;
-				
+				}
 				event.stopPropagation();
 				
 				var key:IQualifiedKey = _probedKeys[0];
 				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;													
-				
+				 
 				visualization.enableSelection.value = false;
 				enableAutoZoom = visualization.plotManager.enableAutoZoomToExtent.value;
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				isDragging = true;
+				anchorProbeSprite.graphics.clear();
+			}
+			
+			private function drawProbeLinesForSelectedAnchor():void
+			{
+				if(_probedKeys && _probedKeys.length)
+					_plotter.drawProbeLinesForSelectedAnchors(_probedKeys,dataBounds,screenBounds,anchorProbeSprite.graphics);
+				else
+					anchorProbeSprite.graphics.clear();
 			}
 			
 			private function handleMouseUp():void
 			{
 				if (!isDragging)
 					return;
+				drawProbeLinesForSelectedAnchor();
 				handleMouseMove();
 				_probedAnchor = null;
 				isDragging = false;
@@ -392,7 +366,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if (!isDragging || !_probedAnchor)
 					return;
-				
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
 				

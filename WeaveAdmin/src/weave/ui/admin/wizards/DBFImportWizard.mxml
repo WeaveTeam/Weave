@@ -47,13 +47,12 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.events.FlexEvent;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.reportError;
 			import weave.services.Admin;
-			import weave.services.DelayedAsyncInvocation;
 			
 			private var dbfFileReference:FileReference = new FileReference();
 			
@@ -110,7 +109,7 @@
 					Alert.show("You must specify the name of the destination SQL table.", alertTitle);
 				else
 				{
-					var query:DelayedAsyncInvocation = Admin.instance.storeDBFDataToDatabase(
+					var query:AsyncToken = Admin.instance.storeDBFDataToDatabase(
 						importDBFFileNameInputToStore.text,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,

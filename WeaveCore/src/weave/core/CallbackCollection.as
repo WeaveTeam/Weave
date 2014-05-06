@@ -91,10 +91,6 @@ package weave.core
 		 */
 		private var _triggerCounter:uint = DEFAULT_TRIGGER_COUNT;
 		
-		private static const STACK_TRACE_TRIGGER:String = "This is the stack trace from when the callbacks were last triggered.";
-		private static const STACK_TRACE_ADD:String = "This is the stack trace from when the callback was added.";
-		private static const STACK_TRACE_REMOVE:String = "This is the stack trace from when the callback was removed.";
-		
 		/**
 		 * @inheritDoc
 		 */
@@ -106,16 +102,10 @@ package weave.core
 			// remove the callback if it was previously added
 			removeCallback(callback);
 			
-			var entry:CallbackEntry = new CallbackEntry();
-			_callbackEntries.push(entry);
-			entry.context = relevantContext;
-			entry.callback = callback;
-			entry.recursionLimit = 0;
+			var entry:CallbackEntry = new CallbackEntry(relevantContext, callback);
 			if (alwaysCallLast)
 				entry.schedule = 1;
-			
-			if (debug)
-				entry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
+			_callbackEntries.push(entry);
 
 			// run callback now if requested
 			if (runCallbackNow)
@@ -188,11 +178,7 @@ package weave.core
 						shouldRemoveEntry = WeaveAPI.SessionManager.objectWasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
-						if (debug && entry.callback != null)
-							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
-						// help the garbage-collector a bit
-						entry.context = null;
-						entry.callback = null;
+						entry.dispose();
 						// remove the empty callback reference from the list
 						var removed:Array = _callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
 						if (debug)
@@ -200,9 +186,10 @@ package weave.core
 						continue;
 					}
 					// if _preCallback is specified, we don't want to limit recursion because that would cause a loss of information.
-					if (entry.recursionCount <= entry.recursionLimit || _preCallback != null)
+					if (entry.recursionCount == 0 || _preCallback != null)
 					{
 						entry.recursionCount++; // increase count to signal that we are currently running this callback.
+						
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
@@ -223,9 +210,7 @@ package weave.core
 		public final function removeCallback(callback:Function):void
 		{
 			// if the callback was added as a grouped callback, we need to remove the trigger function
-			var triggerCallbackEntry:CallbackEntry = _groupedCallbackToTriggerEntryMap[callback] as CallbackEntry;
-			if (triggerCallbackEntry != null)
-				removeCallback(triggerCallbackEntry.callback);
+			GroupedCallbackEntry.removeGroupedCallback(this, callback);
 			
 			// find the matching CallbackEntry, if any
 			for (var outerLoop:int = 0; outerLoop < 2; outerLoop++)
@@ -238,10 +223,7 @@ package weave.core
 					{
 						// Remove the callback by setting the function pointer to null.
 						// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
-						entry.context = null;
-						entry.callback = null;
-						if (debug)
-							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
+						entry.dispose();
 					}
 				}
 			}
@@ -288,20 +270,12 @@ package weave.core
 		 */
 		public function addDisposeCallback(relevantContext:Object, callback:Function):void
 		{
-			var entry:CallbackEntry;
-			
 			// don't do anything if the dispose callback was already added
-			for each (entry in _disposeCallbackEntries)
+			for each (var entry:CallbackEntry in _disposeCallbackEntries)
 				if (entry.callback === callback)
 					return;
 			
-			entry = new CallbackEntry();
-			_disposeCallbackEntries.push(entry);
-			entry.context = relevantContext;
-			entry.callback = callback;
-			
-			if (debug)
-				entry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
+			_disposeCallbackEntries.push(new CallbackEntry(relevantContext, callback));
 		}
 		
 		/**
@@ -341,144 +315,42 @@ package weave.core
 		{
 			return _wasDisposed;
 		}
-		
-		/**
-		 * This is set to true while grouped callbacks are running.
-		 */
-		private static var _runningGroupedCallbacksNow:Boolean = false;
-		
-		/**
-		 * This maps a grouped callback function to its corresponding CallbackEntry object containing a trigger function for that callback.
-		 * A different trigger function is required for each callback because CallbackCollection will only keep one copy of the pointer to
-		 * any given function.
-		 */
-		private static const _groupedCallbackToTriggerEntryMap:Dictionary = new Dictionary();
-		
-		/**
-		 * This Dictionary maps a grouped callback trigger CallbackEntry to a value of true that means the callback was triggered.
-		 */
-		private static const _triggeredGroupedCallbackEntryMap:Dictionary = new Dictionary(true);
-		
-		/**
-		 * This is a list of the grouped CallbackEntry objects in the order they were triggered.
-		 */		
-		private static const _triggeredGroupedCallbackEntryOrderedList:Array = new Array();
-		
-		/**
-		 * This variable is false until the handleEnterFrame callback has been added through StageUtils.
-		 */
-		private static var _frameCallbackAdded:Boolean = false;
-		
-		/**
-		 * This function gets called once per frame and allows grouped callbacks to run.
-		 */
-		private static function _handleGroupedCallbacks():void
-		{
-			// this flag tells all trigger functions to run their corresponding callbacks immediately
-			_runningGroupedCallbacksNow = true;
-
-			while (_triggeredGroupedCallbackEntryOrderedList.length > 0)
-			{
-				// run grouped callbacks in the order they were triggered
-				var triggerEntry:CallbackEntry = _triggeredGroupedCallbackEntryOrderedList.shift() as CallbackEntry;
-				(triggerEntry as CallbackEntry).callback();
-				delete _triggeredGroupedCallbackEntryMap[triggerEntry];
-			}
-
-			_runningGroupedCallbacksNow = false;
-		}
 
 		/**
 		 * @inheritDoc
 		 */
 		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
 		{
-			if (!_frameCallbackAdded)
-			{
-				WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, _handleGroupedCallbacks);
-				_frameCallbackAdded = true;
-			}
-			
-			if (relevantContext == null)
-				relevantContext = this;
-			
-			var recursionLimit:uint = 0;
-			var triggerEntry:CallbackEntry = _groupedCallbackToTriggerEntryMap[groupedCallback] as CallbackEntry;
-			if (triggerEntry != null)
-			{
-				// add this context to the list of relevant contexts
-				triggerEntry.context.push(relevantContext);
-				// use the minimum of the existing limit and the new limit.
-				triggerEntry.recursionLimit = Math.min(triggerEntry.recursionLimit, recursionLimit);
-			}
-			else // need to create new shared CallbackEntry for this grouped callback
-			{
-				triggerEntry = new CallbackEntry();
-				_groupedCallbackToTriggerEntryMap[groupedCallback] = triggerEntry;
-				triggerEntry.recursionLimit = recursionLimit;
-				triggerEntry.context = [relevantContext]; // the context in this entry will be an array of contexts
-				if (debug)
-					triggerEntry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
-				triggerEntry.callback = function():void
-				{
-					if (_runningGroupedCallbacksNow)
-					{
-						// first, make sure there is at least one relevant context for this callback.
-						var allContexts:Array = triggerEntry.context as Array;
-						// remove the contexts that have been disposed of.
-						for (var i:int = 0; i < allContexts.length; i++)
-							if (WeaveAPI.SessionManager.objectWasDisposed(allContexts[i]))
-								allContexts.splice(i--, 1);
-						// if there are no more relevant contexts for this callback, don't run it.
-						if (allContexts.length == 0)
-						{
-							triggerEntry.callback = null; // help the garbage-collector a bit
-							if (debug)
-								triggerEntry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
-							delete _groupedCallbackToTriggerEntryMap[groupedCallback];
-							return;
-						}
-						
-						// this function was called as a result of calling groupedCallback().
-						// enforce recursion limit now.
-						if (triggerEntry.recursionCount <= triggerEntry.recursionLimit)
-						{
-							// increase recursion count while the function is running.
-							triggerEntry.recursionCount++;
-							
-							groupedCallback();
-							
-							triggerEntry.recursionCount--;
-						}
-					}
-					else if (_triggeredGroupedCallbackEntryMap[triggerEntry] === undefined) // if not already triggered
-					{
-						// set a flag to signal that this grouped callback was triggered.
-						_triggeredGroupedCallbackEntryMap[triggerEntry] = true;
-						_triggeredGroupedCallbackEntryOrderedList.push(triggerEntry);
-					}
-				};
-			}
-			// make sure the actual function is not already added as a callback.
-			removeCallback(groupedCallback);
-			
-			// prevent grouped callback from running immediately because that is unexpected
-			var _previouslyRunningGroupedCallbacks:Boolean = _runningGroupedCallbacksNow;
-			_runningGroupedCallbacksNow = false;
-			
-			// add the trigger function as a callback
-			addImmediateCallback(relevantContext, triggerEntry.callback, triggerCallbackNow);
-			
-			_runningGroupedCallbacksNow = _previouslyRunningGroupedCallbacks;
+			GroupedCallbackEntry.addGroupedCallback(this, relevantContext, groupedCallback, triggerCallbackNow);
 		}
 	}
 }
+
+internal const STACK_TRACE_TRIGGER:String = "This is the stack trace from when the callbacks were last triggered.";
+internal const STACK_TRACE_ADD:String = "This is the stack trace from when the callback was added.";
+internal const STACK_TRACE_REMOVE:String = "This is the stack trace from when the callback was removed.";
+
+import flash.events.Event;
+import flash.utils.Dictionary;
+
+import weave.api.WeaveAPI;
+import weave.api.core.ICallbackCollection;
+import weave.core.CallbackCollection;
 
 /**
  * @private
  */
 internal class CallbackEntry
 {
+	public function CallbackEntry(context:Object, callback:Function)
+	{
+		this.context = context;
+		this.callback = callback;
+		
+		if (CallbackCollection.debug)
+			addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
+	}
+	
 	/**
 	 * This is the context in which the callback function is relevant.
 	 * When the context is disposed of, the callback should not be called anymore.
@@ -498,10 +370,6 @@ internal class CallbackEntry
 	 */
 	public var callback:Function = null;
 	/**
-	 * This is the maximum recursion depth allowed for this callback.
-	 */	
-	public var recursionLimit:uint = 0;
-	/**
 	 * This is the current recursion depth.
 	 * If this is greater than zero, it means the function is currently running.
 	 */
@@ -518,4 +386,217 @@ internal class CallbackEntry
 	 * This is a stack trace from when the callback was removed.
 	 */
 	public var removeCallback_stackTrace:String = null;
+	
+	/**
+	 * Call this when the callback entry is no longer needed.
+	 */
+	public function dispose():void
+	{
+		if (CallbackCollection.debug && callback != null)
+			removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
+		
+		context = null;
+		callback = null;
+	}
 }
+
+/**
+ * @private
+ */
+internal class GroupedCallbackEntry extends CallbackEntry
+{
+	public static function addGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean):void
+	{
+		// get (or create) the shared entry for the groupedCallback
+		var entry:GroupedCallbackEntry = _entryLookup[groupedCallback] as GroupedCallbackEntry;
+		if (!entry)
+			_entryLookup[groupedCallback] = entry = new GroupedCallbackEntry(groupedCallback);
+		
+		// context shouldn't be null because we use it to determine when to clean up the GroupedCallbackEntry.
+		if (relevantContext == null)
+			relevantContext = callbackCollection;
+		
+		// add this context to the list of relevant contexts
+		(entry.context as Array).push(relevantContext);
+		
+		// make sure the actual function is not already added as a callback.
+		callbackCollection.removeCallback(groupedCallback);
+		
+		// add the trigger function as a callback
+		callbackCollection.addImmediateCallback(relevantContext, entry.trigger, triggerCallbackNow);
+	}
+	
+	public static function removeGroupedCallback(callbackCollection:ICallbackCollection, groupedCallback:Function):void
+	{
+		// remove the trigger function as a callback
+		var entry:GroupedCallbackEntry = _entryLookup[groupedCallback] as GroupedCallbackEntry;
+		if (entry)
+			callbackCollection.removeCallback(entry.trigger);
+	}
+	
+	/**
+	 * This function gets called once per frame and allows grouped callbacks to run.
+	 */
+	private static function _handleGroupedCallbacks():void
+	{
+		var i:int;
+		var entry:GroupedCallbackEntry;
+		
+		_handlingGroupedCallbacks = true;
+		{
+			// Handle grouped callbacks in the order they were triggered,
+			// anticipating that more may be added to the end of the list in the process.
+			// This first pass does not allow grouped callbacks to call each other immediately.
+			for (i = 0; i < _triggeredEntries.length; i++)
+			{
+				entry = _triggeredEntries[i] as GroupedCallbackEntry;
+				entry.handleGroupedCallback();
+			}
+			
+			// after all grouped callbacks have been handled once, run those which were triggered recursively and allow them to call other grouped callbacks immediately.
+			_handlingRecursiveGroupedCallbacks = true;
+			{
+				// handle grouped callbacks that were triggered recursively
+				for (i = 0; i < _triggeredEntries.length; i++)
+				{
+					entry = _triggeredEntries[i] as GroupedCallbackEntry;
+					if (entry.triggeredAgain)
+						entry.handleGroupedCallback();
+				}
+			}
+			_handlingRecursiveGroupedCallbacks = false;
+		}
+		_handlingGroupedCallbacks = false;
+		
+		// reset for next frame
+		for each (entry in _triggeredEntries)
+			entry.triggered = entry.triggeredAgain = false;
+		_triggeredEntries.length = 0;
+	}
+	
+	/**
+	 * True while handling grouped callbacks.
+	 */
+	private static var _handlingGroupedCallbacks:Boolean = false;
+	
+	/**
+	 * True while handling grouped callbacks called recursively from other grouped callbacks.
+	 */
+	private static var _handlingRecursiveGroupedCallbacks:Boolean = false;
+	
+	/**
+	 * This gets set to true when the static _handleGroupedCallbacks() callback has been added as a frame listener.
+	 */
+	private static var _initialized:Boolean = false;
+	
+	/**
+	 * This maps a groupedCallback function to its corresponding GroupedCallbackEntry.
+	 */
+	private static const _entryLookup:Dictionary = new Dictionary();
+	
+	/**
+	 * This is a list of GroupedCallbackEntry objects in the order they were triggered.
+	 */		
+	private static const _triggeredEntries:Array = [];
+	
+	/**
+	 * Constructor
+	 */
+	public function GroupedCallbackEntry(groupedCallback:Function)
+	{
+		// context will be an array of contexts
+		super([], groupedCallback);
+		
+		if (!_initialized)
+		{
+			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, _handleGroupedCallbacks);
+			_initialized = true;
+		}
+	}
+	
+	/**
+	 * If true, the callback was triggered this frame.
+	 */
+	public var triggered:Boolean = false;
+	
+	/**
+	 * If true, the callback was triggered again from another grouped callback.
+	 */
+	public var triggeredAgain:Boolean = false;
+	
+	/**
+	 * Marks the entry to be handled later (unless already triggered this frame).
+	 * This also takes care of preventing recursion.
+	 */
+	public function trigger():void
+	{
+		// if handling recursive callbacks, call now
+		if (_handlingRecursiveGroupedCallbacks)
+		{
+			handleGroupedCallback();
+		}
+		else if (!triggered)
+		{
+			// not previously triggered
+			_triggeredEntries.push(this);
+			triggered = true;
+		}
+		else if (_handlingGroupedCallbacks)
+		{
+			// triggered recursively - call later
+			triggeredAgain = true;
+		}
+	}
+	
+	/**
+	 * Checks the context(s) before calling groupedCallback
+	 */
+	public function handleGroupedCallback():void
+	{
+		if (!context)
+			return;
+		
+		// first, make sure there is at least one relevant context for this callback.
+		var allContexts:Array = context as Array;
+		// remove the contexts that have been disposed of.
+		for (var i:int = 0; i < allContexts.length; i++)
+			if (WeaveAPI.SessionManager.objectWasDisposed(allContexts[i]))
+				allContexts.splice(i--, 1);
+		// if there are no more relevant contexts for this callback, don't run it.
+		if (allContexts.length == 0)
+		{
+			dispose();
+			delete _entryLookup[callback];
+			return;
+		}
+		
+		// avoid immediate recursion
+		if (recursionCount == 0)
+		{
+			recursionCount++;
+			callback();
+			recursionCount--;
+		}
+		// avoid delayed recursion
+		triggeredAgain = false;
+	}
+}
+/*
+weave.path('a').remove().request('LinkableString')
+	.addCallback(function(){
+		console.log('1');
+	})
+	.addCallback(function(){
+		var newState = this.getState() + 'x';
+		console.log(2, newState);
+		this.exec("Class('flash.debugger.enterDebugger')()");
+		this.state(newState);
+	})
+	.addCallback(function(){
+		var newState = this.getState() + 'y';
+		console.log(3, newState);
+		this.exec("Class('flash.debugger.enterDebugger')()");
+		this.state(newState);
+	})
+	.state('hello');
+*/

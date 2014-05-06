@@ -51,13 +51,18 @@ import java.util.Vector;
  * @author Kyle Monico
  * @author Yen-Fu Luo
  * @author Philip Kovac
+ * @author Patrick Stickney
+ * @author John Fallon
  */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
+	public static String SQLITE = "SQLite";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
+	
+	public static String DEFAULT_SQLITE_DATABASE = "sqlite_master";
 	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
@@ -67,6 +72,8 @@ public class SQLUtils
 	{
 		if (dbms.equalsIgnoreCase(MYSQL))
 			return "com.mysql.jdbc.Driver";
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return "org.sqlite.JDBC";
 		if (dbms.equalsIgnoreCase(POSTGRESQL))
 			return "org.postgis.DriverWrapper";
 		if (dbms.equalsIgnoreCase(SQLSERVER))
@@ -82,7 +89,7 @@ public class SQLUtils
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
-			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, SQLITE, POSTGRESQL })
 				if (dbms.equalsIgnoreCase(match))
 					return match;
 			return dbms;
@@ -101,6 +108,8 @@ public class SQLUtils
 			return ORACLE;
 		if (connectString.startsWith("jdbc:mysql"))
 			return MYSQL;
+		if (connectString.startsWith("jdbc:sqlite"))
+			return SQLITE;
 		if (connectString.startsWith("jdbc:postgresql"))
 			return POSTGRESQL;
 		
@@ -135,7 +144,12 @@ public class SQLUtils
 			format = "jdbc:%s:thin:%s/%s@%s:%s";
 			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
-		else // MySQL or PostgreSQL
+		else if(SQLITE.equalsIgnoreCase(dbms))
+		{
+			format = "jdbc:%s:%s";
+			// "jdbc:sqlite:C:/path/to/file/DataBase.db"
+		}
+		else // MySQL or PostGreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
 		}
@@ -161,6 +175,8 @@ public class SQLUtils
 		String result = "";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			result = String.format(format, dbms.toLowerCase(), user, pass, host, database);
+		else if( dbms.equalsIgnoreCase(SQLITE))
+			result = String.format(format, dbms.toLowerCase(), database);
 		else
 			result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
 
@@ -393,7 +409,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = "`";
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = "\"";
 		}
@@ -435,7 +451,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = '`';
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = '"';
 		}
@@ -499,6 +515,7 @@ public class SQLUtils
 	
 	/**
 	 * This will wrap a query expression in a string cast.
+	 * If the database is not supported by this function, the queryExpression will not be altered.
 	 * @param conn An SQL Connection.
 	 * @param queryExpression An expression to be used in a SQL Query.
 	 * @return The query expression wrapped in a string cast.
@@ -508,7 +525,7 @@ public class SQLUtils
 		String dbms = getDbmsFromConnection(conn);
 		if (dbms.equals(MYSQL))
 			return String.format("cast(%s as char)", queryExpression);
-		if (dbms.equals(POSTGRESQL))
+		if (dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
 			return String.format("cast(%s as varchar)", queryExpression);
 		
 		// dbms type not supported by this function yet
@@ -545,6 +562,9 @@ public class SQLUtils
 		
 		if (dbms.equalsIgnoreCase(ORACLE))
 			schema = schema.toUpperCase();
+		
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return quoteSymbol(dbms, table);
 		
 		return quoteSymbol(dbms, schema) + "." + quoteSymbol(dbms, table);
 	}
@@ -931,6 +951,10 @@ public class SQLUtils
 				while (rs.next())
 					schemas.add(rs.getString(1)); // table_catalog
 			}
+			else if( md.getDatabaseProductName().equalsIgnoreCase(SQLITE))
+			{
+				schemas.add("sqlite_master");
+			}
 			else
 			{
 				rs = md.getSchemas();
@@ -978,6 +1002,8 @@ public class SQLUtils
 			else
 				rs = md.getTables(null, schemaName, null, types);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			// column indices: 1=table_cat,2=table_schem,3=table_name,4=table_type,5=remarks
 			while (rs.next())
@@ -1019,6 +1045,8 @@ public class SQLUtils
 			else
 				rs = md.getColumns(null, schemaName, tableName, null);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
 				columns.add(rs.getString(4)); // column_name
@@ -1031,7 +1059,38 @@ public class SQLUtils
 		return columns;
 	}
 	
+	// not implemented by SQLite JDBC driver
+	/* *
+	 * Attaches a database to an SQLite instance.
+	 * @param conn A SQLite connection.
+	 * @param databaseName The name of the database.
+	 * @param filePath The path to the file where the database either exists or should be created.
+	 * @throws SQLException
+	 * /
+	public static void createSQLiteDatabase(Connection conn, String databaseName, String filePath) throws SQLException
+	{
+		if (SQLUtils.schemaExists(conn, databaseName))
+			return;
+		
+		String query = String.format("ATTACH DATABASE ? AS %s", quoteSymbol(conn, databaseName));
+		PreparedStatement stmt = null;
+		try
+		{
+			stmt = prepareStatement(conn, query, new String[]{ filePath });
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}*/
+	
 	/**
+	 * Creates a schema in a non-SQLite database.  For SQLite, this does nothing.
 	 * @param conn An existing SQL Connection
 	 * @param schema The value to be used as the Schema name
 	 * @throws SQLException If the query fails.
@@ -1039,10 +1098,13 @@ public class SQLUtils
 	public static void createSchema(Connection conn, String schema)
 		throws SQLException
 	{
+		if (isSQLite(conn))
+			return;
+		
 		if (SQLUtils.schemaExists(conn, schema))
 			return;
 
-		String query = "CREATE SCHEMA " + schema;
+		String query = String.format("CREATE SCHEMA %s", schema);
 		Statement stmt = null;
 		try
 		{
@@ -1251,13 +1313,23 @@ public class SQLUtils
 		if (dbms.equals(ORACLE))
 			return String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
 		
-		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL))
+		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
 			return query + " LIMIT 1";
 		
 		throw new InvalidParameterException("DBMS not supported: " + dbms);
 	}
 	private static String newIdClause(String dbms, String quotedIdField, String quotedTable)
 	{
+		if (dbms.equals(SQLITE))
+		{
+			return String.format(
+					"(SELECT CASE WHEN MAX(%s) IS NULL THEN 1 ELSE MAX(%s)+1 END FROM %s LIMIT 1)",
+					quotedIdField,
+					quotedIdField,
+					quotedTable
+			);
+		}
+		
 		if (dbms.equals(SQLSERVER))
 		{
 			return String.format(
@@ -1300,6 +1372,8 @@ public class SQLUtils
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
 		boolean isPostgreSQL = dbms.equals(POSTGRESQL);
+		boolean isSQLite = dbms.equals(SQLITE);
+		boolean useTwoQueries = isMySQL || isOracle || isSQLite;
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
@@ -1316,7 +1390,7 @@ public class SQLUtils
 		String fields_string = quotedIdField + "," + Strings.join(",", columns);
 		
 		String id_string;
-		if (isMySQL || isOracle)
+		if (useTwoQueries)
 			id_string = "?"; // we get the new id below and then give it as a param
 		else
 			id_string = newIdClause(dbms, quotedIdField, quotedTable);
@@ -1339,7 +1413,7 @@ public class SQLUtils
 			int id;
 			synchronized (conn)
 			{
-				if (isMySQL || isOracle)
+				if (useTwoQueries)
 				{
 					String nextQuery = query;
 					
@@ -1410,6 +1484,16 @@ public class SQLUtils
 	public static boolean isSQLServer(Connection conn)
 	{
 		return getDbmsFromConnection(conn).equals(SQLSERVER);
+	}
+	
+	/**
+	 * This function checks if a connection is for a SQLite server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a SQLite Server.
+	 */
+	public static boolean isSQLite(Connection conn)
+	{
+		return getDbmsFromConnection(conn).equals(SQLITE);
 	}
 	
 	private static String truncate(String str, int maxLength)
@@ -1755,14 +1839,21 @@ public class SQLUtils
 
 	/**
 	 * This will escape special characters in a SQL search string.
+	 * Not reliable on SQLite since there is no escape character.
 	 * @param conn A SQL Connection.
 	 * @param searchString A SQL search string containing special characters to be escaped.
 	 * @return The searchString with special characters escaped.
 	 * @throws SQLException 
 	 */
-	public static String escapeSearchString(Connection conn, String searchString) throws SQLException
+	private static String escapeSearchString(Connection conn, String searchString) throws SQLException
 	{
 		String escape = conn.getMetaData().getSearchStringEscape();
+		
+		if (escape == null)
+		{
+			return searchString;
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		int n = searchString.length();
 		for (int i = 0; i < n; i++)
@@ -2131,8 +2222,8 @@ public class SQLUtils
 		
 		/**
 		 * Adds a set of grouped inner conditions.
-		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
-		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * Conjunctive Normal Form uses outer AND logic and will group these inner conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these inner conditions with AND logic like (field1 = value1 AND field2 = value2).
 		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param caseSensitiveFields A set of field names which should use case sensitive compare.
 		 * @param wildcardFields A set of field names which should use a "LIKE" SQL clause for wildcard search.
@@ -2152,8 +2243,8 @@ public class SQLUtils
 		
 		/**
 		 * Adds a set of grouped inner conditions.
-		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
-		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * Conjunctive Normal Form uses outer AND logic and will group these inner conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these inner conditions with AND logic like (field1 = value1 AND field2 = value2).
 		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param compareModes Field names mapped to compare modes
 		 * @see weave.utils.SQLUtils#convertWildcards(String)

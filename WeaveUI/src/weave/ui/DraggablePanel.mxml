@@ -72,6 +72,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
@@ -119,6 +120,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const userControlButton:Button = new Button();
 			protected const subMenuButton:Button = new Button();
+			protected const attributeButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
@@ -235,8 +237,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// These calls to setStyle fix the display bug where there is a ~200 px bottom margin and ~20 px right margin.
 				UIUtils.pad(this, 0);
 				
-				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, "Change settings");
-				setupControlButton(subMenuButton, _subMenuIcon, null, "Menu");
+				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, TOOLTIP_CONTROLS);
+				setupControlButton(subMenuButton, _subMenuIcon, null, TOOLTIP_SUBMENU);
+				setupControlButton(attributeButton, _attributeIcon, handleAttributeButtonClick, TOOLTIP_ATTRIBUTES);
 				setupControlButton(zOrderButton, [icon_zOrder, icon_zOrderReverse, icon_zOrder], null);
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, TOOLTIP_MINIMIZE);
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, TOOLTIP_MAXIMIZE);
@@ -1254,7 +1257,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function getLeftIconAreaWidth():int
 			{
 				var w:int = buttonOffsetFromSide;
-				for each (var button:Button in [userControlButton, subMenuButton])
+				for each (var button:Button in [userControlButton, subMenuButton, attributeButton])
 					if (button.parent)
 						w += buttonSize + spaceBetweenButtons;
 				return w;
@@ -1300,8 +1303,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var buttons:Array, conditions:Array, i:int, button:Button;
 				
 				// left side
-				buttons = [userControlButton, subMenuButton];
-				conditions = [Weave.properties.enableToolControls.value && _controlPanel, enableSubMenu.value];
+				buttons = [userControlButton, subMenuButton, attributeButton];
+				conditions = [
+					Weave.properties.enableToolControls.value && _controlPanel,
+					enableSubMenu.value,
+					Weave.properties.enableToolControls.value && this is IVisToolWithSelectableAttributes && (this as IVisToolWithSelectableAttributes).getSelectableAttributes().length
+				];
 				for (i = 0; i < buttons.length; i++)
 				{
 					button = buttons[i];
@@ -1397,6 +1404,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					_dragCanvas.graphics.lineStyle(1, borderIsVisible ? thinBorderOverlayColor : thinBorderColor, thinBorderAlpha);
 					_dragCanvas.graphics.drawRect(0, 0, Math.round(width)-1, Math.round(height)-1);
+				}
+			}
+			
+			protected function handleAttributeButtonClick():void
+			{
+				var tool:IVisToolWithSelectableAttributes = this as IVisToolWithSelectableAttributes;
+				if (tool)
+				{
+					var attrs:Array = tool.getSelectableAttributes();
+					var names:Array = tool.getSelectableAttributeNames();
+					if (attrs && attrs.length)
+						AttributeSelectorPanel.open(attrs[0], names[0]);
 				}
 			}
 			
@@ -1537,6 +1556,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/**************************************************************************
 			 ************************** BEGIN STATIC SECTION **************************/
 			
+			public static const TOOLTIP_CONTROLS:String = "Change settings";
+			public static const TOOLTIP_SUBMENU:String = "Menu";
+			public static const TOOLTIP_ATTRIBUTES:String = "Change attributes";
 			public static const TOOLTIP_ZORDER:String = "Toggle always above or below";
 			public static const TOOLTIP_MINIMIZE:String = "Minimize";
 			public static const TOOLTIP_MAXIMIZE:String = "Maximize";
@@ -1593,6 +1615,100 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
+			 * @return an Array containing all DraggablePanels on stage that are not minimized
+			 *
+			 * @author kmanohar
+			 */		
+			public static function getWindowsOnStage():Array
+			{
+				var panels:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
+				var panelsOnStage:Array = [];
+				
+				for each (var panel:DraggablePanel in panels)
+				{
+					if (!panel.minimized.value) 
+						panelsOnStage.push(panel);
+				}
+				return panelsOnStage;
+			}
+			/**
+			 * This function tiles all the DraggablePanels on stage
+			 * 
+			 * @TODO create a ui for this so the user can specify how to divide the stage
+			 * 
+			 * @author kmanohar
+			 */		
+			public static function tileWindows():void
+			{
+				var panels:Array = getWindowsOnStage();
+				var numPanels:uint = panels.length;
+				if (!numPanels)
+					return;
+				
+				var gridLength:Number = Math.ceil(Math.sqrt(numPanels));
+				
+				var rows:uint = gridLength; 
+				var columns:uint = gridLength;
+				
+				if (gridLength*gridLength != numPanels)
+				{	
+					rows = Math.round(Math.sqrt(numPanels));
+					columns = gridLength;
+				}			
+				
+				var xPos:Number = 0;
+				var yPos:Number = 0;
+				var firstPanel:DraggablePanel = panels[0] as DraggablePanel;
+				var taller:Boolean = firstPanel.parent.width < firstPanel.parent.height;
+				var width:Number = 100/(taller ? rows : columns);
+				var height:Number = 100/(taller ? columns : rows);
+				
+				var i:int = 0;
+				for each (var dp:DraggablePanel in panels)
+				{				
+					dp.panelX.value = xPos.toString() + "%";
+					dp.panelY.value = yPos.toString() + "%";
+					
+					dp.panelHeight.value = height.toString() + "%";
+					dp.panelWidth.value = width.toString() + "%";
+					if (i == (panels.length - 1))
+					{
+						// expand to fill the width
+						dp.panelWidth.value = (100-xPos).toString() + "%";
+					}
+					
+					xPos += width;
+					if (xPos >= 100)
+						xPos = 0;
+					if (!xPos)
+						yPos += height ;
+					i++;
+				}
+			}
+			/**
+			 * This function arranges all DraggablePanels along a diagonal
+			 * 
+			 * @author kmanohar
+			 */
+			public static function cascadeWindows():void
+			{
+				var panels:Array = getWindowsOnStage();
+				if (!panels.length)
+					return;
+				
+				var increment:Number = 50/panels.length;
+				var dist:Number = 0 ;
+				
+				for each (var dp:DraggablePanel in panels)
+				{				
+					dp.panelX.value = dp.panelY.value = dist.toString()+"%";			
+					dp.panelHeight.value = dp.panelWidth.value = "50%" ;	
+					
+					dist += increment;
+				}
+			}
+			
+			/**
 			 * Embedded cursors
 			 */
 			public static const CURSOR_RESIZE_TOP_BOTTOM:String = "resizeTopBottom";
@@ -1616,6 +1732,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Embed(source="/weave/resources/images/gear6_13x13_h.png")] private static var _userControlIcon:Class;
 			[Embed(source="/weave/resources/images/gear6_13x13_v.png")] private static var _userControlIcon2:Class;
 			[Embed(source="/weave/resources/images/menu_9x7.png")] private static var _subMenuIcon:Class;
+			[Embed(source="/weave/resources/images/alpha_11x11.png")] private static var _attributeIcon:Class;
 			
 			[Embed(source="/weave/resources/images/z-order.png")] private static var icon_zOrder:Class;
 			[Embed(source="/weave/resources/images/z-order-reverse.png")] private static var icon_zOrderReverse:Class;

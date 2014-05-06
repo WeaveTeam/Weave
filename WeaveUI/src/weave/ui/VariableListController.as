@@ -33,9 +33,11 @@ package weave.ui
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.IColumnReference;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableWatcher;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	
 	/**
 	 * Callbacks trigger when the list of objects changes.
@@ -345,16 +347,15 @@ package weave.ui
 		// called when something is being dragged on top of this list
 		private function dragOverHandler(event:DragEvent):void
 		{
-			DragManager.showFeedback(DragManager.MOVE);
+			if (dragSourceIsAcceptable(event))
+				DragManager.showFeedback(DragManager.MOVE);
+			else
+				DragManager.showFeedback(DragManager.NONE);
 		}
 		
 		// called when something is dropped into this list
 		private function dragDropHandler(event:DragEvent):void
 		{
-			//need to add re-order functionality				
-			//if(event.dragInitiator == _editor)
-			//super.dragDropHandler(event);
-			
 			//hides the drop visual lines
 			event.currentTarget.hideDropFeedback(event);
 			_editor.mx_internal::resetDragScrolling(); // if we don't do this, list will scroll when mouse moves even when not dragging something
@@ -368,7 +369,9 @@ package weave.ui
 			{
 				event.preventDefault();
 				
-				var object:ILinkableObject;
+				var ref:IColumnReference;
+				var refCol:ReferencedColumn;
+				var meta:Object;
 				var items:Array = event.dragSource.dataForFormat("items") as Array;
 				if (hashMap)
 				{
@@ -377,14 +380,27 @@ package weave.ui
 					var dropIndex:int = _editor.calculateDropIndex(event);
 					var newObject:ILinkableObject;
 					
-					// copy each item in the list, in order
-					for (var i:int = 0; i < items.length; i++)
+					// copy items in reverse order because selectedItems is already reversed
+					for (var i:int = items.length - 1; i >= 0; i--)
 					{
-						object = items[i] as ILinkableObject;
-						if (hashMap.getName(object) == null)
+						var object:ILinkableObject = items[i] as ILinkableObject;
+						if (object && hashMap.getName(object) == null)
 						{
 							newObject = hashMap.requestObjectCopy(null, object);
 							newNames.push(hashMap.getName(newObject));
+						}
+						
+						ref = items[i] as IColumnReference;
+						if (ref)
+						{
+							meta = ref.getColumnMetadata();
+							if (meta)
+							{
+								refCol = hashMap.requestObject(null, ReferencedColumn, false);
+								refCol.setColumnReference(ref.getDataSource(), meta);
+								newObject = refCol;
+								newNames.push(hashMap.getName(newObject));
+							}
 						}
 					}
 					
@@ -400,20 +416,44 @@ package weave.ui
 				else if (dynamicObject && items.length > 0)
 				{
 					// only copy the first item in the list
-					dynamicObject.requestLocalObjectCopy(items[0]);
+					var item:Object = items[0];
+					if (item is ILinkableObject)
+						dynamicObject.requestLocalObjectCopy(item as ILinkableObject);
+					
+					ref = item as IColumnReference;
+					if (ref)
+					{
+						meta = ref.getColumnMetadata();
+						if (meta)
+						{
+							refCol = dynamicObject.requestLocalObject(ReferencedColumn, false);
+							refCol.setColumnReference(ref.getDataSource(), meta);
+						}
+					}
 				}
 			}
+		}
+		
+		private function dragSourceIsAcceptable(event:DragEvent):Boolean
+		{
+			if (event.dragSource.hasFormat("items"))
+			{
+				var items:Array = event.dragSource.dataForFormat("items") as Array;
+				for each (var item:Object in items)
+				{
+					var ref:IColumnReference = item as IColumnReference;
+					if (item is ILinkableObject || (ref && ref.getColumnMetadata() != null))
+						return true;
+				}
+			}
+			return false;
 		}
 		
 		// called when something is dragged on top of this list
 		private function dragEnterCaptureHandler(event:DragEvent):void
 		{
-			if (event.dragSource.hasFormat("items"))
-			{
-				var items:Array = event.dragSource.dataForFormat("items") as Array;
-				if (items[0] is ILinkableObject)
-					DragManager.acceptDragDrop(event.currentTarget as IUIComponent);
-			}
+			if (dragSourceIsAcceptable(event))
+				DragManager.acceptDragDrop(event.currentTarget as IUIComponent);
 			event.preventDefault();
 		}
 		

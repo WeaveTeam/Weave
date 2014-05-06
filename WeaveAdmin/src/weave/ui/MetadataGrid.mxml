@@ -10,7 +10,7 @@
     </mx:DataGrid>
 	<Indent label="Add property:">
 		<CustomComboBox id="newPropCombo" editable="true" enter="addProp();" change="if (newPropCombo.selectedIndex >= 0) addProp();" width="100%"/>
-        <mx:Button id="addPropButton" label="Add property" click="addProp()" enabled="{newPropCombo.text ? true : false}"/>
+        <mx:Button id="addPropButton" label="Add property" click="addProp();" enabled="{enableAddPropertyButtonForProp(newPropCombo.text)}"/>
 	</Indent>
 <mx:Script>
 <![CDATA[
@@ -135,7 +135,8 @@
 			if (values && defaultPropertyName && !values.hasOwnProperty(defaultPropertyName))
 				items.push(new MetadataGridItem(defaultPropertyName));
 	        for (var prop:String in values)
-				items.push(new MetadataGridItem(prop, values[prop]));
+				if (propertyIgnoreList.indexOf(prop) < 0)
+					items.push(new MetadataGridItem(prop, values[prop]));
 			AsyncSort.sortImmediately(items, propertySort);
 	        grid.dataProvider = items;
 	        gridItems.addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);
@@ -149,9 +150,17 @@
 			dispatchMetaChanged();
 		}
     }
+	private function enableAddPropertyButtonForProp(prop:String):Boolean
+	{
+		return (prop && propertyIgnoreList.indexOf(prop) < 0) ? true : false
+	}
     public function addProp():void
     {
         var prop:String = newPropCombo.text;
+		
+		if (!enableAddPropertyButtonForProp(prop))
+			return;
+		
         newPropCombo.text = null;
         if (!prop)
 		{
@@ -224,6 +233,7 @@
 		return ObjectUtil.stringCompare(a as String, b as String, true);
 	}
 	public var preferredMetadataOrder:Array = [];
+	public var propertyIgnoreList:Array = [];
 ]]>
 </mx:Script>
 </mx:VBox>

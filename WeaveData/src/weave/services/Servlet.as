@@ -132,7 +132,7 @@ package weave.services
 				request.data = new URLVariables();
 				
 				// set url variable for the method name
-				if(methodName)
+				if (methodName)
 					request.data[METHOD] = methodName;
 				
 				if (methodParameters != null)

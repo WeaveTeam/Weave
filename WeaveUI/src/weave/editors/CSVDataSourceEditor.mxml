@@ -25,7 +25,7 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
-	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
+	implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_csvDataSource ? 'Edit' : 'Add') + ' CSV Data Source')}"/>
 	<ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
@@ -57,11 +57,12 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.registerDisposableChild;
@@ -93,7 +94,7 @@
 				super.createChildren();
 				addChild(busyIndicator);
 				busyIndicator.visible = false;
-				sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("CSVDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 				getCallbackCollection(csvParser).addImmediateCallback(this, handleCSVParser);
 			}
@@ -111,7 +112,7 @@
 				
 				if (_csvDataSource)
 				{
-					sourceName.text = Weave.root.getName(_csvDataSource);
+					sourceName.text = WeaveAPI.globalHashMap.getName(_csvDataSource);
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(_csvDataSource.keyType.value);
@@ -141,6 +142,28 @@
 				_csvDataSource.keyColName.value = keyColumnName.text;
 				_csvDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 				_csvDataSource.csvData.setSessionState(csvRows);
+			}
+			
+			public function createDataSource():IDataSource
+			{
+				if (!sourceName.text || (!url.text && !getCSVRows()) || !keyTypeSelector.selectedKeyType)
+				{
+					Alert.show(lang("Please fill all required fields"), lang("Error"));
+					return null;
+				}
+				if (WeaveAPI.globalHashMap.getObject(sourceName.text))
+				{
+					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+					return null;
+				}
+				_csvDataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, CSVDataSource, false);
+				if (!_csvDataSource)
+				{
+					Alert.show(lang("Unexpected problem. Unable to add the data source."));
+					return null;
+				}
+				applyChanges();
+				return _csvDataSource;
 			}
 			
 			/**
@@ -182,7 +205,7 @@
 			
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
-				if (true)
+				if (false)
 				{
 					url.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
 					handleURLTextChange();

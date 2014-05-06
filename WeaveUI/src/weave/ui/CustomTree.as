@@ -19,16 +19,18 @@
 package weave.ui
 {
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	
-	import mx.collections.CursorBookmark;
 	import mx.collections.ICollectionView;
-	import mx.collections.IList;
 	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
-	import mx.controls.treeClasses.TreeListData;
 	import mx.controls.listClasses.IListItemRenderer;
+	import mx.controls.treeClasses.TreeListData;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
+	import mx.events.ListEvent;
+	import mx.events.TreeEvent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.utils.EventUtils;
@@ -41,13 +43,31 @@ package weave.ui
 	 * - fixes folder arrow visibility bug<br>
 	 * - useful functions like refreshDataProvider()
 	 * @author adufilie
-	 */	
+	 */
 	public class CustomTree extends Tree
 	{
+		[Bindable] public var highlightedItems:Array = [];
+		
 		public function CustomTree()
 		{
 			super();
 			addEventListener("scroll", updateHScrollLater);
+		}
+		
+		override public function set showRoot(value:Boolean):void
+		{
+			super.showRoot = value;
+			if (value && _rootItem)
+			{
+				commitProperties();
+				expandItem(_rootItem, true);
+			}
+		}
+		
+		override protected function addDragData(dragSource:Object):void
+		{
+			dragSource.addHandler(copySelectedItems, "items");
+			super.addDragData(dragSource);
 		}
 		
 		override protected function initListData(item:Object, treeListData:TreeListData):void
@@ -126,6 +146,8 @@ package weave.ui
 		 */
 		public function expandMatchingItems(itemTest:Function, open:Boolean = true):void
 		{
+			if (!collection || !collection.length)
+				return;
 			var cursor:IViewCursor = collection.createCursor();
 			do
 			{
@@ -136,19 +158,56 @@ package weave.ui
 		}
 		
 		/**
-		 * @param itemTest A function to test for a matching item:  function(item:Object):Boolean
+		 * Gets children of an item using the dataDescriptor.
+		 */
+		public function getChildren(item:Object):ICollectionView
+		{
+			if (!item)
+				return null;
+			// iterator could be null if dataProvider has not been set yet.
+			if (!iterator)
+			{
+				dataProvider = [];
+				iterator = _rootModel.createCursor();
+			}
+			return _dataDescriptor.getChildren(item, iterator.view);
+		}
+		
+		public function scrollToSelectedItem():void
+		{
+			scrollToAndSelectMatchingItem(selectedItem);
+		}
+		
+		/**
+		 * @param itemOrTestFunction Either an item or a function to test for a matching item:  function(item:Object):Boolean
 		 * @return The matching item, if found.
 		 */		
-		public function scrollToAndSelectMatchingItem(itemTest:Function):Object
+		public function scrollToAndSelectMatchingItem(itemOrTestFunction:Object):Object
 		{
+			if (!collection || !collection.length)
+				return null;
+			
+			if (itemOrTestFunction == null)
+			{
+				if (selectedItem)
+					selectedItem = null;
+				return null;
+			}
+			
 			var i:int = 0;
 			var cursor:IViewCursor = collection.createCursor();
+			var useBasicEqualityTest:Boolean = itemOrTestFunction == selectedItem || selectedItemsCompareFunction == null;
 			do
 			{
-				if (itemTest(cursor.current))
+				if (useBasicEqualityTest
+					? cursor.current == itemOrTestFunction
+					: (itemOrTestFunction is Function
+						? (itemOrTestFunction as Function)(cursor.current)
+						: selectedItemsCompareFunction(cursor.current, itemOrTestFunction)))
 				{
 					// set selection before scrollToIndex() or it won't scroll
-					selectedItems = [cursor.current];
+					if (selectedItem != cursor.current)
+						selectedItem = cursor.current;
 					scrollToIndex(i);
 					return cursor.current;
 				}
@@ -177,15 +236,16 @@ package weave.ui
 		/**
 		 * This function must be called whenever the hierarchical data changes.
 		 * Otherwise, the Tree will not display properly.
+		 * @param newDataProvider Optionally specifies a new dataProvider.  If not specified, previous dataProvider will be used.
 		 */
-		public function refreshDataProvider():void
+		public function refreshDataProvider(newDataProvider:Object = null):void
 		{
 			var _firstVisibleItem:Object = firstVisibleItem;
 			var _selectedItems:Array = selectedItems;
 			var _openItems:Array = openItems.concat();
 			
 			// use value previously passed to "set dataProvider" in order to create a new collection wrapper.
-			dataProvider = _dataProvider;
+			dataProvider = newDataProvider || _dataProvider;
 			// commitProperties() behaves as desired when both dataProvider and openItems are set.
 			openItems = _openItems;
 			
@@ -229,6 +289,13 @@ package weave.ui
 			actualIterator = ai;
 		}
 		
+		
+
+		protected function drawHighlightedItems():void
+		{
+
+		}
+
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			updateHScrollLater();
@@ -259,6 +326,7 @@ package weave.ui
 			drawItem(renderer, selected, highlighted, caret, transition);
 		}
 
+			
 
 		private var _pendingScrollToIndex:int = -1;
 		override public function scrollToIndex(index:int):Boolean
@@ -284,5 +352,79 @@ package weave.ui
 			return super.scrollToIndex(index);
 		}
 
+		override protected function keyDownHandler(event:KeyboardEvent):void
+		{
+			if (!event.isDefaultPrevented())
+				super.keyDownHandler(event);
+		}
+		
+		/**
+		 * Enables click-to-expand and double-click-to-collapse.
+		 * @param singleClickExpands If set to false, double-click is required to expand a branch.
+		 */
+		public function enableClickToExpand(singleClickExpands:Boolean = true):void
+		{
+			if (singleClickExpands)
+				this.addEventListener(ListEvent.ITEM_CLICK, handleClickExpand);
+			doubleClickEnabled = true;
+			this.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, handleDoubleClickExpand);
+		}
+		private var _preMouseDownSelectedItem:*; // remembers the selectedItem before mouseDown occurred
+		override protected function mouseDownHandler(event:MouseEvent):void
+		{
+			// remember which item was selected prior to mouseDown
+			_preMouseDownSelectedItem = selectedItem;
+			super.mouseDownHandler(event);
+		}
+		private function handleClickExpand(event:ListEvent):void
+		{
+			var item:* = event.itemRenderer ? event.itemRenderer.data : null;
+			// only expand if this item was not selected prior to mouseDown
+			if (item && item != _preMouseDownSelectedItem
+				&& dataDescriptor.isBranch(item, iterator.view)
+				&& dataDescriptor.hasChildren(item, iterator.view))
+				expandItem(item, true);
+		}
+		private function handleDoubleClickExpand(event:ListEvent):void
+		{
+			var item:* = event.itemRenderer ? event.itemRenderer.data : null;
+			// Toggle expanded state.
+			// Note that this will toggle the folder icon whether or not the node has children.
+			// Also note that the same behavior occurs when using the left and right arrow keys.
+			if (item && dataDescriptor.isBranch(item, iterator.view))
+				expandItem(item, !isItemOpen(item));
+		}
+		
+		/**
+		 * If set to true, a collapsed item becomes selected when it causes selected items to become hidden.
+		 */
+		public function set handleCollapseSelection(value:Boolean):void
+		{
+			if (value)
+				this.addEventListener(TreeEvent.ITEM_CLOSE, handleItemCollapse);
+			else
+				this.removeEventListener(TreeEvent.ITEM_CLOSE, handleItemCollapse);
+		}
+		private function handleItemCollapse(event:TreeEvent):void
+		{
+			// if collapsing a node would make the current selection disappear, select the collapsing node
+			if (isItemDescendantSelected(event.item))
+				selectedItem = event.item;
+		}
+		
+		/**
+		 * Checks if there are any selected items in the descendants of an item.
+		 * Only expanded items will be considered when checking descendants.
+		 * @param item The item.
+		 * @return true if there is a descendant item selected and shown.
+		 */
+		public function isItemDescendantSelected(item:Object):Boolean
+		{
+			for each (var child:Object in _dataDescriptor.getChildren(item, iterator.view))
+				if (isItemSelected(child) || (isItemOpen(child) && isItemDescendantSelected(child)))
+					return true;
+			
+			return false;
+		}
 	}
 }

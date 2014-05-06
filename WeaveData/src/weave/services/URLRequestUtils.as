@@ -26,6 +26,7 @@ package weave.services
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
 	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
@@ -189,14 +190,14 @@ package weave.services
 		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
-		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
+		 * @param useCache A boolean indicating whether to use the cached images for HTTP GET requests. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
 		 */
 		public function getContent(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
 		{
 			addBaseURL(request);
 			
-			if (useCache)
+			if (useCache && request.method == URLRequestMethod.GET)
 			{
 				var content:Object = _contentCache[request.url]; 
 				if (content)
@@ -298,6 +299,7 @@ import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.events.ProgressEvent;
 import flash.events.SecurityErrorEvent;
+import flash.external.ExternalInterface;
 import flash.net.URLLoader;
 import flash.net.URLRequest;
 import flash.utils.ByteArray;
@@ -315,6 +317,7 @@ import weave.api.WeaveAPI;
 import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
 import weave.compiler.StandardLib;
+import weave.services.ExternalDownloader;
 import weave.services.URLRequestUtils;
 
 internal class CustomURLLoader extends URLLoader
@@ -340,6 +343,13 @@ internal class CustomURLLoader extends URLLoader
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			
+			if (failedHosts[getHost()])
+			{
+				// don't bother trying a URLLoader with the same host that previously failed due to a security error
+				ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);
+				return;
+			}
+			
 			// set up event listeners
 			addEventListener(Event.COMPLETE, handleGetResult);
 			addEventListener(IOErrorEvent.IO_ERROR, handleGetError);
@@ -350,6 +360,19 @@ internal class CustomURLLoader extends URLLoader
 				trace(debugId(this), 'request', request.url);
 			super.load(request);
 		}
+	}
+	
+	/**
+	 * Lookup for hosts that previously failed due to crossdomain.xml security error
+	 */
+	private static const failedHosts:Object = {}; // host -> true
+	private function getHost():String
+	{
+		var url:String = _urlRequest.url;
+		var start:int = url.indexOf("/") + 2;
+		var length:int = url.indexOf("/", start);
+		var host:String = url.substr(0, length);
+		return host;
 	}
 	
 	internal var label:String;
@@ -518,15 +541,11 @@ internal class CustomURLLoader extends URLLoader
 	private function handleSecurityError(event:SecurityErrorEvent):void
 	{
 		fixErrorMessage(event);
-		if (false)
+		if (ExternalInterface.available)
 		{
-			// call the JQueryCaller to use JQuery to try to download a file that we had a security error
-			// on - this is to get around the Flash player's security restrictions for downloading files
-			// from servers without a permissive crossdomain.xml
-			/** NOTE: this will not work for anything other than text data - it can be used to access data
-			 *        in formats such as XML from a server that does not have a crossdomain.xml that is 
-			 *        permissive, this will NOT work for binary data such as images **/
-			//JQueryCaller.getFileFromURL(_urlRequest.url, _asyncToken);
+			// Server did not have a permissive crossdomain.xml, so try JavaScript/CORS
+			failedHosts[getHost()] = true;
+			ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);
 		}
 		else
 		{

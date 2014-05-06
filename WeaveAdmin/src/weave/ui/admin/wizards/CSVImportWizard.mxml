@@ -62,6 +62,8 @@
 				you can enter the values here and Weave will treat them as missing data.
 				Separate multiple flag values by commas.
 			</ui:HelpComponent>
+			<ui:CustomCheckBox id="includeDefaultNullValues" label="{lang('Include default null flag values')}"
+							   selected="true" toolTip="{StandardLib.replace(NULL_FLAG_VALUES, ',', '\n')}"/>
 		</ui:Indent>
 		<mx:HBox>
 			<mx:CheckBox id="generateKeyColumnCheckBox" selected="true" change="handleChange()" label="{lang('Generate a new primary key column')}"/>
@@ -106,14 +108,17 @@
 			
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
 			import weave.services.addAsyncResponder;
-			import weave.services.beans.EntityMetadata;
+			import weave.api.services.beans.EntityMetadata;
 			import weave.ui.BusyIndicator;
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;
 
+			public static const NULL_FLAG_VALUES:String = '""," ",NULL,NaN,#DIV/0!,"""NULL""",-,.,..';
+			
 			private static const paddingIndent:int = 20;
 			private var busyIndicator:BusyIndicator = new BusyIndicator();
 			
@@ -222,12 +227,12 @@
 			private function openServerBrowser():void
 			{
 				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_CSV);
-				_serverFileBrowser.datagrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
+				_serverFileBrowser.dataGrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
 				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{
-				csvFileNameInput.text = _serverFileBrowser.datagrid.selectedItem.name;
+				csvFileNameInput.text = _serverFileBrowser.selectedFileInfo.fileName;
 				PopUpManager.removePopUp(_serverFileBrowser);
 				getColumnNames();
 			}
@@ -313,6 +318,15 @@
 			
 			private function importCSV():void
 			{
+				var nullFlagValues:String = nullFlagInput.text;
+				if (includeDefaultNullValues.selected)
+				{
+					if (nullFlagValues)
+						nullFlagValues += ',' + NULL_FLAG_VALUES;
+					else
+						nullFlagValues = NULL_FLAG_VALUES;
+				}
+				
 				disable();
 				addAsyncResponder(
 					Admin.service.importCSV(
@@ -324,7 +338,7 @@
 						tableSelector.tableOverwriteCheck.selected,
 						dataTableNameInput.text,
 						generateKeyColumnCheckBox.selected ? dataTableNameInput.text : keyOptions.keyTypeSelector.selectedKeyType,
-						nullFlagInput.text,
+						nullFlagValues,
 						keyOptions.filteredKeyColumns,
 						!noAppendCheckBox.selected
 					),

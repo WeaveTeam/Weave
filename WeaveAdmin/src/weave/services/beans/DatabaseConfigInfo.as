@@ -22,20 +22,6 @@ package weave.services.beans
 	public class DatabaseConfigInfo
 	{
 		[Bindable] public var connection:String = "";
-		[Bindable] public var schema:String = "";
-		
-		public function DatabaseConfigInfo(obj:Object)
-		{
-			if (obj == null)
-			{
-				schema = 'weave';
-			}
-			else
-			{
-				for (var name:String in obj)
-					if (this.hasOwnProperty(name))
-						this[name] = obj[name];
-			}
-		}
+		[Bindable] public var schema:String = "weave";
 	}
 }

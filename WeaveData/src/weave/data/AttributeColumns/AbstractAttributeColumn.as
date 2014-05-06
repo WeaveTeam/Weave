@@ -19,10 +19,14 @@
 
 package weave.data.AttributeColumns
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.CallbackCollection;
 	import weave.utils.ColumnUtils;
+	import weave.utils.HierarchyUtils;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * This object contains a mapping from keys to data values.
@@ -32,43 +36,52 @@ package weave.data.AttributeColumns
 	 */
 	public class AbstractAttributeColumn extends CallbackCollection implements IAttributeColumn
 	{
-		public function AbstractAttributeColumn(metadata:XML = null)
+		public function AbstractAttributeColumn(metadata:Object = null)
 		{
-			// make a copy because we don't want any surprises (metadata being set afterwards)
 			if (metadata)
-				_metadata = metadata.copy();
+				setMetadata(metadata);
 		}
 		
-		protected var _metadata:XML = null;
+		protected var _metadata:Object = null;
 
 		/**
 		 * This function should only be called once, before setting the record data.
 		 * @param metadata Metadata for this column.
 		 */
-		public function setMetadata(metadata:XML):void
+		public function setMetadata(metadata:Object):void
 		{
 			if (_metadata !== null)
 				throw new Error("Cannot call setMetadata() if already set");
-			_metadata = metadata;
+			// make a copy because we don't want any surprises (metadata being set afterwards)
+			_metadata = copyValues(metadata);
+		}
+		
+		/**
+		 * Copies key/value pairs from an Object or XML attributes.
+		 */
+		protected static function copyValues(obj_or_xml:Object):Object
+		{
+			if (obj_or_xml is XML_Class)
+				return HierarchyUtils.getMetadata(XML(obj_or_xml));
+			
+			var obj:Object = {};
+			for (var key:String in obj_or_xml)
+				obj[key] = obj_or_xml[key];
+			return obj;
 		}
 		
 		// metadata for this attributeColumn (statistics, description, unit, etc)
 		public function getMetadata(propertyName:String):String
 		{
 			var value:String = null;
-			if (_metadata != null && _metadata.attribute(propertyName).length() > 0)
-				value = _metadata.attribute(propertyName);
-			
+			if (_metadata)
+				value = _metadata[propertyName] || null;
 			return value;
 		}
 		
 		public function getMetadataPropertyNames():Array
 		{
-			var names:Array = [];
-			if (_metadata)
-				for each (var attr:XML in _metadata.attributes())
-					names.push(String(attr.localName()));
-			return names;
+			return VectorUtils.getKeys(_metadata);
 		}
 		
 		// 'abstract' functions, should be defined with override when extending this class

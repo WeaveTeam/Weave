@@ -70,16 +70,17 @@
 									 verticalScrollPolicy="on">
 							<CustomDataGrid:creationComplete>
 								<![CDATA[
-									var col1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
-									var col2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
-									columnDisplayGrid.columns = [col1, col2];
-									dataColumn.setInternalColumn(browser.dynamicColumn);
-									browser.dynamicColumn.addGroupedCallback(
+									var column:IAttributeColumn = browser.referencedColumn;
+									var dgc1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
+									var dgc2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
+									columnDisplayGrid.columns = [dgc1, dgc2];
+									dataColumn.setInternalColumn(column);
+									column.addGroupedCallback(
 										this,
 										function():void {
-											var keyCount:int = browser.dynamicColumn.keys.length;
+											var keyCount:int = column.keys.length;
 											columnDisplay.enabled = keyCount > 0;
-											if (linkableObjectIsBusy(browser.dynamicColumn))
+											if (linkableObjectIsBusy(column))
 												columnDisplayLabel.text = lang("Loading data...");
 											else
 											{
@@ -89,22 +90,23 @@
 													StandardLib.formatNumber(keyCount)
 												);
 											}
-											columnDisplayGrid.dataProvider = browser.dynamicColumn.keys;
-											keyColumn.keyType.value = browser.dynamicColumn.getMetadata(ColumnMetadata.KEY_TYPE);
-											var dataType:String = browser.dynamicColumn.getMetadata(ColumnMetadata.DATA_TYPE);
-											dataColumn.setMetadata(<attribute title={
-												dataType ? lang("Value ({0})", dataType) : lang("Value")
-											}/>);
+											columnDisplayGrid.dataProvider = column.keys;
+											keyColumn.keyType.value = column.getMetadata(ColumnMetadata.KEY_TYPE);
+											var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
+											var metadata:Object = {};
+											metadata[ColumnMetadata.TITLE] = dataType ? lang("Value ({0})", dataType) : lang("Value");
+											dataColumn.setMetadata(metadata);
 										},
 										true
 									);
 									BindingUtils.bindSetter(
-										function(selectedIndex:int):void
+										function(selectedItem:IWeaveTreeNode):void
 										{
-											columnDisplay.visible = columnDisplay.includeInLayout = selectedIndex >= 0;
+											var ref:IColumnReference = selectedItem as IColumnReference;
+											columnDisplay.visible = columnDisplay.includeInLayout = ref && ref.getColumnMetadata() != null;
 										},
-										browser.hierarchySelector.attributesView,
-										'selectedIndex'
+										browser.explorer.fileView,
+										'selectedItem'
 									);
 								]]>
 							</CustomDataGrid:creationComplete>
@@ -131,6 +133,10 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import weave.api.data.IColumnReference;
+				import weave.api.data.IWeaveTreeNode;
+				import weave.utils.EventUtils;
+				import weave.api.data.IAttributeColumn;
 				import weave.api.linkableObjectIsBusy;
 				import weave.compiler.StandardLib;
 				import mx.controls.dataGridClasses.DataGridColumn;
@@ -169,7 +175,7 @@
 					if (createdChildren)
 						return;
 					super.createChildren();
-					browser.hierarchySelector.attributeVBox.addChild(columnDisplay);
+					browser.explorer.fileVBox.addChild(columnDisplay);
 				}
 				
 				override protected function childrenCreated():void
@@ -248,8 +254,8 @@
 						return;
 					}
 					
-					// avoid requesting non-existant column in newly-selected data source
-					browser.hierarchySelector.selectedPath.value = <hierarchy/>;
+					// clear any existing selection
+					browser.referencedColumn.setColumnReference(null, null);
 					
 					if (editor && editor.parent == container)
 						container.removeChild(editor as DisplayObject);
@@ -291,7 +297,7 @@
 						{
 							editor.applyChanges();
 							if (refreshCheck.selected)
-								setSessionState(dataSource.attributeHierarchy, null);
+								dataSource.refreshHierarchy();
 							tabNav.selectedChild = browseTab;
 						}
 					}

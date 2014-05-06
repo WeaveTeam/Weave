@@ -20,6 +20,7 @@
 package weave.core
 {
 	import avmplus.DescribeType;
+	import avmplus.getQualifiedClassName;
 	
 	import flash.system.ApplicationDomain;
 
@@ -40,7 +41,56 @@ package weave.core
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			if (domain.hasDefinition(classQName))
 				return domain.getDefinition(classQName) as Class;
-			return null;
+			return _deprecatedLookup[classQName];
+		}
+		
+		/**
+		 * This tests if a class exists.
+		 * @param classQName The qualified class name.
+		 * @return true if the class exists.
+		 */
+		public static function hasClassDefinition(classQName:String):Boolean
+		{
+			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
+			if (domain.hasDefinition(classQName))
+				return true;
+			return !!_deprecatedLookup[classQName];
+		}
+		
+		/**
+		 * Checks if a class is deprecated.
+		 * @param classQName The qualified class name.
+		 * @return true if the class is deprecated.
+		 */
+		public static function isClassDeprecated(classQName:String):Boolean
+		{
+			return cacheClassInfo(classQName) && !!_deprecatedLookup[classQName];
+		}
+		
+		/**
+		 * Storage for registerDeprecatedClass()
+		 * @see #registerDeprecatedClass()
+		 */
+		private static const _deprecatedLookup:Object = {};
+		
+		/**
+		 * Registers a replacement class for a deprecated qualified class name.
+		 * @param deprecatedClassQName The deprecated qualified class name.
+		 * @param replacementClass The class that replaces the deprecated one.
+		 */
+		public static function registerDeprecatedClass(deprecatedClassQName:String, replacementClass:Class):void
+		{
+			_deprecatedLookup[deprecatedClassQName] = replacementClass;
+			
+			// handle case when package is not specified
+			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf(':') + 1);
+			if (!_deprecatedLookup[shortName])
+				_deprecatedLookup[shortName] = replacementClass;
+			
+			// make sure class can be looked up by name (in case it's an internal class)
+			deprecatedClassQName = getQualifiedClassName(replacementClass);
+			if (!getClassDefinition(deprecatedClassQName))
+				_deprecatedLookup[deprecatedClassQName] = replacementClass;
 		}
 
 		/**
@@ -146,7 +196,14 @@ package weave.core
 			if (classDef == null)
 				return false;
 
-			var type:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_BASES | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+			var type:Object = describeTypeJSON(
+				classDef,
+				DescribeType.INCLUDE_TRAITS
+					| DescribeType.USE_ITRAITS
+					| DescribeType.INCLUDE_INTERFACES
+					| DescribeType.INCLUDE_BASES
+					| DescribeType.INCLUDE_METADATA
+			);
 
 			var iMap:Object = new Object();
 			for each (var _implements:String in type.traits.interfaces)
@@ -158,14 +215,11 @@ package weave.core
 				eMap[_extends] = true;
 			classExtendsMap[classQName] = eMap;
 			
+			for each (var meta:Object in type.traits.metadata)
+				if (meta.name == 'Deprecated')
+					registerDeprecatedClass(classQName, classDef);
+			
 			return true; // successfully cached
 		}
-		
-		/*
-		private function typeEquals(o:*, cls:Class):Boolean
-		{
-			return o == null ? false : Object(o).constructor == cls;
-		}
-		*/
 	}
 }

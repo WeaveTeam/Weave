@@ -20,12 +20,10 @@
 package weave.utils
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
-	import mx.utils.ObjectUtil;
 	
 	/**
 	 * This class contains static functions that manipulate Vectors and Arrays.
@@ -287,7 +285,7 @@ package weave.utils
 		 * @param destination An Array or Vector to append items to.  If none specified, a new one will be created.
 		 * @return The destination Array with all the nested items in the source appended to it.
 		 */
-		public static function flatten(source:Array, destination:* = null):*
+		public static function flatten(source:*, destination:* = null):*
 		{
 			if (destination == null)
 				destination = [];
@@ -300,6 +298,21 @@ package weave.utils
 				else
 					destination.push(source[i]);
 			return destination;
+		}
+		
+		public static function flattenObject(input:Object, output:Object = null, prefix:String = ''):Object
+		{
+			if (output == null)
+				output = {};
+			if (input == null)
+				return output;
+			
+			for (var key:String in input)
+				if (typeof input[key] == 'object')
+					flattenObject(input[key], output, prefix + key + '.');
+				else
+					output[prefix + key] = input[key];
+			return output;
 		}
 		
 		/**
@@ -361,13 +374,21 @@ package weave.utils
 			return exactMatchOnly ? -1 : i;
 		}
 		
-		public static function getArrayFromCollection(collection:ICollectionView):Array
+		/**
+		 * Gets an Array of items from an ICollectionView.
+		 * @param collection The ICollectionView.
+		 * @param alwaysMakeCopy If set to false and the collection is an ArrayCollection, returns original source Array.
+		 */
+		public static function getArrayFromCollection(collection:ICollectionView, alwaysMakeCopy:Boolean = true):Array
 		{
+			if (!collection || !collection.length)
+				return [];
+			
 			var array:Array = null;
-			if (collection is ArrayCollection)
+			if (collection is ArrayCollection && collection.filterFunction == null)
 				array = (collection as ArrayCollection).source;
 			if (array)
-				return array.concat();
+				return alwaysMakeCopy ? array.concat() : array;
 			
 			array = [];
 			var cursor:IViewCursor = collection.createCursor();

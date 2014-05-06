@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:HDividedBox
+	xmlns:ui ="weave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="weave.api.core.ILinkableObject"
+	width="100%" height="100%"
+	>
+
+	<mx:VBox id="folderVBox" width="100%" height="100%"
+			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<ui:WeaveTree id="folderView" width="100%" height="100%"
+					  displayMode="{WeaveTreeDataDescriptor.DISPLAY_MODE_BRANCHES}"
+					  showDataTips="true"
+					  allowMultipleSelection="false"
+					  handleCollapseSelection="true"/>
+	</mx:VBox>
+	<mx:VBox id="fileVBox" width="100%" height="100%"
+			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<ui:WeaveTree id="fileView" width="100%" height="100%"
+					  displayMode="{WeaveTreeDataDescriptor.DISPLAY_MODE_ALL}"
+					  showDataTips="true"
+					  disclosureClosedIcon="{null}" disclosureOpenIcon="{null}"
+					  itemOpen="handleFileDoubleClick()"
+					  doubleClickEnabled="true" doubleClick="handleFileDoubleClick()"/>
+	</mx:VBox>
+
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.Tree;
+			import mx.events.TreeEvent;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IWeaveTreeNode;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableWatcher;
+			import weave.utils.EventUtils;
+			import weave.utils.VectorUtils;
+			
+			private const rootWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+			
+			private function isNonNull(value:String):Boolean { return value != null; }
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				registerLinkableChild(folderView, rootWatcher);
+				registerLinkableChild(fileView, rootWatcher);
+				
+				folderView.enableClickToExpand();
+				
+				// using a delayed callback to avoid clearing the file list during an update
+				BindingUtils.bindSetter(EventUtils.generateDelayedCallback(this, refreshFiles, 0, true), folderView, 'selectedItem');
+				
+				folderView.addEventListener(KeyboardEvent.KEY_DOWN, handleFolderKeyDown, false, int.MAX_VALUE);
+				fileView.addEventListener(KeyboardEvent.KEY_DOWN, handleFileKeyDown, false, int.MAX_VALUE);
+			}
+			
+			/**
+			 * The root node.
+			 */
+			public function set rootNode(node:IWeaveTreeNode):void
+			{
+				folderView.rootNode = node;
+				rootWatcher.target = node as ILinkableObject;
+			}
+			
+			/**
+			 * @return The node that was selected.
+			 */
+			public function expandPathAndSelectNode(node:IWeaveTreeNode):IWeaveTreeNode
+			{
+				folderView.expandPathAndSelectNode(node);
+				refreshFiles();
+				fileView.expandPathAndSelectNode(node);
+				return fileView.selectedItem as IWeaveTreeNode;
+			}
+			
+			public function get selectedFolder():IWeaveTreeNode
+			{
+				return folderView.selectedItem as IWeaveTreeNode;
+			}
+			
+			private function refreshFiles(folder:IWeaveTreeNode = null):void
+			{
+				if (!folder)
+					folder = selectedFolder;
+				
+				fileVBox.visible = fileVBox.includeInLayout = !!folder;
+				
+				// use fileView.getChildren() so the files will be filtered
+				fileView.refreshDataProvider(VectorUtils.getArrayFromCollection(fileView.getChildren(folder)));
+				
+				//TODO - why does this ICollectionView approach cause file selection to malfunction?
+				//fileView.refreshDataProvider(fileView.getChildren(folder));
+				
+				//TODO - why does this rootNode approach cause file selection to malfunction?
+//				fileView.refreshDataProvider(folder);
+//				var newOpenItems:Array = [folder];
+//				if (StandardLib.arrayCompare(fileView.openItems, newOpenItems))
+//					fileView.openItems = newOpenItems;
+			}
+			
+			private function handleFileDoubleClick():void
+			{
+				var node:IWeaveTreeNode = fileView.selectedItem as IWeaveTreeNode;
+				if (node && node.isBranch())
+				{
+					// expand parent, scroll to, and select
+					folderView.expandItem(folderView.selectedItem, true);
+					folderView.scrollToAndSelectMatchingItem(
+						function(folder:IWeaveTreeNode):Boolean {
+							return folder == node;
+						}
+					);
+					refreshFiles();
+				}
+			}
+			
+			private function handleFolderKeyDown(event:KeyboardEvent):void
+			{
+				// press ENTER key on folder -> focus fileView
+				if (event.keyCode == Keyboard.ENTER && selectedFolder)
+				{
+					fileView.setFocus();
+					event.preventDefault();
+				}
+				
+				// press RIGHT key on folder with no subfolders -> focus fileView
+				if (event.keyCode == Keyboard.RIGHT && selectedFolder && !selectedFolder.hasChildBranches())
+				{
+					fileView.setFocus();
+					if (!fileView.selectedItem)
+						fileView.selectedIndex = 0;
+					event.preventDefault();
+				}
+			}
+			
+			private function handleFileKeyDown(event:KeyboardEvent):void
+			{
+				var selectedFile:IWeaveTreeNode = fileView.selectedItem as IWeaveTreeNode;
+				
+				// press ENTER or RIGHT on folder in file view -> same as doubleClick
+				if ((event.keyCode == Keyboard.ENTER || event.keyCode == Keyboard.RIGHT) && selectedFile && selectedFile.isBranch())
+				{
+					handleFileDoubleClick();
+					event.preventDefault();
+				}
+				
+				// press LEFT on folder in file view -> go to parent folder or close file view if there is no parent folder
+				if (event.keyCode == Keyboard.LEFT)
+				{
+					var folder:IWeaveTreeNode = selectedFolder;
+					var parent:IWeaveTreeNode = folderView.getParentItem(folder) as IWeaveTreeNode;
+					if (parent && parent != folderView.rootNode)
+					{
+						// go up a folder
+						folderView.scrollToAndSelectMatchingItem(parent);
+						// select the folder we just came from
+						refreshFiles();
+						fileView.scrollToAndSelectMatchingItem(folder);
+					}
+					else
+					{
+						folderView.selectedItem = null;
+						folderView.setFocus();
+						refreshFiles();
+					}
+					event.preventDefault();
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:HDividedBox>

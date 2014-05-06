@@ -495,13 +495,16 @@ A text editor to change the Session State on the fly.
 			{
 				if (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE)
 				{
-					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
+					var item:Object = sessionNav.selectedItem;
+					if (!item)
+						return;
+					var parent:ILinkableObject = getLinkableOwner(item.object);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 					if (hashMap || dynamicObject)
-						Alert.show(lang("Delete Selected Item?"),lang("Confirm Delete"),mx.controls.Alert.YES| mx.controls.Alert.NO,this,deleteSelectedItem)
+						Alert.show(lang("Delete Selected Item?"), lang("Confirm Delete"), mx.controls.Alert.YES| mx.controls.Alert.NO, this, deleteSelectedItem)
 				}
 			}
 			
@@ -509,13 +512,16 @@ A text editor to change the Session State on the fly.
 			{
 				if (event.detail == Alert.YES)
 				{
-					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
+					var item:Object = sessionNav.selectedItem;
+					if (!item)
+						return;
+					var parent:ILinkableObject = getLinkableOwner(item.object);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 					
-					var oldObject:ILinkableObject = sessionNav.selectedItem.object;
+					var oldObject:ILinkableObject = item.object;
 					if (hashMap)
 						hashMap.removeObject(hashMap.getName(oldObject));
 					else if (dynamicObject)

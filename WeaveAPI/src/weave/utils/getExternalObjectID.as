@@ -18,7 +18,8 @@ package weave.utils
 	import flash.external.ExternalInterface;
 
 	/**
-	 * A way to get a Flash application's external object ID when ExternalInterface.objectID is null.
+	 * A way to get a Flash application's external object ID when ExternalInterface.objectID is null,
+	 * which may occur when using jQuery.flash().
 	 * @param desiredId If the flash application really has no id, this will be used as a base for creating a new unique id.
 	 * @return The id of the flash application.
 	 * @author adufilie

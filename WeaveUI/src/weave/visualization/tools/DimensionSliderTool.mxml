@@ -34,9 +34,9 @@
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
-			import weave.data.AttributeColumns.ProxyColumn;
+			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.utils.ColumnUtils;
 
 			WeaveAPI.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
 			
@@ -76,17 +76,13 @@
 	 * @param ref A reference to an attribute tag in an AttributeHierarchy.
 	 * @return An Array of @year values that the referenced column is defined for.
 	 */
-	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
+	override protected function getValuesFromColHier(refCol:ReferencedColumn):Array
 	{
-		var dimensionColumn:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
-		if (dimensionColumn)
+		var col:SecondaryKeyNumColumn = ColumnUtils.hack_findNonWrapperColumn(refCol) as SecondaryKeyNumColumn;
+		if (col)
 		{
-			var internalColumn:SecondaryKeyNumColumn = dimensionColumn.getInternalColumn() as SecondaryKeyNumColumn;
-			if (internalColumn)
-			{
-				addToListOfDims(ref);
-				return internalColumn.secondaryKeys;
-			}
+			addToListOfDims(refCol);
+			return col.secondaryKeys;
 		}
 		return [];
 	}

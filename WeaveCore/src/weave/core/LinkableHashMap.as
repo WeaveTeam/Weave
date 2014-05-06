@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.net.registerClassAlias;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -223,8 +224,6 @@ package weave.core
 		{
 			if (className)
 			{
-				className = _deprecatedClassReplacements[className] || className;
-				
 				// if no name is specified, generate a unique one now.
 				if (!name)
 					name = generateUniqueName(className.split("::").pop());
@@ -337,7 +336,7 @@ package weave.core
 		public function removeAllObjects():void
 		{
 			delayCallbacks();
-			for each (var name:String in getNames())
+			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
 				removeObject(name);
 			resumeCallbacks();
 		}
@@ -461,10 +460,8 @@ package weave.core
 			if (removeMissingDynamicObjects)
 			{
 				// third pass: remove objects based on the Boolean flags in remainingObjects.
-				i = _orderedNames.length;
-				while (i--)
+				for each (objectName in _orderedNames.concat()) // iterate over a copy of the list
 				{
-					objectName = _orderedNames[i];
 					if (remainingObjects[objectName] !== true)
 					{
 						//trace(LinkableHashMap, "missing value: "+objectName);
@@ -476,15 +473,6 @@ package weave.core
 			setNameOrder(newNameOrder);
 			
 			resumeCallbacks();
-		}
-		
-		private static const _deprecatedClassReplacements:Object = {};
-		/**
-		 * For backwards compatibility, registers a deprecated class with its replacement.
-		 */
-		public static function registerDeprecatedClassReplacement(deprecatedClassName:String, replacementClassName:String):void
-		{
-			_deprecatedClassReplacements[deprecatedClassName] = replacementClassName;
 		}
 	}
 }

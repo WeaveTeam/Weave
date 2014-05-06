@@ -27,8 +27,8 @@ package weave.utils
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IKeySet;
@@ -40,6 +40,7 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ExtendedDynamicColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
@@ -83,6 +84,13 @@ package weave.utils
 			var title:String = ColumnUtils.getTitle(column);
 			var keyType:String = ColumnUtils.getKeyType(column);
 			var dataType:String = ColumnUtils.getDataType(column);
+			var projection:String = column.getMetadata(ColumnMetadata.PROJECTION);
+			var dateFormat:String = column.getMetadata(ColumnMetadata.DATE_FORMAT);
+			
+			if (dataType == DataTypes.DATE && dateFormat)
+				dataType = dataType + '; ' + dateFormat;
+			if (dataType == DataTypes.GEOMETRY && projection)
+				dataType = dataType + '; ' + projection;
 			
 			if (dataType && keyType)
 				return StandardLib.substitute("{0} ({1} -> {2})", title, keyType, dataType);
@@ -103,11 +111,15 @@ package weave.utils
 		{
 			var name:String;
 			var nameMap:Object = {};
-			var refs:Array = getLinkableDescendants(column, IColumnReference);
-			for (var i:int = 0; i < refs.length; i++)
+			var cols:Array;
+			if (column is ReferencedColumn)
+				cols = [column];
+			else
+				cols = getLinkableDescendants(column, ReferencedColumn);
+			for (var i:int = 0; i < cols.length; i++)
 			{
-				var ref:IColumnReference = refs[i];
-				var source:IDataSource = ref.getDataSource();
+				var col:ReferencedColumn = cols[i];
+				var source:IDataSource = col.getDataSource();
 				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
 				if (!sourceOwner)
 					continue;
@@ -222,17 +234,9 @@ package weave.utils
 			return result;
 		}
 		
-		/**
-		 * This is mostly a convenience function to call through Javascript. For example,
-		 * a user could invoke 'KeySet.replaceKeys( getQKeys(keyObjects) )' where keyObjects
-		 * is an array of generic objects in Javascript.  
-		 * @param genericObjects An array of generic objects with <code>keyType</code>
-		 * and <code>localName</code> properties.
-		 * @return An array of IQualifiedKey objects.
-		 */
-		[Deprecated(replacement="WeaveAPI.QKeyManager.mapQKeys()")] public static function getQKeys(genericObjects:Array):Array
+		[Deprecated(replacement="WeaveAPI.QKeyManager.convertToQKeys()")] public static function getQKeys(genericObjects:Array):Array
 		{
-			return WeaveAPI.QKeyManager.mapQKeys(genericObjects);
+			return WeaveAPI.QKeyManager.convertToQKeys(genericObjects);
 		}
 			
 		/**

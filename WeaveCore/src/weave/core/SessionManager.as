@@ -371,11 +371,12 @@ package weave.core
 			
 			// cache property names if necessary
 			var classQName:String = getQualifiedClassName(linkableObject);
-			if (!classNameToSessionedPropertyNamesMap[classQName])
+			if (!classNameToSessionedPropertyNames[classQName])
 				cacheClassInfo(linkableObject, classQName);
+			var deprecatedLookup:Object = classNameToDeprecatedGetterLookup[classQName];
 			
 			// set session state
-			for each (name in classNameToSessionedPropertyNamesMap[classQName])
+			for each (name in classNameToSessionedPropertyNames[classQName])
 			{
 				if (!newState.hasOwnProperty(name))
 					continue;
@@ -393,15 +394,16 @@ package weave.core
 				if (property == null)
 					continue;
 
-				// skip this property if it should not appear in the session state under the parent.
-				if (childToParentDictionaryMap[property] === undefined || !childToParentDictionaryMap[property][linkableObject])
-					continue;
+				// unless it's a deprecated property (for backwards compatibility), skip this property if it should not appear in the session state
+				if (!deprecatedLookup[name])
+					if (childToParentDictionaryMap[property] === undefined || !childToParentDictionaryMap[property][linkableObject])
+						continue;
 					
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
 			
 			// pass deprecated session state to deprecated setters
-			for each (name in classNameToDeprecatedSetterNamesMap[classQName])
+			for each (name in classNameToDeprecatedSetterNames[classQName])
 			{
 				if (newState.hasOwnProperty(name) && newState[name] !== null)
 				{
@@ -453,7 +455,14 @@ package weave.core
 			{
 				// implicit session state
 				// first pass: get property names
-				var propertyNames:Array = getLinkablePropertyNames(linkableObject);
+				
+				// cache property names if necessary
+				var classQName:String = getQualifiedClassName(linkableObject);
+				if (!classNameToSessionedPropertyNames[classQName])
+					cacheClassInfo(linkableObject, classQName);
+				
+				var propertyNames:Array = classNameToSessionedPropertyNames[classQName];
+				var deprecatedLookup:Object = classNameToDeprecatedGetterLookup[classQName];
 				var resultNames:Array = [];
 				var resultProperties:Array = [];
 				var property:ILinkableObject = null;
@@ -462,6 +471,9 @@ package weave.core
 				for (i = 0; i < propertyNames.length; i++)
 				{
 					var name:String = propertyNames[i];
+					// exclude deprecated properties from session state
+					if (deprecatedLookup[name])
+						continue;
 					try
 					{
 						property = null; // must set this to null first because accessing the property may fail
@@ -516,11 +528,15 @@ package weave.core
 		/**
 		 * This maps a qualified class name to an Array of names of sessioned properties contained in that class.
 		 */
-		private const classNameToSessionedPropertyNamesMap:Object = new Object();
+		private const classNameToSessionedPropertyNames:Object = new Object();
 		/**
 		 * This maps a qualified class name to an Array of names of deprecated setter functions contained in that class.
 		 */
-		private const classNameToDeprecatedSetterNamesMap:Object = new Object();
+		private const classNameToDeprecatedSetterNames:Object = new Object();
+		/**
+		 * This maps a qualified class name to an Object mapping deprecated sessioned property names to true.
+		 */
+		private const classNameToDeprecatedGetterLookup:Object = new Object();
 		
 		/**
 		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
@@ -532,6 +548,7 @@ package weave.core
 			// linkable property names
 			var propertyNames:Array = [];
 			var deprecatedSetters:Array = [];
+			var deprecatedGetterLookup:Object = {}; // deprecated getter name -> true
 			// iterate over the public properties, saving the names of the ones that implement ILinkableObject
 			var type:Object = describeTypeJSON(linkableObject, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_ACCESSORS | DescribeType.INCLUDE_VARIABLES | DescribeType.INCLUDE_METADATA);
 			var traits:Object = type.traits;
@@ -550,14 +567,15 @@ package weave.core
 						}
 					}
 					
-					if (deprecated)
+					if (variable.access == 'writeonly')
 					{
-						if (variables === traits.accessors && variable.access != 'readonly')
+						if (deprecated)
 							deprecatedSetters.push(variable.name);
 					}
-					else if (variable.access != 'writeonly' && ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
+					else if (ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
 					{
-						// not deprecated and implements ILinkableObject
+						if (deprecated)
+							deprecatedGetterLookup[variable.name] = true;
 						propertyNames.push(variable.name);
 					}
 				}
@@ -566,8 +584,9 @@ package weave.core
 			AsyncSort.sortImmediately(propertyNames);
 			AsyncSort.sortImmediately(deprecatedSetters);
 			
-			classNameToSessionedPropertyNamesMap[classQName] = propertyNames;
-			classNameToDeprecatedSetterNamesMap[classQName] = deprecatedSetters;
+			classNameToSessionedPropertyNames[classQName] = propertyNames;
+			classNameToDeprecatedSetterNames[classQName] = deprecatedSetters;
+			classNameToDeprecatedGetterLookup[classQName] = deprecatedGetterLookup;
 		}
 
 		/**
@@ -584,11 +603,11 @@ package weave.core
 			}
 
 			var className:String = getQualifiedClassName(linkableObject);
-			var propertyNames:Array = classNameToSessionedPropertyNamesMap[className] as Array;
+			var propertyNames:Array = classNameToSessionedPropertyNames[className] as Array;
 			if (propertyNames == null)
 			{
 				cacheClassInfo(linkableObject, className);
-				propertyNames = classNameToSessionedPropertyNamesMap[className] as Array;
+				propertyNames = classNameToSessionedPropertyNames[className] as Array;
 			}
 			return propertyNames;
 		}

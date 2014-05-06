@@ -215,7 +215,15 @@ public class CSVParser
 	 */
 	public String[][] parseCSV(File csvFile, boolean parseTokens) throws IOException
 	{
-		return parseCSV(new FileInputStream(csvFile), parseTokens);
+		FileInputStream fis = new FileInputStream(csvFile);
+		try
+		{
+			return parseCSV(fis, parseTokens);
+		}
+		finally
+		{
+			fis.close();
+		}
 	}
 	/**
 	 * This function parses a String as a CSV-encoded table.

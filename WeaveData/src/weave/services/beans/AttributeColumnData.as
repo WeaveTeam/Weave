@@ -23,17 +23,6 @@ package weave.services.beans
 
 	public class AttributeColumnData 
 	{
-		public function AttributeColumnData(result:Object)
-		{
-			this.id = result.id;
-			this.metadata = result.metadata;
-			this.keys = result.keys;
-			this.data = result.data;
-			this.thirdColumn = result.thirdColumn;
-			this.metadataTileDescriptors = result.metadataTileDescriptors;
-			this.geometryTileDescriptors = result.geometryTileDescriptors;
-		}
-		
 		public var id:int;
 		public var metadata:Object;
 		public var keys:Array;
