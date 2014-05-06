@@ -128,7 +128,5 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="lib/json-simple-1.1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="C:/Tomcat/lib/servlet-api.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

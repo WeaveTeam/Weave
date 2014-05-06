@@ -78,8 +78,10 @@
 					return;
 				super.createChildren();
 				
-				subMenu.addSubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]);
-				subMenu.addSubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter]);
+				subMenu.menuItems.push(
+					new SubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]),
+					new SubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter])
+				);
 				
 				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
 				if (!keyFilter)

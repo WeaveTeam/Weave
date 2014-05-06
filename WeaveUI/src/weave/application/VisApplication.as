@@ -817,8 +817,6 @@ package weave.application
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Column Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
 
-	
-
 				var _this:VisApplication = this;
 
 				if (!Weave.properties.dashboardMode.value)

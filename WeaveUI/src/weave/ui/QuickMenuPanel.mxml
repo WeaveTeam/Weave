@@ -134,7 +134,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				menuItems.refresh();
 				
-				autosuggest.removeAllSubMenuItems();
+				autosuggest.menuItems.length = 0;
 				
 				if(menuItems.length == 0)
 					return;
@@ -143,7 +143,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				for each(var item:WeaveMenuItem in items)
 				{
-					autosuggest.addSubMenuItem(item.weaveLabel,item.runClickFunction);
+					autosuggest.menuItems.push(new SubMenuItem(item.weaveLabel,item.runClickFunction));
 				}
 				
 				autosuggest.showSubMenu();
