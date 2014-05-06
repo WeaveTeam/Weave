@@ -434,9 +434,20 @@ internal class GroupedCallbackEntry extends CallbackEntry
 	 */
 	public static function _handleGroupedCallbacks():void
 	{
-		// handle grouped callbacks in the order they were triggered
-		while (_triggeredEntries.length)
-			(_triggeredEntries.shift() as GroupedCallbackEntry).handleGroupedCallback();
+		var entry:GroupedCallbackEntry;
+		
+		// Handle grouped callbacks in the order they were triggered,
+		// anticipating that more may be added to the end of the list in the process.
+		for (var i:int = 0; i < _triggeredEntries.length; i++)
+		{
+			entry = _triggeredEntries[i] as GroupedCallbackEntry;
+			entry.handleGroupedCallback();
+		}
+		
+		// reset for next frame
+		for each (entry in _triggeredEntries)
+			entry.triggered = false;
+		_triggeredEntries.length = 0;
 	}
 	
 	/**
@@ -510,8 +521,5 @@ internal class GroupedCallbackEntry extends CallbackEntry
 		}
 		
 		callback();
-		
-		// to avoid recursion, reset triggered state as the very last step
-		triggered = false;
 	}
 }
