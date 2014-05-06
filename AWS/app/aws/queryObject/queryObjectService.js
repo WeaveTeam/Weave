@@ -60,39 +60,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      * This function wraps the async aws getListOfProjects function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.getListOfProjects = function() {
-        
-    	if(this.dataObject.listOfProjects) {
-    		return this.dataObject.listOfProjects;
-    	}
-    	
-    	
-    	var deferred = $q.defer();
-
-        aws.DataClient.getListOfProjects(function(result) {
-            
-        	that.dataObject.listOfProjects = result;
-        	
-        	scope.$safeApply(function() {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
-    };
     
     this.getListOfProjectsfromDatabase = function() {
-        
-//    	if(this.dataObject.listOfProjectsFromDatabase) {
-//    		return this.dataObject.listOfProjectsFromDatabase;
-//    	}
-    	
-    	
-    	var deferred = $q.defer();
-        aws.DataClient.getListOfProjectsFromDatabase(function(result) {
-            
+	var deferred = $q.defer();
+
+			aws.queryService(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
         	that.dataObject.listOfProjectsFromDatabase = result;
         	
         	scope.$safeApply(function() {
@@ -109,6 +81,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
       	
     	var deferred = $q.defer();
+    	var params = {};
+    	params.userName = userName;
+    	params.projectName = projectName;
+    	params.projectDescription = projectDescription;
+    	params.queryObjectTitle = queryObjectTitle;
 
         aws.DataClient.insertQueryObject(userName, projectName, projectDescription,queryObjectTitle,  queryObjectContent, function(result) {
         	console.log("insertQueryObjectStatus", result);
@@ -172,12 +149,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      * So that the UI asynchronously wait for the data to be available...
      */
     this.getListOfQueryObjectsInProject = function(projectName) {
-    	
-//    	if(this.dataObject.listofQueryObjectsInProject) {
-//    		return this.dataObject.listofQueryObjectsInProject;
-//    	}
-	
-    	
     	var deferred = $q.defer();
 
         aws.DataClient.getListOfQueryObjects(projectName, function(result) {
@@ -224,9 +195,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
             });
         });
       
-        // regardless of when the promise was or will be resolved or rejected,
- 	    // then calls one of the success or error callbacks asynchronously as soon as the result
-     	// is available. The callbacks are called with a single argument: the result or rejection reason.
         return deferred.promise;
     };
 
@@ -236,12 +204,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
     	  */
     	this.getDataColumnsEntitiesFromId = function(id, forceUpdate) {
-            
-//    		if(!forceUpdate) {
-//	    		if (this.dataObject.columns) {
-//	    			return this.dataObject.columns;
-//	    		}
-//    		}
 
     		var deferred = $q.defer();
     		
@@ -276,11 +238,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
     	  */
     	this.getGeometryDataColumnsEntities = function(resultHandler) {
-            
-//    		if (this.dataObject.geometryColumns) {
-//    			return this.dataObject.geometryColumns;
-//    		}
-    		
+ 	
     		var deferred = $q.defer();
     		
             aws.DataClient.getEntityIdsByMetadata({"dataType":"geometry"}, function(idsArray) {
@@ -311,11 +269,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
          * again angular defer/promise so that the UI asynchronously wait for the data to be available...
          */
         this.getDataTableList = function(){
-            
-//        	if (this.dataObject.dataTableList) {
-//        		return this.dataObject.dataTableList;
-//        	}
-        	
         	var deferred = $q.defer();
             
             aws.DataClient.getDataTableList(function(EntityHierarchyInfoArray){
@@ -343,19 +296,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
             return deferred.promise;
         };
         
-        this.updateEntity = function(user, password, entityId, diff) {
-
-        	var deferred = $q.defer();
-            
-            aws.AdminClient.updateEntity(user, password, entityId, diff, function(){
-                
-            	scope.$safeApply(function(){
-                    deferred.resolve();
-                });
-            });
-            return deferred.promise;
-        };
-        
+       
         this.getDataSetFromTableId = function(id, forceUpdate){
         	var deferred = $q.defer();
         	
