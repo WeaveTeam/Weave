@@ -6,28 +6,37 @@ weave.WeavePath.prototype.probe_keyset = weave.path("defaultProbeKeySet");
 weave.WeavePath.prototype.selection_keyset = weave.path("defaultSelectionKeySet");
 weave.WeavePath.prototype.subset_filter = weave.path("defaultSubsetKeyFilter");
 
+weave.WeavePath.prototype._qkeys_to_numeric = {};
+weave.WeavePath.prototype._numeric_to_qkeys = {};
+weave.WeavePath.prototype._numeric_key_idx = 0;
+weave.WeavePath.prototype._keyIdPrefix = "WeaveQKey";
+
+weave.WeavePath.prototype.qkeyToIndex = function(key)
+{
+    var key_str = JSON.stringify(key);
+    if (this._qkeys_to_numeric[key_str] == undefined)
+    {
+        this._numeric_to_qkeys[this._numeric_key_idx] = key;
+        this._qkeys_to_numeric[key_str] = this._numeric_key_idx;
+        this._numeric_key_idx++;
+    }
+    return this._qkeys_to_numeric[key_str];
+};
+
+weave.WeavePath.prototype.indexToQKey = function (index)
+{
+    return this._numeric_to_qkeys[index];
+};
+
 weave.WeavePath.prototype.qkeyToString = function(key)
 {
-    return JSON.stringify([key.keyType, key.localName]);
+    return this._keyIdPrefix + this.qkeyToIndex(key);
 };
+
 weave.WeavePath.prototype.stringToQKey = function(s) 
 {
-    var arr;
-    var newQKey = {};
-
-    try {
-        arr = JSON.parse(s);
-        newQKey.keyType = arr[0];
-        newQKey.localName = arr[1];
-
-    }
-    catch (e)
-    {
-        console.log("Failed to parse string as a QKey array, assuming generic string key.", e);
-        newQKey.keyType = "string";
-        newQKey.localName = s;
-    }
-    return newQKey;
+    idx = s.substr(this._keyIdPrefix.length);
+    return this.indexToQKey(idx);
 };
 
 /**
