@@ -212,9 +212,9 @@ package weave.api
 				{
 					var instance:Object = getSingletonInstance(theInterface);
 					var classInfo:Object = describeTypeJSON(theInterface, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS);
-					// add a callback for each external interface function
+					// register each external interface function
 					for each (var methodInfo:Object in classInfo.traits.methods)
-						generateExternalInterfaceCallback(instance, methodInfo);
+						new ExternalMethod(instance, methodInfo);
 				}
 
 				var prev:Boolean = ExternalInterface.marshallExceptions;
@@ -303,8 +303,9 @@ package weave.api
 			
 			// Try to get the JSON interface - if not available, settle with the flawed ExternalInterface.call() parameters feature.
 			// If a parameter is an Object, we can't trust ExternalInterface.call() since it doesn't quote keys in object literals.
-			// For example, if you give {"Content-Type": "foo"} as a parameter, ExternalInterface generates the following invalid
-			// object literal: {Content-Type: "foo"}.
+			// It also does not escape the backslash in String values.
+			// For example, if you give {"Content-Type": "foo\\"} as a parameter, ExternalInterface generates the following invalid
+			// object literal: {Content-Type: "foo\"}.
 			try {
 				json = getDefinitionByName("JSON");
 			} catch (e:Error) { }
@@ -342,6 +343,9 @@ package weave.api
 			// concatenate all code inside a function wrapper
 			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
 			
+			// work around bug where ExternalInterface does not escape backslash.
+			code = code.split('\\').join('\\\\');
+			
 			// if there are no parameters, just run the code
 			if (pNames.length == 0)
 				return ExternalInterface.call(code);
@@ -358,26 +362,6 @@ package weave.api
 			else
 				ErrorManager.reportError(e);
 		}
-		
-		/**
-		 * @private
-		 */
-		private static function generateExternalInterfaceCallback(instance:Object, methodInfo:Object):void
-		{
-			var method:Function = instance[methodInfo.name] as Function;
-			// find the number of required parameters
-			var paramCount:int = 0;
-			while (paramCount < method.length && !methodInfo.parameters[paramCount].optional)
-				paramCount++;
-			function callback(...args):*
-			{
-				if (args.length < paramCount)
-					args.length = paramCount;
-				return method.apply(null, args);
-			}
-			ExternalInterface.addCallback(methodInfo.name, callback);
-		}
-		
 		
 		/**************************************/
 		
@@ -551,8 +535,182 @@ package weave.api
 		 */
 		public static function externalTrace(...params):void
 		{
-			params.unshift('console.log');
-			ExternalInterface.call.apply(null, params);
+			executeJavaScript(
+				{"params": params},
+				"console.log.apply(console, params)"
+			);
 		}
 	}
+}
+
+import flash.external.ExternalInterface;
+import flash.utils.getDefinitionByName;
+
+import mx.utils.UIDUtil;
+
+import weave.api.WeaveAPI;
+
+internal class ExternalMethod
+{
+	/**
+	 * A pointer to JSON.
+	 */
+	private static var json:Object;
+	
+	private static var stringify:Function;
+	
+	/**
+	 * Maps a method name to the corresponding ExternalMethod object.
+	 */
+	private static const registeredMethods:Object = {};
+	
+	/**
+	 * This is the name of the generic external interface function which uses JSON.stringify().
+	 */
+	public static const JSON_CALL:String = "_jsonCall";
+	
+	/**
+	 * Used as the second parameter to JSON.stringify
+	 */
+	public static const JSON_REPLACER:String = "_jsonReplacer";
+	
+	/**
+	 * Used as the second parameter to JSON.parse
+	 */
+	public static const JSON_REVIVER:String = "_jsonReviver";
+	
+	private static const JSON_SUFFIX:String = ';' + UIDUtil.createUID();
+	
+	private static const NOT_A_NUMBER:String = NaN + JSON_SUFFIX;
+	private static const UNDEFINED:String = undefined + JSON_SUFFIX;
+	private static const INFINITY:String = Infinity + JSON_SUFFIX;
+	private static const NEGATIVE_INFINITY:String = -Infinity + JSON_SUFFIX;
+
+	/**
+	 * Handles a JavaScript request.
+	 * @param methodName The name of the method to call.
+	 * @param paramsJson An Array of parameters to pass to the method, stringified with JSON.
+	 * @return The result of calling the method, stringified with JSON.
+	 */
+	private static function handleJsonCall(methodName:String, paramsJson:String):String
+	{
+		var em:ExternalMethod = registeredMethods[methodName];
+		if (!em)
+			throw new Error("No such method: " + methodName);
+		
+		var params:Array = json.parse(paramsJson, _jsonReviver);
+		if (params.length < em.paramCount)
+			params.length = em.paramCount;
+		var result:* = em.method.apply(null, params);
+		var resultJson:String = json.stringify(result, _jsonReplacer);
+		
+		// work around bug where ExternalInterface does not escape backslash.
+		resultJson = resultJson.split('\\').join('\\\\');
+
+		return resultJson;
+	}
+	
+	private static function _jsonReplacer(key:String, value:*):*
+	{
+		if (value === undefined)
+			return UNDEFINED;
+		if (typeof value != 'number' || isFinite(value))
+			return value;
+		if (value == Infinity)
+			return INFINITY;
+		if (value == -Infinity)
+			return NEGATIVE_INFINITY;
+		return NOT_A_NUMBER;
+	}
+	
+	private static function _jsonReviver(key:String, value:*):*
+	{
+		if (value === NOT_A_NUMBER)
+			return NaN;
+		if (value === UNDEFINED)
+			return undefined;
+		if (value === INFINITY)
+			return Infinity;
+		if (value === NEGATIVE_INFINITY)
+			return -Infinity;
+		return value;
+	}
+	
+	/**
+	 * @param host The host object containing the method.
+	 * @param methodInfo Metadata from describeTypeJSON()
+	 */
+	public function ExternalMethod(host:Object, methodInfo:Object)
+	{
+		if (!json)
+		{
+			// one-time external initialization
+			json = getDefinitionByName("JSON");
+			ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
+			WeaveAPI.executeJavaScript(
+				{
+					"JSON_REPLACER": JSON_REPLACER,
+					"JSON_REVIVER": JSON_REVIVER,
+					"NOT_A_NUMBER": NOT_A_NUMBER,
+					"UNDEFINED": UNDEFINED,
+					"INFINITY": INFINITY,
+					"NEGATIVE_INFINITY": NEGATIVE_INFINITY
+				},
+				"weave[JSON_REPLACER] = function(key, value){",
+				"    if (value === undefined)",
+				"        return UNDEFINED;",
+				"    if (typeof value != 'number' || isFinite(value))",
+				"        return value;",
+				"    if (value == Infinity)",
+				"        return INFINITY;",
+				"    if (value == -Infinity)",
+				"        return NEGATIVE_INFINITY;",
+				"    return NOT_A_NUMBER;",
+				"};",
+				"weave[JSON_REVIVER] = function(key, value){",
+				"    if (value === NOT_A_NUMBER)",
+				"        return NaN;",
+				"    if (value === UNDEFINED)",
+				"        return undefined;",
+				"    if (value === INFINITY)",
+				"        return Infinity;",
+				"    if (value === NEGATIVE_INFINITY)",
+				"        return -Infinity;",
+				"    return value;",
+				"};"
+			);
+		}
+		
+		var name:String = methodInfo.name;
+		method = host[name];
+		// find the number of required parameters
+		paramCount = 0;
+		while (paramCount < method.length && !methodInfo.parameters[paramCount].optional)
+			paramCount++;
+		
+		WeaveAPI.executeJavaScript(
+			{
+				"JSON_CALL": JSON_CALL,
+				"JSON_REPLACER": JSON_REPLACER,
+				"JSON_REVIVER": JSON_REVIVER,
+				"methodName": name,
+				"paramCount": paramCount
+			},
+			"weave[methodName] = function(){",
+			"    var params = new Array(paramCount);",
+			"    for (var i in arguments)",
+			"        params[i] = arguments[i];",
+			"    var paramsJson = JSON.stringify(params, weave[JSON_REPLACER]);",
+			"    //console.log('input:', methodName, paramsJson);",
+			"    var resultJson = weave[JSON_CALL](methodName, paramsJson);",
+			"    //console.log('output:', resultJson);",
+			"    return JSON.parse(resultJson, weave[JSON_REVIVER]);",
+			"}"
+		);
+		
+		registeredMethods[name] = this;
+	}
+	
+	public var method:Function;
+	public var paramCount:int;
 }
