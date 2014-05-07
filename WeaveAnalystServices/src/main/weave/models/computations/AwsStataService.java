@@ -77,7 +77,7 @@ public class AwsStataService implements IScriptEngine {
 
 		else if(AWSUtils.getOSType() == OS_TYPE.WINDOWS)
 		{
-			args = new String[] {programPath, "/e", "/q", "do", FilenameUtils.concat(tempDirPath, "tempScript.do")}
+			args = new String[] {programPath, "/e", "/q", "do", FilenameUtils.concat(tempDirPath, "tempScript.do")};
 		}
 
 		else if(AWSUtils.getOSType() == OS_TYPE.UNKNOWN)

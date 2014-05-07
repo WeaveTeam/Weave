@@ -2,7 +2,6 @@ package weave.servlets;
 
 import static weave.config.WeaveConfig.initWeaveConfig;
 
-import java.io.File;
 import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
@@ -19,7 +18,6 @@ import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 import weave.config.AwsContextParams;
 import weave.models.computations.AwsRService;
 import weave.models.computations.AwsStataService;
-import weave.models.computations.ComputationEngineBroker;
 import weave.models.computations.ScriptResult;
 
 public class ComputationalServlet extends WeaveServlet
@@ -28,7 +26,6 @@ public class ComputationalServlet extends WeaveServlet
 	{
 	}
 	
-	private static String awsConfigPath = "";
 	private String programPath = "";
 	private String tempDirPath = "";
 	private String stataScriptsPath = "";
@@ -39,7 +36,6 @@ public class ComputationalServlet extends WeaveServlet
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 		programPath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
 		tempDirPath = AwsContextParams.getInstance(config.getServletContext()).getAwsConfigPath() + "temp";
-		awsConfigPath = AwsContextParams.getInstance(config.getServletContext()).getAwsConfigPath();
 		stataScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath();
 		rScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath();
 	}
