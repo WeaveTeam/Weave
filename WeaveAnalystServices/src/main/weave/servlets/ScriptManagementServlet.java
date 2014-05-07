@@ -20,12 +20,10 @@ public class ScriptManagementServlet extends WeaveServlet
 		
 	}
 
-	private static String awsConfigPath = "";
 	private File rDirectory;
 	private File stataDirectory;
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		awsConfigPath = AwsContextParams.getInstance(config.getServletContext()).getAwsConfigPath(); 
 		rDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath());
 		stataDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath());
 		
@@ -51,6 +49,22 @@ public class ScriptManagementServlet extends WeaveServlet
  		return ScriptManagerService.getListOfScripts(directories);
 	}
 		 
+	
+	public Object getScriptMetadata(String scriptName) throws Exception{
+		
+		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+ 		{
+			return ScriptManagerService.getScriptMetadata(rDirectory, scriptName);
+ 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+ 		{
+ 			return ScriptManagerService.getScriptMetadata(stataDirectory, scriptName);
+ 		} else {
+ 			throw new RemoteException("Unknown Script Type");
+  		}
+		
+	}
+	
+	
  	public boolean saveScriptMetadata (String scriptName, JsonObject metadata) throws Exception {
  
  		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
@@ -64,22 +78,25 @@ public class ScriptManagementServlet extends WeaveServlet
   		}
 	 }
 	
- 	public boolean uploadNewScript(String scriptName, String content) throws Exception {
- 		 
- 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
- 		{
- 			return ScriptManagerService.uploadNewScript(rDirectory, scriptName, content);
- 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
- 		{
- 			return ScriptManagerService.uploadNewScript(stataDirectory, scriptName, content);
- 		} else {
- 			throw new RemoteException("Unknown Script Type");
-  		}
- 	}
- 	
+// 	public boolean uploadNewScript(String scriptName, String content) throws Exception {
+// 		 
+// 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+// 		{
+// 			return ScriptManagerService.uploadNewScript(rDirectory, scriptName, content);
+// 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+// 		{
+// 			return ScriptManagerService.uploadNewScript(stataDirectory, scriptName, content);
+// 		} else {
+// 			throw new RemoteException("Unknown Script Type");
+//  		}
+// 	}
+// 	
  	
  	public boolean uploadNewScript(String scriptName, String content, JsonObject metadata) throws Exception {
  		 
+ 		if(metadata == null)
+ 			metadata = new JsonObject();//will use blank jsonobejct is metadata is not specified
+ 		
  		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
  		{
  			return ScriptManagerService.uploadNewScript(rDirectory, scriptName, content, metadata);
