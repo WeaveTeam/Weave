@@ -1055,10 +1055,10 @@ package weave.compiler
 		 * Generates a deterministic JSON representation of an object, meaning object keys appear in sorted order.
 		 * @param object The object to stringify.
 		 */
-		public static function stringify(object:Object):String
+		public static function stringify(object:*):String
 		{
 			var output:Array;
-			var item:Object;
+			var item:*;
 			var key:String;
 			
 			if (object is String)
