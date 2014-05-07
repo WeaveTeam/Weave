@@ -24,9 +24,14 @@ public class AwsContextParams
 	private AwsContextParams(ServletContext  context) throws ServletException
 	{
 		awsConfigPath = context.getRealPath(context.getInitParameter("awsconfigPath")).replace('\\','/');
-		rScriptsPath= awsConfigPath + "RScripts/";
-		stataScriptsPath = awsConfigPath + "StataScripts/";
-		StataPath = context.getRealPath(context.getInitParameter("StataPath")).replace('\\','/');
+		try{
+			StataPath = context.getRealPath(context.getInitParameter("StataPath")).replace('\\','/');
+		}
+		catch(Exception e)
+		{
+			System.out.println(e);
+		
+		}
 		rScriptsPath= FilenameUtils.concat(awsConfigPath, "RScripts");
 		stataScriptsPath = FilenameUtils.concat(awsConfigPath, "StataScripts");
 	}
