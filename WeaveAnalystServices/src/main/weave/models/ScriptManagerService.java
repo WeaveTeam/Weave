@@ -18,10 +18,8 @@ import weave.utils.AWSUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-public class ScriptManagerService extends WeaveServlet{
+public class ScriptManagerService{
 
-	private static final long serialVersionUID = 1L;
-	//private static String awsConfigPath = "";
 	
 	public ScriptManagerService(){
 		
