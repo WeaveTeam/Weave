@@ -20,9 +20,8 @@ import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
 import weave.utils.SQLUtils.WhereClauseBuilder;
 
-public class AwsProjectService extends WeaveServlet
+public class AwsProjectService 
 {
-	private static final long serialVersionUID = 1L;
 
 	public AwsProjectService(){
 		

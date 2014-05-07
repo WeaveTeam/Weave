@@ -19,9 +19,6 @@ import weave.servlets.RServiceUsingRserve;
 
 public class AwsRService extends RServiceUsingRserve implements IScriptEngine
 {
-	private static final long serialVersionUID = 1L;
-	
-	
 	
 	public AwsRService(){
 		
