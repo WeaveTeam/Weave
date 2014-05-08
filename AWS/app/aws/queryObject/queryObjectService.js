@@ -144,7 +144,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	params.projectName = projectName;
     	params.queryObjectTitle = queryObjectTitle;
 
-    	aws.queryService(projectNamangementURL, 'deleteQueryObjectFromProjectFromDatabase', [params], function(result){
+    	aws.queryService(projectManagementURL, 'deleteQueryObjectFromProjectFromDatabase', [params], function(result){
         	that.dataObject.deleteQueryObjectStatus = result;//returns a boolean which states if the query has been deleted(true)
         	console.log("in the service",that.dataObject.deleteQueryObjectStatus );
         	scope.$safeApply(function() {
@@ -166,14 +166,24 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 
     	var params = {};
     	params.projectName = projectName;
-    	aws.queryService(projectManagementURL, 'getQueryObjectsFromDatabase', [params], function(result){
-        	//TODO testing find better way to do this
-        	that.dataObject.listofQueryObjectsInProject = result[0];
-        	that.dataObject.queryNames = result[1];
-        	that.dataObject.projectDescription = result[2];
-        	
+    	aws.queryService(projectManagementURL, 'getQueryObjectsFromDatabase', [params], function(AWSQueryObjectCollectionObject){
+    		var returnedQueryObjects = [];
+    		if(angular.isUndefined(AWSQueryObjectCollectionObject.finalQueryObjects))
+    			{
+    			
+	    			var countOfJsons = AWSQueryObjectCollectionObject.finalQueryObjects.length;
+	    			for(var i = 0; i < countOfJsons; i++)
+	    			{
+	    				returnedQueryObjects[i] = JSON.parse(AWSQueryObjectCollectionObject.finalQueryObjects[i]);
+	    			}
+	    			
+	    			that.dataObject.listofQueryObjectsInProject = returnedQueryObjects;
+	    			that.dataObject.queryNames = AWSQueryObjectCollectionObject.queryObjectNames;
+	    			that.dataObject.projectDescription = AWSQueryObjectCollectionObject.projectDescription;
+	    			
+    			}
         	scope.$safeApply(function() {
-                deferred.resolve(result);
+                deferred.resolve(AWSQueryObjectCollectionObject);
             });
         	
         });

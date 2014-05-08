@@ -45,9 +45,6 @@ import javax.script.ScriptException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RFactor;
@@ -206,6 +203,19 @@ public class AWSRService extends RService
 	}
 	
 	/**
+	 * This class represents a collection object that is returned to the WeaveAnalyst
+	 *@param queryObjectNames names of the queryObjects belonging to a project
+	 *@param finalQueryObjects the actual json objects belonging to a project
+	 *@param projectDescription description of the project
+	 */
+	public static class AWSQueryObjectCollectionObject
+	{
+		String[] finalQueryObjects;
+		String[] queryObjectNames;
+		String projectDescription;
+	}
+
+	/**
 	 * 
 	 * @param requestObject sent from the AWS UI collection of parameters to run a computation
 	 * @param connectionObject send from the AWS UI parameters needed for connection Rserve to the db
@@ -315,165 +325,58 @@ public class AWSRService extends RService
 		return projectNames;
 	}
 	
-	/**
 
-	 * 
-	 * @param projectName
-	 *            project from which queryObjects have to be listed
-	 * @return finalQueryObjectCollection array of [jsonObjects, namesofFiles]
-	 * @throws Exception
-	 */
-	// Gets the list of queryObjects in a folder and returns an array of
-	// JSONObjects(each JSONObject --> one queryObject)
-//	public Object[] getQueryObjectsInProject(String projectName)
-//			throws Exception {
-//		Object[] finalQueryObjectCollection = new Object[2];
-//
-//		JSONObject[] finalQueryObjects = null;
-//		String[] queryNames = getQueryObjectNamesInProject(projectName);
-//		if (queryNames.length != 0) {// if the project contains something
-//			ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
-//			JSONParser parser = new JSONParser();
-//
-//			finalQueryObjects = new JSONObject[queryNames.length];
-//
-//			for (int i = 0; i < queryNames.length; i++) {
-//				// for every queryObject, convert to a json object
-//				String extension = FilenameUtils.getExtension(queryNames[i]);
-//
-//				// add file filter for searching only for json files
-//				if (extension.equalsIgnoreCase("json")) {
-//					String path = "C:/Projects/" + projectName + "/"
-//							+ queryNames[i];// TODO find better way
-//					FileReader reader = new FileReader(path);
-//					Object currentQueryObject = parser.parse(reader);
-//					JSONObject currentjsonObject = (JSONObject) currentQueryObject;
-//					jsonlist.add(currentjsonObject);
-//					reader.close();
-//				}
-//			}
-//
-//			// returning an array of JSON Objects
-//			finalQueryObjects = jsonlist.toArray(finalQueryObjects);
-//		}
-//
-//		else {
-//			// if project is empty return null
-//			finalQueryObjects = null;
-//			// throw new
-//			// RemoteException("No query Objects found in the specified folder!");
-//		}
-//
-//		finalQueryObjectCollection[0] = finalQueryObjects;
-//		finalQueryObjectCollection[1] = queryNames;
-//
-//	}
-		
-	//Gets the sub-directories (projects) in the 'Projects' folder
-//	public String[] getListOfProjects() 
-//	{
-//		File projects = new File("C:/", "Projects");
-//		//File projects = new File(uploadPath, "Projects");
-//		String[] projectNames = projects.list();
-//		return projectNames; 
-//	}
-//	
-	
-//	public String[] getQueryObjectNamesInProject(String projectName)throws Exception
-//	{
-//		String[] queryObjectNames = null;
-//		String pathq = "C:/Projects/" + projectName;
-//		File queries = new File(pathq);
-//		if(queries.exists()){
-//			System.out.println("Exists");
-//			queryObjectNames = queries.list();
-//		}
-//		return queryObjectNames;
-//	}
-//	
-//	
-	
-   /** 
-   * @param projectName project from which queryObjects have to be listed
-   * @return finalQueryObjectCollection array of [jsonObjects, title of queryObjects]   
-   * @throws Exception
-   */
-	public Object[] getQueryObjectsFromDatabase(String projectName) throws RemoteException, SQLException
-	{
-		Object[] finalQueryObjectCollection = new Object[3];
-		
-		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
-		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
-		
-		//we're retrieving the list of queryObjects in the selected project
-		List<String> selectColumns = new ArrayList<String>();
-		selectColumns.add("queryObjectTitle");
-		selectColumns.add("queryObjectContent");
-		selectColumns.add("projectDescription");
-		
-		
-		Map<String,String> whereParams = new HashMap<String, String>();
-		whereParams.put("projectName", projectName);
-		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
-		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
-		
-		if(queryObjectsSQLresult.rows.length != 0)//run this code only if the project contains rows
+	/** 
+	   * @param projectName project from which queryObjects have to be listed
+	   * @return finalQueryObjectCollection array of [jsonObjects, title of queryObjects]   
+	   * @throws Exception
+	   */
+		public static AWSQueryObjectCollectionObject getQueryObjectsFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
 		{
-			//getting names from queryObjectTitle
-			String[] queryNames =  new String[queryObjectsSQLresult.rows.length];
-			String projectDescription = null;
-			for(int i = 0; i < queryObjectsSQLresult.rows.length; i++){
-				Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
-				queryNames[i] = singleSQLQueryObject.toString();
-				
-			}
-			projectDescription = (queryObjectsSQLresult.rows[0][2]).toString();//TODO find better way to do this
+			AWSQueryObjectCollectionObject finalQueryObjectCollection = null;
+			Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+			String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 			
-			//getting json objects from queryObjectContent
-			JSONObject[] finalQueryObjects = null;
-			if(queryObjectsSQLresult.rows.length != 0)
+			String[] finalQueryNames= null;;
+			String[] finalQueryObjects= null;
+			String finalProjectDescription = null;
+			List<String> selectColumns = new ArrayList<String>();
+			selectColumns.add("queryObjectTitle");
+			selectColumns.add("queryObjectContent");
+			selectColumns.add("projectDescription");
+			
+			
+			Map<String,String> whereParams = new HashMap<String, String>();
+			whereParams.put("projectName", params.get("projectName").toString());
+			Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
+			SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
+			
+			if(queryObjectsSQLresult.rows.length != 0)//run this code only if the project contains rows
 			{
-				ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
-				JSONParser parser = new JSONParser();
-				finalQueryObjects = new JSONObject[queryObjectsSQLresult.rows.length];
+				Object[][] rows = queryObjectsSQLresult.rows;
+				finalQueryNames = new String[rows.length];
+				finalQueryObjects = new String[rows.length];
 				
-				
-				for(int i = 0; i < queryObjectsSQLresult.rows.length; i++)
+				for(int i = 0; i < rows.length; i++)
 				{
-					Object singleObject = queryObjectsSQLresult.rows[i][1];//TODO find better way to do this
-					String singleObjectString = singleObject.toString();
-					try{
-						
-						 Object parsedObject = parser.parse(singleObjectString);
-						 JSONObject currentJSONObject = (JSONObject) parsedObject;
-						
-						 jsonlist.add(currentJSONObject);
-					}
-					catch (ParseException pe){
-						
-					}
-					
-				}//end of for loop
+					Object[] singleRow = rows[i];
+					finalQueryNames[i]= singleRow[0].toString();
+					finalQueryObjects[i] = singleRow[1].toString();
+					finalProjectDescription = singleRow[2].toString();
+				}
 				
-				finalQueryObjects = jsonlist.toArray(finalQueryObjects);
-				
-			}
-			else{
-				finalQueryObjects = null;
-			}
+				finalQueryObjectCollection = new AWSQueryObjectCollectionObject();
+				finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
+				finalQueryObjectCollection.projectDescription = finalProjectDescription;
+				finalQueryObjectCollection.queryObjectNames = finalQueryNames;
 			
-			finalQueryObjectCollection[0] = finalQueryObjects;
-			finalQueryObjectCollection[1] = queryNames;
-			finalQueryObjectCollection[2] = projectDescription;
-		}//end of if statement
+			}//end of if statement
+			con.close();
+			return finalQueryObjectCollection;
+			
+		}
 		
-		con.close();
-		return finalQueryObjectCollection;
 		
-	}
-	
-
-	
 //	/**
 //	    * 
 //	    * @param projectName project from which queryObjects have to be listed

@@ -9,12 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import weave.config.WeaveConfig;
-import weave.servlets.WeaveServlet;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -63,14 +58,15 @@ public class AwsProjectService
    * @return finalQueryObjectCollection array of [jsonObjects, title of queryObjects]   
    * @throws Exception
    */
-	public static Object[] getQueryObjectsFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
+	public static AWSQueryObjectCollectionObject getQueryObjectsFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
 	{
-		Object[] finalQueryObjectCollection = new Object[3];
-		
+		AWSQueryObjectCollectionObject finalQueryObjectCollection = null;
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		
-		//we're retrieving the list of queryObjects in the selected project
+		String[] finalQueryNames= null;;
+		String[] finalQueryObjects= null;
+		String finalProjectDescription = null;
 		List<String> selectColumns = new ArrayList<String>();
 		selectColumns.add("queryObjectTitle");
 		selectColumns.add("queryObjectContent");
@@ -84,52 +80,23 @@ public class AwsProjectService
 		
 		if(queryObjectsSQLresult.rows.length != 0)//run this code only if the project contains rows
 		{
-			//getting names from queryObjectTitle
-			String[] queryNames =  new String[queryObjectsSQLresult.rows.length];
-			String projectDescription = null;
-			for(int i = 0; i < queryObjectsSQLresult.rows.length; i++){
-				Object singleSQLQueryObject = queryObjectsSQLresult.rows[i][0];//TODO find better way to do this
-				queryNames[i] = singleSQLQueryObject.toString();
-				
-			}
-			projectDescription = (queryObjectsSQLresult.rows[0][2]).toString();//TODO find better way to do this
+			Object[][] rows = queryObjectsSQLresult.rows;
+			finalQueryNames = new String[rows.length];
+			finalQueryObjects = new String[rows.length];
 			
-			//getting json objects from queryObjectContent
-			JSONObject[] finalQueryObjects = null;
-			if(queryObjectsSQLresult.rows.length != 0)
+			for(int i = 0; i < rows.length; i++)
 			{
-				ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
-				JSONParser parser = new JSONParser();
-				finalQueryObjects = new JSONObject[queryObjectsSQLresult.rows.length];
-				
-				
-				for(int i = 0; i < queryObjectsSQLresult.rows.length; i++)
-				{
-					Object singleObject = queryObjectsSQLresult.rows[i][1];//TODO find better way to do this
-					String singleObjectString = singleObject.toString();
-					try{
-						
-						 Object parsedObject = parser.parse(singleObjectString);
-						 JSONObject currentJSONObject = (JSONObject) parsedObject;
-						
-						 jsonlist.add(currentJSONObject);
-					}
-					catch (ParseException pe){
-						
-					}
-					
-				}//end of for loop
-				
-				finalQueryObjects = jsonlist.toArray(finalQueryObjects);
-				
-			}
-			else{
-				finalQueryObjects = null;
+				Object[] singleRow = rows[i];
+				finalQueryNames[i]= singleRow[0].toString();
+				finalQueryObjects[i] = singleRow[1].toString();
+				finalProjectDescription = singleRow[2].toString();
 			}
 			
-			finalQueryObjectCollection[0] = finalQueryObjects;
-			finalQueryObjectCollection[1] = queryNames;
-			finalQueryObjectCollection[2] = projectDescription;
+			finalQueryObjectCollection = new AWSQueryObjectCollectionObject();
+			finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
+			finalQueryObjectCollection.projectDescription = finalProjectDescription;
+			finalQueryObjectCollection.queryObjectNames = finalQueryNames;
+		
 		}//end of if statement
 		con.close();
 		return finalQueryObjectCollection;
@@ -146,11 +113,7 @@ public class AwsProjectService
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
-		
-		
-		//Set<String> caseSensitiveFields  = new HashSet<String>(); 
 		Map<String,Object> whereParams = new HashMap<String, Object>();
-		//whereParams.put("projectName", projectName);
 		whereParams = params;
 		
 		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
@@ -173,8 +136,6 @@ public class AwsProjectService
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		Map<String,Object> whereParams = new HashMap<String, Object>();
-		//whereParams.put("projectName", projectName);
-		//whereParams.put("queryObjectTitle", queryObjectTitle);
 		whereParams = params;
 		
 		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
@@ -251,6 +212,18 @@ public class AwsProjectService
 		return count;
 	}
 
+	/**
+	 * This class represents a collection object that is returned to the WeaveAnalyst
+	 *@param queryObjectNames names of the queryObjects belonging to a project
+	 *@param finalQueryObjects the actual json objects belonging to a project
+	 *@param projectDescription description of the project
+	 */
+	public static class AWSQueryObjectCollectionObject
+	{
+		String[] finalQueryObjects;
+		String[] queryObjectNames;
+		String projectDescription;
+	}
 }
 
 
