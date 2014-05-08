@@ -40,7 +40,6 @@ package weave
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
-	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.core.LibraryUtils;
@@ -236,7 +235,6 @@ package weave
 				// load missing plugins
 				var remaining:int = _pluginList.length;
 				var ILinkableObject_classQName:String = getQualifiedClassName(ILinkableObject);
-				var IVisTool_classQName:String = getQualifiedClassName(IVisTool);
 				
 				function handlePlugin(event:Event, plugin:String):void
 				{
