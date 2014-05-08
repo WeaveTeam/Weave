@@ -549,15 +549,19 @@ import flash.utils.getDefinitionByName;
 import mx.utils.UIDUtil;
 
 import weave.api.WeaveAPI;
+import weave.api.reportError;
 
 internal class ExternalMethod
 {
 	/**
+	 * This is set to true when the initialization code has been attempted.
+	 */
+	private static var initialized:Boolean = false;
+	
+	/**
 	 * A pointer to JSON.
 	 */
 	private static var json:Object;
-	
-	private static var stringify:Function;
 	
 	/**
 	 * Maps a method name to the corresponding ExternalMethod object.
@@ -565,7 +569,7 @@ internal class ExternalMethod
 	private static const registeredMethods:Object = {};
 	
 	/**
-	 * This is the name of the generic external interface function which uses JSON.stringify().
+	 * This is the name of the generic external interface function which uses JSON input and output.
 	 */
 	public static const JSON_CALL:String = "_jsonCall";
 	
@@ -642,47 +646,62 @@ internal class ExternalMethod
 	 */
 	public function ExternalMethod(host:Object, methodInfo:Object)
 	{
-		if (!json)
+		if (!initialized)
 		{
-			// one-time external initialization
-			json = getDefinitionByName("JSON");
-			ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
-			WeaveAPI.executeJavaScript(
-				{
-					"JSON_REPLACER": JSON_REPLACER,
-					"JSON_REVIVER": JSON_REVIVER,
-					"NOT_A_NUMBER": NOT_A_NUMBER,
-					"UNDEFINED": UNDEFINED,
-					"INFINITY": INFINITY,
-					"NEGATIVE_INFINITY": NEGATIVE_INFINITY
-				},
-				"weave[JSON_REPLACER] = function(key, value){",
-				"    if (value === undefined)",
-				"        return UNDEFINED;",
-				"    if (typeof value != 'number' || isFinite(value))",
-				"        return value;",
-				"    if (value == Infinity)",
-				"        return INFINITY;",
-				"    if (value == -Infinity)",
-				"        return NEGATIVE_INFINITY;",
-				"    return NOT_A_NUMBER;",
-				"};",
-				"weave[JSON_REVIVER] = function(key, value){",
-				"    if (value === NOT_A_NUMBER)",
-				"        return NaN;",
-				"    if (value === UNDEFINED)",
-				"        return undefined;",
-				"    if (value === INFINITY)",
-				"        return Infinity;",
-				"    if (value === NEGATIVE_INFINITY)",
-				"        return -Infinity;",
-				"    return value;",
-				"};"
-			);
+			// one-time initialization attempt
+			initialized = true;
+			try
+			{
+				json = getDefinitionByName("JSON");
+				ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
+				WeaveAPI.executeJavaScript(
+					{
+						"JSON_REPLACER": JSON_REPLACER,
+						"JSON_REVIVER": JSON_REVIVER,
+						"NOT_A_NUMBER": NOT_A_NUMBER,
+						"UNDEFINED": UNDEFINED,
+						"INFINITY": INFINITY,
+						"NEGATIVE_INFINITY": NEGATIVE_INFINITY
+					},
+					"weave[JSON_REPLACER] = function(key, value){",
+					"    if (value === undefined)",
+					"        return UNDEFINED;",
+					"    if (typeof value != 'number' || isFinite(value))",
+					"        return value;",
+					"    if (value == Infinity)",
+					"        return INFINITY;",
+					"    if (value == -Infinity)",
+					"        return NEGATIVE_INFINITY;",
+					"    return NOT_A_NUMBER;",
+					"};",
+					"weave[JSON_REVIVER] = function(key, value){",
+					"    if (value === NOT_A_NUMBER)",
+					"        return NaN;",
+					"    if (value === UNDEFINED)",
+					"        return undefined;",
+					"    if (value === INFINITY)",
+					"        return Infinity;",
+					"    if (value === NEGATIVE_INFINITY)",
+					"        return -Infinity;",
+					"    return value;",
+					"};"
+				);
+			}
+			catch (e:Error)
+			{
+				trace(e.getStackTrace() || "Your version of Flash Player does not have native JSON support.");
+			}
 		}
 		
-		var name:String = methodInfo.name;
-		method = host[name];
+		// backwards compatibility
+		if (!json)
+		{
+			ExternalInterface.addCallback(methodInfo.name, host[methodInfo.name]);
+			return;
+		}
+		
+		var methodName:String = methodInfo.name;
+		method = host[methodName];
 		// find the number of required parameters
 		paramCount = 0;
 		while (paramCount < method.length && !methodInfo.parameters[paramCount].optional)
@@ -693,7 +712,7 @@ internal class ExternalMethod
 				"JSON_CALL": JSON_CALL,
 				"JSON_REPLACER": JSON_REPLACER,
 				"JSON_REVIVER": JSON_REVIVER,
-				"methodName": name,
+				"methodName": methodName,
 				"paramCount": paramCount
 			},
 			"weave[methodName] = function(){",
@@ -708,7 +727,7 @@ internal class ExternalMethod
 			"}"
 		);
 		
-		registeredMethods[name] = this;
+		registeredMethods[methodName] = this;
 	}
 	
 	public var method:Function;
