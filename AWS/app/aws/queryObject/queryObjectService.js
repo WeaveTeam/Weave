@@ -168,7 +168,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	params.projectName = projectName;
     	aws.queryService(projectManagementURL, 'getQueryObjectsFromDatabase', [params], function(AWSQueryObjectCollectionObject){
     		var returnedQueryObjects = [];
-    		if(angular.isUndefined(AWSQueryObjectCollectionObject.finalQueryObjects))
+    		if(!(angular.isUndefined(AWSQueryObjectCollectionObject)))
     			{
     			
 	    			var countOfJsons = AWSQueryObjectCollectionObject.finalQueryObjects.length;
