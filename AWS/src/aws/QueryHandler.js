@@ -255,17 +255,19 @@ aws.QueryHandler.prototype.runQuery = function() {
 		newWeaveWindow.log("Running Query in R...");
 	};
 	
-	console.log(this.rRequestObject.scriptName);
-	console.log(this.rRequestObject.ids);
-	console.log(this.rRequestObject.filters);
-
 	aws.queryService(computationServiceURL, 'runScript', [this.rRequestObject.scriptName, this.rRequestObject.ids, this.rRequestObject.filters], function(result){	
 		aws.timeLogString = "";
 		that.resultDataSet = result.data[0].value;
-		$("#LogBox").append('<p>' + "Data Load Time: " + result.times[0]/1000 + " seconds.\n" + '</p>');
-		$("#LogBox").append("R Script Computation Time: " + result.times[1] / 1000 + " seconds." + '</p>');
+		newWeaveWindow.log("Load Time : " + result.times[0]/1000 + " secs,  Analysis Time: " + result.times[1]/1000 + " secs");
 
-		newWeaveWindow.workOnData(that, result.data[0].value);
+		// adding a check for extension here because script results are slightly different
+		// in R and Stata
+		if(that.rRequestObject.scriptName.split(".").pop().toLowerCase() == 'r') {
+			newWeaveWindow.workOnData(that, result.data[0].value);
+		} else {
+			newWeaveWindow.workOnData(that, result.data);
+		}
+
 	
 	});
 };

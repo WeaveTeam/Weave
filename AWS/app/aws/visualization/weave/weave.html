@@ -24,14 +24,10 @@
 		    
 			function weaveReady(weave)
 			{
-				//console.log( "Weave Ready" );
 				log("Running Query on R ...");
 				
-				//console.log("got weave instance");
 			    client = new aws.WeaveClient(weave);
-			    //console.log("got weave client");
 			   
-			    // this will call WorkOnData if the results are available
 			   if(responseResults) {
 				   console.log("Calling from weave ready", responseResults);
 				   workOnData(responseResults);
