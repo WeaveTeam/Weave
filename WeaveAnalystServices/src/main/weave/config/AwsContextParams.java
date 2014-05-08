@@ -5,10 +5,12 @@ import javax.servlet.ServletException;
 
 import org.apache.commons.io.FilenameUtils;
 
+import weave.utils.Strings;
+
 public class AwsContextParams
 {
 	private static String awsConfigPath = "";
-	private static String StataPath = "";
+	private static String stataPath = "";
 	private static String rScriptsPath = "";
 	private static String stataScriptsPath = "";
 	
@@ -24,14 +26,13 @@ public class AwsContextParams
 	private AwsContextParams(ServletContext  context) throws ServletException
 	{
 		awsConfigPath = context.getRealPath(context.getInitParameter("awsconfigPath")).replace('\\','/');
-		try{
-			StataPath = context.getRealPath(context.getInitParameter("StataPath")).replace('\\','/');
-		}
-		catch(Exception e)
-		{
-			System.out.println(e);
 		
-		}
+		stataPath = context.getInitParameter("StataPath").replace('\\','/');
+		
+		// if StataPath is not specified, keep it empty
+		if (!Strings.isEmpty(stataPath))
+			stataPath = stataPath.replace('\\', '/');
+				
 		rScriptsPath= FilenameUtils.concat(awsConfigPath, "RScripts");
 		stataScriptsPath = FilenameUtils.concat(awsConfigPath, "StataScripts");
 	}
@@ -60,11 +61,9 @@ public class AwsContextParams
 	}
 	
 	/**
-	 * @return The path where stata is installed, ending in "/"
+	 * @return The path where to stata.exe on windows or env variable on Unix
 	 */
-	 	public String getStataPath(){
-	 
-	 		return StataPath;
-	 	}
-	
+	 public String getStataPath(){
+	 	return stataPath;
+	 }
 }

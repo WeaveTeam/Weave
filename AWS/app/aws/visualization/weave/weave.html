@@ -24,7 +24,7 @@
 		    
 			function weaveReady(weave)
 			{
-				log("Running Query on R ...");
+				log("Running Query...");
 				
 			    client = new aws.WeaveClient(weave);
 			   
@@ -43,7 +43,6 @@
 				console.data = responseResults;
 				if(client)
 				{
-						   log("Displaying visualizations in Weave...");
 						   //Todo parameterize keyColumnName ; here "fips"
 						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "");
 						   //console.log(queryHandler.keyType);

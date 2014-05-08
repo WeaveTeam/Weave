@@ -9,7 +9,6 @@ import javax.servlet.ServletException;
 
 import org.apache.commons.io.FilenameUtils;
 
-import weave.beans.RResult;
 import weave.config.WeaveContextParams;
 import weave.servlets.WeaveServlet;
 import weave.utils.AWSUtils;
@@ -34,10 +33,12 @@ public class ComputationalServlet extends WeaveServlet
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
-		programPath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
-		tempDirPath = AwsContextParams.getInstance(config.getServletContext()).getAwsConfigPath() + "temp";
+		programPath = AwsContextParams.getInstance(config.getServletContext()).getStataPath();
+		tempDirPath = FilenameUtils.concat(AwsContextParams.getInstance(config.getServletContext()).getAwsConfigPath(), "temp");
+		
 		stataScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath();
 		rScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath();
+		
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -65,7 +66,7 @@ public class ComputationalServlet extends WeaveServlet
  		Object[][] columnData = AWSUtils.transpose(recordData);
  		endTime = System.currentTimeMillis(); // end timer for data request
  		recordData = null;
- 		time1 = startTime - endTime;
+ 		time1 = endTime - startTime;
  
  		// Run and time the script
  		startTime = System.currentTimeMillis();
@@ -76,7 +77,7 @@ public class ComputationalServlet extends WeaveServlet
  			e.printStackTrace();
  		}
  		endTime = System.currentTimeMillis();
- 		time2 = startTime - endTime;
+ 		time2 = endTime - startTime;
  
  	}
  	else if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
@@ -91,7 +92,7 @@ public class ComputationalServlet extends WeaveServlet
  		
  	}
  
- 	result.data = (RResult[]) resultData;
+ 	result.data = resultData;
  	result.times[0] = time1;
  	result.times[1] = time2;
  	

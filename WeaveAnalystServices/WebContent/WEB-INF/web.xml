@@ -37,11 +37,13 @@
   	<param-name>RServePath</param-name>
   	<param-value></param-value>
   </context-param>
+ 
   <!-- This is the path of Stata.  Example value: C:/Program Files/Stata/Stata.exe -->
   <context-param>
   	<param-name>StataPath</param-name>
-  	<param-value></param-value>
+  	<param-value>stata-se</param-value>
   </context-param>
+  
   <servlet>
     <servlet-name>ComputationalServlet</servlet-name>
     <servlet-class>weave.servlets.ComputationalServlet</servlet-class>

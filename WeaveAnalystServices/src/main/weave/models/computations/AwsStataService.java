@@ -23,7 +23,6 @@ public class AwsStataService implements IScriptEngine {
 
 		int exitValue = -1;
 		CSVParser parser = new CSVParser();
-		//Gson jsonParser = new Gson();
 		String tempScript = "";
 		String[][] resultData;
 		String[] args = null;
@@ -34,6 +33,13 @@ public class AwsStataService implements IScriptEngine {
 		{
 			tempDirectory.mkdir();
 		} 
+
+		if(new File(tempDirectory.getAbsolutePath(), "result.csv").exists())
+		{
+			if(!new File(tempDirectory.getAbsolutePath(), "result.csv").delete()) {
+				throw new RemoteException("Cannot delete result.csv");
+			}
+		}
 
 		try 
 		{
@@ -53,11 +59,10 @@ public class AwsStataService implements IScriptEngine {
 		try 
 		{
 			tempScript += "insheet using " + dataSetCSV.getAbsolutePath() + ", clear" + "\n" +
-			 	"global path=\"" + tempDirPath + "\"\n" +
-			 	"cd \"$path/\" \n" +
-			 	"noisily do " + new File(FilenameUtils.concat(scriptPath, scriptName)).getAbsolutePath() + "\n" +
-			 	"capture erase tempScript.log\n";
-			 	// "capture erase " +  tempDirPath + "tempScript.log";
+					"global path=\"" + tempDirPath + "\"\n" +
+					"cd \"$path/\" \n" +
+					"noisily do " + new File(FilenameUtils.concat(scriptPath, scriptName)).getAbsolutePath() + "\n";
+
 			tempScriptFile = new File(FilenameUtils.concat(tempDirectory.getAbsolutePath(), "tempScript.do"));
 			BufferedWriter out = new BufferedWriter(new FileWriter(tempScriptFile));
 			out.write(tempScript);
@@ -105,20 +110,21 @@ public class AwsStataService implements IScriptEngine {
 		// for now we assume result is always in result.csv
 		File scriptResult = new File(tempDirectory.getAbsolutePath(), "result.csv");
 
-		if(logFile.exists()) {
+		if(scriptResult.exists()) {
 			// parse log file for ouput only
-			String error = getErrorsFromStataLog(logFile);
-			throw new RemoteException("Error while running Stata script: " + error);
+			resultData = parser.parseCSV(scriptResult, true);
+			scriptResult.delete();
 		} else {
-			if(scriptResult.exists()) {
-				resultData = parser.parseCSV(scriptResult, true);
+			if(logFile.exists()) {
+				String error = getErrorsFromStataLog(logFile);
+				throw new RemoteException("Error while running Stata script: " + error);
 			} else {
-				throw new RemoteException("Could not find result.csv");
+				throw new RemoteException("Script did not produce result.csv and no log file found.");
 			}
 		}
 		return resultData;
 	}
-
+	
 	/**
 	 * This functions reads a stata .log log file and returns the outputs
 	 * 
