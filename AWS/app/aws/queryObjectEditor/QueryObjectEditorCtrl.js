@@ -4,38 +4,32 @@
 angular.module('aws.queryObjectEditor', [])
 .controller("QueryObjectEditorCtrl", function($scope, queryService){
 	
-	var user= "";
+	var user= null;
 	var projectDescription = "";
 	$scope.editedJson = null;
 	$scope.tempEditor;
 	$scope.$watch('username', function(){
 		user = $scope.username;
 	});
+
+	$scope.$watch('username', function(){
+		if(!(angular.isUndefined($scope.username)))
+			user = $scope.username;
+	});
+	
 //	$scope.$watch(function(){
-//		console.log("currentJSON", $scope.queryObjectJson);
-//		return $scope.queryObjectJson;
+//		return $scope.currentQuerySelected;
 //	}, function(){
-//		$scope.currentJson = $scope.queryObjectJson;
+//		$scope.currentJson = $scope.currentQuerySelected;
 //		
 //	});
 	
-	$scope.$watch('username', function(){
-		user = $scope.username;
-	});
-	
-	$scope.$watch(function(){
-		return $scope.currentQuerySelected;
-	}, function(){
-		$scope.currentJson = $scope.currentQuerySelected;
-		
-	});
-	
-	$scope.$watch(function(){
-		return $scope.currentJson;
-	}, function(){
-		$scope.currentQuerySelected = $scope.currentJson;
-		
-	});
+//	$scope.$watch(function(){
+//		return $scope.currentJson;
+//	}, function(){
+//		$scope.currentQuerySelected = $scope.currentJson;
+//		
+//	});
 	
 	$scope.$watch(function(){
 		return $scope.editedJson;
@@ -43,7 +37,7 @@ angular.module('aws.queryObjectEditor', [])
 		
 		if($scope.editedJson != null)
 		$scope.currentJson = $scope.editedJson;
-		
+		console.log("watching edited", $scope.currentJson);
 	});
 
 	$scope.exportToJSONFile = function() {
@@ -72,24 +66,17 @@ angular.module('aws.queryObjectEditor', [])
 		queryObjectContent.push(singlequeryObjectContent);
 		console.log("sendingContent", singlequeryObjectContent);
 		
-		if(user == "")
+		if(angular.isUndefined(user))
 			user = "Awesome User";
 		
 		if(!(angular.isUndefined($scope.editedJson.projectDescription)))
 			projectDescription = $scope.editedJson.projectDescription;
 		else
-			projectDescription = "";
-		
+			projectDescription = "This project has no description";
+		console.log("user", user);
+		console.log("projectDescription", projectDescription);
 		var projectName = $scope.currentProjectSelected;
-//		console.log("sendingProject",$scope.currentProjectSelected);
-//		var singlequeryObjectTitle = $scope.currentQuerySelected.title;
-//		queryObjectTitle.push(singlequeryObjectTitle);
-//		console.log("sendingTitle",$scope.currentQuerySelected.title);
-//		var singlequeryObjectContent = JSON.stringify($scope.currentQuerySelected);//the actual json
-//		queryObjectContent.push(singlequeryObjectContent);
-//		console.log("sendingContent", $scope.currentQuerySelected);
-//		var userName = "USerNameFOO";
-//		
+
 		//calling the service
 		
 		queryService.insertQueryObjectToProject(user, projectName, projectDescription, queryObjectTitle, queryObjectContent);
