@@ -345,7 +345,7 @@ package weave.api
 			
 			// if there are no parameters, just run the code
 			if (pNames.length == 0)
-				return ExternalMethod.fixed_ExternalInterface_call(code);
+				return ExternalInterface.call(code);
 			
 			// call the function with the specified parameters
 			pValues.unshift(code);
@@ -546,27 +546,15 @@ import flash.utils.getDefinitionByName;
 import mx.utils.UIDUtil;
 
 import weave.api.WeaveAPI;
-import weave.api.reportError;
 
 internal class ExternalMethod
 {
-	/**
-	 * A wrapper for ExternalInterface.call() that properly escapes backslashes.
-	 */
-	public static function fixed_ExternalInterface_call(code:String):*
-	{
-		if (!initialized)
-			initialize();
-		if (codeBackslashNeedsEscaping)
-			code = code.split('\\').join('\\\\');
-		return ExternalInterface.call(code);
-	}
-	
 	private static function initialize():void
 	{
 		// one-time initialization attempt
 		initialized = true;
-		codeBackslashNeedsEscaping = (ExternalInterface.call('function(){ return "\\\\\\\\"; }') == "\\");
+		var slashes:String = "\\\\";
+		backslashNeedsEscaping = (ExternalInterface.call('function(slashes){ return slashes; }', slashes) != slashes);
 		try
 		{
 			json = getDefinitionByName("JSON");
@@ -616,14 +604,9 @@ internal class ExternalMethod
 	private static var initialized:Boolean = false;
 	
 	/**
-	 * If this is true, then ExternalInterface.call() does not properly quote backslashes in the code.
+	 * If this is true, backslashes need to be escaped when returning a String to JavaScript.
 	 */
-	private static var codeBackslashNeedsEscaping:Boolean = false;
-	
-	/**
-	 * If this is true, backslashes are not properly escaped in results from external ActionScript invocations.
-	 */
-	private static var resultBackslashNeedsEscaping:Boolean = true;
+	private static var backslashNeedsEscaping:Boolean = true;
 	
 	/**
 	 * A pointer to JSON.
@@ -675,8 +658,8 @@ internal class ExternalMethod
 		var result:* = em.method.apply(null, params);
 		var resultJson:String = json.stringify(result, _jsonReplacer);
 		
-		// work around bug where ExternalInterface does not escape backslash.
-		if (resultBackslashNeedsEscaping)
+		// work around flash player bug
+		if (backslashNeedsEscaping)
 			resultJson = resultJson.split('\\').join('\\\\');
 
 		return resultJson;
@@ -717,15 +700,16 @@ internal class ExternalMethod
 		if (!initialized)
 			initialize();
 		
+		var methodName:String = methodInfo.name;
+		method = host[methodName];
+		
 		// backwards compatibility
 		if (!json)
 		{
-			ExternalInterface.addCallback(methodInfo.name, host[methodInfo.name]);
+			ExternalInterface.addCallback(methodName, method);
 			return;
 		}
 		
-		var methodName:String = methodInfo.name;
-		method = host[methodName];
 		// find the number of required parameters
 		paramCount = 0;
 		while (paramCount < method.length && !methodInfo.parameters[paramCount].optional)
