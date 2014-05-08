@@ -343,12 +343,9 @@ package weave.api
 			// concatenate all code inside a function wrapper
 			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
 			
-			// work around bug where ExternalInterface does not escape backslash.
-			code = code.split('\\').join('\\\\');
-			
 			// if there are no parameters, just run the code
 			if (pNames.length == 0)
-				return ExternalInterface.call(code);
+				return ExternalMethod.fixed_ExternalInterface_call(code);
 			
 			// call the function with the specified parameters
 			pValues.unshift(code);
@@ -554,9 +551,79 @@ import weave.api.reportError;
 internal class ExternalMethod
 {
 	/**
+	 * A wrapper for ExternalInterface.call() that properly escapes backslashes.
+	 */
+	public static function fixed_ExternalInterface_call(code:String):*
+	{
+		if (!initialized)
+			initialize();
+		if (codeBackslashNeedsEscaping)
+			code = code.split('\\').join('\\\\');
+		return ExternalInterface.call(code);
+	}
+	
+	private static function initialize():void
+	{
+		// one-time initialization attempt
+		initialized = true;
+		codeBackslashNeedsEscaping = (ExternalInterface.call('function(){ return "\\\\\\\\"; }') == "\\");
+		try
+		{
+			json = getDefinitionByName("JSON");
+			ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
+			WeaveAPI.executeJavaScript(
+				{
+					"JSON_REPLACER": JSON_REPLACER,
+					"JSON_REVIVER": JSON_REVIVER,
+					"NOT_A_NUMBER": NOT_A_NUMBER,
+					"UNDEFINED": UNDEFINED,
+					"INFINITY": INFINITY,
+					"NEGATIVE_INFINITY": NEGATIVE_INFINITY
+				},
+				"weave[JSON_REPLACER] = function(key, value){",
+				"    if (value === undefined)",
+				"        return UNDEFINED;",
+				"    if (typeof value != 'number' || isFinite(value))",
+				"        return value;",
+				"    if (value == Infinity)",
+				"        return INFINITY;",
+				"    if (value == -Infinity)",
+				"        return NEGATIVE_INFINITY;",
+				"    return NOT_A_NUMBER;",
+				"};",
+				"weave[JSON_REVIVER] = function(key, value){",
+				"    if (value === NOT_A_NUMBER)",
+				"        return NaN;",
+				"    if (value === UNDEFINED)",
+				"        return undefined;",
+				"    if (value === INFINITY)",
+				"        return Infinity;",
+				"    if (value === NEGATIVE_INFINITY)",
+				"        return -Infinity;",
+				"    return value;",
+				"};"
+			);
+		}
+		catch (e:Error)
+		{
+			trace(e.getStackTrace() || "Your version of Flash Player does not have native JSON support.");
+		}
+	}
+	
+	/**
 	 * This is set to true when the initialization code has been attempted.
 	 */
 	private static var initialized:Boolean = false;
+	
+	/**
+	 * If this is true, then ExternalInterface.call() does not properly quote backslashes in the code.
+	 */
+	private static var codeBackslashNeedsEscaping:Boolean = false;
+	
+	/**
+	 * If this is true, backslashes are not properly escaped in results from external ActionScript invocations.
+	 */
+	private static var resultBackslashNeedsEscaping:Boolean = true;
 	
 	/**
 	 * A pointer to JSON.
@@ -609,7 +676,8 @@ internal class ExternalMethod
 		var resultJson:String = json.stringify(result, _jsonReplacer);
 		
 		// work around bug where ExternalInterface does not escape backslash.
-		resultJson = resultJson.split('\\').join('\\\\');
+		if (resultBackslashNeedsEscaping)
+			resultJson = resultJson.split('\\').join('\\\\');
 
 		return resultJson;
 	}
@@ -647,51 +715,7 @@ internal class ExternalMethod
 	public function ExternalMethod(host:Object, methodInfo:Object)
 	{
 		if (!initialized)
-		{
-			// one-time initialization attempt
-			initialized = true;
-			try
-			{
-				json = getDefinitionByName("JSON");
-				ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
-				WeaveAPI.executeJavaScript(
-					{
-						"JSON_REPLACER": JSON_REPLACER,
-						"JSON_REVIVER": JSON_REVIVER,
-						"NOT_A_NUMBER": NOT_A_NUMBER,
-						"UNDEFINED": UNDEFINED,
-						"INFINITY": INFINITY,
-						"NEGATIVE_INFINITY": NEGATIVE_INFINITY
-					},
-					"weave[JSON_REPLACER] = function(key, value){",
-					"    if (value === undefined)",
-					"        return UNDEFINED;",
-					"    if (typeof value != 'number' || isFinite(value))",
-					"        return value;",
-					"    if (value == Infinity)",
-					"        return INFINITY;",
-					"    if (value == -Infinity)",
-					"        return NEGATIVE_INFINITY;",
-					"    return NOT_A_NUMBER;",
-					"};",
-					"weave[JSON_REVIVER] = function(key, value){",
-					"    if (value === NOT_A_NUMBER)",
-					"        return NaN;",
-					"    if (value === UNDEFINED)",
-					"        return undefined;",
-					"    if (value === INFINITY)",
-					"        return Infinity;",
-					"    if (value === NEGATIVE_INFINITY)",
-					"        return -Infinity;",
-					"    return value;",
-					"};"
-				);
-			}
-			catch (e:Error)
-			{
-				trace(e.getStackTrace() || "Your version of Flash Player does not have native JSON support.");
-			}
-		}
+			initialize();
 		
 		// backwards compatibility
 		if (!json)
