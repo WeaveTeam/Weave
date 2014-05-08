@@ -80,6 +80,7 @@ package weave.application
 	import weave.core.LinkableBoolean;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.editors.managers.DataSourceManager;
@@ -689,6 +690,12 @@ package weave.application
 			if (!historySlider)
 			{
 				historySlider = EditorManager.getNewEditor(Weave.history) as UIComponent;
+				var shs:SessionHistorySlider = historySlider as SessionHistorySlider;
+				if (shs)
+					shs.squashActive.addImmediateCallback(this, function():void{
+						visDesktop.mouseChildren = !shs.squashActive.value;
+					});
+				
 				if (historySlider)
 					this.addChildAt(historySlider, this.getChildIndex(visDesktop));
 				else
