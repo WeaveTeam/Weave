@@ -23,6 +23,21 @@ package
 	 * Requires Flash Player 11 or later to get the full benefit (uses native JSON support),
 	 * but has backwards compatibility to Flash Player 10, or possibly earlier versions (untested).
 	 * 
+	 * When parameters are passed to ExternalInterface.call() it attempts to stringify the parameters
+	 * to JavaScript object literals, but it does not quote keys and it does not escape backslashes
+	 * in String values. For example, if you give <code>{"Content-Type": "foo\\"}</code> as a parameter,
+	 * ExternalInterface generates the following invalid object literal: <code>{Content-Type: "foo\"}</code>.
+	 * The same problem occurs when returning an Object from an ActionScript function that was invoked
+	 * from JavaScript. This class works around the limitation by using JSON.stringify() and JSON.parse()
+	 * and escaping backslashes in resulting JSON strings. The values <code>undefined, NaN, Infinity, -Infinity</code>
+	 * are preserved.
+	 * 
+	 * This class also provides an objectID accessor which is more reliable than ExternalInterface.objectID,
+	 * which may be null if the Flash object was created using jQuery.flash() even if the Flash object
+	 * has an "id" property in JavaScript.
+	 * 
+	 * @see flash.external.ExternalInterface
+	 * 
 	 * @author adufilie
 	 */
 	public class JavaScript
@@ -76,7 +91,10 @@ package
 		private static const UNDEFINED:String = undefined + JSON_SUFFIX;
 		private static const INFINITY:String = Infinity + JSON_SUFFIX;
 		private static const NEGATIVE_INFINITY:String = -Infinity + JSON_SUFFIX;
-	
+		
+		/**
+		 * Initializes json variable and required external JSON interface.
+		 */
 		private static function initialize():void
 		{
 			// one-time initialization attempt
@@ -126,32 +144,6 @@ package
 			}
 		}
 		
-		private static function _jsonReplacer(key:String, value:*):*
-		{
-			if (value === undefined)
-				return UNDEFINED;
-			if (typeof value != 'number' || isFinite(value))
-				return value;
-			if (value == Infinity)
-				return INFINITY;
-			if (value == -Infinity)
-				return NEGATIVE_INFINITY;
-			return NOT_A_NUMBER;
-		}
-		
-		private static function _jsonReviver(key:String, value:*):*
-		{
-			if (value === NOT_A_NUMBER)
-				return NaN;
-			if (value === UNDEFINED)
-				return undefined;
-			if (value === INFINITY)
-				return Infinity;
-			if (value === NEGATIVE_INFINITY)
-				return -Infinity;
-			return value;
-		}
-		
 		/**
 		 * Handles a JavaScript request.
 		 * @param methodName The name of the method to call.
@@ -168,11 +160,43 @@ package
 			var result:* = method.apply(null, params);
 			var resultJson:String = json.stringify(result, _jsonReplacer);
 			
-			// work around flash player bug
+			// work around unescaped backslash bug
 			if (backslashNeedsEscaping)
 				resultJson = resultJson.split('\\').join('\\\\');
 	
 			return resultJson;
+		}
+		
+		/**
+		 * Preserves primitive values not supported by JSON: undefined, NaN, Infinity, -Infinity
+		 */
+		private static function _jsonReplacer(key:String, value:*):*
+		{
+			if (value === undefined)
+				return UNDEFINED;
+			if (typeof value != 'number' || isFinite(value))
+				return value;
+			if (value == Infinity)
+				return INFINITY;
+			if (value == -Infinity)
+				return NEGATIVE_INFINITY;
+			return NOT_A_NUMBER;
+		}
+		
+		/**
+		 * Preserves primitive values not supported by JSON: undefined, NaN, Infinity, -Infinity
+		 */
+		private static function _jsonReviver(key:String, value:*):*
+		{
+			if (value === NOT_A_NUMBER)
+				return NaN;
+			if (value === UNDEFINED)
+				return undefined;
+			if (value === INFINITY)
+				return Infinity;
+			if (value === NEGATIVE_INFINITY)
+				return -Infinity;
+			return value;
 		}
 		
 		/**
@@ -183,6 +207,9 @@ package
 		 */
 		public static function registerMethod(methodName:String, method:Function, requiredParamCount:int = -1):void
 		{
+			if (!initialized)
+				initialize();
+			
 			// backwards compatibility
 			if (!json)
 			{
@@ -305,17 +332,7 @@ package
 			var pNames:Array = [];
 			var pValues:Array = [];
 			var code:String = '';
-			var json:Object;
 			var thisVar:String = 'this';
-			
-			// If JSON is not available, settle with the flawed ExternalInterface.call() parameters feature.
-			// If a parameter is an Object, we can't trust ExternalInterface.call() since it doesn't quote keys in object literals.
-			// It also does not escape the backslash in String values.
-			// For example, if you give {"Content-Type": "foo\\"} as a parameter, ExternalInterface generates the following invalid
-			// object literal: {Content-Type: "foo\"}.
-			try {
-				json = getDefinitionByName("JSON");
-			} catch (e:Error) { }
 			
 			// separate function parameters from code
 			for each (var value:Object in paramsAndCode)
@@ -360,15 +377,14 @@ package
 				code = JS_var_this(thisVar) + '\nreturn (function(){\n' + code + '}).apply(' + thisVar + ');';
 			}
 			
-			
-			// concatenate all code inside a function wrapper
+			// Concatenate all code inside a function wrapper.
+			// The pNames Array will be empty if JSON is available.
 			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
 			
-			// if there are no parameters, just run the code
-			if (pNames.length == 0)
+			if (json)
 				return ExternalInterface.call(code);
 			
-			// call the function with the specified parameters
+			// JSON is unavailable, so we settle with the flawed ExternalInterface.call() parameters feature.
 			pValues.unshift(code);
 			return ExternalInterface.call.apply(null, pValues);
 		}
