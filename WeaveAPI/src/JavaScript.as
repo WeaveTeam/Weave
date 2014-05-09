@@ -291,7 +291,7 @@ package
 		 * @example Example 3
 		 * <listing version="3.0">
 		 *     JavaScript.registerMethod("testme", trace);
-		 *     JavaScript.exec({"this": "self"}, "return self.testme(self.id);");
+		 *     JavaScript.exec({"this": "self"}, "self.testme(self.id);");
 		 * </listing>
 		 */		
 		public static function exec(...paramsAndCode):*

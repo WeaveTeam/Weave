@@ -297,6 +297,8 @@ package weave.api
 		 *     );
 		 *     trace("sum:", sum);
 		 * </listing>
+		 * 
+		 * @see JavaScript#exec()
 		 */		
 		public static function executeJavaScript(...paramsAndCode):*
 		{
