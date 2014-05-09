@@ -1,5 +1,40 @@
-<div style="padding-left: 25px">
-	<table>
+<div ng-show="!authenticated" style="padding-top: 20px; 
+	 position:absolute;
+     width:300px;
+     height:200px;
+     z-index:15;
+     top:50%;
+     left:50%;
+     margin:-100px 0 0 -150px;">	
+	 <table>
+	 	<tr>
+	 		<td>
+				 User Name: 
+			</td>
+	 		<td>
+	 			<input type="text" ng-model="user"/>
+	 		</td>
+	 	</tr>
+	 	<tr>
+	 		<td>
+	 			Password:
+	 		</td>
+	 		<td>
+		 		<input type="password" ng-model="password"/>
+	 		</td>
+	 	</tr>
+	 	<tr>
+		 	<td>
+	 		</td>
+	 		<td>
+		 		<div align="right" style="padding-top: 5px">
+				 <input type="button" ng-click="authenticate(user, password)" value="Login" ui-keypress="{'enter':'authenticate(user, password)'}"/>
+		 		</div>
+	 		</td>
+	 	</tr>
+	 </table>
+</div> 
+<table ng-show= "authenticated">
   <colgroup width="100%">
     <col width="50%" valign="top">
     <col width="50%">
@@ -19,7 +54,9 @@
 	  </div>
     </td>
     <td valign="top">
-    	<br>
+    	<div style="padding-top: 20px" align="right">
+	    	<input type="button" ng-click="logout()" value="Logout"/>
+    	</div>
 		<b> Id : {{selectedColumnId}} </b>
   		<div class="gridStyle" ng-grid="gridOptions"></div>
         <div class="selectedItems">{{mySelections}}</div>
@@ -28,5 +65,4 @@
        <input type="button" value="Delete" ng-click="removeRow()">
     </td>
   </tr>
-  </table>	
-</div>
+</table>	

@@ -24,11 +24,11 @@ var cmp = function(a, b) {
 
 cmpByKey = function(node1, node2) {
 	return cmp(node1.data.key, node2.data.key);
-}
+};
 
 cmpByTitle = function(node1, node2) {
 	return cmp(node1.data.title, node2.data.title);
-}
+};
 
 treeUtils.getSelectedNodes = function(treeId) {
 	var treeSelection = {};

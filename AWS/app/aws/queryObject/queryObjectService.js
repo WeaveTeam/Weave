@@ -357,16 +357,31 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
          		
          	}
         };
+        
         this.updateEntity = function(user, password, entityId, diff) {
 
         	var deferred = $q.defer();
             
-        	aws.queryService(adminServiceURL, "updateEntity", [user, password, entityId, diff], function(){
+            aws.AdminClient.updateEntity(user, password, entityId, diff, function(){
                 
-            	scope.$apply(function(){
+            	scope.$safeApply(function(){
                     deferred.resolve();
                 });
             });
+            return deferred.promise;
+        };
+        
+        this.authenticate = function(user, password) {
+
+        	var deferred = $q.defer();
+            
+            aws.AdminClient.authenticate(user, password, function(result){
+                
+            	scope.$apply(function(){
+                    deferred.resolve(result);
+                });
+            });
+            
             return deferred.promise;
         };
         

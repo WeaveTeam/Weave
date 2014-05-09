@@ -1,12 +1,32 @@
 angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", function($scope, queryService){			
-	
+
 	var treeData = [];
 	$scope.myData = [];
 	$scope.maxTasks = 100;
 	$scope.progressValue = 0;
 	$scope.selectedColumnId;
     $scope.fileUpload;
-	
+
+    $scope.authenticate = function(user, password)
+	{
+		queryService.authenticate(user, password).then(function(result) {
+			if(result)
+			{
+				$scope.authenticated = true;
+			}
+			else 
+			{
+				$scope.authenticated = false;
+			}
+
+		});
+	};
+
+	$scope.logout = function()
+	{
+		$scope.authenticated = false;
+	};
+    
 	var generateTree = function() {
 		queryService.getDataTableList().then(function(dataTableList) {
 			for (var i = 0; i < dataTableList.length; i++) {
@@ -14,7 +34,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 				treeNode = { title: dataTable.title, key : dataTable.id,
 						children : [], isFolder : true
 				};
-				
+
 				(function(treeNode, i, end) {
 					queryService.getDataColumnsEntitiesFromId(dataTable.id).then(function(dataColumns) {
 						var children = [];
@@ -39,15 +59,21 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 								debugLevel: 0
 							});
 							var node = $("#tree").dynatree("getRoot");
-						     node.sortChildren(cmp, true);
+						    // node.sortChildren(cmp, true);
 						}
 					});
 				})(treeNode, i, dataTableList.length);
 			}
 		});
 	};
-	
+
 	generateTree();
+
+	var cmp = function(a, b) {
+		key1 = a.data.key;
+		key2 = b.data.key;
+		return key1 > key2 ? 1 : key1 < key2 ? -1 : 0;
+	};
 
 	var getColumnMetadata = function (id) {
 		aws.DataClient.getDataColumnEntities(id, function(result) {
@@ -64,7 +90,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 			} 
 		});
 	};
-	
+
 	var convertToTableFormat = function(aws_metadata) {
 		var data = [];
 		for (var key in aws_metadata) {
@@ -72,7 +98,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		}
 		return data;
 	};
-	
+
 	var convertToMetadataFormat = function(tableData) {
 		var aws_metadata = {};
 		for (var i in tableData) {
@@ -80,13 +106,13 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		}
 		return aws_metadata;
 	};
-	
+
 	 var setMyData = function(data) {
 		  $scope.myData = data;
 		  $scope.$apply();
 	 };
 	 $scope.selectedItems = [];
-	 
+
 	 $scope.gridOptions = { 
 	        data: 'myData',
 	        enableRowSelection: true,
@@ -95,20 +121,20 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	                     {field:'value', displayName:'Value', enableCellEdit: true}],
 	        multiSelect : false,
 	        selectedItems : $scope.selectedItems
-	                     
+
 	 };
-	 
+
 	 $scope.addNewRow = function () {
 		 $scope.myData.push({property: 'Property Name', value: 'Value'});
 		 updateMetadata($scope.myData);
 	 };
-	 
+
 	 $scope.removeRow = function() {
 		 var index = $scope.myData.indexOf($scope.gridOptions.selectedItems[0]);
 	     $scope.myData.splice(index, 1);
 	     updateMetadata($scope.myData);
 	 };
-	 
+
 	 $scope.$watch('progressValue', function(){
 		if($scope.progressValue == $scope.maxTasks) {
 			setTimeout(function() {
@@ -120,15 +146,15 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 			$scope.inProgress = true;
 		}
 	 });
-	 
+
 	 $scope.$on('ngGridEventEndCellEdit', function(){
 		 updateMetadata($scope.myData);
 	 });
-	 
+
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-		 queryService.updateEntity("mysql", 
-			"pass", 
+		 queryService.updateEntity($scope.user, 
+			$scope.password, 
 			$scope.selectedColumnId, { 
 										publicMetadata : { 
 															aws_metadata : jsonaws_metadata 
@@ -139,7 +165,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 			 $scope.progressValue = 100;
 		 });
 	 };
-	 
+
 	$scope.refresh = function() {
 		$("#tree").dynatree("getTree").reload();
 		var node = $("#tree").dynatree("getRoot");
@@ -168,8 +194,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
             							}
             						}
     	        					if(id) {
-    	        						queryService.updateEntity("mysql", 
-    	        								"pass", 
+    	        						queryService.updateEntity($scope.user, 
+    	        								$scope.password, 
     	        								 id, { 
     	        															publicMetadata : { 
     	        																				aws_metadata : metadata.replace(/\s/g, '')
@@ -193,12 +219,6 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
           }, true);
           
 	$scope.importQueryObject = function() {
-	
-	};
-		
-	var cmp = function(a, b) {
-		a = a.data.key;
-		b = b.data.key;
-		return a > b ? 1 : a < b ? -1 : 0;
+
 	};
 });
