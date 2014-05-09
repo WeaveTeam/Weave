@@ -53,6 +53,7 @@ package weave
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.utils.BitmapUtils;
+	import weave.utils.getExternalObjectID;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -534,10 +535,7 @@ package weave
 			// get session history from shared object
 			var saved:Object = obj.data[uid];
 			if (debug)
-			{
-				weaveTrace("WeaveAPI.JS_var_weave = '" + WeaveAPI.JS_var_weave + "'");
-				debugTrace("handleWeaveReload", obj.data, uid, saved);
-			}
+				debugTrace("handleWeaveReload", getExternalObjectID('weave'), obj.data, uid, saved);
 			if (saved)
 			{
 				// delete session history from shared object
