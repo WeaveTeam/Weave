@@ -26,7 +26,6 @@ package weave.data.DataSources
 	import weave.api.data.DataTypes;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -36,7 +35,6 @@ package weave.data.DataSources
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -357,15 +355,6 @@ package weave.data.DataSources
 	}
 }
 
-import flash.events.Event;
-import flash.external.ExternalInterface;
-import flash.net.URLRequest;
-import flash.net.URLRequestHeader;
-import flash.net.URLRequestMethod;
-import flash.net.URLVariables;
-
-import mx.rpc.events.FaultEvent;
-import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
 import mx.utils.URLUtil;
 
@@ -376,13 +365,10 @@ import weave.api.data.IDataSource;
 import weave.api.data.IExternalLink;
 import weave.api.data.IWeaveTreeNode;
 import weave.api.data.IWeaveTreeNodeWithPathFinding;
-import weave.api.detectLinkableObjectChange;
 import weave.api.reportError;
 import weave.compiler.Compiler;
 import weave.compiler.StandardLib;
-import weave.core.ClassUtils;
 import weave.data.DataSources.SocrataDataSource;
-import weave.services.URLRequestUtils;
 import weave.utils.VectorUtils;
 
 internal class SocrataNode implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding, IExternalLink

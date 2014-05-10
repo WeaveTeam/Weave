@@ -171,8 +171,6 @@ package weave.data.DataSources
 	}
 }
 
-import com.hurlant.util.asn1.parser.nulll;
-
 import flash.events.Event;
 import flash.external.ExternalInterface;
 import flash.net.URLRequest;
