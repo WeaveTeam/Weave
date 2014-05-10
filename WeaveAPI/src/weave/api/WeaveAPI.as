@@ -167,11 +167,6 @@ package weave.api
 			return FlexGlobals.topLevelApplication;
 		}
 		
-		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */
-		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-		
 		private static var _externalInterfaceInitialized:Boolean = false;
 		
 		/**
@@ -260,7 +255,7 @@ package weave.api
 		 */
 		public static function registerJavaScriptInterface(host:Object, theInterface:Class = null):void
 		{
-			var classInfo:Object = describeTypeJSON(theInterface || host, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS);
+			var classInfo:Object = DescribeType.getInfo(theInterface || host, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS);
 			// register each external interface function
 			for each (var methodInfo:Object in classInfo.traits.methods)
 			{
@@ -389,7 +384,7 @@ package weave.api
 		private static function _verifyImplementation(theInterface:Class, theImplementation:Class):void
 		{
 			var interfaceName:String = getQualifiedClassName(theInterface);
-			var classInfo:Object = describeTypeJSON(theImplementation, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+			var classInfo:Object = DescribeType.getInfo(theImplementation, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
 			if (classInfo.traits.interfaces.indexOf(interfaceName) < 0)
 				throw new Error(getQualifiedClassName(theImplementation) + ' does not implement ' + interfaceName);
 		}

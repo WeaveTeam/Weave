@@ -134,11 +134,6 @@
 				minimizable.value = maximizable.value = closeable.value = true;
 			}
 			
-			/**
-			 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-			 */
-			private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -156,7 +151,7 @@
 				{
 					var functions:Array = new Array();
 					
-					var classInfo:Object = describeTypeJSON(
+					var classInfo:Object = DescribeType.getInfo(
 						library,
 						DescribeType.INCLUDE_TRAITS |
 						DescribeType.INCLUDE_VARIABLES |

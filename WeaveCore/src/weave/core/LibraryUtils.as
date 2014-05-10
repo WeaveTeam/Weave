@@ -279,11 +279,6 @@ internal class Library implements IDisposableObject
 	}
 	
 	/**
-	 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-	 */
-	private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-	
-	/**
 	 * @private
 	 *
 	 * This is called when the SWFLoader finishes loading.
@@ -319,7 +314,7 @@ internal class Library implements IDisposableObject
 					var classDef:Class = ClassUtils.getClassDefinition(classQName);
 					
 					// register this class as an implementation of every interface it implements.
-					var classInfo:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+					var classInfo:Object = DescribeType.getInfo(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
 					for each (var interfaceQName:String in classInfo.traits.interfaces)
 					{
 						var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
