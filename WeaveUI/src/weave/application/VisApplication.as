@@ -27,7 +27,6 @@ package weave.application
 	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
-	import flash.external.ExternalInterface;
 	import flash.geom.Point;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
@@ -76,7 +75,6 @@ package weave.application
 	import weave.api.ui.IVisTool;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.compiler.StandardLib;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -194,18 +192,16 @@ package weave.application
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
-			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
 			getCallbackCollection(Weave.savedSelectionKeySets).addGroupedCallback(this, setupSelectionsMenu);
 			getCallbackCollection(Weave.savedSubsetsKeyFilters).addGroupedCallback(this, setupSubsetsMenu);
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
-			if (ExternalInterface.available)
+			if (JavaScript.available)
 			{
-				ExternalInterface.addCallback('loadFile', loadFile);
-				WeaveAPI.initializeExternalInterface();
-				WeaveAPI.executeJavaScript(new _InitializeWeaveData.WeavePathData());
+				JavaScript.registerMethod('loadFile', loadFile);
+				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
 			}
 
 			getFlashVars();
@@ -270,7 +266,7 @@ package weave.application
 			_requestedConfigFile = url;
 			_loadFileCallback = callback as Function;
 			if (callback is String)
-				_loadFileCallback = function():void { ExternalInterface.call(callback as String); };
+				_loadFileCallback = function():void { JavaScript.exec(callback + "();"); };
 			
 			if (noCacheHack)
 				url += "?" + (new Date()).getTime(); // prevent flex from using cache
@@ -387,9 +383,9 @@ package weave.application
 		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession=";
 		private function getAdminConnectionName():String
 		{
-			if (ExternalInterface.available)
+			if (JavaScript.available)
 			{
-				var windowName:String = ExternalInterface.call("function(){ return window.name; }");
+				var windowName:String = JavaScript.exec("return window.name;");
 				if (windowName.indexOf(ADMIN_SESSION_WINDOW_NAME_PREFIX) == 0)
 					return windowName.substr(ADMIN_SESSION_WINDOW_NAME_PREFIX.length);
 			}
@@ -438,7 +434,7 @@ package weave.application
 			// check address bar for any variables not found in FlashVars
 			try
 			{
-				var urlParams:URLVariables = new URLVariables(ExternalInterface.call("window.location.search.substring", 1)); // text after '?'
+				var urlParams:URLVariables = new URLVariables(JavaScript.exec("return window.location.search.substring(1);")); // text after '?'
 				for (var key:String in urlParams)
 					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
 						_flashVars[key] = urlParams[key];
@@ -627,7 +623,7 @@ package weave.application
 		// this function may be called by the Admin Console to close this window, needs to be public
 		public function closeWeavePopup():void
 		{
-			ExternalInterface.call("window.close()");
+			JavaScript.exec("window.close();");
 		}
 
 		/**
@@ -895,7 +891,7 @@ package weave.application
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Manage plugins"), managePlugins));
 				}
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				if (ExternalInterface.available)
+				if (JavaScript.available)
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang('Restart Weave'), Weave.externalReload));
 				if (Weave.properties.showCollaborationMenuItem.value)
 				{
@@ -1589,22 +1585,6 @@ package weave.application
 			printPopUp.componentToScreenshot = component;
 		}
 
-		/**
-		 * Update the page title.
-		 */
-		private function updatePageTitle():void
-		{
-			try
-			{
-				if (ExternalInterface.available)
-					ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
-		}
-		
 		/** 
 		 * Add a context menu item that goes to an associated url in a new browser window/tab
 		 */

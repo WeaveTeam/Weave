@@ -17,11 +17,11 @@ package weave.api
 {
 	import avmplus.DescribeType;
 	
-	import flash.external.ExternalInterface;
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.core.ByteArrayAsset;
 	import mx.core.FlexGlobals;
 	import mx.core.Singleton;
 	
@@ -167,80 +167,116 @@ package weave.api
 			return FlexGlobals.topLevelApplication;
 		}
 		
-		private static var _externalInterfaceInitialized:Boolean = false;
+		private static const _javaScriptInitialized:Dictionary = new Dictionary();
 		
 		/**
-		 * This will be true after initializeExternalInterface() completes successfully.
+		 * This will be true after initializeJavaScript() completes successfully.
 		 */
-		public static function get externalInterfaceInitialized():Boolean
+		public static function get javaScriptInitialized():Boolean
 		{
-			return _externalInterfaceInitialized;
+			return !!_javaScriptInitialized[WeavePath];
 		}
 		
 		/**
 		 * This function will initialize the external API so calls can be made from JavaScript to Weave.
 		 * After initializing, this will call an external function weave.apiReady(weave) if it exists, where
 		 * 'weave' is a pointer to the instance of Weave that was initialized.
+		 * @param scripts A list of JavaScript files containing initialization code, each given as a Class (for an embedded file) or a String.
+		 *                Within the script, the "weave" variable can be used as a pointer to the Weave instance.
+		 * 
+		 * @example Example
+		 * <listing version="3.0">
+		 *     [Embed(source="MyScript.js", mimeType="application/octet-stream")]
+		 *     private static const MyScript:Class;
+		 * 
+		 *     WeaveAPI.initializeJavaScript(MyScript);
+		 * </listing>
 		 */
-		public static function initializeExternalInterface():void
+		public static function initializeJavaScript(...scripts):void
 		{
-			if (!ExternalInterface.available || _externalInterfaceInitialized)
+			if (!JavaScript.available)
 				return;
+			
+			// we want WeavePath to be initialized first
+			var firstTime:Boolean = !javaScriptInitialized;
+			if (firstTime)
+			{
+				// always include WeavePath
+				if (scripts.indexOf(WeavePath) < 0)
+					scripts.unshift(WeavePath);
+				
+				// initialize Direct API before anything else
+				scripts.unshift(IExternalSessionStateInterface);
+			}
 			
 			try
 			{
-				// initialize Direct API
-				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
-				for each (var theInterface:Class in interfaces)
-					registerJavaScriptInterface(getSingletonInstance(theInterface), theInterface);
-
-				var prev:Boolean = ExternalInterface.marshallExceptions;
-				ExternalInterface.marshallExceptions = false;
+				for each (var script:Object in scripts)
+				{
+					// skip scripts we've already initialized
+					if (_javaScriptInitialized[script])
+						continue;
+					
+					if (script is Class)
+					{
+						var instanceInfo:Object = DescribeType.getInfo(script, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS | DescribeType.INCLUDE_BASES);
+						if (instanceInfo.traits.bases.indexOf(getQualifiedClassName(ByteArrayAsset)) >= 0)
+						{
+							// run embedded script file
+							JavaScript.exec({"this": "weave"}, new script());
+						}
+						else
+						{
+							// initialize interface
+							registerJavaScriptInterface(getSingletonInstance(script as Class), instanceInfo);
+						}
+					}
+					else
+					{
+						// run the script
+						JavaScript.exec({"this": "weave"}, script);
+					}
+					
+					// remember that we initialized the script
+					_javaScriptInitialized[script] = true;
+				}
 				
-				// initialize WeavePath API
-				executeJavaScript(new WeavePath());
-				
-				// set flag before calling external apiReady()
-				_externalInterfaceInitialized = true;
-				
-				// call external weaveApiReady(weave)
-				executeJavaScript(
-					'if (weave.hasOwnProperty("weaveApiReady")) { weave.weaveApiReady(weave); }',
-					'if (window && window.weaveApiReady) { window.weaveApiReady(weave); }',
-					'else if (weaveApiReady) { weaveApiReady(weave); }'
-				);
-				
-				ExternalInterface.marshallExceptions = prev;
+				if (firstTime)
+				{
+					// call external weaveApiReady(weave)
+					JavaScript.exec(
+						{method: "weaveApiReady"},
+						'if (this.hasOwnProperty(method)) this[method](this);',
+						'if (window.hasOwnProperty(method)) window[method](this);'
+					);
+				}
 			}
-			catch (e:Error)
+			catch (e:*)
 			{
 				handleExternalError(e);
 			}
 		}
 
 		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
-		private static const WeavePath:Class;
+		public static const WeavePath:Class;
 
 		/**
 		 * Calls external function(s) weave.weaveReady(weave) and/or window.weaveReady(weave).
 		 */		
 		public static function callExternalWeaveReady():void
 		{
-			initializeExternalInterface();
+			initializeJavaScript();
 			
-			if (!ExternalInterface.available)
+			if (!JavaScript.available)
 				return;
 			
 			try
 			{
-				var prev:Boolean = ExternalInterface.marshallExceptions;
-				ExternalInterface.marshallExceptions = false;
-				executeJavaScript(
-					'if (weave.hasOwnProperty("weaveReady")) { weave.weaveReady(weave); }',
-					'if (window && window.weaveReady) { window.weaveReady(weave); }',
-					'else if (weaveReady) { weaveReady(weave); }'
+				JavaScript.exec(
+					{method: "weaveReady"},
+					'if (this.hasOwnProperty(method)) this[method](this);',
+					'if (window.hasOwnProperty(method)) window[method](this);'
 				);
-				ExternalInterface.marshallExceptions = prev;
 			}
 			catch (e:Error)
 			{
@@ -251,11 +287,10 @@ package weave.api
 		/**
 		 * Exposes an interface to JavaScript.
 		 * @param host The host object containing methods to expose to JavaScript.
-		 * @param theInterface An interface listing methods on the host to be exposed.
+		 * @param typeInfo Type information from describeTypeJSON() listing methods to expose.
 		 */
-		public static function registerJavaScriptInterface(host:Object, theInterface:Class = null):void
+		public static function registerJavaScriptInterface(host:Object, classInfo:Object):void
 		{
-			var classInfo:Object = DescribeType.getInfo(theInterface || host, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS);
 			// register each external interface function
 			for each (var methodInfo:Object in classInfo.traits.methods)
 			{
@@ -268,38 +303,6 @@ package weave.api
 				
 				JavaScript.registerMethod(methodName, method, paramCount);
 			}
-		}
-
-		/**
-		 * This will execute JavaScript code that uses a 'weave' variable.
-		 * @param paramsAndCode A list of lines of code, optionally including an
-		 *     Object containing named parameters to be passed from ActionScript to JavaScript.
-		 *     Inside the code, you can use a variable named "weave" which will be a pointer
-		 *     to the Weave instance.
-		 * @return The result of executing the JavaScript code.
-		 * 
-		 * @example Example 1
-		 * <listing version="3.0">
-		 *     var sum = WeaveAPI.executeJavaScript({x: 2, y: 3}, "return x + y");
-		 *     trace("sum:", sum);
-		 * </listing>
-		 * 
-		 * @example Example 2
-		 * <listing version="3.0">
-		 *     var sum = WeaveAPI.executeJavaScript(
-		 *         {x: 2, y: 3},
-		 *         'return weave.path().vars({x: x, y: y}).getValue("x + y");'
-		 *     );
-		 *     trace("sum:", sum);
-		 * </listing>
-		 * 
-		 * @see JavaScript#exec()
-		 */		
-		public static function executeJavaScript(...paramsAndCode):*
-		{
-			// insert weave variable declaration
-			paramsAndCode.unshift({"this": "weave"});
-			return JavaScript.exec(paramsAndCode);
 		}
 		
 		private static function handleExternalError(e:Error):void
@@ -482,7 +485,7 @@ package weave.api
 		 */
 		public static function externalTrace(...params):void
 		{
-			executeJavaScript(
+			JavaScript.exec(
 				{"params": params},
 				"console.log.apply(console, params)"
 			);

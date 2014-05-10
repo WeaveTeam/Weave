@@ -175,7 +175,7 @@
 			
 			private function handleApplicationComplete():void
 			{
-				WeaveAPI.initializeExternalInterface();
+				WeaveAPI.initializeJavaScript();
 				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog, WeaveAPI.ErrorManager.errors.length > 0);
 			}
 			
@@ -187,7 +187,7 @@
 			
 			private function openAcsHeaderTool():void
 			{
-				ExternalInterface.call('window.open("http://demo.oicweave.org/HeaderTool.swf", "_blank")');
+				JavaScript.exec('window.open("http://demo.oicweave.org/HeaderTool.swf", "_blank")');
 			}
 		]]>
 	</mx:Script>

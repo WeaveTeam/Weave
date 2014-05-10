@@ -423,7 +423,7 @@ package weave
 			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
 			
-			if (WeaveAPI.externalInterfaceInitialized)
+			if (WeaveAPI.javaScriptInitialized)
 			{
 				Weave.initExternalDragDrop();
 				properties.runStartupJavaScript();
@@ -450,10 +450,10 @@ package weave
 		 */
 		public static function externalReload(weaveContent:Object = null):void
 		{
-			if (!ExternalInterface.available)
+			if (!JavaScript.available)
 			{
 				//TODO: is it possible to restart an Adobe AIR application from within?
-				reportError("Unable to restart Weave when ExternalInterface is not available.");
+				reportError("Unable to restart Weave when JavaScript is not available.");
 				return;
 			}
 			
@@ -462,7 +462,7 @@ package weave
 			
 			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
 			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
-			if (ExternalInterface.available && ExternalInterface.objectID)
+			if (JavaScript.available && ExternalInterface.objectID)
 			{
 				// generate uid to be saved in parent node
 				uid = UIDUtil.createUID();
@@ -491,13 +491,13 @@ package weave
 				
 				// reload the application
 				if (ExternalInterface.objectID)
-					WeaveAPI.executeJavaScript(
+					JavaScript.exec(
 						{reloadID: uid},
-						"weave.parentNode.weaveReloadID = reloadID;",
-						"weave.outerHTML = weave.outerHTML;"
+						"this.parentNode.weaveReloadID = reloadID;",
+						"this.outerHTML = this.outerHTML;"
 					);
 				else
-					ExternalInterface.call("function(){ location.reload(false); }");
+					JavaScript.exec("location.reload(false);");
 			}
 		}
 		
@@ -511,13 +511,13 @@ package weave
 		{
 			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
 			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
-			if (ExternalInterface.available && ExternalInterface.objectID)
+			if (JavaScript.available && ExternalInterface.objectID)
 			{
 				try
 				{
 					// get uid that was previously saved in parent node
-					uid = WeaveAPI.executeJavaScript(
-						'var p = weave.parentNode;',
+					uid = JavaScript.exec(
+						'var p = this.parentNode;',
 						'var reloadID = p.weaveReloadID;',
 						'p.weaveReloadID = undefined;',
 						'return reloadID;'
@@ -574,11 +574,11 @@ package weave
 		private static var _startupComplete:Boolean = false;
 		public static function initExternalDragDrop():void
 		{
-			if (_startupComplete || !ExternalInterface.available)
+			if (_startupComplete || !JavaScript.available)
 				return;
 			try
 			{
-				WeaveAPI.executeJavaScript(new WeaveStartup());
+				JavaScript.exec({"this": "weave"}, new WeaveStartup());
 				_startupComplete = true;
 			}
 			catch (e:Error)

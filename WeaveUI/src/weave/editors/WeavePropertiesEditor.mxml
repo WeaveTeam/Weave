@@ -113,8 +113,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.net.navigateToURL;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
@@ -137,7 +135,7 @@
 				buildAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_2_BUILDING);
 				parseAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_3_PARSING);
 				
-				if (!ExternalInterface.available)
+				if (!JavaScript.available)
 					startup.visible = startup.includeInLayout = false;
 			}
 			

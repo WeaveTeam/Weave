@@ -52,23 +52,23 @@ package weave.visualization.tools
 				toolPath.unshift(JavaScript.objectID);
 				windowName = Compiler.stringify(toolPath);
 			}
-			WeaveAPI.executeJavaScript(
+			JavaScript.exec(
 				{
 					windowName: windowName,
 					toolPath: toolPath,
 					url: toolUrl.value,
 					features: "menubar=no,status=no,toolbar=no"
 				},
-				"if (!weave.external_tools) weave.external_tools = {};",
-				"weave.external_tools[windowName] = window.open(url, windowName, features);"
+				"if (!this.external_tools) this.external_tools = {};",
+				"this.external_tools[windowName] = window.open(url, windowName, features);"
 			);
 		}
 		override public function dispose():void
 		{
 			super.dispose();
-			WeaveAPI.executeJavaScript(
+			JavaScript.exec(
 				{windowName: windowName},
-				"if (weave.external_tools && weave.external_tools[windowName]) weave.external_tools[windowName].close();"
+				"if (this.external_tools && this.external_tools[windowName]) this.external_tools[windowName].close();"
 			);
 		}
 		/**

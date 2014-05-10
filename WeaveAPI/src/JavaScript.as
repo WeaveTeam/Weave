@@ -23,10 +23,12 @@ package
 	 * Requires Flash Player 11 or later to get the full benefit (uses native JSON support),
 	 * but has backwards compatibility to Flash Player 10, or possibly earlier versions (untested).
 	 * 
+	 * If there is a syntax error, JavaScript.exec() will throw the Error while ExternalInterface.call() would return null.
+	 * 
 	 * When parameters are passed to ExternalInterface.call() it attempts to stringify the parameters
 	 * to JavaScript object literals, but it does not quote keys and it does not escape backslashes
 	 * in String values. For example, if you give <code>{"Content-Type": "foo\\"}</code> as a parameter,
-	 * ExternalInterface generates the following invalid object literal: <code>{Content-Type: "foo\"}</code>.
+	 * ExternalInterface generates the following invalid code: <code>{Content-Type: "foo\"}</code>.
 	 * The same problem occurs when returning an Object from an ActionScript function that was invoked
 	 * from JavaScript. This class works around the limitation by using JSON.stringify() and JSON.parse()
 	 * and escaping backslashes in resulting JSON strings. The values <code>undefined, NaN, Infinity, -Infinity</code>
@@ -85,7 +87,7 @@ package
 		/**
 		 * A random String which is highly unlikely to appear in any String value.
 		 */
-		private static const JSON_SUFFIX:String = ';' + new Date() + ';' + Math.random();
+		private static const JSON_SUFFIX:String = ';' + Math.random() + ';' + new Date();
 		
 		private static const NOT_A_NUMBER:String = NaN + JSON_SUFFIX;
 		private static const UNDEFINED:String = undefined + JSON_SUFFIX;
@@ -161,7 +163,7 @@ package
 			var resultJson:String = json.stringify(result, _jsonReplacer);
 			
 			// work around unescaped backslash bug
-			if (backslashNeedsEscaping)
+			if (backslashNeedsEscaping && resultJson.indexOf('\\') >= 0)
 				resultJson = resultJson.split('\\').join('\\\\');
 	
 			return resultJson;
@@ -247,12 +249,28 @@ package
 		 * Generates a line of JavaScript which intializes a variable equal to this Flash object using document.getElementById().
 		 * @param variableName The variable name, which must be a valid JavaScript identifier.
 		 */
-		public static function JS_var_this(variableName:String):String
+		private static function JS_var_this(variableName:String):String
 		{
 			if (!_objectID)
 				_objectID = getExternalObjectID(variableName);
-			return 'var ' + variableName + ' = document.getElementById("' + _objectID + '");';
+			return 'var ' + variableName + ' = ' + JS_this + ';';
 		}
+		
+		/**
+		 * A JavaScript expression which gets a pointer to this Flash object.
+		 */
+		private static function get JS_this():String
+		{
+			if (!_objectID)
+				_objectID = getExternalObjectID();
+			return 'document.getElementById("' + _objectID + '")';
+		}
+		
+		/**
+		 * Alias for ExternalInterface.available
+		 * @see flash.external.ExternalInterface#available
+		 */
+		public static const available:Boolean = ExternalInterface.available;
 		
 		/**
 		 * The "id" property of this Flash object.
@@ -299,9 +317,14 @@ package
 		 * This will execute JavaScript code inside a function(){} wrapper.
 		 * @param paramsAndCode A list of lines of code, optionally including an
 		 *     Object containing named parameters to be passed from ActionScript to JavaScript.
+		 * 
 		 *     Inside the code, you can use the "this" variable to access this flash object.
 		 *     If instead you prefer to use a variable name other than "this", supply an Object
-		 *     containing a "this" property equal to the desired variable name.
+		 *     like <code>{"this": "yourDesiredVariableName"}</code>.
+		 * 
+		 *     By default, a JavaScript Error will be marshalled to an ActionScript Error.
+		 *     To disable this behavior, supply an Object like <code>{"catch": false}</code>.
+		 *     You can also provide an ActionScript function to handle errors: <code>{"catch": myErrorHandler}</code>.
 		 * @return The result of executing the JavaScript code.
 		 * 
 		 * @example Example 1
@@ -329,10 +352,10 @@ package
 			if (paramsAndCode.length == 1 && paramsAndCode[0] is Array)
 				paramsAndCode = paramsAndCode[0];
 			
-			var pNames:Array = [];
-			var pValues:Array = [];
-			var code:String = '';
-			var thisVar:String = 'this';
+			var pNames:Array = json ? null : [];
+			var pValues:Array = json ? null : [];
+			var code:Array = [];
+			var marshallExceptions:Object = true;
 			
 			// separate function parameters from code
 			for each (var value:Object in paramsAndCode)
@@ -343,50 +366,88 @@ package
 					// since they are to be used in the code as variables.
 					for (var key:String in value)
 					{
-						var param:Object = value[key];
+						var param:* = value[key];
 						if (json)
 						{
 							if (key == 'this')
 							{
-								thisVar = String(param);
+								// put a variable declaration at the beginning of the code
+								var thisVar:String = String(param);
 								if (thisVar)
-									code = JS_var_this(thisVar) + '\n' + code;
+									code.unshift(JS_var_this(thisVar));
+							}
+							else if (key == 'catch')
+							{
+								// save error handler
+								marshallExceptions = param;
 							}
 							else
 							{
 								// put a variable declaration at the beginning of the code
-								code = "var " + key + " = " + json.stringify(param) + ";\n" + code;
+								code.unshift("var " + key + " = " + json.stringify(param) + ";");
 							}
 						}
 						else
 						{
 							// JSON unavailable
+							
+							// work around unescaped backslash bug
+							// this backwards compatibility code doesn't handle Strings inside Objects.
+							if (param is String && backslashNeedsEscaping)
+								param = (param as String).split('\\').join('\\\\');
+							
 							pNames.push(key);
 							pValues.push(param);
 						}
 					}
 				}
 				else
-					code += value + '\n';
+				{
+					code.push(String(value));
+				}
 			}
 			
-			if (thisVar == 'this')
+			// if the code references "this", we need to use Function.apply() to make the symbol work as expected
+			var appliedCode:String = '(function(){\n' + code.join('\n') + '\n}).apply(' + JS_this + ')';
+			
+			var result:*;
+			var prevMarshallExceptions:Boolean = ExternalInterface.marshallExceptions;
+			ExternalInterface.marshallExceptions = !!marshallExceptions;
+			try
 			{
-				// to make the "this" symbol work as expected we need to use Function.apply().
-				thisVar = '__JavaScript_dot_as__';
-				code = JS_var_this(thisVar) + '\nreturn (function(){\n' + code + '}).apply(' + thisVar + ');';
+				if (json)
+				{
+					// work around unescaped backslash bug
+					if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
+						appliedCode = appliedCode.split('\\').join('\\\\');
+					
+					// we need to use "eval" in order to receive syntax errors
+					result = ExternalInterface.call('eval', appliedCode);
+				}
+				else
+				{
+					// JSON is unavailable, so we settle with the flawed ExternalInterface.call() parameters feature.
+					var wrappedCode:String = 'function(' + pNames.join(',') + '){ return ' + appliedCode + '; }';
+					pValues.unshift(wrappedCode);
+					result = ExternalInterface.call.apply(null, pValues);
+				}
 			}
+			catch (e:*)
+			{
+				if (marshallExceptions is Function)
+				{
+					marshallExceptions(e);
+				}
+				else
+				{
+					ExternalInterface.marshallExceptions = prevMarshallExceptions;
+					throw e;
+				}
+			}
+			// we can't put this in a finally{} block because it prevents catch() from happening if set to false.
+			ExternalInterface.marshallExceptions = prevMarshallExceptions;
 			
-			// Concatenate all code inside a function wrapper.
-			// The pNames Array will be empty if JSON is available.
-			code = 'function(' + pNames.join(',') + '){\n' + code + '}';
-			
-			if (json)
-				return ExternalInterface.call(code);
-			
-			// JSON is unavailable, so we settle with the flawed ExternalInterface.call() parameters feature.
-			pValues.unshift(code);
-			return ExternalInterface.call.apply(null, pValues);
+			return result;
 		}
 	}
 }
