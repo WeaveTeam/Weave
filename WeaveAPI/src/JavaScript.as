@@ -95,6 +95,74 @@ package
 		private static const NEGATIVE_INFINITY:String = -Infinity + JSON_SUFFIX;
 		
 		/**
+		 * Alias for ExternalInterface.available
+		 * @see flash.external.ExternalInterface#available
+		 */
+		public static const available:Boolean = ExternalInterface.available;
+		
+		/**
+		 * The "id" property of this Flash object.
+		 * Use this as a reliable alternative to ExternalInterface.objectID, which may be null in some cases even if the Flash object has an "id" property.
+		 */
+		public static function get objectID():String
+		{
+			if (!_objectID)
+				_objectID = getExternalObjectID("flash");
+			return _objectID;
+		}
+		
+		/**
+		 * A JavaScript expression which gets a pointer to this Flash object.
+		 */
+		private static function get JS_this():String
+		{
+			if (!_objectID)
+				_objectID = getExternalObjectID();
+			return 'document.getElementById("' + _objectID + '")';
+		}
+		
+		/**
+		 * Generates a line of JavaScript which intializes a variable equal to this Flash object using document.getElementById().
+		 * @param variableName The variable name, which must be a valid JavaScript identifier.
+		 */
+		private static function JS_var_this(variableName:String):String
+		{
+			if (!_objectID)
+				_objectID = getExternalObjectID(variableName);
+			return 'var ' + variableName + ' = ' + JS_this + ';';
+		}
+		
+		/**
+		 * A way to get a Flash application's external object ID when ExternalInterface.objectID is null,
+		 * which may occur when using jQuery.flash().
+		 * @param desiredId If the flash application really has no id, this will be used as a base for creating a new unique id.
+		 * @return The id of the flash application.
+		 */
+		private static function getExternalObjectID(desiredId:String = null):String
+		{
+			var id:String = ExternalInterface.objectID;
+			if (!id) // if we don't know our ID
+			{
+				// use addCallback() to add a property to the flash component that will allow us to be found 
+				ExternalInterface.addCallback(JSON_SUFFIX, trace);
+				// find the element with the unique property name and get its ID (or set the ID if it doesn't have one)
+				id = ExternalInterface.call(
+					"function(uid, newId){\
+						while (document.getElementById(newId))\
+							newId += '_';\
+						var elements = document.getElementsByTagName('*');\
+						for (var i in elements)\
+							if (elements[i][uid])\
+								return elements[i].id || (elements[i].id = newId);\
+					}",
+					JSON_SUFFIX,
+					desiredId || JSON_SUFFIX
+				);
+			}
+			return id;
+		}
+		
+		/**
 		 * Initializes json variable and required external JSON interface.
 		 */
 		private static function initialize():void
@@ -239,78 +307,10 @@ package
 				"    var resultJson = this[JSON_CALL](methodName, paramsJson);",
 				"    //console.log('output:', resultJson);",
 				"    return JSON.parse(resultJson, this[JSON_REVIVER]);",
-				"}"
+				"};"
 			);
 			
 			registeredMethods[methodName] = method;
-		}
-		
-		/**
-		 * Generates a line of JavaScript which intializes a variable equal to this Flash object using document.getElementById().
-		 * @param variableName The variable name, which must be a valid JavaScript identifier.
-		 */
-		private static function JS_var_this(variableName:String):String
-		{
-			if (!_objectID)
-				_objectID = getExternalObjectID(variableName);
-			return 'var ' + variableName + ' = ' + JS_this + ';';
-		}
-		
-		/**
-		 * A JavaScript expression which gets a pointer to this Flash object.
-		 */
-		private static function get JS_this():String
-		{
-			if (!_objectID)
-				_objectID = getExternalObjectID();
-			return 'document.getElementById("' + _objectID + '")';
-		}
-		
-		/**
-		 * Alias for ExternalInterface.available
-		 * @see flash.external.ExternalInterface#available
-		 */
-		public static const available:Boolean = ExternalInterface.available;
-		
-		/**
-		 * The "id" property of this Flash object.
-		 * Use this as a reliable alternative to ExternalInterface.objectID, which may be null in some cases even if the Flash object has an "id" property.
-		 */
-		public static function get objectID():String
-		{
-			if (!_objectID)
-				_objectID = getExternalObjectID("flash");
-			return _objectID;
-		}
-		
-		/**
-		 * A way to get a Flash application's external object ID when ExternalInterface.objectID is null,
-		 * which may occur when using jQuery.flash().
-		 * @param desiredId If the flash application really has no id, this will be used as a base for creating a new unique id.
-		 * @return The id of the flash application.
-		 */
-		private static function getExternalObjectID(desiredId:String = null):String
-		{
-			var id:String = ExternalInterface.objectID;
-			if (!id) // if we don't know our ID
-			{
-				// use addCallback() to add a property to the flash component that will allow us to be found 
-				ExternalInterface.addCallback(JSON_SUFFIX, trace);
-				// find the element with the unique property name and get its ID (or set the ID if it doesn't have one)
-				id = ExternalInterface.call(
-					"function(uid, newId){\
-						while (document.getElementById(newId))\
-							newId += '_';\
-						var elements = document.getElementsByTagName('*');\
-						for (var i in elements)\
-							if (elements[i][uid])\
-								return elements[i].id || (elements[i].id = newId);\
-					}",
-					JSON_SUFFIX,
-					desiredId || JSON_SUFFIX
-				);
-			}
-			return id;
 		}
 		
 		/**
@@ -358,33 +358,33 @@ package
 			var marshallExceptions:Object = true;
 			
 			// separate function parameters from code
-			for each (var value:Object in paramsAndCode)
+			for each (var item:Object in paramsAndCode)
 			{
-				if (value.constructor == Object)
+				if (item.constructor == Object)
 				{
 					// We assume that all the keys in the Object are valid JavaScript identifiers,
 					// since they are to be used in the code as variables.
-					for (var key:String in value)
+					for (var key:String in item)
 					{
-						var param:* = value[key];
+						var value:* = item[key];
 						if (json)
 						{
 							if (key == 'this')
 							{
 								// put a variable declaration at the beginning of the code
-								var thisVar:String = String(param);
+								var thisVar:String = String(value);
 								if (thisVar)
 									code.unshift(JS_var_this(thisVar));
 							}
 							else if (key == 'catch')
 							{
 								// save error handler
-								marshallExceptions = param;
+								marshallExceptions = value;
 							}
 							else
 							{
 								// put a variable declaration at the beginning of the code
-								code.unshift("var " + key + " = " + json.stringify(param) + ";");
+								code.unshift("var " + key + " = " + json.stringify(value) + ";");
 							}
 						}
 						else
@@ -393,17 +393,17 @@ package
 							
 							// work around unescaped backslash bug
 							// this backwards compatibility code doesn't handle Strings inside Objects.
-							if (param is String && backslashNeedsEscaping)
-								param = (param as String).split('\\').join('\\\\');
+							if (value is String && backslashNeedsEscaping)
+								value = (value as String).split('\\').join('\\\\');
 							
 							pNames.push(key);
-							pValues.push(param);
+							pValues.push(value);
 						}
 					}
 				}
 				else
 				{
-					code.push(String(value));
+					code.push(String(item));
 				}
 			}
 			
