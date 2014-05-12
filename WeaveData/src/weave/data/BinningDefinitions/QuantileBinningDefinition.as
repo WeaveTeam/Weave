@@ -92,7 +92,7 @@ package weave.data.BinningDefinitions
 				name = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
-					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
+					name = tempNumberClassifier.generateBinLabel(column);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 			

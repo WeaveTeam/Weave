@@ -30,6 +30,7 @@ package weave.data.BinningDefinitions
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * Divides a data range into a number of bins based on range entered by user.
@@ -61,10 +62,6 @@ package weave.data.BinningDefinitions
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
-			var nonWrapperColumn:IAttributeColumn = column;
-			while (nonWrapperColumn is IColumnWrapper)
-				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
-			
 			var i:int;
 			var values:Array = String(splitValues.value || '').split(',');
 			// remove bad values
@@ -90,7 +87,7 @@ package weave.data.BinningDefinitions
 				name = getOverrideNames()[i];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
-					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
+					name = tempNumberClassifier.generateBinLabel(column);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 			
