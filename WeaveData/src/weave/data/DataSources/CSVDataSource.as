@@ -121,7 +121,7 @@ package weave.data.DataSources
 		{
 			// save parsedRows only if csvData has non-null session state
 			var rows:Array = csvData.getSessionState() as Array;
-			if (rows != null)
+			if (rows != null && rows.length)
 			{
 				// clear url value when we specify csvData session state
 				if (url.value)
@@ -139,7 +139,7 @@ package weave.data.DataSources
 		private function handleParsedRows(rows:Array):void
 		{
 			parsedRows = rows;
-			columnIds = rows[0] ? (rows[0] as Array).concat() : [];
+			columnIds = rows && rows[0] is Array ? (rows[0] as Array).concat() : [];
 			// make sure column names are unique - if not, use index values for columns with duplicate names
 			var nameLookup:Object = {};
 			for (var i:int = 0; i < columnIds.length; i++)
@@ -309,8 +309,6 @@ package weave.data.DataSources
 		}
 		
 		
-		private const _proxyColumnSet:Dictionary = new Dictionary();
-		
 		override protected function get initializationComplete():Boolean
 		{
 			// make sure csv data is set before column requests are handled.
@@ -377,15 +375,14 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * This gets called when callbacks are triggered.
+		 * This gets called as a grouped callback.
 		 */		
 		override protected function initialize():void
 		{
 			handleURLChange();
 			
 			// recalculate all columns previously requested because CSV data may have changed.
-			for (var proxyColumn:* in _proxyColumnSet)
-				requestColumnFromSource(proxyColumn);
+			refreshAllProxyColumns();
 
 			super.initialize();
 		}
@@ -589,7 +586,6 @@ package weave.data.DataSources
 					}
 				}
 				proxyColumn.setInternalColumn(newColumn);
-				_proxyColumnSet[proxyColumn] = true;
 				
 				debug("initialized column",proxyColumn);
 			}
@@ -697,9 +693,6 @@ internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
 				children[i] = new CSVColumnNode(source, i);
 		return children;
 	}
-	
-	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
 	
 	public function getDataSource():IDataSource { return source; }
 	public function getColumnMetadata():Object { return source.generateMetadataForColumnId(source.getColumnIds()[columnIndex]); }

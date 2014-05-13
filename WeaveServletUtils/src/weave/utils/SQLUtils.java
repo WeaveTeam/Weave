@@ -2222,8 +2222,8 @@ public class SQLUtils
 		
 		/**
 		 * Adds a set of grouped inner conditions.
-		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
-		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * Conjunctive Normal Form uses outer AND logic and will group these inner conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these inner conditions with AND logic like (field1 = value1 AND field2 = value2).
 		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param caseSensitiveFields A set of field names which should use case sensitive compare.
 		 * @param wildcardFields A set of field names which should use a "LIKE" SQL clause for wildcard search.
@@ -2243,8 +2243,8 @@ public class SQLUtils
 		
 		/**
 		 * Adds a set of grouped inner conditions.
-		 * Conjunctive Normal Form uses outer AND logic and will group these conditions with OR logic like (field1 = value1 OR field2 = value2).
-		 * Disjunctive Normal Form uses outer OR logic and will group these conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * Conjunctive Normal Form uses outer AND logic and will group these inner conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these inner conditions with AND logic like (field1 = value1 AND field2 = value2).
 		 * @param fieldsAndValues Unquoted field names mapped to raw values
 		 * @param compareModes Field names mapped to compare modes
 		 * @see weave.utils.SQLUtils#convertWildcards(String)

@@ -25,6 +25,7 @@ package weave.ui
     import mx.controls.treeClasses.ITreeDataDescriptor;
     
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.data.IWeaveTreeNodeWithEditableChildren;
     
 	/**
 	 * Tells a Tree control how to work with IWeaveTreeNode objects.
@@ -146,7 +147,7 @@ package weave.ui
 		 */
 		public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
-			var parentNode:IWeaveTreeNode = parent as IWeaveTreeNode;
+			var parentNode:IWeaveTreeNodeWithEditableChildren = parent as IWeaveTreeNodeWithEditableChildren;
 			var childNode:IWeaveTreeNode = newChild as IWeaveTreeNode;
 			if (parentNode && childNode)
 				return parentNode.addChildAt(childNode, index);
@@ -158,7 +159,7 @@ package weave.ui
 		 */
 		public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
-			var parentNode:IWeaveTreeNode = parent as IWeaveTreeNode;
+			var parentNode:IWeaveTreeNodeWithEditableChildren = parent as IWeaveTreeNodeWithEditableChildren;
 			var childNode:IWeaveTreeNode = child as IWeaveTreeNode;
 			if (parentNode && childNode)
 				return parentNode.removeChild(childNode);

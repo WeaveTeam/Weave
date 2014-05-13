@@ -135,8 +135,6 @@ import mx.rpc.Fault;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
-import nochump.util.zip.ZipFile;
-
 import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
 import weave.core.ClassUtils;
@@ -223,10 +221,11 @@ internal class Library implements IDisposableObject
 		try
 		{
 			// Extract the files from the SWC archive
-			var zipFile:ZipFile = new ZipFile(event.result as ByteArray);
-			_library_swf = zipFile.getInput(zipFile.getEntry("library.swf"));
-			_catalog_xml = XML(zipFile.getInput(zipFile.getEntry("catalog.xml")));
-			zipFile = null;
+			var swc:Object = weave.utils.readZip(event.result as ByteArray);
+			if (!swc)
+				throw new Error("Unable to read SWC archive");
+			_library_swf = swc["library.swf"];
+			_catalog_xml = XML(swc["catalog.xml"]);
 			
 			_swfLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSWFFault);
 			_swfLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSWFFault);
@@ -280,11 +279,6 @@ internal class Library implements IDisposableObject
 	}
 	
 	/**
-	 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-	 */
-	private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-	
-	/**
 	 * @private
 	 *
 	 * This is called when the SWFLoader finishes loading.
@@ -320,7 +314,7 @@ internal class Library implements IDisposableObject
 					var classDef:Class = ClassUtils.getClassDefinition(classQName);
 					
 					// register this class as an implementation of every interface it implements.
-					var classInfo:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+					var classInfo:Object = DescribeType.getInfo(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
 					for each (var interfaceQName:String in classInfo.traits.interfaces)
 					{
 						var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);

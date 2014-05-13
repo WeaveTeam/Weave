@@ -633,6 +633,7 @@ import weave.api.data.DataTypes;
 import weave.api.data.EntityType;
 import weave.api.data.IWeaveTreeNode;
 import weave.api.getCallbackCollection;
+import weave.api.services.beans.Entity;
 import weave.api.services.beans.EntityHierarchyInfo;
 import weave.data.AttributeColumns.ProxyColumn;
 import weave.data.DataSources.WeaveDataSource;
@@ -708,7 +709,6 @@ internal class RootNode_TablesAndGeoms implements IWeaveTreeNode
 	{
 		geomList.children = null;
 	}
-	public function getSource():Object { return source; }
 	public function equals(other:IWeaveTreeNode):Boolean { return other == this; }
 	public function getLabel():String
 	{
@@ -727,9 +727,6 @@ internal class RootNode_TablesAndGeoms implements IWeaveTreeNode
 		
 		return children;
 	}
-	
-	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
 }
 
 /**
@@ -744,7 +741,6 @@ internal class GeomListNode implements IWeaveTreeNode
 	{
 		this.source = source;
 	}
-	public function getSource():Object { return source; }
 	public function equals(other:IWeaveTreeNode):Boolean { return other == this; }
 	public function getLabel():String
 	{
@@ -776,13 +772,32 @@ internal class GeomListNode implements IWeaveTreeNode
 		
 		for each (var info:EntityHierarchyInfo in event.result)
 		{
-			var node:EntityNode = new EntityNode(source.entityCache);
+			var node:EntityNode = new GeomColumnNode(source.entityCache);
 			node.id = info.id;
 			children.push(node);
 		}
 		getCallbackCollection(source).triggerCallbacks();
 	}
+}
+
+internal class GeomColumnNode extends EntityNode
+{
+	public function GeomColumnNode(cache:EntityCache)
+	{
+		super(cache);
+	}
 	
-	public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-	public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
+	override public function getLabel():String
+	{
+		var title:String = super.getLabel();
+		var cache:EntityCache = getEntityCache();
+		var entity:Entity = getEntity();
+		for each (var parentId:int in entity.parentIds)
+		{
+			var info:EntityHierarchyInfo = cache.getBranchInfo(parentId);
+			if (info && info.title && info.title != title)
+				return title + " (" + info.title + ")";
+		}
+		return title;
+	}
 }

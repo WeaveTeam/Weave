@@ -235,7 +235,8 @@ package weave.core
 						// If this name is not associated with an object of the specified type,
 						// associate the name with a new object of the specified type.
 						var classDef:Class = ClassUtils.getClassDefinition(className);
-						if (!(_nameToObjectMap[name] is classDef))
+						var object:Object = _nameToObjectMap[name];
+						if (!object || object.constructor != classDef)
 							createAndSaveNewObject(name, classDef, lockObject);
 						else if (lockObject)
 							this.lockObject(name);
@@ -336,7 +337,7 @@ package weave.core
 		public function removeAllObjects():void
 		{
 			delayCallbacks();
-			for each (var name:String in getNames())
+			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
 				removeObject(name);
 			resumeCallbacks();
 		}
@@ -460,10 +461,8 @@ package weave.core
 			if (removeMissingDynamicObjects)
 			{
 				// third pass: remove objects based on the Boolean flags in remainingObjects.
-				i = _orderedNames.length;
-				while (i--)
+				for each (objectName in _orderedNames.concat()) // iterate over a copy of the list
 				{
-					objectName = _orderedNames[i];
 					if (remainingObjects[objectName] !== true)
 					{
 						//trace(LinkableHashMap, "missing value: "+objectName);

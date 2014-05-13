@@ -464,6 +464,7 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 };
 
 /**
+ * @deprecated No longer necessary for Flash Player 11 or later because Weave uses JSON.stringify() and JSON.parse() internally.
  * Returns a copy of the current WeavePath that enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
  * This new WeavePath starts with an empty stack, meaning pop() cannot be called without first calling push().
  * Any child WeavePath objects created with push() from this new one will also be in naturalize mode.

@@ -27,15 +27,17 @@ package weave.data.hierarchy
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.data.IWeaveTreeNodeWithEditableChildren;
     import weave.api.data.IWeaveTreeNodeWithPathFinding;
     import weave.api.getLinkableOwner;
     import weave.api.reportError;
     import weave.api.services.beans.Entity;
     import weave.api.services.beans.EntityHierarchyInfo;
+    import weave.data.DataSources.WeaveDataSource;
     import weave.services.EntityCache;
 
 	[RemoteClass]
-    public class EntityNode implements IWeaveTreeNodeWithPathFinding, IColumnReference
+    public class EntityNode implements IWeaveTreeNodeWithEditableChildren, IWeaveTreeNodeWithPathFinding, IColumnReference
     {
 		/**
 		 * Dual lookup: (EntityCache -> int) and (int -> EntityCache)
@@ -149,9 +151,14 @@ package weave.data.hierarchy
 		 */
 		public function getColumnMetadata():Object
 		{
-			if (getEntity().getEntityType() == EntityType.COLUMN)
-				return id;
-			return null; // not a column
+			var meta:Object = {};
+			var entity:Entity = getEntity();
+			if (entity.getEntityType() != EntityType.COLUMN)
+				return null; // not a column
+			for (var key:String in entity.publicMetadata)
+				meta[key] = entity.publicMetadata[key];
+			meta[WeaveDataSource.ENTITY_ID] = id;
+			return meta;
 		}
 		
 		/**

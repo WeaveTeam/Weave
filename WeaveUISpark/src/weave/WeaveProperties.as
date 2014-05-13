@@ -21,7 +21,6 @@ package weave
 {
 	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.external.ExternalInterface;
 	import flash.filters.BlurFilter;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
@@ -330,7 +329,6 @@ package weave
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
 		
 		// cosmetic options
-		public const pageTitle:LinkableString = new LinkableString("Open Indicators Weave"); // title to show in browser window
 		public const showCopyright:LinkableBoolean = new LinkableBoolean(true); // copyright at bottom of page
 
 		// probing and selection
@@ -467,23 +465,8 @@ package weave
 		 */
 		public function runStartupJavaScript():void
 		{
-			if (!startupJavaScript.value)
-				return;
-			
-			var prev:Boolean = ExternalInterface.marshallExceptions;
-			try
-			{
-				ExternalInterface.marshallExceptions = true;
-				WeaveAPI.executeJavaScript(startupJavaScript.value);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
-			finally
-			{
-				ExternalInterface.marshallExceptions = prev;
-			}
+			if (startupJavaScript.value)
+				JavaScript.exec({"this": "weave", "catch": reportError}, startupJavaScript.value);
 		}
 		
 		/**

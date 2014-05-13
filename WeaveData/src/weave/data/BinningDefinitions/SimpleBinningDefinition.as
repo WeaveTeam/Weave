@@ -60,9 +60,7 @@ package weave.data.BinningDefinitions
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
-			var nonWrapperColumn:IAttributeColumn = column;
-			while (nonWrapperColumn is IColumnWrapper)
-				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
+			var nonWrapperColumn:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(column);
 			
 			var dataType:String = nonWrapperColumn ? ColumnUtils.getDataType(nonWrapperColumn) : null;
 			if (dataType == null)
@@ -146,7 +144,7 @@ package weave.data.BinningDefinitions
 				name = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
 				if (!name)
-					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
+					name = tempNumberClassifier.generateBinLabel(column);
 
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}

@@ -29,11 +29,9 @@
  * @param {string} base64data Base64-encoded data, specified if method is "POST"
  */
 weave.ExternalDownloader_request = function (id, method, url, requestHeaders, base64data) {
-	console.log('request', url, requestHeaders, base64data);
 	var done = false;
 	var request = new XMLHttpRequest();
 	request.open(method, url, true);
-	//request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 	for (var name in requestHeaders)
 		request.setRequestHeader(name, requestHeaders[name], false);
 	request.responseType = "blob";
@@ -41,8 +39,8 @@ weave.ExternalDownloader_request = function (id, method, url, requestHeaders, ba
 		var blob = request.response;
 		var reader = new FileReader();
 		reader.onloadend = function(event) {
-			var url = reader.result;
-			var base64data = url.split(',').pop();
+			var dataurl = reader.result;
+			var base64data = dataurl.split(',').pop();
 			weave.ExternalDownloader_callback(id, request.status, base64data);
 			done = true;
 		};
@@ -56,7 +54,7 @@ weave.ExternalDownloader_request = function (id, method, url, requestHeaders, ba
 		if (!done)
 			weave.ExternalDownloader_callback(id, request.status, null);
 		done = true;
-	}
+	};
 	request.onreadystatechange = function() {
 		if (request.readyState == 4 && request.status != 200)
 		{

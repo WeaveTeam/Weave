@@ -222,8 +222,6 @@
 					
 					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
 				}
-				
-				_instance.editor.clearSearch();
 			}
 			
 			override public function removePanel():void

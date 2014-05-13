@@ -58,6 +58,7 @@ public class MetadataTable extends AbstractTable
 	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_NAME, FIELD_VALUE));
 	
 	private final String requiredMetadataName;
+	private int nextMigrationId = 1;
 	
 	/**
 	 * @param connectionConfig
@@ -127,10 +128,16 @@ public class MetadataTable extends AbstractTable
 			Map<String,Object> record;
 			boolean newId = (id == DataConfig.NULL);
 			
+			if (newId && requiredMetadataName == null)
+				throw new RemoteException(String.format("The \"%s\" table cannot be used to generate new ids because it has no requiredMetadataName.", tableName));
+			
 			if (connectionConfig.migrationPending())
 			{
 				if (newId)
-					throw new RemoteException("id cannot be unspecified during migration");
+				{
+					id = nextMigrationId++;
+					newId = false;
+				}
 			}
 			else
 			{
@@ -139,9 +146,6 @@ public class MetadataTable extends AbstractTable
 				
 				if (newId)
 				{
-					if (requiredMetadataName == null)
-						throw new RemoteException(String.format("The \"%s\" table cannot be used to generate new ids because it has no requiredMetadataName.", tableName));
-					
 					if (diff == null || Strings.isEmpty(diff.get(requiredMetadataName)))
 						throw new RemoteException(String.format("Missing required metadata field \"%s\"", requiredMetadataName));
 					
@@ -396,7 +400,7 @@ public class MetadataTable extends AbstractTable
 			Connection conn = connectionConfig.getAdminConnection();
 			stmt = conn.createStatement();
 			query = String.format("SELECT COUNT(*) FROM %s", SQLUtils.quoteSchemaTable(conn, schemaName, tableName));
-			return SQLUtils.getSingleIntFromQuery(stmt, query, 0) > 0;
+			return SQLUtils.getSingleIntFromQuery(stmt, query, 0) == 0;
 		}
 		catch (SQLException cause)
 		{

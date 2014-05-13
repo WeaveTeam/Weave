@@ -170,7 +170,7 @@ package weave.core
 				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
 			else
 				child = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-			return child is classDef;
+			return child && child.constructor == classDef;
 		}
 
 		/**
@@ -300,19 +300,16 @@ package weave.core
 				_callbackFunctionCache[callback] = function():void
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
+					ExternalInterface.marshallExceptions = true;
 					try
 					{
-						ExternalInterface.marshallExceptions = true;
 						ExternalInterface.call(callback);
 					}
 					catch (e:*)
 					{
 						reportError(e);
 					}
-					finally
-					{
-						ExternalInterface.marshallExceptions = prev;
-					}
+					ExternalInterface.marshallExceptions = prev;
 				}
 			}
 			return _callbackFunctionCache[callback];
@@ -366,26 +363,6 @@ package weave.core
 					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callbackStr] as Function);
 			_callbackFunctionCache = {};
 			_d2d_callbackStr_target = new Dictionary2D(true, true);
-		}
-		
-		/**
-		 * This surrounds ExternalInterface.addCallback() with try/catch and reports the error.
-		 * @see flash.external.ExternalInterface#addCallback
-		 */
-		public static function tryAddCallback(functionName:String, closure:Function):void
-		{
-			try
-			{
-				if (ExternalInterface.available)
-					ExternalInterface.addCallback(functionName, closure);
-			}
-			catch (e:Error)
-			{
-				if (e.errorID == 2060)
-					reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
-				else
-					reportError(e);
-			}
 		}
 	}
 }

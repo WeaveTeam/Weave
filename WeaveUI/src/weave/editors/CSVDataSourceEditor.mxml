@@ -205,7 +205,7 @@
 			
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
-				if (true)
+				if (false)
 				{
 					url.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
 					handleURLTextChange();

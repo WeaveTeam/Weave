@@ -19,7 +19,6 @@
 package weave.utils
 {
 	import flash.display.BitmapData;
-	import flash.external.ExternalInterface;
 	import flash.geom.Point;
 	import flash.system.Capabilities;
 	import flash.ui.Mouse;
@@ -27,8 +26,6 @@ package weave.utils
 	import flash.ui.MouseCursorData;
 	
 	import mx.core.BitmapAsset;
-	
-	import weave.api.WeaveAPI;
 
 	/**
 	 * Easy interface for using native cursors.
@@ -46,11 +43,11 @@ package weave.utils
 		{
 			if (!_initialized)
 			{
-				if (Capabilities.manufacturer == "Adobe Linux" && ExternalInterface.available)
+				if (Capabilities.manufacturer == "Adobe Linux" && JavaScript.available)
 				{
-					_customCursorsSupported = WeaveAPI.executeJavaScript(
+					_customCursorsSupported = JavaScript.exec(
 						'try {',
-						'	return weave.children.wmode.value != "transparent";',
+						'	return this.children.wmode.value != "transparent";',
 						'} catch (e) { return true; }'
 					);
 				}

@@ -184,24 +184,6 @@ package weave.data.hierarchy
 		}
 		
 		/**
-		 * Not implemented
-		 */
-		public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean
-		{
-			trace(new Error("Not implemented").getStackTrace());
-			return false;
-		}
-		
-		/**
-		 * Not implemented
-		 */
-		public function removeChild(child:IWeaveTreeNode):Boolean
-		{
-			trace(new Error("Not implemented").getStackTrace());
-			return false;
-		}
-		
-		/**
 		 * @inheritDoc
 		 */
 		public function findPathToNode(descendant:IWeaveTreeNode):Array

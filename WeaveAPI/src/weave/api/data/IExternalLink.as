@@ -13,16 +13,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.ui
+package weave.api.data
 {
-	import weave.api.core.ILinkableObject;
-
 	/**
-	 * A visusalization tool that a user would want to create an instance of at runtime.
-	 * 
-	 * @author adufilie
+	 * This is an interface for an object which references a URL.
+	 * It is intended to be used in conjunction with IWeaveTreeNode.
 	 */
-	public interface IVisTool extends ILinkableObject
+	public interface IExternalLink
 	{
+		/**
+		 * Gets the URL associated with this object.
+		 * @return The URL.
+		 */
+		function getURL():String;
 	}
 }

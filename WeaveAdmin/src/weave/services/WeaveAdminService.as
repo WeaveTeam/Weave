@@ -92,7 +92,7 @@ package weave.services
 			dataService = registerLinkableChild(this, new AMF3Servlet(url + "/DataService"));
 			queue = registerLinkableChild(this, new AsyncInvocationQueue(true)); // paused
 			
-			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
+			var info:* = DescribeType.getInfo(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
 			{
 				var func:Function = this[item.name] as Function;
@@ -102,11 +102,6 @@ package weave.services
 			
 			initializeAdminService();
 		}
-		
-		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */		
-		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
 		
 		private var queue:AsyncInvocationQueue;
 		private var adminService:AMF3Servlet;

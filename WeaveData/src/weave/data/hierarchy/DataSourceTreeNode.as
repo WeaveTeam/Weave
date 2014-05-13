@@ -100,9 +100,6 @@ package weave.data.hierarchy
 		
 		private var _globalColumnNode:XMLEntityNode = new XMLEntityNode();
 		
-		public function addChildAt(newChild:IWeaveTreeNode, index:int):Boolean { return false; }
-		public function removeChild(child:IWeaveTreeNode):Boolean { return false; }
-		
 		public function dispose():void
 		{
 			_childNodes.length = 0;

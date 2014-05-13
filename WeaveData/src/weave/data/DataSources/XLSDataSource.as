@@ -80,11 +80,20 @@ package weave.data.DataSources
 		
 		// contains the parsed xls data
 		private var xlsSheetsArray:ArrayCollection = null;
-		private function loadXLSData(xlsSheetsArray:ArrayCollection):void
+		
+		/**
+		 * Called when the XLS file is downloaded from the URL
+		 */
+		private function handleXLSDownload(event:ResultEvent, url:String):void
 		{
+			if (url != this.url.value)
+				return;
+			
 			try
 			{
-				this.xlsSheetsArray = xlsSheetsArray;
+				var xls:ExcelFile = new ExcelFile();
+				xls.loadFromByteArray(ByteArray(event.result));
+				xlsSheetsArray = xls.sheets;
 				if (_attributeHierarchy.value == null && xlsSheetsArray.length > 0)
 				{
 					// loop through column names, adding indicators to hierarchy
@@ -99,26 +108,11 @@ package weave.data.DataSources
 			}
 			catch (e:Error)
 			{
-				reportError(e);
+				reportError(e, "Unable to read Excel file.");
 			}
 		}
 		
 		/**
-		 * handleXLSDownload
-		 * Called when the XLS file is downloaded from the URL
-		 */
-		private function handleXLSDownload(event:ResultEvent, url:String):void
-		{
-			if (url != this.url.value)
-				return;
-			
-			var xls:ExcelFile = new ExcelFile();
-			xls.loadFromByteArray(ByteArray(event.result));
-			loadXLSData(xls.sheets);
-		}
-		
-		/**
-		 * handleXLSDownloadError
 		 * Called when the XLS file fails to download from the URL
 		 */
 		private function handleXLSDownloadError(event:FaultEvent, url:String):void
