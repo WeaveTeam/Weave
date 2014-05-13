@@ -196,7 +196,7 @@ package weave.data.hierarchy
 
 			var descendantEntityNode:EntityNode = descendant as EntityNode;
 			
-			// make sure to call initChildren() instead of getChildren()
+			// make sure to avoid requesting new children
 			for each (var childNode:IWeaveTreeNode in getChildrenExt())
 			{
 				// is the child equivalent to the descendant?
