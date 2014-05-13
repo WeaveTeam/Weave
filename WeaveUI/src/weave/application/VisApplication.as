@@ -32,7 +32,6 @@ package weave.application
 	import flash.net.FileReference;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
-	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
 	import flash.system.Capabilities;
 	import flash.ui.ContextMenu;
@@ -365,7 +364,7 @@ package weave.application
 		
 		private function handleFlashVarPresentation():void
 		{
-			var presentationMode:Boolean = StandardLib.asBoolean(_flashVars['presentation'] as String);
+			var presentationMode:Boolean = StandardLib.asBoolean(_flashVars['presentation']);
 			Weave.history.enableLogging.value = !presentationMode;
 		}
 		
@@ -394,7 +393,7 @@ package weave.application
 		}
 		private function getFlashVarRecover():Boolean
 		{
-			return StandardLib.asBoolean(_flashVars['recover'] as String);
+			return StandardLib.asBoolean(_flashVars['recover']);
 		}
 		
 		/**
@@ -412,7 +411,7 @@ package weave.application
 		{
 			var name:String = 'editable';
 			if (_flashVars.hasOwnProperty(name))
-				return StandardLib.asBoolean(_flashVars[name] as String);
+				return StandardLib.asBoolean(_flashVars[name]);
 			return undefined;
 		}
 		
