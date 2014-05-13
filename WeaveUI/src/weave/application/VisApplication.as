@@ -57,6 +57,7 @@ package weave.application
 	import mx.managers.ToolTipManager;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.URLUtil;
 	
 	import spark.components.Group;
 	
@@ -434,20 +435,24 @@ package weave.application
 			// check address bar for any variables not found in FlashVars
 			try
 			{
-				var urlParams:URLVariables = new URLVariables(JavaScript.exec("return window.location.search.substring(1);")); // text after '?'
-				for (var key:String in urlParams)
+				var paramsStr:String = JavaScript.exec("return window.location.search.substring(1);"); // text after '?'
+				var paramsObj:Object = URLUtil.stringToObject(paramsStr, '&');
+				for (var key:String in paramsObj)
 					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
-						_flashVars[key] = urlParams[key];
+						_flashVars[key] = paramsObj[key];
 				
 				// backwards compatibility with old param name
 				const DEPRECATED_FILE_PARAM_NAME:String = 'defaults';
-				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && urlParams.hasOwnProperty(DEPRECATED_FILE_PARAM_NAME))
+				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && paramsObj.hasOwnProperty(DEPRECATED_FILE_PARAM_NAME))
 				{
-					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = urlParams[DEPRECATED_FILE_PARAM_NAME];
+					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = paramsObj[DEPRECATED_FILE_PARAM_NAME];
 					_usingDeprecatedFlashVar = true;
 				}
 			}
-			catch(e:Error) { }
+			catch(e:Error)
+			{
+				reportError(e);
+			}
 		}
 		private static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 		private static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
