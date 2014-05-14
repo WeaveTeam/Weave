@@ -46,7 +46,7 @@
 						   visible="{apiVersion.value == 3}"
 						   includeInLayout="{apiVersion.value == 3}"/>
 	</ui:Indent>
-	<ui:Indent>
+	<ui:Indent visible="{apiVersion.value == 3}" includeInLayout="{apiVersion.value == 3}">
 		<ui:CustomCheckBox id="useDataStore" label="{lang('Use DataStore if available')}" selected="true"/>
 	</ui:Indent>
 	<mx:Script>
