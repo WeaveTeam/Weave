@@ -160,13 +160,15 @@ public function getSelectableAttributeNames():Array
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
             <mx:HBox>
-                <mx:ComboBox id="sourceKeyTypeDropdown" editable="true" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'selectedItem')"/>
-                <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent" label="{lang('Source LocalName')}"/>
+                <mx:Label text="{lang('Source KeyType')}"/>
+                <mx:TextInput id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
+            <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent" label="{lang('Source LocalName')}"/>
             <mx:HBox>
-                <mx:ComboBox id="targetKeyTypeDropdown" editable="true" creationComplete="linkBindableProperty(targetKeyType, event.target, 'selectedItem')"/>
-                <ui:DynamicColumnComponent id="targetLocalNameColumnComponent" label="{lang('Target LocalName')}"/>
+                <mx:Label text="{lang('Target KeyType')}"/>
+                <mx:TextInput id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
+            <ui:DynamicColumnComponent id="targetLocalNameColumnComponent" label="{lang('Target LocalName')}"/>
             <mx:CheckBox id="isBidirectionalCheckBox" 
                 label="{lang('Perform Bidirectional Mapping')}" 
                 creationComplete="linkBindableProperty(isBidirectional, event.target, 'selected')"

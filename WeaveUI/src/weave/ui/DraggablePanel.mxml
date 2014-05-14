@@ -1411,14 +1411,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function handleAttributeButtonClick():void
 			{
+				openAttributeSelector();
+			}
+			
+			public function openAttributeSelector(attrIndex:int = 0):AttributeSelectorPanel
+			{
 				var tool:IVisToolWithSelectableAttributes = this as IVisToolWithSelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();
 					var names:Array = tool.getSelectableAttributeNames();
-					if (attrs && attrs.length)
-						AttributeSelectorPanel.open(attrs[0], names[0]);
+					if (attrs && attrs[attrIndex])
+					{
+						AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex]);
+						return AttributeSelectorPanel.instance;
+					}
 				}
+				return null;
 			}
 			
 			protected function handleMinimizeButtonClick():void
@@ -1427,7 +1436,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (WeaveAPI.StageUtils.shiftKey && hashMap)
 				{
 					for each (var panel:DraggablePanel in hashMap.getObjects(DraggablePanel))
-					panel.minimizePanel();
+						panel.minimizePanel();
 				}
 				else
 				{
