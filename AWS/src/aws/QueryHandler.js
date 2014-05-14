@@ -257,19 +257,9 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	aws.queryService(computationServiceURL, 'runScript', [this.rRequestObject.scriptName, this.rRequestObject.ids, this.rRequestObject.filters], function(result){	
 
-		console.log(result);
-		that.resultDataSet = result.data[0].value;
 		newWeaveWindow.log("Load Time : " + result.times[0]/1000 + " secs,  Analysis Time: " + result.times[1]/1000 + " secs");
+		newWeaveWindow.workOnData(that, result.data);
 
-		// adding a check for extension here because script results are slightly different
-		// in R and Stata
-		if(that.rRequestObject.scriptName.split(".").pop().toLowerCase() == 'r') {
-			newWeaveWindow.workOnData(that, result.data[0].value);
-		} else {
-			newWeaveWindow.workOnData(that, result.data);
-		}
-
-	
 	});
 };
 

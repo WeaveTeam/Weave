@@ -4,126 +4,213 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import javax.script.ScriptException;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPDouble;
+import org.rosuda.REngine.REXPList;
+import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REXPString;
+import org.rosuda.REngine.REXPUnknown;
 import org.rosuda.REngine.RFactor;
+import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
-import weave.beans.RResult;
-import weave.servlets.RServiceUsingRserve;
+import weave.utils.ListUtils;
 
-public class AwsRService extends RServiceUsingRserve implements IScriptEngine
+public class AwsRService implements IScriptEngine
 {
 	
-	public AwsRService(){
-		
+	public AwsRService() throws RserveException
+	{
+		rConnection = new RConnection();
 	}
 	
-	public void init(ServletConfig config) throws ServletException {
-//		awsConfigPath = WeaveContextParams.getInstance(
-//				config.getServletContext()).getConfigPath();
-//		awsConfigPath = awsConfigPath + "/../aws-config/";
+	public void destroy()
+	{
+		rConnection.close();
 	}
-
+	private RConnection rConnection = null;
 	
 	// this functions intends to run a script with filtered.
 	// essentially this function should eventually be our main run script function.
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public static Object runScript(String scriptAbsPath, Object[][] dataSet) throws Exception
+	public Object runScript(String scriptAbsPath, Object[][] dataSet) throws Exception
 	{
 
-		Object[] inputValues = {scriptAbsPath, dataSet};
-		String[] inputNames = {"scriptAbsolutePath", "dataset"};
+		rConnection.assign("scriptPath", scriptAbsPath);
+		rConnection.assign("data", getREXP(dataSet));
+		Object results = null;
+		Vector<String> names = null;
+		String [] columnNames;
+		String script = "scriptFromFile <- source(scriptPath)\n" +
+					         "scriptFromFile$value(data)"; 
 
-		String script = "scriptFromFile <- source(scriptAbsolutePath)\n" +
-					         "scriptFromFile$value(dataset)"; 
-
-		String[] outputNames = {};
-
-		return runAWSScript(null, inputNames, inputValues, outputNames, script, "", false, false);
-	}
-
-	private static RResult[] runAWSScript( String docrootPath, String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
-	{		
-		RConnection rConnection = RServiceUsingRserve.getRConnection();
-
-		RResult[] results = null;
-		Vector<RResult> resultVector = new Vector<RResult>();
 		try
 		{
-			// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"			
-			RServiceUsingRserve.assignNamesToVector(rConnection,inputNames,inputValues);
-
-			evaluateWithTypeChecking( rConnection, script, resultVector, showIntermediateResults, showWarnings);
-
-			if (plotScript != ""){// R Script to EVALUATE plotScript
-				String plotEvalValue = RServiceUsingRserve.plotEvalScript(rConnection,docrootPath, plotScript, showWarnings);
-				resultVector.add(new RResult("Plot Results", plotEvalValue));
-			}
-			for (int i = 0; i < outputNames.length; i++){// R Script to EVALUATE output Script
-				String name = outputNames[i];						
-				REXP evalValue = evalScript( rConnection, name, showWarnings);	
-				resultVector.add(new RResult(name, RServiceUsingRserve.rexp2javaObj(evalValue)));					
-			}
-			// clear R objects
-			evalScript( rConnection, "rm(list=ls())", false);
-
+			REXP evalValue = rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
+			names = evalValue.asList().names;
+			columnNames = new String[names.size()];
+			names.toArray(columnNames);
+			results = rexp2javaObj(evalValue);
+			// clear R Objects
+			rConnection.eval("rm(list=ls())");
+			
 		}
 		catch (Exception e)	{
 			e.printStackTrace();
-			System.out.println("printing error");
-			System.out.println(e.getMessage());
+			// System.out.println("printing error");
+			// System.out.println(e.getMessage());
 			throw new RemoteException("Unable to run script", e);
 		}
-		finally
-		{
-			results = new RResult[resultVector.size()];
-			resultVector.toArray(results);
-			rConnection.close();
-		}
+		
+		results = convertToRowResults(results, columnNames);
 		return results;
 	}
 
-	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
+	/**
+	 * This will wrap an object in an REXP object.
+	 * @param object
+	 * @return
+	 * @throws RemoteException if the object type is unsupported
+	 */
+	private static REXP getREXP(Object object) throws RemoteException
 	{
-
-		REXP evalValue = null;
-
-		if (showWarnings)			
-			evalValue =  rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
-		else
-			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
-
-	return evalValue;
-	}
-
-	private static Vector<RResult> evaluateWithTypeChecking(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException 
-	{
-		REXP evalValue= evalScript(rConnection, script, showWarnings);
-		Object resultArray = RServiceUsingRserve.rexp2javaObj(evalValue);
-		Object[] columns;
-		if (resultArray instanceof Object[])
+		/*
+		 * <p><table>
+		 *  <tr><td> null	<td> REXPNull
+		 *  <tr><td> boolean, Boolean, boolean[], Boolean[]	<td> REXPLogical
+		 *  <tr><td> int, Integer, int[], Integer[]	<td> REXPInteger
+		 *  <tr><td> double, Double, double[], double[][], Double[]	<td> REXPDouble
+		 *  <tr><td> String, String[]	<td> REXPString
+		 *  <tr><td> byte[]	<td> REXPRaw
+		 *  <tr><td> Enum	<td> REXPString
+		 *  <tr><td> Object[], List, Map	<td> REXPGenericVector
+		 *  <tr><td> RObject, java bean (experimental)	<td> REXPGenericVector
+		 *  <tr><td> ROpaque (experimental)	<td> only function arguments (REXPReference?)
+		 *  </table>
+		 */
+		
+		// if it's an array...
+		if (object instanceof Object[])
 		{
-			columns = (Object[])resultArray;
+			Object[] array = (Object[])object;
+			if (array.length == 0)
+			{
+				return new REXPList(new RList());
+			}
+			else if (array[0] instanceof String)
+			{
+				String[] strings = ListUtils.copyStringArray(array, new String[array.length]);
+				return new REXPString(strings);
+			}
+			else if (array[0] instanceof Number)
+			{
+				double[] doubles = ListUtils.copyDoubleArray(array, new double[array.length]);
+				return new REXPDouble(doubles);
+			}
+			else if (array[0] instanceof Object[]) // 2-d matrix
+			{
+				// handle 2-d matrix
+				RList rList = new RList();
+				for (Object item : array)
+					rList.add(getREXP(item));
+
+				try {
+					return REXP.createDataFrame(rList);
+				} catch (REXPMismatchException e) {
+					throw new RemoteException("Failed to Create Dataframe",e);
+				}
+			}
+			else
+				throw new RemoteException("Unsupported value type");
+		}
+		
+		// handle non-array by wrapping it in an array
+		return getREXP(new Object[]{object});
+	}
+	
+	/*
+	 * Taken from rJava Opensource code and 
+	 * added support for Rlist
+	 * added support for RFactor(REngine)
+	 */
+	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
+		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
+			return null;
+		}
+		if(rexp.isVector()) {
+			int len = rexp.length();
+			if(rexp.isString()) {
+				return len == 1 ? rexp.asString() : rexp.asStrings();
+			}
+			if(rexp.isFactor()){
+				return rexp.asFactor();
+			}
+			if(rexp.isInteger()) {
+				return len == 1 ? rexp.asInteger() : rexp.asIntegers();
+			}
+			if(rexp.isNumeric()) {
+				int[] dim = rexp.dim();
+				return (dim != null && dim.length == 2) ? rexp.asDoubleMatrix() :
+					(len == 1) ? rexp.asDouble() : rexp.asDoubles();
+			}
+			if(rexp.isLogical()) {
+				boolean[] bools = ((REXPLogical)rexp).isTRUE();
+				return len == 1 ? bools[0] : bools;
+			}
+			if(rexp.isRaw()) {
+				return rexp.asBytes();
+			}
+			if(rexp.isList()) {
+				RList rList = rexp.asList();
+				Object[] listOfREXP = rList.toArray();
+				//convert object in List as Java Objects
+				// eg: REXPDouble as Double or Doubles
+				for(int i = 0; i < listOfREXP.length; i++){
+					REXP obj = (REXP)listOfREXP[i];
+					Object javaObj =  rexp2javaObj(obj);
+					if (javaObj instanceof RFactor)
+					{
+						RFactor factorjavaObj = (RFactor)javaObj;
+						String[] levels = factorjavaObj.asStrings();
+						listOfREXP[i] = levels;
+					}
+					else
+					{
+						listOfREXP[i] =  javaObj;
+					}
+				}
+				return listOfREXP;
+			}
 		}
 		else
 		{
-			throw new ScriptException(String.format("Script result is not an Array as expected: \"%s\"", resultArray));
+			//rlist
+			return rexp.toDebugString();
+		}
+		return rexp;
+	}
+	
+	private Object convertToRowResults(Object columnResult, String[] columnNames) throws Exception
+	{
+		
+		Object[] columns;
+
+		if (columnResult instanceof Object[])
+		{
+			columns = (Object[])columnResult;
+		}
+		else
+		{
+			throw new RemoteException(String.format("Script result is not an Array as expected: \"%s\"", columnResult));
 		}
 
 		Object[][] final2DArray;//collecting the result as a two dimensional arrray 
 
-		Vector<String> names = evalValue.asList().names;
-
-	//try{
-			//getting the rowCounter variable 
+		//getting the rowCounter variable 
 			int rowCounter = 0;
 			/*picking up first one to determine its length, 
 			all objects are different kinds of arrays that have the same length
@@ -185,9 +272,7 @@ public class AwsRService extends RServiceUsingRserve implements IScriptEngine
 			["k3",2,4,56]
 			] */
 
-			String [] namesArray = new String[names.size()];
-			names.toArray(namesArray);
-			final2DArray[0] = namesArray;//first entry is column names
+			final2DArray[0] = columnNames;//first entry is column names
 
 			for( int j = 1; j < rowCounter; j++)
 			{
@@ -235,114 +320,8 @@ public class AwsRService extends RServiceUsingRserve implements IScriptEngine
 				Object[] tempArray = new Object[columns.length];
 				tempList.toArray(tempArray);
 				final2DArray[j] = tempArray;//after the first entry (column Names)
-
 			}
 
-			System.out.print(final2DArray);
-			newResultVector.add(new RResult("endResult", final2DArray));
-			//newResultVector.add(new RResult("timeLogString", timeLogString));
-
-
-			return newResultVector;
-
-	//	}
-	//	catch (Exception e){
-			//e.printStackTrace();
-	//	}
-
-//do the rest to generate a single continuous string representation of the result 
-		//	String finalresultString = "";
-//		String namescheck = Strings.join(",", names);
-//		finalresultString = finalresultString.concat(namescheck);
-//		finalresultString = finalresultString.concat("\n");
-//
-//		
-//
-//		int numberOfRows = 0;
-//		
-//		Vector<String[]> columnsInStrings = new Vector<String[]>();
-//		
-//		String[] tempStringArray = new String[0];
-//		
-//		try
-//		{
-//			for (int r= 0; r < columns.length; r++)					
-//			{
-//				Object currentColumn = columns[r];
-//						
-//						if(currentColumn instanceof int[])
-//						{
-//							 int[] columnAsIntArray = (int[])currentColumn;
-//							 tempStringArray = new String[columnAsIntArray.length] ; 
-//							 for(int g = 0; g < columnAsIntArray.length; g++)
-//							 {
-//								 tempStringArray[g] = ((Integer)columnAsIntArray[g]).toString();
-//							 }
-//						}
-//						
-//						else if (currentColumn instanceof Integer[])
-//						{
-//							 Integer[] columnAsIntegerArray = (Integer[])currentColumn;
-//							 tempStringArray = new String[columnAsIntegerArray.length] ;  
-//							 for(int g = 0; g < columnAsIntegerArray.length; g++)
-//							 {
-//								 tempStringArray[g] = columnAsIntegerArray[g].toString();
-//							 }
-//						}
-//						
-//						else if(currentColumn instanceof double[])
-//						{
-//							double[] columnAsDoubleArray = (double[])currentColumn;
-//							 tempStringArray = new String[columnAsDoubleArray.length] ;  
-//							 for(int g = 0; g < columnAsDoubleArray.length; g++)
-//							 {
-//								 tempStringArray[g] = ((Double)columnAsDoubleArray[g]).toString();
-//							 }
-//						}
-//						else if(currentColumn instanceof RFactor)
-//						{
-//							tempStringArray = ((RFactor)currentColumn).levels();
-//						}
-//						else if(currentColumn instanceof String[]){
-//							 int lent = ((Object[]) currentColumn).length;
-//							 //String[] columnAsStringArray = currentColumn;
-//							 tempStringArray = new String[lent];  
-//							 for(int g = 0; g < lent; g++)
-//							 {
-//								 tempStringArray[g] = ((Object[]) currentColumn)[g].toString();
-//							 }
-//						/*	String[] temp = (String[])
-//							int arrsize = ((String[])currentColumn).length;
-//							tempStringArray = new String[arrsize];
-//							tempStringArray = (String[])currentColumn;*/
-//						}
-//						
-//						columnsInStrings.add(tempStringArray);
-//						numberOfRows = tempStringArray.length;
-//			}
-//			
-//			
-//			//if(rowresult.charAt(rowresult.length()-1) == ',')
-//				//rowresult.substring(0, rowresult.length()-1);
-//		}
-//		catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		
-//		for(int currentRow =0; currentRow <numberOfRows; currentRow ++)
-//		{
-//			for(int currentColumn= 0; currentColumn < columnsInStrings.size(); currentColumn++)
-//			{
-//				finalresultString += columnsInStrings.get(currentColumn)[currentRow] + ',';
-//			}
-//			
-//			/*remove last comma and  new line*/
-//			finalresultString = finalresultString.substring(0, finalresultString.length()-1);
-//			finalresultString += '\n';
-//		}
-
-		//newResultVector.add(new RResult("endResult", finalresultString));
-		//newResultVector.add(new RResult("timeLogString", timeLogString));
-
+			return final2DArray;
 	}
 }

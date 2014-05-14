@@ -55,15 +55,15 @@ public class ComputationalServlet extends WeaveServlet
  		
  		// Start the timer for the data request
  		startTime = System.currentTimeMillis();
- 		Object[][] recordData;
- 			recordData = DataService.getFilteredRows(ids, filters, null).recordData;
+ 		Object[][] recordData = DataService.getFilteredRows(ids, filters, null).recordData;
  		if(recordData.length == 0){
  			throw new RemoteException("Query produced no rows...");
  		}
+ 		
  	if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
  	{
  		// R requires the data as column data
- 		Object[][] columnData = AWSUtils.transpose(recordData);
+ 		Object[][] columnData = (Object[][]) AWSUtils.transpose((Object) recordData);
  		endTime = System.currentTimeMillis(); // end timer for data request
  		recordData = null;
  		time1 = endTime - startTime;
@@ -71,7 +71,8 @@ public class ComputationalServlet extends WeaveServlet
  		// Run and time the script
  		startTime = System.currentTimeMillis();
  		try {
- 			resultData = AwsRService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), columnData);
+ 			AwsRService rService = new AwsRService();
+ 			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), columnData);
  		} catch (Exception e) {
  			// TODO Auto-generated catch block
  			e.printStackTrace();
