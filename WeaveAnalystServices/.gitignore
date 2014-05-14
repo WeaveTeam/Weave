@@ -4,3 +4,4 @@ bin/build/
 .externalToolBuilders/
 nbproject/
 /bin
+/build
