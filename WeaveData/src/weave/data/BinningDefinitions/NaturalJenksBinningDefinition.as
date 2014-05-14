@@ -71,9 +71,7 @@ package weave.data.BinningDefinitions
 			if (column)
 			{
 				// BEGIN DIMENSION SLIDER HACK
-				var nonWrapperColumn:IAttributeColumn = column;
-				while (nonWrapperColumn is IColumnWrapper)
-					nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
+				var nonWrapperColumn:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(column);
 				if (nonWrapperColumn is SecondaryKeyNumColumn)
 				{
 					SecondaryKeyNumColumn.allKeysHack = true;
@@ -358,7 +356,7 @@ package weave.data.BinningDefinitions
 				var name:String = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
-					name = _tempNumberClassifier.generateBinLabel(_column as IPrimitiveColumn);
+					name = _tempNumberClassifier.generateBinLabel(_column);
 				output.requestObjectCopy(name, _tempNumberClassifier);
 			}
 			

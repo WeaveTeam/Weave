@@ -178,11 +178,6 @@ package weave.core
 		private static const classExtendsMap:Object = new Object();
 		
 		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */
-		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-		
-		/**
 		 * This function will populate the classImplementsMap and classExtendsMap for the given qualified class name.
 		 * @param classQName A qualified class name.
 		 * @return true if the class info has been cached.
@@ -196,7 +191,7 @@ package weave.core
 			if (classDef == null)
 				return false;
 
-			var type:Object = describeTypeJSON(
+			var type:Object = DescribeType.getInfo(
 				classDef,
 				DescribeType.INCLUDE_TRAITS
 					| DescribeType.USE_ITRAITS

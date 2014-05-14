@@ -299,7 +299,6 @@ import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.events.ProgressEvent;
 import flash.events.SecurityErrorEvent;
-import flash.external.ExternalInterface;
 import flash.net.URLLoader;
 import flash.net.URLRequest;
 import flash.utils.ByteArray;
@@ -541,7 +540,7 @@ internal class CustomURLLoader extends URLLoader
 	private function handleSecurityError(event:SecurityErrorEvent):void
 	{
 		fixErrorMessage(event);
-		if (ExternalInterface.available)
+		if (JavaScript.available)
 		{
 			// Server did not have a permissive crossdomain.xml, so try JavaScript/CORS
 			failedHosts[getHost()] = true;

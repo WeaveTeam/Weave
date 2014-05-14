@@ -24,7 +24,6 @@ package weave.services
 	import mx.utils.UIDUtil;
 	import mx.utils.URLUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.EntityType;
@@ -413,7 +412,7 @@ package weave.services
 				params['file'] = fileName;
 			if (recover)
 				params['recover'] = true;
-			WeaveAPI.executeJavaScript(
+			JavaScript.exec(
 				{
 					url: 'weave.html?' + URLUtil.objectToString(params, '&'),
 					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),

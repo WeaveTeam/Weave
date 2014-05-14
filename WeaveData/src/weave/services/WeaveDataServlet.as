@@ -57,7 +57,7 @@ package weave.services
 			servlet = new AMF3Servlet(url || DEFAULT_URL);
 			registerLinkableChild(this, servlet);
 			
-			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
+			var info:* = DescribeType.getInfo(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
 			{
 				var func:Function = this[item.name] as Function;
@@ -68,11 +68,6 @@ package weave.services
 		
 		////////////////////
 		// Helper functions
-		
-		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */		
-		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
 		
 		/**
 		 * This function will generate a AsyncToken representing a servlet method invocation and add it to the queue.

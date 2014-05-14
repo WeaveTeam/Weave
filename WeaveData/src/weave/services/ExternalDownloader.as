@@ -18,7 +18,6 @@
 */
 package weave.services
 {
-	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
 	import flash.net.URLRequestHeader;
 	import flash.net.URLRequestMethod;
@@ -34,7 +33,6 @@ package weave.services
 	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.reportError;
 
 	public class ExternalDownloader
@@ -57,11 +55,8 @@ package weave.services
 			
 			try
 			{
-				// execute embedded scripts
-				WeaveAPI.executeJavaScript(new JS_ExternalDownloader());
-				
-				// expose the result and fault callbacks for javascript to use by jquery
-				ExternalInterface.addCallback("ExternalDownloader_callback", callback);
+				JavaScript.exec({"this": "weave"}, new JS_ExternalDownloader());
+				JavaScript.registerMethod("ExternalDownloader_callback", callback);
 				
 				_initialized = true;
 			}
@@ -107,9 +102,9 @@ package weave.services
 			
 			uniqueIDToTokenMap[id] = new QueryToken(urlRequest, dataFormat, token);
 			
-			WeaveAPI.executeJavaScript(
-				{"id": id, "method": method, "url": url, "requestHeaders": requestHeaders, "base64data": base64data},
-				"weave.ExternalDownloader_request(id, method, url, requestHeaders, base64data);"
+			JavaScript.exec(
+				{"args": [id, method, url, requestHeaders, base64data]},
+				"this.ExternalDownloader_request.apply(this, args);"
 			);
 		}
 		

@@ -161,7 +161,8 @@
 			{
 				switch (String(name))
 				{
-					case 'javaScript': return function(...args):*
+					case 'exec': return JavaScript.exec as Function;
+					case 'call': return function(...args):*
 					{
 						var prev:Boolean = ExternalInterface.marshallExceptions;
 						try
@@ -169,10 +170,13 @@
 							ExternalInterface.marshallExceptions = true;
 							ExternalInterface.call.apply(this, args);
 						}
-						finally
+						catch (e:*)
 						{
 							ExternalInterface.marshallExceptions = prev;
+							throw e;
 						}
+						// we can't put this in a finally{} block because it prevents catch() from happening if set to false.
+						ExternalInterface.marshallExceptions = prev;
 					};
 					case 'application': return FlexGlobals.topLevelApplication;
 					case 'print': return ObjectUtil.toString as Function;
