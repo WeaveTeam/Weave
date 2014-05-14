@@ -46,6 +46,9 @@
 						   visible="{apiVersion.value == 3}"
 						   includeInLayout="{apiVersion.value == 3}"/>
 	</ui:Indent>
+	<ui:Indent>
+		<ui:CustomCheckBox id="useDataStore" label="{lang('Use DataStore if available')}" selected="true"/>
+	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -53,7 +56,6 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
-			import weave.compiler.StandardLib;
 			import weave.data.DataSources.CKANDataSource;
 			
 			override protected function createChildren():void
@@ -85,6 +87,7 @@
 					showPackages.selected = target.showPackages.value;
 					showGroups.selected = target.showGroups.value;
 					showTags.selected = target.showTags.value;
+					useDataStore.selected = target.useDataStore.value;
 				}
 			}
 			
@@ -95,7 +98,8 @@
 					|| target.useHttpPost.value != useHttpPost.selected
 					|| target.showPackages.value != showPackages.selected
 					|| target.showGroups.value != showGroups.selected
-					|| target.showTags.value != showTags.selected;
+					|| target.showTags.value != showTags.selected
+					|| target.useDataStore.value != useDataStore.selected;
 			}
 			
 			public function applyChanges():void
@@ -106,6 +110,7 @@
 				target.showPackages.value = showPackages.selected;
 				target.showGroups.value = showGroups.selected;
 				target.showTags.value = showTags.selected;
+				target.useDataStore.value = useDataStore.selected;
 			}
 			
 			public function createDataSource():IDataSource
