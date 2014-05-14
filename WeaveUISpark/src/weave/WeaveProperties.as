@@ -107,6 +107,8 @@ package weave
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
 			_toggleToolsMenuItem("SchafersMissingDataTool", false);
 			_toggleToolsMenuItem("DataFilter", false);
+			_toggleToolsMenuItem("KeyMappingTool", false);
+			
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
 			panelTitleTextFormat.color.value = 0xFFFFFF;

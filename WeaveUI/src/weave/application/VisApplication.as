@@ -32,7 +32,6 @@ package weave.application
 	import flash.net.FileReference;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
-	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
 	import flash.system.Capabilities;
 	import flash.ui.ContextMenu;
@@ -58,6 +57,7 @@ package weave.application
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.URLUtil;
 	
 	import spark.components.Group;
 	
@@ -367,7 +367,7 @@ package weave.application
 		
 		private function handleFlashVarPresentation():void
 		{
-			var presentationMode:Boolean = StandardLib.asBoolean(_flashVars['presentation'] as String);
+			var presentationMode:Boolean = StandardLib.asBoolean(_flashVars['presentation']);
 			Weave.history.enableLogging.value = !presentationMode;
 		}
 		
@@ -396,7 +396,7 @@ package weave.application
 		}
 		private function getFlashVarRecover():Boolean
 		{
-			return StandardLib.asBoolean(_flashVars['recover'] as String);
+			return StandardLib.asBoolean(_flashVars['recover']);
 		}
 		
 		/**
@@ -414,7 +414,7 @@ package weave.application
 		{
 			var name:String = 'editable';
 			if (_flashVars.hasOwnProperty(name))
-				return StandardLib.asBoolean(_flashVars[name] as String);
+				return StandardLib.asBoolean(_flashVars[name]);
 			return undefined;
 		}
 		
@@ -437,20 +437,24 @@ package weave.application
 			// check address bar for any variables not found in FlashVars
 			try
 			{
-				var urlParams:URLVariables = new URLVariables(JavaScript.exec("return window.location.search.substring(1);")); // text after '?'
-				for (var key:String in urlParams)
+				var paramsStr:String = JavaScript.exec("return window.location.search.substring(1);"); // text after '?'
+				var paramsObj:Object = URLUtil.stringToObject(paramsStr, '&');
+				for (var key:String in paramsObj)
 					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
-						_flashVars[key] = urlParams[key];
+						_flashVars[key] = paramsObj[key];
 				
 				// backwards compatibility with old param name
 				const DEPRECATED_FILE_PARAM_NAME:String = 'defaults';
-				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && urlParams.hasOwnProperty(DEPRECATED_FILE_PARAM_NAME))
+				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && paramsObj.hasOwnProperty(DEPRECATED_FILE_PARAM_NAME))
 				{
-					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = urlParams[DEPRECATED_FILE_PARAM_NAME];
+					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = paramsObj[DEPRECATED_FILE_PARAM_NAME];
 					_usingDeprecatedFlashVar = true;
 				}
 			}
-			catch(e:Error) { }
+			catch(e:Error)
+			{
+				reportError(e);
+			}
 		}
 		private static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 		private static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
