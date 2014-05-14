@@ -99,6 +99,7 @@ package
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 	import weave.visualization.tools.TreeTool;
+	import weave.visualization.tools.KeyMappingTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -177,7 +178,8 @@ package
 				RamachandranPlotTool,
 				DataStatisticsTool,
 				RInterfaceTool,
-				TreeTool
+				TreeTool,
+				KeyMappingTool
 			]);
 			
 			/**
