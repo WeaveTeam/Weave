@@ -17,31 +17,31 @@ weave.WeavePath.qkeyToIndex = function(key)
 
     if (this._qkeys_to_numeric[key_str] == undefined)
     {
-        var idx = weave.WeavePath._numeric_key_idx;
+        var idx = this._numeric_key_idx;
 
         this._numeric_to_qkeys[idx] = key;
         this._qkeys_to_numeric[key_str] = idx;
         
-        weave.WeavePath._numeric_key_idx = idx + 1;
+        this._numeric_key_idx = idx + 1;
     }
     return this._qkeys_to_numeric[key_str];
 };
 
-weave.WeavePath.prototype.qkeyToIndex = function (key) { return weave.WeavePath.qkeyToIndex(key); };
+weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.qkeyToIndex.bind(weave.WeavePath);
 
 weave.WeavePath.indexToQKey = function (index)
 {
     return this._numeric_to_qkeys[index];
 };
 
-weave.WeavePath.prototype.indexToQKey = function (index) { return weave.WeavePath.indexToQKey(index); };
+weave.WeavePath.prototype.indexToQKey = weave.WeavePath.indexToQKey.bind(weave.WeavePath);
 
 weave.WeavePath.qkeyToString = function(key)
 {
     return this._keyIdPrefix + this.qkeyToIndex(key);
 };
 
-weave.WeavePath.prototype.qkeyToString = function (key) { return weave.WeavePath.qkeyToString(key); };
+weave.WeavePath.prototype.qkeyToString = weave.WeavePath.qkeyToString.bind(weave.WeavePath);
 
 weave.WeavePath.stringToQKey = function(s) 
 {
@@ -49,7 +49,7 @@ weave.WeavePath.stringToQKey = function(s)
     return this.indexToQKey(idx);
 };
 
-weave.WeavePath.prototype.stringToQKey = function (s) { return weave.WeavePath.stringToQKey(s); }
+weave.WeavePath.prototype.stringToQKey = weave.WeavePath.stringToQKey.bind(weave.WeavePath);
 
 /**
  * Creates a new property of the specified type, and binds the appropriate callback.
