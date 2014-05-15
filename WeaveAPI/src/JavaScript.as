@@ -107,7 +107,7 @@ package
 		public static function get objectID():String
 		{
 			if (!_objectID)
-				_objectID = getExternalObjectID("flash");
+				_objectID = getExternalObjectID();
 			return _objectID;
 		}
 		
@@ -138,7 +138,7 @@ package
 		 * @param desiredId If the flash application really has no id, this will be used as a base for creating a new unique id.
 		 * @return The id of the flash application.
 		 */
-		private static function getExternalObjectID(desiredId:String = null):String
+		private static function getExternalObjectID(desiredId:String = "flash"):String
 		{
 			var id:String = ExternalInterface.objectID;
 			if (!id) // if we don't know our ID
@@ -156,7 +156,7 @@ package
 								return elements[i].id || (elements[i].id = newId);\
 					}",
 					JSON_SUFFIX,
-					desiredId || JSON_SUFFIX
+					desiredId
 				);
 			}
 			return id;
