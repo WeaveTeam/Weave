@@ -6,38 +6,50 @@ weave.WeavePath.prototype.probe_keyset = weave.path("defaultProbeKeySet");
 weave.WeavePath.prototype.selection_keyset = weave.path("defaultSelectionKeySet");
 weave.WeavePath.prototype.subset_filter = weave.path("defaultSubsetKeyFilter");
 
-weave.WeavePath.prototype._qkeys_to_numeric = {};
-weave.WeavePath.prototype._numeric_to_qkeys = {};
-weave.WeavePath.prototype._numeric_key_idx = 0;
-weave.WeavePath.prototype._keyIdPrefix = "WeaveQKey";
+weave.WeavePath._qkeys_to_numeric = {};
+weave.WeavePath._numeric_to_qkeys = {};
+weave.WeavePath._numeric_key_idx = 0;
+weave.WeavePath._keyIdPrefix = "WeaveQKey";
 
-weave.WeavePath.prototype.qkeyToIndex = function(key)
+weave.WeavePath.qkeyToIndex = function(key)
 {
     var key_str = JSON.stringify([key.keyType.toString(), key.localName.toString()]);
+
     if (this._qkeys_to_numeric[key_str] == undefined)
     {
-        this._numeric_to_qkeys[this._numeric_key_idx] = key;
-        this._qkeys_to_numeric[key_str] = this._numeric_key_idx;
-        this._numeric_key_idx++;
+        var idx = this._numeric_key_idx;
+
+        this._numeric_to_qkeys[idx] = key;
+        this._qkeys_to_numeric[key_str] = idx;
+        
+        this._numeric_key_idx = idx + 1;
     }
     return this._qkeys_to_numeric[key_str];
 };
 
-weave.WeavePath.prototype.indexToQKey = function (index)
+weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.qkeyToIndex.bind(weave.WeavePath);
+
+weave.WeavePath.indexToQKey = function (index)
 {
     return this._numeric_to_qkeys[index];
 };
 
-weave.WeavePath.prototype.qkeyToString = function(key)
+weave.WeavePath.prototype.indexToQKey = weave.WeavePath.indexToQKey.bind(weave.WeavePath);
+
+weave.WeavePath.qkeyToString = function(key)
 {
     return this._keyIdPrefix + this.qkeyToIndex(key);
 };
 
-weave.WeavePath.prototype.stringToQKey = function(s) 
+weave.WeavePath.prototype.qkeyToString = weave.WeavePath.qkeyToString.bind(weave.WeavePath);
+
+weave.WeavePath.stringToQKey = function(s) 
 {
     idx = s.substr(this._keyIdPrefix.length);
     return this.indexToQKey(idx);
 };
+
+weave.WeavePath.prototype.stringToQKey = weave.WeavePath.stringToQKey.bind(weave.WeavePath);
 
 /**
  * Creates a new property of the specified type, and binds the appropriate callback.

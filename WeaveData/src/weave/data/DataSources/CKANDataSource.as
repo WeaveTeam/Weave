@@ -22,6 +22,8 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
@@ -52,6 +54,7 @@ package weave.data.DataSources
 		public const showPackages:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const showGroups:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const showTags:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const useDataStore:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		private function validateApiVersion(value:Number):Boolean { return [1, 2, 3].indexOf(value) >= 0; }
 		
@@ -96,6 +99,19 @@ package weave.data.DataSources
 			if (!ds)
 				return null;
 			
+			var node:CKANAction;
+			if (metadata[PARAMS_CKAN_FORMAT] == DATASTORE_FORMAT)
+			{
+				node = new CKANAction(this);
+				node.action = CKANAction.GET_COLUMN;
+				node.params = {};
+				node.params[PARAMS_CKAN_ID] = metadata[PARAMS_CKAN_ID];
+				node.params[PARAMS_CKAN_URL] = metadata[PARAMS_CKAN_URL];
+				node.params[PARAMS_CKAN_FORMAT] = metadata[PARAMS_CKAN_FORMAT];
+				node.params[PARAMS_CKAN_FIELD] = metadata[PARAMS_CKAN_FIELD];
+				return node;
+			}
+			
 			var search:Object = ObjectUtil.copy(metadata);
 			delete search[PARAMS_CKAN_ID];
 			delete search[PARAMS_CKAN_URL];
@@ -105,7 +121,7 @@ package weave.data.DataSources
 			if (!internalNode)
 				return null;
 			
-			var node:CKANAction = new CKANAction(this);
+			node = new CKANAction(this);
 			node.action = CKANAction.GET_COLUMN;
 			node.params = {};
 			node.params[PARAMS_CKAN_ID] = metadata[PARAMS_CKAN_ID];
@@ -123,7 +139,11 @@ package weave.data.DataSources
 			var metadata:Object = proxyColumn.getProxyMetadata();
 			var dataSource:IDataSource = getChildDataSource(metadata);
 			if (dataSource)
+			{
+				if (metadata[PARAMS_CKAN_FORMAT] == DATASTORE_FORMAT)
+					metadata = metadata[PARAMS_CKAN_FIELD];
 				proxyColumn.setInternalColumn(dataSource.getAttributeColumn(metadata));
+			}
 			else
 				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 		}
@@ -131,6 +151,8 @@ package weave.data.DataSources
 		public static const PARAMS_CKAN_ID:String = 'ckan_id';
 		public static const PARAMS_CKAN_URL:String = 'ckan_url';
 		public static const PARAMS_CKAN_FORMAT:String = 'ckan_format';
+		public static const PARAMS_CKAN_FIELD:String = 'ckan_field';
+		public static const DATASTORE_FORMAT:String = 'ckan_datastore';
 		
 		/**
 		 * @private
@@ -163,6 +185,36 @@ package weave.data.DataSources
 					var wfs:WFSDataSource = new WFSDataSource();
 					wfs.url.value = url;
 					dataSource = wfs;
+				}
+				if (format == DATASTORE_FORMAT)
+				{
+					var datastore:CSVDataSource = new CSVDataSource();
+					var node:CKANAction = new CKANAction(this);
+					node.action = CKANAction.DATASTORE_SEARCH;
+					node.params = {"resource_id": params[PARAMS_CKAN_ID]};
+					node.resultHandler = function(result:Object):void {
+						datastore.metadata.setSessionState(
+							result['fields'].map(function(field:Object, i:*, a:*):Object {
+								var type:String = field['type'];
+								if (type == 'numeric' || type == 'int4')
+									type = DataTypes.NUMBER;
+								if (type == 'text')
+									type = DataTypes.STRING;
+								if (type == 'timestamp')
+									type = DataTypes.DATE;
+								var meta:Object = {};
+								meta[ColumnMetadata.DATA_TYPE] = type;
+								meta[ColumnMetadata.TITLE] = field['id'];
+								meta[CSVDataSource.METADATA_COLUMN_NAME] = field['id'];
+								return meta;
+							})
+						);
+						var columnOrder:Array = result['fields'].map(function(field:Object, i:*, a:*):String { return field['id']; });
+						var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result['records'], columnOrder, true);
+						datastore.csvData.setSessionState(rows);
+					};
+					node.result; // will cause resultHandler to be called later
+					dataSource = datastore;
 				}
 			}
 			// cache now if not cached
@@ -202,6 +254,7 @@ import weave.compiler.Compiler;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
 import weave.data.DataSources.CKANDataSource;
+import weave.data.DataSources.CSVDataSource;
 import weave.services.URLRequestUtils;
 import weave.utils.VectorUtils;
 
@@ -213,6 +266,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	public static const GROUP_SHOW:String = 'group_show';
 	public static const TAG_LIST:String = 'tag_list';
 	public static const TAG_SHOW:String = 'tag_show';
+	public static const DATASTORE_SEARCH:String = 'datastore_search';
 	
 	public static const GET_DATASOURCE:String = 'get_datasource';
 	public static const GET_COLUMN:String = 'get_column';
@@ -248,7 +302,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	{
 		if (detectLinkableObjectChange(this, source.url, source.apiVersion, source.useHttpPost))
 		{
-			if ([PACKAGE_LIST, PACKAGE_SHOW, GROUP_LIST, GROUP_SHOW, TAG_LIST, TAG_SHOW].indexOf(action) >= 0)
+			if ([PACKAGE_LIST, PACKAGE_SHOW, GROUP_LIST, GROUP_SHOW, TAG_LIST, TAG_SHOW, DATASTORE_SEARCH].indexOf(action) >= 0)
 			{
 				// make CKAN API request
 				_result = {};
@@ -257,6 +311,11 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		}
 		return _result || {};
 	}
+	
+	/**
+	 * This function will be passed the result when it is downloaded.
+	 */
+	public var resultHandler:Function = null;
 	
 	private function get apiVersion3():Boolean
 	{
@@ -339,6 +398,9 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			var error:Object = response.hasOwnProperty('error') ? response['error'] : response;
 			reportError("CKAN action failed: " + this.toString() + "; error=" + Compiler.stringify(error));
 		}
+		
+		if (resultHandler != null)
+			resultHandler(_result);
 	}
 	private function stringifyJSON(obj:Object):Object
 	{
@@ -403,7 +465,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				|| (result is String ? result as String : (result['title'] || result['display_name'] || result['name']))
 				|| params['id'];
 		
-		if (action == GET_DATASOURCE)
+		if (action == GET_DATASOURCE || action == DATASTORE_SEARCH)
 		{
 			var str:String = metadata['name'] || metadata['description'] || metadata['url'] || metadata['id'];
 			
@@ -414,6 +476,9 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return str;
 		}
 		
+		if (action == GET_COLUMN)
+			return params[CKANDataSource.PARAMS_CKAN_FIELD];
+		
 		return this.toString();
 	}
 	public function isBranch():Boolean
@@ -421,10 +486,10 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (internalNode)
 			return internalNode.isBranch();
 		
-		if (action == GET_DATASOURCE)
+		if (action == GET_DATASOURCE || action == DATASTORE_SEARCH)
 			return true;
 		
-		return action != NO_ACTION;
+		return action != NO_ACTION && action != GET_COLUMN;
 	}
 	public function hasChildBranches():Boolean
 	{
@@ -443,7 +508,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return getChildren().length > 0;
 		}
 		
-		return action != GET_DATASOURCE && action != NO_ACTION;
+		return action != GET_DATASOURCE && action != DATASTORE_SEARCH && action != NO_ACTION;
 	}
 	
 	private var _childNodes:Array = [];
@@ -534,12 +599,34 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (action == PACKAGE_SHOW && result.hasOwnProperty('resources'))
 		{
 			return updateChildren(result['resources'], function(node:CKANAction, resource:Object):void {
-				node.action = GET_DATASOURCE;
-				node.metadata = resource;
+				if (source.useDataStore.value && resource['datastore_active'])
+				{
+					node.action = DATASTORE_SEARCH;
+					node.metadata = resource;
+					node.params = {"resource_id": resource['id'], "limit": 0};
+				}
+				else
+				{
+					node.action = GET_DATASOURCE;
+					node.metadata = resource;
+					node.params = {};
+					node.params[CKANDataSource.PARAMS_CKAN_ID] = resource['id'];
+					node.params[CKANDataSource.PARAMS_CKAN_URL] = resource['url'];
+					node.params[CKANDataSource.PARAMS_CKAN_FORMAT] = resource['format'];
+				}
+			});
+		}
+		
+		if (action == DATASTORE_SEARCH)
+		{
+			return updateChildren(result['fields'], function(node:CKANAction, field:Object):void {
+				node.action = GET_COLUMN;
+				node.metadata = field;
 				node.params = {};
-				node.params[CKANDataSource.PARAMS_CKAN_ID] = resource['id'];
-				node.params[CKANDataSource.PARAMS_CKAN_URL] = resource['url'];
-				node.params[CKANDataSource.PARAMS_CKAN_FORMAT] = resource['format'];
+				node.params[CKANDataSource.PARAMS_CKAN_ID] = metadata['id'];
+				node.params[CKANDataSource.PARAMS_CKAN_URL] = CKANDataSource.DATASTORE_FORMAT + "://" + metadata['id'];
+				node.params[CKANDataSource.PARAMS_CKAN_FORMAT] = CKANDataSource.DATASTORE_FORMAT;
+				node.params[CKANDataSource.PARAMS_CKAN_FIELD] = field['id'];
 			});
 		}
 		
@@ -610,6 +697,8 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			meta[CKANDataSource.PARAMS_CKAN_URL] = params[CKANDataSource.PARAMS_CKAN_URL];
 			return meta;
 		}
+		if (action == GET_COLUMN)
+			return ObjectUtil.copy(params);
 		return null;
 	}
 	
