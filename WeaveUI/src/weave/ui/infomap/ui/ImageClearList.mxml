@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" title="{lang('InfoMaps Image List')}" layout="absolute" width="400" height="300">
+	<mx:VBox height="100%" width="100%" >
+		<mx:List id="imageList" height="100%" width="100%" />
+		<mx:HBox>
+			<mx:Button label="Clear All" enabled="{imageList.dataProvider.length > 0}" click="removeAllImagesButton(event)"/>
+			<mx:Button label="Remove selected image" enabled="{imageList.dataProvider.length  > 0}" click="removeSelectionButton(event)"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.core.LinkableHashMap;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();				
+			}			
+			
+			override public function set targets(array:Array):void
+			{
+				super.targets = array;
+				imageList.dataProvider = (_targetObjects[0] as LinkableHashMap).getNames();
+				
+			}
+			
+			protected function removeSelectionButton(event:MouseEvent):void
+			{
+				if( _targetObjects != null && imageList.selectedItem != null)
+				{
+					(_targetObjects[0] as LinkableHashMap).removeObject(imageList.selectedItem as String);
+					(_targetObjects[0] as LinkableHashMap).triggerCallbacks();
+					imageList.dataProvider = (_targetObjects[0] as LinkableHashMap).getNames();
+				}
+				
+			}
+			
+			protected function removeAllImagesButton(event:MouseEvent):void
+			{
+				if( _targetObjects != null )
+				{
+					(_targetObjects[0] as LinkableHashMap).removeAllObjects();
+					(_targetObjects[0] as LinkableHashMap).triggerCallbacks();
+					imageList.dataProvider = null;
+				}
+				
+			}
+			
+		]]>
+	</mx:Script>
+</ui:ControlPanel>

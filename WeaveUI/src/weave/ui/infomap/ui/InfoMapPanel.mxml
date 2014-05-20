@@ -1110,6 +1110,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( !userChange )
 				{
+					map.graphics.clear();
 					//This sometimes loads after handleBackgroundImageChange, so check again quickly.
 					var tempArray:Array = backgroundImagesEncoded.getNames(LinkableString);
 					for each (var name:String in tempArray)
@@ -1199,9 +1200,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function clearImage():void
 			{
-				userChange = true;
-				map.graphics.clear();
-				backgroundImagesEncoded.dispose();
+				var clearPanel:ImageClearList = DraggablePanel.openStaticInstance(ImageClearList);
+				clearPanel.targets = [backgroundImagesEncoded];
 			}
 			
 			private var _fileReference:FileReferenceList = new FileReferenceList();
@@ -1454,7 +1454,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="Set Background Image: "/>
 				<mx:TextInput id="imageURL" editable="false"/>
 				<mx:Button label="Browse" click="browse()"/>
-				<mx:Button label="Clear" click="clearImage()"/>
+				<mx:Button label="Clear Images" click="clearImage()"/>
 				<mx:Button label="Save" click="saveImage()"/>
 			</mx:HBox>
 			<mx:HBox>
