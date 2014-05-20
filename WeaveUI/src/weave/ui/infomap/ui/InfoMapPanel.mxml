@@ -19,21 +19,14 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<ui:DraggablePanel
-	xmlns="weave.ui.infomap.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-	xmlns:ui="weave.ui.*"
-	horizontalScrollPolicy="off" verticalScrollPolicy="off"
-	borderThickness="0"
-	title="InfoMap Prototype"
-	clipContent="true"
-	autoLayout="true"
-	paddingLeft="5"
-	paddingTop="5"
-	backgroundSize="100%"
-	dragDrop="dragDropHandler(event)"
-	dragEnter="dragEnterHandler(event)"
-	implements="weave.api.ui.IVisTool" xmlns:ui1="weave.ui.infomap.ui.*"
-	>
+<ui:DraggablePanel xmlns="weave.ui.infomap.*"
+				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*"
+				   xmlns:ui1="weave.ui.infomap.ui.*"
+				   autoLayout="true" backgroundSize="100%" borderThickness="0" clipContent="true"
+				   dragDrop="dragDropHandler(event)" dragEnter="dragEnterHandler(event)"
+				   horizontalScrollPolicy="off" implements="weave.api.ui.IVisTool" paddingLeft="5"
+				   paddingTop="5" title="InfoMap Prototype" verticalScrollPolicy="off">
 	<mx:Style>
 		.loadingTextStyle {
 			fontFamily:"GeosansLight";
@@ -52,9 +45,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
-			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			import mx.utils.Base64Decoder;
 			import mx.utils.Base64Encoder;
 			import mx.utils.StringUtil;
 			
@@ -64,7 +57,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IColumnReference;
 			import weave.api.data.IDataSource;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
@@ -93,7 +85,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.primitives.ColorRamp;
 			import weave.primitives.DateRangeFilter;
 			import weave.services.InfoMapAdminInterface;
-			import weave.services.WeaveDataServlet;
 			import weave.services.addAsyncResponder;
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.core.QueryObject;
@@ -101,7 +92,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.DateUtils;
-			import weave.utils.NumberUtils;
 			import weave.utils.PopUpUtils;
 			import weave.utils.VectorUtils;
 			
@@ -137,9 +127,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * All the nodes within this panel will point to document objects in this map only.
 			 * When a query is made by each node, the documents retrieved are stored in this map.
 			 * */
-//			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
-//			public const docsCSVDataSource:CSVDataSource = newLinkableChild(this,CSVDataSource);
-//			public static const DOC_KEYTYPE:String = "infomapDocURL";
+			//			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+			//			public const docsCSVDataSource:CSVDataSource = newLinkableChild(this,CSVDataSource);
+			//			public static const DOC_KEYTYPE:String = "infomapDocURL";
 			
 			/**
 			 * @public
@@ -155,7 +145,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const globalFilterByOption:LinkableString = registerLinkableChild(this,new LinkableString());
 			
-			public const backgroundImageName:LinkableString = registerLinkableChild(this,new LinkableString(''),handleBackgroundImageChange);
+			public const backgroundImagesEncoded:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(), handleBackgroundImagesEcondedChange);
 			
 			override protected function constructor():void
 			{
@@ -194,24 +184,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
 				
-//				globalSearchKeyword.addGroupedCallback(this,handleGlobalSearch);
+				//				globalSearchKeyword.addGroupedCallback(this,handleGlobalSearch);
 				
-//				_infomapSubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK]);
-//				
-//				_infomapSubMenu.addSubSubMenuItems("Add",["Query Node","Map Node"],[addInfoMapNode,addInfoMapLink]);
-//				_infomapSubMenu.addSubSubMenuItems("Show", ["Related Data records","Show related Documents"],[showRelatedDataRecords,showRelatedDocuments]);
-//				_infomapSubMenu.addSubSubMenuItems("Sort By", [QueryObject.SORT_BY_RELEVANCE,QueryObject.SORT_BY_DATE_PUBLISHED,QueryObject.SORT_BY_DATE_ADDED],
-//					[sortNodesBy,sortNodesBy,sortNodesBy],[[QueryObject.SORT_BY_RELEVANCE,nodes.getObjects()],[QueryObject.SORT_BY_DATE_PUBLISHED,nodes.getObjects()],[QueryObject.SORT_BY_DATE_ADDED,nodes.getObjects()]]);
-//				_infomapSubMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterNodesBy,filterNodesBy,filterNodesBy],
-//						[[QueryObject.FILTER_BY_NONE,nodes.getObjects()],[QueryObject.FILTER_BY_BOOKS,nodes.getObjects()],[QueryObject.FILTER_BY_PAPERS,nodes.getObjects()]]);
-//				//_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
-//				_infomapSubMenu.addSubMenuItem("Extract Entities",extractEntityColumns);
+				//				_infomapSubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK]);
+				//				
+				//				_infomapSubMenu.addSubSubMenuItems("Add",["Query Node","Map Node"],[addInfoMapNode,addInfoMapLink]);
+				//				_infomapSubMenu.addSubSubMenuItems("Show", ["Related Data records","Show related Documents"],[showRelatedDataRecords,showRelatedDocuments]);
+				//				_infomapSubMenu.addSubSubMenuItems("Sort By", [QueryObject.SORT_BY_RELEVANCE,QueryObject.SORT_BY_DATE_PUBLISHED,QueryObject.SORT_BY_DATE_ADDED],
+				//					[sortNodesBy,sortNodesBy,sortNodesBy],[[QueryObject.SORT_BY_RELEVANCE,nodes.getObjects()],[QueryObject.SORT_BY_DATE_PUBLISHED,nodes.getObjects()],[QueryObject.SORT_BY_DATE_ADDED,nodes.getObjects()]]);
+				//				_infomapSubMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterNodesBy,filterNodesBy,filterNodesBy],
+				//						[[QueryObject.FILTER_BY_NONE,nodes.getObjects()],[QueryObject.FILTER_BY_BOOKS,nodes.getObjects()],[QueryObject.FILTER_BY_PAPERS,nodes.getObjects()]]);
+				//				//_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+				//				_infomapSubMenu.addSubMenuItem("Extract Entities",extractEntityColumns);
 				
 				sideMenu.addQueryButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{addInfoMapNode();})
 				sideMenu.extractEntitiesButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{extractEntityColumns();})
 				
 				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
-//				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
+				//				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
 				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler);
 				
 				entityColumnsList.reverseButton.enabled = false;
@@ -255,12 +245,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(n.length >0)
 				{
-//					sideMenu.nodeSelector.visible = true;
+					//					sideMenu.nodeSelector.visible = true;
 					sideMenu.m.visible = true;
 				}
 				else
 				{
-//					sideMenu.nodeSelector.visible = false;
+					//					sideMenu.nodeSelector.visible = false;
 					sideMenu.m.visible = false;
 				}
 			}
@@ -272,17 +262,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var nodesToOperateOn:Array = [];
 				
-//				if(sideMenu.nodeSelectorGroup.selectedValue == "All") // apply to all nodes
-//				{
-//					nodesToOperateOn = nodes.getObjects();	
-//				}
-//				else // apply to current node only
-//				{
-//					if(currentNode == null) //if current node is empty 
-//						return;
-//					
-//					nodesToOperateOn = [currentNode];
-//				}
+				//				if(sideMenu.nodeSelectorGroup.selectedValue == "All") // apply to all nodes
+				//				{
+				//					nodesToOperateOn = nodes.getObjects();	
+				//				}
+				//				else // apply to current node only
+				//				{
+				//					if(currentNode == null) //if current node is empty 
+				//						return;
+				//					
+				//					nodesToOperateOn = [currentNode];
+				//				}
 				
 				if(event.target is spark.components.Label)
 				{
@@ -293,13 +283,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						filterNodesBy(labelText,nodesToOperateOn);
 						return;
 					}
-					
+						
 					else if(QueryObject.sortByOptions.indexOf(labelText) != -1)
 					{
 						sortNodesBy(labelText,nodesToOperateOn);
 						return;
 					}
-					
+						
 					else if(NodeHandler.views.indexOf(labelText) != -1)
 					{
 						for each (var node:NodeHandler in nodesToOperateOn)
@@ -310,7 +300,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							}
 						}
 					}
-					
+						
 					else if (labelText == "New Documents")
 					{
 						for each (var n:NodeHandler in nodesToOperateOn)
@@ -321,12 +311,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							}
 						}
 					}
-					
+						
 					else if(labelText == "Topics")
 					{
 						for each (var n3:NodeHandler in nodesToOperateOn)
 						{
-								n3.showClusters();
+							n3.showClusters();
 						}
 					}
 					
@@ -376,13 +366,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					node.previousQuery.sortBy.value = option;
 				}
 			}
-//			private var _firstLoad:Boolean = true;
-//			private function handleEntityColumnHashmap():void
-//			{
-//				if(entityColumnsHashmap.getObjects().length == 0 && _firstLoad)
-//					extractEntityColumns();
-//				_firstLoad = false;
-//			}
+			//			private var _firstLoad:Boolean = true;
+			//			private function handleEntityColumnHashmap():void
+			//			{
+			//				if(entityColumnsHashmap.getObjects().length == 0 && _firstLoad)
+			//					extractEntityColumns();
+			//				_firstLoad = false;
+			//			}
 			private var _loadingText:InfoMapsProgressBar = null;
 			private var _referencedColumns:Array = [];
 			private function extractEntityColumns():void
@@ -612,15 +602,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-//			private function handleGlobalSearch():void
-//			{
-//				for each(var n:NodeHandler in nodes.getObjects())
-//				{
-//					n.filterBy(globalSearchKeyword.value);
-//				}
-//			}
+			//			private function handleGlobalSearch():void
+			//			{
+			//				for each(var n:NodeHandler in nodes.getObjects())
+			//				{
+			//					n.filterBy(globalSearchKeyword.value);
+			//				}
+			//			}
 			
-//			private var _infomapSubMenu:SubMenu = null;
+			//			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void
 			{
 				if(event.dragInitiator is DocThumbnailComponent || event.dragInitiator is List)
@@ -648,15 +638,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(!(t.parent == this.map))
 				{
 					map.addChild(t);
-//					t.hasBeenMoved.value = true;	
+					//					t.hasBeenMoved.value = true;	
 				}
 				
 				//move the thumbnail to the new location
 				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
 				t.move(localPoint.x,localPoint.y);
 				
-//				t.xPos.value = t.x;
-//				t.yPos.value = t.y;
+				//				t.xPos.value = t.x;
+				//				t.yPos.value = t.y;
 				
 				t.pos.setSessionState({x:t.x,y:t.y});
 				
@@ -698,15 +688,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function showAllDocuments():void
 			{
-//				var excludedKeys:Array =  _subset.excluded.keys;
-//				var dockeys:Array = [];
-//				
-//				for each(var key:IQualifiedKey in excludedKeys)
-//				{
-//					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
-//						dockeys.push(key);
-//				}
-//				_subset.excluded.removeKeys(dockeys);
+				//				var excludedKeys:Array =  _subset.excluded.keys;
+				//				var dockeys:Array = [];
+				//				
+				//				for each(var key:IQualifiedKey in excludedKeys)
+				//				{
+				//					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+				//						dockeys.push(key);
+				//				}
+				//				_subset.excluded.removeKeys(dockeys);
 				
 				//clearing all keys for now
 				_subset.replaceKeys(true,true);
@@ -771,10 +761,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(!keys.length == 0)
 					_selectedKeySet.addKeys(keys);
-//				else
-//					_selectedKeySet.clearKeys();
+				//				else
+				//					_selectedKeySet.clearKeys();
 				
-//				Alert.show((event.result as Array).toString());
+				//				Alert.show((event.result as Array).toString());
 			}
 			
 			private function handleMatchedEntitiesFault(event:FaultEvent,token:Object=null):void
@@ -790,7 +780,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 			}
 			
-//			private var _selectionRectangleGraphicsCleared:Boolean = true;
+			//			private var _selectionRectangleGraphicsCleared:Boolean = true;
 			private var dragStartX:Number;
 			private var dragStartY:Number;
 			private var sprite:Sprite =  new Sprite();
@@ -831,7 +821,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					var selectionRect:Rectangle = sprite.getRect(map);
 					
-					map.graphics.clear();
+					//map.graphics.clear();
 					
 					var currentNodes:Array = nodes.getObjects();
 					
@@ -848,7 +838,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						for each (var t:DocThumbnailComponent in currentDocs)
 						{
 							/* Only test for selection of document if it is moved, in which case it is somewhere on  the panel canvas OR
-							   if it belongs to the node and it is in Points view. Selection is enabled only in the points mode currently*/
+							if it belongs to the node and it is in Points view. Selection is enabled only in the points mode currently*/
 							if(node.movedThumbNails.getObject(t.docURL.value) || node.currentView.value == NodeHandler.POINTS_VIEW)
 							{
 								var r:Rectangle = t.getRect(map);
@@ -928,19 +918,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				WeaveAPI.ErrorManager.reportError(event.text);
 			}
 			
-		
 			
-//			private function refreshNodes(event:TimerEvent):void
-//			{
-//				var handlers:Array = nodes.getObjects();
-//				
-//				for (var i:int = 0;i<handlers.length;i++)
-//				{
-//					if(handlers[i] is NodeHandler)
-//						(handlers[i] as NodeHandler).checkForNewDocuments();
-//					
-//				}
-//			}
+			
+			//			private function refreshNodes(event:TimerEvent):void
+			//			{
+			//				var handlers:Array = nodes.getObjects();
+			//				
+			//				for (var i:int = 0;i<handlers.length;i++)
+			//				{
+			//					if(handlers[i] is NodeHandler)
+			//						(handlers[i] as NodeHandler).checkForNewDocuments();
+			//					
+			//				}
+			//			}
 			
 			
 			private function handlePanelResize():void
@@ -1021,7 +1011,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				updatePanelTitle();
 				nodeHandler.applyKeywordsFromSelection();
 			}
-
+			
 			
 			private var loader:URLLoader = null;
 			private function addRssFeed():void
@@ -1041,7 +1031,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					errorMsg.visible = true;	
 					return;
 				}	
-								
+				
 				InfoMapAdminInterface.instance.addRssFeed(feedTitle.text,feedURL.text);
 				sortByTitle();
 				
@@ -1052,7 +1042,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if(grid.selectedItem == null)
 					return;
-
+				
 				PopUpUtils.confirm(
 					this,
 					"Confirm delete",
@@ -1090,42 +1080,77 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _fileLoader:FileReference = null;
 			/**
-			 * browseForfiles: opens up a file browser window to upload CSV files 
+			 * browseForfiles: opens up a file browser window to upload an image file for the background. 
 			 **/
 			private function browse():void
 			{
 				if(_fileLoader == null)
 				{
 					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
-					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					_fileLoader.addEventListener(Event.SELECT, handleImageSelected);
+					_fileLoader.addEventListener(Event.COMPLETE, handleImageLoaded);
 				}
 				
 				_fileLoader.browse();
 			}
 			
 			
-			private function handleDatasetSelected(event:Event):void
+			private function handleImageSelected(event:Event):void
 			{
 				_fileLoader.load();
 			}
 			
-			private function handleBackgroundImageChange():void
+			//Variables used for encoding and decoding background iamges to save memory.
+			private var decoder:Base64Decoder = new Base64Decoder();
+			private var encoder:Base64Encoder = new Base64Encoder();
+			private var userChange:Boolean = false;
+			private var bitmapLoader:Loader = null;
+			
+			private function handleBackgroundImagesEcondedChange():void
 			{
-				if(backgroundImageName.value)
-					map.setStyle("backgroundImage","/infomap_images/"+ backgroundImageName.value+".png");
+				if( !userChange )
+				{
+					//This sometimes loads after handleBackgroundImageChange, so check again quickly.
+					var tempArray:Array = backgroundImagesEncoded.getNames(LinkableString);
+					for each (var name:String in tempArray)
+					{
+						var tempString:String = (backgroundImagesEncoded.getObject(name) as LinkableString).value;
+						decoder.reset(); //Make sure the decoder buffer is cleared. The decoder method flush() does not reset the decoder like it does for the encoder.
+						decoder.decode(tempString);
+						bitmapLoader = new Loader();
+						bitmapLoader.loadBytes(decoder.flush());
+						bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
+					}
+				}
+				else
+					userChange = false; //Don't want this to fire off when the session state is being loaded from a file.
+			}
+			
+			private function loaderComplete(event:Event):void
+			{
+				var loaderInfo:LoaderInfo = LoaderInfo(event.target);
+				var imgBitMap:Bitmap = Bitmap(loaderInfo.content);
+				
+				delayedDraw(imgBitMap);
+			}
+			
+			//Sometimes the canvas dimensions aren't laid out yet, so we need to wait for it to be initialized.
+			private function delayedDraw(imgBitMap:Bitmap):void
+			{
+				if( map.width == 0 || map.height == 0 )
+					callLater(delayedDraw, [imgBitMap]);
+				else
+					BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
 			}
 			
 			private var _mapImage:BitmapData
 			private var imgLoader:Loader = new Loader();
-			private function handleDatasetLoaded(event:Event):void
+			private function handleImageLoaded(event:Event):void
 			{
-				imageURL.text = _fileLoader.name.substr(0,_fileLoader.name.length-4);
+				imageURL.text = _fileLoader.name;
 				
 				imgLoader.contentLoaderInfo.addEventListener(Event.COMPLETE,handleLoaderComplete);
 				imgLoader.loadBytes(_fileLoader.data);
-				
-				
 			}
 			
 			private function handleLoaderComplete(event:Event):void
@@ -1135,52 +1160,58 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
 			}
 			
-			private function saveImage(event:Event):void
+			private function saveImage():void
 			{
+				/*
+				var urlRequest:URLRequest = new URLRequest();
+				urlRequest.url = '/infomap_images/'+imageURL.text;
+				urlRequest.contentType = 'multipart/form-data; boundary=' + getBoundary();
+				urlRequest.method = URLRequestMethod.POST;
+				urlRequest.data = getPostData(imageURL.text, _fileLoader.data as ByteArray);
+				urlRequest.requestHeaders.push( new URLRequestHeader( 'Cache-Control', 'no-cache' ) );
 				
-								
-				var _byteArray:ByteArray = new ByteArray();
-				_byteArray.writeBytes(_fileLoader.data as ByteArray);
-				var encoder:Base64Encoder = new Base64Encoder();
-				encoder.encodeBytes(_byteArray);
+				var urlLoader:URLLoader = new URLLoader();
+				urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
+				urlLoader.addEventListener(Event.COMPLETE, handleImageSave);
+				urlLoader.load(urlRequest);
+				*/
 				
-				var request:URLRequest = new URLRequest('/ImageService/Base64ImageService/'+imageURL.text);
-				var encoderStr:String = encoder.drain();
-				request.method = URLRequestMethod.POST;
-				request.data = encoderStr;
-				trace('sent byteArray:', encoderStr.length);
-				WeaveAPI.URLRequestUtils.getURL(this,request, handleImageSave, handleImageSaveFault, null, URLLoaderDataFormat.BINARY);
-
+				//Locally save the image data in the session state.
+				userChange = true;
+				var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(imageURL.text, LinkableString, false) as LinkableString;
+				encoder.encodeBytes(_fileLoader.data);
+				encodedImageString.value = encoder.flush();
 			}
 			
 			private function handleImageSave(event:ResultEvent,token:Object=null):void
 			{
 				Alert.show("Image saved as " + event.result,"Saved");
 				
-				backgroundImageName.value = imageURL.text;
+				//Add code here to store the URL in backgroundImagesEncoded
 				
 			}
 			
-			private function handleImageSaveFault(event:ResultEvent,token:Object=null):void
+			private function handleImageSaveFault(event:FaultEvent,token:Object=null):void
 			{
-				Alert.show("Image could not be saved" + event.message,"Error");	
+				Alert.show("Image could not be saved " + event.message,"Error");	
 			}
 			
 			
 			private function clearImage():void
 			{
+				userChange = true;
 				map.graphics.clear();
-				backgroundImageName.value = "";				
+				backgroundImagesEncoded.dispose();
 			}
 			
 			private var _fileReference:FileReferenceList = new FileReferenceList();
-//			private var _fileReferenceList:FileReferenceList = new FileReferenceList();
+			//			private var _fileReferenceList:FileReferenceList = new FileReferenceList();
 			
 			private function browseAndUpload():void
 			{
 				var fileTypes:Array = [new FileFilter("Text Files", "*.doc; *.docx; *.txt; *.csv; *.pdf")];
 				_fileReference.browse(fileTypes);
-//				_fileReference.
+				//				_fileReference.
 			}
 			
 			private function callDropBox(event:ResultEvent,token:Object = null):void
@@ -1199,8 +1230,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				/* if(!username.text)
 				{
-					Alert.show("Please enter an username to associate with the files","Error");
-					return;
+				Alert.show("Please enter an username to associate with the files","Error");
+				return;
 				}
 				
 				var file:FileReference;
@@ -1209,21 +1240,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				targetFileUploadCount = selectedFiles.length;
 				for (var i:int = 0; i < selectedFiles.length; i++)
 				{
-					file = selectedFiles[i] as FileReference;
-					file.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
-					if(file.size > 10000000)
-					{
-						WeaveAPI.ErrorManager.reportError("Error", "Cannot Upload file " + file.name + ". Maximum file size is 10 MB");
-						return;
-					}
-					try{
-						
-						file.load();
-					}
-					catch(e:Error)
-					{
-						WeaveAPI.ErrorManager.reportError(e.message);
-					}
+				file = selectedFiles[i] as FileReference;
+				file.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
+				if(file.size > 10000000)
+				{
+				WeaveAPI.ErrorManager.reportError("Error", "Cannot Upload file " + file.name + ". Maximum file size is 10 MB");
+				return;
+				}
+				try{
+				
+				file.load();
+				}
+				catch(e:Error)
+				{
+				WeaveAPI.ErrorManager.reportError(e.message);
+				}
 				} */
 			} 
 			
@@ -1238,27 +1269,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			/* private function fileLoadCompleteHandler(event:Event):void
 			{
-				if ((event.target as FileReference).data == null)
-					return;
-				if(!username.text)
-				{
-					Alert.show("Please enter an username to associate with the files","Error");
-					return;
-				}
-				InfoMapAdminInterface.instance.addDocumentToSolr(username.text,event.target as FileReference);
-				fileUploadCount++; //TODO Check for file index status.
+			if ((event.target as FileReference).data == null)
+			return;
+			if(!username.text)
+			{
+			Alert.show("Please enter an username to associate with the files","Error");
+			return;
+			}
+			InfoMapAdminInterface.instance.addDocumentToSolr(username.text,event.target as FileReference);
+			fileUploadCount++; //TODO Check for file index status.
 			} */
 			
 			private function handleSourceTypeChange():void
 			{
-//				if(sourceType.selectedItem == "ALL")
-//				{
-//					globalFilterByOption.value = "";
-//				}
-//				else if(sourceType.selectedItem == "Books")
-//				{
-//					globalFilterByOption.value = "Books";
-//				}
+				//				if(sourceType.selectedItem == "ALL")
+				//				{
+				//					globalFilterByOption.value = "";
+				//				}
+				//				else if(sourceType.selectedItem == "Books")
+				//				{
+				//					globalFilterByOption.value = "Books";
+				//				}
 				globalFilterByUpdate();
 			}
 			
@@ -1380,60 +1411,63 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		]]>
 	</mx:Script>
 	<!--the resize code is required so that the content is clipped by the canvas-->
-	<mx:Canvas backgroundImage="" id="map" clipContent="true" width="100%" height="100%" autoLayout="false" 
-			   verticalScrollPolicy="off" horizontalScrollPolicy="off" 
-			   resize="map.scrollRect=new Rectangle(0,0,map.width,map.height);handlePanelResize();"><!--For clipping the content at the edges-->
-				<mx:HBox width="100%" paddingLeft="5" paddingTop="5" horizontalAlign="right">
-					<!--<mx:HBox>
-						<mx:ComboBox id="nodeComboBox" dataProvider="{['Add a Query Node','Add a Map Node']}" fontWeight="bold" change="handleNodeComboBoxChange()"/>
-						<mx:TextInput keyUp="handleKeyUp(event)" id="keywordsInput" enabled="true" cornerRadius="5" borderStyle="solid" toolTip="Separate your keywords by space to apply the operator correctly"/>
-						<mx:Button label="Add" id="addNodeButton" click="handleAddNodeButtonClick()"/>
-					</mx:HBox>-->
-					<!--<mx:HBox>
-						<mx:Label text="Operator: "/>
-						<mx:RadioButtonGroup id="operatorButton" enabled="true"/>
-						<mx:RadioButton groupName="operatorButton" value="OR" label="OR"/>
-						<mx:RadioButton groupName="operatorButton" value="AND" label="AND" selected="true"/>
-					</mx:HBox>
-					<mx:HBox>
-						<mx:Label text="Date Range: "/>
-						<mx:TextInput  cornerRadius="5" borderStyle="solid" editable="false" id="startDateText" width="75" />
-							<mx:Label text="TO"/>
-						<mx:TextInput  cornerRadius="5" borderStyle="solid" editable="false" id="endDateText" width="75"/>
-						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Select" click="handleDateFilter()"/>
-						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Clear" click="clearDateFilter()"/>
-					</mx:HBox>-->
-					<mx:HBox visible="false">
-							<mx:Label fontWeight="bold" text="Search in Nodes:"/>
-							<mx:TextInput id="globalSearchTextInput" keyDown="handleGlobalKeyInput(event)" borderStyle="solid" cornerRadius="5" width="200" />
-							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter" click="handleDateFilter()"/>
-							<mx:Spacer width="50"/>
-					</mx:HBox>
-				</mx:HBox>
-				
-			<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="0"/>
+	<mx:Canvas id="map" width="100%" height="100%" autoLayout="false" backgroundImage=""
+			   clipContent="true" horizontalScrollPolicy="off"
+			   resize="map.scrollRect=new Rectangle(0,0,map.width,map.height);handlePanelResize();"
+			   verticalScrollPolicy="off"><!--For clipping the content at the edges-->
+		<mx:HBox width="100%" horizontalAlign="right" paddingLeft="5" paddingTop="5">
+			<!--<mx:HBox>
+			<mx:ComboBox id="nodeComboBox" dataProvider="{['Add a Query Node','Add a Map Node']}" fontWeight="bold" change="handleNodeComboBoxChange()"/>
+			<mx:TextInput keyUp="handleKeyUp(event)" id="keywordsInput" enabled="true" cornerRadius="5" borderStyle="solid" toolTip="Separate your keywords by space to apply the operator correctly"/>
+			<mx:Button label="Add" id="addNodeButton" click="handleAddNodeButtonClick()"/>
+			</mx:HBox>-->
+			<!--<mx:HBox>
+			<mx:Label text="Operator: "/>
+			<mx:RadioButtonGroup id="operatorButton" enabled="true"/>
+			<mx:RadioButton groupName="operatorButton" value="OR" label="OR"/>
+			<mx:RadioButton groupName="operatorButton" value="AND" label="AND" selected="true"/>
+			</mx:HBox>
+			<mx:HBox>
+			<mx:Label text="Date Range: "/>
+			<mx:TextInput  cornerRadius="5" borderStyle="solid" editable="false" id="startDateText" width="75" />
+			<mx:Label text="TO"/>
+			<mx:TextInput  cornerRadius="5" borderStyle="solid" editable="false" id="endDateText" width="75"/>
+			<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Select" click="handleDateFilter()"/>
+			<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Clear" click="clearDateFilter()"/>
+			</mx:HBox>-->
+			<mx:HBox visible="false">
+				<mx:Label fontWeight="bold" text="Search in Nodes:"/>
+				<mx:TextInput id="globalSearchTextInput" width="200" borderStyle="solid"
+							  cornerRadius="5" keyDown="handleGlobalKeyInput(event)"/>
+				<mx:LinkButton label="Add Date Filter" click="handleDateFilter()" color="blue"
+							   fontWeight="normal" textDecoration="underline"/>
+				<mx:Spacer width="50"/>
+			</mx:HBox>
+		</mx:HBox>
 		
-		</mx:Canvas>
+		<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="0"/>
+		
+	</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">
 		<mx:VBox label="Basic Settings">
 			<mx:HBox>
 				<mx:Label text="Set Background Image: "/>
-				<mx:TextInput editable="false" id="imageURL"/>
+				<mx:TextInput id="imageURL" editable="false"/>
 				<mx:Button label="Browse" click="browse()"/>
 				<mx:Button label="Clear" click="clearImage()"/>
-				<mx:Button label="Save" click="saveImage(event)"/>
+				<mx:Button label="Save" click="saveImage()"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Source Type: " fontWeight="bold" width="150"/>					
+				<mx:Label width="150" fontWeight="bold" text="Source Type: "/>					
 				<mx:ComboBox id="sourceType"/>
 				<mx:Button id="applyeSourceType" label="Apply" click="handleSourceTypeChange()"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Sorted By: " fontWeight="bold" width="150"/>
+				<mx:Label width="150" fontWeight="bold" text="Sorted By: "/>
 				<mx:ComboBox id="sortByComboBox"/>
 				<mx:Button id="applyeSortBy" label="Apply" click="handleGlobalSortByUpdate()"/>
 			</mx:HBox>
-			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically" 
+			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically"
 						 creationComplete="linkBindableProperty(Weave.properties.enableAutoSave,event.target,'selected')"/>
 			<mx:Spacer height="50"/>
 			<mx:HBox>
@@ -1467,7 +1501,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HBox>
 				<mx:VBox>
 					<mx:Label fontWeight="normal" text="Start Date"/>				
-					<mx:DateChooser id="startRange" change="handleStartDateChange()" showToday="false"/>
+					<mx:DateChooser id="startRange" change="handleStartDateChange()"
+									showToday="false"/>
 				</mx:VBox>
 				<mx:VBox>
 					<mx:Label fontWeight="normal" text="End Date"/>
@@ -1476,62 +1511,70 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:HBox>
 			
 			<mx:HBox>
-				<mx:ComboBox change="handleDateFilterComboBoxChange()" id="rangeComboBox"/> <!--The Combo Box is not linked to the filterObject-->
+				<mx:ComboBox id="rangeComboBox" change="handleDateFilterComboBoxChange()"/> <!--The Combo Box is not linked to the filterObject-->
 				<mx:Button label="Remove Date Filter" click="handleClearDates()"/>
 				<mx:Button label="Apply Date Filter" click="handleDateChange()"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Entity Selection">
 			<mx:Accordion width="100%" height="100%">
-				<mx:VBox label="Set Entity Columns" width="100%" height="100%" paddingLeft="10" paddingTop="10">
-					<ui:ColumnListComponent width="100%" id="entityColumnsList" hashMap="{entityColumnsHashmap}"/>
+				<mx:VBox width="100%" height="100%" label="Set Entity Columns" paddingLeft="10"
+						 paddingTop="10">
+					<ui:ColumnListComponent id="entityColumnsList" width="100%"
+											hashMap="{entityColumnsHashmap}"/>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" label="Set Keywords">
 					<mx:HBox>
 						<mx:Label fontWeight="bold" text="Current Keywords: "/>
 						<ui:HelpComponent content="Add keywords to use as a part of the queries. Separate the keywords by commas"/>
- 					</mx:HBox>
-					<mx:TextArea id="relatedKeywordsTextArea" width="100%" cornerRadius="5" change="{relatedKeywordsButton.enabled = true}" 
-								 creationComplete='{event.currentTarget.text = relatedKeywords.value}'/>
-					<mx:Button id="relatedKeywordsButton" label="Apply" enabled="false" click="applyRelatedKeywords()" />
+					</mx:HBox>
+					<mx:TextArea id="relatedKeywordsTextArea" width="100%"
+								 change="{relatedKeywordsButton.enabled = true}" cornerRadius="5"
+								 creationComplete="{event.currentTarget.text = relatedKeywords.value}"/>
+					<mx:Button id="relatedKeywordsButton" label="Apply"
+							   click="applyRelatedKeywords()" enabled="false"/>
 					<!--<mx:Button label="Select Related Columns" click='{AttributeSelectorPanel.openDefaultSelector(relatedColumnsHashmap,"Select Related Columns")}'/>-->
 				</mx:VBox>
 			</mx:Accordion>
 		</mx:VBox>
 		<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
-		<mx:Label text="Enter RSS Feed: " />
-		<mx:HBox>
-			<mx:Label text="Title"/>
-			<mx:TextInput width="100" id="feedTitle" borderStyle="solid" cornerRadius="5" />
-			<mx:Label text="URL"/>
-			<mx:TextInput width="300" id="feedURL" borderStyle="solid" cornerRadius="5" />
-			<mx:Button label="Add" click="addRssFeed()" />
-		</mx:HBox>	
-		<mx:Label id="errorMsg" color="red" fontWeight="bold" text="Both fields are required." visible="false"/>
-			<mx:DataGrid id="grid" dataProvider="{InfoMapAdminInterface.instance.rssFeeds}" width="100%">
+			<mx:Label text="Enter RSS Feed: "/>
+			<mx:HBox>
+				<mx:Label text="Title"/>
+				<mx:TextInput id="feedTitle" width="100" borderStyle="solid" cornerRadius="5"/>
+				<mx:Label text="URL"/>
+				<mx:TextInput id="feedURL" width="300" borderStyle="solid" cornerRadius="5"/>
+				<mx:Button label="Add" click="addRssFeed()"/>
+			</mx:HBox>	
+			<mx:Label id="errorMsg" visible="false" color="red" fontWeight="bold"
+					  text="Both fields are required."/>
+			<mx:DataGrid id="grid" width="100%"
+						 dataProvider="{InfoMapAdminInterface.instance.rssFeeds}">
 				<mx:columns>
-					<mx:DataGridColumn dataField="0" sortDescending="true" headerText="Title"/>
+					<mx:DataGridColumn dataField="0" headerText="Title" sortDescending="true"/>
 					<mx:DataGridColumn dataField="1" headerText="URL"/>
 				</mx:columns>
 			</mx:DataGrid>
-		<mx:HBox width="100%">
-			<!--mx:Button label="Index Now" click="infoMapsDataSource.startIndexing()" / ToDo yenfu-->
-			<mx:Button label="Index Now" click="InfoMapAdminInterface.instance.indexRssFeeds()" />
-			<mx:Spacer width="100%"/>
-			<mx:Button  label="Delete Selected Feed" click="deleteRssFeed()"/>
-		</mx:HBox>
-			<mx:TextArea backgroundColor="0xCCCCCC" borderThickness="0" editable="false" width="500" height="100%" fontWeight="bold" text="The indexing is scheduled to run every hour. You can hit the Index Now button if you want to index your feeds you added recently. Please allow 10 -15 minutes for the results to show up."/>
+			<mx:HBox width="100%">
+				<!--mx:Button label="Index Now" click="infoMapsDataSource.startIndexing()" / ToDo yenfu-->
+				<mx:Button label="Index Now" click="InfoMapAdminInterface.instance.indexRssFeeds()"/>
+				<mx:Spacer width="100%"/>
+				<mx:Button label="Delete Selected Feed" click="deleteRssFeed()"/>
+			</mx:HBox>
+			<mx:TextArea width="500" height="100%" backgroundColor="0xCCCCCC" borderThickness="0"
+						 editable="false" fontWeight="bold"
+						 text="The indexing is scheduled to run every hour. You can hit the Index Now button if you want to index your feeds you added recently. Please allow 10 -15 minutes for the results to show up."/>
 		</mx:VBox>
 		<!--<mx:VBox id="uploadFilesPanel" label="Index Local Files">
-			<mx:HBox>
-				<mx:Label text="Enter username: "/>
-				<mx:TextInput width="200" id="username" />
-			</mx:HBox>
-			<mx:HBox>
-				<ui:TextInputWithPrompt id="fileNameInput" prompt="Select files/folder."/>
-				<mx:Button label="Upload File" click="browseAndUpload();"/>
-				<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files indexed' : ''}"/>
-			</mx:HBox>
+		<mx:HBox>
+		<mx:Label text="Enter username: "/>
+		<mx:TextInput width="200" id="username" />
+		</mx:HBox>
+		<mx:HBox>
+		<ui:TextInputWithPrompt id="fileNameInput" prompt="Select files/folder."/>
+		<mx:Button label="Upload File" click="browseAndUpload();"/>
+		<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files indexed' : ''}"/>
+		</mx:HBox>
 		</mx:VBox>-->
 	</ui:ControlPanel>
 </ui:DraggablePanel>
