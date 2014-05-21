@@ -1159,10 +1159,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var imgBitMap:Bitmap = Bitmap(imgLoader.content);
 				
 				BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
-			}
-			
-			private function saveImage():void
-			{
+				
 				/*
 				var urlRequest:URLRequest = new URLRequest();
 				urlRequest.url = '/infomap_images/'+imageURL.text;
@@ -1455,7 +1452,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:TextInput id="imageURL" editable="false"/>
 				<mx:Button label="Browse" click="browse()"/>
 				<mx:Button label="Clear Images" click="clearImage()"/>
-				<mx:Button label="Save" click="saveImage()"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label width="150" fontWeight="bold" text="Source Type: "/>					
