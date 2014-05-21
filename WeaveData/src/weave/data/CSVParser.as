@@ -19,7 +19,6 @@
 
 package weave.data
 {
-	import flash.utils.ByteArray;
 	import flash.utils.getTimer;
 	
 	import mx.utils.ObjectUtil;
@@ -217,28 +216,17 @@ package weave.data
 		 */
 		public function createCSV(rows:Array):String
 		{
-			var firstRow:Boolean = true;
-			var out:ByteArray = new ByteArray();
-			for each (var row:Array in rows)
+			var lines:Array = new Array(rows.length);
+			for (var i:int = rows.length; i--;)
 			{
-				if (firstRow)
-					firstRow = false;
-				else
-					out.writeUTFBytes(LF);
+				var tokens:Array = new Array(rows[i].length);
+				for (var j:int = tokens.length; j--;)
+					tokens[j] = createCSVToken(rows[i][j]);
 				
-				var firstItem:Boolean = true;
-				for each (var item:String in row)
-				{
-					if (firstItem)
-						firstItem = false;
-					else
-						out.writeUTFBytes(delimiter);
-					
-					out.writeUTFBytes(createCSVToken(item));
-				}
+				lines[i] = tokens.join(delimiter);
 			}
-			out.position = 0;
-			return out.readUTFBytes(out.length);
+			var csvData:String = lines.join(LF);
+			return csvData;
 		}
 		
 		/**
