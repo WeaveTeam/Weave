@@ -19,7 +19,6 @@
 
 package weave.compiler
 {
-	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.DateFormatter;
@@ -39,29 +38,6 @@ package weave.compiler
 	 */
 	public class StandardLib
 	{
-		/**
-		 * Same functionality as Array.join, only twice as fast.
-		 * @param array The Array (or Vector)
-		 * @param separator The separator
-		 * @return Each item in the array concatenated into a String using the given separator.
-		 */
-		public static function join(array:*, separator:String = ','):String
-		{
-			var first:Boolean = true;
-			var out:ByteArray = new ByteArray();
-			for each (var item:String in array)
-			{
-				if (first)
-					first = false;
-				else
-					out.writeUTFBytes(separator);
-				
-				out.writeUTFBytes(item);
-			}
-			out.position = 0;
-			return out.readUTFBytes(out.length);
-		}
-		
 		/**
 		 * This function will cast a value of any type to a Number,
 		 * interpreting the empty string ("") and null as NaN.
