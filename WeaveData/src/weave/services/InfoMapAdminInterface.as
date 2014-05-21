@@ -265,6 +265,11 @@ package weave.services
 				var query:AsyncToken = generateQueryAndRun("saveWeaveFile",[content,fileName]);
 				return query;
 			}
+			public function saveBackgroundImage(fileName:String, fileContent:ByteArray):AsyncToken
+			{
+				var query:AsyncToken = generateQueryAndRun("saveBackgroundImage",[fileName,fileContent]);
+				return query;
+			}
 			
 		}
 }

@@ -2283,6 +2283,35 @@ public class AdminService extends WeaveServlet {
 
 		return "Successfully saved " + fileName + ".";
 	}
+	
+	/**
+	 * @param fileName
+	 * @param fileContent
+	 * @return A description of the success or failure of this function.
+	 * @throws RemoteException
+	 */
+	public String saveBackgroundImage(
+			String fileName, InputStream fileContent)
+		throws RemoteException
+	{
+		try
+		{
+			// remove special characters
+			fileName = fileName.replace("\\", "").replace("/", "");		
+
+			String path = tomcatPath + "webapps/ROOT/infomap_images/";
+
+			File file = new File(path + fileName);
+
+			FileUtils.copy(fileContent, new FileOutputStream(file));
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("Error occurred while saving file", e);
+		}
+
+		return fileName;
+	}
 
 	private static void addDoc(SolrInputDocument d, String solrURL,
 			Boolean commit) {

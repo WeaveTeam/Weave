@@ -45,6 +45,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.Base64Decoder;
@@ -1115,12 +1116,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var tempArray:Array = backgroundImagesEncoded.getNames(LinkableString);
 					for each (var name:String in tempArray)
 					{
-						var tempString:String = (backgroundImagesEncoded.getObject(name) as LinkableString).value;
-						decoder.reset(); //Make sure the decoder buffer is cleared. The decoder method flush() does not reset the decoder like it does for the encoder.
-						decoder.decode(tempString);
 						bitmapLoader = new Loader();
-						bitmapLoader.loadBytes(decoder.flush());
-						bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
+						var tempString:String = (backgroundImagesEncoded.getObject(name) as LinkableString).value;
+						if( tempString.search(".png") != -1 || tempString.search(".jpg") != -1 )
+						{
+							//Add code to fetch the image data from the server.
+							bitmapLoader.load(new URLRequest("infomap_images/"+tempString));
+							bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
+						}
+						else
+						{
+							decoder.reset(); //Make sure the decoder buffer is cleared. The decoder method flush() does not reset the decoder like it does for the encoder.
+							decoder.decode(tempString);
+							bitmapLoader.loadBytes(decoder.flush());
+							bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
+						}
 					}
 				}
 				else
@@ -1160,37 +1170,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
 				
-				/*
-				var urlRequest:URLRequest = new URLRequest();
-				urlRequest.url = '/infomap_images/'+imageURL.text;
-				urlRequest.contentType = 'multipart/form-data; boundary=' + getBoundary();
-				urlRequest.method = URLRequestMethod.POST;
-				urlRequest.data = getPostData(imageURL.text, _fileLoader.data as ByteArray);
-				urlRequest.requestHeaders.push( new URLRequestHeader( 'Cache-Control', 'no-cache' ) );
-				
-				var urlLoader:URLLoader = new URLLoader();
-				urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
-				urlLoader.addEventListener(Event.COMPLETE, handleImageSave);
-				urlLoader.load(urlRequest);
-				*/
-				
-				//Locally save the image data in the session state.
-				userChange = true;
-				var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(imageURL.text, LinkableString, false) as LinkableString;
-				encoder.encodeBytes(_fileLoader.data);
-				encodedImageString.value = encoder.flush();
+				if( imageRemoteStorageCheckBox.selected )
+				{
+					//In the future, first encode the data to base64 to reduce network traffic.
+					userChange = true;
+					addAsyncResponder(InfoMapAdminInterface.instance.saveBackgroundImage(imageURL.text,_fileLoader.data),handleImageSave, handleImageSaveFault);
+				}
+				else
+				{
+					//Locally save the image data in the session state.
+					userChange = true;
+					var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(imageURL.text, LinkableString, false) as LinkableString;
+					encoder.encodeBytes(_fileLoader.data);
+					encodedImageString.value = encoder.flush();
+				}
 			}
 			
 			private function handleImageSave(event:ResultEvent,token:Object=null):void
 			{
 				Alert.show("Image saved as " + event.result,"Saved");
 				
-				//Add code here to store the URL in backgroundImagesEncoded
+				userChange = true;
+				var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(event.result as String, LinkableString, false) as LinkableString;
+				encodedImageString.value = event.result as String;
 				
 			}
 			
 			private function handleImageSaveFault(event:FaultEvent,token:Object=null):void
 			{
+				trace(event.fault.message);
 				Alert.show("Image could not be saved " + event.message,"Error");	
 			}
 			
@@ -1452,6 +1460,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:TextInput id="imageURL" editable="false"/>
 				<mx:Button label="Browse" click="browse()"/>
 				<mx:Button label="Clear Images" click="clearImage()"/>
+				<mx:CheckBox id="imageRemoteStorageCheckBox" label="Store Remotely" />
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label width="150" fontWeight="bold" text="Source Type: "/>					
