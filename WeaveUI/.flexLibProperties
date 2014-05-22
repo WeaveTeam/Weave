@@ -2,6 +2,7 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.ui.infomap.ui.ImageClearList"/>
+    <classEntry path="weave.ui.infomap.layout.InfoMapBackgroundImage"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

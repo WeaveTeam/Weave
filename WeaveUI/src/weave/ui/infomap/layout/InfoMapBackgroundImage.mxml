@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="400" height="300" horizontalScrollPolicy="off"
+		   implements="weave.api.core.ILinkableObject" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.Base64Decoder;
+			
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.utils.BitmapUtils;
+			
+			public const imageName:LinkableString = newLinkableChild(this, LinkableString);
+			public const imageString:LinkableString = newLinkableChild(this, LinkableString, handleImageString);
+			public const isStringURL:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const imageWidth:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const imageHeight:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			
+			private var theImage:Bitmap = new Bitmap();
+			private var decoder:Base64Decoder = new Base64Decoder();
+			private var bitmapLoader:Loader = null;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				linkBindableProperty(xPos,this,"x");
+				linkBindableProperty(yPos,this,"y");
+				linkBindableProperty(imageWidth,this,"width");
+				linkBindableProperty(imageHeight,this,"height");
+			}
+			
+			private function handleImageString():void
+			{
+				if( imageString.value != null )
+				{
+					bitmapLoader = new Loader();
+					if( !isStringURL )
+					{
+						//Decode the base64 encoded string to bitmap data.
+						decoder.reset(); //Make sure the decoder buffer is cleared. The decoder method flush() does not reset the decoder like it does for the encoder.
+						decoder.decode(imageString.value);
+						bitmapLoader.loadBytes(decoder.flush());
+						bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
+					}
+					else
+					{
+						//Fetch the image.
+						bitmapLoader.load(new URLRequest("infomap_images/"+imageName.value));
+						bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
+					}
+				}
+			}
+			
+			
+			private function loaderComplete(event:Event):void
+			{
+				var loaderInfo:LoaderInfo = LoaderInfo(event.target);
+				var imgBitMap:Bitmap = Bitmap(loaderInfo.content);
+				
+				BitmapUtils.drawCenteredIcon(this.graphics,this.x+this.width/2,this.y+this.height/2,imgBitMap.bitmapData);
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Canvas>
