@@ -32,6 +32,7 @@ package weave.data.KeySets
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
+	import weave.data.CSVParser;
 	
 	/**
 	 * This class contains a set of IQualifiedKeys and functions for adding/removing keys from the set.
@@ -326,7 +327,7 @@ package weave.data.KeySets
 				var keyTypeProperty:String = 'sessionedKeyType';
 				if (value.hasOwnProperty(keysProperty) && value.hasOwnProperty(keyTypeProperty))
 					if (value[keyTypeProperty] != null && value[keysProperty] != null)
-						value = WeaveAPI.CSVParser.createCSVToken(value[keyTypeProperty]) + ',' + value[keysProperty];
+						value = (WeaveAPI.CSVParser as CSVParser).createCSVToken(value[keyTypeProperty]) + ',' + value[keysProperty];
 			}
 			// backwards compatibility -- parse CSV String
 			if (value is String)
