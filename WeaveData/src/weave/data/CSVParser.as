@@ -19,30 +19,26 @@
 
 package weave.data
 {
-	import flash.utils.getTimer;
+	import flash.utils.ByteArray;
 	
 	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
 	import weave.api.getCallbackCollection;
-	import weave.compiler.StandardLib;
 	import weave.utils.AsyncSort;
+	import weave.utils.createCSV;
 
 	/**
-	 * This is an all-static class containing functions to parse and generate valid CSV files.
-	 * Ported from AutoIt Script to Flex. Original author: adufilie
-	 * 
-	 * @author skolman
-	 * @author adufilie
+	 * Parses and generates CSV-encoded data.
 	 */	
 	public class CSVParser implements ICSVParser, ILinkableObject
 	{
 		private static const CR:String = '\r';
 		private static const LF:String = '\n';
 		private static const CRLF:String = '\r\n';
+		private static const tempBuffer:ByteArray = new ByteArray();
 		
 		/**
 		 * @param delimiter
@@ -71,7 +67,7 @@ package weave.data
 		private var csvDataArray:Array;
 		
 		/**
-		 * @return  The resulting two-dimensional Array from the last call to parseCSV().
+		 * @return The resulting two-dimensional Array from the last call to parseCSV().
 		 */
 		public function get parseResult():Array
 		{
@@ -113,30 +109,12 @@ package weave.data
 		/**
 		 * @inheritDoc
 		 */
-		public function createCSV(rows:Array):String
-		{
-			var lines:Array = new Array(rows.length);
-			for (var i:int = rows.length; i--;)
-			{
-				var tokens:Array = new Array(rows[i].length);
-				for (var j:int = tokens.length; j--;)
-					tokens[j] = createCSVToken(rows[i][j]);
-				
-				lines[i] = tokens.join(delimiter);
-			}
-			var csvData:String = lines.join(LF);
-			return csvData;
-		}
-		
-		/**
-		 * @inheritDoc
-		 */
 		public function parseCSVRow(csvData:String):Array
 		{
 			if (csvData == null)
 				return null;
 			
-			var rows:Array = parseCSV(csvData);
+			var rows:Array = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
 			if (rows.length == 0)
 				return rows;
 			if (rows.length == 1)
@@ -148,42 +126,17 @@ package weave.data
 		/**
 		 * @inheritDoc
 		 */
-		public function createCSVRow(row:Array):String
+		public function createCSV(rows:Array):String
 		{
-			return createCSV([row]);
+			return weave.utils.createCSV(rows, delimiter, quote, tempBuffer);
 		}
 		
 		/**
-		 * This will surround a string with quotes and use CSV-style escape sequences if necessary.
-		 * @param str A String value.
-		 * @return The String value using CSV encoding.
+		 * @inheritDoc
 		 */
-		public function createCSVToken(str:String):String
+		public function createCSVRow(row:Array):String
 		{
-			if (str == null)
-				str = '';
-			
-			// determine if quotes are necessary
-			if ( str.length > 0
-				&& str.indexOf(quote) < 0
-				&& str.indexOf(delimiter) < 0
-				&& str.indexOf(LF) < 0
-				&& str.indexOf(CR) < 0
-				&& str == StringUtil.trim(str) )
-			{
-				return str;
-			}
-
-			var token:String = quote;
-			for (var i:int = 0; i <= str.length; i++)
-			{
-				var currentChar:String = str.charAt(i);
-				if (currentChar == quote)
-					token += quote + quote;
-				else
-					token += currentChar; 
-			}
-			return token + quote;
+			return weave.utils.createCSV([row], delimiter, quote, tempBuffer);
 		}
 		
 		/**

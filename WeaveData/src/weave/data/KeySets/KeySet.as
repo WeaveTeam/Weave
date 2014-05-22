@@ -21,18 +21,12 @@ package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getSessionState;
-	import weave.api.setSessionState;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
-	import weave.data.CSVParser;
 	
 	/**
 	 * This class contains a set of IQualifiedKeys and functions for adding/removing keys from the set.
@@ -327,7 +321,7 @@ package weave.data.KeySets
 				var keyTypeProperty:String = 'sessionedKeyType';
 				if (value.hasOwnProperty(keysProperty) && value.hasOwnProperty(keyTypeProperty))
 					if (value[keyTypeProperty] != null && value[keysProperty] != null)
-						value = (WeaveAPI.CSVParser as CSVParser).createCSVToken(value[keyTypeProperty]) + ',' + value[keysProperty];
+						value = WeaveAPI.CSVParser.createCSVRow([value[keyTypeProperty]]) + ',' + value[keysProperty];
 			}
 			// backwards compatibility -- parse CSV String
 			if (value is String)
@@ -353,11 +347,11 @@ package weave.data.KeySets
 			
 			k2.replaceKeys(WeaveAPI.QKeyManager.getQKeys('t', ['a','b','x','y']));
 			trace('copy k2 to k');
-			copySessionState(k2, k);
+			WeaveAPI.SessionManager.copySessionState(k2, k);
 			assert(k, WeaveAPI.QKeyManager.getQKeys('t', ['a','b','x','y']));
 			
 			trace('test deprecated session state');
-			setSessionState(k, {sessionedKeyType: 't2', sessionedKeys: 'a,b,x,y'}, true);
+			WeaveAPI.SessionManager.setSessionState(k, {sessionedKeyType: 't2', sessionedKeys: 'a,b,x,y'}, true);
 			assert(k, WeaveAPI.QKeyManager.getQKeys('t2', ['a','b','x','y']));
 			
 			testFunction(k, k.replaceKeys, 'replace k', 't', ['1'], 't', ['1']);
@@ -378,7 +372,7 @@ package weave.data.KeySets
 		private static function traceKeySet(keySet:KeySet):void
 		{
 			trace(' ->', getKeyStrings(keySet.keys));
-			trace('   ', Compiler.stringify(getSessionState(keySet)));
+			trace('   ', Compiler.stringify(WeaveAPI.SessionManager.getSessionState(keySet)));
 		}
 		private static function testFunction(keySet:KeySet, func:Function, comment:String, keyType:String, keys:Array, expectedResultKeyType:String, expectedResultKeys:Array, expectedResultKeyType2:String = null, expectedResultKeys2:Array = null):void
 		{

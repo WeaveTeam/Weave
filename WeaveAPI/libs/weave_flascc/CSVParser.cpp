@@ -28,6 +28,65 @@ CSVParser::~CSVParser()
 }
 
 /**
+ * @param rows 2-dimensional Array (or Vector) of Strings
+ * @param delimiter
+ * @param quote
+ * @param tempBuffer A reusable buffer to improve performance
+ */
+void createCSV() __attribute__((used,
+		annotate("as3sig:public function createCSV(rows:*, delimiter:String = ',', quote:String = '\"', tempBuffer:ByteArray = null):String"),
+		annotate("as3package:weave.utils"),
+		annotate("as3import:flash.utils.ByteArray")));
+void createCSV()
+{
+	inline_nonreentrant_as3("\
+		var firstRow:Boolean = true;\
+		var out:ByteArray = tempBuffer || new ByteArray();\
+		out.position = 0;\
+		for each (var row:* in rows)\
+		{\
+			if (firstRow)\
+				firstRow = false;\
+			else\
+				out.writeByte(%0);\
+			var firstItem:Boolean = true;\
+			for each (var item:String in row)\
+			{\
+				if (firstItem)\
+					firstItem = false;\
+				else\
+					out.writeUTFBytes(delimiter);\
+				if (!item)\
+				{\
+					out.writeUTFBytes(quote);\
+					out.writeUTFBytes(quote);\
+				}\
+				else if (item.indexOf(quote) >= 0)\
+				{\
+					out.writeUTFBytes(quote);\
+					out.writeUTFBytes(item.split(quote).join(quote + quote));\
+					out.writeUTFBytes(quote);\
+				}\
+				else if (item.indexOf(delimiter) >= 0 || item.indexOf('\\r') >= 0 || item.indexOf('\\n') >= 0)\
+				{\
+					out.writeUTFBytes(quote);\
+					out.writeUTFBytes(item);\
+					out.writeUTFBytes(quote);\
+				}\
+				else\
+					out.writeUTFBytes(item);\
+			}\
+		}\
+		var length:int = out.position;\
+		out.position = 0;\
+		var result:String = out.readUTFBytes(length);\
+		if (tempBuffer && tempBuffer.length > 0x1000)\
+			tempBuffer.length = 0x1000;\
+		return result;\
+	" : : "r"(LF));
+}
+
+/**
  * @param input Either a ByteArray or a String
  * @param delimiter
  * @param quote
