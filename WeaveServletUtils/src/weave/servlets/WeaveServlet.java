@@ -480,23 +480,16 @@ public class WeaveServlet extends HttpServlet
 		String result;
 		try
 		{
-			if (info.jsonResponses.size() == 0)
-			{
-				// If there are no Response objects contained within the Response array as it is to be sent to the client,
-				// the server MUST NOT return an empty Array and should return nothing at all.
-				ServletOutputStream out = info.getOutputStream();
-				out.close();
-				out.flush();
-				return;
-			}
-			if (!info.isBatchRequest)
-			{
-				result = GSON.toJson(info.jsonResponses.get(0));
-			}
-			else
-			{
+			// Note: JSON-RPC 2.0 specification says the following:
+			// "If there are no Response objects contained within the Response array as it is to be sent to the client,
+			//  the server MUST NOT return an empty Array and should return nothing at all."
+			// However, this means we have to add a special case in our JS code when we send an empty batch request.
+			// It is more convenient if the server returns an empty Array, so we don't follow this part of the specification.
+			
+			if (info.isBatchRequest)
 				result = GSON.toJson(info.jsonResponses);
-			}
+			else
+				result = GSON.toJson(info.jsonResponses.get(0));
 			
 			PrintWriter writer = new PrintWriter(info.getOutputStream());
 			writer.print(result);
