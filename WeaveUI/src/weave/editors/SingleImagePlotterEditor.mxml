@@ -4,7 +4,10 @@
 		 xmlns:ui="weave.ui.*"
 		 label="{lang('Image Settings')}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
-	<ui:IndentTextInput id="urlInput" label="{lang('Image URL:')}"/>
+	<ui:Indent label="{lang('Image URL:')}">
+		<mx:TextInput id="urlInput" width="100%"/>
+		<mx:Button label="{lang('Open file')}" click="fileAttacher.browseAndAttachFile()"/>
+	</ui:Indent>
 	<ui:Paragraph>
 		Enter data coordinates below. Width and height are optional.
 	</ui:Paragraph>
@@ -17,9 +20,12 @@
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
+			import weave.api.reportError;
+			import weave.services.FileAttacher;
 			import weave.ui.ControlPanel;
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.DraggablePanel;
@@ -98,6 +104,11 @@
 					
 					ControlPanel.openEditor(plotter, [tool.visualization], [state]);
 				}
+			}
+			private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter("Image", "*.png,*.jpg")], handleURL);
+			private function handleURL(url:String):void
+			{
+				urlInput.text = url;
 			}
 		]]>
 	</mx:Script>
