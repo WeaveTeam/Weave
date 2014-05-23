@@ -43,6 +43,7 @@ package weave
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
@@ -454,6 +455,8 @@ package weave
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);
+		
+		public const DEMO:Demo = Demo.settings;
 		
 		/**
 		 * This field contains JavaScript code that will run when Weave is loaded, immediately after the session state

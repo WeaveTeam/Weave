@@ -72,6 +72,7 @@ import weave.config.DataConfig.PublicMetadata;
 import weave.config.DataConfig.Relationship;
 import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
+import weave.geometrystream.CombinedPoint;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
 import weave.geometrystream.SQLGeometryStreamDestination;
@@ -1752,6 +1753,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 
 			GeometryStreamConverter converter = new GeometryStreamConverter(new SQLGeometryStreamDestination(
 					conn, sqlSchema, sqlTablePrefix, sqlOverwrite));
+			converter.tileSize = _tilekb * 1024;
 			for (String file : fileNameWithoutExtension)
 			{
 				// convert shape data to streaming sql format
@@ -1964,5 +1966,20 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		List<String> list = new ArrayList<String>(getDataConfig().getUniquePublicValues(PublicMetadata.KEYTYPE));
 		Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
 		return list.toArray(new String[0]);
+	}
+	
+	private static int _tilekb = 32;
+	
+	// http://localhost:8080/WeaveServices/AdminService?method=demo&mode=feathered&size=32
+	// http://localhost:8080/WeaveServices/AdminService?method=demo&mode=winged&size=32
+	public String demo(String mode, Integer size)
+	{
+		if (Strings.equal(mode, "winged"))
+			CombinedPoint.demo_wingedMode = true;
+		if (Strings.equal(mode, "feathered"))
+			CombinedPoint.demo_wingedMode = false;
+		if (size != null)
+			_tilekb = size;
+		return String.format(" (%s@%skb)", CombinedPoint.demo_wingedMode ? "winged" : "feathered", _tilekb);
 	}
 }

@@ -59,7 +59,13 @@ public class SHPGeometryStreamUtils
 		
 		long endTime = System.currentTimeMillis();
 		if (debugTime)
-			System.out.println(String.format("file parsing took %s ms for %s", endTime - startTime, filename));
+			System.out.println(String.format(
+				"// file parsing took %s ms\n\"%s (%s@%skb)\": (function():*{",
+				endTime - startTime,
+				filename,
+				CombinedPoint.demo_wingedMode ? "winged" : "feathered",
+				converter.tileSize / 1024
+			));
 	}
 
 	/**

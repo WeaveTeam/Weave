@@ -136,9 +136,17 @@ package weave.data.AttributeColumns
 		private var _geometryStreamDownloadCounter:int = 0;
 		private var _metadataStreamDownloadCounter:int = 0;
 		
+		public var requiredMetadataTileIDs:Array = [];
+		public var requiredGeometryTileIDs:Array = [];
 		
 		public var metadataTilesPerQuery:int = 200; //10;
 		public var geometryTilesPerQuery:int = 200; //30;
+		
+		private var _requestedMetaTileIds:Object = {};
+		private var _requestedGeomTileIds:Object = {};
+		
+		private function filterMetaTileIds(id:int, i:*, a:*):Boolean { return !_requestedMetaTileIds[id]; }
+		private function filterGeomTileIds(id:int, i:*, a:*):Boolean { return !_requestedGeomTileIds[id]; }
 		
 		public function requestGeometryDetail(dataBounds:IBounds2D, lowestImportance:Number):void
 		{
@@ -168,10 +176,19 @@ package weave.data.AttributeColumns
 					break;
 			}
 			// request metadata tiles
-			var metadataTileIDs:Array = _geometryStreamDecoder.getRequiredMetadataTileIDs(metaRequestBounds, metaRequestImportance, true);
+			var metadataTileIDs:Array = requiredMetadataTileIDs = _geometryStreamDecoder.getRequiredMetadataTileIDs(metaRequestBounds, metaRequestImportance);
 			// request geometry tiles needed for desired dataBounds and zoom level (filter by XYZ)
-			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance, true);
+			var geometryTileIDs:Array = requiredGeometryTileIDs = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance);
 
+			metadataTileIDs = metadataTileIDs.filter(filterMetaTileIds);
+			geometryTileIDs = geometryTileIDs.filter(filterGeomTileIds);
+			
+			var id:int;
+			for each (id in metadataTileIDs)
+				_requestedMetaTileIds[id] = true;
+			for each (id in geometryTileIDs)
+				_requestedGeomTileIds[id] = true;
+			
 			if (_debug)
 			{
 				if (metadataTileIDs.length > 0)
@@ -181,52 +198,59 @@ package weave.data.AttributeColumns
 			}
 			
 			var query:AsyncToken;
+			var ids:Array;
 			// make requests for groups of tiles
 			while (metadataTileIDs.length > 0)
 			{
-				query = _tileService.getMetadataTiles(metadataTileIDs.splice(0, metadataTilesPerQuery));
-				addAsyncResponder(query, handleMetadataStreamDownload, handleMetadataDownloadFault, query);
+				ids = metadataTileIDs.splice(0, metadataTilesPerQuery);
+				ids.query = query = _tileService.getMetadataTiles(ids);
+				addAsyncResponder(query, handleMetadataStreamDownload, handleMetadataDownloadFault, ids);
 				
 				_metadataStreamDownloadCounter++;
 			}
 			// make requests for groups of tiles
 			while (geometryTileIDs.length > 0)
 			{
-				query = _tileService.getGeometryTiles(geometryTileIDs.splice(0, geometryTilesPerQuery));
-				addAsyncResponder(query, handleGeometryStreamDownload, handleGeometryDownloadFault, query);
+				ids = geometryTileIDs.splice(0, geometryTilesPerQuery);
+				ids.query = query = _tileService.getGeometryTiles(ids);
+				addAsyncResponder(query, handleGeometryStreamDownload, handleGeometryDownloadFault, ids);
 				_geometryStreamDownloadCounter++;
 			} 
 		}
 		
-		private function handleMetadataDownloadFault(event:FaultEvent, token:Object = null):void
+		private function handleMetadataDownloadFault(event:FaultEvent, ids:Array):void
 		{
 			if (!wasDisposed)
 				reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_metadataStreamDownloadCounter--;
+			for each (var id:int in ids)
+				delete _requestedMetaTileIds[id];
 		}
-		private function handleGeometryDownloadFault(event:FaultEvent, token:Object = null):void
+		private function handleGeometryDownloadFault(event:FaultEvent, ids:Array):void
 		{
 			if (!wasDisposed)
 				reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_geometryStreamDownloadCounter--;
+			for each (var id:int in ids)
+				delete _requestedGeomTileIds[id];
 		}
 
-		private function reportNullResult(token:Object):void
+		private function reportNullResult(ids:Array):void
 		{
-			reportError("Did not receive any data from service for geometry column. " + token);
+			reportError("Did not receive any data from service for geometry column. " + ids.query);
 		}
 		
 		private var _totalDownloadedSize:int = 0;
 
-		private function handleMetadataStreamDownload(event:ResultEvent, token:Object = null):void
+		private function handleMetadataStreamDownload(event:ResultEvent, ids:Array):void
 		{
 			_metadataStreamDownloadCounter--;
 			
 			if (event.result == null)
 			{
-				reportNullResult(token);
+				reportNullResult(ids);
 				return;
 			}
 			
@@ -238,13 +262,13 @@ package weave.data.AttributeColumns
 			_geometryStreamDecoder.decodeMetadataStream(result);
 		}
 		
-		private function handleGeometryStreamDownload(event:ResultEvent, token:Object = null):void
+		private function handleGeometryStreamDownload(event:ResultEvent, ids:Array):void
 		{
 			_geometryStreamDownloadCounter--;
 
 			if (event.result == null)
 			{
-				reportNullResult(token);
+				reportNullResult(ids);
 				return;
 			}
 

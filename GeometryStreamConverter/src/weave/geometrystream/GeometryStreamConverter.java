@@ -52,7 +52,7 @@ public class GeometryStreamConverter
 	/**
 	 * When the size of a either tile stream buffer becomes larger than this value, the appropriate flush function will be called.
 	 */
-	public int streamFlushInterval = 10 * 1024 * 1024; // default 10 megabytes
+	public int streamFlushInterval = Integer.MAX_VALUE; //10 * 1024 * 1024; // default 10 megabytes
 	
 	public int totalVertices = 0;
 	public double totalVertexArea = 0;
@@ -352,7 +352,7 @@ public class GeometryStreamConverter
 		flushGeometryTiles();
 		destination.commit();
 		System.out.println(String.format(
-				"numVertices %s, pointArea %s, queryArea %s, qa/pa %s",
+				"\treturn this;\n}).apply({numVertices: %s, pointArea: %s, queryArea: %s, overlap: %s, meta: [], geom: []}),",
 				totalVertices,
 				totalVertexArea,
 				totalQueryArea,

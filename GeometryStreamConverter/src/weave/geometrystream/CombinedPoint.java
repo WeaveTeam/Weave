@@ -25,11 +25,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
- * Intended for use with ObjectPool
  * @author adufilie
  */
 public class CombinedPoint implements IStreamObject
 {
+	public static boolean demo_wingedMode = false;
+	
 	private final LinkedList<VertexIdentifier> vertexIdentifiers = new LinkedList<VertexIdentifier>();
 	public final Bounds2D queryBounds = new Bounds2D();
 	public double x;
@@ -44,19 +45,21 @@ public class CombinedPoint implements IStreamObject
 		queryBounds.yMin = queryBounds.yMax = y;
 	}
 	
-	public void addPoint(int shapeID, VertexChainLink point, Bounds2D pointQueryBounds)
+	public void addPoint(int shapeID, VertexChainLink point, Bounds2D partBounds)
 	{
 		if (this.x != point.x || this.y != point.y)
 			throw new RuntimeException("CombinedPoint.addPoint(): coordinates of new point do not match");
 		vertexIdentifiers.add(new VertexIdentifier(shapeID, point.vertexID));
 		
-		// the point is needed when within the bounds of the triangle formed by the adjacent points
 		// feathered
+		// the point is considered required when within the bounds of the triangle formed by the adjacent points
 		queryBounds.includePoint(point.prev.x, point.prev.y);
 		queryBounds.includePoint(point.next.x, point.next.y);
 
 		// winged
-//		queryBounds.includeBounds(pointQueryBounds);
+		// the point is considered required when within the bounds of the polygon it belongs to
+		if (demo_wingedMode)
+			queryBounds.includeBounds(partBounds);
 	}
 	
 	public Bounds2D getQueryBounds()

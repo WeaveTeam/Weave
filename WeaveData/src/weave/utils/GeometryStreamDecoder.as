@@ -151,20 +151,14 @@ package weave.utils
 		 * IDs of tiles that have already been decoded from a stream will not be returned.
 		 * @return A list of tile IDs, sorted descending by maxImportance.
 		 */
-		public function getRequiredMetadataTileIDs(bounds:IBounds2D, minImportance:Number, removeTilesFromList:Boolean):Array
+		public function getRequiredMetadataTileIDs(bounds:IBounds2D, minImportance:Number):Array
 		{
 			var tileIDs:Array = getRequiredTileIDs(metadataTiles, bounds, minImportance);
-			if (removeTilesFromList)
-				for each (var id:int in tileIDs)
-					metadataTiles.remove(metadataTileIDToKDNodeMapping[id]);
 			return tileIDs;
 		}
-		public function getRequiredGeometryTileIDs(bounds:IBounds2D, minImportance:Number, removeTilesFromList:Boolean):Array
+		public function getRequiredGeometryTileIDs(bounds:IBounds2D, minImportance:Number):Array
 		{
 			var tileIDs:Array = getRequiredTileIDs(geometryTiles, bounds, minImportance);
-			if (removeTilesFromList)
-				for each (var id:int in tileIDs)
-					geometryTiles.remove(geometryTileIDToKDNodeMapping[id]);
 			return tileIDs;
 		}
 		private function getRequiredTileIDs(tileTree:KDTree, bounds:IBounds2D, minImportance:Number):Array
@@ -310,9 +304,6 @@ package weave.utils
 							var tileID:int = (-1 - flag); // decode negativeTileID
 							if (tileID < metadataTileIDToKDNodeMapping.length)
 							{
-								// remove tile from tree
-								metadataTiles.remove(metadataTileIDToKDNodeMapping[tileID]);
-								
 								flag = stream.readInt();
 								if (flag < 0)
 									streamVersion = -flag;
@@ -486,9 +477,6 @@ package weave.utils
 							var tileID:int = (-1 - flag); // decode negativeTileID
 							if (tileID < geometryTileIDToKDNodeMapping.length)
 							{
-								// remove tile from tree
-								geometryTiles.remove(geometryTileIDToKDNodeMapping[tileID]);
-	
 								flag = stream.readInt();
 								if (flag < 0)
 									streamVersion = -flag;

@@ -64,6 +64,18 @@ public class StreamTile
 
 	public void writeStream(DataOutputStream stream, int tileID) throws IOException
 	{
+		String type = streamObjects[0].getClass().getSimpleName();
+		if (type.equals("CombinedPoint"))
+			type = "geom";
+		else
+			type = "meta";
+		System.out.println(String.format(
+			"\tthis.%s[%s] = {queryBounds: new Bounds2D(%s,%s,%s,%s), pointBounds: new Bounds2D(%s,%s,%s,%s), importanceRange: new Range(%s,%s)};",
+			type, tileID,
+			queryBounds.xMin,queryBounds.yMin,queryBounds.xMax,queryBounds.yMax,
+			pointBounds.xMin,pointBounds.yMin,pointBounds.xMax,pointBounds.yMax,
+			minImportance, maxImportance
+		));
 		// binary format: <int negativeTileID, binary stream object beginning with positive int, ...>
 		stream.writeInt(-1 - tileID);
 		for (int i = startIndex; i < endIndex; i++)

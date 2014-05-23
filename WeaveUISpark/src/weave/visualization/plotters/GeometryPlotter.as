@@ -33,9 +33,11 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getLinkableDescendants;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -47,13 +49,16 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
+	import weave.primitives.Range;
 	import weave.utils.PlotterUtils;
+	import weave.visualization.layers.PlotTask;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
@@ -68,6 +73,8 @@ package weave.visualization.plotters
 		
 		public function GeometryPlotter()
 		{
+			registerLinkableChild(this, Demo.settings);
+			
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
@@ -84,6 +91,48 @@ package weave.visualization.plotters
 			
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
+		}
+		
+		public function get tileInfo():Object
+		{
+			var title:String = geometryColumn.getMetadata(ColumnMetadata.TITLE);
+			return Demo.data[title];
+		}
+		
+		public function get streamedGeometryColumn():StreamedGeometryColumn
+		{
+			return getLinkableDescendants(geometryColumn, StreamedGeometryColumn)[0];
+		}
+		
+		public function get metaTileIds():Array
+		{
+			var sgc:StreamedGeometryColumn = streamedGeometryColumn;
+			return sgc ? sgc.requiredMetadataTileIDs : [];
+		}
+		public function get geomTileIds():Array
+		{
+			var sgc:StreamedGeometryColumn = streamedGeometryColumn;
+			return sgc ? sgc.requiredGeometryTileIDs : [];
+		}
+		/**
+		 * Array of objects, each having queryBounds:Bounds2D and pointBounds:Bounds2D
+		 */
+		public function get metaTiles():Array
+		{
+			var info:Object = tileInfo;
+			if (info)
+				return metaTileIds.map(function(id:int, i:*, a:*):*{ return info[Demo.META][id]; });
+			return [];
+		}
+		/**
+		 * Array of objects, each having queryBounds:Bounds2D and pointBounds:Bounds2D
+		 */
+		public function get geomTiles():Array
+		{
+			var info:Object = tileInfo;
+			if (info)
+				return geomTileIds.map(function(id:int, i:*, a:*):*{ return info[Demo.GEOM][id]; });
+			return [];
 		}
 		
 		public const symbolPlotters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));
@@ -352,6 +401,7 @@ package weave.visualization.plotters
 			if (debugGridSkip)
 				simplifyDataBounds = null;
 
+			var graphics:Graphics = tempShape.graphics;
 			var drawImages:Boolean = pointDataImageColumn.getInternalColumn() != null;
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
@@ -378,7 +428,6 @@ package weave.visualization.plotters
 					
 					if (geoms && geoms.length > 0)
 					{
-						var graphics:Graphics = tempShape.graphics;
 						var styleSet:Boolean = false;
 						
 						// draw the geom
@@ -449,10 +498,54 @@ package weave.visualization.plotters
 			}
 			task.asyncState = ourAsyncState;
 			
-			return progress / (1 + symbolPlottersArray.length);
+			progress = progress / (1 + symbolPlottersArray.length);
+			
+			if (progress == 1 && Demo.settings.enabled.value && PlotTask(task).taskType == PlotTask.TASK_TYPE_SUBSET)
+			{
+				var queryAlpha:Number = Demo.settings.queryBoundsAlpha.value;
+				var pointAlpha:Number = Demo.settings.pointBoundsAlpha.value;
+				var queryColor:Number = Demo.settings.queryBoundsColor.value;
+				var pointColor:Number = Demo.settings.pointBoundsColor.value;
+				
+				// draw tile borders
+				var tiles:Array = geomTiles;
+				for each (var tile:Object in tiles)
+				{
+					var ir:Range = tile[Demo.IMPORTANCE_RANGE];
+					if (!ir.contains(minImportance) && Demo.settings.filterWithinImportanceRange.value)
+						continue;
+					
+					pb.copyFrom(tile[Demo.POINT_BOUNDS]);
+					qb.copyFrom(tile[Demo.QUERY_BOUNDS]);
+					
+					task.dataBounds.projectCoordsTo(pb, task.screenBounds);
+					task.dataBounds.projectCoordsTo(qb, task.screenBounds);
+					
+					graphics.clear();
+					
+					graphics.beginFill(pointColor, pointAlpha);
+					pb.getRectangle(r);
+					graphics.drawRect(r.x, r.y, r.width, r.height);
+					graphics.endFill();
+					
+					graphics.beginFill(queryColor, queryAlpha);
+					qb.getRectangle(r);
+					graphics.drawRect(r.x, r.y, r.width, r.height);
+					pb.getRectangle(r);
+					graphics.drawRect(r.x, r.y, r.width, r.height);
+					graphics.endFill();
+					
+					task.buffer.draw(tempShape);
+				}
+			}
+			
+			return progress;
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object
+		private static const r:Rectangle = new Rectangle(); // reusable object
+		/** pointBounds */ private static const pb:Bounds2D = new Bounds2D(); // reusable object
+		/** queryBounds */ private static const qb:Bounds2D = new Bounds2D(); // reusable object
 		private static const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		/**
