@@ -985,7 +985,8 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
-				Weave.fileName = fileName;
+				if (fileName)
+					Weave.fileName = fileName.split('/').pop();
 			}
 			catch (error:Error)
 			{
