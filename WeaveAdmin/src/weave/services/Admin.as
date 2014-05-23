@@ -30,6 +30,7 @@ package weave.services
 	import weave.api.linkBindableProperty;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
+	import weave.compiler.StandardLib;
 	import weave.services.beans.DatabaseConfigInfo;
 
 	public class Admin
@@ -414,7 +415,7 @@ package weave.services
 				params['recover'] = true;
 			JavaScript.exec(
 				{
-					url: 'weave.html?' + URLUtil.objectToString(params, '&'),
+					url: 'weave.html?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
 					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),
 					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
 				},
