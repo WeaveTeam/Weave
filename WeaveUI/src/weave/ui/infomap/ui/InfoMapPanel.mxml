@@ -161,8 +161,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
 				
-				UIUtils.linkDisplayObjects(map,nodes,false);
-				UIUtils.linkDisplayObjects(map,backgroundImagesEncoded,true);
+				UIUtils.linkDisplayObjects(map,nodes,true);
+				UIUtils.linkDisplayObjects(map,backgroundImagesEncoded,false);
 				
 				registerDisposableChild(this,globalSearchKeyword);
 				registerDisposableChild(this,globalDateFilter);
