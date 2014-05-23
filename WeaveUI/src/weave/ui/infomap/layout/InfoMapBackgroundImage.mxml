@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
-		   width="400" height="300" horizontalScrollPolicy="off"
-		   implements="weave.api.core.ILinkableObject" verticalScrollPolicy="off">
+		   xmlns:ui="weave.ui.infomap.ui.*"
+		   width="150" height="150" horizontalScrollPolicy="off"
+		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
+		   implements="weave.api.core.ILinkableObject" mouseDown="dragStartHandler(event)"
+		   mouseUp="dragStopHandler(event)" verticalScrollPolicy="off">
 	<mx:Script>
 		<![CDATA[
 			import mx.utils.Base64Decoder;
@@ -13,19 +16,41 @@
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.utils.BitmapUtils;
+			import weave.utils.CustomCursorManager;
+			import weave.visualization.layers.InteractiveVisualization;
 			
 			public const imageName:LinkableString = newLinkableChild(this, LinkableString);
 			public const imageString:LinkableString = newLinkableChild(this, LinkableString, handleImageString);
 			public const isStringURL:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
-			public const imageWidth:LinkableNumber = newLinkableChild(this,LinkableNumber);
-			public const imageHeight:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(150));
+			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(150));
 			
 			
 			private var theImage:Bitmap = new Bitmap();
 			private var decoder:Base64Decoder = new Base64Decoder();
 			private var bitmapLoader:Loader = null;
+			private var handCursorID:int = -1;
+			
+			//we override the x,y value because we are binding the values to LinkableNumber 
+			//which could be NaN when component loads for the first time
+			override public function set x(value:Number):void
+			{
+				if(parent)
+					super.x = isNaN(value)?parent.width/2:value;
+				else
+					super.x=value
+			}
+			
+			override public function set y(value:Number):void
+			{
+				if(parent)
+					super.y = isNaN(value)?parent.height/2:value;
+				else
+					super.y=value
+				
+			}
 			
 			override protected function childrenCreated():void
 			{
@@ -42,7 +67,7 @@
 				if( imageString.value != null )
 				{
 					bitmapLoader = new Loader();
-					if( !isStringURL )
+					if( !isStringURL.value )
 					{
 						//Decode the base64 encoded string to bitmap data.
 						decoder.reset(); //Make sure the decoder buffer is cleared. The decoder method flush() does not reset the decoder like it does for the encoder.
@@ -65,7 +90,20 @@
 				var loaderInfo:LoaderInfo = LoaderInfo(event.target);
 				var imgBitMap:Bitmap = Bitmap(loaderInfo.content);
 				
-				BitmapUtils.drawCenteredIcon(this.graphics,this.x+this.width/2,this.y+this.height/2,imgBitMap.bitmapData);
+				BitmapUtils.drawCenteredIcon(this.graphics,this.width/2,this.height/2,imgBitMap.bitmapData);
+			}
+			
+			protected function dragStartHandler(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
+				this.startDrag();
+			}
+			
+			protected function dragStopHandler(event:MouseEvent):void
+			{
+				CustomCursorManager.removeCursor(handCursorID);
+				this.stopDrag();
 			}
 			
 		]]>

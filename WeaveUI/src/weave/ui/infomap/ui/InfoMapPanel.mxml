@@ -89,6 +89,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.addAsyncResponder;
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.layout.InfoMapBackgroundImage;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
@@ -146,7 +147,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const globalFilterByOption:LinkableString = registerLinkableChild(this,new LinkableString());
 			
-			public const backgroundImagesEncoded:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(), handleBackgroundImagesEcondedChange);
+			public const backgroundImagesEncoded:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
 			override protected function constructor():void
 			{
@@ -161,6 +162,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
 				
 				UIUtils.linkDisplayObjects(map,nodes,false);
+				UIUtils.linkDisplayObjects(map,backgroundImagesEncoded,true);
 				
 				registerDisposableChild(this,globalSearchKeyword);
 				registerDisposableChild(this,globalDateFilter);
@@ -822,7 +824,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					var selectionRect:Rectangle = sprite.getRect(map);
 					
-					//map.graphics.clear();
+					map.graphics.clear();
 					
 					var currentNodes:Array = nodes.getObjects();
 					
@@ -1104,38 +1106,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//Variables used for encoding and decoding background iamges to save memory.
 			private var decoder:Base64Decoder = new Base64Decoder();
 			private var encoder:Base64Encoder = new Base64Encoder();
-			private var userChange:Boolean = false;
-			private var bitmapLoader:Loader = null;
-			
-			private function handleBackgroundImagesEcondedChange():void
-			{
-				if( !userChange )
-				{
-					map.graphics.clear();
-					//This sometimes loads after handleBackgroundImageChange, so check again quickly.
-					var tempArray:Array = backgroundImagesEncoded.getNames(LinkableString);
-					for each (var name:String in tempArray)
-					{
-						bitmapLoader = new Loader();
-						var tempString:String = (backgroundImagesEncoded.getObject(name) as LinkableString).value;
-						if( tempString.search(".png") != -1 || tempString.search(".jpg") != -1 )
-						{
-							//Add code to fetch the image data from the server.
-							bitmapLoader.load(new URLRequest("infomap_images/"+tempString));
-							bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
-						}
-						else
-						{
-							decoder.reset(); //Make sure the decoder buffer is cleared. The decoder method flush() does not reset the decoder like it does for the encoder.
-							decoder.decode(tempString);
-							bitmapLoader.loadBytes(decoder.flush());
-							bitmapLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderComplete);
-						}
-					}
-				}
-				else
-					userChange = false; //Don't want this to fire off when the session state is being loaded from a file.
-			}
 			
 			private function loaderComplete(event:Event):void
 			{
@@ -1168,21 +1138,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var imgBitMap:Bitmap = Bitmap(imgLoader.content);
 				
-				BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
+				var backgroundImagePanel:InfoMapBackgroundImage = backgroundImagesEncoded.requestObject(imageURL.text,InfoMapBackgroundImage,false);
+				backgroundImagePanel.imageName.value = imageURL.text;
+				
+				backgroundImagePanel.x = 50 * (backgroundImagesEncoded.getNames().length);
+				backgroundImagePanel.y = 50 * (backgroundImagesEncoded.getNames().length);
 				
 				if( imageRemoteStorageCheckBox.selected )
 				{
 					//In the future, first encode the data to base64 to reduce network traffic.
-					userChange = true;
-					addAsyncResponder(InfoMapAdminInterface.instance.saveBackgroundImage(imageURL.text,_fileLoader.data),handleImageSave, handleImageSaveFault);
+					backgroundImagePanel.isStringURL.value = true;
+					addAsyncResponder(InfoMapAdminInterface.instance.saveBackgroundImage(imageURL.text,_fileLoader.data),handleImageSave, handleImageSaveFault, backgroundImagePanel);
 				}
 				else
 				{
 					//Locally save the image data in the session state.
-					userChange = true;
-					var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(imageURL.text, LinkableString, false) as LinkableString;
 					encoder.encodeBytes(_fileLoader.data);
-					encodedImageString.value = encoder.flush();
+					backgroundImagePanel.isStringURL.value = false;
+					backgroundImagePanel.imageString.value = encoder.flush();
 				}
 			}
 			
@@ -1190,9 +1163,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				Alert.show("Image saved as " + event.result,"Saved");
 				
-				userChange = true;
-				var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(event.result as String, LinkableString, false) as LinkableString;
-				encodedImageString.value = event.result as String;
+				//var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(event.result as String, LinkableString, false) as LinkableString;
+				//encodedImageString.value = event.result as String;
+				(token as InfoMapBackgroundImage).imageString.value = event.result as String;
 				
 			}
 			
