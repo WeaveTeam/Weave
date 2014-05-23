@@ -5,13 +5,15 @@
     horizontalAlign="center">
 	
 	<mx:Spacer height="100%"/>
-	<Paragraph htmlText="{Admin.service.migrationProgress}" textAlign="center" selectable="true"/>
+	<Paragraph htmlText="{adminService.migrationProgress}" textAlign="center" selectable="true"/>
 	<mx:Spacer height="100%"/>
 	
-	<ui:BusyIndicator visible="{!Admin.service.migrationProgress}"/>
+	<ui:BusyIndicator visible="{!adminService.migrationProgress}"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.services.Admin;
+			import weave.services.WeaveAdminService;
+			private const adminService:WeaveAdminService = Admin.service;
 		]]>
 	</mx:Script>
 </mx:VBox>

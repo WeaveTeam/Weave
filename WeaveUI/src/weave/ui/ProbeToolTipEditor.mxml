@@ -37,7 +37,7 @@
 			</Paragraph>
 		</mx:HBox>
 		<ColumnListComponent id="headerList" width="100%" height="100%" label="{lang('Header Columns')}"
-							 hashMap="{ProbeTextUtils.probeHeaderColumns}"/>		
+							 hashMap="{(function():*{return ProbeTextUtils.probeHeaderColumns;}())}"/>		
 		<mx:CheckBox label="{lang('Enable mouseover ToolTips')}"
 					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 	</mx:VBox>
@@ -57,7 +57,7 @@
 				</Paragraph>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%" label="{lang('Data columns')}"
-								 hashMap="{ProbeTextUtils.probedColumns}"/>
+								 hashMap="{(function():*{return ProbeTextUtils.probedColumns;}())}"/>
 		</mx:VBox>
 		<mx:VBox width="100%">
 			<Indent label="{lang('Format')}" height="100%">

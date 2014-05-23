@@ -22,6 +22,7 @@ package weave.services
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
+	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	
 	import weave.api.WeaveAPI;
@@ -38,19 +39,28 @@ package weave.services
 		private var
 			fr:FileReference,
 			relevantContext:Object,
+			fileFilters:Array,
 			urlHandler:Function,
 			errorHandler:Function;
 		
 		/**
 		 * @param relevantContext
-		 * @param fileFilters Array.<FileFilter>
+		 * @param fileFilters Each item should be either a FileFilter or an Array of params for the FileFilter constructor.
 		 * @param urlHandler function(url:String)
 		 * @param errorHandler function(event:IOErrorEvent)
 		 */
 		public function FileAttacher(relevantContext:Object, fileFilters:Array, urlHandler:Function, errorHandler:Function = null)
 		{
+			if (fileFilters)
+				fileFilters = fileFilters.map(function(filter:Object, i:*, a:*):FileFilter {
+					if (filter is Array)
+						filter = new FileFilter(filter[0], filter[1], filter[2]);
+					return FileFilter(filter);
+				});
+			
 			registerDisposableChild(relevantContext, this);
 			this.relevantContext = relevantContext;
+			this.fileFilters = fileFilters;
 			this.urlHandler = urlHandler;
 			this.errorHandler = errorHandler;
 		}
@@ -73,7 +83,7 @@ package weave.services
 				fr.addEventListener(ProgressEvent.PROGRESS, progress);
 				fr.addEventListener(Event.COMPLETE, complete);
 				fr.addEventListener(IOErrorEvent.IO_ERROR, error);
-				fr.browse();
+				fr.browse(fileFilters);
 				return true;
 			}
 			catch (e:Error)

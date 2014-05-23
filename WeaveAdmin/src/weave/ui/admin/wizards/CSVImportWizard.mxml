@@ -41,7 +41,7 @@
 			<admin:SQLTableSelectorDialog id="tableSelector"
 										  change="handleChange()"
 										  showTableCombo="false"
-										  tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
+										  tableOverwriteCheckVisible="{admin.currentUserIsSuperuser}"/>
 		</mx:VBox>
 	</mx:VBox>
 	
@@ -63,7 +63,7 @@
 				Separate multiple flag values by commas.
 			</ui:HelpComponent>
 			<ui:CustomCheckBox id="includeDefaultNullValues" label="{lang('Include default null flag values')}"
-							   selected="true" toolTip="{StandardLib.replace(NULL_FLAG_VALUES, ',', '\n')}"/>
+							   selected="true" toolTip="{(function():*{return StandardLib.replace(NULL_FLAG_VALUES, ',', '\n');}())}"/>
 		</ui:Indent>
 		<mx:HBox>
 			<mx:CheckBox id="generateKeyColumnCheckBox" selected="true" change="handleChange()" label="{lang('Generate a new primary key column')}"/>
@@ -117,6 +117,7 @@
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;
 
+			private const admin:Admin = Admin.instance;
 			public static const NULL_FLAG_VALUES:String = '""," ",NULL,NaN,#DIV/0!,"""NULL""",-,.,..';
 			
 			private static const paddingIndent:int = 20;

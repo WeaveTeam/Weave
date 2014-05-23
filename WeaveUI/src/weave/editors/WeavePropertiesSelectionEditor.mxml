@@ -26,7 +26,7 @@
 		 height="100%">
 	
 	<ui:Indent grouped="false" label="{lang('Selection mode')}">
-		<mx:ComboBox dataProvider="{InteractionController.enumSelectionMode()}"
+		<mx:ComboBox dataProvider="{(function():*{return InteractionController.enumSelectionMode();}())}"
 					 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
 	</ui:Indent>
 	

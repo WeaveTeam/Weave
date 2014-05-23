@@ -73,7 +73,7 @@
 				</ui:htmlText>
 			</ui:HelpComponent>
 		</mx:HBox>
-		<mx:HBox visible="{(keyColumnSelector.dataProvider as ICollectionView).length != 0}">
+		<mx:HBox visible="{keyColumnSelector.dataProvider.length != 0}">
 			<mx:Label text="{lang('Unique Identifier Column')}" />
 			<ui:CustomComboBox toolTip="{lang('This is the column which uniquely identifies each row in your dataset. If you prefer you can change it to a different column.')}" selectedIndex="0" id="keyColumnSelector"/>
 		</mx:HBox>

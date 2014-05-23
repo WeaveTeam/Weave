@@ -39,7 +39,7 @@
 			<ui:CustomComboBox id="keyTypeCombo"
 							   editable="true"
 							   text="{_defaultKeyType}"
-							   dataProvider="{Admin.instance.keyTypes}"
+							   dataProvider="{admin.keyTypes}"
 							   change="handleChange()"
 							   valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true; handleChange()"
 							   toolTip="{lang('Choose a key type that describes the identifiers in the key column.')}"/>
@@ -57,6 +57,7 @@
 			import weave.core.UIUtils;
 			import weave.services.Admin;
 			
+			private const admin:Admin = Admin.instance;
 			[Bindable] public var paddingIndent:int = 20;
 			[Bindable] private var _indent:Number = NaN;
 			

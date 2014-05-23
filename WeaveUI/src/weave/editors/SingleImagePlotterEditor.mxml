@@ -20,8 +20,6 @@
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
-			import flash.net.FileFilter;
-			
 			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
@@ -106,8 +104,7 @@
 				}
 			}
 			
-			private var imageFilter:FileFilter = new FileFilter("Image", "*.png,*.jpg");
-			private var fileAttacher:FileAttacher = new FileAttacher(this, [imageFilter], handleURL);
+			private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter('Image', '*.png,*.jpg,*.bmp')], handleURL);
 			private function handleURL(url:String):void
 			{
 				urlInput.text = url;

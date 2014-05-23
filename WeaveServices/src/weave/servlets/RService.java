@@ -21,7 +21,6 @@ package weave.servlets;
 
 import static weave.config.WeaveConfig.initWeaveConfig;
 
-import java.io.IOException;
 import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
@@ -127,7 +126,7 @@ public class RService extends WeaveServlet
 	}
 	
 	// this function should stop the Rserve... needs revision
-	private void stopRServe() throws IOException
+	/*private void stopRServe() throws IOException
 	{
 		try
 		{
@@ -138,7 +137,7 @@ public class RService extends WeaveServlet
 		{
 			e.printStackTrace();
 		}
-	}
+	}*/
 
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{

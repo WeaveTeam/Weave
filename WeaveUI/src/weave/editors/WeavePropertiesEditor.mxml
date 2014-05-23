@@ -25,8 +25,8 @@
 			xmlns:ui="weave.ui.*"
 			backgroundColor="#EFF4BC"
 			title="{lang('Preferences')}"
-			targets="{[Weave.properties]}"
-			sessionEditorTarget="{Weave.properties}"
+			targets="{(function():*{return [Weave.properties];}())}"
+			sessionEditorTarget="{(function():*{return Weave.properties;}())}"
 			>
 	<WeavePropertiesAppearanceEditor label="{lang('Appearance')}"/>
 	

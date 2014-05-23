@@ -82,13 +82,13 @@ public class ConnectionConfig
 	 * This is only used if SQLite is the chosen config storage location.
 	 * @return A reference to the SQLite database file.
 	 * @throws IOException
-	 */
+	 * /
 	private File getSQLiteDatabaseFile() throws IOException
 	{
 		File f = new File(_file.getParent(), SQLITE_DB_FILENAME);
 		f.createNewFile();
 		return f;
-	}
+	}*/
 	
 	public long getLastModified() throws RemoteException
 	{

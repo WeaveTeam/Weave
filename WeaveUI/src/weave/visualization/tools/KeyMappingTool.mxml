@@ -7,21 +7,22 @@
                    <mx:Script>
 <![CDATA[
 
+import flash.utils.Dictionary;
+
 import weave.Weave;
 import weave.api.WeaveAPI;
 import weave.api.data.IKeySet;
-import weave.api.ui.IVisTool;
-import weave.api.newLinkableChild;
+import weave.api.data.IQualifiedKey;
 import weave.api.linkBindableProperty;
+import weave.api.newLinkableChild;
+import weave.api.ui.IVisTool;
+import weave.core.LinkableBoolean;
+import weave.core.LinkableString;
 import weave.data.AttributeColumns.DynamicColumn;
 import weave.data.KeySets.KeySet;
 import weave.data.KeySets.KeySetUnion;
-import weave.core.LinkableBoolean;
-import weave.core.LinkableString;
 import weave.utils.ColumnUtils;
 import weave.utils.DebugUtils;
-import weave.api.data.IQualifiedKey;
-import flash.utils.Dictionary;
 
 
 public const sourceKeyType:LinkableString = newLinkableChild(this, LinkableString, handleColumnsChange, true);
@@ -56,7 +57,7 @@ private function mapKeys(inputKeys:KeySet, mapping:Dictionary):KeySet
     
     var outputKeys:KeySet = new KeySet();
     var inputKeyArray:Array = inputKeys.keys;
-    for (var i = inputKeyArray.length; i >= 0; i--)
+    for (var i:int = inputKeyArray.length; i >= 0; i--)
     {
         var inKey:IQualifiedKey = inputKeyArray[i] as IQualifiedKey;
         
@@ -114,7 +115,7 @@ private function handleColumnsChange():void
 
     var columns:Array = ColumnUtils.joinColumns([sourceLocalNameColumn, targetLocalNameColumn], String);
     
-    for (var i = columns[0].length; i >= 0; i--)
+    for (var i:int = columns[0].length; i >= 0; i--)
     {
         var sourceKeyLocalName:String = columns[1][i];
         var targetKeyLocalName:String = columns[2][i];

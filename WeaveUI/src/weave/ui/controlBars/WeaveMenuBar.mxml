@@ -42,7 +42,7 @@
 				dataProvider="{_menuList}"
 				labelField="weaveLabel"
 				iconField="iconURL"
-				menuBarItemRenderer="{new ClassFactory(CustomMenuBarItem)}"
+				menuBarItemRenderer="{(function():*{return new ClassFactory(CustomMenuBarItem);}())}"
 				menuShow="handleMenuShow(event)"
 				
 				menuStyleName="weave-menu-style"
