@@ -72,6 +72,10 @@ public class SQLGeometryStreamDestination implements IGeometryStreamDestination
 	public static final String Y_MIN_BOUNDS = "yMinBounds";
 	public static final String X_MAX_BOUNDS = "xMaxBounds";
 	public static final String Y_MAX_BOUNDS = "yMaxBounds";
+	public static final String X_MIN_POINT_BOUNDS = "xMinPointBounds";
+	public static final String Y_MIN_POINT_BOUNDS = "yMinPointBounds";
+	public static final String X_MAX_POINT_BOUNDS = "xMaxPointBounds";
+	public static final String Y_MAX_POINT_BOUNDS = "yMaxPointBounds";
 	public static final String TILE_ID = "tileID";
 	public static final String TILE_DATA = "tileData";
 	private Connection conn;
@@ -111,6 +115,10 @@ public class SQLGeometryStreamDestination implements IGeometryStreamDestination
 				Y_MIN_BOUNDS, doubleType,
 				X_MAX_BOUNDS, doubleType,
 				Y_MAX_BOUNDS, doubleType,
+				X_MIN_POINT_BOUNDS, doubleType,
+				Y_MIN_POINT_BOUNDS, doubleType,
+				X_MAX_POINT_BOUNDS, doubleType,
+				Y_MAX_POINT_BOUNDS, doubleType,
 				TILE_ID, SQLUtils.getBigIntTypeString(conn) + " PRIMARY KEY",
 				TILE_DATA, SQLUtils.binarySQLType(dbms)
 		};
@@ -170,6 +178,10 @@ public class SQLGeometryStreamDestination implements IGeometryStreamDestination
 				Y_MIN_BOUNDS, tile.queryBounds.yMin,
 				X_MAX_BOUNDS, tile.queryBounds.xMax,
 				Y_MAX_BOUNDS, tile.queryBounds.yMax,
+				X_MIN_POINT_BOUNDS, tile.pointBounds.xMin,
+				Y_MIN_POINT_BOUNDS, tile.pointBounds.yMin,
+				X_MAX_POINT_BOUNDS, tile.pointBounds.xMax,
+				Y_MAX_POINT_BOUNDS, tile.pointBounds.yMax,
 				TILE_ID, tileID,
 				TILE_DATA, bytes
 			);

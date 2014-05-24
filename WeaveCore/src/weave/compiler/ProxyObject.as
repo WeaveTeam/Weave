@@ -30,6 +30,8 @@ package weave.compiler
 	 */
 	public class ProxyObject extends Proxy
 	{
+		public static var debug:Boolean = false;
+		
 		/**
 		 * This constructor allows you to specify the three most important flash_proxy functions
 		 * and an optional custom flash_proxy::callProperty function.
@@ -41,6 +43,8 @@ package weave.compiler
 		public function ProxyObject(hasProperty:Function, getProperty:Function, setProperty:Function, callProperty:Function = null)
 		{
 			super();
+			if (debug)
+				stackTrace = new Error().getStackTrace();
 			if (hasProperty != null)
 				_has = hasProperty;
 			if (getProperty != null)
@@ -51,6 +55,7 @@ package weave.compiler
 				_call = callProperty;
 		}
 		
+		private var stackTrace:String;
 		private var _has:Function = super.flash_proxy::hasProperty as Function;
 		private var _get:Function = super.flash_proxy::getProperty as Function;
 		private var _set:Function = super.flash_proxy::setProperty as Function;

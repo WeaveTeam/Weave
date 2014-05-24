@@ -42,7 +42,7 @@ public class GeometryStreamConverter
 	{
 		this.destination = destination;
 	}
-
+	
 	/**
 	 * The desired size, in bytes, of each metadata and geometry tile that gets generated.
 	 * Actual size of some tiles may be a few bytes larger than this value.  Some tiles may be smaller.
@@ -351,12 +351,5 @@ public class GeometryStreamConverter
 		flushMetadataTiles();
 		flushGeometryTiles();
 		destination.commit();
-		System.out.println(String.format(
-				"\treturn this;\n}).apply({numVertices: %s, pointArea: %s, queryArea: %s, overlap: %s, meta: [], geom: []}),",
-				totalVertices,
-				totalVertexArea,
-				totalQueryArea,
-				totalQueryArea/totalVertexArea
-			));
 	}
 }

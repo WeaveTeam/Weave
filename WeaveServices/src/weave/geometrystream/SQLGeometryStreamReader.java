@@ -91,6 +91,9 @@ public class SQLGeometryStreamReader
 					String[] names = new String[]{
 						SQLGeometryStreamDestination.X_MIN_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MIN_BOUNDS.toLowerCase(),
 						SQLGeometryStreamDestination.X_MAX_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MAX_BOUNDS.toLowerCase(),
+						SQLGeometryStreamDestination.X_MIN_POINT_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MIN_POINT_BOUNDS.toLowerCase(),
+						SQLGeometryStreamDestination.X_MAX_POINT_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MAX_POINT_BOUNDS.toLowerCase(),
+						SQLGeometryStreamDestination.MIN_IMPORTANCE.toLowerCase(),
 						SQLGeometryStreamDestination.MAX_IMPORTANCE.toLowerCase(),
 						SQLGeometryStreamDestination.TILE_ID.toLowerCase()
 					};
@@ -105,11 +108,17 @@ public class SQLGeometryStreamReader
 					rs = stmt.executeQuery(query);
 					while (rs.next())
 					{
-						data.writeDouble(rs.getDouble(1));
-						data.writeDouble(rs.getDouble(2));
-						data.writeDouble(rs.getDouble(3));
-						data.writeDouble(rs.getDouble(4));
-						data.writeFloat(rs.getFloat(5));
+						int i = 1;
+						data.writeDouble(rs.getDouble(i++));
+						data.writeDouble(rs.getDouble(i++));
+						data.writeDouble(rs.getDouble(i++));
+						data.writeDouble(rs.getDouble(i++));
+						data.writeDouble(rs.getDouble(i++));
+						data.writeDouble(rs.getDouble(i++));
+						data.writeDouble(rs.getDouble(i++));
+						data.writeDouble(rs.getDouble(i++));
+						data.writeFloat(rs.getFloat(i++));
+						data.writeFloat(rs.getFloat(i++));
 					}
 					return; // if this succeeds, we don't want to run the second query
 				}
@@ -127,6 +136,9 @@ public class SQLGeometryStreamReader
 			String[] names = new String[]{
 					SQLGeometryStreamDestination.X_MIN_BOUNDS, SQLGeometryStreamDestination.Y_MIN_BOUNDS,
 					SQLGeometryStreamDestination.X_MAX_BOUNDS, SQLGeometryStreamDestination.Y_MAX_BOUNDS,
+					SQLGeometryStreamDestination.X_MIN_POINT_BOUNDS, SQLGeometryStreamDestination.Y_MIN_POINT_BOUNDS,
+					SQLGeometryStreamDestination.X_MAX_POINT_BOUNDS, SQLGeometryStreamDestination.Y_MAX_POINT_BOUNDS,
+					SQLGeometryStreamDestination.MIN_IMPORTANCE,
 					SQLGeometryStreamDestination.MAX_IMPORTANCE,
 					SQLGeometryStreamDestination.TILE_ID
 			};
@@ -141,11 +153,17 @@ public class SQLGeometryStreamReader
 			rs = stmt.executeQuery(query);
 			while (rs.next())
 			{
-				data.writeDouble(rs.getDouble(1));
-				data.writeDouble(rs.getDouble(2));
-				data.writeDouble(rs.getDouble(3));
-				data.writeDouble(rs.getDouble(4));
-				data.writeFloat(rs.getFloat(5));
+				int i = 1;
+				data.writeDouble(rs.getDouble(i++));
+				data.writeDouble(rs.getDouble(i++));
+				data.writeDouble(rs.getDouble(i++));
+				data.writeDouble(rs.getDouble(i++));
+				data.writeDouble(rs.getDouble(i++));
+				data.writeDouble(rs.getDouble(i++));
+				data.writeDouble(rs.getDouble(i++));
+				data.writeDouble(rs.getDouble(i++));
+				data.writeFloat(rs.getFloat(i++));
+				data.writeFloat(rs.getFloat(i++));
 			}
 		}
 		catch (SQLException e)

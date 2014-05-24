@@ -35,12 +35,14 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.AsyncSort;
 	import weave.utils.GeometryStreamDecoder;
+	import weave.utils.GeometryTileDescriptor;
 	
 	/**
 	 * StreamedGeometryColumn
@@ -136,8 +138,8 @@ package weave.data.AttributeColumns
 		private var _geometryStreamDownloadCounter:int = 0;
 		private var _metadataStreamDownloadCounter:int = 0;
 		
-		public var requiredMetadataTileIDs:Array = [];
-		public var requiredGeometryTileIDs:Array = [];
+		public var requiredMetadataTiles:Array = [];
+		public var requiredGeometryTiles:Array = [];
 		
 		public var metadataTilesPerQuery:int = 200; //10;
 		public var geometryTilesPerQuery:int = 200; //30;
@@ -147,6 +149,8 @@ package weave.data.AttributeColumns
 		
 		private function filterMetaTileIds(id:int, i:*, a:*):Boolean { return !_requestedMetaTileIds[id]; }
 		private function filterGeomTileIds(id:int, i:*, a:*):Boolean { return !_requestedGeomTileIds[id]; }
+		private function mapTileToId(tile:GeometryTileDescriptor, i:*, a:*):int { return tile.tileID; }
+		private function sortByTileId(a:GeometryTileDescriptor, b:GeometryTileDescriptor):int { return ObjectUtil.numericCompare(a.tileID, b.tileID); }
 		
 		public function requestGeometryDetail(dataBounds:IBounds2D, lowestImportance:Number):void
 		{
@@ -175,13 +179,20 @@ package weave.data.AttributeColumns
 					metaRequestImportance = lowestImportance;
 					break;
 			}
-			// request metadata tiles
-			var metadataTileIDs:Array = requiredMetadataTileIDs = _geometryStreamDecoder.getRequiredMetadataTileIDs(metaRequestBounds, metaRequestImportance);
-			// request geometry tiles needed for desired dataBounds and zoom level (filter by XYZ)
-			var geometryTileIDs:Array = requiredGeometryTileIDs = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance);
-
-			metadataTileIDs = metadataTileIDs.filter(filterMetaTileIds);
-			geometryTileIDs = geometryTileIDs.filter(filterGeomTileIds);
+			
+			var metaTiles:Array = _geometryStreamDecoder.getRequiredMetadataTiles(metaRequestBounds, metaRequestImportance);
+			var geomTiles:Array = _geometryStreamDecoder.getRequiredGeometryTiles(dataBounds, lowestImportance);
+			
+			if (!(Demo.settings.lock_tileFiltering.value || Demo.settings.lock_geomFiltering.value))
+			{
+				StandardLib.sort(metaTiles, sortByTileId);
+				StandardLib.sort(geomTiles, sortByTileId);
+				requiredMetadataTiles = metaTiles;
+				requiredGeometryTiles = geomTiles;
+			}
+			
+			var metadataTileIDs:Array = metaTiles.map(mapTileToId).filter(filterMetaTileIds);
+			var geometryTileIDs:Array = geomTiles.map(mapTileToId).filter(filterGeomTileIds);
 			
 			var id:int;
 			for each (id in metadataTileIDs)

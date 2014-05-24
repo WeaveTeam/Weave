@@ -39,6 +39,7 @@ package weave.utils
 	import weave.primitives.GeometryType;
 	import weave.primitives.KDNode;
 	import weave.primitives.KDTree;
+	import weave.primitives.Range;
 
 	/**
 	 * This class provides functions for parsing a binary geometry stream.
@@ -149,19 +150,19 @@ package weave.utils
 		 * These functions return an array of tile IDs that need to be downloaded in
 		 * order for shapes to be displayed at the given importance (quality) level.
 		 * IDs of tiles that have already been decoded from a stream will not be returned.
-		 * @return A list of tile IDs, sorted descending by maxImportance.
+		 * @return A list of GeometryTileDescriptors, sorted descending by maxImportance.
 		 */
-		public function getRequiredMetadataTileIDs(bounds:IBounds2D, minImportance:Number):Array
+		public function getRequiredMetadataTiles(bounds:IBounds2D, minImportance:Number):Array
 		{
-			var tileIDs:Array = getRequiredTileIDs(metadataTiles, bounds, minImportance);
+			var tileIDs:Array = getRequiredTiles(metadataTiles, bounds, minImportance);
 			return tileIDs;
 		}
-		public function getRequiredGeometryTileIDs(bounds:IBounds2D, minImportance:Number):Array
+		public function getRequiredGeometryTiles(bounds:IBounds2D, minImportance:Number):Array
 		{
-			var tileIDs:Array = getRequiredTileIDs(geometryTiles, bounds, minImportance);
+			var tileIDs:Array = getRequiredTiles(geometryTiles, bounds, minImportance);
 			return tileIDs;
 		}
-		private function getRequiredTileIDs(tileTree:KDTree, bounds:IBounds2D, minImportance:Number):Array
+		private function getRequiredTiles(tileTree:KDTree, bounds:IBounds2D, minImportance:Number):Array
 		{
 			//trace("getRequiredTileIDs, minImportance="+minImportance);
 			// filter out tiles with maxImportance less than the specified minImportance
@@ -205,13 +206,16 @@ package weave.utils
 				while (true)
 				{
 					var kdKey:Array = new Array(KD_DIMENSIONALITY);
-					kdKey[XMIN_INDEX] = stream.readDouble();
-					kdKey[YMIN_INDEX] = stream.readDouble();
-					kdKey[XMAX_INDEX] = stream.readDouble();
-					kdKey[YMAX_INDEX] = stream.readDouble();
-					kdKey[IMAX_INDEX] = stream.readFloat();
+					var queryBounds:Bounds2D = new Bounds2D(stream.readDouble(), stream.readDouble(), stream.readDouble(), stream.readDouble());
+					var pointBounds:Bounds2D = new Bounds2D(stream.readDouble(), stream.readDouble(), stream.readDouble(), stream.readDouble());
+					var importanceRange:Range = new Range(stream.readFloat(), stream.readFloat());
+					kdKey[XMIN_INDEX] = queryBounds.xMin;
+					kdKey[YMIN_INDEX] = queryBounds.yMin;
+					kdKey[XMAX_INDEX] = queryBounds.xMax;
+					kdKey[YMAX_INDEX] = queryBounds.yMax;
+					kdKey[IMAX_INDEX] = importanceRange.max;
 					//trace((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
-					tileDescriptors.push(new TileDescriptor(kdKey, tileID));
+					tileDescriptors.push(new GeometryTileDescriptor(kdKey, tileID, queryBounds, pointBounds, importanceRange));
 					collectiveBounds.includeCoords(kdKey[XMIN_INDEX], kdKey[YMIN_INDEX]);
 					collectiveBounds.includeCoords(kdKey[XMAX_INDEX], kdKey[YMAX_INDEX]);
 					tileID++;
@@ -225,12 +229,12 @@ package weave.utils
 			tileIDToKDNodeMapping.length = tileDescriptors.length;
 			// insert tileDescriptors into tree
 			var node:KDNode;
-			var tileDescriptor:TileDescriptor;
+			var tileDescriptor:GeometryTileDescriptor;
 			for (var i:int = tileDescriptors.length; i--;)
 			{
-				tileDescriptor = tileDescriptors[i] as TileDescriptor;
+				tileDescriptor = tileDescriptors[i] as GeometryTileDescriptor;
 				// insert a new node in the tree, mapping kdKey to tileID
-				node = tileTree.insert(tileDescriptor.kdKey, tileDescriptor.tileID);
+				node = tileTree.insert(tileDescriptor.kdKey, tileDescriptor);
 				// save mapping from tile ID to KDNode so the node can be deleted from the tree later
 				tileIDToKDNodeMapping[tileDescriptor.tileID] = node;
 			}
@@ -602,15 +606,4 @@ package weave.utils
 		}
 		*/
 	}
-}
-
-internal class TileDescriptor
-{
-	public function TileDescriptor(kdKey:Array, tileID:int)
-	{
-		this.kdKey = kdKey;
-		this.tileID = tileID;
-	}
-	public var kdKey:Array;
-	public var tileID:int;
 }

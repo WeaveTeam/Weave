@@ -23,6 +23,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.LineScaleMode;
+	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -57,6 +58,8 @@ package weave.visualization.plotters
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
 	import weave.primitives.Range;
+	import weave.utils.BitmapText;
+	import weave.utils.GeometryTileDescriptor;
 	import weave.utils.PlotterUtils;
 	import weave.visualization.layers.PlotTask;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
@@ -93,46 +96,22 @@ package weave.visualization.plotters
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
 		}
 		
-		public function get tileInfo():Object
-		{
-			var title:String = geometryColumn.getMetadata(ColumnMetadata.TITLE);
-			return Demo.data[title];
-		}
-		
 		public function get streamedGeometryColumn():StreamedGeometryColumn
 		{
 			return getLinkableDescendants(geometryColumn, StreamedGeometryColumn)[0];
 		}
 		
-		public function get metaTileIds():Array
-		{
-			var sgc:StreamedGeometryColumn = streamedGeometryColumn;
-			return sgc ? sgc.requiredMetadataTileIDs : [];
-		}
-		public function get geomTileIds():Array
-		{
-			var sgc:StreamedGeometryColumn = streamedGeometryColumn;
-			return sgc ? sgc.requiredGeometryTileIDs : [];
-		}
-		/**
-		 * Array of objects, each having queryBounds:Bounds2D and pointBounds:Bounds2D
-		 */
+		/** Array of GeometryTileDescriptor */
 		public function get metaTiles():Array
 		{
-			var info:Object = tileInfo;
-			if (info)
-				return metaTileIds.map(function(id:int, i:*, a:*):*{ return info[Demo.META][id]; });
-			return [];
+			var sgc:StreamedGeometryColumn = streamedGeometryColumn;
+			return sgc ? sgc.requiredMetadataTiles : [];
 		}
-		/**
-		 * Array of objects, each having queryBounds:Bounds2D and pointBounds:Bounds2D
-		 */
+		/** Array of GeometryTileDescriptor */
 		public function get geomTiles():Array
 		{
-			var info:Object = tileInfo;
-			if (info)
-				return geomTileIds.map(function(id:int, i:*, a:*):*{ return info[Demo.GEOM][id]; });
-			return [];
+			var sgc:StreamedGeometryColumn = streamedGeometryColumn;
+			return sgc ? sgc.requiredGeometryTiles : [];
 		}
 		
 		public const symbolPlotters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));
@@ -250,7 +229,6 @@ package weave.visualization.plotters
 				output.reset(); // undefined
 		}
 		
-		public var debugSimplify:Boolean = false;
 		private var _debugSimplifyDataBounds:IBounds2D;
 		private var _debugSimplifyScreenBounds:IBounds2D;
 
@@ -371,7 +349,7 @@ package weave.visualization.plotters
 		{
 			var simplifyDataBounds:IBounds2D = task.dataBounds;
 			var simplifyScreenBounds:IBounds2D = task.screenBounds;
-			if (debugSimplify)
+			if (Demo.settings.lock_geomFiltering.value)
 			{
 				if (!_debugSimplifyDataBounds)
 				{
@@ -387,7 +365,7 @@ package weave.visualization.plotters
 			keepTrack = debug && (task['taskType'] == 0);
 			if (task.iteration == 0)
 			{
-				if (!debugSimplify)
+				if (!Demo.settings.lock_geomFiltering.value)
 					_debugSimplifyDataBounds = _debugSimplifyScreenBounds = null;
 				
 				if (keepTrack)
@@ -401,6 +379,7 @@ package weave.visualization.plotters
 			if (debugGridSkip)
 				simplifyDataBounds = null;
 
+			var pass:int;
 			var graphics:Graphics = tempShape.graphics;
 			var drawImages:Boolean = pointDataImageColumn.getInternalColumn() != null;
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
@@ -421,7 +400,7 @@ package weave.visualization.plotters
 					_singleGeom[0] = value;
 				}
 				
-				for (var pass:int = 0; pass < 2; pass++)
+				for (pass = 0; pass < 2; pass++)
 				{
 					if (pass == 1 && !drawImages)
 						break;
@@ -500,52 +479,122 @@ package weave.visualization.plotters
 			
 			progress = progress / (1 + symbolPlottersArray.length);
 			
-			if (progress == 1 && Demo.settings.enabled.value && PlotTask(task).taskType == PlotTask.TASK_TYPE_SUBSET)
+			///////////////////////
+			// demo rendering code
+			
+			// only render on the subset task
+			if (PlotTask(task).taskType != PlotTask.TASK_TYPE_SUBSET)
+				return progress;
+			
+			var locked:Boolean = Demo.settings.lock_tileFiltering.value || Demo.settings.lock_geomFiltering.value;
+			if (!locked)
 			{
-				var queryAlpha:Number = Demo.settings.queryBoundsAlpha.value;
-				var pointAlpha:Number = Demo.settings.pointBoundsAlpha.value;
-				var queryColor:Number = Demo.settings.queryBoundsColor.value;
-				var pointColor:Number = Demo.settings.pointBoundsColor.value;
+				// save for next time
+				lockedTileMinImportance = minImportance;
+				lockedTileDataBounds.copyFrom(task.dataBounds);
+			}
+			
+			var showDemoBounds:Boolean = Demo.settings.show_pointBounds.value || Demo.settings.show_queryBounds.value;
+			if (progress == 1 && showDemoBounds)
+			{
+				var borderAlpha:Number = Demo.settings.alpha_border.value;
+				var queryAlpha:Number = Demo.settings.alpha_queryBounds.value;
+				var pointAlpha:Number = Demo.settings.alpha_pointBounds.value;
+				var queryColor:Number = Demo.settings.color_queryBounds.value;
+				var pointColor:Number = Demo.settings.color_pointBounds.value;
 				
 				// draw tile borders
+				var singleTileID:Number = Demo.settings.show_singleTileID.value;
 				var tiles:Array = geomTiles;
-				for each (var tile:Object in tiles)
+				for each (pass in [1,2])
 				{
-					var ir:Range = tile[Demo.IMPORTANCE_RANGE];
-					if (!ir.contains(minImportance) && Demo.settings.filterWithinImportanceRange.value)
-						continue;
-					
-					pb.copyFrom(tile[Demo.POINT_BOUNDS]);
-					qb.copyFrom(tile[Demo.QUERY_BOUNDS]);
-					
-					task.dataBounds.projectCoordsTo(pb, task.screenBounds);
-					task.dataBounds.projectCoordsTo(qb, task.screenBounds);
-					
-					graphics.clear();
-					
-					graphics.beginFill(pointColor, pointAlpha);
-					pb.getRectangle(r);
-					graphics.drawRect(r.x, r.y, r.width, r.height);
-					graphics.endFill();
-					
-					graphics.beginFill(queryColor, queryAlpha);
-					qb.getRectangle(r);
-					graphics.drawRect(r.x, r.y, r.width, r.height);
-					pb.getRectangle(r);
-					graphics.drawRect(r.x, r.y, r.width, r.height);
-					graphics.endFill();
-					
-					task.buffer.draw(tempShape);
+					for each (var tile:GeometryTileDescriptor in tiles)
+					{
+						if (isFinite(singleTileID) && tile.tileID != singleTileID)
+							continue;
+						if (Demo.settings.filterWithinImportanceRange.value && !tile.importanceRange.contains(lockedTileMinImportance))
+							continue;
+						
+						graphics.clear();
+						graphics.lineStyle(0,0,0);
+						
+						pointBounds.copyFrom(tile.pointBounds);
+						task.dataBounds.projectCoordsTo(pointBounds, task.screenBounds);
+						
+						if (pass == 1 && Demo.settings.show_queryBounds.value)
+						{
+							// outer rectangle
+							queryBounds.copyFrom(tile.queryBounds);
+							task.dataBounds.projectCoordsTo(queryBounds, task.screenBounds);
+							graphics.beginFill(queryColor, queryAlpha);
+							drawBounds(graphics, queryBounds);
+							drawBounds(graphics, pointBounds); // hole
+							graphics.endFill();
+							
+							task.buffer.draw(tempShape);
+						}
+						
+						if (pass == 2)
+						{
+							if (Demo.settings.show_pointBounds.value)
+							{
+								// inner rectangle
+								graphics.beginFill(pointColor, pointAlpha);
+								drawBounds(graphics, pointBounds);
+								graphics.endFill();
+							}
+							
+							// inner border (always shown if either inner or outer rectangle is drawn)
+							graphics.lineStyle(1, pointColor, borderAlpha);
+							drawBounds(graphics, pointBounds);
+						
+							task.buffer.draw(tempShape);
+							
+							// draw tileID
+							bitmapText.textFormat.color = pointColor;
+							bitmapText.text = '' + tile.tileID;
+							bitmapText.x = pointBounds.getXNumericMin();
+							bitmapText.y = pointBounds.getYNumericMin();
+							bitmapText.width = pointBounds.getXCoverage();
+							bitmapText.height = pointBounds.getYCoverage();
+							colorTransform.alphaMultiplier = borderAlpha;
+							bitmapText.draw(task.buffer, null, colorTransform);
+						}
+					}
 				}
 			}
 			
+			if (locked)
+			{
+				var lockColor:Number = Demo.settings.color_lockedBounds.value;
+				graphics.clear();
+				graphics.lineStyle(2, lockColor, 1);
+				queryBounds.copyFrom(lockedTileDataBounds);
+				task.dataBounds.projectCoordsTo(queryBounds, task.screenBounds);
+				drawBounds(graphics, queryBounds)
+				task.buffer.draw(tempShape);
+			}
+			
+			///////////////////
+			
 			return progress;
 		}
+		private function drawBounds(graphics:Graphics, bounds:Bounds2D):void
+		{
+			var r:Rectangle = tempRectangle;
+			bounds.getRectangle(r);
+			graphics.drawRect(r.x, r.y, r.width, r.height);
+		}
 		
+		private var lockedTileMinImportance:Number = NaN;
+		private const lockedTileDataBounds:Bounds2D = new Bounds2D();
+		
+		private static const colorTransform:ColorTransform = new ColorTransform();
+		private static const bitmapText:BitmapText = new BitmapText();
 		private static const tempPoint:Point = new Point(); // reusable object
-		private static const r:Rectangle = new Rectangle(); // reusable object
-		/** pointBounds */ private static const pb:Bounds2D = new Bounds2D(); // reusable object
-		/** queryBounds */ private static const qb:Bounds2D = new Bounds2D(); // reusable object
+		private static const tempRectangle:Rectangle = new Rectangle(); // reusable object
+		private static const pointBounds:Bounds2D = new Bounds2D(); // reusable object
+		private static const queryBounds:Bounds2D = new Bounds2D(); // reusable object
 		private static const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		/**

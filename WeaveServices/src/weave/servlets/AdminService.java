@@ -75,6 +75,7 @@ import weave.config.WeaveContextParams;
 import weave.geometrystream.CombinedPoint;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
+import weave.geometrystream.SHPGeometryStreamUtils.GeometryStreamInfo;
 import weave.geometrystream.SQLGeometryStreamDestination;
 import weave.utils.BulkSQLLoader;
 import weave.utils.CSVParser;
@@ -1737,6 +1738,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
 
+		GeometryStreamInfo info = null;
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
         int tableId = -1;
@@ -1758,7 +1760,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			{
 				// convert shape data to streaming sql format
 				String shpfile = getUploadPath() + file + ".shp";
-				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, Arrays.asList(keyColumns));
+				info = SHPGeometryStreamUtils.convertShapefile(converter, shpfile, Arrays.asList(keyColumns));
 			}
 			converter.flushAndCommitAll();
 		}
@@ -1854,6 +1856,17 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 					PublicMetadata.DATATYPE, DataType.GEOMETRY,
 					PublicMetadata.KEYTYPE, configKeyType,
 					PublicMetadata.PROJECTION, projectionSRS
+			);
+			geomInfo.setPublicMetadata(
+				"fileName", info.fileName,
+				"tileMode", info.tileMode,
+				"fileSize", ((Number)info.fileSize).toString(),
+				"processingTime", ((Number)info.processingTime).toString(),
+				"tileAreaRatio", ((Number)info.tileAreaRatio).toString(),
+				"tilePointArea", ((Number)info.tilePointArea).toString(),
+				"tileQueryArea", ((Number)info.tileQueryArea).toString(),
+				"tileSize", ((Number)info.tileSize).toString(),
+				"totalVertices", ((Number)info.totalVertices).toString()
 			);
 			
 			if (existingGeomId == DataConfig.NULL)

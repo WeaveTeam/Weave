@@ -19,6 +19,7 @@
 
 package weave.geometrystream;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -41,9 +42,8 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 public class SHPGeometryStreamUtils
 {
-	public static void convertShapefile(GeometryStreamConverter converter, String filename, List<String> attributes) throws Exception
+	public static GeometryStreamInfo convertShapefile(GeometryStreamConverter converter, String filename, List<String> attributes) throws Exception
 	{
-		boolean debugTime = true;
 		long startTime = System.currentTimeMillis();
 		
 		ShapefileDataStore dataStore = new ShapefileDataStore(new URL("file:///"+filename));
@@ -57,15 +57,31 @@ public class SHPGeometryStreamUtils
 			dataStore.dispose();
 		}
 		
+		// need to flush now so that the info below will be correct
+		converter.flushMetadataTiles();
+		converter.flushGeometryTiles();
+		
 		long endTime = System.currentTimeMillis();
-		if (debugTime)
-			System.out.println(String.format(
-				"// file parsing took %s ms\n\"%s (%s@%skb)\": (function():*{",
-				endTime - startTime,
-				filename,
-				CombinedPoint.demo_wingedMode ? "winged" : "feathered",
-				converter.tileSize / 1024
-			));
+
+		GeometryStreamInfo info = new GeometryStreamInfo();
+		info.fileName = new File(filename).getName();
+		info.fileSize = new File(filename).length();
+		info.totalVertices = converter.totalVertices;
+		info.processingTime = endTime - startTime;
+		info.tileMode = CombinedPoint.demo_wingedMode ? "winged" : "feathered";
+		info.tileSize = converter.tileSize / 1024;
+		info.tilePointArea = converter.totalVertexArea;
+		info.tileQueryArea = converter.totalQueryArea;
+		info.tileAreaRatio = converter.totalQueryArea / converter.totalVertexArea;
+		return info;
+	}
+	
+	public static class GeometryStreamInfo
+	{
+		public String fileName, tileMode;
+		public long fileSize, processingTime;
+		public int totalVertices, tileSize;
+		public double tilePointArea, tileQueryArea, tileAreaRatio;
 	}
 
 	/**
