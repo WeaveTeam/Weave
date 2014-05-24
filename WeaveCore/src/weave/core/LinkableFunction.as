@@ -90,7 +90,7 @@ package weave.core
 				_isFunctionDefinition = false;
 				
 				if (_macroProxy == null)
-					_macroProxy = new ProxyObject(_hasMacro, _getMacro, null, evaluateMacro); // allows evaluating macros but not setting them
+					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null, callMacro); // allows evaluating macros but not setting them
 				
 				if (detectLinkableObjectChange(_getNewCompiler, macroLibraries))
 					_compiler = _getNewCompiler(true);
@@ -172,7 +172,13 @@ package weave.core
 			return macros.getObject(macroName) != null;
 		}
 		
-		private static function _getMacro(macroName:String):*
+		/**
+		 * This function evaluates a macro specified in the macros hash map,
+		 * catching and reporting any errors that are thrown.
+		 * @param macroName The name of the macro to evaluate.
+		 * @return The result of evaluating the macro.
+		 */
+		public static function evaluateMacro(macroName:String):*
 		{
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
 			if (!lf)
@@ -181,15 +187,13 @@ package weave.core
 				return lf;
 			return lf.apply();
 		}
-		
-		/**
-		 * This function evaluates a macro specified in the macros hash map,
-		 * catching and reporting any errors that are thrown.
-		 * @param macroName The name of the macro to evaluate.
-		 * @param params The parameters to pass to the macro.
-		 * @return The result of evaluating the macro.
-		 */
-		public static function evaluateMacro(macroName:String, params:Array = null):*
+		public static function callMacro(macroName:String, ...params):*
+		{
+			// error catching/reporting is handled automatically for LinkableFunctions in the macros list.
+			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
+			return lf ? lf.apply(null, params) : undefined;
+		}
+		public static function applyMacro(macroName:String, params:Array = null):*
 		{
 			// error catching/reporting is handled automatically for LinkableFunctions in the macros list.
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
