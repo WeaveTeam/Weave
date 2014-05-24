@@ -177,7 +177,7 @@ ConnectionComponent
 		{
 			// link to new static name if not static already
 			if (this.dynamicObject.globalName == null)
-				this.dynamicObject.globalName = Weave.root.generateUniqueName(className).split("::")[1];
+				this.dynamicObject.globalName = Weave.root.generateUniqueName(className).split("::").pop();
 			// link other object to the same static name
 			cc.dynamicObject.globalName = this.dynamicObject.globalName;
 			

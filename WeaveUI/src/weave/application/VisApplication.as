@@ -1137,7 +1137,7 @@ package weave.application
 		
 		private function createGlobalObject(classDef:Class, name:String = null):*
 		{
-			var className:String = getQualifiedClassName(classDef).split("::")[1];
+			var className:String = getQualifiedClassName(classDef).split("::").pop();
 
 			if (name == null)
 				name = WeaveAPI.globalHashMap.generateUniqueName(className);
