@@ -13,7 +13,7 @@
 		<![CDATA[
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
-			private const adminService:WeaveAdminService = Admin.service;
+			[Bindable] private var adminService:WeaveAdminService = Admin.service;
 		]]>
 	</mx:Script>
 </mx:VBox>

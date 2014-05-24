@@ -54,7 +54,7 @@
 			import weave.api.reportError;
 			import weave.services.Admin;
 			
-			private const admin:Admin = Admin.instance;
+			[Bindable] private var admin:Admin = Admin.instance;
 			private var dbfFileReference:FileReference = new FileReference();
 			
 			private function browseAndUploadDBFFiles():void

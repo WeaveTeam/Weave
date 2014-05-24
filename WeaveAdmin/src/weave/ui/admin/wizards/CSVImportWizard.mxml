@@ -117,7 +117,7 @@
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;
 
-			private const admin:Admin = Admin.instance;
+			[Bindable] private var admin:Admin = Admin.instance;
 			public static const NULL_FLAG_VALUES:String = '""," ",NULL,NaN,#DIV/0!,"""NULL""",-,.,..';
 			
 			private static const paddingIndent:int = 20;

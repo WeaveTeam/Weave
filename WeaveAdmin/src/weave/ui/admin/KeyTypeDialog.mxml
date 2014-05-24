@@ -57,7 +57,7 @@
 			import weave.core.UIUtils;
 			import weave.services.Admin;
 			
-			private const admin:Admin = Admin.instance;
+			[Bindable] private var admin:Admin = Admin.instance;
 			[Bindable] public var paddingIndent:int = 20;
 			[Bindable] private var _indent:Number = NaN;
 			

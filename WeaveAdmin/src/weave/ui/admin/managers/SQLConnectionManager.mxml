@@ -126,7 +126,7 @@
 			import weave.services.beans.DatabaseConfigInfo;
 			import weave.utils.PopUpUtils;
 
-			private const admin:Admin = Admin.instance;
+			[Bindable] private var admin:Admin = Admin.instance;
 			
 			[Bindable]
 			private var serverConfigEntryWasModified:Boolean = false;
