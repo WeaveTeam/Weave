@@ -36,7 +36,7 @@
 				<mx:List id="macroList" width="100%" height="100%" change="setSelectedMacro(macroList.selectedItem as LinkableFunction)"/>
 			</mx:VBox>
 			<mx:VDividedBox width="85%" height="100%" visible="{macroList.selectedItem}" includeInLayout="{macroList.selectedItem}">
-				<ui:CodeEditor id="editor" change="handleMacroInput()"/>
+				<ui:CodeEditor id="editor" change="updateMacroLater(selectedMacro)"/>
 				<mx:HBox width="100%">
 					<mx:VBox>
 						<mx:Button id="testButton" label="{lang('Test macro')}" click="testMacro(true)"/>
@@ -120,10 +120,12 @@
 					editor.text = '';
 				}
 			}
-			private function handleMacroInput():void
+			private var updateMacroLater:Function = EventUtils.generateDelayedCallback(this, updateMacroNow, 500, true);
+			
+			private function updateMacroNow(macro:LinkableFunction):void
 			{
-				if (selectedMacro)
-					selectedMacro.value = editor.text;
+				if (macro && macro == selectedMacro)
+					macro.value = editor.text;
 			}
 			
 			private function newMacro():void
