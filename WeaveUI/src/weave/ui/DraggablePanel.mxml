@@ -47,6 +47,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -74,6 +76,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.compiler.StandardLib;
+			import weave.core.ClassUtils;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
@@ -1591,6 +1594,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public static function openStaticInstance(draggablePanelClass:Class):*
 			{
+				var qname:String = getQualifiedClassName(draggablePanelClass);
+				var dpqname:String = getQualifiedClassName(DraggablePanel);
+				if (!ClassUtils.classExtends(qname, dpqname))
+					throw new Error(qname + " does not extend " + dpqname);
+				
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
 				{

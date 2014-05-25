@@ -24,11 +24,26 @@
 		 xmlns:ui="weave.ui.*"
 		 width="100%" 
 		 height="100%">
-	
-	<ui:Indent grouped="false" label="{lang('Selection mode')}">
-		<mx:ComboBox dataProvider="{(function():*{return InteractionController.enumSelectionMode();}())}"
-					 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
-	</ui:Indent>
+
+	<ui:CheckBoxWithNestedOptions label="{lang('Enable selection in visualizations')}"
+					   creationComplete="linkBindableProperty(Weave.properties.enableToolSelection, event.target, 'selected');">
+		<ui:Indent grouped="false" label="{lang('Selection mode')}">
+			<mx:ComboBox dataProvider="{(function():*{return InteractionController.enumSelectionMode();}())}"
+						 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
+		</ui:Indent>
+		<ui:Indent grouped="false" label="{lang('Dashed line parameters')}">
+			<ui:HelpComponent>
+				Enter a series of numbers separated by commas to be used as alternating line length and gap values.
+			</ui:HelpComponent>
+			<mx:TextInput creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, event.target, 'text');"/>
+			<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.dashedSelectionColor, event.target, 'selectedColor');"/>
+			<mx:Canvas id="dashedCanvas"
+					   height="100%"
+					   width="100%"
+					   resize="drawDashedLinePreview()"
+					   />
+		</ui:Indent>
+	</ui:CheckBoxWithNestedOptions>
 	
 	<mx:HBox>
 		<mx:CheckBox id="showSelectedRecordsText"
@@ -68,18 +83,6 @@
 						   />
 	</ui:Indent>
 	
-	<ui:Indent grouped="false" label="{lang('Dashed line parameters')}">
-		<ui:HelpComponent>
-			Enter a series of numbers separated by commas to be used as alternating line length and gap values.
-		</ui:HelpComponent>
-		<mx:TextInput creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, event.target, 'text');"/>
-		<mx:Canvas id="dashedCanvas"
-				   height="100%"
-				   width="100%"
-				   resize="drawDashedLinePreview()"
-				   />
-	</ui:Indent>
-	
 	<mx:Script>
 		<![CDATA[
 			import com.cartogrammar.drawing.DashedLine;
@@ -92,6 +95,7 @@
 			{
 				super.childrenCreated();
 				
+				Weave.properties.dashedSelectionColor.addGroupedCallback(this, drawDashedLinePreview, true);
 				Weave.properties.dashedSelectionBox.addGroupedCallback(this, drawDashedLinePreview, true);
 			}
 			
@@ -101,7 +105,7 @@
 				_dashedLine.graphics = dashedCanvas.graphics;
 				_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 				_dashedLine.clear();
-				_dashedLine.lineStyle(4, 0x00ff00, 1);
+				_dashedLine.lineStyle(4, Weave.properties.dashedSelectionColor.value, 1);
 
 				var xStart:Number = 5;
 				var yStart:Number = 10;
