@@ -183,6 +183,8 @@ package weave.core
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
 			if (!lf)
 				return undefined;
+			if (lf._triggerCount != lf.triggerCounter)
+				lf.validate();
 			if (lf._isFunctionDefinition)
 				return lf;
 			return lf.apply();
