@@ -7,6 +7,7 @@ package weave.data.DataSources
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
     import weave.api.data.IColumnReference;
+    import weave.api.data.IAttributeColumn;
     import weave.api.getCallbackCollection;
     import weave.api.registerLinkableChild;
     import weave.api.newLinkableChild;
@@ -17,37 +18,206 @@ package weave.data.DataSources
     import weave.core.LinkableVariable;
     import weave.core.SessionManager;
     import weave.data.AttributeColumns.ProxyColumn;
+    import weave.core.ClassUtils;
 
     public class GraphMLDataSource extends AbstractDataSource
     {
         WeaveAPI.registerImplementation(IDataSource, GraphMLDataSource, "GraphML file");
 
-        public const nodeColumns:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLDataChange);
-        public const edgeColumns:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLDataChange);
-        public const nodeKeyColumnName:LinkableString = newLinkableChild(this, LinkableString, handleGraphMLDataChange);
-        public const edgeLayerColumnName:LinkableString = newLinkableChild(this, LinkableString, handleGraphMLDataChange);
+        private const COLUMNTYPE_META:String = "__ColumnType__";
+        private const COLUMNLAYER_META:String = "__ColumnLayer__";
 
-        private var _rootNode:IWeaveTreeNode;
+        public const nodeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLDataChange);
+        public const edgeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLDataChange);
+
+        public const nodeKeyPropertyName:LinkableString = newLinkableChild(this, LinkableString, handleNodeKeyPropertyChange);
+        public const edgeKeyPropertyName:LinkableString = newLinkableChild(this, LinkableString, handleEdgeKeyPropertyChange);
+
+        public const nodeLayerPropertyName:LinkableString = newLinkableChild(this, LinkableString, handleNodeLayeringChange);
+        public const edgeLayerPropertyName:LinkableString = newLinkableChild(this, LinkableString, handleEdgeLayeringChange);
+
+        [Bindable] var nodeKeyIsValid:Boolean = false;
+
+        /* Computed values */
+
+        public var nodeLayers:Object = {};
+        public var edgeLayers:Object = {};
+        public var nodeLayerNames:Array = [];
+        public var edgeLayerNames:Array = [];
+
+        private var nodeKeyToId:Object = {};
+        private var nodeIdToKey:Object = {};
+
+        private var edgeKeyToId:Object = {};
+        private var edgeIdToKey:Object = {};
+
+        public var nodeProperties:Array = [];
+        public var edgeProperties:Array = [];
 
         public function GraphMLDataSource()
-        {   
-
-        }
-
-        public function handleGraphMLDataChange():void
         {
 
         }
+
+
+
+
+        /* Overrides from AbstractDataSource */
+
+        override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+        {
+            if (!metadata)
+                return null;
+            return null;
+        }
+        
+
+        override protected function requestHierarchyFromSource(subtreeNode:XML = null):void 
+        {
+
+        }
+        override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void 
+        {
+
+        }
+        
+        /* Implements from IDataSource */
 
         override public function getHierarchyRoot():IWeaveTreeNode
         {
-            if (!(_rootNode is GraphMLSourceNode))
+            if (!(_rootNode is GraphMLGraphNode))
             {
-                _rootNode = new GraphMLSourceNode(this, GraphMLSourceNode.GRAPH_NODETYPE, "");
+                _rootNode = new GraphMLGraphNode(this);
             }
+
+            return _rootNode;
         }
 
-        static public function transposeTable(table:Array, keys:Array):Object
+        override public function findHierarchyNode(metadata:Object):IWeaveTreeNode
+        {
+            return null;
+        }
+
+
+        override public function getAttributeColumn(metadata:Object):IAttributeColumn
+        {
+            return null;
+        }
+
+        /* Local logic */
+
+        private function handleNodeLayeringChange():void
+        {
+            var nodes:Array = nodeColumnData.getSessionState() as Array;
+            if (!nodes) return;
+
+            nodeLayers = partitionElements(nodes, nodeLayerPropertyName.value);
+        }
+
+        private function handleEdgeLayeringChange():void
+        {
+            var edges:Array = edgeColumnData.getSessionState() as Array;
+            if (!edges) return;
+
+            edgeLayers = partitionElements(edges, edgeLayerPropertyName.value);
+        }
+
+        private function handleNodeKeyPropertyChange():void
+        {
+            nodeKeyToId = {};
+            nodeIdToKey = {};
+
+            if (!handleKeyPropertyChange(nodeKeyPropertyName, nodeKeyToId, nodeIdToKey))
+            {
+                nodeKeyToId = {};
+                nodeIdToKey = {};
+            }
+
+            return;
+        }
+        private function handleEdgeKeyPropertyChange():void
+        {
+            edgeKeyToId = {};
+            edgeIdToKey = {};
+
+            if (!handleKeyPropertyChange(edgeKeyPropertyName, edgeKeyToId, edgeIdToKey))
+            {
+                edgeKeyToId = {};
+                edgeIdToKey = {};
+            }
+
+            return;
+        }
+
+        private function handleKeyPropertyChange(keyPropertyName:LinkableString, keyToIdMappings:Object, idToKeyMappings:Object):Boolean
+        {
+            var idx:int;
+            var id:String;
+            var value:String;
+            var property:String = nodeKeyPropertyName.value;
+            var nodes:Array = nodeColumnData.getSessionState() as Array;
+
+            for (idx = nodes.length - 1; idx >= 0; idx--)
+            {
+                value = nodes[idx][property];
+                id = nodes[idx][GraphMLConverter.ID];
+                if (keyToIdMappings[value] !== undefined) return false;
+                keyToIdMappings[value] = id;
+                idToKeyMappings[id] = value;
+            }            
+            return true;
+        }
+
+        private function handleGraphMLDataChange():void
+        {
+            handleNodeLayeringChange();
+            handleEdgeLayeringChange();
+
+            handleNodeKeyPropertyChange();
+            handleEdgeKeyPropertyChange();
+        }
+
+        private function testKeyUniqueness(objects:Array, propertyName:String):Boolean
+        {
+            var values:Object = {};
+            var idx:int;
+            for (idx = objects.length - 1; idx >= 0; idx--)
+            {
+                var value:String = objects[idx][propertyName];
+                if (values[value])
+                    return false;
+                values[value] = true;
+            }
+            return true;
+        }
+
+        private function translateReferences(idToKeyMappings:Object, values:Array):Array
+        {
+            return values.map(function(item) { return idToKeyMappings[item]; });
+        }
+
+        private function partitionElements(elements:Array, propertyName:String):Object
+        {
+            var idx:int;
+            var partitions:Object = {};
+            var element:Object, partition:Object;
+
+            for (idx = elements.length - 1; idx>=0; idx--)
+            {
+                element = elements[idx];
+
+                if (partitions[element[propertyName]] === undefined)
+                    partitions[element[propertyName]] = new Array();
+
+                partition = partitions[element[propertyName]];
+                
+                partition.push(element[GraphMLConverter.ID]);
+            }
+            
+            return partitions;
+        }
+
+        static private function transposeTable(table:Array, keys:Array):Object
         {
             var columns:Object = {};
             var table_length:int = table.length;
@@ -66,12 +236,13 @@ package weave.data.DataSources
             return columns;
         }
 
-        public function setFile(content):void
+        public function setFile(content:Object):void
         {
-            var results:Object = GraphMLConverter.parse(content);
+            var results:Object = GraphMLConverter.parse(content as XML);
 
-            nodeColumns.setSessionState(transposeTable(results.nodes, results.nodeKeys));
-            edgeColumns.setSessionState(transposeTable(results.edges, results.edgeKeys));
+            // Store results.nodeKeys and results.edgeKeys somewhere
+            nodeColumnData.setSessionState(results.nodes);
+            edgeColumnData.setSessionState(results.edges);
         }
     }
 }
@@ -83,59 +254,221 @@ import weave.api.data.IDataSource;
 import weave.api.data.IWeaveTreeNode;
 import weave.api.data.IColumnReference;
 import weave.data.DataSources.GraphMLDataSource;
+import flare.data.converters.GraphMLConverter;
 
-internal class GraphMLSourceNode implements IWeaveTreeNode, IColumnReference {
+internal class GraphMLGraphNode implements IWeaveTreeNode
+{
+    private var _source:GraphMLDataSource;
+    private var children:Array = null;
 
-    public const GRAPH_NODETYPE:int = 0;
-    public const NODETABLE_NODETYPE:int = 1;
-    public const NODECOLUMN_NODETYPE:int = 2;
-    public const EDGETABLE_NODETYPE:int = 3;
-    public const EDGECOLUMN_NODETYPE:int = 4;
-
-    private var source:GraphMLDataSource;
-    private var columnId:String;
-    private var nodeType:int;
-
-    public function GraphMLSourceNode(source:GraphMLDataSource, nodeType:int, columnId:String)
+    public function get source():GraphMLDataSource
     {
-        this.source = source;
-        this.nodeType = nodeType;
-        this.columnId = columnId;
+        return _source;
+    }
+    public function GraphMLGraphNode(source:GraphMLDataSource)
+    {
+        this._source = source;
     }
 
     public function equals(other:IWeaveTreeNode):Boolean
     {
-        var that:GraphMLSourceNode = other as GraphMLSourceNode;
-        return !!that && 
-                this.source == that.source &&
-                this.columnId == that.columnId;
+        var that:GraphMLGraphNode = other as GraphMLGraphNode;
+        return !!that && this.source == that.source;
+    }
+    
+    public function hasChildBranches():Boolean {return true;}
+
+    public function isBranch():Boolean {return true;}
+    
+    public function getChildren():Array
+    {
+        if (children == null)
+        {
+            children = 
+            [
+                new GraphMLGroupNode(this, GraphMLConverter.NODE, source.nodeLayerPropertyName.value),
+                new GraphMLGroupNode(this, GraphMLConverter.NODE, source.edgeLayerPropertyName.value)
+            ];
+        }
+        return children;
     }
 
-    public function isBranch():Boolean
+    public function getLabel():String
     {
-        return nodeType == NODETABLE_NODETYPE || nodeType == EDGETABLE_NODETYPE || nodeType == GRAPH_NODETYPE;
+        return WeaveAPI.globalHashMap.getName(source);
     }
-    public function hasChildBranches():Boolean 
+}
+
+internal class GraphMLGroupNode implements IWeaveTreeNode 
+{
+    private var _graph:GraphMLGraphNode;
+    private var _group:String;
+    private var _filterColumn:String;
+    private var children:Array = null;
+    
+    public function get group():String
     {
-        return nodeType == GRAPH_NODETYPE;
+        return _group;
     }
+    public function get filterColumn():String
+    {
+        return _filterColumn;
+    }
+    public function get graph():GraphMLGraphNode
+    {
+        return _graph;
+    }
+
+    public function GraphMLGroupNode(graph:GraphMLGraphNode, group:String, filterColumn:String)
+    {
+        _graph = graph;
+        _group = group;
+        _filterColumn = filterColumn;
+    }
+
+    public function isNodeGroup():Boolean
+    {
+        return GraphMLConverter.NODE == group; 
+    }
+
+    public function equals(other:IWeaveTreeNode):Boolean
+    {
+        var that:GraphMLGroupNode = other as GraphMLGroupNode;
+        return !!that && 
+                this.graph.equals(that.graph) &&
+                this.filterColumn == that.filterColumn &&
+                this.group == that.group;
+    }
+
+    public function isBranch():Boolean { return true; }
+
+    public function hasChildBranches():Boolean { return true; }
+    
     public function getChildren():Array 
-    { 
-        return [];
+    {
+        if (children == null)
+        {
+            children = [];
+            var layers:Array = isNodeGroup() ? graph.source.nodeLayerNames : graph.source.edgeLayerNames;
+            for (var idx:int = layers.length - 1; idx >= 0; idx--)
+            {
+                children.push(new GraphMLLayerNode(this, layers[idx]));
+            }
+        }
+        return children;
     }
     public function getLabel():String
     {
-        return "";
+        return isNodeGroup() ? lang("Nodes") : lang("Edges");
+    }
+}
+
+internal class GraphMLLayerNode implements IWeaveTreeNode 
+{
+    private var _group:GraphMLGroupNode;
+    private var _filterValue:String;
+    private var children:Array;
+
+    public function get filterValue():String
+    {
+        return _filterValue;
+    }
+    public function get group():GraphMLGroupNode
+    {
+        return _group;
+    }
+
+
+    public function GraphMLLayerNode(group:GraphMLGroupNode, filterValue:String)
+    {
+        _group = group;
+        _filterValue = filterValue;
+    }
+
+    public function equals(other:IWeaveTreeNode):Boolean
+    {
+        var that:GraphMLLayerNode = other as GraphMLLayerNode;
+        return !!that && 
+                this.group.equals(that.group) &&
+                this._filterValue == that._filterValue;
+    }
+
+    public function isBranch():Boolean { return true; }
+    public function hasChildBranches():Boolean { return true; }
+    
+    public function getChildren():Array 
+    { 
+        if (children == null)
+        {
+            children = [];
+            var columns:Array = group.isNodeGroup() ? group.graph.source.nodeProperties : group.graph.source.edgeProperties;
+
+            for (var idx:int = columns.length - 1; idx >= 0; idx--)
+            {
+                children.push(new GraphMLColumnNode(this, columns[idx]));
+            }
+        }
+        return children;
+    }
+
+    public function getLabel():String
+    {
+        return lang("Layer") + ": " + filterValue;
+    }
+}
+
+
+internal class GraphMLColumnNode implements IWeaveTreeNode, IColumnReference {
+    private var _layer:GraphMLLayerNode;
+    private var _columnName:String;
+
+    public function get layer():GraphMLLayerNode
+    {
+        return _layer;
+    }
+    public function get columnName():String
+    {
+        return _columnName;
+    }
+
+    public function GraphMLColumnNode(layer:GraphMLLayerNode, columnName:String)
+    {
+        this._layer = layer;
+        this._columnName = columnName;
+    }
+
+    public function equals(other:IWeaveTreeNode):Boolean
+    {
+        var that:GraphMLColumnNode = other as GraphMLColumnNode;
+        return !!that &&
+                 this.layer.equals(that.layer) &&
+                 this.columnName == that.columnName;
+
+    }
+
+    public function isBranch():Boolean { return false; }
+    public function hasChildBranches():Boolean { return false; }
+    public function getChildren():Array { return null; }
+
+    public function getLabel():String
+    {
+        return columnName;
     }
 
     public function getDataSource():IDataSource 
-    { 
-        return source; 
+    {
+        return layer.group.graph.source;
     }
     
     public function getColumnMetadata():Object 
-    { 
-        return {}; 
-    }
+    {
+        var metadata:Object = {
+            column: columnName,
+            filterValue: layer.filterValue,
+            group: layer.group.group,
+            filterColumn: layer.group.filterColumn
+        };
 
+        return metadata;
+    }
 }

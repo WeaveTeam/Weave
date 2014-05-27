@@ -171,26 +171,26 @@ package flare.data.converters
         //    +" http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">"
         //    +"</graphml>";
         
-        private static const GRAPHML:String    = "graphml";
-        private static const ID:String         = "id";
-        private static const GRAPH:String      = "graph";
-        private static const EDGEDEF:String    = "edgedefault";
-        private static const DIRECTED:String   = "directed";
-        private static const UNDIRECTED:String = "undirected";
+        public static const GRAPHML:String    = "graphml";
+        public static const ID:String         = "id";
+        public static const GRAPH:String      = "graph";
+        public static const EDGEDEF:String    = "edgedefault";
+        public static const DIRECTED:String   = "directed";
+        public static const UNDIRECTED:String = "undirected";
         
-        private static const KEY:String        = "key";
-        private static const FOR:String        = "for";
-        private static const ALL:String        = "all";
-        private static const ATTRNAME:String   = "attr.name";
-        private static const ATTRTYPE:String   = "attr.type";
-        private static const DEFAULT:String    = "default";
+        public static const KEY:String        = "key";
+        public static const FOR:String        = "for";
+        public static const ALL:String        = "all";
+        public static const ATTRNAME:String   = "attr.name";
+        public static const ATTRTYPE:String   = "attr.type";
+        public static const DEFAULT:String    = "default";
         
-        private static const NODE:String   = "node";
-        private static const EDGE:String   = "edge";
-        private static const SOURCE:String = "source";
-        private static const TARGET:String = "target";
-        private static const DATA:String   = "data";
-        private static const TYPE:String   = "type";
+        public static const NODE:String   = "node";
+        public static const EDGE:String   = "edge";
+        public static const SOURCE:String = "source";
+        public static const TARGET:String = "target";
+        public static const DATA:String   = "data";
+        public static const TYPE:String   = "type";
         
     } // end of class GraphMLConverter
 }
