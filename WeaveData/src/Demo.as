@@ -25,6 +25,7 @@ package
 		public const show_border:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const show_content:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const show_overlap:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const show_rectangles:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public static function get settings():Demo { return _demo || (_demo = new Demo()); }
 		private static var _demo:Demo;

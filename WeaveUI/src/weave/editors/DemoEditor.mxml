@@ -40,6 +40,7 @@
 		<ui:ColorEditor label="Content" creationComplete="event.target.link(Demo.settings.show_content, Demo.settings.color_content, Demo.settings.alpha_content)"/>
 		<ui:ColorEditor label="Overlap" creationComplete="event.target.link(Demo.settings.show_overlap, Demo.settings.color_overlap, Demo.settings.alpha_overlap)"/>
 		<ui:ColorEditor label="Locked area" creationComplete="event.target.link(null, Demo.settings.color_locked, null)"/>
+		<ui:CustomCheckBox label="Show all query borders" width="100%" creationComplete="linkBindableProperty(Demo.settings.show_rectangles, event.target, 'selected')"/>
 	</mx:VBox>
 	
 	<mx:Script>
