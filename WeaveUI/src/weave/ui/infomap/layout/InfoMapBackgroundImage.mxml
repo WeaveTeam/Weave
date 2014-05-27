@@ -4,17 +4,23 @@
 		   width="150" height="150" horizontalScrollPolicy="off"
 		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
 		   implements="weave.api.core.ILinkableObject" mouseDown="dragStartHandler(event)"
-		   mouseUp="dragStopHandler(event)" verticalScrollPolicy="off">
+		   mouseUp="dragStopHandler(event)" verticalScrollPolicy="off" rollOver="rollOverHandler(event)" rollOut="rollOutHandler(event)"
+		   resize="adjustImageResize(event)">
 	<mx:Script>
 		<![CDATA[
+			import mx.core.mx_internal;
+			import mx.events.ResizeEvent;
 			import mx.utils.Base64Decoder;
 			
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.visualization.layers.InteractiveVisualization;
@@ -32,6 +38,19 @@
 			private var decoder:Base64Decoder = new Base64Decoder();
 			private var bitmapLoader:Loader = null;
 			private var handCursorID:int = -1;
+			private var storedBitmapData:BitmapData = null;
+			
+			private var _rightSideResize:Boolean = false;
+			private var _leftSideResize:Boolean = false;
+			private var _topSideResize:Boolean = false;
+			private var _bottomResize:Boolean = false;
+			private var _resizing:Boolean = false;
+			private var _dragging:Boolean = false;
+			private var _rightSideBeforeLeftResize:int = 0;
+			private var _bottomSideBeforeTopResize:int = 0;
+			private var _mouseRolledOver:Boolean = false;
+			
+			private static var _resizeSideBuffer:int = 5;
 			
 			//we override the x,y value because we are binding the values to LinkableNumber 
 			//which could be NaN when component loads for the first time
@@ -60,6 +79,7 @@
 				linkBindableProperty(yPos,this,"y");
 				linkBindableProperty(imageWidth,this,"width");
 				linkBindableProperty(imageHeight,this,"height");
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 			}
 			
 			private function handleImageString():void
@@ -90,20 +110,201 @@
 				var loaderInfo:LoaderInfo = LoaderInfo(event.target);
 				var imgBitMap:Bitmap = Bitmap(loaderInfo.content);
 				
+				storedBitmapData = imgBitMap.bitmapData;
+				
 				BitmapUtils.drawCenteredIcon(this.graphics,this.width/2,this.height/2,imgBitMap.bitmapData);
-			}
-			
-			protected function dragStartHandler(event:MouseEvent):void
-			{
-				event.stopImmediatePropagation();
-				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
-				this.startDrag();
 			}
 			
 			protected function dragStopHandler(event:MouseEvent):void
 			{
 				CustomCursorManager.removeCursor(handCursorID);
 				this.stopDrag();
+				_dragging = false;
+				_resizing = false;
+			}
+			
+			private function dragStartHandler(event:MouseEvent):void
+			{				
+				_leftSideResize = false;
+				_rightSideResize = false;
+				_topSideResize = false;
+				_bottomResize = false;				
+				var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
+				
+				if (status.R)
+					_rightSideResize = true;
+				else if (status.L)
+				{
+					_rightSideBeforeLeftResize = this.x + this.width;
+					_leftSideResize = true;
+				}
+				
+				
+				if (status.B)
+					_bottomResize = true;
+				else if (status.T)
+				{
+					_bottomSideBeforeTopResize = this.y + this.height;
+					_topSideResize = true;
+				}
+				
+				if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
+				{
+					_resizing = true;
+					event.stopImmediatePropagation();
+				}
+				else
+				{
+					_resizing = false;
+					_dragging = true;
+					handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
+					this.startDrag();
+				}
+				event.stopImmediatePropagation();
+			}
+			
+			/**
+			 * getResizeStatus
+			 * Returns a set of Boolean values corresponding to which sides (top,left,bottom,right) should be resized.
+			 * @param stageX The current stage X mouse coordinate.
+			 * @param stageY The current stage Y mouse coordinate.
+			 * @return An object containing the following properties: T,L,B,R,TL,TR,BL,BR,resizing
+			 */
+			private function getResizeStatus(stageX:Number, stageY:Number):Object
+			{
+				var local:Point = globalToLocal(new Point(stageX, stageY));
+				var o:Object = new Object();
+				
+				// get side status values
+				o.L = local.x <= _resizeSideBuffer;
+				o.R = local.x >= this.width - _resizeSideBuffer;
+				o.T = local.y <= _resizeSideBuffer;
+				o.B = local.y >= this.height - _resizeSideBuffer;
+				
+				// get side status values for 4x the border thickness (to mimic Windows' corner resize behavior)
+				var L4:Boolean = local.x <= _resizeSideBuffer * 4;
+				var R4:Boolean = local.x >= this.width - _resizeSideBuffer * 4;
+				var T4:Boolean = local.y <= _resizeSideBuffer * 4;
+				var B4:Boolean = local.y >= this.height - _resizeSideBuffer * 4;
+				// corner status is true if mouse is within a square of 4x the border thickness and at least one corresponding side status is true
+				o.TL = (T4 && L4) && (o.T || o.L);
+				o.TR = (T4 && R4) && (o.T || o.R);
+				o.BL = (B4 && L4) && (o.B || o.L);
+				o.BR = (B4 && R4) && (o.B || o.R);
+				// status for individual sides should be or'd with relevant corner status values
+				o.T |= o.TL || o.TR;
+				o.L |= o.TL || o.BL;
+				o.B |= o.BL || o.BR;
+				o.R |= o.TR || o.BR;
+				
+				// not resizing when coordinates are outside the window
+				if (!_mouseRolledOver)
+					o.T = o.TL = o.L = o.BL = o.B = o.BR = o.R = o.TR = false;
+				
+				// we are resizing if we are in the resize area for the top, left, bottom or right
+				o.resizing = (o.T || o.L || o.B || o.R);
+				
+				return o;
+			}
+			
+			protected function rollOverHandler(event:MouseEvent):void
+			{
+				_mouseRolledOver = true;
+				
+				if (_resizing)
+					event.stopImmediatePropagation();
+			}
+			
+			protected function rollOutHandler(event:MouseEvent):void
+			{
+				_mouseRolledOver = false;
+				
+				if (_resizing)
+					event.stopImmediatePropagation();
+				else
+					CustomCursorManager.removeCursor(handCursorID);
+			}
+			
+			private function handleStageMouseMove(event:MouseEvent):void
+			{
+				// make sure cursors dont keep changing while resizing:  !_resizing
+				if (parent && !_resizing)
+				{
+					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
+					var resizeCursorName:String = null;
+					// check to see if the mouse is in the top left (TL) or bottom right (BR) corner
+					if (status.TL || status.BR)
+						resizeCursorName = DraggablePanel.CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT;
+						// check to see if the mouse is in the top right (TR) or bottom left (BL) corner
+					else if (status.TR || status.BL)
+						resizeCursorName = DraggablePanel.CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT;
+						// check to see if the mouse is on the left or right side (LR)
+					else if (status.L || status.R)
+						resizeCursorName = DraggablePanel.CURSOR_RESIZE_LEFT_RIGHT;
+						// check to see if the mouse is on the top or bottom side
+					else if (status.T || status.B)
+						resizeCursorName = DraggablePanel.CURSOR_RESIZE_TOP_BOTTOM;
+					
+					CustomCursorManager.removeCursor(handCursorID);
+					if ( resizeCursorName!= null && !event.buttonDown)
+					{						
+						try
+						{
+							handCursorID = CustomCursorManager.showCursor(resizeCursorName);
+						}
+						catch (e:Error)
+						{
+							handCursorID = -1;
+							reportError(e);
+						}
+					}
+				}
+				
+				if (_dragging || _resizing)
+					event.stopImmediatePropagation();
+				
+				handleThrottledMouseMove();
+			}
+			
+			private function handleThrottledMouseMove():void
+			{	
+				if( parent == null )
+					return;
+				
+				var parentMousePoint:Point = new Point(parent.mouseX, parent.mouseY);
+	
+				if (_resizing)
+				{
+					if (_rightSideResize)
+					{
+						this.width = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (parent.width - this.x) );
+					}
+					else if (_leftSideResize)
+					{
+						this.x = StandardLib.constrain( (parentMousePoint.x), 0, _rightSideBeforeLeftResize - minWidth );
+						this.width = (_rightSideBeforeLeftResize - this.x);
+					}
+					if (_bottomResize)
+					{
+						this.height = StandardLib.constrain( (parentMousePoint.y - this.y), minHeight, (parent.height - this.y) );
+					}
+					else if (_topSideResize)
+					{
+						this.y = StandardLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
+						this.height = (_bottomSideBeforeTopResize - this.y);
+					}
+				}
+			}
+			
+			private var scaledBitmapData:BitmapData = null;
+			protected function adjustImageResize(event:ResizeEvent):void
+			{
+				if(storedBitmapData != null && this.width != 0 && this.height != 0)
+				{
+					this.graphics.clear();
+					scaledBitmapData = BitmapUtils.resizeBitmapData(storedBitmapData,this.width, this.height);
+					BitmapUtils.drawCenteredIcon(this.graphics,this.width/2,this.height/2,scaledBitmapData);
+				}
 			}
 			
 		]]>
