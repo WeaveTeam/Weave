@@ -112,6 +112,8 @@
 				
 				storedBitmapData = imgBitMap.bitmapData;
 				
+				this.height = imgBitMap.bitmapData.height;
+				this.width = imgBitMap.bitmapData.width;
 				BitmapUtils.drawCenteredIcon(this.graphics,this.width/2,this.height/2,imgBitMap.bitmapData);
 			}
 			
@@ -219,7 +221,7 @@
 			{
 				_mouseRolledOver = false;
 				
-				if (_resizing)
+				if (_resizing && event.buttonDown)
 					event.stopImmediatePropagation();
 				else
 					CustomCursorManager.removeCursor(handCursorID);
@@ -228,11 +230,10 @@
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
 				// make sure cursors dont keep changing while resizing:  !_resizing
-				if (parent && !_resizing)
+				if (parent && !_resizing && _mouseRolledOver)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
 					var resizeCursorName:String = null;
-					// check to see if the mouse is in the top left (TL) or bottom right (BR) corner
 					if (status.TL || status.BR)
 						resizeCursorName = DraggablePanel.CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT;
 						// check to see if the mouse is in the top right (TR) or bottom left (BL) corner
@@ -259,16 +260,21 @@
 						}
 					}
 				}
+				else
+					CustomCursorManager.removeCursor(handCursorID);
 				
 				if (_dragging || _resizing)
 					event.stopImmediatePropagation();
 				
-				handleThrottledMouseMove();
+				handleThrottledMouseMove(event);
 			}
 			
-			private function handleThrottledMouseMove():void
+			private function handleThrottledMouseMove(event:MouseEvent):void
 			{	
 				if( parent == null )
+					return;
+				
+				if(!event.buttonDown)
 					return;
 				
 				var parentMousePoint:Point = new Point(parent.mouseX, parent.mouseY);
@@ -304,6 +310,8 @@
 					this.graphics.clear();
 					scaledBitmapData = BitmapUtils.resizeBitmapData(storedBitmapData,this.width, this.height);
 					BitmapUtils.drawCenteredIcon(this.graphics,this.width/2,this.height/2,scaledBitmapData);
+					this.height = scaledBitmapData.height;
+					this.width = scaledBitmapData.width;
 				}
 			}
 			
