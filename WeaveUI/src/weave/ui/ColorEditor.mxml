@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:Indent xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.*"
+		 horizontalGap="2"
+		 >
+	<ui:CustomCheckBox id="checkBox" label="{label}"/>
+	<ui:TextInputWithPrompt id="textInput" width="52" valueCommit="handleColor(textInput.text)" fontFamily="_typewriter" fontSize="11"/>
+	<ui:CustomColorPicker id="colorPicker" change="handleColor(colorPicker.selectedColor);"/>
+	<mx:NumericStepper id="alphaStepper" width="54" stepSize="0.05" minimum="0.05" maximum="1"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			
+			import weave.api.linkBindableProperty;
+			import weave.api.reportError;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				useFirstChildAsLabel = true;
+				showhide(textInput, false); // textInput buggy
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
+			private function showhide(component:UIComponent, value:Boolean):Boolean
+			{
+				return component.includeInLayout = component.visible = value;
+			}
+			
+			public function link(enable:LinkableBoolean, color:LinkableNumber, alpha:LinkableNumber = null):void
+			{
+				if (enable)
+					linkBindableProperty(enable, checkBox, 'selected');
+				showhide(checkBox, useFirstChildAsLabel = !!enable);
+				
+				if (color)
+					linkBindableProperty(color, colorPicker, 'selectedColor');
+				
+				if (alpha)
+					linkBindableProperty(alpha, alphaStepper, 'value', 100);
+				showhide(alphaStepper, !!alpha);
+			}
+			
+			private function handleColor(value:*):void
+			{
+				try
+				{
+					if (value is String)
+					{
+						value = Number("0x" + value);
+						colorPicker.selectedColor = value;
+					}
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+					value = colorPicker.selectedColor;
+				}
+				textInput.text = StandardLib.numberToBase(value, 16, 6).toUpperCase();
+			}
+		]]>
+	</mx:Script>
+</ui:Indent>

@@ -494,14 +494,19 @@ package weave.visualization.plotters
 				lockedTileDataBounds.copyFrom(task.dataBounds);
 			}
 			
-			var showDemoBounds:Boolean = Demo.settings.show_pointBounds.value || Demo.settings.show_queryBounds.value;
+			var showDemoBounds:Boolean =
+				Demo.settings.show_border.value ||
+				Demo.settings.show_content.value ||
+				Demo.settings.show_overlap.value;
 			if (progress == 1 && showDemoBounds)
 			{
 				var borderAlpha:Number = Demo.settings.alpha_border.value;
-				var queryAlpha:Number = Demo.settings.alpha_queryBounds.value;
-				var pointAlpha:Number = Demo.settings.alpha_pointBounds.value;
-				var queryColor:Number = Demo.settings.color_queryBounds.value;
-				var pointColor:Number = Demo.settings.color_pointBounds.value;
+				var contentAlpha:Number = Demo.settings.alpha_content.value;
+				var overlapAlpha:Number = Demo.settings.alpha_overlap.value;
+				
+				var borderColor:Number = Demo.settings.color_border.value;
+				var contentColor:Number = Demo.settings.color_content.value;
+				var overlapColor:Number = Demo.settings.color_overlap.value;
 				
 				// draw tile borders
 				var singleTileID:Number = Demo.settings.show_singleTileID.value;
@@ -518,17 +523,18 @@ package weave.visualization.plotters
 						graphics.clear();
 						graphics.lineStyle(0,0,0);
 						
-						pointBounds.copyFrom(tile.pointBounds);
-						task.dataBounds.projectCoordsTo(pointBounds, task.screenBounds);
+						content.copyFrom(tile.pointBounds);
+						task.dataBounds.projectCoordsTo(content, task.screenBounds);
 						
-						if (pass == 1 && Demo.settings.show_queryBounds.value)
+						if (pass == 1 && Demo.settings.show_overlap.value)
 						{
+							overlap.copyFrom(tile.queryBounds);
+							task.dataBounds.projectCoordsTo(overlap, task.screenBounds);
+							
 							// outer rectangle
-							queryBounds.copyFrom(tile.queryBounds);
-							task.dataBounds.projectCoordsTo(queryBounds, task.screenBounds);
-							graphics.beginFill(queryColor, queryAlpha);
-							drawBounds(graphics, queryBounds);
-							drawBounds(graphics, pointBounds); // hole
+							graphics.beginFill(overlapColor, overlapAlpha);
+							drawBounds(graphics, overlap);
+							drawBounds(graphics, content); // hole
 							graphics.endFill();
 							
 							task.buffer.draw(tempShape);
@@ -536,29 +542,35 @@ package weave.visualization.plotters
 						
 						if (pass == 2)
 						{
-							if (Demo.settings.show_pointBounds.value)
+							if (Demo.settings.show_content.value)
 							{
 								// inner rectangle
-								graphics.beginFill(pointColor, pointAlpha);
-								drawBounds(graphics, pointBounds);
+								graphics.beginFill(contentColor, contentAlpha);
+								drawBounds(graphics, content);
 								graphics.endFill();
 							}
 							
-							// inner border (always shown if either inner or outer rectangle is drawn)
-							graphics.lineStyle(1, pointColor, borderAlpha);
-							drawBounds(graphics, pointBounds);
+							if (Demo.settings.show_border.value)
+							{
+								// inner border
+								graphics.lineStyle(1, borderColor, borderAlpha);
+								drawBounds(graphics, content);
+							}
 						
 							task.buffer.draw(tempShape);
 							
-							// draw tileID
-							bitmapText.textFormat.color = pointColor;
-							bitmapText.text = '' + tile.tileID;
-							bitmapText.x = pointBounds.getXNumericMin();
-							bitmapText.y = pointBounds.getYNumericMin();
-							bitmapText.width = pointBounds.getXCoverage();
-							bitmapText.height = pointBounds.getYCoverage();
-							colorTransform.alphaMultiplier = borderAlpha;
-							bitmapText.draw(task.buffer, null, colorTransform);
+							if (Demo.settings.show_border.value)
+							{
+								// draw tileID when border is enabled
+								bitmapText.textFormat.color = borderColor;
+								bitmapText.text = '' + tile.tileID;
+								bitmapText.x = content.getXNumericMin();
+								bitmapText.y = content.getYNumericMin();
+								bitmapText.width = content.getXCoverage();
+								bitmapText.height = content.getYCoverage();
+								colorTransform.alphaMultiplier = borderAlpha;
+								bitmapText.draw(task.buffer, null, colorTransform);
+							}
 						}
 					}
 				}
@@ -566,12 +578,12 @@ package weave.visualization.plotters
 			
 			if (locked)
 			{
-				var lockColor:Number = Demo.settings.color_lockedBounds.value;
+				var lockColor:Number = Demo.settings.color_locked.value;
 				graphics.clear();
 				graphics.lineStyle(2, lockColor, 1);
-				queryBounds.copyFrom(lockedTileDataBounds);
-				task.dataBounds.projectCoordsTo(queryBounds, task.screenBounds);
-				drawBounds(graphics, queryBounds)
+				overlap.copyFrom(lockedTileDataBounds);
+				task.dataBounds.projectCoordsTo(overlap, task.screenBounds);
+				drawBounds(graphics, overlap)
 				task.buffer.draw(tempShape);
 			}
 			
@@ -593,8 +605,8 @@ package weave.visualization.plotters
 		private static const bitmapText:BitmapText = new BitmapText();
 		private static const tempPoint:Point = new Point(); // reusable object
 		private static const tempRectangle:Rectangle = new Rectangle(); // reusable object
-		private static const pointBounds:Bounds2D = new Bounds2D(); // reusable object
-		private static const queryBounds:Bounds2D = new Bounds2D(); // reusable object
+		private static const content:Bounds2D = new Bounds2D(); // reusable object
+		private static const overlap:Bounds2D = new Bounds2D(); // reusable object
 		private static const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		/**

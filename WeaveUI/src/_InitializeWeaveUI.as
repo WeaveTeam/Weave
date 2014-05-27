@@ -36,6 +36,7 @@ package
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
+	import weave.editors.DemoEditor;
 	import weave.editors.DynamicColumnEditor;
 	import weave.editors.GeometryLabelPlotterEditor;
 	import weave.editors.GeometryPlotterEditor;
@@ -86,6 +87,7 @@ package
 	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
+	import weave.visualization.tools.KeyMappingTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
@@ -99,7 +101,6 @@ package
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 	import weave.visualization.tools.TreeTool;
-	import weave.visualization.tools.KeyMappingTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -179,7 +180,8 @@ package
 				DataStatisticsTool,
 				RInterfaceTool,
 				TreeTool,
-				KeyMappingTool
+				KeyMappingTool,
+				DemoEditor
 			]);
 			
 			/**
