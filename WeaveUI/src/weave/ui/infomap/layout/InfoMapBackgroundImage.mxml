@@ -26,7 +26,7 @@
 			import weave.visualization.layers.InteractiveVisualization;
 			
 			public const imageName:LinkableString = newLinkableChild(this, LinkableString);
-			public const imageString:LinkableString = newLinkableChild(this, LinkableString, handleImageString);
+			public const imageString:LinkableString = newLinkableChild(this, LinkableString, handleImageString, true);
 			public const isStringURL:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
