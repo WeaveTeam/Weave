@@ -229,6 +229,12 @@
 			
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
+				if ( _dragging )
+				{
+					event.stopImmediatePropagation();
+					return;
+				}
+				
 				// make sure cursors dont keep changing while resizing:  !_resizing
 				if (parent && !_resizing && _mouseRolledOver)
 				{
@@ -263,10 +269,11 @@
 				else
 					CustomCursorManager.removeCursor(handCursorID);
 				
-				if (_dragging || _resizing)
+				if ( _resizing )
+				{
 					event.stopImmediatePropagation();
-				
-				handleThrottledMouseMove(event);
+					handleThrottledMouseMove(event);
+				}
 			}
 			
 			private function handleThrottledMouseMove(event:MouseEvent):void
