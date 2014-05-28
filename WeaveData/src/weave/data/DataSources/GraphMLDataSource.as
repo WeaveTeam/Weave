@@ -24,8 +24,11 @@ package weave.data.DataSources
     {
         WeaveAPI.registerImplementation(IDataSource, GraphMLDataSource, "GraphML file");
 
-        private const COLUMNTYPE_META:String = "__ColumnType__";
-        private const COLUMNLAYER_META:String = "__ColumnLayer__";
+        
+        public static const COLUMNNAME_META:String = "__ColumnName__";
+        public static const FILTERVALUE_META:String = "__FilterValue__";
+        public static const FILTERCOLUMN_META:String = "__FilterColumn__";
+        public static const GROUP_META:String = "__Group__";
 
         public const nodeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLDataChange);
         public const edgeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLDataChange);
@@ -66,19 +69,42 @@ package weave.data.DataSources
 
         override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
         {
-            if (!metadata)
-                return null;
-            return null;
+            var graphNode:GraphMLGraphNode;
+            var groupNode:GraphMLGroupNode;
+            var layerNode:GraphMLLayerNode;
+            var columnNode:GraphMLColumnNode;
+
+            graphNode = new GraphMLGraphNode(this);
+            
+            if (metadata[GROUP_META] === undefined)
+                return graphNode;
+
+            groupNode = new GraphMLGroupNode(graphNode, metadata[GROUP_META],  metadata[FILTERCOLUMN_META]);
+
+            if (metadata[FILTERVALUE_META] === undefined)
+                return groupNode; 
+
+            layerNode = new GraphMLLayerNode(groupNode, metadata[FILTERVALUE_META]);
+
+            if (metadata[COLUMNNAME_META] === undefined)
+                return layerNode;
+
+            columnNode = new GraphMLColumnNode(layerNode, metadata[COLUMNNAME_META]);
+
+            return columnNode;
+            
         }
+
         
 
         override protected function requestHierarchyFromSource(subtreeNode:XML = null):void 
         {
-
+            // do nothing, as the hierarchy is known ahead of time much like CSVDataSource
+            return;
         }
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void 
         {
-
+            var metadata:Object = proxyColumn.getProxyMetadata();
         }
         
         /* Implements from IDataSource */
@@ -93,10 +119,6 @@ package weave.data.DataSources
             return _rootNode;
         }
 
-        override public function findHierarchyNode(metadata:Object):IWeaveTreeNode
-        {
-            return null;
-        }
 
 
         override public function getAttributeColumn(metadata:Object):IAttributeColumn
@@ -422,6 +444,8 @@ internal class GraphMLColumnNode implements IWeaveTreeNode, IColumnReference {
     private var _layer:GraphMLLayerNode;
     private var _columnName:String;
 
+
+
     public function get layer():GraphMLLayerNode
     {
         return _layer;
@@ -462,12 +486,12 @@ internal class GraphMLColumnNode implements IWeaveTreeNode, IColumnReference {
     
     public function getColumnMetadata():Object 
     {
-        var metadata:Object = {
-            column: columnName,
-            filterValue: layer.filterValue,
-            group: layer.group.group,
-            filterColumn: layer.group.filterColumn
-        };
+        var metadata:Object = {};
+
+        metadata[GraphMLDataSource.COLUMNNAME_META] = columnName;
+        metadata[GraphMLDataSource.FILTERVALUE_META] = layer.filterValue;
+        metadata[GraphMLDataSource.FILTERCOLUMN_META] = layer.group.filterColumn;
+        metadata[GraphMLDataSource.GROUP_META] = layer.group.group;
 
         return metadata;
     }
