@@ -235,6 +235,9 @@
 					return;
 				}
 				
+				if( !event.buttonDown )
+					_resizing = false;
+				
 				// make sure cursors dont keep changing while resizing:  !_resizing
 				if (parent && !_resizing && _mouseRolledOver)
 				{
@@ -312,13 +315,14 @@
 			private var scaledBitmapData:BitmapData = null;
 			protected function adjustImageResize(event:ResizeEvent):void
 			{
+				//Ensure that the initial bitmap data has been loaded and that the canvas is fully initialized.
 				if(storedBitmapData != null && this.width != 0 && this.height != 0)
 				{
 					this.graphics.clear();
 					scaledBitmapData = BitmapUtils.resizeBitmapData(storedBitmapData,this.width, this.height);
-					BitmapUtils.drawCenteredIcon(this.graphics,this.width/2,this.height/2,scaledBitmapData);
-					this.height = scaledBitmapData.height;
-					this.width = scaledBitmapData.width;
+					graphics.beginBitmapFill(scaledBitmapData, null, false, true);
+					graphics.drawRect(0, 0, this.width, this.height);
+					graphics.endFill();
 				}
 			}
 			
