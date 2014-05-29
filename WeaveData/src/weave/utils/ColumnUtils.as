@@ -31,8 +31,8 @@ package weave.utils
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IKeyFilter;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -444,7 +444,7 @@ package weave.utils
 			if (!subset)
 				keys = getAllKeys(attrCols);
 			else
-				keys = getAllKeys(attrCols).filter(function (key:IQualifiedKey, idx:*, arr:Array) { return subset.containsKey(key);});
+				keys = getAllKeys(attrCols).filter(function(key:IQualifiedKey, idx:*, arr:Array):Boolean { return subset.containsKey(key);});
 			
 			var keyTypeMap:Object = {};				
 			// create the data for each column in each selected row
