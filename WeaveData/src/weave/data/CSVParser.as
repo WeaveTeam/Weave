@@ -114,7 +114,7 @@ package weave.data
 			if (csvData == null)
 				return null;
 			
-			var rows:Array = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
+			var rows:Array = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
 			if (rows.length == 0)
 				return rows;
 			if (rows.length == 1)
