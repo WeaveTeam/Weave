@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
 		   xmlns:ui="weave.ui.infomap.ui.*"
-		   width="150" height="150" horizontalScrollPolicy="off"
-		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
+		   width="150" height="150" autoLayout="false" cacheAsBitmap="false" clipContent="false"
+		   creationPolicy="all" horizontalScrollPolicy="off"
 		   implements="weave.api.core.ILinkableObject" mouseDown="dragStartHandler(event)"
-		   mouseUp="dragStopHandler(event)" verticalScrollPolicy="off" rollOver="rollOverHandler(event)" rollOut="rollOutHandler(event)"
-		   resize="adjustImageResize(event)">
+		   mouseUp="dragStopHandler(event)" resize="adjustImageResize(event)"
+		   rollOut="rollOutHandler(event)" rollOver="rollOverHandler(event)"
+		   verticalScrollPolicy="off">
 	<mx:Script>
 		<![CDATA[
-			import mx.core.mx_internal;
 			import mx.events.ResizeEvent;
 			import mx.utils.Base64Decoder;
 			
@@ -25,6 +25,7 @@
 			import weave.utils.CustomCursorManager;
 			import weave.visualization.layers.InteractiveVisualization;
 			
+			//Sessioned variables for the component.
 			public const imageName:LinkableString = newLinkableChild(this, LinkableString);
 			public const imageString:LinkableString = newLinkableChild(this, LinkableString, handleImageString, true);
 			public const isStringURL:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -33,13 +34,14 @@
 			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(150));
 			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(150));
 			
-			
+			//Variables for handling image data, not sessioned.
 			private var theImage:Bitmap = new Bitmap();
 			private var decoder:Base64Decoder = new Base64Decoder();
 			private var bitmapLoader:Loader = null;
 			private var handCursorID:int = -1;
 			private var storedBitmapData:BitmapData = null;
 			
+			//Resize and dragging variables.
 			private var _rightSideResize:Boolean = false;
 			private var _leftSideResize:Boolean = false;
 			private var _topSideResize:Boolean = false;
@@ -50,6 +52,7 @@
 			private var _bottomSideBeforeTopResize:int = 0;
 			private var _mouseRolledOver:Boolean = false;
 			
+			//This is a static constant for determining side buffers of the image.
 			private static var _resizeSideBuffer:int = 5;
 			
 			//we override the x,y value because we are binding the values to LinkableNumber 
@@ -59,7 +62,7 @@
 				if(parent)
 					super.x = isNaN(value)?parent.width/2:value;
 				else
-					super.x=value
+					super.x=value;
 			}
 			
 			override public function set y(value:Number):void
@@ -67,21 +70,25 @@
 				if(parent)
 					super.y = isNaN(value)?parent.height/2:value;
 				else
-					super.y=value
-				
+					super.y=value;
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
+				//Link all of the canvas properties that should be saved for proper image placing upon loading up a session state.
 				linkBindableProperty(xPos,this,"x");
 				linkBindableProperty(yPos,this,"y");
 				linkBindableProperty(imageWidth,this,"width");
 				linkBindableProperty(imageHeight,this,"height");
+				//Mouse listener to handle the resizing.
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 			}
 			
+			/** 
+			 * This is a callback function for loading image data from a URL or base64 encoded string.
+			 */
 			private function handleImageString():void
 			{
 				if( imageString.value != null )
@@ -104,12 +111,15 @@
 				}
 			}
 			
-			
+			/**
+			 * A function for handling loaded BitmapData and drawing it onto the canvas.
+			 */
 			private function loaderComplete(event:Event):void
 			{
 				var loaderInfo:LoaderInfo = LoaderInfo(event.target);
 				var imgBitMap:Bitmap = Bitmap(loaderInfo.content);
 				
+				//Save the data to a storedBitmapData variable for easy image resizing.
 				storedBitmapData = imgBitMap.bitmapData;
 				
 				this.height = imgBitMap.bitmapData.height;
@@ -117,22 +127,31 @@
 				BitmapUtils.drawCenteredIcon(this.graphics,this.width/2,this.height/2,imgBitMap.bitmapData);
 			}
 			
+			/**
+			 * Handler function for when the mouse is released while on the component.
+			 */
 			protected function dragStopHandler(event:MouseEvent):void
 			{
+				//If mouse is released any type of dragging or resizing operation is finished.
 				CustomCursorManager.removeCursor(handCursorID);
 				this.stopDrag();
 				_dragging = false;
 				_resizing = false;
 			}
 			
+			/**
+			 * Handler function for when the mouse is pressed down while over the component.
+			 */
 			private function dragStartHandler(event:MouseEvent):void
-			{				
+			{	
+				//Reset all resize status variables before computing status.
 				_leftSideResize = false;
 				_rightSideResize = false;
 				_topSideResize = false;
 				_bottomResize = false;				
 				var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
 				
+				//assign boolean values based on which side is being resized.
 				if (status.R)
 					_rightSideResize = true;
 				else if (status.L)
@@ -152,11 +171,13 @@
 				
 				if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
 				{
+					//Resizing.
 					_resizing = true;
 					event.stopImmediatePropagation();
 				}
 				else
 				{
+					//Dragging.
 					_resizing = false;
 					_dragging = true;
 					handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
@@ -209,16 +230,23 @@
 				return o;
 			}
 			
+			/**
+			 * Handler function for when the mouse rolls over the component.
+			 */
 			protected function rollOverHandler(event:MouseEvent):void
 			{
+				//Keep track of the fact that the mouse is hovering over the component.
 				_mouseRolledOver = true;
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
 			}
 			
+			/**
+			 * Handler function for when the mouse rolls off of the component.
+			 */
 			protected function rollOutHandler(event:MouseEvent):void
-			{
+			{				
 				_mouseRolledOver = false;
 				
 				if (_resizing && event.buttonDown)
@@ -227,14 +255,19 @@
 					CustomCursorManager.removeCursor(handCursorID);
 			}
 			
+			/**
+			 * Handler function that is added to the stage to track mouse movements for the purpose of resizing.
+			 */
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
+				//If dragging is occurring this function doesn't need to do any work.
 				if ( _dragging )
 				{
 					event.stopImmediatePropagation();
 					return;
 				}
 				
+				//If the mouse button isn't being held down, then resizing can't be occurring.
 				if( !event.buttonDown )
 					_resizing = false;
 				
@@ -256,6 +289,7 @@
 						resizeCursorName = DraggablePanel.CURSOR_RESIZE_TOP_BOTTOM;
 					
 					CustomCursorManager.removeCursor(handCursorID);
+					//Apply cursor change.
 					if ( resizeCursorName!= null && !event.buttonDown)
 					{						
 						try
@@ -279,8 +313,12 @@
 				}
 			}
 			
+			/**
+			 * A function that deals with handling the resizing of the component. Called by handleStageMouseMovement.
+			 */
 			private function handleThrottledMouseMove(event:MouseEvent):void
-			{	
+			{
+				//Some initial cases to make sure the component is in a state that we want it to be.
 				if( parent == null )
 					return;
 				
@@ -288,7 +326,8 @@
 					return;
 				
 				var parentMousePoint:Point = new Point(parent.mouseX, parent.mouseY);
-	
+				
+				//Handle the resizing.
 				if (_resizing)
 				{
 					if (_rightSideResize)
@@ -312,6 +351,7 @@
 				}
 			}
 			
+			//Re-usable variable for scaling the image as it is resized.
 			private var scaledBitmapData:BitmapData = null;
 			protected function adjustImageResize(event:ResizeEvent):void
 			{
@@ -320,6 +360,7 @@
 				{
 					this.graphics.clear();
 					scaledBitmapData = BitmapUtils.resizeBitmapData(storedBitmapData,this.width, this.height);
+					//Could use BitmapUtils.drawCenteredIcon() here if we always wanted image scale to be maintained.
 					graphics.beginBitmapFill(scaledBitmapData, null, false, true);
 					graphics.drawRect(0, 0, this.width, this.height);
 					graphics.endFill();

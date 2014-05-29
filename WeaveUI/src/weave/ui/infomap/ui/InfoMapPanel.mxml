@@ -45,10 +45,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
-			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
-			import mx.utils.Base64Decoder;
 			import mx.utils.Base64Encoder;
 			import mx.utils.StringUtil;
 			
@@ -91,7 +89,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.layout.InfoMapBackgroundImage;
 			import weave.ui.infomap.layout.NodeHandler;
-			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.DateUtils;
 			import weave.utils.PopUpUtils;
@@ -1082,6 +1079,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			private var _fileLoader:FileReference = null;
+			
 			/**
 			 * browseForfiles: opens up a file browser window to upload an image file for the background. 
 			 **/
@@ -1095,57 +1093,54 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				_fileLoader.browse();
-			}
+			}			
 			
-			
+			/**
+			 * Function called once an image file has been selected for loading.
+			 */
 			private function handleImageSelected(event:Event):void
 			{
 				_fileLoader.load();
 			}
 			
-			//Variables used for encoding and decoding background iamges to save memory.
-			private var decoder:Base64Decoder = new Base64Decoder();
-			private var encoder:Base64Encoder = new Base64Encoder();
-			
-			private function loaderComplete(event:Event):void
-			{
-				var loaderInfo:LoaderInfo = LoaderInfo(event.target);
-				var imgBitMap:Bitmap = Bitmap(loaderInfo.content);
-				
-				delayedDraw(imgBitMap);
-			}
-			
-			//Sometimes the canvas dimensions aren't laid out yet, so we need to wait for it to be initialized.
-			private function delayedDraw(imgBitMap:Bitmap):void
-			{
-				if( map.width == 0 || map.height == 0 )
-					callLater(delayedDraw, [imgBitMap]);
-				else
-					BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
-			}
-			
-			private var _mapImage:BitmapData
+			//Loader for the image from a user-selected file.
 			private var imgLoader:Loader = new Loader();
+			
+			/**
+			 * Called when an image has been loaded into the client from the user's file system.
+			 */
 			private function handleImageLoaded(event:Event):void
 			{
+				//Set the UI to the image file name.
 				imageURL.text = _fileLoader.name;
 				
+				//Use a loader for loading in the bytes from the user upload.
 				imgLoader.contentLoaderInfo.addEventListener(Event.COMPLETE,handleLoaderComplete);
 				imgLoader.loadBytes(_fileLoader.data);
 			}
 			
+			//Encoder to be used by handleLoaderComplete for saving base64 encoded strings of the bitmapdata from an image.
+			private var encoder:Base64Encoder = new Base64Encoder();
+			
+			/**
+			 * Function for handling the final loading phase of a Bitmap of an image from the user's file system.
+			 */
 			private function handleLoaderComplete(event:Event):void
 			{
+				//Initial setup code for a newly loaded image.
 				var imgBitMap:Bitmap = Bitmap(imgLoader.content);
 				
+				//Create a new InfoMapBackgroundImage in the hashmap of background images.
 				var backgroundImagePanel:InfoMapBackgroundImage = backgroundImagesEncoded.requestObject(imageURL.text,InfoMapBackgroundImage,false);
 				backgroundImagePanel.imageName.value = imageURL.text;
 				
+				//Based off of adding a new query placement code.
 				backgroundImagePanel.x = 50 * (backgroundImagesEncoded.getNames().length);
 				backgroundImagePanel.y = 50 * (backgroundImagesEncoded.getNames().length);
 				
 				if( imageRemoteStorageCheckBox.selected )
 				{
+					//Make a request to the server to save the image data.
 					//In the future, first encode the data to base64 to reduce network traffic.
 					backgroundImagePanel.isStringURL.value = true;
 					addAsyncResponder(InfoMapAdminInterface.instance.saveBackgroundImage(imageURL.text,_fileLoader.data),handleImageSave, handleImageSaveFault, backgroundImagePanel);
@@ -1159,35 +1154,40 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			/**
+			 * Handler function for if the image was successfully saved to the server.
+			 */
 			private function handleImageSave(event:ResultEvent,token:Object=null):void
-			{				
-				//var encodedImageString:LinkableString = backgroundImagesEncoded.requestObject(event.result as String, LinkableString, false) as LinkableString;
-				//encodedImageString.value = event.result as String;
-				(token as InfoMapBackgroundImage).imageString.value = event.result as String;
-				
+			{
+				//Store the name of the image in the instance's session variable.
+				(token as InfoMapBackgroundImage).imageString.value = event.result as String;	
 			}
 			
+			/**
+			 * Handler function for if the image failed to be saved to the server.
+			 */
 			private function handleImageSaveFault(event:FaultEvent,token:Object=null):void
 			{
-				trace(event.fault.message);
+				//Let the user know that an issue occurred with saving the image to the server.
 				Alert.show("Image could not be saved " + event.message,"Error");	
 			}
 			
-			
+			/**
+			 * A function called by the Clear button for images. It opens up an ImageClearList panel instance.
+			 */
 			private function clearImage():void
 			{
+				//Open a static ImageClearList instance and give it the InfoMapBackgroundImages hashmap as data.
 				var clearPanel:ImageClearList = DraggablePanel.openStaticInstance(ImageClearList);
 				clearPanel.targets = [backgroundImagesEncoded];
 			}
 			
 			private var _fileReference:FileReferenceList = new FileReferenceList();
-			//			private var _fileReferenceList:FileReferenceList = new FileReferenceList();
 			
 			private function browseAndUpload():void
 			{
 				var fileTypes:Array = [new FileFilter("Text Files", "*.doc; *.docx; *.txt; *.csv; *.pdf")];
 				_fileReference.browse(fileTypes);
-				//				_fileReference.
 			}
 			
 			private function callDropBox(event:ResultEvent,token:Object = null):void
@@ -1431,7 +1431,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:TextInput id="imageURL" editable="false"/>
 				<mx:Button label="Browse" click="browse()"/>
 				<mx:Button label="Clear Images" click="clearImage()"/>
-				<mx:CheckBox id="imageRemoteStorageCheckBox" label="Store Remotely" />
+				<mx:CheckBox id="imageRemoteStorageCheckBox" label="Store Remotely"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label width="150" fontWeight="bold" text="Source Type: "/>					

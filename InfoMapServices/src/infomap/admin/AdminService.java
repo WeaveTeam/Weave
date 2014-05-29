@@ -2285,8 +2285,9 @@ public class AdminService extends WeaveServlet {
 	}
 	
 	/**
-	 * @param fileName
-	 * @param fileContent
+	 * Save an image to the server specified by tomcatPath and return the file's name.
+	 * @param fileName The name of the file to be saved.
+	 * @param fileContent A ByteArray containing BitmapData.
 	 * @return A description of the success or failure of this function.
 	 * @throws RemoteException
 	 */
