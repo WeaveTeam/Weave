@@ -1504,7 +1504,8 @@ package weave.application
 						VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
 				}
 				
-				var csvString:String = ColumnUtils.generateTableCSV(attrs);
+				var csvString:String = ColumnUtils.generateTableCSV(attrs, Weave.defaultSubsetKeyFilter);
+				
 				if (!csvString)
 				{
 					reportError("No data to export");

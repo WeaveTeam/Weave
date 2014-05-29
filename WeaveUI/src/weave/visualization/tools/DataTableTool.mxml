@@ -84,7 +84,8 @@
 					{
 						new FileReference().save(
 							ColumnUtils.generateTableCSV(
-								getSelectableAttributes()
+								getSelectableAttributes(),
+								Weave.defaultSubsetKeyFilter
 							),
 							"Weave-data-export.csv"
 						);
