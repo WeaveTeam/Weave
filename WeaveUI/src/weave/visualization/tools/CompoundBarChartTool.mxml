@@ -114,7 +114,7 @@
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(true); });
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(false); });
 				
-				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
+				var count:int = 1;//getDefaultColumnsOfMostCommonKeyType().length;
 				var columnsToInit:Array = [_plotter.sortColumn];
 				for (var i:int = 0; i < count; i++)
 				{
