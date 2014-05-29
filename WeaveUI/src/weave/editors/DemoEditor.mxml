@@ -29,18 +29,32 @@
 			>
 	<mx:VBox initialize="UIUtils.pad(event, 5);" verticalGap="2">
 		<ui:CustomCheckBox label="Enable mouseover" width="100%" creationComplete="linkBindableProperty(Weave.properties.enableToolProbe, event.target, 'selected')"/>
-		<ui:CustomCheckBox label="Lock geometry" width="100%" creationComplete="link(Demo.settings.lock_geomFiltering, event.target, 'selected')"/>
-		<ui:CustomCheckBox label="Lock tiles" width="100%" creationComplete="link(Demo.settings.lock_tileFiltering, event.target, 'selected')"/>
+		<ui:CustomCheckBox id="lockGeom" label="Lock geometry" width="100%"
+						   click="if (lockGeom.selected) lockTiles.selected = true;"
+						   creationComplete="link(Demo.settings.lock_geomFiltering, event.target, 'selected')"/>
+		<ui:CustomCheckBox id="lockTiles" label="Lock tiles" width="100%"
+						   click="if (lockTiles.selected) filterTiles.selected = false;"
+						   creationComplete="link(Demo.settings.lock_tileFiltering, event.target, 'selected')"/>
 		<mx:HBox horizontalGap="2" verticalAlign="middle">
-			<ui:CustomCheckBox label="Filter tiles" width="100%" creationComplete="link(Demo.settings.filterWithinImportanceRange, event.target, 'selected')"/>
-			<ui:TextInputWithPrompt prompt="ID" id="singleTile" width="38" creationComplete="link(Demo.settings.show_singleTileID, event.target, 'text')"/>
+			<ui:CustomCheckBox id="filterTiles" label="Filter tiles" width="100%"
+							   click="singleTile.text = '';"
+							   creationComplete="link(Demo.settings.filterWithinImportanceRange, event.target, 'selected')"/>
+			<ui:TextInputWithPrompt prompt="ID" errorString="{singleTile.text}" id="singleTile" width="38" creationComplete="link(Demo.settings.show_singleTileID, event.target, 'text')"/>
 			<mx:Button visible="{!!singleTile.text}" icon="@Embed(source='/weave/resources/images/x-inset.png')" width="24" click="singleTile.text = '';"/>
 		</mx:HBox>
 		<ui:ColorEditor label="Border" creationComplete="event.target.link(Demo.settings.show_border, Demo.settings.color_border, Demo.settings.alpha_border)"/>
 		<ui:ColorEditor label="Content" creationComplete="event.target.link(Demo.settings.show_content, Demo.settings.color_content, Demo.settings.alpha_content)"/>
 		<ui:ColorEditor label="Overlap" creationComplete="event.target.link(Demo.settings.show_overlap, Demo.settings.color_overlap, Demo.settings.alpha_overlap)"/>
 		<ui:ColorEditor label="Locked area" creationComplete="event.target.link(null, Demo.settings.color_locked, null)"/>
-		<ui:CustomCheckBox label="Show all query borders" width="100%" creationComplete="linkBindableProperty(Demo.settings.show_rectangles, event.target, 'selected')"/>
+		<ui:CustomCheckBox label="Show all query borders" width="100%">
+			<ui:creationComplete>
+				<![CDATA[
+					linkBindableProperty(enableShowQueryBorders, event.target, 'visible');
+					linkBindableProperty(enableShowQueryBorders, event.target, 'includeInLayout');
+					linkBindableProperty(Demo.settings.show_rectangles, event.target, 'selected')
+				]]>
+			</ui:creationComplete>
+		</ui:CustomCheckBox>
 	</mx:VBox>
 	
 	<mx:Script>
@@ -48,10 +62,14 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
 			import weave.core.UIUtils;
 			
 			WeaveAPI.registerImplementation(IVisTool, DemoEditor, " Demo Editor");
+			
+			public const enableShowQueryBorders:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 			
 			override public function reposition():void
 			{
