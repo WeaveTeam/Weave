@@ -26,8 +26,6 @@
 	@author adufilie
 -->
 <ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
-			  width="700"
-			  height="500"
 			  backgroundColor="#EFF4BC"
 			  title="{lang('Equation Column Editor')}">
 	
@@ -127,11 +125,13 @@
 			{
 				super.constructor();
 				
-				panelWidth.value = "70%";
-				panelHeight.value = "70%";
-				panelX.value = "15%";
-				panelY.value = "15%";
 				minimizable.value = maximizable.value = closeable.value = true;
+			}
+			
+			override public function reposition():void
+			{
+				panelWidth.value = "700";
+				panelHeight.value = "500";
 			}
 			
 			override protected function childrenCreated():void

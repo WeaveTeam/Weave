@@ -239,9 +239,6 @@
 				instance.linkToObject(columnOrHashMap, title);
 				instance.columnList.showVariableNames = showVariableNames;
 				
-				if (!instance.parent)
-					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as DisplayObject);
-				instance.sendWindowToForeground();
 				instance.reposition();
 				instance.copyCoordinatesFromSessionedProperties();
 				return instance;

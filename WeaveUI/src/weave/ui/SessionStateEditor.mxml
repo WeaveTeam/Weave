@@ -28,7 +28,6 @@ A text editor to change the Session State on the fly.
 <ui:DraggablePanel
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
-    width="800" height="600"
     title="{lang('Session State Editor')}"
 	backgroundColor="#EFF4BC"
 	escapeKeyClosesPanel="true"
@@ -173,10 +172,12 @@ A text editor to change the Session State on the fly.
 			override protected function constructor():void
 			{
 				super.constructor();
-				panelWidth.value = "75%";
-				panelHeight.value = "75%";
-				panelX.value = "12.5%";
-				panelY.value = "12.5%";
+			}
+			
+			override public function reposition():void
+			{
+				panelWidth.value = "900";
+				panelHeight.value = "500";
 			}
 			
 			override protected function childrenCreated():void

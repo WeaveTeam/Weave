@@ -165,7 +165,10 @@
 				override protected function constructor():void
 				{
 					super.constructor();
-					
+				}
+				
+				override public function reposition():void
+				{
 					panelWidth.value = "700";
 					panelHeight.value = "500";
 				}

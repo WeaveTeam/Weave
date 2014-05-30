@@ -32,7 +32,6 @@
 		borderColor="#939178"
 		borderThicknessLeft="{padding}" borderThicknessRight="{padding}"
 		roundedBottomCorners="true"
-		percentX="NaN" percentY="NaN" percentWidth="NaN" percentHeight="NaN"
 		sessionPanelCoordsAsPercentages="false"
 		escapeKeyClosesPanel="true"
 		>
@@ -64,6 +63,12 @@
 				super.constructor();
 				minimizable.value = false;
 				maximizable.value = false;
+			}
+
+			override public function reposition():void
+			{
+				panelWidth.value = "700";
+				panelHeight.value = "500";
 			}
 			
 			[Bindable] private var viewStack:WizardViewStack = null;
