@@ -1426,8 +1426,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var names:Array = tool.getSelectableAttributeNames();
 					if (attrs && attrs[attrIndex])
 					{
-						AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex]);
-						return AttributeSelectorPanel.instance;
+						return AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex]);
 					}
 				}
 				return null;
