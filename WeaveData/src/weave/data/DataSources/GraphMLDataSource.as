@@ -37,6 +37,8 @@ package weave.data.DataSources
         public static const FILTERCOLUMN_META:String = "__GraphFilterColumn__";
         public static const GROUP_META:String = "__GraphGroup__";
 
+        public const sourceUrl:LinkableString = newLinkableChild(this, LinkableString);
+
         public const nodeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLNodesChange);
         public const edgeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLEdgesChange);
 
