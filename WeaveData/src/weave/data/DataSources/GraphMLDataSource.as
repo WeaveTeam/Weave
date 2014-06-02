@@ -45,7 +45,6 @@ package weave.data.DataSources
         public static const GROUP_META:String = "__GraphGroup__";
 
         public const sourceUrl:LinkableString = newLinkableChild(this, LinkableString, handleURLChange);
-        public const sourceContent:LinkableString = newLinkableChild(this, LinkableString);
 
         public const nodeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLNodesChange);
         public const edgeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLEdgesChange);
@@ -62,8 +61,6 @@ package weave.data.DataSources
         public const nodeLayerPropertyName:LinkableString = newLinkableChild(this, LinkableString, handleNodeLayeringChange);
         public const edgeLayerPropertyName:LinkableString = newLinkableChild(this, LinkableString, handleEdgeLayeringChange);
 
-        [Bindable] var nodeKeyIsValid:Boolean = false;
-
         /* Computed values */
 
         public var nodeLayers:Object = {};
@@ -71,11 +68,11 @@ package weave.data.DataSources
         public var nodeLayerNames:Array = [];
         public var edgeLayerNames:Array = [];
 
-        private var nodeKeyToId:Object = null;
-        private var nodeIdToKey:Object = null;
+        public var nodeKeyToId:Object = null;
+        public var nodeIdToKey:Object = null;
 
-        private var edgeKeyToId:Object = null;
-        private var edgeIdToKey:Object = null;
+        public var edgeKeyToId:Object = null;
+        public var edgeIdToKey:Object = null;
 
         public function GraphMLDataSource()
         {
@@ -137,7 +134,6 @@ package weave.data.DataSources
 
         private function handleGraphMLDownload(event:ResultEvent, token:Object = null):void
         {
-            sourceContent.value = String(event.result);
             var result:Object = GraphMLConverter.read(String(event.result));
             
             nodeProperties.setSessionState(result.nodeKeys);
@@ -165,6 +161,8 @@ package weave.data.DataSources
             var data_remap_src:Object = null;
             var key_remap_src:Object = null;
             var keyType:String;
+            var filter_value:String = null;
+            var layers:Object;
             
             if (metadata[GROUP_META] == GraphMLConverter.NODE)
             {
@@ -173,6 +171,8 @@ package weave.data.DataSources
                 key_remap_src = nodeIdToKey;
 
                 keyType = nodeKeyType.value;
+
+                layers = nodeLayers;
             }
             else if (metadata[GROUP_META] == GraphMLConverter.EDGE)
             {
@@ -184,12 +184,46 @@ package weave.data.DataSources
                 key_remap_src = edgeIdToKey;
 
                 keyType = edgeKeyType.value;
+
+                layers = edgeLayers;
             }
 
             if (!raw_rows) return;
 
-            var data_column:Array = getPropertyArray(raw_rows, metadata[COLUMNNAME_META], data_remap_src);
-            var key_column:Array = getPropertyArray(raw_rows, GraphMLConverter.ID, key_remap_src);
+            var raw_data_column:Array = getPropertyArray(raw_rows, metadata[COLUMNNAME_META], data_remap_src);
+            var raw_key_column:Array = getPropertyArray(raw_rows, GraphMLConverter.ID, key_remap_src);
+
+            var data_column:Array = new Array();
+            var key_column:Array = new Array();
+            
+            if (metadata[FILTERVALUE_META] != null)
+            {
+                var layer:Array = layers[metadata[FILTERVALUE_META]];    
+
+                for (var idx:int = raw_data_column.length - 1; idx >= 0; idx--)
+                {
+                    var key:String = raw_key_column[idx];
+                    var value:String = raw_data_column[idx];
+
+                    if (VectorUtils.intersection(layer, [key]).length == 1)
+                    {
+                        data_column.push(value);
+                        key_column.push(key);
+                    }
+                }
+
+            }
+            else 
+            {
+                data_column = raw_data_column;
+                key_column = raw_key_column;
+            }
+            
+
+
+
+            
+
 
             /* TODO: Add type autodetection and proper handling of numeric types. */
 
@@ -284,7 +318,7 @@ package weave.data.DataSources
             nodeKeyToId = {};
             nodeIdToKey = {};
 
-            var nodes:Array = nodeColumnData.getSessionState as Array;
+            var nodes:Array = nodeColumnData.getSessionState() as Array;
 
             if (!nodes || !handleKeyPropertyChange(nodes, nodeKeyPropertyName, nodeKeyToId, nodeIdToKey))
             {
@@ -361,15 +395,6 @@ package weave.data.DataSources
             }
             
             return partitions;
-        }
-
-        public function setFile(content:Object):void
-        {
-            var results:Object = GraphMLConverter.parse(content as XML);
-
-            // Store results.nodeKeys and results.edgeKeys somewhere
-            
-
         }
     }
 }
@@ -489,16 +514,14 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
                     children.push(new GraphMLLayerNode(this, layerNames[idx]));
                 }
             }
-            else
-            {   
-                var columns:Array = isNodeGroup() ? 
+
+            var columns:Array = isNodeGroup() ? 
                     graph.source.nodeProperties.getSessionState() as Array :
                     graph.source.edgeProperties.getSessionState() as Array;
 
-                for (var idx:int = columns.length - 1; idx >= 0; idx--)
-                {
-                    children.push(new GraphMLColumnNode(this, columns[idx]));
-                }
+            for (var idx:int = columns.length - 1; idx >= 0; idx--)
+            {
+                children.push(new GraphMLColumnNode(this, columns[idx]));
             }
         }
         return children;

@@ -128,6 +128,13 @@ package flare.data.converters
             }
             var result:Object = {};
 
+            nodeKeys.push(ID);
+
+            edgeKeys.push(ID);
+            edgeKeys.push(SOURCE);
+            edgeKeys.push(TARGET);
+            edgeKeys.push(DIRECTED);
+
             result.nodeKeys = nodeKeys;
             result.edgeKeys = edgeKeys;
             result.nodes = nodes;
