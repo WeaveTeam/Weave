@@ -104,7 +104,7 @@
 		{
 			super.childrenCreated();
 			
-			exportTitle.text = Weave.properties.pageTitle.value;
+			exportTitle.text = "Open Indicators Weave";
 			//Weave.properties.backgroundColor.addImmediateCallback(this, handleBackground, true);
 		}
 		
@@ -247,7 +247,10 @@
 	</mx:VBox>
 	
 	<mx:ControlBar horizontalAlign="center">
-		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="true" change="scalePrintVbox()"/>
+		
+		<!--- @TODO text box for entering title -->
+		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="false" change="scalePrintVbox()" visible="false" includeInLayout="false"/>
+		
 		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');" change="scalePrintVbox()"/>
 		<!--<mx:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
 		<mx:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>

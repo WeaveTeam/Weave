@@ -82,15 +82,4 @@
     <servlet-name>AWSRService</servlet-name>
     <url-pattern>/AWSRService</url-pattern>
   </servlet-mapping>
-  
-  
-  
-  <servlet>
-    <servlet-name>StataServlet</servlet-name>
-    <servlet-class>weave.servlets.StataServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>StataServlet</servlet-name>
-    <url-pattern>/StataServlet</url-pattern>
-  </servlet-mapping>
 </web-app>

@@ -538,11 +538,6 @@ package weave.core
 		 */
 		private const classNameToDeprecatedGetterLookup:Object = new Object();
 		
-		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */		
-		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
-		
 		private function cacheClassInfo(linkableObject:ILinkableObject, classQName:String):void
 		{
 			// linkable property names
@@ -550,7 +545,7 @@ package weave.core
 			var deprecatedSetters:Array = [];
 			var deprecatedGetterLookup:Object = {}; // deprecated getter name -> true
 			// iterate over the public properties, saving the names of the ones that implement ILinkableObject
-			var type:Object = describeTypeJSON(linkableObject, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_ACCESSORS | DescribeType.INCLUDE_VARIABLES | DescribeType.INCLUDE_METADATA);
+			var type:Object = DescribeType.getInfo(linkableObject, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_ACCESSORS | DescribeType.INCLUDE_VARIABLES | DescribeType.INCLUDE_METADATA);
 			var traits:Object = type.traits;
 			for (var i:int = 0; i < 2; i++)
 			{

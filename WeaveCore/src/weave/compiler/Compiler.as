@@ -1047,18 +1047,13 @@ package weave.compiler
 		}
 		
 		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */
-		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-		
-		/**
 		 * Generates a deterministic JSON representation of an object, meaning object keys appear in sorted order.
 		 * @param object The object to stringify.
 		 */
-		public static function stringify(object:Object):String
+		public static function stringify(object:*):String
 		{
 			var output:Array;
-			var item:Object;
+			var item:*;
 			var key:String;
 			
 			if (object is String)
@@ -1081,7 +1076,7 @@ package weave.compiler
 			}
 			else
 			{
-				for each (var list:Array in describeTypeJSON(object, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+				for each (var list:Array in DescribeType.getInfo(object, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
 					for each (item in list)
 						if (item.access != 'writeonly')
 							output.push(encodeString(item.name) + ": " + stringify(object[item.name]));

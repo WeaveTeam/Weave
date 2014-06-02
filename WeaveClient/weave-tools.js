@@ -1,5 +1,5 @@
 /**
- * Queries a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
+ * Queries a JSON RPC 2.0 service. This function requires jQuery for the jQuery.post() functionality.
  * @param {string} url The URL of the service.
  * @param {string} method Name of the method to call on the server.
  * @param {?Array|Object} params Parameters for the server method.
@@ -14,7 +14,7 @@ function queryService(url, method, params, resultHandler, queryId)
 		method: method,
 		params: params
 	};
-	$.post(url, JSON.stringify(request), handleResponse, "json");
+	jQuery.post(url, JSON.stringify(request), handleResponse, "json");
 
 	function handleResponse(response)
 	{
@@ -26,7 +26,7 @@ function queryService(url, method, params, resultHandler, queryId)
 }
 
 /**
- * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
+ * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the jQuery.post() functionality.
  * @param {string} url The URL of the service.
  * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
  * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
@@ -38,7 +38,7 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 	for (var queryId in queryIdToParams)
 		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
 	if (batch.length)
-		$.post(url, JSON.stringify(batch), handleBatch, "json");
+		jQuery.post(url, JSON.stringify(batch), handleBatch, "json");
 	else
 		setTimeout(handleBatch, 0);
 	function handleBatch(batchResponse)
@@ -60,7 +60,7 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 /**
  * Queries a Weave data server, assumed to be at the root folder at the current host.
  * Available methods are listed here: http://ivpr.github.io/Weave-Binaries/javadoc/weave/servlets/DataService.html
- * This function requires jQuery for the $.post() functionality.
+ * This function requires jQuery for the jQuery.post() functionality.
  * @param {string} method Name of the method to call on the server.
  * @param {?Array|Object} params Parameters for the server method.
  * @param {Function} resultHandler Function to call when the RPC call returns.  This function will be passed the result of the method as the first parameter.

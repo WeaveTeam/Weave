@@ -13,22 +13,32 @@ public class AWSUtils {
 	{
 		LINUX, OSX, WINDOWS, UNKNOWN
 	}
-	public static Object[][] transpose (Object[][] array) {
-		  if (array == null || array.length == 0)//empty or unset array, nothing do to here
-		    return array;
+	public static Object transpose(Object array) {
 
-		  int width = array.length;
-		  int height = array[0].length;
-
-		  Object[][] array_new = new Object[height][width];
-
-		  for (int x = 0; x < width; x++) {
-		    for (int y = 0; y < height; y++) {
-		      array_new[y][x] = array[x][y];
-		    }
+		  if (array instanceof Object[][])
+		  {
+			  Object[][] array2 = (Object[][]) array;
+			  array = null;
+			  if (array2 == null || array2.length == 0)//empty or unset array, nothing do to here
+				  return array2;
+			 
+			  int width = array2.length;
+			  
+			  int height = array2[0].length;
+			  
+			  Object[][] array_new = new Object[height][width];
+			  
+			  for (int x = 0; x < width; x++) {
+				  for (int y = 0; y < height; y++) {
+					  array_new[y][x] = array2[x][y];
+				  }
+			  }
+			  return (Object) array_new;
+		  } else
+		  {
+			return (Object) new Object[0][0];
 		  }
-		  return array_new;
-	}
+	  } 
 
 	public static OS_TYPE getOSType()
 	{

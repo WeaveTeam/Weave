@@ -3,3 +3,5 @@ bin/build/
 .tern-project
 .externalToolBuilders/
 nbproject/
+/bin
+/build

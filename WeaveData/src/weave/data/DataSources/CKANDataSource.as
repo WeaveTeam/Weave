@@ -19,6 +19,8 @@
 
 package weave.data.DataSources
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IWeaveTreeNode;
@@ -94,7 +96,12 @@ package weave.data.DataSources
 			if (!ds)
 				return null;
 			
-			var internalNode:IWeaveTreeNode = ds.findHierarchyNode(metadata);
+			var search:Object = ObjectUtil.copy(metadata);
+			delete search[PARAMS_CKAN_ID];
+			delete search[PARAMS_CKAN_URL];
+			delete search[PARAMS_CKAN_FORMAT];
+			
+			var internalNode:IWeaveTreeNode = ds.findHierarchyNode(search);
 			if (!internalNode)
 				return null;
 			
@@ -170,8 +177,6 @@ package weave.data.DataSources
 		private var _dataSourceCache:Object = {};
 	}
 }
-
-import com.hurlant.util.asn1.parser.nulll;
 
 import flash.events.Event;
 import flash.external.ExternalInterface;

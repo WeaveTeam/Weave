@@ -38,12 +38,19 @@ package avmplus
 		public static const GET_INSTANCE_INFO:uint = INCLUDE_BASES | INCLUDE_INTERFACES | INCLUDE_VARIABLES | INCLUDE_ACCESSORS | INCLUDE_METHODS | INCLUDE_METADATA | INCLUDE_CONSTRUCTOR | INCLUDE_TRAITS | USE_ITRAITS;
 		public static const GET_CLASS_INFO:uint = INCLUDE_INTERFACES | INCLUDE_VARIABLES | INCLUDE_ACCESSORS | INCLUDE_METHODS | INCLUDE_METADATA | INCLUDE_TRAITS | HIDE_OBJECT;
 		
+		public static function getInstanceInfo(o:*):Object
+		{
+			return describeTypeJSON(o, GET_INSTANCE_INFO);
+		}
+		
+		public static function getClassInfo(o:*):Object
+		{
+			return describeTypeJSON(o, GET_CLASS_INFO);
+		}
+		
 		/**
 		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
 		 */
-		public static function getJSONFunction():Function
-		{
-			return describeTypeJSON;
-		}
+		public static const getInfo:Function = describeTypeJSON;
 	}
 }

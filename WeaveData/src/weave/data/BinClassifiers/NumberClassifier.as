@@ -22,6 +22,7 @@ package weave.data.BinClassifiers
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinClassifier;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.getCallbackCollection;
@@ -30,6 +31,7 @@ package weave.data.BinClassifiers
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.StringColumn;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * A classifier that uses min,max values for containment tests.
@@ -94,17 +96,14 @@ package weave.data.BinClassifiers
 		 * @param toStringColumn The primitive column to use that provides a number-to-string conversion function.
 		 * @return A generated label for this NumberClassifier.
 		 */
-		public function generateBinLabel(toStringColumn:IPrimitiveColumn = null):String
+		public function generateBinLabel(toStringColumn:IAttributeColumn = null):String
 		{
 			var minStr:String = null;
 			var maxStr:String = null;
 			
 			// get labels from column
-			if (toStringColumn != null)
-			{
-				minStr = toStringColumn.deriveStringFromNumber(min.value) || '';
-				maxStr = toStringColumn.deriveStringFromNumber(max.value) || '';
-			}
+			minStr = ColumnUtils.deriveStringFromNumber(toStringColumn, min.value) || '';
+			maxStr = ColumnUtils.deriveStringFromNumber(toStringColumn, max.value) || '';
 			
 			// if the column produced no labels, use default number formatting
 			if (!minStr && !maxStr)

@@ -44,6 +44,7 @@
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.newLinkableChild;
 			import weave.api.reportError;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableWatcher;
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStateOptions;
@@ -72,6 +73,11 @@
 					_playMenu.menuItems.push(new SubMenuItem(speed + 'x', play, [speed]));
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
+			
+			/**
+			 * This gets set to true when a squash is active and false when the squash is completed.
+			 */
+			public const squashActive:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 			
 			private var _editMenu:SubMenu;
 			private var _squashItem:Object;
@@ -108,6 +114,8 @@
 						}
 					}
 					_squashItem = null;
+					
+					squashActive.value = false;
 				}
 				else if (undoLength)
 				{
@@ -117,6 +125,8 @@
 					SessionStateLog.enableHistoryRewrite = false; // prevents the _squashItem from being replaced in the history
 					
 					_squashItem = _stateLog.undoHistory[undoLength - 1];
+					
+					squashActive.value = true;
 				}
 			}
 			

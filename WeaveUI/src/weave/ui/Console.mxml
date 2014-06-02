@@ -61,7 +61,6 @@
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
-			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
 			import weave.utils.MethodChainProxy;
@@ -143,6 +142,7 @@
 			}
 			
 			private const symbolTable:Object = {
+				'exec': JavaScript.exec,
 				'call': function(...args):*
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
@@ -152,10 +152,13 @@
 						ExternalInterface.marshallExceptions = true;
 						result = ExternalInterface.call.apply(this, args);
 					}
-					finally
+					catch (e:Error)
 					{
 						ExternalInterface.marshallExceptions = prev;
+						throw e;
 					}
+					// we can't put this in a finally{} block because it prevents catch() from happening if set to false.
+					ExternalInterface.marshallExceptions = prev;
 					return result;
 				},
 				'application': WeaveAPI.topLevelApplication,
