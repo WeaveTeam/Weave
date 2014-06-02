@@ -88,6 +88,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.layout.InfoMapBackgroundImage;
+			import weave.ui.infomap.layout.NodeGroup;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.ColumnUtils;
 			import weave.utils.DateUtils;
@@ -101,6 +102,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * This is mapping of a link to a node where each node is a defined by a query of keywords,operator and filters
 			 * */
 			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+			
+			public const nodeGroups:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
 			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject(InfoMapsDataSource.SOURCE_NAME,InfoMapsDataSource, true);
 			
@@ -159,6 +162,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
 				
 				UIUtils.linkDisplayObjects(map,nodes,true);
+				UIUtils.linkDisplayObjects(map,nodeGroups,false);
 				UIUtils.linkDisplayObjects(map,backgroundImagesEncoded,false);
 				
 				registerDisposableChild(this,globalSearchKeyword);
@@ -198,6 +202,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//				_infomapSubMenu.addSubMenuItem("Extract Entities",extractEntityColumns);
 				
 				sideMenu.addQueryButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{addInfoMapNode();})
+				sideMenu.addNodeGroupButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{addInfoMapNodeGroup();})
 				sideMenu.extractEntitiesButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{extractEntityColumns();})
 				
 				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
@@ -969,6 +974,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					nodeHandler.applyKeywords(query);
 				}
+			}
+			
+			public function addInfoMapNodeGroup():void
+			{
+				var className:String = getQualifiedClassName(NodeGroup).split("::")[1];
+				var nodeName:String = nodeGroups.generateUniqueName(className);
+				var nodeGroup:NodeGroup = nodeGroups.requestObject(nodeName,NodeGroup,false);
+				
+				nodeGroup.x = 50 * (nodeGroups.getNames().length);
+				nodeGroup.y = 50 * (nodeGroups.getNames().length);
 			}
 			
 			public function addQuery(query:String):void

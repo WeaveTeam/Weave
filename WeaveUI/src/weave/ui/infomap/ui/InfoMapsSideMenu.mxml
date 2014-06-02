@@ -31,7 +31,7 @@
 				
 			}
 			[Bindable]
-			private var _maxHieght:int = 80;
+			private var _maxHieght:int = 105;
 			
 			private var _labelWidth:int = 75;
 			private function handleMaxMinClick(event:MouseEvent):void
@@ -97,6 +97,7 @@
 	<!--<s:Spacer width="10%"/>-->
 </mx:HBox>
 <s:Button id="addQueryButton" label="Add Query"/>
+<s:Button id="addNodeGroupButton" label="Add Query Group"/>
 <s:Button id="extractEntitiesButton" label="Link with Data"/>
 <s:List height="100%" id="m" borderVisible="false" itemRenderer="weave.ui.infomap.ui.ExpandingItemRenderer"
 		verticalScrollPolicy="off" creationComplete="handleListCreationComplete()">

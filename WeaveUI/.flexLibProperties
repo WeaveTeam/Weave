@@ -3,6 +3,7 @@
   <includeClasses>
     <classEntry path="weave.ui.infomap.ui.ImageClearList"/>
     <classEntry path="weave.ui.infomap.layout.InfoMapBackgroundImage"/>
+    <classEntry path="weave.ui.infomap.layout.NodeGroup"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

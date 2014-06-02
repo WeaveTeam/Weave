@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="1" height="1"
+		   xmlns:ui="weave.ui.infomap.ui.*"
+		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
+		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
+		   verticalScrollPolicy="off" mouseDown="startDragging(event)" mouseUp="stopDragging(event)">
+	<mx:TextArea id="groupName"  width="80" height="20" x="{this.width/2-groupName.width/2}" y="{this.height/2 - groupName.height/2}" />
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableNumber;
+			import weave.utils.CustomCursorManager;
+			import weave.visualization.layers.InteractiveVisualization;
+			
+			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			private var handCursorID:int = -1;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				//sessioning the x and y positions of this node
+				linkBindableProperty(xPos,this,"x");
+				linkBindableProperty(yPos,this,"y");
+				
+				graphics.beginFill(0x00FFFF);
+				graphics.drawCircle(width/2, height/2, 80);
+				graphics.drawCircle(width/2, height/2, 75);
+				graphics.endFill();
+			}
+			
+			protected function startDragging(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
+				this.startDrag();
+			}
+			
+			protected function stopDragging(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				CustomCursorManager.removeCursor(handCursorID);
+				this.stopDrag();
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Canvas>
