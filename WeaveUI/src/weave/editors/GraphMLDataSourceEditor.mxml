@@ -159,13 +159,19 @@
 
             public function applyChanges():void
             {
+                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+
                 _graphmlDataSource.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
                 _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
+                _graphmlDataSource.nodeLayerPropertyName.value = 
+                    nodeLayerPropertyInput.text;
 
                 _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
                 _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
+                _graphmlDataSource.edgeLayerPropertyName.value = 
+                    edgeLayerPropertyInput.text;
 
-                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+                
             }
             
             public function createDataSource():IDataSource
@@ -231,6 +237,7 @@
             {
                 sourceUrl.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
                 handleURLTextChange();
+
                 busyIndicator.visible = false;
                 
                 uploadMessage.visible = true;

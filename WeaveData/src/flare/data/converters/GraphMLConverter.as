@@ -48,9 +48,8 @@ package flare.data.converters
     {    
         // -- reader ----------------------------------------------------------
         
-        public static function read(input:IDataInput):Object
+        public static function read(str:String):Object
         {
-            var str:String = input.readUTFBytes(input.bytesAvailable);
             var idx:int = str.indexOf(GRAPHML);
             if (idx > 0) {
                 str = str.substr(0, idx+GRAPHML.length) + 
