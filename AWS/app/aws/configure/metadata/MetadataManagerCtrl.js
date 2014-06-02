@@ -9,6 +9,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 
     $scope.authenticate = function(user, password)
 	{
+    	$scope.user = user;
+    	$scope.password = password;
 		queryService.authenticate(user, password).then(function(result) {
 			if(result)
 			{
@@ -20,6 +22,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 			}
 
 		});
+		
+		
 	};
 
 	$scope.logout = function()
@@ -27,7 +31,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		$scope.authenticated = false;
 	};
     
-	var generateTree = function() {
+	$scope.generateTree = function(element) {
 		queryService.getDataTableList().then(function(dataTableList) {
 			for (var i = 0; i < dataTableList.length; i++) {
 				dataTable = dataTableList[i];
@@ -45,7 +49,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 						treeNode.children = children;
 						treeData.push(treeNode);
 						if( treeData.length == end) {
-							$("#tree").dynatree({
+							$(element).dynatree({
 								minExpandLevel: 1,
 								children : treeData,
 								keyBoard : true,
@@ -58,7 +62,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 								},
 								debugLevel: 0
 							});
-							var node = $("#tree").dynatree("getRoot");
+							var node = $(element).dynatree("getRoot");
 						    // node.sortChildren(cmp, true);
 						}
 					});
@@ -66,8 +70,6 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 			}
 		});
 	};
-
-	generateTree();
 
 	var cmp = function(a, b) {
 		key1 = a.data.key;
@@ -125,11 +127,15 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	 };
 
 	 $scope.addNewRow = function () {
+		 console.log("username", $scope.user);
+		console.log("password", $scope.password);
 		 $scope.myData.push({property: 'Property Name', value: 'Value'});
 		 updateMetadata($scope.myData);
 	 };
 
 	 $scope.removeRow = function() {
+		 console.log("username", $scope.user);
+		console.log("password", $scope.password);
 		 var index = $scope.myData.indexOf($scope.gridOptions.selectedItems[0]);
 	     $scope.myData.splice(index, 1);
 	     updateMetadata($scope.myData);
@@ -166,59 +172,133 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 		 });
 	 };
 
-	$scope.refresh = function() {
+	$scope.refresh = function(element) {
 		$("#tree").dynatree("getTree").reload();
 		var node = $("#tree").dynatree("getRoot");
 	    node.sortChildren(cmp, true);
 	};
     
-	$scope.$watch('fileUpload', function(n, o) {
-            if ($scope.fileUpload && $scope.fileUpload.then) {
-              $scope.fileUpload.then(function(result) {
-                var metadataArray = queryService.CSVToArray(result.contents);
-        	  if($scope.selectedColumnId) {
-        		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
-        			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
-            			  if(columns.length) {
-            				  for (var i = 1; i < metadataArray.length; i++) {
-            					  	var metadata = metadataArray[i][1];
-            						var title = metadataArray[i][0];
-            						$scope.progressValue = 0;
-            						var end = columns.length;
-            						$scope.maxTasks = end;
-            						var id;
-            						for(var j = 0; j < columns.length; j++) {
-            							if(columns[j].publicMetadata.title == title) {
-            								id = columns[j].id;
-            								break; // we assume there is only one match
-            							}
-            						}
-    	        					if(id) {
-    	        						queryService.updateEntity($scope.user, 
-    	        								$scope.password, 
-    	        								 id, { 
-    	        															publicMetadata : { 
-    	        																				aws_metadata : metadata.replace(/\s/g, '')
-    	        																			}
-    	        															}
-    	        							 ).then(function() {
-    	        								 $scope.progressValue++;
-    	        							 });								
-    	        					}
-    							 }
-            			  } else {
-            				  console.log("selected entity is not a table or table does not contain any columns.");
-            			  }
-        			  });
-        		  });
-        	  } else {
-  					console.log("no selected tables");
-        	  };
-              });
-            }
-          }, true);
+	
+	
+//	$scope.$watch(function(){
+//		return $scope.fileUpload;
+//	}, function(n, o) {
+//            if ($scope.fileUpload && $scope.fileUpload.then) {
+//            	console.log("reached inside");
+//              $scope.fileUpload.then(function(result) {
+//                var metadataArray = queryService.CSVToArray(result.contents);
+//        	  if($scope.selectedColumnId) {
+//        		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
+//        			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
+//            			  if(columns.length) {
+//            				  for (var i = 1; i < metadataArray.length; i++) {
+//            					  	var metadata = metadataArray[i][1];
+//            						var title = metadataArray[i][0];
+//            						$scope.progressValue = 0;
+//            						var end = columns.length;
+//            						$scope.maxTasks = end;
+//            						var id;
+//            						for(var j = 0; j < columns.length; j++) {
+//            							if(columns[j].publicMetadata.title == title) {
+//            								id = columns[j].id;
+//            								break; // we assume there is only one match
+//            							}
+//            						}
+//    	        					if(id) {
+//    	        						queryService.updateEntity($scope.user, 
+//    	        								$scope.password, 
+//    	        								 id, { 
+//    	        															publicMetadata : { 
+//    	        																				aws_metadata : metadata.replace(/\s/g, '')
+//    	        																			}
+//    	        															}
+//    	        							 ).then(function() {
+//    	        								 $scope.progressValue++;
+//    	        							 });								
+//    	        					}
+//    							 }
+//            			  } else {
+//            				  console.log("selected entity is not a table or table does not contain any columns.");
+//            			  }
+//        			  });
+//        		  });
+//        	  } else {
+//  					console.log("no selected tables");
+//        	  };
+//              });
+//            }
+//          }, true);
           
 	$scope.importQueryObject = function() {
 
 	};
+})
+.controller("MetadataCtrl", function($scope, queryService){})
+
+
+.controller("MetadataFileController", function ($scope, queryService){
+	
+	$scope.$watch('fileUpload', function(n, o) {
+        if ($scope.fileUpload && $scope.fileUpload.then) {
+        	console.log("reached inside");
+          $scope.fileUpload.then(function(result) {
+            var metadataArray = queryService.CSVToArray(result.contents);
+    	  if($scope.selectedColumnId) {
+    		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
+    			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
+        			  if(columns.length) {
+        				  for (var i = 1; i < metadataArray.length; i++) {
+        					  	var metadata = metadataArray[i][1];
+        						var title = metadataArray[i][0];
+        						$scope.progressValue = 0;
+        						var end = columns.length;
+        						$scope.maxTasks = end;
+        						var id;
+        						for(var j = 0; j < columns.length; j++) {
+        							if(columns[j].publicMetadata.title == title) {
+        								id = columns[j].id;
+        								break; // we assume there is only one match
+        							}
+        						}
+	        					if(id) {
+	        						queryService.updateEntity($scope.user, 
+	        								$scope.password, 
+	        								 id, { 
+	        															publicMetadata : { 
+	        																				aws_metadata : metadata.replace(/\s/g, '')
+	        																			}
+	        															}
+	        							 ).then(function() {
+	        								 $scope.progressValue++;
+	        							 });								
+	        					}
+							 }
+        			  } else {
+        				  console.log("selected entity is not a table or table does not contain any columns.");
+        			  }
+    			  });
+    		  });
+    	  } else {
+					console.log("no selected tables");
+    	  };
+          });
+        }
+
+      }, true);
+	
+	
+});		
+
+
+
+
+
+
+
+angular.module('aws.configure.metadata').directive('dynatree', function() {
+	return {
+        link: function(scope, element, attrs) {
+        	scope.generateTree(element);
+        }
+   };	
 });

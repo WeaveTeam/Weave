@@ -26,7 +26,7 @@ angular.module('aws.directives.fileUpload', [])
                   var contents = {filename: file.name,
                     contents: e.target.result};
                   $scope.$safeApply(function() { deferred.resolve(contents); });
-                  
+                  console.log("contents", contents);
                 };
                 reader.readAsText(file);
               });

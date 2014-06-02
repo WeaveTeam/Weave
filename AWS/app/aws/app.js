@@ -48,7 +48,7 @@ app.run(['$rootScope', function($rootScope){
 		activetab : 'analysis'
 	}).when('/metadata', {
 		templateUrl : 'aws/configure/metadata/metadataManager.html',
-		controller : 'MetadataManagerCtrl',
+		controller : 'MetadataCtrl',
 		activetab : 'metadata'
 	}).when('/script_management', {
 		templateUrl : 'aws/configure/script/scriptManager.html',

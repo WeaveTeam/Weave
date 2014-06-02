@@ -1,4 +1,6 @@
-<div ng-show="!authenticated" style="padding-top: 20px; 
+<div style="padding-left: 25px" ng-controller = "MetadataManagerCtrl" >
+
+<div ng-if="!authenticated" style="padding-top: 20px; 
 	 position:absolute;
      width:300px;
      height:200px;
@@ -12,7 +14,7 @@
 				 User Name: 
 			</td>
 	 		<td>
-	 			<input type="text" ng-model="user"/>
+	 			<input ng-model="user" type="text" />
 	 		</td>
 	 	</tr>
 	 	<tr>
@@ -20,7 +22,7 @@
 	 			Password:
 	 		</td>
 	 		<td>
-		 		<input type="password" ng-model="password"/>
+		 		<input ng-model="password" type="password" />
 	 		</td>
 	 	</tr>
 	 	<tr>
@@ -34,7 +36,7 @@
 	 	</tr>
 	 </table>
 </div> 
-<table ng-show= "authenticated">
+<table ng-if="authenticated">
   <colgroup width="100%">
     <col width="50%" valign="top">
     <col width="50%">
@@ -44,10 +46,13 @@
       <br>
 		<b> Data Tables </b>
 	  <br>
-      <div id="tree"style="width: 100%; height: 600px; overflow: scroll"></div>
+      <div id="tree" dynatree style="width: 100%; height: 600px; overflow: scroll"></div>
       <br>
+      <div ng-controller = 'MetadataFileController'> 
       <input class="file-nput-btn" type="button" value="Refresh" ng-click="refresh()">
       <file-upload label="Upload"></file-upload>
+      
+      </div>
 	  <br><br>
 	  <div ng-show="inProgress" style="width: 175px">
 	      <progressbar value="progressValue" max="maxTasks" animate="false"></progressbar>
@@ -66,3 +71,4 @@
     </td>
   </tr>
 </table>	
+</div>
