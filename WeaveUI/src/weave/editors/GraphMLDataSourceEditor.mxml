@@ -149,29 +149,25 @@
                 return StandardLib.asString(_graphmlDataSource.sourceUrl.value) != StandardLib.asString(sourceUrl.text) ||
                        
                        StandardLib.asString(_graphmlDataSource.nodeKeyType.value) != StandardLib.asString(nodeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(_graphmlDataSource.nodeKeyPropertyName) != StandardLib.asString(nodeKeyPropertyInput.text) ||
-                       StandardLib.asString(_graphmlDataSource.nodeLayerPropertyName) != StandardLib.asString(nodeLayerPropertyInput.text) ||
+                       StandardLib.asString(_graphmlDataSource.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.text) ||
+                       StandardLib.asString(_graphmlDataSource.nodeLayerPropertyName.value) != StandardLib.asString(nodeLayerPropertyInput.text) ||
 
                        StandardLib.asString(_graphmlDataSource.edgeKeyType.value) != StandardLib.asString(edgeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(_graphmlDataSource.edgeKeyPropertyName) != StandardLib.asString(edgeKeyPropertyInput.text) ||
-                       StandardLib.asString(_graphmlDataSource.edgeLayerPropertyName) != StandardLib.asString(edgeLayerPropertyInput.text);
+                       StandardLib.asString(_graphmlDataSource.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.text) ||
+                       StandardLib.asString(_graphmlDataSource.edgeLayerPropertyName.value) != StandardLib.asString(edgeLayerPropertyInput.text);
             }
 
             public function applyChanges():void
             {
                 _graphmlDataSource.sourceUrl.value = sourceUrl.text;
 
-                _graphmlDataSource.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
                 _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
-                _graphmlDataSource.nodeLayerPropertyName.value = 
-                    nodeLayerPropertyInput.text;
+                _graphmlDataSource.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
+                _graphmlDataSource.nodeLayerPropertyName.value = nodeLayerPropertyInput.text;
 
-                _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
                 _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
-                _graphmlDataSource.edgeLayerPropertyName.value = 
-                    edgeLayerPropertyInput.text;
-
-                
+                _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
+                _graphmlDataSource.edgeLayerPropertyName.value = edgeLayerPropertyInput.text;
             }
             
             public function createDataSource():IDataSource
