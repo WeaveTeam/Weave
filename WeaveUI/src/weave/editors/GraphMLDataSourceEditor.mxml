@@ -34,38 +34,36 @@
              edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');"  width="100%"/>
     </ui:Indent>
     <ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
-        <ui:TextInputWithPrompt change="handleURLTextChange()" id="sourceUrl" width="100%" prompt="http://www.example.com/example.graphml"/>
+        <ui:TextInputWithPrompt change="handleURLTextChange()" id="sourceUrl" width="100%" prompt="http://www.example.com/example.graphml"/><mx:Button label="{lang('Open file')}" click="browseForFiles()"/>
+        <mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
     </ui:Indent>
-    <mx:VBox width="100%" enabled="{sourceUrl.text?false:true}">
-        <mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
-        <ui:Indent group="{indentGroup}" label="{lang('Open local GraphML file')}">
-            <mx:Button label="{lang('Open file')}" click="browseForFiles()"/>
-            <mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
-        </ui:Indent>
-    </mx:VBox>
 
     <ui:Indent group="{indentGroup}" label="{lang('Nodes')}">
-        <ui:Indent group="{indentGroup}" label="{lang('Key Property')}">
-            <mx:TextInput id="nodeKeyPropertyInput" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
-        </ui:Indent>
-        <ui:Indent group="{indentGroup}" label="{lang('KeyType')}">
-            <ui:KeyTypesMenu id="nodeKeyTypeSelector"/>
-        </ui:Indent>
-        <ui:Indent group="{indentGroup}" label="{lang('Layer Property')}">
-            <mx:TextInput id="nodeLayerPropertyInput" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
-        </ui:Indent>
+        <mx:VBox>
+            <ui:Indent label="{lang('KeyType')}">
+                <ui:KeyTypesMenu id="nodeKeyTypeSelector"/>
+            </ui:Indent>
+            <ui:Indent label="{lang('Key Property')}">
+                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
+            </ui:Indent>
+            <ui:Indent label="{lang('Layer Property')}">
+                <ui:CustomComboBox id="nodeLayerPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
+            </ui:Indent>
+        </mx:VBox>
     </ui:Indent>
 
     <ui:Indent group="{indentGroup}" label="{lang('Edges')}">
-        <ui:Indent group="{indentGroup}" label="{lang('Key Property')}">
-            <mx:TextInput id="edgeKeyPropertyInput" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
-        <ui:Indent group="{indentGroup}" label="{lang('KeyType')}">
-            <ui:KeyTypesMenu id="edgeKeyTypeSelector"/>
-        </ui:Indent>
-        <ui:Indent group="{indentGroup}" label="{lang('Layer Property')}">
-            <mx:TextInput id="edgeLayerPropertyInput" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
-        </ui:Indent>
-        </ui:Indent>
+        <mx:VBox>
+            <ui:Indent label="{lang('KeyType')}">
+                <ui:KeyTypesMenu id="edgeKeyTypeSelector"/>
+            </ui:Indent>
+            <ui:Indent label="{lang('Key Property')}">
+                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
+            </ui:Indent>
+            <ui:Indent label="{lang('Layer Property')}">
+                <ui:CustomComboBox id="edgeLayerPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
+            </ui:Indent>
+        </mx:VBox>
     </ui:Indent>
 
 
@@ -75,12 +73,14 @@
         <![CDATA[
             import mx.controls.Alert;
             import mx.managers.PopUpManager;
+            import mx.collections.ArrayCollection;
             
             import weave.api.WeaveAPI;
             import weave.api.core.ILinkableObject;
             import weave.api.data.IDataSource;
             import weave.api.getCallbackCollection;
             import weave.api.getSessionState;
+            import weave.api.newDisposableChild;
             import weave.api.registerDisposableChild;
             import weave.api.reportError;
             import weave.compiler.StandardLib;
@@ -94,7 +94,7 @@
             
             private var busyIndicator:BusyIndicator = new BusyIndicator();
        
-            [Bindable] private var _graphmlDataSource:GraphMLDataSource = null;
+            [Bindable] public var _graphmlDataSource:GraphMLDataSource = null;
             
             private var _fileLoader:FileReference = null;
             
@@ -105,7 +105,11 @@
                 addChild(busyIndicator);
                 busyIndicator.visible = false;
                 sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GraphMLDataSource");
-                //keyTypeSelector.addKeyTypeToMenu(sourceName.text);
+
+                nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Nodes');
+                nodeKeyTypeSelector.selectedKeyType = sourceName.text+'Nodes';
+                edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');
+                edgeKeyTypeSelector.selectedKeyType = sourceName.text+'Edges';
             }
             
             
@@ -121,26 +125,41 @@
                 
                 if (_graphmlDataSource)
                 {
-                    sourceName.text = WeaveAPI.globalHashMap.getName(_graphmlDataSource);
+                    if (WeaveAPI.globalHashMap.getName(_graphmlDataSource))
+                    {
+                        sourceName.text = WeaveAPI.globalHashMap.getName(_graphmlDataSource);
+                        sourceName.editable = false;
+                        sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
+                    }
+                    
                     sourceUrl.text = _graphmlDataSource.sourceUrl.value;
 
-                    nodeKeyPropertyInput.text = _graphmlDataSource.nodeKeyPropertyName.value;
-                    nodeLayerPropertyInput.text = _graphmlDataSource.nodeLayerPropertyName.value;                    
+
+                    var nodePropertyChoices:Array = (_graphmlDataSource.nodeProperties.getSessionState()) as Array || [];
+                    var edgePropertyChoices:Array = (_graphmlDataSource.edgeProperties.getSessionState()) as Array || [];
+
+                    nodePropertyChoices = [""].concat(nodePropertyChoices);
+                    edgePropertyChoices = [""].concat(edgePropertyChoices);
+
+                    nodeKeyPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
+                    nodeKeyPropertyInput.selectedLabel = _graphmlDataSource.nodeKeyPropertyName.value;
+
+                    nodeLayerPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
+                    nodeLayerPropertyInput.selectedLabel = _graphmlDataSource.nodeLayerPropertyName.value;                
+
                     nodeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.nodeKeyType.value);
                     nodeKeyTypeSelector.selectedKeyType = _graphmlDataSource.nodeKeyType.value;
 
-                    edgeKeyPropertyInput.text = _graphmlDataSource.edgeKeyPropertyName.value;
-                    edgeLayerPropertyInput.text = _graphmlDataSource.edgeLayerPropertyName.value;                    
+                    edgeKeyPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
+                    edgeKeyPropertyInput.selectedLabel = _graphmlDataSource.edgeKeyPropertyName.value;
+
+                    edgeLayerPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
+                    edgeLayerPropertyInput.selectedLabel = _graphmlDataSource.edgeLayerPropertyName.value;
+
                     edgeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.edgeKeyType.value);
                     edgeKeyTypeSelector.selectedKeyType = _graphmlDataSource.edgeKeyType.value;
 
-                    sourceName.editable = false;
-                    sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
                     handleURLTextChange();
-                    if (!sourceUrl.text)
-                    {
-                        // Do stuff here.
-                    }
                 }
             }
             
@@ -168,6 +187,8 @@
                 _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
                 _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
                 _graphmlDataSource.edgeLayerPropertyName.value = edgeLayerPropertyInput.text;
+
+                
             }
             
             public function createDataSource():IDataSource
@@ -182,7 +203,8 @@
                     Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
                     return null;
                 }
-                _graphmlDataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, GraphMLDataSource, false);
+                _graphmlDataSource = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, _graphmlDataSource) as GraphMLDataSource;
+
                 if (!_graphmlDataSource)
                 {
                     Alert.show(lang("Unexpected problem. Unable to add the data source."));
@@ -245,6 +267,25 @@
                     busyIndicator.visible = false;
                     return;
                 }
+
+                _graphmlDataSource = newDisposableChild(this, GraphMLDataSource);
+
+                _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
+                _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
+
+                _graphmlDataSource.nodeKeyPropertyName.value = "id";
+                _graphmlDataSource.edgeKeyPropertyName.value = "id";
+                _graphmlDataSource.nodeLayerPropertyName.value = "";
+                _graphmlDataSource.edgeLayerPropertyName.value = "";
+
+
+                _graphmlDataSource.onFinish = function():void {setTarget(_graphmlDataSource);};
+                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+
+
+                
+
+                applyChanges();
             }
             
             private function fileErrorHandler(event:IOErrorEvent):void

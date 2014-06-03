@@ -68,11 +68,10 @@ package weave.data.DataSources
         public var nodeLayerNames:Array = [];
         public var edgeLayerNames:Array = [];
 
-        public var nodeKeyToId:Object = null;
         public var nodeIdToKey:Object = null;
-
-        public var edgeKeyToId:Object = null;
         public var edgeIdToKey:Object = null;
+
+        public var onFinish:Function = null;
 
         public function GraphMLDataSource()
         {
@@ -142,6 +141,11 @@ package weave.data.DataSources
             edgeProperties.setSessionState(result.edgeKeys);
             edgeColumnData.setSessionState(result.edges);
 
+            if (onFinish != null) 
+            {
+                onFinish()
+                onFinish = null;
+            }
         }
 
         private function handleGraphMLDownloadError(event:FaultEvent, token:Object = null):void
@@ -219,7 +223,16 @@ package weave.data.DataSources
                 key_column = raw_key_column;
             }
             
+            if (!metadata[ColumnMetadata.KEY_TYPE])
+            {
+                metadata[ColumnMetadata.KEY_TYPE] = keyType;
+            }
 
+            if (!metadata[ColumnMetadata.TITLE])
+            {
+                metadata[ColumnMetadata.TITLE] = metadata[COLUMNNAME_META];    
+            }
+            
 
 
             
@@ -315,14 +328,12 @@ package weave.data.DataSources
 
         private function handleNodeKeyPropertyChange():void
         {
-            nodeKeyToId = {};
             nodeIdToKey = {};
 
             var nodes:Array = nodeColumnData.getSessionState() as Array;
 
-            if (!nodes || !handleKeyPropertyChange(nodes, nodeKeyPropertyName, nodeKeyToId, nodeIdToKey))
+            if (!nodes || !handleKeyPropertyChange(nodes, nodeKeyPropertyName, nodeIdToKey))
             {
-                nodeKeyToId = null;
                 nodeIdToKey = null;
             }
 
@@ -330,26 +341,25 @@ package weave.data.DataSources
         }
         private function handleEdgeKeyPropertyChange():void
         {
-            edgeKeyToId = {};
             edgeIdToKey = {};
 
             var edges:Array = edgeColumnData.getSessionState() as Array;
 
-            if (!edges || !handleKeyPropertyChange(edges, edgeKeyPropertyName, edgeKeyToId, edgeIdToKey))
+            if (!edges || !handleKeyPropertyChange(edges, edgeKeyPropertyName, edgeIdToKey))
             {
-                edgeKeyToId = null;
                 edgeIdToKey = null;
             }
 
             return;
         }
 
-        private function handleKeyPropertyChange(data:Array, keyPropertyName:LinkableString, keyToIdMappings:Object, idToKeyMappings:Object):Boolean
+        private function handleKeyPropertyChange(data:Array, keyPropertyName:LinkableString, idToKeyMappings:Object):Boolean
         {
             var idx:int;
             var id:String;
             var value:String;
             var property:String = keyPropertyName.value;
+            var keyToIdMappings:Object = {};
 
             if (property == "") return false;
 
