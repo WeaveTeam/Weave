@@ -40,7 +40,7 @@
 
     <ui:Indent group="{indentGroup}" label="{lang('Nodes')}">
         <mx:VBox>
-            <ui:Indent label="{lang('KeyType')}">
+            <ui:Indent label="{lang('KeyType *')}">
                 <ui:KeyTypesMenu id="nodeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
@@ -54,7 +54,7 @@
 
     <ui:Indent group="{indentGroup}" label="{lang('Edges')}">
         <mx:VBox>
-            <ui:Indent label="{lang('KeyType')}">
+            <ui:Indent label="{lang('KeyType *')}">
                 <ui:KeyTypesMenu id="edgeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
