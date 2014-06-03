@@ -32,6 +32,7 @@
 			import mx.controls.Label;
 			import mx.controls.List;
 			import mx.core.Application;
+			import mx.core.DragSource;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
@@ -2024,6 +2025,8 @@
 			private var stageUtils:StageUtils = new StageUtils();
 			protected function canvas1_mouseUpHandler(event:Event):void
 			{
+				trace(this.dropTarget);
+				trace(this.dropTarget.name);
 				nodeBase.keywordTextArea.setStyle("fontWeight","normal");
 				CustomCursorManager.removeCursor(handCursorID);
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
