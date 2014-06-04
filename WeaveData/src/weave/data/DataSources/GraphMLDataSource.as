@@ -196,6 +196,7 @@ package weave.data.DataSources
 
             var raw_data_column:Array = getPropertyArray(raw_rows, metadata[COLUMNNAME_META], data_remap_src);
             var raw_key_column:Array = getPropertyArray(raw_rows, GraphMLConverter.ID, key_remap_src);
+            var raw_id_column:Array = getPropertyArray(raw_rows, GraphMLConverter.ID, null);
 
             var data_column:Array = new Array();
             var key_column:Array = new Array();
@@ -206,10 +207,11 @@ package weave.data.DataSources
 
                 for (var idx:int = raw_data_column.length - 1; idx >= 0; idx--)
                 {
+                    var id:String = raw_id_column[idx];
                     var key:String = raw_key_column[idx];
                     var value:String = raw_data_column[idx];
 
-                    if (VectorUtils.intersection(layer, [key]).length == 1)
+                    if (VectorUtils.intersection(layer, [id]).length == 1)
                     {
                         data_column.push(value);
                         key_column.push(key);
@@ -512,6 +514,7 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
 
     public function getChildren():Array 
     {
+        var idx:int;
         if (children == null)
         {
             children = [];
@@ -519,7 +522,7 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
             
             if (layerNames.length > 0)
             {
-                for (var idx:int = layerNames.length - 1; idx >= 0; idx--)
+                for (idx = layerNames.length - 1; idx >= 0; idx--)
                 {
                     children.push(new GraphMLLayerNode(this, layerNames[idx]));
                 }
@@ -529,7 +532,7 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
                     graph.source.nodeProperties.getSessionState() as Array :
                     graph.source.edgeProperties.getSessionState() as Array;
 
-            for (var idx:int = columns.length - 1; idx >= 0; idx--)
+            for (idx = columns.length - 1; idx >= 0; idx--)
             {
                 children.push(new GraphMLColumnNode(this, columns[idx]));
             }
