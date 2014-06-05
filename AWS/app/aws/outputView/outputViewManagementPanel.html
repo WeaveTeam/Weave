@@ -1,0 +1,17 @@
+<div ng-controller="OutputViewManagementController">
+
+	<br>
+	<div style="padding-left : 50px"> <br/>
+		<div class="panel-heading">
+			<h2>View Project Visualization List</h2>
+		</div>
+		<div class="widget-selectors">
+				<input type="radio" ng-model = "projectListMode" value="multiple">View all project visualizations <br/>
+				<input type="radio" ng-model = "projectListMode" value="single"> View specific project <br/>
+				<select ui-select2 ng-model = "existingProjects" style="width:200px;" data-placeholder="Select a project">
+							<option></option>
+							<!-- option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option-->
+				</select>
+		</div>
+	</div>
+</div>

@@ -96,5 +96,20 @@ public class ProjectManagementServlet extends WeaveServlet implements
 	
 		return returnStatus;
 	}
+   
+   public Object getListOfQueryObjectVisualizations(Map<String, Object> params){
+	   Object returnStatus = null;
+	   
+	   try{
+		   returnStatus = AwsProjectService.getListOfQueryObjectVisualizations(params);
+	   }catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	   
+	   return returnStatus;
+	   
+   }
 
 }

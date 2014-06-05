@@ -192,7 +192,20 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         
     };
     
+    /**
+     * This function returns the visualizations belonging to query(ies)
+     */
     
+    this.getListOfQueryObjectVisualizations = function(projectName){
+    	var params = {};
+    	params.projectName = projectName;
+    	
+    	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [params], function(result){
+    		this.dataObject.listofVisualizations = result;
+    	});
+    	
+    	
+    };
     
     /**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise

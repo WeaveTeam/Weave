@@ -212,6 +212,28 @@ public class AwsProjectService
 		return count;
 	}
 
+	public static Object[] getListOfQueryObjectVisualizations(Map<String, Object>params) throws RemoteException, SQLException
+	{
+		Object[] visualizationCollection = null;
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
+		
+		Map<String,Object> whereParams = new HashMap<String, Object>();
+		whereParams = params;
+		
+		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
+		builder.addGroupedConditions(whereParams, null,null);
+		WhereClause<Object> clause = builder.build(con);
+		List<String> selectColumns = new ArrayList<String>();
+		selectColumns.add("resultVisualizations");
+		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
+		SQLResult visualizationSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
+		
+		//process visualizationSQLresult
+		
+		return visualizationCollection;
+	}
+	
 	/**
 	 * This class represents a collection object that is returned to the WeaveAnalyst
 	 *@param queryObjectNames names of the queryObjects belonging to a project
