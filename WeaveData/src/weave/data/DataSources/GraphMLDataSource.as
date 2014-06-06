@@ -46,11 +46,11 @@ package weave.data.DataSources
 
         public const sourceUrl:LinkableString = newLinkableChild(this, LinkableString, handleURLChange);
 
-        public const nodeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLNodesChange);
-        public const edgeColumnData:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLEdgesChange);
+        private var nodeColumnData:Array = null;
+        private var edgeColumnData:Array = null;
 
-        public const nodeProperties:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLNodesChange);
-        public const edgeProperties:LinkableVariable = newLinkableChild(this, LinkableVariable, handleGraphMLEdgesChange);
+        public var nodeProperties:Array = null;
+        public var edgeProperties:Array = null;
 
         public const nodeKeyType:LinkableString = newLinkableChild(this, LinkableString);
         public const edgeKeyType:LinkableString = newLinkableChild(this, LinkableString);
@@ -63,8 +63,8 @@ package weave.data.DataSources
 
         /* Computed values */
 
-        public var nodeLayers:Object = {};
-        public var edgeLayers:Object = {};
+        private var nodeLayers:Object = {};
+        private var edgeLayers:Object = {};
         public var nodeLayerNames:Array = [];
         public var edgeLayerNames:Array = [];
 
@@ -73,14 +73,14 @@ package weave.data.DataSources
 
         public var onFinish:Function = null;
 
+        [Bindable] public var nodeKeyPropertyValid:Boolean;
+        [Bindable] public var edgeKeyPropertyValid:Boolean;
+
         public function GraphMLDataSource()
         {
-            edgeKeyPropertyName.value = "";
-            nodeKeyPropertyName.value = "";
-
-            nodeLayerPropertyName.value = "";
-            edgeLayerPropertyName.value = "";
         }
+
+
 
 
 
@@ -135,11 +135,13 @@ package weave.data.DataSources
         {
             var result:Object = GraphMLConverter.read(String(event.result));
             
-            nodeProperties.setSessionState(result.nodeKeys);
-            nodeColumnData.setSessionState(result.nodes);
+            nodeProperties = result.nodeKeys;
+            nodeColumnData = result.nodes;
+            handleGraphMLNodesChange();
 
-            edgeProperties.setSessionState(result.edgeKeys);
-            edgeColumnData.setSessionState(result.edges);
+            edgeProperties = result.edgeKeys;
+            edgeColumnData = result.edges;
+            handleGraphMLEdgesChange();
 
             if (onFinish != null) 
             {
@@ -170,7 +172,7 @@ package weave.data.DataSources
             
             if (metadata[GROUP_META] == GraphMLConverter.NODE)
             {
-                raw_rows = (nodeColumnData.getSessionState() as Array);
+                raw_rows = nodeColumnData;
 
                 key_remap_src = nodeIdToKey;
 
@@ -180,7 +182,7 @@ package weave.data.DataSources
             }
             else if (metadata[GROUP_META] == GraphMLConverter.EDGE)
             {
-                raw_rows = (edgeColumnData.getSessionState() as Array);
+                raw_rows = edgeColumnData;
 
                 data_remap_src = (metadata[COLUMNNAME_META] == GraphMLConverter.SOURCE ||
                                  metadata[COLUMNNAME_META] == GraphMLConverter.TARGET) ? nodeIdToKey : null;
@@ -296,12 +298,11 @@ package weave.data.DataSources
 
         private function handleNodeLayeringChange():void
         {
-            var nodes:Array = nodeColumnData.getSessionState() as Array;
-            if (!nodes) return;
+            if (!nodeColumnData) return;
 
             if (nodeLayerPropertyName.value) 
             {
-                nodeLayers = partitionElements(nodes, nodeLayerPropertyName.value);
+                nodeLayers = partitionElements(nodeColumnData, nodeLayerPropertyName.value);
             }
             else
             {
@@ -313,12 +314,11 @@ package weave.data.DataSources
 
         private function handleEdgeLayeringChange():void
         {
-            var edges:Array = edgeColumnData.getSessionState() as Array;
-            if (!edges) return;
+            if (!edgeColumnData) return;
 
             if (edgeLayerPropertyName.value)
             {
-                edgeLayers = partitionElements(edges, edgeLayerPropertyName.value);
+                edgeLayers = partitionElements(edgeColumnData, edgeLayerPropertyName.value);
             }
             else
             {
@@ -330,46 +330,66 @@ package weave.data.DataSources
 
         private function handleNodeKeyPropertyChange():void
         {
+            var propertyName:String = nodeKeyPropertyName.value;
             nodeIdToKey = {};
 
-            var nodes:Array = nodeColumnData.getSessionState() as Array;
-
-            if (!nodes || !handleKeyPropertyChange(nodes, nodeKeyPropertyName, nodeIdToKey))
+            if (!nodeColumnData || !propertyName || propertyName == "")
             {
                 nodeIdToKey = null;
+                nodeKeyPropertyValid = true;
+                return;
+            }
+            
+            if (!handleKeyPropertyChange(nodeColumnData, propertyName, nodeIdToKey))
+            {
+                nodeIdToKey = null;
+                nodeKeyPropertyValid = false;
             }
 
+            nodeKeyPropertyValid = true;
+            
             return;
         }
+
         private function handleEdgeKeyPropertyChange():void
         {
+            var propertyName:String = edgeKeyPropertyName.value;
             edgeIdToKey = {};
 
-            var edges:Array = edgeColumnData.getSessionState() as Array;
-
-            if (!edges || !handleKeyPropertyChange(edges, edgeKeyPropertyName, edgeIdToKey))
+            if (!edgeColumnData || !propertyName || propertyName == "")
             {
                 edgeIdToKey = null;
+                edgeKeyPropertyValid = true;
+                return;
             }
+            
+            if (!handleKeyPropertyChange(edgeColumnData, propertyName, edgeIdToKey))
+            {
+                edgeIdToKey = null;
+                edgeKeyPropertyValid = false;
+            }
+
+            edgeKeyPropertyValid = true;
 
             return;
         }
 
-        private function handleKeyPropertyChange(data:Array, keyPropertyName:LinkableString, idToKeyMappings:Object):Boolean
+        private function handleKeyPropertyChange(data:Array, property:String, idToKeyMappings:Object):Boolean
         {
             var idx:int;
             var id:String;
             var value:String;
-            var property:String = keyPropertyName.value;
             var keyToIdMappings:Object = {};
-
-            if (property == "") return false;
 
             for (idx = data.length - 1; idx >= 0; idx--)
             {
                 value = data[idx][property];
                 id = data[idx][GraphMLConverter.ID];
-                if (keyToIdMappings[value] !== undefined) return false;
+                if (keyToIdMappings[value] !== undefined) 
+                {
+                    return false;
+                    weaveTrace("Duplicate key:", value);
+                }
                 keyToIdMappings[value] = id;
                 idToKeyMappings[id] = value;
             }            
@@ -529,8 +549,8 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
             }
 
             var columns:Array = isNodeGroup() ? 
-                    graph.source.nodeProperties.getSessionState() as Array :
-                    graph.source.edgeProperties.getSessionState() as Array;
+                    graph.source.nodeProperties :
+                    graph.source.edgeProperties;
 
             for (idx = columns.length - 1; idx >= 0; idx--)
             {
@@ -584,8 +604,8 @@ internal class GraphMLLayerNode implements IWeaveTreeNode
         {
             children = [];
             var columns:Array = group.isNodeGroup() ? 
-                group.graph.source.nodeProperties.getSessionState() as Array :
-                group.graph.source.edgeProperties.getSessionState() as Array;
+                group.graph.source.nodeProperties :
+                group.graph.source.edgeProperties;
 
             for (var idx:int = columns.length - 1; idx >= 0; idx--)
             {

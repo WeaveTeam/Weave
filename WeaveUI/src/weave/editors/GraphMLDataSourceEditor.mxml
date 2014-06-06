@@ -34,7 +34,7 @@
              edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');"  width="100%"/>
     </ui:Indent>
     <ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
-        <ui:TextInputWithPrompt change="handleURLTextChange()" id="sourceUrl" width="100%" prompt="http://www.example.com/example.graphml"/><mx:Button label="{lang('Open file')}" click="browseForFiles()"/>
+        <ui:TextInputWithPrompt change="handleURLTextChange()" id="sourceUrl" width="100%" prompt="http://www.example.com/example.graphml"/><mx:Button label="{lang('Open file')}" click="fileAttacher.browseAndAttachFile()"/>
         <mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
     </ui:Indent>
 
@@ -44,7 +44,7 @@
                 <ui:KeyTypesMenu id="nodeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
-                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
+                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.nodeKeyPropertyValid)}"/ -->
             </ui:Indent>
             <ui:Indent label="{lang('Layer Property')}">
                 <ui:CustomComboBox id="nodeLayerPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
@@ -58,7 +58,7 @@
                 <ui:KeyTypesMenu id="edgeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
-                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
+                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.edgeKeyPropertyValid)}"/ -->
             </ui:Indent>
             <ui:Indent label="{lang('Layer Property')}">
                 <ui:CustomComboBox id="edgeLayerPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
@@ -83,6 +83,7 @@
             import weave.api.newDisposableChild;
             import weave.api.registerDisposableChild;
             import weave.api.reportError;
+            import weave.services.FileAttacher;
             import weave.compiler.StandardLib;
             import weave.data.DataSources.GraphMLDataSource;
             import weave.editors.managers.EditDataGridPanel;
@@ -95,9 +96,6 @@
             private var busyIndicator:BusyIndicator = new BusyIndicator();
        
             [Bindable] public var _graphmlDataSource:GraphMLDataSource = null;
-            
-            private var _fileLoader:FileReference = null;
-            
             
             override protected function createChildren():void
             {
@@ -134,12 +132,8 @@
                     
                     sourceUrl.text = _graphmlDataSource.sourceUrl.value;
 
-
-                    var nodePropertyChoices:Array = (_graphmlDataSource.nodeProperties.getSessionState()) as Array || [];
-                    var edgePropertyChoices:Array = (_graphmlDataSource.edgeProperties.getSessionState()) as Array || [];
-
-                    nodePropertyChoices = [""].concat(nodePropertyChoices);
-                    edgePropertyChoices = [""].concat(edgePropertyChoices);
+                    var nodePropertyChoices:Array = [""].concat(_graphmlDataSource.nodeProperties || []); /* Make copies so we don't edit them accidentally. */
+                    var edgePropertyChoices:Array = [""].concat(_graphmlDataSource.edgeProperties || []);
 
                     nodeKeyPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
                     nodeKeyPropertyInput.selectedLabel = _graphmlDataSource.nodeKeyPropertyName.value;
@@ -147,8 +141,18 @@
                     nodeLayerPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
                     nodeLayerPropertyInput.selectedLabel = _graphmlDataSource.nodeLayerPropertyName.value;                
 
-                    nodeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.nodeKeyType.value);
-                    nodeKeyTypeSelector.selectedKeyType = _graphmlDataSource.nodeKeyType.value;
+                    
+                    
+                    if (_graphmlDataSource.nodeKeyType.value)
+                    {
+                        nodeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.nodeKeyType.value);
+                        nodeKeyTypeSelector.selectedKeyType = _graphmlDataSource.nodeKeyType.value;
+                    }
+                    else
+                    {
+                        _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
+                    }
+                    
 
                     edgeKeyPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
                     edgeKeyPropertyInput.selectedLabel = _graphmlDataSource.edgeKeyPropertyName.value;
@@ -156,8 +160,15 @@
                     edgeLayerPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
                     edgeLayerPropertyInput.selectedLabel = _graphmlDataSource.edgeLayerPropertyName.value;
 
-                    edgeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.edgeKeyType.value);
-                    edgeKeyTypeSelector.selectedKeyType = _graphmlDataSource.edgeKeyType.value;
+                    if (_graphmlDataSource.edgeKeyType.value)
+                    {
+                        edgeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.edgeKeyType.value);
+                        edgeKeyTypeSelector.selectedKeyType = _graphmlDataSource.edgeKeyType.value;
+                    }
+                    else
+                    {
+                        _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
+                    }
 
                     handleURLTextChange();
                 }
@@ -178,8 +189,6 @@
 
             public function applyChanges():void
             {
-                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
-
                 _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
                 _graphmlDataSource.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
                 _graphmlDataSource.nodeLayerPropertyName.value = nodeLayerPropertyInput.text;
@@ -188,7 +197,7 @@
                 _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
                 _graphmlDataSource.edgeLayerPropertyName.value = edgeLayerPropertyInput.text;
 
-                
+                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
             }
             
             public function createDataSource():IDataSource
@@ -203,6 +212,7 @@
                     Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
                     return null;
                 }
+
                 _graphmlDataSource = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, _graphmlDataSource) as GraphMLDataSource;
 
                 if (!_graphmlDataSource)
@@ -210,98 +220,39 @@
                     Alert.show(lang("Unexpected problem. Unable to add the data source."));
                     return null;
                 }
+
                 applyChanges();
+
                 return _graphmlDataSource;
             }
             
-            /**
-            * browseForfiles: opens up a file browser window to upload CSV files 
-            **/
-            private function browseForFiles():void
+            private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter("GraphML", "*.graphml")], graphmlFileUrlHandler);
+
+            private function graphmlFileUrlHandler(url:String):void
             {
-                try
-                {
-                    if(_fileLoader == null)
-                    {
-                        _fileLoader = new FileReference();
-                        _fileLoader.addEventListener(Event.SELECT, graphmlFileSelectedHandler);
-                        _fileLoader.addEventListener(ProgressEvent.PROGRESS, handleProgress);
-                        _fileLoader.addEventListener(Event.COMPLETE, graphmlFileLoadCompleteHandler);
-                        _fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
-                    }
-                    
-                    _fileLoader.browse([new FileFilter("GraphML", "*.graphml")]);
-                }
-                catch (e:Error)
-                {
-                    reportError(e);
-                }
-            }
-            
-            private function graphmlFileSelectedHandler(event:Event):void
-            {
-                // Show busy indicator until parser finishes (handleCSVParser)
-                busyIndicator.visible = true;
-                _fileLoader.load();
-                WeaveAPI.ProgressIndicator.addTask(_fileLoader);
-            }
-            
-            private function handleProgress(event:ProgressEvent):void
-            {
-                WeaveAPI.ProgressIndicator.updateTask(_fileLoader, event.bytesLoaded / event.bytesTotal);
-            }
-            
-            private function graphmlFileLoadCompleteHandler(event:Event):void
-            {
-                sourceUrl.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
+                //weaveTrace("File attached.");
+
+                sourceUrl.text = url;
                 handleURLTextChange();
+            }
+
+            private function handleURLTextChange():void
+            {
+                //weaveTrace("URL text changed.");
 
                 busyIndicator.visible = false;
                 
                 uploadMessage.visible = true;
 
-                WeaveAPI.ProgressIndicator.removeTask(_fileLoader);
-                
-                if (_fileLoader.data == null)
+                if (!_graphmlDataSource)
                 {
-                    busyIndicator.visible = false;
-                    return;
+                    _graphmlDataSource = newDisposableChild(this, GraphMLDataSource);
                 }
 
-                _graphmlDataSource = newDisposableChild(this, GraphMLDataSource);
-
-                _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
-                _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
-
-                _graphmlDataSource.nodeKeyPropertyName.value = "id";
-                _graphmlDataSource.edgeKeyPropertyName.value = "id";
-                _graphmlDataSource.nodeLayerPropertyName.value = "";
-                _graphmlDataSource.edgeLayerPropertyName.value = "";
-
-
                 _graphmlDataSource.onFinish = function():void {setTarget(_graphmlDataSource);};
-                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
-
-
                 
-
-                applyChanges();
-            }
-            
-            private function fileErrorHandler(event:IOErrorEvent):void
-            {
-                busyIndicator.visible = false;
-                var fileRef:FileReference = event.target as FileReference;
-                reportError(
-                    "File upload failed",
-                    "File: " + fileRef.name + "\n" + "Size: " + fileRef.size + "\n" + event.text
-                );
-            }
-            
-            private function handleURLTextChange():void
-            {
-                var hasURL:Boolean = sourceUrl.text ? true : false;
-                uploadMessage.visible = !hasURL;
+                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+                
             }
         ]]>
     </mx:Script>
