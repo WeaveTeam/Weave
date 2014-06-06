@@ -2014,7 +2014,10 @@
 				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				// solution for handling mous_up outside of stage : http://stackoverflow.com/questions/2944122/flash-correctly-handling-click-and-drag-outside-the-browser
 				sbroot.addEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, handleMouseUpSomewhere);
+				var dragInitiator:NodeHandler = this;
+				var ds:DragSource = new DragSource();
 				this.startDrag();
+				DragManager.doDrag(dragInitiator, ds, event);
 			}
 			
 			private function handleMouseMove(event:Event):void
@@ -2025,8 +2028,6 @@
 			private var stageUtils:StageUtils = new StageUtils();
 			protected function canvas1_mouseUpHandler(event:Event):void
 			{
-				trace(this.dropTarget);
-				trace(this.dropTarget.name);
 				nodeBase.keywordTextArea.setStyle("fontWeight","normal");
 				CustomCursorManager.removeCursor(handCursorID);
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="200" height="200"
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="2" height="2"
 		   xmlns:ui="weave.ui.infomap.ui.*"
 		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
 		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
-		   verticalScrollPolicy="off" mouseDown="startDragging(event)" mouseUp="stopDragging(event)" backgroundColor="#F454DF">
+		   verticalScrollPolicy="off" mouseDown="startDragging(event)" mouseUp="stopDragging(event)">
 	<mx:TextInput id="groupName"  width="80" height="25" x="{this.width/2-groupName.width/2}" y="{this.height/2 - groupName.height/2}" />
 	<mx:Script>
 		<![CDATA[
@@ -25,11 +25,11 @@
 			
 			public const childrenNodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
+			private var circleRadius:int = 100;
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
-				this.addEventListener(DragEvent.DRAG_ENTER, dragEnterByNode);
 				
 				//sessioning the x and y positions of this node
 				linkBindableProperty(xPos,this,"x");
@@ -37,8 +37,8 @@
 				linkBindableProperty(nodeTitle,this.groupName,"text");
 				
 				graphics.beginFill(0x00FFFF);
-				graphics.drawCircle(width/2, height/2, 80);
-				graphics.drawCircle(width/2, height/2, 75);
+				graphics.drawCircle(width/2, height/2, circleRadius);
+				//graphics.drawCircle(width/2, height/2, 75);
 				graphics.endFill();
 			}
 			
@@ -55,13 +55,6 @@
 				CustomCursorManager.removeCursor(handCursorID);
 				this.stopDrag();
 			}
-			
-			private function dragEnterByNode(event:DragEvent):void 
-			{
-				if(event.dragInitiator is NodeHandler )
-					DragManager.acceptDragDrop(event.currentTarget as NodeHandler);
-			}
-			
 		]]>
 	</mx:Script>
 </mx:Canvas>

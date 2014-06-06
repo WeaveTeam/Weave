@@ -618,6 +618,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void
 			{
+				if( event.dragInitiator is NodeHandler )
+				{
+					trace("Hey there");
+					trace((event.dragInitiator as NodeHandler).dropTarget);
+				}
 				if(event.dragInitiator is DocThumbnailComponent || event.dragInitiator is List)
 				{
 					DragManager.acceptDragDrop(this);
@@ -1404,7 +1409,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<!--the resize code is required so that the content is clipped by the canvas-->
 	<mx:Canvas id="map" width="100%" height="100%" autoLayout="false"
 			   clipContent="true" horizontalScrollPolicy="off"
-			   resize="map.scrollRect=new Rectangle(0,0,map.width,map.height);handlePanelResize();"
+			   
 			   verticalScrollPolicy="off"><!--For clipping the content at the edges-->
 		<mx:HBox width="100%" horizontalAlign="right" paddingLeft="5" paddingTop="5">
 			<!--<mx:HBox>
