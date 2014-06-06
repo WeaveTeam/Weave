@@ -618,6 +618,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void
 			{
+				//Handle NodeHandler properly in the future.
 				if( event.dragInitiator is NodeHandler )
 				{
 					trace("Hey there");
@@ -631,6 +632,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function dragDropHandler(event:DragEvent):void
 			{
+				//Add in lines to handle the release of a query node in relation to groups.
 				
 				var t:DocThumbnailComponent;
 				

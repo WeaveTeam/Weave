@@ -2008,6 +2008,7 @@
 				parentPanel.currentNode = this;
 				event.stopImmediatePropagation();
 				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
+				//Cursor gets overriden currently by DragManager. TO DO:Look into fixing cursor shown.
 				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
 				_lastX = x;
 				_lastY = y;
@@ -2016,7 +2017,10 @@
 				sbroot.addEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, handleMouseUpSomewhere);
 				var dragInitiator:NodeHandler = this;
 				var ds:DragSource = new DragSource();
+				//Need to do both drag variations.
+				//This starts the typical componenet drag.
 				this.startDrag();
+				//This initiates a data drag that fires off events like DRAG_ENTER.
 				DragManager.doDrag(dragInitiator, ds, event);
 			}
 			
