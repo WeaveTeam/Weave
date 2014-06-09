@@ -618,13 +618,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void
 			{
-				//Handle NodeHandler properly in the future.
-				if( event.dragInitiator is NodeHandler )
-				{
-					trace("Hey there");
-					trace((event.dragInitiator as NodeHandler).dropTarget);
-				}
-				if(event.dragInitiator is DocThumbnailComponent || event.dragInitiator is List)
+				if(event.dragInitiator is DocThumbnailComponent || event.dragInitiator is List || event.dragInitiator is NodeHandler)
 				{
 					DragManager.acceptDragDrop(this);
 				}
@@ -632,38 +626,46 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function dragDropHandler(event:DragEvent):void
 			{
-				//Add in lines to handle the release of a query node in relation to groups.
-				
-				var t:DocThumbnailComponent;
-				
-				if(event.dragInitiator is List)
+				if( event.dragInitiator is NodeHandler )
 				{
-					var list:List = (event.dragInitiator as List);
-					var node:NodeHandler = (list.parent.parent as AbstractListView).parentNode;
-					t = node.thumbnails.getObject((list.selectedItem as IQualifiedKey).localName) as DocThumbnailComponent; 
+					//Handle the NodeHandlers in relation to the NodeGroups.
+					
+					
+					
 				}
-				else{
-					t =	event.dragInitiator as DocThumbnailComponent; 
-				}
-				
-				//if the parent is a NodeHandler set hasBeenMoved to true and add it as a child to the InfoMapPanel
-				if(!(t.parent == this.map))
+				else
 				{
-					map.addChild(t);
-					//					t.hasBeenMoved.value = true;	
+					var t:DocThumbnailComponent;
+					
+					if(event.dragInitiator is List)
+					{
+						var list:List = (event.dragInitiator as List);
+						var node:NodeHandler = (list.parent.parent as AbstractListView).parentNode;
+						t = node.thumbnails.getObject((list.selectedItem as IQualifiedKey).localName) as DocThumbnailComponent; 
+					}
+					else{
+						t =	event.dragInitiator as DocThumbnailComponent; 
+					}
+					
+					//if the parent is a NodeHandler set hasBeenMoved to true and add it as a child to the InfoMapPanel
+					if(!(t.parent == this.map))
+					{
+						map.addChild(t);
+						//					t.hasBeenMoved.value = true;	
+					}
+					
+					//move the thumbnail to the new location
+					var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
+					t.move(localPoint.x,localPoint.y);
+				
+					//				t.xPos.value = t.x;
+					//				t.yPos.value = t.y;
+					
+					t.pos.setSessionState({x:t.x,y:t.y});
+					
+					t.height = 50;
+					t.width= 50;
 				}
-				
-				//move the thumbnail to the new location
-				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
-				t.move(localPoint.x,localPoint.y);
-				
-				//				t.xPos.value = t.x;
-				//				t.yPos.value = t.y;
-				
-				t.pos.setSessionState({x:t.x,y:t.y});
-				
-				t.height = 50;
-				t.width= 50;
 				
 			}
 			
