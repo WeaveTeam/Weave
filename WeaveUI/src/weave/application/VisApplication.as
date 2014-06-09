@@ -118,6 +118,7 @@ package weave.application
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
+	import weave.utils.fixErrorMessage;
 	import weave.visualization.tools.WeaveAnalyst;
 
 	internal class VisApplication extends VBox implements ILinkableObject
@@ -179,7 +180,13 @@ package weave.application
 					'uncaughtError',
 					function(event:Object):void
 					{
-						reportError(event.error);
+						var error:Error = event.error;
+						// ignore IME error
+						if (error.errorID == 2063)
+							return;
+						
+						fixErrorMessage(error)
+						reportError(error);
 					}
 				);
 			} catch (e:Error) { }
