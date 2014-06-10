@@ -25,6 +25,11 @@
 			private var handCursorID:int = -1;
 			
 			public const childrenNodes:LinkableString = registerLinkableChild(this,new LinkableString(""));
+			//This should be set by the InfoMapPanel.
+			public var childrenHashmapReference:LinkableHashMap = null;
+			
+			private var _lastX:int = 0;
+			private var _lastY:int = 0;
 			
 			private var circleRadius:int = 100;
 			
@@ -37,10 +42,16 @@
 				linkBindableProperty(yPos,this,"y");
 				linkBindableProperty(nodeTitle,this.groupName,"text");
 				
+				this.xPos.addImmediateCallback(this,handleNodeGroupMove);
+				this.yPos.addImmediateCallback(this,handleNodeGroupMove);
+				
 				graphics.beginFill(0x00FFFF);
 				graphics.drawCircle(width/2, height/2, circleRadius);
 				//graphics.drawCircle(width/2, height/2, 75);
 				graphics.endFill();
+				
+				_lastX = this.x;
+				_lastY = this.y;
 			}
 			
 			protected function startDragging(event:MouseEvent):void
@@ -59,7 +70,8 @@
 			
 			public function addNode(node:String):void
 			{
-				childrenNodes.value.concat(node,",");
+				if( getChildrenNodes().indexOf(node) == -1 )
+					childrenNodes.value += node+",";
 			}
 			
 			public function removeNode(node:String):void
@@ -70,6 +82,34 @@
 			public function getChildrenNodes():Array
 			{
 				return childrenNodes.value.split(",");
+			}
+			
+			private var changeX:int;
+			private var changeY:int;
+			private var i:int;
+			private function handleNodeGroupMove():void
+			{
+				if( childrenHashmapReference != null )
+				{
+					var childNodes:Array = getChildrenNodes();
+					if( childNodes[0] != "" )
+					{
+						changeX = this.x - _lastX;
+						changeY = this.y - _lastY;
+						
+						for(i = 0; i < childNodes.length; i++ )
+						{
+							//Look into fixing this, probably need to fix getChildrenNodes().
+							if( childNodes[i] != "" )
+							{
+								(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).xPos.value += changeX;
+								(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).yPos.value += changeY;
+							}
+						}
+					}
+				}
+				_lastX = this.x;
+				_lastY = this.y;
 			}
 		]]>
 	</mx:Script>

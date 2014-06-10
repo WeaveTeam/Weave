@@ -221,6 +221,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(globalSortByOption,sortByComboBox,"selectedItem");
 				
 				nodes.addGroupedCallback(this,handleNodes,true);
+				nodeGroups.addGroupedCallback(this, handleNodeGroupsLoading, true);
 				sideMenu.addEventListener(MouseEvent.CLICK,handleMouseClickOnSideMenu);
 				enableSubMenu.value = false;
 			}
@@ -258,6 +259,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					//					sideMenu.nodeSelector.visible = false;
 					sideMenu.m.visible = false;
 				}
+			}
+			
+			private function handleNodeGroupsLoading():void
+			{
+				var nodeGroups:Array = nodeGroups.getObjects();
+				for( var i:int = 0; i < nodeGroups.length; i++ )
+					(nodeGroups[i] as NodeGroup).childrenHashmapReference = nodes;
 			}
 			
 			private function handleMouseClickOnSideMenu(event:Event=null):void
@@ -640,7 +648,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					else if( tempNode.isInGroup() )
 					{
 						var oldGroupName:String = tempNode.removeFromGroup();
-						(nodeGroups[oldGroupName] as NodeGroup).removeNode(nodes.getName(tempNode));
+						(nodeGroups.getObject(oldGroupName) as NodeGroup).removeNode(nodes.getName(tempNode));
 					}
 					
 				}
@@ -1001,6 +1009,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var className:String = getQualifiedClassName(NodeGroup).split("::")[1];
 				var nodeName:String = nodeGroups.generateUniqueName(className);
 				var nodeGroup:NodeGroup = nodeGroups.requestObject(nodeName,NodeGroup,false);
+				
+				nodeGroup.childrenHashmapReference = nodes;
 				
 				nodeGroup.x = 50 * (nodeGroups.getNames().length);
 				nodeGroup.y = 50 * (nodeGroups.getNames().length);
