@@ -111,6 +111,8 @@
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			
+			public const parentNodeGroup:LinkableString = registerLinkableChild(this, new LinkableString(""));
+			
 			//			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
 			
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
@@ -2825,6 +2827,26 @@
 			public function dispose():void
 			{
 				refreshTimer.stop();
+			}
+			
+			public function isInGroup():Boolean
+			{
+				if( parentNodeGroup.value != "" )
+					return true;
+				else
+					return false;
+			}
+			
+			public function addToGroup(nodeGroup:String):void
+			{
+				parentNodeGroup.value = nodeGroup;
+			}
+			
+			public function removeFromGroup():String
+			{
+				var name:String = parentNodeGroup.value;
+				parentNodeGroup.value = "";
+				return name;
 			}
 		]]>
 	</mx:Script>

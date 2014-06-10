@@ -629,8 +629,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( event.dragInitiator is NodeHandler )
 				{
 					//Handle the NodeHandlers in relation to the NodeGroups.
+					var tempNode:NodeHandler = event.dragInitiator as NodeHandler;
 					
-					
+					if( tempNode.dropTarget is NodeGroup )
+					{
+						var tempGroup:NodeGroup = tempNode.dropTarget as NodeGroup;
+						tempNode.addToGroup(nodeGroups.getName(tempGroup));
+						tempGroup.addNode(nodes.getName(tempNode));
+					}
+					else if( tempNode.isInGroup() )
+					{
+						var oldGroupName:String = tempNode.removeFromGroup();
+						(nodeGroups[oldGroupName] as NodeGroup).removeNode(nodes.getName(tempNode));
+					}
 					
 				}
 				else

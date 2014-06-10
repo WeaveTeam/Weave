@@ -12,6 +12,7 @@
 			
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -23,7 +24,7 @@
 			public const nodeTitle:LinkableString = newLinkableChild(this, LinkableString);
 			private var handCursorID:int = -1;
 			
-			public const childrenNodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+			public const childrenNodes:LinkableString = registerLinkableChild(this,new LinkableString(""));
 			
 			private var circleRadius:int = 100;
 			
@@ -54,6 +55,21 @@
 				//event.stopImmediatePropagation();
 				CustomCursorManager.removeCursor(handCursorID);
 				this.stopDrag();
+			}
+			
+			public function addNode(node:String):void
+			{
+				childrenNodes.value.concat(node,",");
+			}
+			
+			public function removeNode(node:String):void
+			{
+				childrenNodes.value = childrenNodes.value.replace(node+",","");
+			}
+			
+			public function getChildrenNodes():Array
+			{
+				return childrenNodes.value.split(",");
 			}
 		]]>
 	</mx:Script>
