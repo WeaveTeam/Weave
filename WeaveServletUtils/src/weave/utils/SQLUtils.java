@@ -192,6 +192,13 @@ public class SQLUtils
 	@SuppressWarnings("serial")
 	private static class DriverMap extends HashMap<String,Driver>
 	{
+		public void initDriver(String driverName) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException
+		{
+			if (_driverMap.containsKey(driverName))
+				return;
+			_driverMap.put(driverName, (Driver)Class.forName(driverName).newInstance());
+		}
+		
 		protected void finalize()
 		{
 			for (Driver driver : _driverMap.values())
@@ -321,26 +328,40 @@ public class SQLUtils
 	public static Connection getConnection(String connectString) throws RemoteException
 	{
 		String dbms = getDbmsFromConnectString(connectString);
-		
-		String driver = getDriver(dbms);
-		
+		String driverName = getDriver(dbms);
 		Connection conn = null;
 		try
 		{
-			// only call newInstance once per driver
-			if (!_driverMap.containsKey(driver))
-				_driverMap.put(driver, (Driver)Class.forName(driver).newInstance());
+			try
+			{
+				System.out.println(String.format("!!!1 %s", DriverManager.getDriver(connectString)));
+			}
+			catch (SQLException e)
+			{
+				System.out.println("No driver 1");
+			}
+			
+			_driverMap.initDriver(driverName);
+			
+			try
+			{
+				System.out.println(String.format("!!!2 %s", DriverManager.getDriver(connectString)));
+			}
+			catch (SQLException e)
+			{
+				System.out.println("No driver 1");
+			}
 
 			conn = DriverManager.getConnection(connectString);
 		}
 		catch (SQLException ex)
 		{
-			System.err.println(String.format("driver: %s\nconnectString: %s", driver, connectString));
+			System.err.println(String.format("driver: %s\nconnectString: %s", driverName, connectString));
 			throw new RemoteException("Unable to connect to SQL database", ex);
 		}
 		catch (Exception ex)
 		{
-			throw new RemoteException("Failed to load driver: \"" + driver + "\"", ex);
+			throw new RemoteException("Failed to load driver: \"" + driverName + "\"", ex);
 		}
 		return conn;
 	}
