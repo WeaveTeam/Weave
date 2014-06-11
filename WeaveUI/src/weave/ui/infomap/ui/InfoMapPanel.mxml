@@ -636,14 +636,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( event.dragInitiator is NodeHandler )
 				{
+					var tempGroup:NodeGroup = null;
 					//Handle the NodeHandlers in relation to the NodeGroups.
 					var tempNode:NodeHandler = event.dragInitiator as NodeHandler;
 					
-					if( tempNode.dropTarget is NodeGroup )
+					//For some reason the dropTarget picks up a Shape object, that I have been able to track down the source of.
+					//Therefore this hack will be used for now of checking for the hittest with each group.
+					var groups:Array = nodeGroups.getObjects();
+					for( var i:int = 0; i < groups.length; i++ )
+						if( tempNode.dropTarget.hitTestObject(groups[i] as NodeGroup) == true)
+							tempGroup = groups[i] as NodeGroup;
+					
+					if( tempNode.dropTarget is NodeGroup || tempGroup != null)
 					{
-						var tempGroup:NodeGroup = tempNode.dropTarget as NodeGroup;
+						//Bounding test didn't fire off, but auto-detect with drag and drop did.
+						if( tempGroup == null )
+							tempGroup = tempNode.dropTarget as NodeGroup;
 						tempNode.addToGroup(nodeGroups.getName(tempGroup));
 						tempGroup.addNode(nodes.getName(tempNode));
+						//Case for a node moving from one group to another
 					}
 					else if( tempNode.isInGroup() )
 					{

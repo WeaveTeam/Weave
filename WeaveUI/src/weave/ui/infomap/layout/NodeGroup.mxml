@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="2" height="2"
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="1" height="1"
 		   xmlns:ui="weave.ui.infomap.ui.*"
 		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
 		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
@@ -45,9 +45,10 @@
 				this.xPos.addImmediateCallback(this,handleNodeGroupMove);
 				this.yPos.addImmediateCallback(this,handleNodeGroupMove);
 				
-				graphics.beginFill(0x00FFFF);
+				//Draw the NodeGroup circle.
+				graphics.beginFill(0x00FFFF, 0.1);
 				graphics.drawCircle(width/2, height/2, circleRadius);
-				//graphics.drawCircle(width/2, height/2, 75);
+				//graphics.drawCircle(width/2, height/2, circleRadius - 5);
 				graphics.endFill();
 				
 				_lastX = this.x;
