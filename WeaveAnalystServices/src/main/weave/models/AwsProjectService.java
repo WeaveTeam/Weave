@@ -211,7 +211,13 @@ public class AwsProjectService
 		con.close();
 		return count;
 	}
-
+	
+	/** 
+	   * returns list of visualizations belonging to the respective queryObjects in a project
+	   * @param params project name to pull column from (for all visualizations, project = null)
+	   * @return an array of images 
+	   * @throws Exception
+	   */
 	public static Object[] getListOfQueryObjectVisualizations(Map<String, Object>params) throws RemoteException, SQLException
 	{
 		Object[] visualizationCollection = null;

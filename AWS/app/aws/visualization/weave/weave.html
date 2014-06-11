@@ -43,8 +43,7 @@
 				if(client)
 				{
 						   //Todo parameterize keyColumnName ; here "fips"
-						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "");
-						   //console.log(queryHandler.keyType);
+						   dataSourceName = client.addCSVDataSource(responseResults[0].value,"", queryHandler.keyType, "");
 						   var toolName;
 						    //creating the visualizations
 							for (var i in queryHandler.visualizations) {
