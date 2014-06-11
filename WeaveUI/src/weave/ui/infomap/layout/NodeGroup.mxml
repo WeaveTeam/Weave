@@ -3,7 +3,7 @@
 		   xmlns:ui="weave.ui.infomap.ui.*"
 		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
 		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
-		   verticalScrollPolicy="off" mouseDown="startDragging(event)" mouseUp="stopDragging(event)">
+		   verticalScrollPolicy="off" mouseDown="startDragging(event)" mouseUp="stopDragging(event)" mouseMove="moveNodesWithGroup(event)">
 	<mx:TextInput id="groupName"  width="80" height="25" x="{this.width/2-groupName.width/2}" y="{this.height/2 - groupName.height/2}" />
 	<mx:Script>
 		<![CDATA[
@@ -30,6 +30,7 @@
 			
 			private var _lastX:int = 0;
 			private var _lastY:int = 0;
+			private var _dragging:Boolean = false;
 			
 			private var circleRadius:int = 100;
 			
@@ -42,8 +43,8 @@
 				linkBindableProperty(yPos,this,"y");
 				linkBindableProperty(nodeTitle,this.groupName,"text");
 				
-				this.xPos.addImmediateCallback(this,handleNodeGroupMove);
-				this.yPos.addImmediateCallback(this,handleNodeGroupMove);
+				//this.xPos.addImmediateCallback(this,handleNodeGroupMove);
+				//this.yPos.addImmediateCallback(this,handleNodeGroupMove);
 				
 				//Draw the NodeGroup circle.
 				graphics.beginFill(0x00FFFF, 0.1);
@@ -57,6 +58,7 @@
 			
 			protected function startDragging(event:MouseEvent):void
 			{
+				_dragging = true;
 				event.stopImmediatePropagation();
 				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
 				this.startDrag();
@@ -64,6 +66,7 @@
 			
 			protected function stopDragging(event:MouseEvent):void
 			{
+				_dragging = false;
 				//event.stopImmediatePropagation();
 				CustomCursorManager.removeCursor(handCursorID);
 				this.stopDrag();
@@ -88,30 +91,34 @@
 			private var changeX:int;
 			private var changeY:int;
 			private var i:int;
-			private function handleNodeGroupMove():void
+			protected function moveNodesWithGroup(event:MouseEvent):void
 			{
-				if( childrenHashmapReference != null )
+				if( _dragging )
 				{
-					var childNodes:Array = getChildrenNodes();
-					if( childNodes[0] != "" )
+					if( childrenHashmapReference != null )
 					{
-						changeX = this.x - _lastX;
-						changeY = this.y - _lastY;
-						
-						for(i = 0; i < childNodes.length; i++ )
+						var childNodes:Array = getChildrenNodes();
+						if( childNodes[0] != "" )
 						{
-							//Look into fixing this, probably need to fix getChildrenNodes().
-							if( childNodes[i] != "" )
+							changeX = this.x - _lastX;
+							changeY = this.y - _lastY;
+								
+							for(i = 0; i < childNodes.length; i++ )
 							{
-								(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).xPos.value += changeX;
-								(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).yPos.value += changeY;
+								//Look into fixing this, probably need to fix getChildrenNodes().
+								if( childNodes[i] != "" )
+								{
+									(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).xPos.value += changeX;
+									(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).yPos.value += changeY;
+									}
 							}
 						}
 					}
 				}
-				_lastX = this.x;
-				_lastY = this.y;
+					_lastX = this.x;
+					_lastY = this.y;
 			}
+			
 		]]>
 	</mx:Script>
 </mx:Canvas>
