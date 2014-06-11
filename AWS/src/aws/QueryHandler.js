@@ -55,46 +55,57 @@ aws.QueryHandler = function(queryObject)
 	var nestedFilterRequest = {and : []};
 	
 	if(queryObject.hasOwnProperty("GeographyFilter")) {
-		if(queryObject.GeographyFilter.enabled) {
 			var geoQuery = {};
-			var stateId = queryObject.GeographyFilter.stateColumn.id;
-			var countyId = queryObject.GeographyFilter.countyColumn.id;
+			var stateId = "";
+			var countyId = "";
+			
+			if(queryObject.GeographyFilter.stateColumn.id) {
+				stateId = queryObject.GeographyFilter.stateColumn.id;
+			}
+			if(queryObject.GeographyFilter.countyColumn.id) {
+				countyId = queryObject.GeographyFilter.countyColumn.id;
+			}
+
 			geoQuery.or = [];
-			for(var key in queryObject.GeographyFilter.filters) {
-				var index = geoQuery.or.push({ and : [
-				                                      {cond : { 
-				                                    	  f : stateId, 
-				                                    	  v : [key] 
-				                                      }
-				                                      },
-				                                      {cond: {
-				                                    	  f : countyId, 
-				                                    	  v : []
-				                                      }
-				                                      }
-				                                      ]
-				});
-				for(var i in queryObject.GeographyFilter.filters[key].counties) {
-					var countyFilterValue = "";
-					for(var key2 in queryObject.GeographyFilter.filters[key].counties[i]) {
-						countyFilterValue = key2;
+			
+			if(queryObject.GeographyFilter.hasOwnProperty("filters")) {
+				if(Object.keys(queryObject.GeographyFilter.filters).length !== 0) {
+					for(var key in queryObject.GeographyFilter.filters) {
+						var index = geoQuery.or.push({ and : [
+						                                      {cond : { 
+						                                    	  f : stateId, 
+						                                    	  v : [key] 
+						                                      }
+						                                      },
+						                                      {cond: {
+						                                    	  f : countyId, 
+						                                    	  v : []
+						                                      }
+						                                      }
+						                                      ]
+						});
+						for(var i in queryObject.GeographyFilter.filters[key].counties) {
+							var countyFilterValue = "";
+							for(var key2 in queryObject.GeographyFilter.filters[key].counties[i]) {
+								countyFilterValue = key2;
+							}
+							geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
+						}
 					}
-					geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
+					if(geoQuery.or.length) {
+						nestedFilterRequest.and.push(geoQuery);
+					}
 				}
 			}
-			if(geoQuery.or.length) {
-				nestedFilterRequest.and.push(geoQuery);
-			}
-		}
 	}
 	
 	if(queryObject.hasOwnProperty("TimePeriodFilter")) {
-		if(queryObject.TimePeriodFilter.enabled) {
 			var timePeriodQuery = {};
 			var yearId = queryObject.TimePeriodFilter.yearColumn.id;
 			var monthId = queryObject.TimePeriodFilter.monthColumn.id;
 			
 			timePeriodQuery.or = [];
+			
 			for(var key in queryObject.TimePeriodFilter.filters) {
 				var index = timePeriodQuery.or.push({ and : [
 				                                             {cond : { 
@@ -117,16 +128,18 @@ aws.QueryHandler = function(queryObject)
 					timePeriodQuery.or[index-1].and[1].cond.v.push(monthFilterValue);
 				}
 			}
+			
 			if(timePeriodQuery.or.length) {
 				nestedFilterRequest.and.push(timePeriodQuery);
 			}
-		} 
 	}
 	
 	if(queryObject.hasOwnProperty("ByVariableFilter")) {
 		var byVarQuery = {and : []};
-		if(queryObject.ByVariableFilter.enabled) {
-			for(var i in queryObject.ByVariableFilter) {
+
+		for(var i in queryObject.ByVariableFilter) {
+			
+			if(queryObject.ByVariableFilter[i].hasOwnProperty("column")) {
 				var cond = {f : queryObject.ByVariableFilter[i].column.id };
 				
 				if(queryObject.ByVariableFilter[i].hasOwnProperty("filters")) {
@@ -143,10 +156,10 @@ aws.QueryHandler = function(queryObject)
 					byVarQuery.and.push({cond : cond});
 				} 
 			}
-			if(byVarQuery.and.length) {
-				nestedFilterRequest.and.push(byVarQuery);
-			}
-			
+		}
+
+		if(byVarQuery.and.length) {
+			nestedFilterRequest.and.push(byVarQuery);
 		}
 	}	
 	
