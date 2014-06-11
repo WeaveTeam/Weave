@@ -390,7 +390,7 @@ aws.WeaveClient.prototype.setPosition = function (toolName, posX, posY) {
 	this.weave.path(toolName).push('panelX').state(posX).pop().push('panelY').state(posY);
 };
 
-aws.answer= [];
+
 /**
  * This function accesses the weave instance and creates a new csv data source from string.
  * 
