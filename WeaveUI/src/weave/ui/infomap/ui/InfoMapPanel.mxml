@@ -652,9 +652,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						//Bounding test didn't fire off, but auto-detect with drag and drop did.
 						if( tempGroup == null )
 							tempGroup = tempNode.dropTarget as NodeGroup;
+						//Case for a node moving from one group to another
+						if( tempNode.isInGroup() )
+						{
+							//If moving from one group to another, remove from last group first.
+							if( nodeGroups.getName(tempGroup) != tempNode.parentNodeGroup.value )
+								(nodeGroups.getObject(tempNode.parentNodeGroup.value) as NodeGroup).removeNode(nodes.getName(tempNode));
+						}
 						tempNode.addToGroup(nodeGroups.getName(tempGroup));
 						tempGroup.addNode(nodes.getName(tempNode));
-						//Case for a node moving from one group to another
+						
 					}
 					else if( tempNode.isInGroup() )
 					{
