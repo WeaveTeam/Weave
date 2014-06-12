@@ -46,9 +46,6 @@
             <ui:Indent label="{lang('Key Property')}">
                 <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.nodeKeyPropertyValid)}"/ -->
             </ui:Indent>
-            <ui:Indent label="{lang('Layer Property')}">
-                <ui:CustomComboBox id="nodeLayerPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
-            </ui:Indent>
         </mx:VBox>
     </ui:Indent>
 
@@ -59,9 +56,6 @@
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
                 <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.edgeKeyPropertyValid)}"/ -->
-            </ui:Indent>
-            <ui:Indent label="{lang('Layer Property')}">
-                <ui:CustomComboBox id="edgeLayerPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of a property to use to sort this graph into separate tables.')}"/>
             </ui:Indent>
         </mx:VBox>
     </ui:Indent>
@@ -136,12 +130,7 @@
                     var edgePropertyChoices:Array = [""].concat(_graphmlDataSource.edgeProperties || []);
 
                     nodeKeyPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
-                    nodeKeyPropertyInput.selectedLabel = _graphmlDataSource.nodeKeyPropertyName.value;
-
-                    nodeLayerPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
-                    nodeLayerPropertyInput.selectedLabel = _graphmlDataSource.nodeLayerPropertyName.value;                
-
-                    
+                    nodeKeyPropertyInput.selectedLabel = _graphmlDataSource.nodeKeyPropertyName.value;              
                     
                     if (_graphmlDataSource.nodeKeyType.value)
                     {
@@ -156,9 +145,6 @@
 
                     edgeKeyPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
                     edgeKeyPropertyInput.selectedLabel = _graphmlDataSource.edgeKeyPropertyName.value;
-
-                    edgeLayerPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
-                    edgeLayerPropertyInput.selectedLabel = _graphmlDataSource.edgeLayerPropertyName.value;
 
                     if (_graphmlDataSource.edgeKeyType.value)
                     {
@@ -180,22 +166,18 @@
                        
                        StandardLib.asString(_graphmlDataSource.nodeKeyType.value) != StandardLib.asString(nodeKeyTypeSelector.selectedKeyType) ||
                        StandardLib.asString(_graphmlDataSource.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.text) ||
-                       StandardLib.asString(_graphmlDataSource.nodeLayerPropertyName.value) != StandardLib.asString(nodeLayerPropertyInput.text) ||
 
                        StandardLib.asString(_graphmlDataSource.edgeKeyType.value) != StandardLib.asString(edgeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(_graphmlDataSource.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.text) ||
-                       StandardLib.asString(_graphmlDataSource.edgeLayerPropertyName.value) != StandardLib.asString(edgeLayerPropertyInput.text);
+                       StandardLib.asString(_graphmlDataSource.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.text);
             }
 
             public function applyChanges():void
             {
                 _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
                 _graphmlDataSource.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
-                _graphmlDataSource.nodeLayerPropertyName.value = nodeLayerPropertyInput.text;
 
                 _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
                 _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
-                _graphmlDataSource.edgeLayerPropertyName.value = edgeLayerPropertyInput.text;
 
                 _graphmlDataSource.sourceUrl.value = sourceUrl.text;
             }
