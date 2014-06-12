@@ -114,10 +114,6 @@ package weave.data.Transforms
             var metadata:Object = proxyColumn.getProxyMetadata();
             var columnName:String = metadata[PARTITION_COLUMNNAME_META];
             var value:String = metadata[PARTITION_VALUE_META];
-
-
-
-            weaveTrace("Column requested:", metadata[PARTITION_VALUE_META], metadata[PARTITION_COLUMNNAME_META], debugId(proxyColumn));
             
             var column:IAttributeColumn = inputColumns.getObject(columnName) as IAttributeColumn;
 
