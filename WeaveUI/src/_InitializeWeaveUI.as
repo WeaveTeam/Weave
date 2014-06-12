@@ -26,6 +26,7 @@ package
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
+	import weave.data.Transforms.PartitionDataTransform;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
@@ -45,6 +46,7 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
+	import weave.editors.PartitionDataTransformEditor;
 	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
@@ -127,6 +129,7 @@ package
 			EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
 			EditorManager.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
 			EditorManager.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
+			EditorManager.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
 			EditorManager.registerEditor(CKANDataSource, CKANDataSourceEditor);
 			EditorManager.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			
