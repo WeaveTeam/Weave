@@ -146,7 +146,7 @@ package weave.core
 			if (!objectPath || !objectPath.length)
 				return false;
 			
-			// Fet parent object first in case there is some backwards compatibility code that gets
+			// Get parent object first in case there is some backwards compatibility code that gets
 			// executed when it is accessed (registering deprecated class definitions, for example).
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();
