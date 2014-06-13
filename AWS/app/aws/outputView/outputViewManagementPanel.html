@@ -1,5 +1,4 @@
 <div ng-controller="OutputViewManagementController">
-
 	<br>
 	<div style="padding-left : 50px"> <br/>
 		<div class="panel-heading">
@@ -8,10 +7,19 @@
 		<div class="widget-selectors">
 				<input type="radio" ng-model = "projectListMode" value="multiple">View all project visualizations <br/>
 				<input type="radio" ng-model = "projectListMode" value="single"> View specific project <br/>
+				<tt>mode = {{projectListMode | json}}</tt><br/>
 				<select ui-select2 ng-model = "existingProjects" style="width:200px;" data-placeholder="Select a project">
 							<option></option>
-							<!-- option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option-->
+							<option ng-repeat = "pjt in listOfProjectsforOuput" value = "{{pjt}}">{{pjt}}</option>
 				</select>
+				<div class="dd" id="nestable3">
+					<ol ui-sortable class="dd-list" ng-model="listItems">
+						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems">
+							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
+							{{item}}
+				</li>
+				</ol>
+			</div>
 		</div>
 	</div>
 </div>

@@ -9,6 +9,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'aws.queryObject', // queryService.. this needs to be reconciled                               
                                  'aws.queryObjectEditor', // Shweta's module
                                  'aws.project',  // shweta's module
+                                 'aws.outputView',
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',

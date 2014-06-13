@@ -4,34 +4,43 @@
 angular.module('aws.outputView', [])
 .controller("OutputViewManagementController", function($scope, queryService){
 	
-	$scope.listofProjects = [];
+	$scope.listOfProjectsforOuput = [];
+	$scope.listofVisualizations = [];//
+	$scope.projectListMode = 'unselected';
+	$scope.listItems = ['a','b','c'];//stores current image list depending on mode selected
 	
 	//when the user chooses between multiple or single project view
-	$scope.watch('projectListMode', function(){
+	$scope.$watch('projectListMode', function(){
 		
 		if($scope.projectListMode == 'multiple'){
 			//get pictures of all records(projects)
-			queryService.getListOfQueryObjectVisualizations(null);//all projects
+			console.log("multiple");
+			queryService.getListOfQueryObjectVisualizations(null);
 		}
 		
 		if($scope.projectListMode == 'single'){
-			//enable selection of project and retrieve existing projects
-			queryService.getListOfProjectsfromDatabase;
+			//enable the drop down box
+			queryService.getListOfProjectsfromDatabase();
 		}
 	});
 	
 	//once project is selected for single view, obtain the list of visualizations in that project
-	$scope.watch('existingProjects', function(){
-		queryService.getListOfQueryObjectVisualizations($scope.existingProjects);//depending on project selected		
+	$scope.$watch('existingProjects', function(){
+		if(!(angular.isUndefined($scope.existingProjects)) && $scope.existingProjects != "")
+			console.log("projectSelected", $scope.existingProjects);
+		//queryService.getListOfQueryObjectVisualizations($scope.existingProjects);//depending on project selected		
 	});
 	
-	$scope.watch(function(){
+	//check for when list of proejcts is returned
+	$scope.$watch(function(){
 		return queryService.dataObject.listOfProjectsFromDatabase;
+		console.log("projectsReturned", queryService.dataObject.listOfProjectsFromDatabase);
 	}, function(){
-		$scope.lisofProjects = queryService.dataObject.listOfProjectsFromDat;
+		$scope.listOfProjectsforOuput = queryService.dataObject.listOfProjectsFromDatabase;
 	});
 	
-	$scope.watch(function(){
+	//check for visualizations are returned
+	$scope.$watch(function(){
 		return queryService.dataObject.listofVisualizations;
 	}, function(){
 		$scope.listofVisualizations = queryService.dataObject.listofVisualizations;
