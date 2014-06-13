@@ -477,11 +477,6 @@ SHPSearchDiskTree( FILE *fp,
                    double *padfBoundsMin, double *padfBoundsMax,
                    int *pnShapeCount );
 
-struct SHPDiskTreeInfo
-{
-    SAHooks sHooks;
-    SAFile  fpQIX;
-} SHPDiskTreeInfo;
 
 typedef struct SHPDiskTreeInfo* SHPTreeDiskHandle;
 

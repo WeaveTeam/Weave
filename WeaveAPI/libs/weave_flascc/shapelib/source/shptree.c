@@ -792,7 +792,11 @@ static void SwapWord( int length, void * wordP )
 }
 
 
-
+struct SHPDiskTreeInfo
+{
+    SAHooks sHooks;
+    SAFile  fpQIX;
+} ;
 
 /************************************************************************/
 /*                         SHPOpenDiskTree()                            */
