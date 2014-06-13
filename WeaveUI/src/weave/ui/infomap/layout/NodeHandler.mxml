@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
 		   xmlns:ui="weave.ui.infomap.ui.*"
-		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
+		   autoLayout="false" cacheAsBitmap="false" clipContent="false"
+		   creationComplete="updatePinImage(event)" creationPolicy="all"
 		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
-		   verticalScrollPolicy="off" creationComplete="updatePinImage(event)">
+		   verticalScrollPolicy="off">
 	<!--Show this status box only when list is visible-->
 	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}"
 			  width="300"/>
@@ -111,6 +112,7 @@
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			
+			//String that is the name of the NodeGroup this node may be a part of, the name corresponds to the nodeGroups LinkableHashmap name.
 			public const parentNodeGroup:LinkableString = registerLinkableChild(this, new LinkableString(""));
 			
 			//			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
@@ -522,7 +524,7 @@
 			 * @private
 			 * Called when the session state of query is changed
 			 **/
-//			private var _currentQueryTerms:Array = [];
+			//			private var _currentQueryTerms:Array = [];
 			private var _currentQueryString:String = "";
 			private function createAndSendQuery(event:TimerEvent=null):void
 			{
@@ -662,7 +664,7 @@
 				
 				/* separate the terms by comma or space */
 				temp = temp.concat(queryString.indexOf(',') != -1?queryString.split(','):
-						queryString.split(' '));
+					queryString.split(' '));
 				
 				for(var i:int=0; i<temp.length; i++)
 				{
@@ -709,8 +711,8 @@
 				if(numOfDocs <= 0)
 				{
 					status.text = "0 documents found.";
-//					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
-//						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
+					//					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
+					//						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
 					handleEmptyResultSet();
 					return;						
 				}
@@ -1316,7 +1318,7 @@
 					return;
 				
 				var diff:Boolean = QueryObject.isQueryDifferent(token.query as QueryObject, currentQuery);
-								
+				
 				if(diff)
 				{
 					return;
@@ -2663,7 +2665,7 @@
 				previousQuery.keywords.value = keywords;
 			}
 			
-//			private var _currentRelatedKeywords:Array = null;
+			//			private var _currentRelatedKeywords:Array = null;
 			public function applyKeywordsFromSelection():void
 			{
 				var currentTool:DraggablePanel = DraggablePanel.getTopPanel();
@@ -2829,6 +2831,9 @@
 				refreshTimer.stop();
 			}
 			
+			/**
+			* Returns true if this node is part of a NodeGroup.
+			*/
 			public function isInGroup():Boolean
 			{
 				if( parentNodeGroup.value != "" )
@@ -2837,11 +2842,17 @@
 					return false;
 			}
 			
+			/**
+			 * Takes a String that is the name of a NodeGroup then assigns it to the class variable tracking which group this Node is in.
+			 */
 			public function addToGroup(nodeGroup:String):void
 			{
 				parentNodeGroup.value = nodeGroup;
 			}
 			
+			/**
+			 * Clears the internal group tracking variable for this node.
+			 */
 			public function removeFromGroup():String
 			{
 				var name:String = parentNodeGroup.value;

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="1" height="1"
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
 		   xmlns:ui="weave.ui.infomap.ui.*"
-		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
-		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
-		   verticalScrollPolicy="off" mouseDown="startDragging(event)" mouseUp="stopDragging(event)" mouseMove="moveNodesWithGroup(event)">
-	<mx:TextInput id="groupName"  width="80" height="25" x="{this.width/2-groupName.width/2}" y="{this.height/2 - groupName.height/2}" />
+		   width="1" height="1" autoLayout="false" cacheAsBitmap="false" clipContent="false"
+		   creationPolicy="all" horizontalScrollPolicy="off"
+		   implements="weave.api.core.ILinkableObject" mouseDown="startDragging(event)"
+		   mouseMove="moveNodesWithGroup(event)" mouseUp="stopDragging(event)"
+		   verticalScrollPolicy="off">
+	<mx:TextInput id="groupName" x="{this.width/2-groupName.width/2}"
+				  y="{this.height/2 - groupName.height/2}" width="80" height="25"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.events.DragEvent;
-			import mx.managers.DragManager;
-			
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -32,6 +32,7 @@
 			
 			private var handCursorID:int = -1;
 			
+			//A list seperated by commas of the names of all the nodes that compose this group.
 			public const childrenNodes:LinkableString = registerLinkableChild(this,new LinkableString(""));
 			//This should be set by the InfoMapPanel.
 			public var childrenHashmapReference:LinkableHashMap = null;
@@ -63,6 +64,7 @@
 				_lastY = this.y;
 			}
 			
+			//Callback function to re-draw the circle whenever one of the circle settings change.
 			private function redrawCircle():void
 			{
 				graphics.clear();
@@ -89,17 +91,26 @@
 				this.stopDrag();
 			}
 			
+			/**
+			 * Node that is now a part of the group. Supply the nodes name as it appears in the nodes LinkableHashmap.
+			 */
 			public function addNode(node:String):void
 			{
 				if( getChildrenNodes().indexOf(node) == -1 )
 					childrenNodes.value += node+",";
 			}
 			
+			/**
+			 * Removes a node from the list of children of this grouping, if it exists.
+			 */
 			public function removeNode(node:String):void
 			{
 				childrenNodes.value = childrenNodes.value.replace(node+",","");
 			}
 			
+			/**
+			 * Returns an array in which each index contains the name of a node.
+			 */
 			public function getChildrenNodes():Array
 			{
 				return childrenNodes.value.split(",");
@@ -108,6 +119,7 @@
 			private var changeX:int;
 			private var changeY:int;
 			private var i:int;
+			//Updates the node locations to move along with the group, when the group is being dragged.
 			protected function moveNodesWithGroup(event:MouseEvent):void
 			{
 				if( _dragging )
@@ -119,7 +131,7 @@
 						{
 							changeX = this.x - _lastX;
 							changeY = this.y - _lastY;
-								
+							
 							for(i = 0; i < childNodes.length; i++ )
 							{
 								//Look into fixing this, probably need to fix getChildrenNodes().
@@ -127,13 +139,13 @@
 								{
 									(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).xPos.value += changeX;
 									(childrenHashmapReference.getObject(childNodes[i]) as NodeHandler).yPos.value += changeY;
-									}
+								}
 							}
 						}
 					}
 				}
-					_lastX = this.x;
-					_lastY = this.y;
+				_lastX = this.x;
+				_lastY = this.y;
 			}
 			
 		]]>

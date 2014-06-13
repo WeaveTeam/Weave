@@ -103,6 +103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * */
 			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
+			//LinkableHashmap of the NodeGroups that have been created.
 			public const nodeGroups:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
 			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject(InfoMapsDataSource.SOURCE_NAME,InfoMapsDataSource, true);
@@ -147,6 +148,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const globalFilterByOption:LinkableString = registerLinkableChild(this,new LinkableString());
 			
+			//LinkableHashmap of the InfoMapBackgroundImages that have been laoded.
 			public const backgroundImagesEncoded:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
 			override protected function constructor():void
@@ -261,6 +263,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			//Callback function that is necessary for initial setup of the NodeGroups when a session state has been laoded.
 			private function handleNodeGroupsLoading():void
 			{
 				var nodeGroups:Array = nodeGroups.getObjects();
@@ -626,6 +629,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void
 			{
+				//Handles DocThumbnailComponents and also the dragging of any nodes in the panel.
 				if(event.dragInitiator is DocThumbnailComponent || event.dragInitiator is List || event.dragInitiator is NodeHandler)
 				{
 					DragManager.acceptDragDrop(this);
@@ -649,6 +653,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					if( tempNode.dropTarget is NodeGroup || tempGroup != null)
 					{
+						//Adding a node to a group.
+						
 						//Bounding test didn't fire off, but auto-detect with drag and drop did.
 						if( tempGroup == null )
 							tempGroup = tempNode.dropTarget as NodeGroup;
@@ -665,6 +671,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					else if( tempNode.isInGroup() )
 					{
+						//Leaving a group, and not joining a new one.
 						var oldGroupName:String = tempNode.removeFromGroup();
 						//Node may have been removed by the user.
 						if( (nodeGroups.getObject(oldGroupName) as NodeGroup) != null )
@@ -696,7 +703,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					//move the thumbnail to the new location
 					var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
 					t.move(localPoint.x,localPoint.y);
-				
+					
 					//				t.xPos.value = t.x;
 					//				t.yPos.value = t.y;
 					
@@ -705,7 +712,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					t.height = 50;
 					t.width= 50;
 				}
-				
 			}
 			
 			private function showRelatedDataRecords():void
@@ -1024,16 +1030,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			/**
+			 * Creates a new NodeGroup in the InfoMaps Panel.
+			 */
 			public function addInfoMapNodeGroup():void
 			{
 				var className:String = getQualifiedClassName(NodeGroup).split("::")[1];
 				var nodeName:String = nodeGroups.generateUniqueName(className);
 				var nodeGroup:NodeGroup = nodeGroups.requestObject(nodeName,NodeGroup,false);
 				
+				//Supply a reference to the node LinkableHashmap.
 				nodeGroup.childrenHashmapReference = nodes;
 				
-				nodeGroup.x = 50 * (nodeGroups.getNames().length);
-				nodeGroup.y = 50 * (nodeGroups.getNames().length);
+				//Give the NodeGroup an initial location
+				nodeGroup.x = 100 + 50 * (nodeGroups.getNames().length);
+				nodeGroup.y = 100 + 50 * (nodeGroups.getNames().length);
 			}
 			
 			public function addQuery(query:String):void
@@ -1238,18 +1249,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
-			 * A function called by the Clear button for images. It opens up an ImageClearList panel instance.
+			 * A function called by the Clear button for images. It opens up an InfoMapsClearList panel instance.
 			 */
 			private function clearImage():void
 			{
 				//Open a static ImageClearList instance and give it the InfoMapBackgroundImages hashmap as data.
-				var clearPanel:ImageClearList = DraggablePanel.openStaticInstance(ImageClearList);
+				var clearPanel:InfoMapsClearList = DraggablePanel.openStaticInstance(InfoMapsClearList);
 				clearPanel.targets = [backgroundImagesEncoded];
 			}
 			
+			/**
+			 * A function called by the Node Group Settings button for a settings panel. It opens up an InfoMapsClearList panel instance.
+			 */
 			private function openNodeOptions():void
 			{
-				var clearPanel:ImageClearList = DraggablePanel.openStaticInstance(ImageClearList);
+				var clearPanel:InfoMapsClearList = DraggablePanel.openStaticInstance(InfoMapsClearList);
 				clearPanel.targets = [nodeGroups];
 			}
 			
@@ -1458,10 +1472,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		]]>
 	</mx:Script>
 	<!--the resize code is required so that the content is clipped by the canvas-->
-	<mx:Canvas id="map" width="100%" height="100%" autoLayout="false"
-			   clipContent="true" horizontalScrollPolicy="off"
-			   
-			   verticalScrollPolicy="off"><!--For clipping the content at the edges-->
+	<mx:Canvas id="map" width="100%" height="100%" autoLayout="false" clipContent="true"
+			   horizontalScrollPolicy="off" verticalScrollPolicy="off"><!--For clipping the content at the edges-->
 		<mx:HBox width="100%" horizontalAlign="right" paddingLeft="5" paddingTop="5">
 			<!--<mx:HBox>
 			<mx:ComboBox id="nodeComboBox" dataProvider="{['Add a Query Node','Add a Map Node']}" fontWeight="bold" change="handleNodeComboBoxChange()"/>
