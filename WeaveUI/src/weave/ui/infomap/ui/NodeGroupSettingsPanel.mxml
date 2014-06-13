@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute" width="200" height="200">
+<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute" width="200" height="200" removedFromStage="disposePanel(event)" title="{lang('Node Group Settings')}">
 	<mx:VBox width="100%" height="100%">
-		<mx:ColorPicker id="groupColor"/>
-		<mx:NumericStepper id="groupAlpha" maximum="1.0" minimum="0.1" stepSize="0.1"/>
-		<mx:NumericStepper id="groupRadius" stepSize="5" minimum="10" maximum="200"/>
-		<mx:CheckBox id="groupFilledCircle" label="Filled Circle"/>
-		<mx:NumericStepper id="groupOuterRadius" stepSize="5" minimum="1" maximum="{groupRadius.value}" enabled="{!groupFilledCircle.selected}"/>
+		<mx:HBox>
+			<mx:Label text="Group Color" />
+			<mx:ColorPicker id="groupColor"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Group Alpha" />
+			<mx:NumericStepper id="groupAlpha" maximum="1.0" minimum="0.1" stepSize="0.1"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Group Radius" />
+			<mx:NumericStepper id="groupRadius" stepSize="5" minimum="10" maximum="200"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Filled Circle" />
+			<mx:CheckBox id="groupFilledCircle"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Outer Radius" />
+			<mx:NumericStepper id="groupOuterRadius" stepSize="5" minimum="1" maximum="{groupRadius.value}" enabled="{!groupFilledCircle.selected}"/>
+		</mx:HBox>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			
 			import weave.api.linkBindableProperty;
+			import weave.api.unlinkBindableProperty;
 			import weave.ui.infomap.layout.NodeGroup;
+			
+			private var group:NodeGroup;
 			
 			override protected function childrenCreated():void
 			{
@@ -21,7 +38,7 @@
 			override public function set targets(array:Array):void
 			{
 				super.targets = array;
-				var group:NodeGroup = _targetObjects[0] as NodeGroup;
+				group = _targetObjects[0] as NodeGroup;
 				
 				//Set intial values.
 				this.groupColor.selectedColor = group.groupColor.value;
@@ -36,6 +53,18 @@
 				linkBindableProperty(group.groupRadius,this.groupRadius, "value");
 				linkBindableProperty(group.groupFilledCircle,this.groupFilledCircle, "selected");
 				linkBindableProperty(group.groupCircleBorder,this.groupOuterRadius, "value");
+			}
+			
+			protected function disposePanel(event:Event):void
+			{
+				if( group != null )
+				{
+					unlinkBindableProperty(group.groupColor,this.groupColor, "selectedColor");
+					unlinkBindableProperty(group.groupAlpha,this.groupAlpha, "value");
+					unlinkBindableProperty(group.groupRadius,this.groupRadius, "value");
+					unlinkBindableProperty(group.groupFilledCircle,this.groupFilledCircle, "selected");
+					unlinkBindableProperty(group.groupCircleBorder,this.groupOuterRadius, "value");
+				}
 			}
 			
 		]]>

@@ -20,6 +20,7 @@
 			import weave.utils.CustomCursorManager;
 			import weave.visualization.layers.InteractiveVisualization;
 			
+			//Sessioned variables.
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const nodeTitle:LinkableString = newLinkableChild(this, LinkableString);
