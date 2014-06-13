@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute" width="200" height="200">
+	<mx:VBox width="100%" height="100%">
+		<mx:ColorPicker id="groupColor"/>
+		<mx:NumericStepper id="groupAlpha" maximum="1.0" minimum="0.1" stepSize="0.1"/>
+		<mx:NumericStepper id="groupRadius" stepSize="5" minimum="10" maximum="200"/>
+		<mx:CheckBox id="groupFilledCircle" label="Filled Circle"/>
+		<mx:NumericStepper id="groupOuterRadius" stepSize="5" minimum="1" maximum="{groupRadius.value}" enabled="{!groupFilledCircle.selected}"/>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			
+			import weave.api.linkBindableProperty;
+			import weave.ui.infomap.layout.NodeGroup;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
+			override public function set targets(array:Array):void
+			{
+				super.targets = array;
+				var group:NodeGroup = _targetObjects[0] as NodeGroup;
+				
+				//Set intial values.
+				this.groupColor.selectedColor = group.groupColor.value;
+				this.groupAlpha.value = group.groupAlpha.value;
+				this.groupRadius.value = group.groupRadius.value;
+				this.groupFilledCircle.selected = group.groupFilledCircle.value;
+				this.groupOuterRadius.value = group.groupCircleBorder.value;
+				
+				//Link all of the properties.
+				linkBindableProperty(group.groupColor,this.groupColor, "selectedColor");
+				linkBindableProperty(group.groupAlpha,this.groupAlpha, "value");
+				linkBindableProperty(group.groupRadius,this.groupRadius, "value");
+				linkBindableProperty(group.groupFilledCircle,this.groupFilledCircle, "selected");
+				linkBindableProperty(group.groupCircleBorder,this.groupOuterRadius, "value");
+			}
+			
+		]]>
+	</mx:Script>
+</ui:ControlPanel>

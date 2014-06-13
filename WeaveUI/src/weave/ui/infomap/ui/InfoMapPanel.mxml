@@ -666,7 +666,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					else if( tempNode.isInGroup() )
 					{
 						var oldGroupName:String = tempNode.removeFromGroup();
-						(nodeGroups.getObject(oldGroupName) as NodeGroup).removeNode(nodes.getName(tempNode));
+						//Node may have been removed by the user.
+						if( (nodeGroups.getObject(oldGroupName) as NodeGroup) != null )
+							(nodeGroups.getObject(oldGroupName) as NodeGroup).removeNode(nodes.getName(tempNode));
 					}
 					
 				}
@@ -1245,6 +1247,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				clearPanel.targets = [backgroundImagesEncoded];
 			}
 			
+			private function openNodeOptions():void
+			{
+				var clearPanel:ImageClearList = DraggablePanel.openStaticInstance(ImageClearList);
+				clearPanel.targets = [nodeGroups];
+			}
+			
 			private var _fileReference:FileReferenceList = new FileReferenceList();
 			
 			private function browseAndUpload():void
@@ -1508,7 +1516,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:HBox>
 			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically"
 						 creationComplete="linkBindableProperty(Weave.properties.enableAutoSave,event.target,'selected')"/>
-			<mx:Spacer height="50"/>
+			<mx:Button label="Node Group Settings" click="openNodeOptions()"/>
+			<mx:Spacer height="30"/>
 			<mx:HBox>
 				<mx:VBox>
 					<mx:HBox>

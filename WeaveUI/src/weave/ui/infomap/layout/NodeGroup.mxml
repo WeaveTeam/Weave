@@ -13,6 +13,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -22,6 +23,12 @@
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const nodeTitle:LinkableString = newLinkableChild(this, LinkableString);
+			public const groupColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x00FFFF), redrawCircle);
+			public const groupAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.1), redrawCircle);
+			public const groupRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100), redrawCircle);
+			public const groupFilledCircle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), redrawCircle);
+			public const groupCircleBorder:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), redrawCircle);
+			
 			private var handCursorID:int = -1;
 			
 			public const childrenNodes:LinkableString = registerLinkableChild(this,new LinkableString(""));
@@ -31,8 +38,6 @@
 			private var _lastX:int = 0;
 			private var _lastY:int = 0;
 			private var _dragging:Boolean = false;
-			
-			private var circleRadius:int = 100;
 			
 			override protected function childrenCreated():void
 			{
@@ -47,13 +52,24 @@
 				//this.yPos.addImmediateCallback(this,handleNodeGroupMove);
 				
 				//Draw the NodeGroup circle.
-				graphics.beginFill(0x00FFFF, 0.1);
-				graphics.drawCircle(width/2, height/2, circleRadius);
-				//graphics.drawCircle(width/2, height/2, circleRadius - 5);
+				graphics.beginFill(groupColor.value, groupAlpha.value);
+				graphics.drawCircle(width/2, height/2, groupRadius.value);
+				if( !groupFilledCircle.value )
+					graphics.drawCircle(width/2, height/2, groupRadius.value - groupCircleBorder.value);
 				graphics.endFill();
 				
 				_lastX = this.x;
 				_lastY = this.y;
+			}
+			
+			private function redrawCircle():void
+			{
+				graphics.clear();
+				graphics.beginFill(groupColor.value, groupAlpha.value);
+				graphics.drawCircle(width/2, height/2, groupRadius.value);
+				if( !groupFilledCircle.value )
+					graphics.drawCircle(width/2, height/2, groupRadius.value - groupCircleBorder.value);
+				graphics.endFill();
 			}
 			
 			protected function startDragging(event:MouseEvent):void

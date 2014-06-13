@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				 xmlns:ui="weave.ui.*"
-				 width="400" height="300" layout="absolute" title="{lang('InfoMaps Image List')}">
+				 width="400" height="300" layout="absolute" title="{lang('InfoMaps Image List')}">	
 	<mx:VBox width="100%" height="100%">
 		<mx:List id="imageList" width="100%" height="100%"/>
 		<mx:HBox>
 			<mx:Button label="Clear All" click="removeAllImagesButton(event)"
-					   enabled="{imageList.dataProvider.length &gt; 0}"/>
-			<mx:Button label="Remove selected image" click="removeSelectionButton(event)"
-					   enabled="{imageList.dataProvider.length  &gt; 0}"/>
+					   enabled="{imageList.dataProvider.length > 0}"/>
+			<mx:Button label="Remove selected item" click="removeSelectionButton(event)"
+					   enabled="{imageList.dataProvider.length > 0}"/>
+			<mx:Button label="Adjust Preferences" click="openNodeGroupSettings(event)"
+					   enabled="{imageList.dataProvider.length > 0}"/>
 		</mx:HBox>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import weave.core.LinkableHashMap;
+			import weave.ui.DraggablePanel;
 			
 			override protected function childrenCreated():void
 			{
@@ -23,13 +26,13 @@
 			override public function set targets(array:Array):void
 			{
 				super.targets = array;
-				//Populate the list with the image names.
+				//Populate the list with the object names.
 				imageList.dataProvider = (_targetObjects[0] as LinkableHashMap).getNames();
 			}
 			
 			protected function removeSelectionButton(event:MouseEvent):void
 			{
-				//After making sure something is selected, remove that background image.
+				//After making sure something is selected, remove that object.
 				if( _targetObjects != null && imageList.selectedItem != null)
 				{
 					(_targetObjects[0] as LinkableHashMap).removeObject(imageList.selectedItem as String);
@@ -40,13 +43,19 @@
 			
 			protected function removeAllImagesButton(event:MouseEvent):void
 			{
-				//If it hasn't been already cleared, clear all of the images.
+				//If it hasn't been already cleared, clear all of the objects.
 				if( _targetObjects != null )
 				{
 					(_targetObjects[0] as LinkableHashMap).removeAllObjects();
 					(_targetObjects[0] as LinkableHashMap).triggerCallbacks();
 					imageList.dataProvider = null;
 				}
+			}
+			
+			protected function openNodeGroupSettings(event:MouseEvent):void
+			{
+				var settingsPanel:NodeGroupSettingsPanel = DraggablePanel.openStaticInstance(NodeGroupSettingsPanel);
+				settingsPanel.targets = [(_targetObjects[0] as LinkableHashMap).getObject(imageList.selectedItem as String)];
 			}
 			
 		]]>
