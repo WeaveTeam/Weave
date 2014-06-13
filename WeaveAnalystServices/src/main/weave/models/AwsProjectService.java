@@ -153,7 +153,7 @@ public class AwsProjectService
 	   * @return count number of rows(query Objects in the project) added to the database
 	   * @throws Exception
 	   */
-	public int insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent) throws RemoteException, SQLException
+	public int insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent, String encodedViz) throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
@@ -162,6 +162,7 @@ public class AwsProjectService
 		record.put("projectName", projectName);
 		record.put("queryObjectTitle", queryObjectTitle);
 		record.put("queryObjectContent", queryObjectContent);
+		record.put("resultVisualizations", encodedViz);
 		
 		int count = SQLUtils.insertRow(con, schema, "stored_query_objects", record );
 		con.close();
@@ -214,28 +215,50 @@ public class AwsProjectService
 	
 	/** 
 	   * returns list of visualizations belonging to the respective queryObjects in a project
-	   * @param params project name to pull column from (for all visualizations, project = null)
-	   * @return an array of images 
+	   * @param params project name to pull image column from (for all visualizations, project = null)
+	   * @return an array of base64 strings, each encoding one image 
 	   * @throws Exception
 	   */
 	public static Object[] getListOfQueryObjectVisualizations(Map<String, Object>params) throws RemoteException, SQLException
 	{
 		Object[] visualizationCollection = null;
+		SQLResult visualizationSQLresult = null;
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
+		String projectName = params.get("projectName").toString();
 		
-		Map<String,Object> whereParams = new HashMap<String, Object>();
-		whereParams = params;
+		if(projectName == null)//to get all images
+		{
+			String query = String.format("SELECT distinct(%s) FROM %s", "resultVisualizations", (SQLUtils.quoteSchemaTable(con,schema, "stored_query_objects")));
+			visualizationSQLresult = SQLUtils.getResultFromQuery(con,query, null, true );
+			
+		}
 		
-		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
-		builder.addGroupedConditions(whereParams, null,null);
-		WhereClause<Object> clause = builder.build(con);
-		List<String> selectColumns = new ArrayList<String>();
-		selectColumns.add("resultVisualizations");
-		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
-		SQLResult visualizationSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
+		else//to get images only for a particular project
+		{
+			Map<String,Object> whereParams = new HashMap<String, Object>();
+			whereParams = params;
 		
+			List<String> selectColumns = new ArrayList<String>();
+			selectColumns.add("resultVisualizations");
+			Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
+			visualizationSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
+			
+		}
 		//process visualizationSQLresult
+		if(visualizationSQLresult.rows.length != 0)//run this code only if the project contains rows
+		{
+			visualizationCollection = new Object[visualizationSQLresult.rows.length];
+			Object[][] rows = visualizationSQLresult.rows;
+			for(int i = 0; i < rows.length; i++){
+				Object singleRow = rows[i];
+				visualizationCollection[i] = singleRow;
+				System.out.print(visualizationCollection[i]);
+			}
+			
+		}//end of if statement
+		
+		con.close();
 		
 		return visualizationCollection;
 	}

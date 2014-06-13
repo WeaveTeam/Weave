@@ -57,7 +57,7 @@ public class AwsRService implements IScriptEngine
 			results = rexp2javaObj(evalValue);
 			// clear R Objects
 			rConnection.eval("rm(list=ls())");
-			
+			 
 		}
 		catch (Exception e)	{
 			e.printStackTrace();

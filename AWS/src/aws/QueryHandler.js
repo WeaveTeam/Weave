@@ -19,6 +19,9 @@ aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
+	//testing dont know if this is the right way
+	this.queryObject = queryObject;
+	//testing
 	this.title = queryObject.title;
 	
 	this.dateGenerated = queryObject.date;
