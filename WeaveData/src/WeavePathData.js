@@ -36,11 +36,11 @@ function toArray(args)
 }
 
 if (!Function.prototype.bind)
-	Function.prototype.bind = function(/* that, ...args */):Function
+	Function.prototype.bind = function(/* that, ...args */)
 	{
 		var args = toArray(arguments), that = args.shift();
-		return function():*{ return this.apply(that, args.concat(toArray(arguments))); };
-	}
+		return function(){ return this.apply(that, args.concat(toArray(arguments))); };
+	};
 
 weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.qkeyToIndex.bind(weave.WeavePath);
 
