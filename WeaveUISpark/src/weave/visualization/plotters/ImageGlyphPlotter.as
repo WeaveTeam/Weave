@@ -25,26 +25,14 @@ package weave.visualization.plotters
 	import flash.net.URLRequest;
 	
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.linkSessionState;
-	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
-	import weave.core.LinkableBoolean;
-	import weave.core.LinkableNumber;
-	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.ImageColumn;
-	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.KeySets.FilteredKeySet;
 	
 	/**
 	 * ImagePlotter
@@ -63,21 +51,13 @@ package weave.visualization.plotters
 		{
 		}
 		
-		public const imageCol:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const imageURL:LinkableString = newLinkableChild(this, LinkableString);
-		public const imageSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
-		
-		public const rotationCol:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const rotationOffset:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const dataInDegrees:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		
+		public const imageURL:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
+		public const imageSize:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		private const tempMatrix:Matrix = new Matrix(); // reusable object
-		private static const _urlToImageMap:Object = new Object();
-		
+
 		[Embed(source="/weave/resources/images/missing.png")]
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
-		
 
 		/**
 		 * Draws the graphics onto BitmapData.
@@ -87,63 +67,59 @@ package weave.visualization.plotters
 			if (task.iteration < task.recordKeys.length)
 			{
 				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
-				var _imageURLColVal:String = imageCol.getValueFromKey(recordKey, String);
-				var _rotationColVal:Number = rotationCol.getValueFromKey(recordKey, Number);
+				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
+				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number);
+				getCoordsFromRecordKey(recordKey, tempPoint);
+				task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
 				
-				_imageURLColVal = ( _imageURLColVal == null || StringUtil.trim(_imageURLColVal).length == 0 ) ? imageURL.value : _imageURLColVal;
-				_rotationColVal = isNaN(_rotationColVal) ? 0 : _rotationColVal;
-
-				var _image:BitmapData = _urlToImageMap[_imageURLColVal] as BitmapData;
-				if( _image )
+				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
+				if (image)
 				{
-					getCoordsFromRecordKey(recordKey, tempPoint);
-					task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
-				
-					var scaleX:Number = imageSize.value / 100;
-					var scaleY:Number = imageSize.value / 100;
+					if (debug)
+						trace(debugId(this), 'draw', _imageURL, image == _missingImage ? '(missing)' : debugId(image));
 					
+					// translate image so it is centered on the screen coordinates of this record
 					tempMatrix.identity();
-					tempMatrix.translate(-_image.width/2, -_image.height/2);
-	
-					
-					// Scale
-					if( isFinite(scaleX) && isFinite(scaleY) )
-						tempMatrix.scale(scaleX, scaleY);
-					
-					
-					// Rotate
-					_rotationColVal -= rotationOffset.value;
-					if( dataInDegrees.value )
-						_rotationColVal = Math.PI * _rotationColVal / 180;
-					tempMatrix.rotate(_rotationColVal);
-					
-					
-					// Reposition
-					tempMatrix.translate(tempPoint.x, tempPoint.y);
-					
-					
-					// Draw
-					task.buffer.draw(_image, tempMatrix);
+					var sx:Number = 1 / image.width * _imageSize;
+					var sy:Number = 1 / image.height * _imageSize;
+					if (isFinite(sx) && isFinite(sy))
+						tempMatrix.scale(sx, sy);
+					else
+						sx = 1, sy = 1;
+					tempMatrix.translate(
+							Math.round(tempPoint.x - sx * image.width / 2),
+							Math.round(tempPoint.y - sy * image.height / 2)
+						);
+					// draw image
+					task.buffer.draw(image, tempMatrix);
 				}
-				else
+				else // if the url hasn't started downloading yet...
 				{
-					_urlToImageMap[_imageURLColVal] = _missingImage;
+					// set a placeholder so it doesn't get downloaded again
+					_urlToImageMap[_imageURL] = _missingImage;
 					
-					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURLColVal), handleImageDownload, null, _imageURLColVal);
+					// download the image - this triggers callbacks when download completes or fails
+					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, null, _imageURL);
 				}
 				
 				return task.iteration / task.recordKeys.length;
 			}
-
 			return 1;
 		}
 		
+		/**
+		 * This is the image cache.
+		 */
+		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+		/**
+		 * This function will save a downloaded image into the image cache.
+		 */
 		private function handleImageDownload(event:ResultEvent, url:String):void
 		{
 			var bitmap:Bitmap = event.result as Bitmap;
 			_urlToImageMap[url] = bitmap.bitmapData;
-			if( debug )
-				trace(debugId(this), "received", url, debugId(bitmap.bitmapData));
+			if (debug)
+				trace(debugId(this), 'received', url, debugId(bitmap.bitmapData));
 		}
 		
 		[Deprecated] public function set xColumn(value:Object):void
