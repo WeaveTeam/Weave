@@ -71,12 +71,22 @@ public class WeaveFileInfo
 	/**
 	 * Gets a thumbnail from a .weave archive.
 	 * @param base64 File content encoded as base64
+	 * @return The thumbnail bytes encoded as base64
+	 * @throws IOException
+	 */
+	public static String getArchiveThumbnailBase64(String base64) throws IOException
+	{
+		return Base64.encodeBytes(getArchiveThumbnail(Base64.decode(base64)));
+	}
+	
+	/**
+	 * Gets a thumbnail from a .weave archive.
+	 * @param bytes File content
 	 * @return The thumbnail bytes
 	 * @throws IOException
 	 */
-	public static byte[] getArchiveThumbnail(String base64) throws IOException
+	public static byte[] getArchiveThumbnail(byte[] bytes) throws IOException
 	{
-		byte[] bytes = Base64.decode(base64);
 		File file = File.createTempFile("weave-", ".weave");
 		FileUtils.copy(new ByteArrayInputStream(bytes), new FileOutputStream(file));
 		return getArchiveThumbnail(file);
