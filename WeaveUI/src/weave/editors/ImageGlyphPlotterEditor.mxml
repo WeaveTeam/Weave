@@ -3,16 +3,27 @@
 		 xmlns="weave.editors.*"
 		 implements="weave.api.ui.ILinkableObjectEditor"
 		 label="{lang('Image Settings')}" xmlns:ui="weave.ui.*">	
-	<ui:DynamicColumnComponent id="xCol" label="{lang('X Column')}"/> 	
-	<ui:DynamicColumnComponent id="yCol" label="{lang('Y Column')}"/> 	
-	<mx:HBox>
-		<mx:Label text="{lang('Picture URL:')}" />
-		<mx:TextInput creationComplete="linkBindableProperty(_plotter.imageURL.defaultValue, event.target, 'text')" />
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Picture Size:')}" />
-		<mx:NumericStepper maximum="200" creationComplete="linkBindableProperty(_plotter.imageSize.defaultValue, event.target, 'value')" />		
-	</mx:HBox>
+	
+	<ui:DynamicColumnComponent id="xCol" label="{lang('X Column')}" />
+	<ui:DynamicColumnComponent id="yCol" label="{lang('Y Column')}" />
+	<ui:DynamicColumnComponent id="imageCol" label="{lang('Image URL Column')}" />
+	<ui:DynamicColumnComponent id="rotationCol" label="{lang('Image Rotation Column')}" />
+
+	<ui:Indent label="{lang('Default Image URL')}">
+		<mx:TextInput creationComplete="linkBindableProperty(_plotter.imageURL, event.target, 'text')" />
+	</ui:Indent>
+	<ui:Indent label="{lang('Image Size')}">
+		<mx:NumericStepper maximum="200" creationComplete="linkBindableProperty(_plotter.imageSize, event.target, 'value')" />		
+	</ui:Indent>
+	<ui:Indent label="{lang('Rotation Offset')}">
+		<mx:NumericStepper id="rotationStepper" maximum="180" minimum="-180" 
+						   creationComplete="linkBindableProperty(_plotter.rotationOffset, event.target, 'value')" />
+	</ui:Indent>
+	<ui:Indent label="{lang('Rotation Data in Degrees')}">
+		<ui:CustomCheckBox id="rotationCheckbox"
+						   creationComplete="linkBindableProperty(_plotter.dataInDegrees, event.target, 'selected')"
+						   change="rotationStepper.stepSize = rotationCheckbox.selected ? 1 : (Math.PI / 6)"/>
+	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
@@ -29,8 +40,11 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
 				xCol.dynamicObject = _plotter.dataX;
 				yCol.dynamicObject = _plotter.dataY;
+				imageCol.dynamicObject = _plotter.imageCol;
+				rotationCol.dynamicObject = _plotter.rotationCol;
 			}
 			
 			private var _plotter:ImageGlyphPlotter = null;
