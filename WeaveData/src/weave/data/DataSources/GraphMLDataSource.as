@@ -96,7 +96,6 @@ package weave.data.DataSources
             columnNode = new GraphMLColumnNode(groupNode, metadata[COLUMNNAME_META]);
             
             return columnNode;
-            
         }
 
         private function handleURLChange():void
@@ -116,6 +115,9 @@ package weave.data.DataSources
             edgeProperties = result.edgeKeys;
             edgeColumnData = result.edges;
             handleEdgeKeyPropertyChange();
+
+            refreshAllProxyColumns();
+            refreshHierarchy();
 
             if (onFinish != null) 
             {

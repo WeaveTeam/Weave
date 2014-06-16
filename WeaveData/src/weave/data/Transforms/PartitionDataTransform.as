@@ -47,7 +47,7 @@ package weave.data.Transforms
         public static const PARTITION_COLUMNNAME_META:String = "__PartitionColumnName__";
         WeaveAPI.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned Table");
 
-        public const inputColumns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+        public const inputColumns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn), inputColumnsChanged);
         public const partitionColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, partitionColumnChanged);
         
         public var layer_names:Array = [];        
@@ -55,6 +55,12 @@ package weave.data.Transforms
         public function PartitionDataTransform()
         {
 
+        }
+
+        public function inputColumnsChanged():void
+        {
+            refreshHierarchy();
+            refreshAllProxyColumns();
         }
 
         private function partitionColumnChanged():void
@@ -68,6 +74,9 @@ package weave.data.Transforms
                 layers[value] = true;
             }
             layer_names = VectorUtils.getKeys(layers);
+
+            refreshHierarchy();
+            refreshAllProxyColumns();
         }
 
         public function getInputColumnTitle(name:String):String
