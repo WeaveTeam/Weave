@@ -7,28 +7,36 @@
                    <mx:Script>
 <![CDATA[
 
+import flash.utils.Dictionary;
+
 import weave.Weave;
 import weave.api.WeaveAPI;
 import weave.api.data.IKeySet;
-import weave.api.ui.IVisTool;
-import weave.api.newLinkableChild;
+import weave.api.data.IQualifiedKey;
 import weave.api.linkBindableProperty;
+import weave.api.newLinkableChild;
+import weave.api.ui.IVisTool;
+import weave.core.LinkableBoolean;
+import weave.core.LinkableString;
 import weave.data.AttributeColumns.DynamicColumn;
 import weave.data.KeySets.KeySet;
 import weave.data.KeySets.KeySetUnion;
-import weave.core.LinkableBoolean;
-import weave.core.LinkableString;
 import weave.utils.ColumnUtils;
 import weave.utils.DebugUtils;
-import weave.api.data.IQualifiedKey;
-import flash.utils.Dictionary;
+
 
 public const sourceKeyType:LinkableString = newLinkableChild(this, LinkableString, handleColumnsChange, true);
 public const sourceLocalNameColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleColumnsChange, true);
+
 public const targetKeyType:LinkableString = newLinkableChild(this, LinkableString, handleColumnsChange, true);
 public const targetLocalNameColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleColumnsChange, true);
+
 public const isBidirectional:LinkableBoolean = newLinkableChild(this, LinkableBoolean, handleColumnsChange, true);
 public const limitRecursion:LinkableBoolean = newLinkableChild(this, LinkableBoolean, handleColumnsChange, true);
+
+public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean, handleColumnsChange, true);
+public const enableProbing:LinkableBoolean = newLinkableChild(this, LinkableBoolean, handleColumnsChange, true);
+
 
 private const _probe:KeySet = Weave.defaultProbeKeySet;
 private const _selection:KeySet = Weave.defaultSelectionKeySet;
@@ -44,16 +52,16 @@ override protected function constructor():void
 {
     super.constructor();
 }
-private function mapKeys(inputKeys:KeySet, mapping:Dictionary, noRecursion:Boolean):KeySet
+private function mapKeys(inputKeys:KeySet, mapping:Dictionary):KeySet
 {
     
     var outputKeys:KeySet = new KeySet();
     var inputKeyArray:Array = inputKeys.keys;
-    for (var i = inputKeyArray.length; i >= 0; i--)
+    for (var i:int = inputKeyArray.length; i >= 0; i--)
     {
         var inKey:IQualifiedKey = inputKeyArray[i] as IQualifiedKey;
         
-        if (noRecursion && previouslyMappedKeys.containsKey(inKey)) continue;
+        if (limitRecursion.value && previouslyMappedKeys.containsKey(inKey)) continue;
 
         var replacements:Array = mapping[inKey] as Array;
         
@@ -63,32 +71,34 @@ private function mapKeys(inputKeys:KeySet, mapping:Dictionary, noRecursion:Boole
         }
     }
 
-    currentlyMappedKeys.addKeys(outputKeys.keys);
+    if (limitRecursion.value) currentlyMappedKeys.addKeys(outputKeys.keys);
 
     return outputKeys;
 }
 
 private function performMapping(inputSet:KeySet):void
 {
-    
-    previouslyMappedKeys.replaceKeys(currentlyMappedKeys.keys);
-    currentlyMappedKeys.clearKeys();
+    if (limitRecursion.value)
+    {
+        previouslyMappedKeys.replaceKeys(currentlyMappedKeys.keys);
+        currentlyMappedKeys.clearKeys();
+    }
 
-    inputSet.addKeys(mapKeys(inputSet, keyMapping, limitRecursion.value).keys);
+    inputSet.addKeys(mapKeys(inputSet, keyMapping).keys);
 
     if (isBidirectional.value)
     {
-        inputSet.addKeys(mapKeys(inputSet, reverseKeyMapping, limitRecursion.value).keys);
+        inputSet.addKeys(mapKeys(inputSet, reverseKeyMapping).keys);
     }
 
 }
 private function probeChanged():void
 {
-    performMapping(_probe);
+    if (enableProbing.value) performMapping(_probe);
 }
 private function selectionChanged():void
 {
-    performMapping(_selection);
+    if (enableSelection.value) performMapping(_selection);
 }
 private function handleColumnsChange():void
 {
@@ -105,7 +115,7 @@ private function handleColumnsChange():void
 
     var columns:Array = ColumnUtils.joinColumns([sourceLocalNameColumn, targetLocalNameColumn], String);
     
-    for (var i = columns[0].length; i >= 0; i--)
+    for (var i:int = columns[0].length; i >= 0; i--)
     {
         var sourceKeyLocalName:String = columns[1][i];
         var targetKeyLocalName:String = columns[2][i];
@@ -160,13 +170,26 @@ public function getSelectableAttributeNames():Array
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
             <mx:HBox>
-                <mx:ComboBox id="sourceKeyTypeDropdown" editable="true" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'selectedItem')"/>
-                <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent" label="{lang('Source LocalName')}"/>
+                <mx:Label text="{lang('Source KeyType')}"/>
+                <mx:TextInput id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
+            <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent" label="{lang('Source LocalName')}"/>
             <mx:HBox>
-                <mx:ComboBox id="targetKeyTypeDropdown" editable="true" creationComplete="linkBindableProperty(targetKeyType, event.target, 'selectedItem')"/>
-                <ui:DynamicColumnComponent id="targetLocalNameColumnComponent" label="{lang('Target LocalName')}"/>
+                <mx:Label text="{lang('Target KeyType')}"/>
+                <mx:TextInput id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
+
+            <ui:DynamicColumnComponent id="targetLocalNameColumnComponent" label="{lang('Target LocalName')}"/>
+
+            <mx:CheckBox id="enableSelectionCheckBox"
+                label="{lang('Perform Mapping on Selection')}"
+                creationComplete="linkBindableProperty(enableSelection, event.target, 'selected')"
+            />
+            <mx:CheckBox id="enableProbingCheckBox"
+                label="{lang('Perform Mapping on Mouseover Linking')}"
+                creationComplete="linkBindableProperty(enableProbing, event.target, 'selected')"
+            />
+
             <mx:CheckBox id="isBidirectionalCheckBox" 
                 label="{lang('Perform Bidirectional Mapping')}" 
                 creationComplete="linkBindableProperty(isBidirectional, event.target, 'selected')"
@@ -175,6 +198,7 @@ public function getSelectableAttributeNames():Array
                 label="{lang('Limit to one step')}"
                 creationComplete="linkBindableProperty(limitRecursion, event.target, 'selected')"
             />
+
         </mx:VBox>
         <!-- mx:VBox label="{lang('Advanced')}">
             <mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable mouseover linking')}"/>

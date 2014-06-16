@@ -118,6 +118,7 @@ package weave.application
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
+	import weave.utils.fixErrorMessage;
 	import weave.visualization.tools.WeaveAnalyst;
 
 	internal class VisApplication extends VBox implements ILinkableObject
@@ -179,7 +180,13 @@ package weave.application
 					'uncaughtError',
 					function(event:Object):void
 					{
-						reportError(event.error);
+						var error:Error = event.error;
+						// ignore IME error
+						if (error.errorID == 2063)
+							return;
+						
+						fixErrorMessage(error)
+						reportError(error);
 					}
 				);
 			} catch (e:Error) { }
@@ -985,7 +992,8 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
-				Weave.fileName = fileName;
+				if (fileName)
+					Weave.fileName = fileName.split('/').pop();
 			}
 			catch (error:Error)
 			{
@@ -1136,7 +1144,7 @@ package weave.application
 		
 		private function createGlobalObject(classDef:Class, name:String = null):*
 		{
-			var className:String = getQualifiedClassName(classDef).split("::")[1];
+			var className:String = getQualifiedClassName(classDef).split("::").pop();
 
 			if (name == null)
 				name = WeaveAPI.globalHashMap.generateUniqueName(className);
@@ -1503,7 +1511,8 @@ package weave.application
 						VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
 				}
 				
-				var csvString:String = ColumnUtils.generateTableCSV(attrs);
+				var csvString:String = ColumnUtils.generateTableCSV(attrs, Weave.defaultSubsetKeyFilter);
+				
 				if (!csvString)
 				{
 					reportError("No data to export");

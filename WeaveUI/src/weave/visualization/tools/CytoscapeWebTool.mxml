@@ -7,7 +7,7 @@
 		<mx:VBox>
 
 		<mx:Button id="reinitButton" label="Launch External Tool" click="reloadCytoscape()"/>
-		<mx:Button id="raiseButton" label="Focus External Tool" enabled="{_cytoscapeReady.value}" click="raiseCytoscape()"/>
+		<mx:Button id="raiseButton" label="Focus External Tool" click="raiseCytoscape()"/>
 
 		</mx:VBox>
 		

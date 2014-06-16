@@ -23,105 +23,109 @@
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 width="100%" 
 		 height="100%" xmlns:ui="weave.ui.*">
-	<mx:CheckBox
-				 label="{lang('Show record identifiers when no data is available')}"
-				 creationComplete="linkBindableProperty(Weave.properties.showEmptyProbeRecordIdentifiers, event.target, 'selected')"/>
-	<mx:CheckBox label="{lang('Enable axis mouseover info')}"
-				 creationComplete="linkBindableProperty(Weave.properties.enableProbeLines, event.target, 'selected')"/>
-	
-	<ui:CheckBoxWithNestedOptions label="{lang('Enable record mouseover info')}" id="enableProbeToolTipCheck"
-				 creationComplete="linkBindableProperty(Weave.properties.enableProbeToolTip, event.target, 'selected')">
-		<ui:Indent label="{lang('Maximum records shown')}">
-			<mx:NumericStepper
-				width="64"
-				maximum="20"
-				creationComplete="linkBindableProperty(Weave.properties.maxTooltipRecordsShown, event.target, 'value');"
+	<ui:CustomCheckBox label="{lang('Enable axis mouseover info')}"
+					   creationComplete="linkBindableProperty(Weave.properties.enableAxisToolTips, event.target, 'selected');"/>
+	<ui:CheckBoxWithNestedOptions label="{lang('Enable visualization mouseover highlighting')}"
+					   creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,event.target,'selected')">
+		<mx:CheckBox label="{lang('Draw lines connecting highlighted shapes to the axes')}"
+					 creationComplete="linkBindableProperty(Weave.properties.enableProbeLines, event.target, 'selected')"/>
+		
+		<ui:CheckBoxWithNestedOptions label="{lang('Enable visualization mouseover info display')}" id="enableProbeToolTipCheck"
+					 creationComplete="linkBindableProperty(Weave.properties.enableProbeToolTip, event.target, 'selected')">
+			<mx:CheckBox label="{lang('Show record identifiers when no data is available')}"
+						 creationComplete="linkBindableProperty(Weave.properties.showEmptyProbeRecordIdentifiers, event.target, 'selected')"/>
+			<ui:Indent label="{lang('Maximum records shown')}">
+				<mx:NumericStepper
+					width="64"
+					maximum="20"
+					creationComplete="linkBindableProperty(Weave.properties.maxTooltipRecordsShown, event.target, 'value');"
+					/>
+			</ui:Indent>
+			<ui:IndentTextInput
+				inputWidth="64"
+				label="{lang('Maximum width')}"
+				creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text');"
 				/>
-		</ui:Indent>
-		<ui:IndentTextInput
-			inputWidth="64"
-			label="{lang('Maximum width')}"
-			creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text');"
-			/>
-		<ui:Indent label="{lang('Background color')}">
-			<ui:CustomColorPicker id="probeTooltipBackgroundColor" change="backgroundColorPicked()"/>
-			<mx:Button label="{lang('Reset')}" click="Weave.properties.probeToolTipBackgroundColor.value = NaN;"/>
-		</ui:Indent>
-		<ui:Indent label="{lang('Background alpha')}">
-			<mx:NumericStepper
-				width="64"
-				maximum="1"
-				stepSize="0.1"
-				creationComplete="linkBindableProperty(Weave.properties.probeToolTipBackgroundAlpha, event.target, 'value');"
-				/>
-		</ui:Indent>
+			<ui:Indent label="{lang('Background color')}">
+				<ui:CustomColorPicker id="probeTooltipBackgroundColor" change="backgroundColorPicked()"/>
+				<mx:Button label="{lang('Reset')}" click="Weave.properties.probeToolTipBackgroundColor.value = NaN;"/>
+			</ui:Indent>
+			<ui:Indent label="{lang('Background alpha')}">
+				<mx:NumericStepper
+					width="64"
+					maximum="1"
+					stepSize="0.1"
+					creationComplete="linkBindableProperty(Weave.properties.probeToolTipBackgroundAlpha, event.target, 'value');"
+					/>
+			</ui:Indent>
+		</ui:CheckBoxWithNestedOptions>
+		
+		<mx:HBox verticalAlign="middle">
+			<mx:CheckBox label="{lang('Enable detailed geometry mouseover detection')}"
+						 creationComplete="linkBindableProperty(Weave.properties.enableGeometryProbing, event.target, 'selected')"/>
+			<ui:HelpComponent>
+				This option improves accuracy but may decrease performance for mouseover and selection in certain visualizations.
+			</ui:HelpComponent>
+		</mx:HBox>
+		
+		<ui:CheckBoxWithNestedOptions id="enableBitmapFilters"
+						 label="{lang('Enable extra bitmap filters used with mouseover and selection')}"
+						 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')">
+			<ui:HelpComponent>
+				Disabling this option will improve performance.
+			</ui:HelpComponent>
+			<ui:CustomGrid horizontalAlign="center" verticalAlign="middle">
+				<mx:Array>
+					<mx:Array>
+						<mx:Spacer/>
+						<mx:Label text="Color"/>
+						<mx:Label text="Strength"/>
+						<mx:Label text="Alpha"/>
+					</mx:Array>
+					<mx:Array>
+						<mx:Label text="Inner glow"/>
+						<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.color, event.target, 'selectedColor');"/>
+						<mx:NumericStepper maximum="255"
+										   creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.strength, event.target, 'value');"
+										/>
+						<mx:NumericStepper maximum="1"
+										   stepSize="0.1"
+										   creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.alpha, event.target, 'value');"
+										   />
+					</mx:Array>
+					<mx:Array>
+						<mx:Label text="Outer glow"/>
+						<ui:CustomColorPicker
+										creationComplete="linkBindableProperty(Weave.properties.probeOuterGlow.color, event.target, 'selectedColor');"
+										/>
+						<mx:NumericStepper maximum="255"
+										   creationComplete="linkBindableProperty(Weave.properties.probeOuterGlow.strength, event.target, 'value');"
+										   />
+						<mx:NumericStepper maximum="1"
+										   stepSize="0.1"
+										   creationComplete="linkBindableProperty(Weave.properties.probeOuterGlow.alpha, event.target, 'value');"
+										   />
+					</mx:Array>
+				</mx:Array>
+			</ui:CustomGrid>
+		</ui:CheckBoxWithNestedOptions>
+		<mx:VBox paddingLeft="{enableBitmapFilters.indent}"
+				 visible="{!enableBitmapFilters.selected}"
+				 includeInLayout="{!enableBitmapFilters.selected}">
+			<ui:Indent label="{lang('Shadow Color')}">
+				<ui:CustomColorPicker id="shadowColor"
+									  creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
+									  />
+			</ui:Indent> 
+			<ui:Indent label="{lang('Shadow Alpha')}">
+				<mx:NumericStepper id="shadowAlpha"
+								   maximum="1"
+								   stepSize="0.1"
+								   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
+								   />
+			</ui:Indent> 
+		</mx:VBox>
 	</ui:CheckBoxWithNestedOptions>
-	
-	<mx:HBox verticalAlign="middle">
-		<mx:CheckBox label="{lang('Enable detailed geometry mouseover detection')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableGeometryProbing, event.target, 'selected')"/>
-		<ui:HelpComponent>
-			This option improves accuracy but may decrease performance for mouseover and selection in certain visualizations.
-		</ui:HelpComponent>
-	</mx:HBox>
-	
-	<ui:CheckBoxWithNestedOptions id="enableBitmapFilters"
-					 label="{lang('Enable extra bitmap filters used with mouseover and selection')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')">
-		<ui:HelpComponent>
-			Disabling this option will improve performance.
-		</ui:HelpComponent>
-		<ui:CustomGrid horizontalAlign="center" verticalAlign="middle">
-			<mx:Array>
-				<mx:Array>
-					<mx:Spacer/>
-					<mx:Label text="Color"/>
-					<mx:Label text="Strength"/>
-					<mx:Label text="Alpha"/>
-				</mx:Array>
-				<mx:Array>
-					<mx:Label text="Inner glow"/>
-					<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.color, event.target, 'selectedColor');"/>
-					<mx:NumericStepper maximum="255"
-									   creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.strength, event.target, 'value');"
-									/>
-					<mx:NumericStepper maximum="1"
-									   stepSize="0.1"
-									   creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.alpha, event.target, 'value');"
-									   />
-				</mx:Array>
-				<mx:Array>
-					<mx:Label text="Outer glow"/>
-					<ui:CustomColorPicker
-									creationComplete="linkBindableProperty(Weave.properties.probeOuterGlow.color, event.target, 'selectedColor');"
-									/>
-					<mx:NumericStepper maximum="255"
-									   creationComplete="linkBindableProperty(Weave.properties.probeOuterGlow.strength, event.target, 'value');"
-									   />
-					<mx:NumericStepper maximum="1"
-									   stepSize="0.1"
-									   creationComplete="linkBindableProperty(Weave.properties.probeOuterGlow.alpha, event.target, 'value');"
-									   />
-				</mx:Array>
-			</mx:Array>
-		</ui:CustomGrid>
-	</ui:CheckBoxWithNestedOptions>
-	<mx:VBox paddingLeft="{enableBitmapFilters.indent}"
-			 visible="{!enableBitmapFilters.selected}"
-			 includeInLayout="{!enableBitmapFilters.selected}">
-		<ui:Indent label="{lang('Shadow Color')}">
-			<ui:CustomColorPicker id="shadowColor"
-								  creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
-								  />
-		</ui:Indent> 
-		<ui:Indent label="{lang('Shadow Alpha')}">
-			<mx:NumericStepper id="shadowAlpha"
-							   maximum="1"
-							   stepSize="0.1"
-							   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
-							   />
-		</ui:Indent> 
-	</mx:VBox>
 
 	<mx:Script>
 		<![CDATA[

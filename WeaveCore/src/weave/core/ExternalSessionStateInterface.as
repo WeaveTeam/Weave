@@ -146,17 +146,21 @@ package weave.core
 			if (!objectPath || !objectPath.length)
 				return false;
 			
+			// Get parent object first in case there is some backwards compatibility code that gets
+			// executed when it is accessed (registering deprecated class definitions, for example).
+			var parentPath:Array = objectPath.concat();
+			var childName:Object = parentPath.pop();
+			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
+			
+			// get class definition
 			var classQName:String = WeaveXMLDecoder.getClassName(objectType);
 			var classDef:Class = ClassUtils.getClassDefinition(classQName);
 			if (classDef == null)
 				return false;
-			
 			if (ClassUtils.isClassDeprecated(classQName))
 				WeaveAPI.externalTrace("Warning: " + objectType + " is deprecated.");
 			
-			var parentPath:Array = objectPath.concat();
-			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
+			// request the child object
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 			var child:Object = null;

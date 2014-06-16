@@ -79,7 +79,7 @@
 				   includeInLayout="{generateFilterColumnsRadio.selected}">
 			<mx:TextInput id="filterColumnsInput"
 						  width="100%"
-						  text="{WeaveAPI.CSVParser.createCSVRow(columnNames)}"
+						  text="{(function(columnNames:Array):*{return WeaveAPI.CSVParser.createCSVRow(columnNames);}(columnNames))}"
 						  change="handleChange();"
 						  errorString="{keyError}"/>
 			<ui:HelpComponent>

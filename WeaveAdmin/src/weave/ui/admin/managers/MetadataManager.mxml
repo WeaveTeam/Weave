@@ -13,7 +13,7 @@
 			</ui:HelpComponent>
 		</ui:Indent>
         <ui:WeaveTree id="tableTree" width="100%" height="100%"
-					  rootNode="{new EntityNode(Admin.entityCache, EntityType.TABLE)}"
+					  rootNode="{(function():*{return new EntityNode(Admin.entityCache, EntityType.TABLE);}())}"
 					  nodeFilter="{filterTableTreeNodes}"
 					  handleCollapseSelection="true"
 					  dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
@@ -43,7 +43,7 @@
 		</mx:HBox>
 		<mx:VBox height="100%" width="100%" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}">
 	        <ui:WeaveTree id="hierarchyTree" width="100%" height="100%"
-						  rootNode="{new EntityNode(Admin.entityCache, EntityType.HIERARCHY)}"
+						  rootNode="{(function():*{return new EntityNode(Admin.entityCache, EntityType.HIERARCHY);}())}"
 						  handleCollapseSelection="true"
 						  dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
 	        <mx:HBox width="100%">

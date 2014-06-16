@@ -19,12 +19,16 @@
 
 package weave.beans;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import org.postgresql.util.Base64;
 
 import weave.utils.FileUtils;
 
@@ -64,7 +68,37 @@ public class WeaveFileInfo
 		}
 	}
 	
-	private byte[] getArchiveThumbnail(File file) throws IOException
+	/**
+	 * Gets a thumbnail from a .weave archive.
+	 * @param base64 File content encoded as base64
+	 * @return The thumbnail bytes encoded as base64
+	 * @throws IOException
+	 */
+	public static String getArchiveThumbnailBase64(String base64) throws IOException
+	{
+		return Base64.encodeBytes(getArchiveThumbnail(Base64.decode(base64)));
+	}
+	
+	/**
+	 * Gets a thumbnail from a .weave archive.
+	 * @param bytes File content
+	 * @return The thumbnail bytes
+	 * @throws IOException
+	 */
+	public static byte[] getArchiveThumbnail(byte[] bytes) throws IOException
+	{
+		File file = File.createTempFile("weave-", ".weave");
+		FileUtils.copy(new ByteArrayInputStream(bytes), new FileOutputStream(file));
+		return getArchiveThumbnail(file);
+	}
+	
+	/**
+	 * Gets a thumbnail from a .weave archive.
+	 * @param file The .weave file
+	 * @return The thumbnail bytes
+	 * @throws IOException
+	 */
+	public static byte[] getArchiveThumbnail(File file) throws IOException
 	{
 		ZipFile archive = null;
 		InputStream in = null;

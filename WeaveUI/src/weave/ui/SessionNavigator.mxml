@@ -84,7 +84,7 @@
 			private function myLabelFunction(item:Object):String
 			{
 				// append class name to the label.
-				var label:String = getQualifiedClassName(item.object).split("::")[1];
+				var label:String = getQualifiedClassName(item.object).split("::").pop();
 				if (item.label)
 					label += ' ' + Compiler.encodeString(item.label);
 				return label;

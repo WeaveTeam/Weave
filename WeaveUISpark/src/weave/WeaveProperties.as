@@ -107,6 +107,8 @@ package weave
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
 			_toggleToolsMenuItem("SchafersMissingDataTool", false);
 			_toggleToolsMenuItem("DataFilter", false);
+			_toggleToolsMenuItem("KeyMappingTool", false);
+			
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
 			panelTitleTextFormat.color.value = 0xFFFFFF;
@@ -354,6 +356,9 @@ package weave
 		 * This is an array of LinkableEventListeners which specify a function to run on an event.
 		 */
 		public const eventListeners:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
+		
+		public const dashedSelectionColor:LinkableNumber = new LinkableNumber(0x00ff00);
+		public const dashedZoomColor:LinkableNumber = new LinkableNumber(0x00faff);
 		
 		/**
 		 * Parameters for the DashedLine selection box.

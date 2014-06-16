@@ -47,6 +47,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -74,6 +76,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.compiler.StandardLib;
+			import weave.core.ClassUtils;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
@@ -1411,14 +1414,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function handleAttributeButtonClick():void
 			{
+				openAttributeSelector();
+			}
+			
+			public function openAttributeSelector(attrIndex:int = 0):AttributeSelectorPanel
+			{
 				var tool:IVisToolWithSelectableAttributes = this as IVisToolWithSelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();
 					var names:Array = tool.getSelectableAttributeNames();
-					if (attrs && attrs.length)
-						AttributeSelectorPanel.open(attrs[0], names[0]);
+					if (attrs && attrs[attrIndex])
+					{
+						return AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex]);
+					}
 				}
+				return null;
 			}
 			
 			protected function handleMinimizeButtonClick():void
@@ -1427,7 +1438,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (WeaveAPI.StageUtils.shiftKey && hashMap)
 				{
 					for each (var panel:DraggablePanel in hashMap.getObjects(DraggablePanel))
-					panel.minimizePanel();
+						panel.minimizePanel();
 				}
 				else
 				{
@@ -1582,6 +1593,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public static function openStaticInstance(draggablePanelClass:Class):*
 			{
+				var qname:String = getQualifiedClassName(draggablePanelClass);
+				var dpqname:String = getQualifiedClassName(DraggablePanel);
+				if (!ClassUtils.classExtends(qname, dpqname))
+					throw new Error(qname + " does not extend " + dpqname);
+				
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
 				{
@@ -1592,8 +1608,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();
 				
-				var xSpace:Number = instance.parent.width - instance.width;
-				var ySpace:Number = instance.parent.height - instance.height;
+				instance.reposition();
+				instance.copyCoordinatesFromSessionedProperties();
+				
+				var xSpace:Number = Math.max(0, instance.parent.width - instance.width);
+				var ySpace:Number = Math.max(0, instance.parent.height - instance.height);
 				var xSpread:Number = Math.min(100, xSpace / 4);
 				var ySpread:Number = Math.min(100, ySpace / 4);
 				instance.panelX.value = String(int(xSpace/2 - xSpread/2 + xSpread * Math.random()));

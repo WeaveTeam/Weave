@@ -34,6 +34,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.core.LinkableWatcher;
+	import weave.core.WeaveXMLDecoder;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	
@@ -187,6 +188,7 @@ package weave.data.AttributeColumns
 		{
 			if (!_dcr)
 			{
+				WeaveXMLDecoder.includePackages("weave.data.ColumnReferences"); // for old JS API code using request("HierarchyColumnReference")
 				ClassUtils.registerDeprecatedClass("weave.data.ColumnReferences::HierarchyColumnReference", HierarchyColumnReference);
 				_dcr = newDisposableChild(this, LinkableDynamicObject);
 				var hcr:HierarchyColumnReference = _dcr.requestLocalObject(HierarchyColumnReference, true);

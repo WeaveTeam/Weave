@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox 
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns="weave.editors.*"
+    verticalScrollPolicy="off"
+    horizontalScrollPolicy="off"
+    creationPolicy="all"
+    implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
+    >
+    <mx:Label id="editorTitle" fontWeight="bold" text="{lang((_graphmlDataSource ? 'Edit' : 'Add') + ' GraphML Data Source')}"/>
+    <ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
+        <mx:TextInput id="sourceName" focusOut=
+            "nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Nodes');
+             edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');"  width="100%"/>
+    </ui:Indent>
+    <ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
+        <ui:TextInputWithPrompt change="handleURLTextChange()" id="sourceUrl" width="100%" prompt="http://www.example.com/example.graphml"/><mx:Button label="{lang('Open file')}" click="fileAttacher.browseAndAttachFile()"/>
+        <mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
+    </ui:Indent>
+
+    <ui:Indent group="{indentGroup}" label="{lang('Nodes')}">
+        <mx:VBox>
+            <ui:Indent label="{lang('KeyType *')}">
+                <ui:KeyTypesMenu id="nodeKeyTypeSelector"/>
+            </ui:Indent>
+            <ui:Indent label="{lang('Key Property')}">
+                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.nodeKeyPropertyValid)}"/ -->
+            </ui:Indent>
+        </mx:VBox>
+    </ui:Indent>
+
+    <ui:Indent group="{indentGroup}" label="{lang('Edges')}">
+        <mx:VBox>
+            <ui:Indent label="{lang('KeyType *')}">
+                <ui:KeyTypesMenu id="edgeKeyTypeSelector"/>
+            </ui:Indent>
+            <ui:Indent label="{lang('Key Property')}">
+                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.edgeKeyPropertyValid)}"/ -->
+            </ui:Indent>
+        </mx:VBox>
+    </ui:Indent>
+
+
+    <mx:Spacer/>
+    <mx:Label text="{lang('* = required')}"/>
+    <mx:Script>
+        <![CDATA[
+            import mx.controls.Alert;
+            import mx.managers.PopUpManager;
+            import mx.collections.ArrayCollection;
+            
+            import weave.api.WeaveAPI;
+            import weave.api.core.ILinkableObject;
+            import weave.api.data.IDataSource;
+            import weave.api.getCallbackCollection;
+            import weave.api.getSessionState;
+            import weave.api.newDisposableChild;
+            import weave.api.registerDisposableChild;
+            import weave.api.reportError;
+            import weave.services.FileAttacher;
+            import weave.compiler.StandardLib;
+            import weave.data.DataSources.GraphMLDataSource;
+            import weave.editors.managers.EditDataGridPanel;
+            import weave.ui.BusyIndicator;
+            import weave.ui.IndentGroup;
+            import weave.utils.VectorUtils;
+            
+            [Bindable] private var indentGroup:IndentGroup = new IndentGroup();
+            
+            private var busyIndicator:BusyIndicator = new BusyIndicator();
+       
+            [Bindable] public var _graphmlDataSource:GraphMLDataSource = null;
+            
+            override protected function createChildren():void
+            {
+                super.createChildren();
+                addChild(busyIndicator);
+                busyIndicator.visible = false;
+                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GraphMLDataSource");
+
+                nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Nodes');
+                nodeKeyTypeSelector.selectedKeyType = sourceName.text+'Nodes';
+                edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');
+                edgeKeyTypeSelector.selectedKeyType = sourceName.text+'Edges';
+            }
+            
+            
+            public function setTarget(object:ILinkableObject):void
+            {
+                _graphmlDataSource = object as GraphMLDataSource
+                
+                if (!parent)
+                {
+                    callLater(setTarget, arguments);
+                    return;
+                }
+                
+                if (_graphmlDataSource)
+                {
+                    if (WeaveAPI.globalHashMap.getName(_graphmlDataSource))
+                    {
+                        sourceName.text = WeaveAPI.globalHashMap.getName(_graphmlDataSource);
+                        sourceName.editable = false;
+                        sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
+                    }
+                    
+                    sourceUrl.text = _graphmlDataSource.sourceUrl.value;
+
+                    var nodePropertyChoices:Array = [""].concat(_graphmlDataSource.nodeProperties || []); /* Make copies so we don't edit them accidentally. */
+                    var edgePropertyChoices:Array = [""].concat(_graphmlDataSource.edgeProperties || []);
+
+                    nodeKeyPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
+                    nodeKeyPropertyInput.selectedLabel = _graphmlDataSource.nodeKeyPropertyName.value;              
+                    
+                    if (_graphmlDataSource.nodeKeyType.value)
+                    {
+                        nodeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.nodeKeyType.value);
+                        nodeKeyTypeSelector.selectedKeyType = _graphmlDataSource.nodeKeyType.value;
+                    }
+                    else
+                    {
+                        _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
+                    }
+                    
+
+                    edgeKeyPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
+                    edgeKeyPropertyInput.selectedLabel = _graphmlDataSource.edgeKeyPropertyName.value;
+
+                    if (_graphmlDataSource.edgeKeyType.value)
+                    {
+                        edgeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.edgeKeyType.value);
+                        edgeKeyTypeSelector.selectedKeyType = _graphmlDataSource.edgeKeyType.value;
+                    }
+                    else
+                    {
+                        _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
+                    }
+
+                    handleURLTextChange();
+                }
+            }
+            
+            public function hasPendingChanges():Boolean
+            {  
+                return StandardLib.asString(_graphmlDataSource.sourceUrl.value) != StandardLib.asString(sourceUrl.text) ||
+                       
+                       StandardLib.asString(_graphmlDataSource.nodeKeyType.value) != StandardLib.asString(nodeKeyTypeSelector.selectedKeyType) ||
+                       StandardLib.asString(_graphmlDataSource.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.text) ||
+
+                       StandardLib.asString(_graphmlDataSource.edgeKeyType.value) != StandardLib.asString(edgeKeyTypeSelector.selectedKeyType) ||
+                       StandardLib.asString(_graphmlDataSource.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.text);
+            }
+
+            public function applyChanges():void
+            {
+                _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
+                _graphmlDataSource.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
+
+                _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
+                _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
+
+                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+            }
+            
+            public function createDataSource():IDataSource
+            {
+                if (!sourceName.text || !nodeKeyTypeSelector.selectedKeyType || !edgeKeyTypeSelector.selectedKeyType)
+                {
+                    Alert.show(lang("Please fill all required fields"), lang("Error"));
+                    return null;
+                }
+                if (WeaveAPI.globalHashMap.getObject(sourceName.text))
+                {
+                    Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+                    return null;
+                }
+
+                _graphmlDataSource = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, _graphmlDataSource) as GraphMLDataSource;
+
+                if (!_graphmlDataSource)
+                {
+                    Alert.show(lang("Unexpected problem. Unable to add the data source."));
+                    return null;
+                }
+
+                applyChanges();
+
+                return _graphmlDataSource;
+            }
+            
+            private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter("GraphML", "*.graphml")], graphmlFileUrlHandler);
+
+            private function graphmlFileUrlHandler(url:String):void
+            {
+                //weaveTrace("File attached.");
+
+                sourceUrl.text = url;
+                handleURLTextChange();
+            }
+
+            private function handleURLTextChange():void
+            {
+                //weaveTrace("URL text changed.");
+
+                busyIndicator.visible = false;
+                
+                uploadMessage.visible = true;
+
+                if (!_graphmlDataSource)
+                {
+                    _graphmlDataSource = newDisposableChild(this, GraphMLDataSource);
+                }
+
+                _graphmlDataSource.onFinish = function():void {setTarget(_graphmlDataSource);};
+                
+                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+                
+            }
+        ]]>
+    </mx:Script>
+</mx:VBox>

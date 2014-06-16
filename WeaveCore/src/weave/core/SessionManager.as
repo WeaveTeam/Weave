@@ -996,55 +996,55 @@ package weave.core
 					var objectCC:ICallbackCollection = getCallbackCollection(linkableObject);
 					if (objectCC != linkableObject)
 						disposeObject(objectCC);
-					
-					// unregister from parents
-					if (childToParentDictionaryMap[linkableObject] !== undefined)
-					{
-						// remove the parent-to-child mappings
-						for (var parent:Object in childToParentDictionaryMap[linkableObject])
-							if (parentToChildDictionaryMap[parent] !== undefined)
-								delete parentToChildDictionaryMap[parent][linkableObject];
-						// remove child-to-parent mapping
-						delete childToParentDictionaryMap[linkableObject];
-					}
-		
-					// unregister from owner
-					var owner:ILinkableObject = childToOwnerMap[linkableObject] as ILinkableObject;
-					if (owner != null)
-					{
-						if (ownerToChildDictionaryMap[owner] !== undefined)
-							delete ownerToChildDictionaryMap[owner][linkableObject];
-						delete childToOwnerMap[linkableObject];
-					}
-		
-					// if the object is an ILinkableVariable, unlink it from all bindable properties that were previously linked
-					if (linkableObject is ILinkableVariable)
-						for (var bindableParent:* in _watcherMap[linkableObject])
-							for (var bindablePropertyName:String in _watcherMap[linkableObject][bindableParent])
-								unlinkBindableProperty(linkableObject as ILinkableVariable, bindableParent, bindablePropertyName);
-					
-					// unlink this object from all other linkable objects
-					for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
-						unlinkSessionState(linkableObject, otherObject as ILinkableObject);
-					
-					// dispose of all registered children that this object owns
-					var children:Dictionary = ownerToChildDictionaryMap[linkableObject] as Dictionary;
-					if (children != null)
-					{
-						// clear the pointers to the child dictionaries for this object
-						delete ownerToChildDictionaryMap[linkableObject];
-						delete parentToChildDictionaryMap[linkableObject];
-						// dispose of the children this object owned
-						for (var child:Object in children)
-							disposeObject(child);
-					}
-					
-					// FOR DEBUGGING PURPOSES
-					if (Capabilities.isDebugger)
-					{
-						var error:Error = new Error("This is the stack trace from when the object was previously disposed.");
-						objectCC.addImmediateCallback(null, function():void { debugDisposedObject(linkableObject, error); } );
-					}
+				}
+				
+				// unregister from parents
+				if (childToParentDictionaryMap[object] !== undefined)
+				{
+					// remove the parent-to-child mappings
+					for (var parent:Object in childToParentDictionaryMap[object])
+						if (parentToChildDictionaryMap[parent] !== undefined)
+							delete parentToChildDictionaryMap[parent][object];
+					// remove child-to-parent mapping
+					delete childToParentDictionaryMap[object];
+				}
+				
+				// unregister from owner
+				var owner:Object = childToOwnerMap[object];
+				if (owner != null)
+				{
+					if (ownerToChildDictionaryMap[owner] !== undefined)
+						delete ownerToChildDictionaryMap[owner][object];
+					delete childToOwnerMap[object];
+				}
+				
+				// if the object is an ILinkableVariable, unlink it from all bindable properties that were previously linked
+				if (linkableObject is ILinkableVariable)
+					for (var bindableParent:* in _watcherMap[linkableObject])
+						for (var bindablePropertyName:String in _watcherMap[linkableObject][bindableParent])
+							unlinkBindableProperty(linkableObject as ILinkableVariable, bindableParent, bindablePropertyName);
+				
+				// unlink this object from all other linkable objects
+				for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
+					unlinkSessionState(linkableObject, otherObject as ILinkableObject);
+				
+				// dispose of all registered children that this object owns
+				var children:Dictionary = ownerToChildDictionaryMap[object] as Dictionary;
+				if (children != null)
+				{
+					// clear the pointers to the child dictionaries for this object
+					delete ownerToChildDictionaryMap[object];
+					delete parentToChildDictionaryMap[object];
+					// dispose of the children this object owned
+					for (var child:Object in children)
+						disposeObject(child);
+				}
+				
+				// FOR DEBUGGING PURPOSES
+				if (Capabilities.isDebugger && linkableObject)
+				{
+					var error:Error = new Error("This is the stack trace from when the object was previously disposed.");
+					objectCC.addImmediateCallback(null, function():void { debugDisposedObject(linkableObject, error); } );
 				}
 				
 				var displayObject:DisplayObject = object as DisplayObject;

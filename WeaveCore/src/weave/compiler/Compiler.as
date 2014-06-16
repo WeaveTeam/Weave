@@ -2558,8 +2558,12 @@ package weave.compiler
 						{
 							// normal function call
 							result = method.apply(call.evaluatedHost, call.evaluatedParams);
+							// in case this is operator '.', save these values
 							propertyHost = _propertyHost;
 							propertyName = _propertyName;
+							// then reset them so they do not get re-used by mistake
+							_propertyHost = null;
+							_propertyName = null;
 						}
 					}
 					catch (e:*)

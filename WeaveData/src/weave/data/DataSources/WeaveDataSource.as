@@ -118,6 +118,8 @@ package weave.data.DataSources
 				return super.getHierarchyRoot();
 			
 			var id:Object = rootId.getSessionState();
+			if (typeof id == 'string')
+				id = StandardLib.asNumber(id);
 			var isNumber:Boolean = typeof id == 'number' && isFinite(id as Number);
 			var isObject:Boolean = id != null && typeof id == 'object';
 			

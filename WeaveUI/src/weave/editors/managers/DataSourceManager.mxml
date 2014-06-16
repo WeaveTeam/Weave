@@ -46,7 +46,7 @@
 									import weave.api.core.ILinkableObject;
 								]]>
 							</mx:Script>
-							<mx:Label text="{WeaveAPI.globalHashMap.getName(data as ILinkableObject)}"/>
+							<mx:Label text="{(function(data:*):*{return WeaveAPI.globalHashMap.getName(data as ILinkableObject);}(data))}"/>
 							<ui:BusyIndicator targets="{[data]}" diameterRatio=".75"/>
 						</mx:Canvas>
 					</mx:Component>
@@ -165,7 +165,10 @@
 				override protected function constructor():void
 				{
 					super.constructor();
-					
+				}
+				
+				override public function reposition():void
+				{
 					panelWidth.value = "700";
 					panelHeight.value = "500";
 				}

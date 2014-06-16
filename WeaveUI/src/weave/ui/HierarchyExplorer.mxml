@@ -29,7 +29,7 @@
 	<mx:VBox id="folderVBox" width="100%" height="100%"
 			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<ui:WeaveTree id="folderView" width="100%" height="100%"
-					  displayMode="{WeaveTreeDataDescriptor.DISPLAY_MODE_BRANCHES}"
+					  displayMode="{(function():*{return WeaveTreeDataDescriptor.DISPLAY_MODE_BRANCHES;}())}"
 					  showDataTips="true"
 					  allowMultipleSelection="false"
 					  handleCollapseSelection="true"/>
@@ -37,7 +37,7 @@
 	<mx:VBox id="fileVBox" width="100%" height="100%"
 			 verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<ui:WeaveTree id="fileView" width="100%" height="100%"
-					  displayMode="{WeaveTreeDataDescriptor.DISPLAY_MODE_ALL}"
+					  displayMode="{(function():*{return WeaveTreeDataDescriptor.DISPLAY_MODE_ALL;}())}"
 					  showDataTips="true"
 					  disclosureClosedIcon="{null}" disclosureOpenIcon="{null}"
 					  itemOpen="handleFileDoubleClick()"

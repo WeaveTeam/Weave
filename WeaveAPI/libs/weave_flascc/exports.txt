@@ -16,3 +16,5 @@ _Unwind_SjLj_RaiseException
 # symbols specific to this library
 readZip
 writeZip
+parseCSV
+createCSV

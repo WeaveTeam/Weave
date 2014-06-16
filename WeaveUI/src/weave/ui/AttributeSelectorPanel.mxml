@@ -232,26 +232,16 @@
 			
 			///////////////////////////////////////////////////////////////////////
 			
-			public static function get instance():AttributeSelectorPanel
+			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):AttributeSelectorPanel
 			{
-				if (!_instance)
-					_instance = new AttributeSelectorPanel();
-				return _instance;
-			}
-			public static var _instance:AttributeSelectorPanel;
-			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):void
-			{
-				if (!instance.parent)
-					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
+				var instance:AttributeSelectorPanel = DraggablePanel.openStaticInstance(AttributeSelectorPanel);
 				
-				_instance.linkToObject(columnOrHashMap, title);
-				_instance.columnList.showVariableNames = showVariableNames;
+				instance.linkToObject(columnOrHashMap, title);
+				instance.columnList.showVariableNames = showVariableNames;
 				
-				if (!_instance.parent)
-					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
-				_instance.sendWindowToForeground();
-				_instance.reposition();
-				_instance.copyCoordinatesFromSessionedProperties();
+				instance.reposition();
+				instance.copyCoordinatesFromSessionedProperties();
+				return instance;
 			}
 			public static function getVisTool(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IVisToolWithSelectableAttributes
 			{

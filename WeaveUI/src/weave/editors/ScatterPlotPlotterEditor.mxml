@@ -179,7 +179,7 @@
 					width="100%" 
 					snapInterval="0.05"
 					tickInterval=".25"
-					dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
+					dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
 					minimum="0" maximum="1"
 					liveDragging="true"/>
 	</ui:Indent>
