@@ -259,13 +259,6 @@ public class AwsProjectService
 				Object singleRow = rows[i];
 				visualizationCollection[i] = singleRow;
 				System.out.print(visualizationCollection[i]);
-				
-//				Object[] singleRow = rows[i];
-//				String check = singleRow[0].toString();
-//				BufferedImage image= ImageUtils.decodeToImage(check);
-//				//visualizationCollection[i] = singleRow;
-//				//System.out.print(visualizationCollection[i]);
-//				visualizationCollection[i] = image;
 			}
 			
 		}//end of if statement

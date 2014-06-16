@@ -7,9 +7,9 @@ angular.module('aws.outputView', [])
 	$scope.listOfProjectsforOuput = [];
 	$scope.listofVisualizations = [];//
 	$scope.projectListMode = 'unselected';
-	$scope.imageString = "";
-	//$scope.listItems = ['a','b','c','d','e','f','g','j','h','k','l','m'];//stores current image list depending on mode selected
 	$scope.listItems = [];
+	$scope.currentThumbnail = "";
+	
 	//when the user chooses between multiple or single project view
 	$scope.$watch('projectListMode', function(){
 		
@@ -57,4 +57,10 @@ angular.module('aws.outputView', [])
 			}
 		
 	});
+	
+	
+	
+	$scope.showThumbnail = function(item){
+		$scope.currentThumbnail = item;
+	};
 });
