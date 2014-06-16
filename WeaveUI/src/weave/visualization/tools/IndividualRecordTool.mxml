@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tools:SimpleVisTool xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:tools="weave.visualization.tools.*" layout="absolute" width="400" height="300" xmlns:ui="weave.ui.*">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.ui.IVisTool;
+			
+			WeaveAPI.registerImplementation(IVisTool, IndividualRecordTool, lang("Individual Record Tool"));
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
+			override public function getSelectableAttributeNames():Array
+			{
+				//Enter attribute names here once determined.
+				return [];
+			}
+			override public function getSelectableAttributes():Array
+			{
+				//Attribute variables go here once determined.
+				return [];
+			}
+			
+			override public function get defaultPanelTitle():String
+			{
+				return lang("Individual Record Tool");
+			}
+			
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox id="toolOptions" label="{lang('Visualization Controls')}" >
+			
+		</mx:VBox>
+	</ui:ControlPanel>
+</tools:SimpleVisTool>

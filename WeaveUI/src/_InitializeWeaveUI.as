@@ -26,7 +26,6 @@ package
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
-	import weave.data.Transforms.PartitionDataTransform;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
@@ -34,6 +33,7 @@ package
 	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.NumberDataFilter;
 	import weave.data.KeySets.StringDataFilter;
+	import weave.data.Transforms.PartitionDataTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
@@ -91,6 +91,8 @@ package
 	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
+	import weave.visualization.tools.IndividualRecordTool;
+	import weave.visualization.tools.KeyMappingTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
@@ -104,7 +106,6 @@ package
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 	import weave.visualization.tools.TreeTool;
-	import weave.visualization.tools.KeyMappingTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -171,6 +172,7 @@ package
 				HistogramTool,
 				Histogram2DTool,
 				InfoMapPanel,
+				IndividualRecordTool,
 				GraphTool,
 				LineChartTool,
 				DimensionSliderTool,
