@@ -7,19 +7,20 @@ angular.module('aws.outputView', [])
 	$scope.listOfProjectsforOuput = [];
 	$scope.listofVisualizations = [];//
 	$scope.projectListMode = 'unselected';
-	$scope.listItems = ['a','b','c'];//stores current image list depending on mode selected
-	
+	$scope.imageString = "";
+	//$scope.listItems = ['a','b','c','d','e','f','g','j','h','k','l','m'];//stores current image list depending on mode selected
+	$scope.listItems = [];
 	//when the user chooses between multiple or single project view
 	$scope.$watch('projectListMode', function(){
 		
 		if($scope.projectListMode == 'multiple'){
 			//get pictures of all records(projects)
-			console.log("multiple");
-			queryService.getListOfQueryObjectVisualizations(null);
+			queryService.getListOfQueryObjectVisualizations("CDC");
 		}
 		
 		if($scope.projectListMode == 'single'){
 			//enable the drop down box
+			//returns the list of projects to select from 
 			queryService.getListOfProjectsfromDatabase();
 		}
 	});
@@ -28,10 +29,12 @@ angular.module('aws.outputView', [])
 	$scope.$watch('existingProjects', function(){
 		if(!(angular.isUndefined($scope.existingProjects)) && $scope.existingProjects != "")
 			console.log("projectSelected", $scope.existingProjects);
-		//queryService.getListOfQueryObjectVisualizations($scope.existingProjects);//depending on project selected		
+		var params= {};
+		params.projectName = $scope.existingProjects;
+		queryService.getListOfQueryObjectVisualizations(params);//depending on project selected		
 	});
 	
-	//check for when list of proejcts is returned
+	//check for when list of projects is returned
 	$scope.$watch(function(){
 		return queryService.dataObject.listOfProjectsFromDatabase;
 		console.log("projectsReturned", queryService.dataObject.listOfProjectsFromDatabase);
@@ -43,6 +46,15 @@ angular.module('aws.outputView', [])
 	$scope.$watch(function(){
 		return queryService.dataObject.listofVisualizations;
 	}, function(){
-		$scope.listofVisualizations = queryService.dataObject.listofVisualizations;
+		//list of base64 encoded images returned
+		$scope.listItems = queryService.dataObject.listofVisualizations;
+		if(!(angular.isUndefined($scope.listItems)))
+			{
+				for( var i = 0; i < $scope.listItems.length; i++){
+					var imageString = "data:image/png;base64," + $scope.listItems[i];
+					$scope.listofVisualizations[i] = imageString;
+				}
+			}
+		
 	});
 });

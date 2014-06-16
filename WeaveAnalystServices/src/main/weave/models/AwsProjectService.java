@@ -1,4 +1,5 @@
 package weave.models;
+import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -9,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.imageio.plugins.common.ImageUtil;
+
 import weave.config.WeaveConfig;
+import weave.utils.ImageUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -251,9 +255,17 @@ public class AwsProjectService
 			visualizationCollection = new Object[visualizationSQLresult.rows.length];
 			Object[][] rows = visualizationSQLresult.rows;
 			for(int i = 0; i < rows.length; i++){
+				
 				Object singleRow = rows[i];
 				visualizationCollection[i] = singleRow;
 				System.out.print(visualizationCollection[i]);
+				
+//				Object[] singleRow = rows[i];
+//				String check = singleRow[0].toString();
+//				BufferedImage image= ImageUtils.decodeToImage(check);
+//				//visualizationCollection[i] = singleRow;
+//				//System.out.print(visualizationCollection[i]);
+//				visualizationCollection[i] = image;
 			}
 			
 		}//end of if statement

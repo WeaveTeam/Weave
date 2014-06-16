@@ -197,14 +197,21 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      */
     
     this.getListOfQueryObjectVisualizations = function(projectName){
+    	 var deferred = $q.defer();
     	var params = {};
     	params.projectName = projectName;
     	
     	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [params], function(result){
-    		this.dataObject.listofVisualizations = result;
+    		that.dataObject.listofVisualizations = result;
+    		console.log("images", result);
+    		scope.$safeApply(function() {
+    			deferred.resolve(result);
+    		});
     	});
     	
-    	
+
+  
+		return deferred.promise;
     };
     
     /**

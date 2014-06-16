@@ -12,14 +12,16 @@
 							<option></option>
 							<option ng-repeat = "pjt in listOfProjectsforOuput" value = "{{pjt}}">{{pjt}}</option>
 				</select>
-				<div class="dd" id="nestable3">
-					<ol ui-sortable class="dd-list" ng-model="listItems">
-						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems">
-							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
-							{{item}}
-				</li>
+				<br>
+
+			
+		</div>
+		<div width="500px" id="viznestable" style="overflow:scroll; height:400px;">
+				<ol ui-sortable class="dd-list" ng-model="listItems">
+						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listofVisualizations">
+							<img width="250px" height="200px" ng-src = {{item}} style="border:1px solid #000000;"></img>
+						</li>
 				</ol>
 			</div>
-		</div>
 	</div>
 </div>
