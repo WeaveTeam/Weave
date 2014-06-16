@@ -25,7 +25,7 @@
 		title="Error Log"
 		escapeKeyClosesPanel="true"
 		>
-	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>
+	<Console id="console" context="{(function():*{return WeaveAPI.ErrorManager;}())}" padding="0"/>
 	<HelpComponent id="help" visible="false" includeInLayout="false">
 		How to get a pointer to a display object:
 		

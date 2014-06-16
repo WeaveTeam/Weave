@@ -31,6 +31,7 @@ package weave.utils
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
@@ -401,8 +402,14 @@ package weave.utils
 			}
 			return result;
 		}
-		
-		public static function generateTableCSV(attrCols:Array,keys:* = null,dataType:Class = null):String
+		/**
+		 * This function takes an array of attribute columns, a set of keys, and the type of the columns
+		 * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
+		 * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
+		 * @param dataType
+		 * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
+		 */
+		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null,dataType:Class = null):String
 		{
 			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
 			
@@ -433,8 +440,11 @@ package weave.utils
 					return getTitle(column);
 				}
 			);
-			if (!keys)
+			var keys:Array;
+			if (!subset)
 				keys = getAllKeys(attrCols);
+			else
+				keys = getAllKeys(attrCols).filter(function(key:IQualifiedKey, idx:*, arr:Array):Boolean { return subset.containsKey(key);});
 			
 			var keyTypeMap:Object = {};				
 			// create the data for each column in each selected row

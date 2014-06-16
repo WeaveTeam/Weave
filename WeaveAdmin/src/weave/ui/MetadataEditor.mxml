@@ -15,7 +15,7 @@
     <mx:TabNavigator width="{width}" height="100%">
         <ui:MetadataGrid id="publicMetaGrid"
 			label="{lang(PUBLIC_META_GRID_LABEL_FORMAT, publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0, publicMetaGrid.metadataChanged?'*':'')}"
-			propertyIgnoreList="{[ColumnMetadata.ENTITY_TYPE]}"
+			propertyIgnoreList="{(function():*{return [ColumnMetadata.ENTITY_TYPE];}())}"
 			preferredMetadataOrder="{preferredMetadataOrder}"
 			initialize="UIUtils.pad(event, 5);"/>
         <ui:MetadataGrid id="privateMetaGrid"
@@ -371,8 +371,8 @@
 				id = getInternalId(record);
 				
 				var diff:EntityMetadata = new EntityMetadata();
-				diff.publicMetadata = record[PUBLIC];
-				diff.privateMetadata = record[PRIVATE];
+				diff.publicMetadata = record[PUBLIC] || {};
+				diff.privateMetadata = record[PRIVATE] || {};
 				
 				if (id < 0)
 				{

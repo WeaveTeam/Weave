@@ -28,7 +28,6 @@ A text editor to change the Session State on the fly.
 <ui:DraggablePanel
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
-    width="800" height="600"
     title="{lang('Session State Editor')}"
 	backgroundColor="#EFF4BC"
 	escapeKeyClosesPanel="true"
@@ -173,10 +172,12 @@ A text editor to change the Session State on the fly.
 			override protected function constructor():void
 			{
 				super.constructor();
-				panelWidth.value = "75%";
-				panelHeight.value = "75%";
-				panelX.value = "12.5%";
-				panelY.value = "12.5%";
+			}
+			
+			override public function reposition():void
+			{
+				panelWidth.value = "900";
+				panelHeight.value = "500";
 			}
 			
 			override protected function childrenCreated():void
@@ -689,6 +690,7 @@ A text editor to change the Session State on the fly.
 								newSessionState = _currentSessionStateDataProvider[0][VALUE_FIELD];
 								if (newSessionState === ' ')
 									newSessionState = '';
+								newSessionState = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
 								setSessionState(_currentSelectedObject, newSessionState, true);
 								return;
 							}
@@ -708,7 +710,8 @@ A text editor to change the Session State on the fly.
 											newValue = _currentSessionStateDataProvider[j][VALUE_FIELD];
 											if (newValue === ' ')
 												newValue = '';
-											(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
+											newValue = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
+											(newSessionState[i] as DynamicState).sessionState = newValue;
 											break;
 										}
 									}
@@ -725,6 +728,7 @@ A text editor to change the Session State on the fly.
 								newValue = _currentSessionStateDataProvider[i][VALUE_FIELD];
 								if (newValue === ' ')
 									newValue = '';
+								newValue = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
 								newSessionState[_currentSessionStateDataProvider[i][NAME_FIELD]] = newValue;
 							}
 							

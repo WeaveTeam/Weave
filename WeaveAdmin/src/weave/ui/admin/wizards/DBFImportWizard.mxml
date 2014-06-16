@@ -35,7 +35,7 @@
 			<mx:TextInput id="importDBFFileNameInputToStore" enabled="true"/>
 			<mx:Button label="Upload ..." click="browseAndUploadDBFFiles();"/>
 		</mx:HBox>
-		<admin:SQLTableSelectorDialog id="tableSelector" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
+		<admin:SQLTableSelectorDialog id="tableSelector" tableOverwriteCheckVisible="{admin.currentUserIsSuperuser}"/>
 		<ui:Center>
 			<mx:VBox>
 				<mx:Label text="Note: This does not create a Weave configuration entry yet, it only uploads the data to a SQL table."/>
@@ -54,6 +54,7 @@
 			import weave.api.reportError;
 			import weave.services.Admin;
 			
+			[Bindable] private var admin:Admin = Admin.instance;
 			private var dbfFileReference:FileReference = new FileReference();
 			
 			private function browseAndUploadDBFFiles():void

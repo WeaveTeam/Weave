@@ -595,11 +595,11 @@ package weave.visualization.layers
 			_dashedLine.graphics = g; 
 			if (_mouseMode == InteractionController.ZOOM)
 			{
-				_dashedLine.lineStyle(2, 0x00faff, .75);
+				_dashedLine.lineStyle(2, Weave.properties.dashedZoomColor.value, .75);
 			}
 			else
 			{
-				_dashedLine.lineStyle(2, 0x00ff00, .75);
+				_dashedLine.lineStyle(2, Weave.properties.dashedSelectionColor.value, .75);
 			}
 			
 			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords

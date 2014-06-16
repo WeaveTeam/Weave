@@ -19,9 +19,6 @@
 package weave.tests;
 
 
-import java.rmi.RemoteException;
-import weave.beans.RResult;
-import weave.servlets.JRIService;
 public class testForMultipleJRIloading {
 
 	/**
@@ -29,10 +26,9 @@ public class testForMultipleJRIloading {
 	 * @throws Exception 
 	 */
 
-
-	static JRIService ws = null;
-	public static void call(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception{
-		
+	public static void call(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
+	{
+		/*
 		RResult[] scriptResult = null;
 		try {
 			scriptResult =	ws.runScript(keys,inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings,useColumnAsList);
@@ -42,12 +38,13 @@ public class testForMultipleJRIloading {
 		finally{
 			System.out.println(scriptResult);
 		}
+		*/
 	}
 	
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 		System.out.println("hi");		
-		ws = new JRIService();
+		//ws = new JRIService();
 	
 		
 		String[] inputNames = {};

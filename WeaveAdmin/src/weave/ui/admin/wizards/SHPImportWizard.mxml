@@ -44,7 +44,7 @@
 			showTableCombo="false"
 			creationComplete="tableSelector.tableControls.label = lang('SQL Table Prefix');"
 			activeTable="{shpFileNameInput.text}"
-			tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
+			tableOverwriteCheckVisible="{admin.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	
 	<mx:VBox width="100%" height="100%">
@@ -112,6 +112,7 @@
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;
 			
+			[Bindable] private var admin:Admin = Admin.instance;
 			private static const paddingIndent:int = 20;
 			[Bindable] public var indentGroup:IndentGroup = new IndentGroup();
 			

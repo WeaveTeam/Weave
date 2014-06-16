@@ -60,7 +60,7 @@ Editor for custom layers using GridLinePlotters
 		<mx:HSlider id="gridLineAlphaSlider" 
 					snapInterval="0.05"
 					tickInterval="0.5" labels="{['0%','50%','100%']}" 
-					dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
+					dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
 					minimum="0.0" maximum="1.0" 
 					liveDragging="true"
 					creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>

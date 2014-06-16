@@ -575,7 +575,7 @@
 							width="100%" 
 							snapInterval="0.1"
 							tickInterval="0.5" labels="{['0%', '50%', '100%']}"
-							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
+							dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
 							minimum="0.0" maximum="1.0" 
 							liveDragging="true"/>
 				<mx:Label text="{lang('Thickness:')}"/>

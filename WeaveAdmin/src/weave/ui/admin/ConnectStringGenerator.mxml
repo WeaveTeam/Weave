@@ -28,7 +28,7 @@
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
 	<ui:Indent label="{lang('Server Type')}" group="{indentGroup}">
-		<ui:CustomComboBox id="dbmsCombo" valueCommit="generate()" change="generate()" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
+		<ui:CustomComboBox id="dbmsCombo" valueCommit="generate()" change="generate()" dataProvider="{(function():*{return ConnectionInfo.dbmsList;}())}" width="130"/>
 	</ui:Indent>
 	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="false" includeInLayout="false">
 		<mx:TextInput id="sqliteDBFile" change="generate()" width="130" />
@@ -37,11 +37,11 @@
 		</ui:HelpComponent>
 	</ui:Indent>
 	<ui:IndentTextInput label="{lang('Server IP')}" id="ipInput" change="generate()" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="generate()" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
-	<ui:Indent id="sqlDatabaseName" label="{dbmsCombo.text == ConnectionInfo.SQLSERVER ? 'Instance name' : 'Database name'}" group="{indentGroup}">
+	<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="generate()" text="{(function(port:String):*{return ConnectionInfo.getDefaultPort(port);}(dbmsCombo.text))}" inputWidth="130" group="{indentGroup}"/>
+	<ui:Indent id="sqlDatabaseName" label="{dbmsCombo.text == (function():*{return ConnectionInfo.SQLSERVER;}()) ? 'Instance name' : 'Database name'}" group="{indentGroup}">
 		<mx:TextInput id="databaseInput" change="generate()" width="130"/>
-		<mx:Label id="optionalText" text="(Optional)" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}"/>
-		<ui:HelpComponent id="optionalHelp" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}">
+		<mx:Label id="optionalText" text="(Optional)" visible="{dbmsCombo.text != (function():*{return ConnectionInfo.SQLSERVER;}())}"/>
+		<ui:HelpComponent id="optionalHelp" visible="{dbmsCombo.text != (function():*{return ConnectionInfo.SQLSERVER;}())}">
 			This field is optional.
 			You can specify the name of a default database to connect to.
 			For SQL Server, this is an instance name.

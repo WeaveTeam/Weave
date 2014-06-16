@@ -45,16 +45,23 @@ package weave.core
 		 */
 		public static function includePackages(packageOrClass:*, ...others):void
 		{
-			if (packageOrClass != null)
+			others.unshift(packageOrClass);
+			for each (packageOrClass in others)
 			{
 				if (packageOrClass is Class)
-					packageOrClass = getQualifiedClassName(packageOrClass).split("::")[0];
+				{
+					var qname:String = getQualifiedClassName(packageOrClass);
+					if (qname.indexOf('::') < 0)
+						continue; // no package
+					// get package from qname
+					packageOrClass = qname.split('::')[0];
+				}
+				if (!packageOrClass)
+					continue; // no package
 				packageOrClass = String(packageOrClass);
-				if (defaultPackages.indexOf(packageOrClass) < 0)
+				if (packageOrClass && defaultPackages.indexOf(packageOrClass) < 0)
 					defaultPackages.push(packageOrClass);
 			}
-			for each (packageOrClass in others)
-				includePackages(packageOrClass);
 		}
 		/**
 		 * The list of packages to check for classes when calling getClassDefinition().

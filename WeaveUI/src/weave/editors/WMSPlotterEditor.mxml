@@ -7,7 +7,7 @@
 	<ui:Indent group="{this}" label="{lang('Service:')}">
 		<ui:CustomComboBox editable="false" id="wmsLayerService"
 						prompt="{lang('Select a service')}"
-						dataProvider="{WMSProviders.providers}"
+						dataProvider="{(function():*{return WMSProviders.providers;}())}"
 						creationComplete="setWMSLayerServiceOnPlotterChange()"
 						change="handleWMSProviderChange()"/>
 	</ui:Indent>

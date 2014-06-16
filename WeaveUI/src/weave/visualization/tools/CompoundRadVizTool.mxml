@@ -225,7 +225,7 @@
 							alpha="1.0"
 							snapInterval="0.1"
 							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
+							dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</ui:Indent>

@@ -19,9 +19,6 @@
 
 package weave.servlets;
 
-import static weave.config.WeaveConfig.initWeaveConfig;
-
-import java.io.IOException;
 import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
@@ -46,11 +43,10 @@ public class RService extends WeaveServlet
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
-		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
-		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
-		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
-		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
-		rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
+		WeaveContextParams wcp = WeaveContextParams.getInstance(config.getServletContext());
+		docrootPath = wcp.getDocrootPath();
+		uploadPath = wcp.getUploadPath();
+		rServePath = wcp.getRServePath();
 		startRServe();
 	}
 	
@@ -127,7 +123,7 @@ public class RService extends WeaveServlet
 	}
 	
 	// this function should stop the Rserve... needs revision
-	private void stopRServe() throws IOException
+	/*private void stopRServe() throws IOException
 	{
 		try
 		{
@@ -138,7 +134,7 @@ public class RService extends WeaveServlet
 		{
 			e.printStackTrace();
 		}
-	}
+	}*/
 
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{

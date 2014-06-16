@@ -27,6 +27,21 @@ weave.WeavePath.qkeyToIndex = function(key)
     return this._qkeys_to_numeric[key_str];
 };
 
+function toArray(args)
+{
+	var array = [];
+	for (var i = 0; i < args.length; i++)
+		array[i] = args[i];
+	return array;
+}
+
+if (!Function.prototype.bind)
+	Function.prototype.bind = function(/* that, ...args */)
+	{
+		var args = toArray(arguments), that = args.shift();
+		return function(){ return this.apply(that, args.concat(toArray(arguments))); };
+	};
+
 weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.qkeyToIndex.bind(weave.WeavePath);
 
 weave.WeavePath.indexToQKey = function (index)

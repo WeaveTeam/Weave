@@ -361,6 +361,9 @@ package weave
 		 */
 		public const eventListeners:LinkableHashMap = new LinkableHashMap(LinkableEventListener);
 		
+		public const dashedSelectionColor:LinkableNumber = new LinkableNumber(0x00ff00);
+		public const dashedZoomColor:LinkableNumber = new LinkableNumber(0x00faff);
+		
 		/**
 		 * Parameters for the DashedLine selection box.
 		 * @default "5,5"

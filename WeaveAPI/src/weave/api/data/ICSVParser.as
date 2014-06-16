@@ -16,7 +16,7 @@
 package weave.api.data
 {
 	/**
-	 * This is an interface for parsing and generating valid CSV data.
+	 * This is an interface for parsing and generating CSV data.
 	 * 
 	 * @author adufilie
 	 */	
@@ -25,10 +25,9 @@ package weave.api.data
 		/**
 		 * This will parse a CSV String into a two-dimensional Array of String values.
 		 * @param csvData The CSV String to parse.
-		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 		 * @return The destination Array, or a new Array if none was specified.  The result of parsing the CSV string will be stored here.
 		 */
-		function parseCSV(csvData:String, parseTokens:Boolean = true):Array;
+		function parseCSV(csvData:String):Array;
 		
 		/**
 		 * This will generate a CSV String from an Array of rows in a table.
@@ -40,10 +39,9 @@ package weave.api.data
 		/**
 		 * This function parses a String as a CSV-encoded row.
 		 * @param csvData The CSV string to parse.
-		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 		 * @return The result of parsing the CSV string.
 		 */
-		function parseCSVRow(csvData:String, parseTokens:Boolean = true):Array;
+		function parseCSVRow(csvData:String):Array;
 		
 		/**
 		 * This function encodes an Array of Strings into a single CSV-encoded String.
@@ -51,21 +49,6 @@ package weave.api.data
 		 * @return The row encoded as a CSV String.
 		 */
 		function createCSVRow(row:Array):String;
-		
-		/**
-		 * This will parse a CSV-encoded String value.
-		 * If string begins with ", text up until the matching " will be parsed, replacing "" with ".
-		 * @param token A CSV-encoded String value.
-		 * @return The decoded String value.
-		 */
-		function parseCSVToken(token:String):String;
-		
-		/**
-		 * This will surround a string with quotes and use CSV-style escape sequences if necessary.
-		 * @param str A String value.
-		 * @return The String value using CSV encoding.
-		 */
-		function createCSVToken(str:String):String;
 		
 		/**
 		 * This function converts an Array of Arrays to an Array of Objects compatible with DataGrid.

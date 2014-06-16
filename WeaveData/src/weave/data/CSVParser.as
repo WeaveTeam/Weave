@@ -19,29 +19,26 @@
 
 package weave.data
 {
-	import flash.utils.getTimer;
+	import flash.utils.ByteArray;
 	
 	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
 	import weave.api.getCallbackCollection;
 	import weave.utils.AsyncSort;
+	import weave.utils.createCSV;
 
 	/**
-	 * This is an all-static class containing functions to parse and generate valid CSV files.
-	 * Ported from AutoIt Script to Flex. Original author: adufilie
-	 * 
-	 * @author skolman
-	 * @author adufilie
+	 * Parses and generates CSV-encoded data.
 	 */	
 	public class CSVParser implements ICSVParser, ILinkableObject
 	{
 		private static const CR:String = '\r';
 		private static const LF:String = '\n';
 		private static const CRLF:String = '\r\n';
+		private static const tempBuffer:ByteArray = new ByteArray();
 		
 		/**
 		 * @param delimiter
@@ -62,18 +59,15 @@ package weave.data
 		private var asyncMode:Boolean;
 		private var delimiter:String = ',';
 		private var quote:String = '"';
+		private var removeBlankLines:Boolean = true;
+		private var parseTokens:Boolean = true;
 		
 		// async state
 		private var csvData:String;
 		private var csvDataArray:Array;
-		private var parseTokens:Boolean;
-		private var i:int;
-		private var row:int;
-		private var col:int;
-		private var escaped:Boolean;
 		
 		/**
-		 * @return  The resulting two-dimensional Array from the last call to parseCSV().
+		 * @return The resulting two-dimensional Array from the last call to parseCSV().
 		 */
 		public function get parseResult():Array
 		{
@@ -83,25 +77,17 @@ package weave.data
 		/**
 		 * @inheritDoc
 		 */
-		public function parseCSV(csvData:String, parseTokens:Boolean = true):Array
+		public function parseCSV(csvData:String):Array
 		{
-			// initialization
-			this.csvData = csvData;
-			this.csvDataArray = [];
-			this.parseTokens = parseTokens;
-			this.i = 0;
-			this.row = 0;
-			this.col = 0;
-			this.escaped = false;
-			
 			if (asyncMode)
 			{
+				this.csvData = csvData;
+				this.csvDataArray = [];
 				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, parseDone);
 			}
 			else
 			{
-				parseIterate(int.MAX_VALUE);
-				parseDone();
+				csvDataArray = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
 			}
 			
 			return csvDataArray;
@@ -109,104 +95,13 @@ package weave.data
 		
 		private function parseIterate(stopTime:int):Number
 		{
-			// run initialization code on first iteration
-			if (i == 0)
-			{
-				if (!csvData) // null or empty string?
-					return 1; // done
-				
-				// start off first row with an empty string token
-				csvDataArray[row] = [''];
-			}
-			
-			while (getTimer() < stopTime)
-			{
-				if (i >= csvData.length)
-					return 1; // done
-				
-				var currentChar:String = csvData.charAt(i);
-				var twoChar:String = currentChar + csvData.charAt(i+1);
-				if (escaped)
-				{
-					if (twoChar == quote+quote) //escaped quote
-					{
-						csvDataArray[row][col] += (parseTokens?currentChar:twoChar);//append quote(s) to current token
-						i += 1; //skip second quote mark
-					}
-					else if (currentChar == quote)	//end of escaped text
-					{
-						escaped = false;
-						if (!parseTokens)
-						{
-							csvDataArray[row][col] += currentChar;//append quote to current token
-						}
-					}
-					else
-					{
-						csvDataArray[row][col] += currentChar;//append quotes to current token
-					}
-				}
-				else
-				{
-					
-					if (twoChar == delimiter+quote)
-					{
-						escaped = true;
-						col += 1;
-						csvDataArray[row][col] = (parseTokens?'':quote);
-						i += 1; //skip quote mark
-					}
-					else if (currentChar == quote && csvDataArray[row][col] == '')		//start new token
-					{
-						escaped = true;
-						if (!parseTokens) 
-							csvDataArray[row][col] += currentChar;
-					}
-					else if (currentChar == delimiter)		//start new token
-					{
-						col += 1;
-						csvDataArray[row][col] = '';
-					}
-					else if (twoChar == CRLF)	//then start new row
-					{
-						i += 1; //skip line feed
-						row += 1;
-						col = 0;
-						csvDataArray[row] = [''];
-					}
-					else if (currentChar == CR)	//then start new row
-					{
-						row += 1;
-						col = 0;
-						csvDataArray[row] = [''];
-					}
-					else if (currentChar == LF)	//then start new row
-					{ 
-						row += 1;
-						col = 0;
-						csvDataArray[row] = [''];
-					}
-					else //append single character to current token
-						csvDataArray[row][col] += currentChar;	
-				}
-				i++;
-			}
-			
-			return i / csvData.length;
+			weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
+			csvData = null;
+			return 1;
 		}
 		
 		private function parseDone():void
 		{
-			// if there is more than one row and last row is empty,
-			// remove last row assuming it is there because of a newline at the end of the file.
-			for (var iRow:int = csvDataArray.length; iRow--;)
-			{
-				var dataLine:Array = csvDataArray[iRow];
-				
-				if (dataLine.length == 1 && dataLine[0] == '')
-					csvDataArray.splice(iRow, 1);
-			}
-			
 			if (asyncMode)
 				getCallbackCollection(this).triggerCallbacks();
 		}
@@ -214,30 +109,12 @@ package weave.data
 		/**
 		 * @inheritDoc
 		 */
-		public function createCSV(rows:Array):String
-		{
-			var lines:Array = new Array(rows.length);
-			for (var i:int = rows.length; i--;)
-			{
-				var tokens:Array = new Array(rows[i].length);
-				for (var j:int = tokens.length; j--;)
-					tokens[j] = createCSVToken(rows[i][j]);
-				
-				lines[i] = tokens.join(delimiter);
-			}
-			var csvData:String = lines.join(LF);
-			return csvData;
-		}
-		
-		/**
-		 * @inheritDoc
-		 */
-		public function parseCSVRow(csvData:String, parseTokens:Boolean = true):Array
+		public function parseCSVRow(csvData:String):Array
 		{
 			if (csvData == null)
 				return null;
 			
-			var rows:Array = parseCSV(csvData, parseTokens);
+			var rows:Array = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
 			if (rows.length == 0)
 				return rows;
 			if (rows.length == 1)
@@ -249,79 +126,17 @@ package weave.data
 		/**
 		 * @inheritDoc
 		 */
-		public function createCSVRow(row:Array):String
+		public function createCSV(rows:Array):String
 		{
-			return createCSV([row]);
-		}
-
-		/**
-		 * @inheritDoc
-		 */
-		public function parseCSVToken(token:String):String
-		{
-			var parsedToken:String = '';
-			
-			var tokenLength:int = token.length;
-			
-			if (token.charAt(0) == quote)
-			{
-				var escaped:Boolean = true;
-				for (var i:int = 1; i <= tokenLength; i++)
-				{
-					var currentChar:String = token.charAt(i);
-					var twoChar:String = currentChar + token.charAt(i+1);
-					
-					if (twoChar == quote+quote) //append escaped quote
-					{
-						i += 1;
-						parsedToken += quote;
-					}
-					else if (currentChar == quote && escaped)
-					{
-						escaped = false;
-					}
-					else
-					{
-						parsedToken += currentChar;
-					}
-				}
-			}
-			else
-			{
-				parsedToken = token;
-			}
-			return parsedToken;
+			return weave.utils.createCSV(rows, delimiter, quote, tempBuffer);
 		}
 		
 		/**
 		 * @inheritDoc
 		 */
-		public function createCSVToken(str:String):String
+		public function createCSVRow(row:Array):String
 		{
-			if (str == null)
-				str = '';
-			
-			// determine if quotes are necessary
-			if ( str.length > 0
-				&& str.indexOf(quote) < 0
-				&& str.indexOf(delimiter) < 0
-				&& str.indexOf(LF) < 0
-				&& str.indexOf(CR) < 0
-				&& str == StringUtil.trim(str) )
-			{
-				return str;
-			}
-
-			var token:String = quote;
-			for (var i:int = 0; i <= str.length; i++)
-			{
-				var currentChar:String = str.charAt(i);
-				if (currentChar == quote)
-					token += quote + quote;
-				else
-					token += currentChar; 
-			}
-			return token + quote;
+			return weave.utils.createCSV([row], delimiter, quote, tempBuffer);
 		}
 		
 		/**
