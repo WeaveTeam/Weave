@@ -16,17 +16,22 @@
 		</div>
 		
 		<div class = "image-previews">
-				<div  class = "visualization-list" id="viznestable"  style="overflow:scroll; height:400px; width :500px">
+				<div  class = "visualization-list" id="viznestable"  style="overflow:scroll; height:400px; width :300px">
 						<ol ui-sortable class="dd-list" ng-model="listItems">
-								<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listofVisualizations"  ng-click = "showThumbnail(item)">
+								<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in thumbnails"  ng-click = "showThumbnail(item)">
 									<img width="250px" height="200px" ng-src = {{item}} style="border:1px solid #000000;"></img>
 								</li>
 						</ol>
-				</div>
 				
-				<div class= "image-thumbnail" style="border:1px solid #000000; height : 500px; width : 300px">
-				<img width="250px" height="200px" ng-src = {{currentThumbnail}} ></img>
 				</div>
+				<div class= "image-thumbnail" style="border:1px solid #000000; height : 500px; width : 700px">
+				<img width="500px" height="450px" ng-src = {{currentThumbnail}} ></img>
+				</div>
+				<button  ng-click = "openRealWeave()"  data-trigger="hover" data-title="Open highlighted Viz" bs-tooltip>
+									Open highlighted Viz
+				</button>
+				
 		</div>
+		
 	</div>
 </div>

@@ -201,15 +201,29 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	var params = {};
     	params.projectName = projectName;
     	
-    	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [params], function(result){
-    		that.dataObject.listofVisualizations = result;
-    		console.log("images", result);
-    		scope.$safeApply(function() {
-    			deferred.resolve(result);
-    		});
-    	});
-    	
-
+    	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [params], function(AWSQueryObjectCollectionObject){
+    		var returnedQueryObjects = [];
+    		if(!(angular.isUndefined(AWSQueryObjectCollectionObject)))
+    			{
+    			
+	    			var countOfJsons = AWSQueryObjectCollectionObject.finalQueryObjects.length;
+	    			for(var i = 0; i < countOfJsons; i++)
+	    			{
+	    				returnedQueryObjects[i] = JSON.parse(AWSQueryObjectCollectionObject.finalQueryObjects[i]);
+	    			}
+	    			
+	    			that.dataObject.listofRespectiveQueryObjects = returnedQueryObjects;
+	    			that.dataObject.queryNamesViz = AWSQueryObjectCollectionObject.queryObjectNames;
+	    			that.dataObject.projectDescriptionViz = AWSQueryObjectCollectionObject.projectDescription;
+	    			that.dataObject.listOfSessionStates = AWSQueryObjectCollectionObject.weaveSessions;
+	    			that.dataObject.thumbnails = AWSQueryObjectCollectionObject.thumbnails;
+    			}
+        	scope.$safeApply(function() {
+                deferred.resolve(AWSQueryObjectCollectionObject);
+            });
+        	
+        });
+    		
   
 		return deferred.promise;
     };

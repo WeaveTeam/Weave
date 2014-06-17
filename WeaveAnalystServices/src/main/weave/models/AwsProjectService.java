@@ -1,5 +1,6 @@
 package weave.models;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 import com.sun.imageio.plugins.common.ImageUtil;
 
+import weave.beans.WeaveFileInfo;
 import weave.config.WeaveConfig;
 import weave.utils.ImageUtils;
 import weave.utils.SQLResult;
@@ -223,12 +225,17 @@ public class AwsProjectService
 	   * @return an array of base64 strings, each encoding one image 
 	   * @throws Exception
 	   */
-	public static Object[] getListOfQueryObjectVisualizations(Map<String, Object>params) throws RemoteException, SQLException
+	public static AWSQueryObjectCollectionObject getListOfQueryObjectVisualizations(Map<String, Object>params) throws RemoteException, SQLException
 	{
-		Object[] visualizationCollection = null;
+		String[] visualizationCollection = null;
+		String[]thumbnails;
+		AWSQueryObjectCollectionObject  finalQueryObjectCollection = null;
 		SQLResult visualizationSQLresult = null;
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
+		String[] finalQueryNames= null;;
+		String[] finalQueryObjects= null;
+		String finalProjectDescription = null;
 		String projectName = params.get("projectName").toString();
 		
 		if(projectName == null)//to get all images
@@ -244,6 +251,9 @@ public class AwsProjectService
 			whereParams = params;
 		
 			List<String> selectColumns = new ArrayList<String>();
+			selectColumns.add("queryObjectTitle");
+			selectColumns.add("queryObjectContent");
+			selectColumns.add("projectDescription");
 			selectColumns.add("resultVisualizations");
 			Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
 			visualizationSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
@@ -252,20 +262,66 @@ public class AwsProjectService
 		//process visualizationSQLresult
 		if(visualizationSQLresult.rows.length != 0)//run this code only if the project contains rows
 		{
-			visualizationCollection = new Object[visualizationSQLresult.rows.length];
 			Object[][] rows = visualizationSQLresult.rows;
-			for(int i = 0; i < rows.length; i++){
+			visualizationCollection = new String[visualizationSQLresult.rows.length];
+			thumbnails = new String[visualizationSQLresult.rows.length];
+			
+			finalQueryNames = new String[rows.length];
+			finalQueryObjects = new String[rows.length];
+			
+			for(int i = 0; i < rows.length; i++)
+			{
+				Object[] singleRow = rows[i];
+				finalQueryNames[i]= singleRow[0].toString();
+				finalQueryObjects[i] = singleRow[1].toString();
+				finalProjectDescription = singleRow[2].toString();
 				
-				Object singleRow = rows[i];
-				visualizationCollection[i] = singleRow;
-				System.out.print(visualizationCollection[i]);
+				String weaveSessionString = singleRow[3].toString();
+				visualizationCollection[i] = weaveSessionString;
+				try {
+					String oneThumbnail = WeaveFileInfo.getArchiveThumbnailBase64(weaveSessionString);
+					thumbnails[i] = oneThumbnail;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
+			
+			finalQueryObjectCollection = new AWSQueryObjectCollectionObject();
+			finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
+			finalQueryObjectCollection.projectDescription = finalProjectDescription;
+			finalQueryObjectCollection.queryObjectNames = finalQueryNames;
+			finalQueryObjectCollection.weaveSessions = visualizationCollection;
+			finalQueryObjectCollection.thumbnails = thumbnails;
+			
+			//for base64 screenshot taken directly
+//			for(int i = 0; i < rows.length; i++){
+//
+//				Object singleRow = rows[i];
+//				visualizationCollection[i] = singleRow;
+//				System.out.print(visualizationCollection[i]);
+//			}
+
+			
+			//for thumb nail extracted from weave archive file (images not very sharp)
+//			for(int i = 0; i < rows.length; i++){
+//				
+//				Object[] singleRow = rows[i];
+//				String weaveString = singleRow[0].toString();
+//				try {
+//					Object oneThumbnail = WeaveFileInfo.getArchiveThumbnailBase64(weaveString);
+//					visualizationCollection[i] = oneThumbnail;
+//					System.out.print(visualizationCollection[i]);
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//				
+//			}
 			
 		}//end of if statement
 		
 		con.close();
 		
-		return visualizationCollection;
+		return finalQueryObjectCollection;
 	}
 	
 	/**
@@ -279,6 +335,8 @@ public class AwsProjectService
 		String[] finalQueryObjects;
 		String[] queryObjectNames;
 		String projectDescription;
+		String[] weaveSessions;
+		String[] thumbnails;
 	}
 }
 

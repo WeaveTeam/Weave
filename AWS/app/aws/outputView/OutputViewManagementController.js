@@ -5,17 +5,18 @@ angular.module('aws.outputView', [])
 .controller("OutputViewManagementController", function($scope, queryService){
 	
 	$scope.listOfProjectsforOuput = [];
-	$scope.listofVisualizations = [];//
+	$scope.thumbnails = [];//
 	$scope.projectListMode = 'unselected';
 	$scope.listItems = [];
 	$scope.currentThumbnail = "";
+	$scope.listOfSessionStates= [];
 	
 	//when the user chooses between multiple or single project view
 	$scope.$watch('projectListMode', function(){
 		
 		if($scope.projectListMode == 'multiple'){
 			//get pictures of all records(projects)
-			queryService.getListOfQueryObjectVisualizations("CDC");
+			queryService.getListOfQueryObjectVisualizations("SKC");
 		}
 		
 		if($scope.projectListMode == 'single'){
@@ -31,7 +32,7 @@ angular.module('aws.outputView', [])
 			console.log("projectSelected", $scope.existingProjects);
 		var params= {};
 		params.projectName = $scope.existingProjects;
-		queryService.getListOfQueryObjectVisualizations(params);//depending on project selected		
+		//queryService.getListOfQueryObjectVisualizations(params);//depending on project selected		
 	});
 	
 	//check for when list of projects is returned
@@ -44,23 +45,56 @@ angular.module('aws.outputView', [])
 	
 	//check for visualizations are returned
 	$scope.$watch(function(){
-		return queryService.dataObject.listofVisualizations;
+		return queryService.dataObject.thumbnails;
 	}, function(){
 		//list of base64 encoded images returned
-		$scope.listItems = queryService.dataObject.listofVisualizations;
+		$scope.listItems = queryService.dataObject.thumbnails;
 		if(!(angular.isUndefined($scope.listItems)))
 			{
 				for( var i = 0; i < $scope.listItems.length; i++){
 					var imageString = "data:image/png;base64," + $scope.listItems[i];
-					$scope.listofVisualizations[i] = imageString;
+					$scope.thumbnails[i] = imageString;
 				}
 			}
-		
 	});
 	
-	
+	//collecting the session states returned
+	$scope.$watch(function(){
+		return queryService.dataObject.listOfSessionStates;
+	}, function(){
+		$scope.listOfSessionStates = queryService.dataObject.listOfSessionStates;
+	});
 	
 	$scope.showThumbnail = function(item){
 		$scope.currentThumbnail = item;
+		$scope.index = $scope.thumbnails.indexOf(item);
+		console.log("index", $scope.index);
+	};
+	
+	//testing
+	var newWeave ;
+	
+	$scope.checking = function(){
+		if(!newWeave.log) {
+            setTimeout($scope.checking,1000);
+        } else { newWeave.log("KKOOOO"); }
+		
+		
+	};
+	
+	/**********************************************************Button controls*****************************/
+	$scope.openRealWeave = function(){
+		if(!newWeave || newWeave.closed) {
+			newWeave = window.open("aws/visualization/weave/weave.html",
+				"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+		}
+		
+		newWeave.log("KKOO");
+		
+		
+		//var currentSessionString = $scope.listOfSessionStates[$scope.index];
+		//console.log("currentSessionString", currentSessionString);
+		
+		//var c = newWeave.setSessionHistory(currentSessionString);
 	};
 });

@@ -21,6 +21,7 @@
 		    var colorColumn;
 		    var responseResults;
 		    var dataSourceName;
+		    var checkstring;
 		    
 			function weaveReady(weave)
 			{
@@ -31,6 +32,10 @@
 			   if(responseResults) {
 				   console.log("Calling from weave ready", responseResults);
 				   workOnData(responseResults);
+			   }
+			   
+			   if(checkString){
+				   log(checkString);
 			   }
 			}
 			
@@ -119,8 +124,24 @@
 			
 			function log (string)
 			{
+				checkString = string || checkString ;
 				console.log("logging ", string);
 				resultTextArea.value = string;
+			}
+			
+			function setSessionHistory(base64encodedstring)
+			{
+				console.log("base64encodedstring", base64encodedstring);
+				weave.path()
+				.vars({encoded: base64encodedstring})
+				.getValue("\
+			        var d = new 'mx.utils.Base64Decoder'();\
+					var decodedStuff = d.decode(encoded);\
+					var decodeBytes =  d.toByteArray();\
+			      Class('weave.Weave').loadWeaveFileContent(decodeBytes);\
+			    ");
+					
+				
 			}
 			
 		</script>
