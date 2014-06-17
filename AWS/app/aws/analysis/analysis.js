@@ -184,15 +184,29 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 			if (queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
 				$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
 
-				// look for default values in the db
-				
+				// look for defaults
 				for (var i in $scope.inputs){
-					for(var j in queryService.dataObject.columns) {
-						if($scope.inputs[i]['default'] == queryService.dataObject.columns[j].publicMetadata.title) {
-							$scope.selection[i] = angular.toJson({ id : queryService.dataObject.columns[j].id , title: queryService.dataObject.columns[j].publicMetadata.title  });
-							break;
+					if($scope.inputs[i].type == "column") {
+						// look for default values in the data table
+						for(var j in queryService.dataObject.columns) {
+							if($scope.inputs[i]['default'] == queryService.dataObject.columns[j].publicMetadata.title) {
+								$scope.selection[i] = angular.toJson({ id : queryService.dataObject.columns[j].id , title: queryService.dataObject.columns[j].publicMetadata.title  });
+								break;
+							}
+						}
+					} else if ($scope.inputs[i].type == "options") {
+						// $scope.selection[i] = $scope.inputs[i]['default'];
+					} else if ($scope.inputs[i].type == "boolean") {
+						$scope.selection[i] = $scope.inputs[i]['default'];
+					} else if ($scope.inputs[i].type == "dataTable") {
+						for(var j in queryService.dataObject.dataTableList) {
+							if($scope.inputs[i]['default'] == queryService.dataObject.dataTableList[j].title) {
+								$scope.selection[i] = angular.toJson(queryService.dataObject.dataTableList[j]);
+								break;
+							}
 						}
 					}
+						
 				}
 			}
 		}
@@ -203,8 +217,10 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	}, function() {
 		if(queryService.queryObject.Indicator.hasOwnProperty("id")) {
 			for(var i in $scope.inputs) {
-				if($scope.inputs[i].columnType.toLowerCase() == "indicator") {
-					$scope.selection[i] = angular.toJson({ id : queryService.queryObject.Indicator.id, title : queryService.queryObject.Indicator.label });
+				if($scope.inputs[i].columnType) {
+					if($scope.inputs[i].columnType.toLowerCase() == "indicator") {
+						$scope.selection[i] = angular.toJson({ id : queryService.queryObject.Indicator.id, title : queryService.queryObject.Indicator.label });
+					}
 				}
 			}
 		}
