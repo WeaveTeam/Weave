@@ -24,7 +24,6 @@ package weave.visualization.tools
 	import weave.compiler.Compiler;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
-	import weave.utils.EventUtils;
 
 	public class ExternalTool extends LinkableHashMap implements IVisToolWithSelectableAttributes 
 	{
@@ -51,16 +50,19 @@ package weave.visualization.tools
 			
 			toolUrl = requestObject("toolUrl", LinkableString, true);
 			toolUrl.addGroupedCallback(this, toolPropertiesChanged);
-			
-			config = new ExternalConfig();
-			config.id = JavaScript.objectID;
-			config.path = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
-			
-			windowName = Compiler.stringify(config);
 		}
 		
 		private function toolPropertiesChanged():void
 		{
+			if (!config)
+			{
+				config = new ExternalConfig();
+				config.id = JavaScript.objectID;
+				config.path = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
+				
+				windowName = Compiler.stringify(config);
+			}
+			
 			if (toolUrl.value)
 			{
 				launch();
