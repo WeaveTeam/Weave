@@ -1,10 +1,10 @@
 <div class = "output-view-panel" ng-controller="OutputViewManagementController">
-	<div class = "next-level container-fluid" style="padding-left : 50px"> <br/>
+	<div class = "next-level" style="padding-left : 50px"> <br/>
 		<div class="panel-heading">
 			<h1>View Project Visualization List</h1>
 		</div>
 		
-		<div  class="output-project-mode">
+		<div class="output-project-mode">
 				<input type="radio" ng-model = "projectListMode" value="multiple">View all project visualizations <br/>
 				<input type="radio" ng-model = "projectListMode" value="single"> View specific project <br/>
 				<tt>mode = {{projectListMode | json}}</tt><br/>
@@ -15,24 +15,22 @@
 				<br></br>
 		</div>
 		
-		<div  style = "display : table" class = "image-previews row">
-				<div  class = "visualization-list" id="viznestable"  style="overflow:scroll; display : table-cell; height:450px; width :300px; padding-right : 20px">
+		<div class = "image-previews">
+				<div  class = "visualization-list" id="viznestable"  style="overflow:scroll; height:400px; width :300px">
 						<ol ui-sortable class="dd-list" ng-model="listItems">
 								<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in thumbnails"  ng-click = "showThumbnail(item)">
 									<img width="250px" height="200px" ng-src = {{item}} style="border:1px solid #000000;"></img>
 								</li>
 						</ol>
-				</div>
 				
-				<div style="display : table-cell">
-					<div class= "image-thumbnail" style="border:1px solid #000000; height : 450px; width : 500px">
-					<img style = "height : 450px; width : 500px; padding-bottom : 10px" ng-src = {{currentThumbnail}} ></img>
-					</div>
-				
-					<button  ng-click = "openRealWeave()"  data-trigger="hover" data-title="Open highlighted Viz" bs-tooltip>
-										Open highlighted Viz
-					</button>
 				</div>
+				<div class= "image-thumbnail" style="border:1px solid #000000; height : 500px; width : 700px">
+				<img width="500px" height="450px" ng-src = {{currentThumbnail}} ></img>
+				</div>
+				<button  ng-click = "openRealWeave()"  data-trigger="hover" data-title="Open highlighted Viz" bs-tooltip>
+									Open highlighted Viz
+				</button>
+				
 		</div>
 		
 	</div>
