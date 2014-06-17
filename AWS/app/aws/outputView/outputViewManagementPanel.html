@@ -1,37 +1,52 @@
 <div class = "output-view-panel" ng-controller="OutputViewManagementController">
-	<div class = "next-level" style="padding-left : 50px"> <br/>
+	<div class = "next-level" style="padding-left : 50px">
+		<br/>
 		<div class="panel-heading">
 			<h1>View Project Visualization List</h1>
 		</div>
-		
+
 		<div class="output-project-mode">
-				<input type="radio" ng-model = "projectListMode" value="multiple">View all project visualizations <br/>
-				<input type="radio" ng-model = "projectListMode" value="single"> View specific project <br/>
-				<tt>mode = {{projectListMode | json}}</tt><br/>
-				<select ui-select2 ng-model = "existingProjects" style="width:200px;" data-placeholder="Select a project">
-							<option></option>
-							<option ng-repeat = "pjt in listOfProjectsforOuput" value = "{{pjt}}">{{pjt}}</option>
-				</select>
-				<br></br>
+			<input type="radio" ng-model = "projectListMode" value="multiple">
+			View all project visualizations
+			<br/>
+			<input type="radio" ng-model = "projectListMode" value="single">
+			View specific project
+			<br/>
+			<tt>mode = {{projectListMode | json}}</tt>
+			<br/>
+			<select ui-select2 ng-model = "existingProjects" style="width:200px;" data-placeholder="Select a project">
+				<option></option>
+				<option ng-repeat = "pjt in listOfProjectsforOuput" value = "{{pjt}}">{{pjt}}</option>
+			</select>
+			<br>
+			</br>
 		</div>
-		
-		<div class = "image-previews">
-				<div  class = "visualization-list" id="viznestable"  style="overflow:scroll; height:400px; width :300px">
-						<ol ui-sortable class="dd-list" ng-model="listItems">
-								<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in thumbnails"  ng-click = "showThumbnail(item)">
-									<img width="250px" height="200px" ng-src = {{item}} style="border:1px solid #000000;"></img>
-								</li>
-						</ol>
-				
+		<div class="container-fluid">
+			<div class="image-previews row" style="display: table">
+				<div class="visualization-list" id="viznestable"  style="overflow:scroll; height:400px; width: 400px; display: table-cell">
+					<ol ui-sortable class="dd-list" ng-model="listItems">
+						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in thumbnails"  ng-click = "showThumbnail(item)">
+							<img width="250px" height="200px" ng-src = {{item}} style="border:1px solid #000000;"></img>
+						</li>
+					</ol>
+
 				</div>
-				<div class= "image-thumbnail" style="border:1px solid #000000; height : 500px; width : 700px">
-				<img width="500px" height="450px" ng-src = {{currentThumbnail}} ></img>
+				
+				<div>
+					
+				<div class="image-thumbnail" style="border:1px solid #000000; height : 500px; display: table-cell">
+					<img width="500px" height="450px" ng-src = {{currentThumbnail}} ></img>
 				</div>
 				<button  ng-click = "openRealWeave()"  data-trigger="hover" data-title="Open highlighted Viz" bs-tooltip>
-									Open highlighted Viz
+					Open highlighted Viz
 				</button>
 				
+				<button class="btn-primary" style="width: 20px; height: 20px;"></button>
+				<button class="btn-primary" style="width: 20px; height: 20px;"></button>
+				
+				</div>
+			</div>
 		</div>
-		
+
 	</div>
 </div>
