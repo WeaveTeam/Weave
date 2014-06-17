@@ -30,13 +30,13 @@ package weave.api.ui
 		/**
 		 * This function should be defined with override by subclasses.
 		 * @return An Array of names corresponding to the objects returned by getSelectableAttributes().
-		 */		
+		 */
 		function getSelectableAttributeNames():Array;
 		
 		/**
 		 * This function should be defined with override by subclasses.
 		 * @return An Array of DynamicColumn and/or ILinkableHashMap objects that an AttributeSelectorPanel can link to.
-		 */		
+		 */
 		function getSelectableAttributes():Array;
 	}
 }
