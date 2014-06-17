@@ -2252,7 +2252,7 @@ public class SQLUtils
 		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> fieldsAndValues, Map<String,CompareMode> compareModes) throws SQLException
 		{
 			if (fieldsAndValues.size() == 0)
-				throw new InvalidParameterException("No values specified");
+				return this;
 			List<Condition> conditions = new Vector<Condition>();
 			for (Entry<String,V> entry : fieldsAndValues.entrySet())
 			{
