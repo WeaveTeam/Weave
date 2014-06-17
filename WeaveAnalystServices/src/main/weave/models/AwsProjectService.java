@@ -236,6 +236,7 @@ public class AwsProjectService
 		String[] finalQueryNames= null;;
 		String[] finalQueryObjects= null;
 		String finalProjectDescription = null;
+		//Object project = params.get("projectName");
 		String projectName = params.get("projectName").toString();
 		
 		if(projectName == null)//to get all images
@@ -248,7 +249,7 @@ public class AwsProjectService
 		else//to get images only for a particular project
 		{
 			Map<String,Object> whereParams = new HashMap<String, Object>();
-			whereParams = params;
+			whereParams.put("projectName", params.get("projectName").toString());
 		
 			List<String> selectColumns = new ArrayList<String>();
 			selectColumns.add("queryObjectTitle");

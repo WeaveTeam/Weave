@@ -28,11 +28,11 @@ angular.module('aws.outputView', [])
 	
 	//once project is selected for single view, obtain the list of visualizations in that project
 	$scope.$watch('existingProjects', function(){
-		if(!(angular.isUndefined($scope.existingProjects)) && $scope.existingProjects != "")
+		if(!(angular.isUndefined($scope.existingProjects)) && $scope.existingProjects != ""){
+			
 			console.log("projectSelected", $scope.existingProjects);
-		var params= {};
-		params.projectName = $scope.existingProjects;
-		//queryService.getListOfQueryObjectVisualizations(params);//depending on project selected		
+			queryService.getListOfQueryObjectVisualizations($scope.existingProjects);//depending on project selected		
+		}
 	});
 	
 	//check for when list of projects is returned
@@ -89,8 +89,13 @@ angular.module('aws.outputView', [])
 				"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 		}
 		
-		newWeave.log("KKOO");
 		
+		
+			newWeave.addEventListener("load", function() {
+		        console.log("received load event");
+		        newWeave.log("KKOO");
+		        console.log("checking");
+		    }, false);
 		
 		//var currentSessionString = $scope.listOfSessionStates[$scope.index];
 		//console.log("currentSessionString", currentSessionString);
