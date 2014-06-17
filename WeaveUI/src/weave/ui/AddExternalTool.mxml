@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TitleWindow
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns="weave.editors.managers.*"
+    xmlns:ui="weave.ui.*"
+    backgroundColor="#EFF4BC"
+    title="{lang('Add external tool...')}">
+    <mx:VBox>
+    <mx:HBox>
+        <mx:Label text="{lang('Tool Type')}"/>
+        <mx:ComboBox id="toolTypeInput" editable="true" width="100%" toolTip="{lang('Select from the predefined list of external tools, or enter a new name for a class of tool.')}" 
+            change="onToolTypeChange()"/>
+        <mx:Label text="{lang('URL')}"/>
+        <mx:TextInput id="toolUrlInput" editable="{toolTypeInput.selectedIndex == -1}" toolTip="{lang('Set the URL where the tool is located. The external tool must be on the same domain in order for it to communicate with Weave.')}"/>
+    </mx:HBox>
+    <mx:HBox>
+        <mx:Button id="addButton" enabled="{!(toolTypeInput.text == '' || toolUrlInput.text == '')}" label="{lang('Add')}" click="onAdd()"/>
+        <mx:Button id="cancelButton" label="{lang('Cancel')}" click="onCancel()"/>
+    </mx:HBox>
+    </mx:VBox>
+        <mx:Script>
+            <![CDATA[
+                import weave.Weave;
+                
+                import weave.api.WeaveAPI;
+                import weave.api.core.ILinkableObject;
+                import weave.core.LinkableString;
+                import weave.api.getCallbackCollection;
+                import weave.visualization.tools.ExternalTool;
+                import mx.controls.Alert;
+
+                import mx.managers.PopUpManager;
+
+                override protected function createChildren():void
+                {
+                    super.createChildren();
+
+                    getCallbackCollection(Weave.properties.externalTools).addGroupedCallback(this, function():void 
+                    { 
+                        toolTypeInput.dataProvider = Weave.properties.externalTools.getNames();
+                    }, true);
+                }
+
+                private function onToolTypeChange():void
+                {
+                    if (toolTypeInput.selectedIndex == -1) return;
+
+                    var toolTypeEntry:LinkableString = Weave.properties.externalTools.getObject(toolTypeInput.selectedLabel) as LinkableString;
+
+                    if (toolTypeEntry && toolTypeEntry.value)
+                        toolUrlInput.text = toolTypeEntry.value;
+                }
+
+
+
+
+                private function onAdd():void
+                {
+                    var newName:String = WeaveAPI.globalHashMap.generateUniqueName(toolTypeInput.text);
+                    var newTool:ExternalTool = WeaveAPI.globalHashMap.requestObject(newName, ExternalTool, false) as ExternalTool;
+                    var newToolUrl:LinkableString;
+
+                    if (!newTool) Alert.show(lang("Unexpected problem. Unable to create new external tool object."));
+
+                    newToolUrl = newTool.getObject("toolUrl") as LinkableString;
+
+                    if (!newToolUrl) Alert.show(lang("Unexpected problem. Unable to set external tool URL."));
+
+                    newToolUrl.value = toolUrlInput.text;
+
+
+                    if  (toolTypeInput.selectedIndex == -1) /* This means that we've entered a new toolType. Add it to the list. */
+                    {
+                        //
+                    }
+
+                    PopUpManager.removePopUp(this);
+
+                    return;
+                }
+
+                private function onCancel():void
+                {
+                    PopUpManager.removePopUp(this);
+                }
+
+                public static function show():AddExternalTool
+                {
+                    var newDialog:AddExternalTool = new AddExternalTool();
+                    newDialog.title = lang("Add External Tool");
+                    PopUpManager.addPopUp(newDialog, WeaveAPI.topLevelApplication as DisplayObject, true);
+                    PopUpManager.centerPopUp(newDialog);
+                    return newDialog;
+                }
+            ]]>
+        </mx:Script>
+</mx:TitleWindow>

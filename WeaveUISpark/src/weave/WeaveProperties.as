@@ -244,6 +244,7 @@ package weave
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
+		public const showAddExternalTools:LinkableBoolean = new LinkableBoolean(false); // Show Add External Tools dialog in tools menu.
 		
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
 		public function getToolToggle(classDef:Class):LinkableBoolean
@@ -441,6 +442,8 @@ package weave
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
+
+		public const externalTools:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
 		
 		private function handleRServiceURLChange():void
 		{
