@@ -1,20 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tools:SimpleVisTool xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:tools="weave.visualization.tools.*" layout="absolute" width="400" height="300" xmlns:ui="weave.ui.*">
+<tools:SimpleVisTool xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:tools="weave.visualization.tools.*" layout="vertical" width="400" height="300" xmlns:ui="weave.ui.*">
+	<mx:HBox width="100%" height="30%">
+		<mx:Canvas id="profileImage" height="100%" width="30%" backgroundColor="0xF443DC"/>
+		<mx:Box id="personalInformationBox" direction="vertical" height="100%" width="70%" backgroundColor="0xC443DC"/>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.newDisposableChild;
+			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.ImageColumn;
+			import weave.data.KeySets.FilteredKeySet;
+			
+			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
+			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
+			public const secondProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
+			public const thirdProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
+			public const fourthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
+			public const fifthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
+			
+			
+			public const _recordKey:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 			
 			WeaveAPI.registerImplementation(IVisTool, IndividualRecordTool, lang("Individual Record Tool"));
 			
 			override protected function constructor():void
 			{
 				super.constructor();
+				
+				_recordKey.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				
+				_recordKey.setColumnKeySources([profilePicturesColumn,firstProfileColumn,secondProfileColumn,thirdProfileColumn,fourthProfileColumn,fifthProfileColumn]);
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
+				imageCol.dynamicObject = profilePicturesColumn;
+				profileFirstCol.dynamicObject = firstProfileColumn;
+				profileSecondCol.dynamicObject = secondProfileColumn;
+				profileThirdCol.dynamicObject = thirdProfileColumn;
+				profileFourthCol.dynamicObject = fourthProfileColumn;
+				profileFifthCol.dynamicObject = fifthProfileColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -33,11 +64,21 @@
 				return lang("Individual Record Tool");
 			}
 			
+			private function handlePictureChange():void
+			{
+				
+			}
+			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="toolOptions" label="{lang('Visualization Controls')}" >
-			
+			<ui:DynamicColumnComponent id="imageCol" label="{lang('Profile image')}"/>
+			<ui:DynamicColumnComponent id="profileFirstCol" label="{lang('First line')}"/>
+			<ui:DynamicColumnComponent id="profileSecondCol" label="{lang('Second line')}"/>
+			<ui:DynamicColumnComponent id="profileThirdCol" label="{lang('Third line')}"/>
+			<ui:DynamicColumnComponent id="profileFourthCol" label="{lang('Fourth line')}"/>
+			<ui:DynamicColumnComponent id="profileFifthCol" label="{lang('Fifth line')}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </tools:SimpleVisTool>
