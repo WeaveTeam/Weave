@@ -28,51 +28,75 @@ package weave.visualization.tools
 
 	public class ExternalTool extends LinkableHashMap implements IVisToolWithSelectableAttributes 
 	{
+		private static const EXTERNAL_TOOLS:String = 'external_tools';
+		
+		/**
+		 * URL for external tool
+		 */
 		private var toolUrl:LinkableString;
-		private var toolPath:Array;
+		
+		/**
+		 * Parameters passed to external window via windowName
+		 */
+		private var config:ExternalConfig;
+		
+		/**
+		 * Stringified config
+		 */
 		private var windowName:String;
 
 		public function ExternalTool()
 		{
+			super();
+			
 			toolUrl = requestObject("toolUrl", LinkableString, true);
-			toolUrl.addImmediateCallback(this, EventUtils.generateDelayedCallback(this, toolPropertiesChanged, 0));
+			toolUrl.addGroupedCallback(this, toolPropertiesChanged);
+			
+			config = new ExternalConfig();
+			config.id = JavaScript.objectID;
+			config.path = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
+			
+			windowName = Compiler.stringify(config);
 		}
+		
 		private function toolPropertiesChanged():void
 		{
-			if (toolUrl.value != "")
+			if (toolUrl.value)
 			{
 				launch();
 			}
 		}
+		
 		public function launch():void
 		{
-			if (toolPath == null || windowName == null)
-			{
-				toolPath = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
-				toolPath.unshift(JavaScript.objectID);
-				windowName = Compiler.stringify(toolPath);
-			}
 			JavaScript.exec(
 				{
+					EXTERNAL_TOOLS: EXTERNAL_TOOLS,
 					windowName: windowName,
-					toolPath: toolPath,
 					url: toolUrl.value,
 					features: "menubar=no,status=no,toolbar=no"
 				},
-				"if (!this.external_tools) this.external_tools = {};",
-				"this.external_tools[windowName] = window.open(url, windowName, features);"
+				"if (!this[EXTERNAL_TOOLS])",
+				"    this[EXTERNAL_TOOLS] = {};",
+				"this[EXTERNAL_TOOLS][windowName] = window.open(url, windowName, features);"
 			);
 		}
+		
 		override public function dispose():void
 		{
 			super.dispose();
 			JavaScript.exec(
-				{windowName: windowName},
-				"if (this.external_tools && this.external_tools[windowName]) this.external_tools[windowName].close();"
+				{
+					EXTERNAL_TOOLS: EXTERNAL_TOOLS,
+					windowName: windowName
+				},
+				"if (this[EXTERNAL_TOOLS] && this[EXTERNAL_TOOLS][windowName])",
+				"    this[EXTERNAL_TOOLS][windowName].close();"
 			);
 		}
+		
 		/**
-		 * @return An Array of names corresponding to the objects returned by getSelectableAttributes().
+		 * @inheritDoc
 		 */
 		public function getSelectableAttributeNames():Array
 		{
@@ -80,11 +104,17 @@ package weave.visualization.tools
 		}
 
 		/**
-		 * @return An Array of DynamicColumn and/or ILinkableHashMap objects that an AttributeSelectorPanel can link to.
+		 * @inheritDoc
 		 */
 		public function getSelectableAttributes():Array
 		{
 			return getObjects(IAttributeColumn);
 		}
 	}
+}
+
+internal class ExternalConfig
+{
+	public var id:String;
+	public var path:Array;
 }
