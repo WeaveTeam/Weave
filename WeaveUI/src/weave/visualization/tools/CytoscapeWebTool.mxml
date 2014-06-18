@@ -25,6 +25,7 @@
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
@@ -121,13 +122,23 @@
 			private function launchCytoscape():void
 			{
 				var windowFeatures:String = "menubar=no,status=no,toolbar=no";
-				ExternalInterface.call(
-				"function (weaveID, toolname, url, name, features) {\
-				 var weave = weaveID ? document.getElementById(weaveID) : document;\
-				 if (weave.external_tools == undefined) weave.external_tools = {};\
-				 weave.external_tools[toolname] = window.open(url, toolname, features);\
-				}", 
-					ExternalInterface.objectID, _toolName, "CytoscapeWebPopout.html", _toolName, windowFeatures);
+				var success:Boolean = ExternalInterface.call(
+					"function (weaveID, toolname, url, name, features) {\
+					 var weave = weaveID ? document.getElementById(weaveID) : document;\
+					 if (weave.external_tools == undefined)\
+					     weave.external_tools = {};\
+					 var popup = window.open(url, toolname, features);\
+					 weave.external_tools[toolname] = popup;\
+					 return !!popup;\
+					}", 
+					ExternalInterface.objectID,
+					_toolName,
+					"CytoscapeWebPopout.html",
+					_toolName,
+					windowFeatures
+				);
+				if (!success)
+					reportError("Popup blocked by web browser");
 
 				var launchTimer:Timer = new Timer(5000, 1);
 				launchTimer.addEventListener(TimerEvent.TIMER, launchTimeout);

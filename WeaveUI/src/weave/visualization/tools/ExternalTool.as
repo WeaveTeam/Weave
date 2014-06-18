@@ -20,6 +20,7 @@ package weave.visualization.tools
 {
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.reportError;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.compiler.Compiler;
 	import weave.core.LinkableHashMap;
@@ -69,9 +70,9 @@ package weave.visualization.tools
 			}
 		}
 		
-		public function launch():void
+		public function launch():Boolean
 		{
-			JavaScript.exec(
+			var success:Boolean = JavaScript.exec(
 				{
 					EXTERNAL_TOOLS: EXTERNAL_TOOLS,
 					windowName: windowName,
@@ -80,8 +81,15 @@ package weave.visualization.tools
 				},
 				"if (!this[EXTERNAL_TOOLS])",
 				"    this[EXTERNAL_TOOLS] = {};",
-				"this[EXTERNAL_TOOLS][windowName] = window.open(url, windowName, features);"
+				"var popup = window.open(url, windowName, features);",
+				"this[EXTERNAL_TOOLS][windowName] = popup;",
+				"return !!popup"
 			);
+			
+			if (!success)
+				reportError("Popup was blocked by web browser");
+			
+			return success;
 		}
 		
 		override public function dispose():void

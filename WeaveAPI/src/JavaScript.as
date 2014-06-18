@@ -16,6 +16,7 @@
 package
 {
 	import flash.external.ExternalInterface;
+	import flash.system.Capabilities;
 	import flash.utils.getDefinitionByName;
 
 	/**
@@ -171,9 +172,18 @@ package
 			initialized = true;
 			var slashes:String = "\\\\";
 			backslashNeedsEscaping = (ExternalInterface.call('function(slashes){ return slashes; }', slashes) != slashes);
+			
 			try
 			{
 				json = getDefinitionByName("JSON");
+			}
+			catch (e:Error)
+			{
+				trace("Your version of Flash Player (" + Capabilities.version + ") does not have native JSON support.");
+			}
+			
+			if (json)
+			{
 				ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
 				exec(
 					{
@@ -207,10 +217,6 @@ package
 					"    return value;",
 					"};"
 				);
-			}
-			catch (e:Error)
-			{
-				trace(e.getStackTrace() || "Your version of Flash Player does not have native JSON support.");
 			}
 		}
 		

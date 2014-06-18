@@ -246,8 +246,8 @@ package weave.api
 					// call external weaveApiReady(weave)
 					JavaScript.exec(
 						{method: "weaveApiReady"},
-						'if (this.hasOwnProperty(method)) this[method](this);',
-						'if (window.hasOwnProperty(method)) window[method](this);'
+						'if (this[method]) this[method](this);',
+						'if (window[method]) window[method](this);'
 					);
 				}
 			}
@@ -274,8 +274,8 @@ package weave.api
 			{
 				JavaScript.exec(
 					{method: "weaveReady"},
-					'if (this.hasOwnProperty(method)) this[method](this);',
-					'if (window.hasOwnProperty(method)) window[method](this);'
+					'if (this[method]) this[method](this);',
+					'if (window[method]) window[method](this);'
 				);
 			}
 			catch (e:Error)

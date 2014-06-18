@@ -84,12 +84,12 @@ package weave.application
 	import weave.editors.managers.DataSourceManager;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
+	import weave.ui.AddExternalTool;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorController;
-	import weave.ui.AddExternalTool;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.CustomToolTipBorder;
 	import weave.ui.DraggablePanel;
@@ -388,7 +388,7 @@ package weave.application
 			}
 		}
 		
-		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession=";
+		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession";
 		private function getAdminConnectionName():String
 		{
 			if (JavaScript.available)

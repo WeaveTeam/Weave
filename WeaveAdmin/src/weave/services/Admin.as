@@ -20,6 +20,7 @@ package weave.services
 {
 	import flash.utils.Dictionary;
 	
+	import mx.controls.Alert;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	import mx.utils.URLUtil;
@@ -404,7 +405,7 @@ package weave.services
 		//////////////////////////////////////////
 		// LocalConnection Code
 		
-		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession=";
+		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession";
 
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
@@ -413,14 +414,16 @@ package weave.services
 				params['file'] = fileName;
 			if (recover)
 				params['recover'] = true;
-			JavaScript.exec(
+			var success:Boolean = JavaScript.exec(
 				{
 					url: 'weave.html?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
 					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),
 					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
 				},
-				'window.open(url, target, windowParams);'
+				'return !!window.open(url, target, windowParams);'
 			);
+			if (!success)
+				Alert.show("Please enable popups in your web browser.", "Popup blocked")
 		}
 		
 
@@ -439,7 +442,7 @@ package weave.services
 				oldWeaveServices[weaveService] = null; // keep a pointer to this old service object until the popup window is closed.
 			}
 			// create a new service with a new name
-			var connectionName:String = UIDUtil.createUID();
+			var connectionName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
 			weaveService = new LocalAsyncService(service, true, connectionName);
 			return connectionName;
 		}
