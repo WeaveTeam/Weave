@@ -198,7 +198,7 @@ package
 					"    if (value === undefined)",
 					"        return UNDEFINED;",
 					"    if (typeof value != 'number' || isFinite(value))",
-					"        return value;",
+					"        return Array.isArray(value) ? [].concat(value) : value;",
 					"    if (value == Infinity)",
 					"        return INFINITY;",
 					"    if (value == -Infinity)",
