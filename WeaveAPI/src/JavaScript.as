@@ -367,25 +367,22 @@ package
 					for (var key:String in item)
 					{
 						var value:* = item[key];
-						if (json)
+						if (key == 'this')
 						{
-							if (key == 'this')
-							{
-								// put a variable declaration at the beginning of the code
-								var thisVar:String = String(value);
-								if (thisVar)
-									code.unshift(JS_var_this(thisVar));
-							}
-							else if (key == 'catch')
-							{
-								// save error handler
-								marshallExceptions = value;
-							}
-							else
-							{
-								// put a variable declaration at the beginning of the code
-								code.unshift("var " + key + " = " + json.stringify(value) + ";");
-							}
+							// put a variable declaration at the beginning of the code
+							var thisVar:String = String(value);
+							if (thisVar)
+								code.unshift(JS_var_this(thisVar));
+						}
+						else if (key == 'catch')
+						{
+							// save error handler
+							marshallExceptions = value;
+						}
+						else if (json)
+						{
+							// put a variable declaration at the beginning of the code
+							code.unshift("var " + key + " = " + json.stringify(value) + ";");
 						}
 						else
 						{
