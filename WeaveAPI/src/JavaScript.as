@@ -45,6 +45,12 @@ package
 	 */
 	public class JavaScript
 	{
+		//TODO: make this private
+		/**
+		 * A window proxy object for AIR applications.
+		 */
+		public static var window:Object;
+		
 		/**
 		 * This is set to true when initialize() has been called.
 		 */
@@ -99,7 +105,10 @@ package
 		 * Alias for ExternalInterface.available
 		 * @see flash.external.ExternalInterface#available
 		 */
-		public static const available:Boolean = ExternalInterface.available;
+		public static function get available():Boolean
+		{
+			return ExternalInterface.available;// || !!window;
+		}
 		
 		/**
 		 * The "id" property of this Flash object.
@@ -170,6 +179,11 @@ package
 		{
 			// one-time initialization attempt
 			initialized = true;
+			
+			//TODO: call initialize() before getExternalObjectID()
+			//TODO: put AIR workaround code here
+			//TODO: we still need to use JSON.stringify/parse because we don't want to send the original objects to JS code and cause different behavior
+			
 			var slashes:String = "\\\\";
 			backslashNeedsEscaping = (ExternalInterface.call('function(slashes){ return slashes; }', slashes) != slashes);
 			

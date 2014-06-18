@@ -77,11 +77,22 @@
 				);
 			}
 			
+			public var htmlLoader:HTMLLoader;
 			private function handleEnterFrame():void
 			{
 				var app:Object = FlexGlobals.topLevelApplication;
 				if (!visApp && app && app.stage && params)
 				{
+					if (HTMLLoader.isSupported)
+					{
+						htmlLoader = new HTMLLoader();
+						htmlLoader.navigateInSystemBrowser = true;
+						JavaScript.window = htmlLoader.window;
+						var w:* = JavaScript.window.document.createElement('div');
+						w.id = 'weave';
+						JavaScript.window.document.firstChild.appendChild(w);
+					}
+
 					addChild(visApp = new VisApp());
 					visApp.setFlashVars(params);
 				}
