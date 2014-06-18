@@ -18,17 +18,23 @@
 */
 package weave.visualization.tools
 {
+	import mx.utils.UIDUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.reportError;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
-	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 
 	public class ExternalTool extends LinkableHashMap implements IVisToolWithSelectableAttributes 
 	{
-		private static const EXTERNAL_TOOLS:String = 'external_tools';
+		/**
+		 * The name of the global JavaScript variable which is a mapping from a popup's
+		 * window.name to an object containing "path" and "window" properties.
+		 */
+		public static const WEAVE_EXTERNAL_TOOLS:String = 'WeaveExternalTools';
 		
 		/**
 		 * URL for external tool
@@ -36,14 +42,9 @@ package weave.visualization.tools
 		private var toolUrl:LinkableString;
 		
 		/**
-		 * Parameters passed to external window via windowName
+		 * The popup's window.name
 		 */
-		private var config:ExternalConfig;
-		
-		/**
-		 * Stringified config
-		 */
-		private var windowName:String;
+		public const windowName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
 
 		public function ExternalTool()
 		{
@@ -55,15 +56,6 @@ package weave.visualization.tools
 		
 		private function toolPropertiesChanged():void
 		{
-			if (!config)
-			{
-				config = new ExternalConfig();
-				config.id = JavaScript.objectID;
-				config.path = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
-				
-				windowName = Compiler.stringify(config);
-			}
-			
 			if (toolUrl.value)
 			{
 				launch();
@@ -74,20 +66,21 @@ package weave.visualization.tools
 		{
 			var success:Boolean = JavaScript.exec(
 				{
-					EXTERNAL_TOOLS: EXTERNAL_TOOLS,
-					windowName: windowName,
-					url: toolUrl.value,
-					features: "menubar=no,status=no,toolbar=no"
+					WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
+					"url": toolUrl.value,
+					"windowName": windowName,
+					"features": "menubar=no,status=no,toolbar=no",
+					"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
 				},
-				"if (!this[EXTERNAL_TOOLS])",
-				"    this[EXTERNAL_TOOLS] = {};",
-				"var popup = window.open(url, windowName, features);",
-				"this[EXTERNAL_TOOLS][windowName] = popup;",
-				"return !!popup"
+				'if (!window[WEAVE_EXTERNAL_TOOLS])',
+				'    window[WEAVE_EXTERNAL_TOOLS] = {};',
+				'var popup = window.open(url, windowName, features);',
+				'window[WEAVE_EXTERNAL_TOOLS][windowName] = {"path": this.path(path), "window": popup};',
+				'return !!popup;'
 			);
 			
 			if (!success)
-				reportError("Popup was blocked by web browser");
+				reportError("External tool popup was blocked by the web browser.");
 			
 			return success;
 		}
@@ -97,13 +90,15 @@ package weave.visualization.tools
 			super.dispose();
 			JavaScript.exec(
 				{
-					EXTERNAL_TOOLS: EXTERNAL_TOOLS,
-					windowName: windowName
+					WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
+					"windowName": windowName,
+					"catch": ignoreError
 				},
-				"if (this[EXTERNAL_TOOLS] && this[EXTERNAL_TOOLS][windowName])",
-				"    this[EXTERNAL_TOOLS][windowName].close();"
+				'window[WEAVE_EXTERNAL_TOOLS][windowName].window.close();'
 			);
 		}
+		
+		private function ignoreError(error:*):void { }
 		
 		/**
 		 * @inheritDoc
@@ -121,10 +116,4 @@ package weave.visualization.tools
 			return getObjects(IAttributeColumn);
 		}
 	}
-}
-
-internal class ExternalConfig
-{
-	public var id:String;
-	public var path:Array;
 }
