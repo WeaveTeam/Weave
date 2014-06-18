@@ -18,12 +18,16 @@
 */
 package weave.visualization.tools
 {
+	import com.hurlant.crypto.hash.MD5;
+	
+	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -44,8 +48,23 @@ package weave.visualization.tools
 		/**
 		 * The popup's window.name
 		 */
-		public const windowName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
-
+		public function get windowName():String
+		{
+			var object:Object = {
+				id: JavaScript.objectID,
+				path: path
+			};
+			
+			var encoder:Base64Encoder = new Base64Encoder();
+			encoder.encode(Compiler.stringify(object));
+			return StandardLib.replace(encoder.drain(), '+', '_p', '/', '_s', '=', '_e');
+		}
+		
+		public function get path():Array
+		{
+			return WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
+		}
+		
 		public function ExternalTool()
 		{
 			super();
@@ -70,7 +89,7 @@ package weave.visualization.tools
 					"url": toolUrl.value,
 					"windowName": windowName,
 					"features": "menubar=no,status=no,toolbar=no",
-					"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
+					"path": path
 				},
 				'if (!window[WEAVE_EXTERNAL_TOOLS])',
 				'    window[WEAVE_EXTERNAL_TOOLS] = {};',
