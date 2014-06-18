@@ -2,15 +2,24 @@
 <tools:SimpleVisTool xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:tools="weave.visualization.tools.*" layout="vertical" width="400" height="300" xmlns:ui="weave.ui.*">
 	<mx:HBox width="100%" height="30%">
 		<mx:Canvas id="profileImage" height="100%" width="30%" backgroundColor="0xF443DC"/>
-		<mx:Box id="personalInformationBox" direction="vertical" height="100%" width="70%" backgroundColor="0xC443DC"/>
+		<mx:Box id="personalInformationBox" direction="vertical" height="100%" width="70%">
+			<mx:Label id="infoLine1" text="test1" />
+			<mx:Label id="infoLine2" text="test2" />
+			<mx:Label id="infoLine3" text="test3" />
+			<mx:Label id="infoLine4" text="test4" />
+			<mx:Label id="infoLine5" text="test5" />
+		</mx:Box>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.linkBindableProperty;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.KeySets.FilteredKeySet;
@@ -22,6 +31,17 @@
 			public const fourthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
 			public const fifthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
 			
+			public const line1LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine1);
+			public const line2LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine2);
+			public const line3LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine3);
+			public const line4LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine4);
+			public const line5LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine5);
+			
+			private var previousText1:String;
+			private var previousText2:String;
+			private var previousText3:String;
+			private var previousText4:String;
+			private var previousText5:String;
 			
 			public const _recordKey:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 			
@@ -40,12 +60,24 @@
 			{
 				super.childrenCreated();
 				
+				previousText1 = line1LeadingText.value;
+				previousText2 = line1LeadingText.value;
+				previousText3 = line1LeadingText.value;
+				previousText4 = line1LeadingText.value;
+				previousText5 = line1LeadingText.value;
+				
 				imageCol.dynamicObject = profilePicturesColumn;
 				profileFirstCol.dynamicObject = firstProfileColumn;
 				profileSecondCol.dynamicObject = secondProfileColumn;
 				profileThirdCol.dynamicObject = thirdProfileColumn;
 				profileFourthCol.dynamicObject = fourthProfileColumn;
 				profileFifthCol.dynamicObject = fifthProfileColumn;
+				
+				linkBindableProperty(line1LeadingText, this.infoLine1FrontText1, "text");
+				linkBindableProperty(line2LeadingText, this.infoLine1FrontText2, "text");
+				linkBindableProperty(line3LeadingText, this.infoLine1FrontText3, "text");
+				linkBindableProperty(line4LeadingText, this.infoLine1FrontText4, "text");
+				linkBindableProperty(line5LeadingText, this.infoLine1FrontText5, "text");
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -68,6 +100,31 @@
 			{
 				
 			}
+			private function updateLine1():void
+			{
+				infoLine1.text = line1LeadingText.value + " " + infoLine1.text.replace(previousText1 + " ","");
+				previousText1 = line1LeadingText.value;
+			}
+			private function updateLine2():void
+			{
+				infoLine2.text = line2LeadingText.value + " " + infoLine2.text.replace(previousText2 + " ","");
+				previousText2 = line2LeadingText.value;
+			}
+			private function updateLine3():void
+			{
+				infoLine3.text = line3LeadingText.value + " " + infoLine3.text.replace(previousText3 + " ","");
+				previousText3 = line3LeadingText.value;
+			}
+			private function updateLine4():void
+			{
+				infoLine4.text = line4LeadingText.value + " " + infoLine4.text.replace(previousText4 + " ","");
+				previousText4 = line4LeadingText.value;
+			}
+			private function updateLine5():void
+			{
+				infoLine5.text = line5LeadingText.value + " " + infoLine5.text.replace(previousText5 + " ","");
+				previousText5 = line5LeadingText.value;
+			}
 			
 		]]>
 	</mx:Script>
@@ -79,6 +136,26 @@
 			<ui:DynamicColumnComponent id="profileThirdCol" label="{lang('Third line')}"/>
 			<ui:DynamicColumnComponent id="profileFourthCol" label="{lang('Fourth line')}"/>
 			<ui:DynamicColumnComponent id="profileFifthCol" label="{lang('Fifth line')}"/>
+			<mx:HBox>
+				<mx:Label text="Line 1 leading text:" />
+				<mx:TextInput id="infoLine1FrontText1" />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 2 leading text:" />
+				<mx:TextInput id="infoLine1FrontText2" />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 3 leading text:" />
+				<mx:TextInput id="infoLine1FrontText3" />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 4 leading text:" />
+				<mx:TextInput id="infoLine1FrontText4" />
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 5 leading text:" />
+				<mx:TextInput id="infoLine1FrontText5" />
+			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </tools:SimpleVisTool>
