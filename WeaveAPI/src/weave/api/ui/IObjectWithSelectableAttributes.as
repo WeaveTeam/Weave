@@ -15,17 +15,12 @@
 
 package weave.api.ui
 {
-	import mx.core.IUIComponent;
-	
-	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableObject;
 
 	/**
-	 * A vis tool is a panel that a user would want to create an instance of at runtime.
-	 * 
-	 * @author adufilie
+	 * An object with a list of named DynamicColumn and/or ILinkableHashMap objects that an AttributeSelectorPanel can link to.
 	 */
-	public interface IVisToolWithSelectableAttributes extends IVisTool
+	public interface IObjectWithSelectableAttributes extends ILinkableObject
 	{
 		/**
 		 * This function should be defined with override by subclasses.

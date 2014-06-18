@@ -3,33 +3,28 @@
                    xmlns:mx="http://www.adobe.com/2006/mxml"
                    xmlns:ui="weave.ui.*" 
                    xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-                   layout="absolute" implements="weave.api.ui.IVisToolWithSelectableAttributes"
+                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
                    title="{lang('Tree')}" xmlns:editors="weave.editors.*">
 <ui:CustomTree width="100%" height="100%" id="treeView" allowMultipleSelection="true" dataDescriptor="{new ParentColumnTreeDescriptor()}"/>
 <mx:Script>
 <![CDATA[
 
-import weave.Weave;
-import weave.api.WeaveAPI;
-import weave.api.data.IKeySet;
-import weave.api.ui.IVisTool;
-import weave.api.newLinkableChild;
-import weave.api.linkBindableProperty;
-import weave.data.AttributeColumns.DynamicColumn;
-import weave.data.KeySets.KeySet;
-import weave.data.KeySets.KeySetUnion;
-import weave.data.KeySets.KeyFilter;
-import weave.core.LinkableBoolean;
-import weave.core.LinkableHashMap;
-import weave.utils.ColumnUtils;
-import weave.utils.DebugUtils;
-import weave.api.data.IQualifiedKey;
-import mx.controls.treeClasses.ITreeDataDescriptor;
-
+import mx.controls.listClasses.IListItemRenderer;
 import mx.events.ListEvent;
 import mx.events.TreeEvent;
-import mx.events.CollectionEvent;
-import mx.controls.listClasses.IListItemRenderer;
+
+import weave.Weave;
+import weave.api.WeaveAPI;
+import weave.api.data.IQualifiedKey;
+import weave.api.linkBindableProperty;
+import weave.api.newLinkableChild;
+import weave.api.ui.IVisTool;
+import weave.core.LinkableBoolean;
+import weave.core.LinkableHashMap;
+import weave.data.AttributeColumns.DynamicColumn;
+import weave.data.KeySets.KeyFilter;
+import weave.data.KeySets.KeySet;
+import weave.data.KeySets.KeySetUnion;
 
 public const parentColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleParentChange, true);
 public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleLabelColumnChange, true);

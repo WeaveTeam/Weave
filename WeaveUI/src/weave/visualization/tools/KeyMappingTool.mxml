@@ -2,16 +2,13 @@
                    xmlns:mx="http://www.adobe.com/2006/mxml"
                    xmlns:ui="weave.ui.*" 
                    xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-                   layout="absolute" implements="weave.api.ui.IVisToolWithSelectableAttributes"
+                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
                    title="{lang('Key Mapping Tool')}" xmlns:editors="weave.editors.*">
                    <mx:Script>
 <![CDATA[
 
-import flash.utils.Dictionary;
-
 import weave.Weave;
 import weave.api.WeaveAPI;
-import weave.api.data.IKeySet;
 import weave.api.data.IQualifiedKey;
 import weave.api.linkBindableProperty;
 import weave.api.newLinkableChild;
@@ -20,9 +17,7 @@ import weave.core.LinkableBoolean;
 import weave.core.LinkableString;
 import weave.data.AttributeColumns.DynamicColumn;
 import weave.data.KeySets.KeySet;
-import weave.data.KeySets.KeySetUnion;
 import weave.utils.ColumnUtils;
-import weave.utils.DebugUtils;
 
 
 public const sourceKeyType:LinkableString = newLinkableChild(this, LinkableString, handleColumnsChange, true);

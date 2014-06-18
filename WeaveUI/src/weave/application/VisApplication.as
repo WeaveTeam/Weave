@@ -73,7 +73,7 @@ package weave.application
 	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
-	import weave.api.ui.IVisToolWithSelectableAttributes;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.data.DataSources.WeaveDataSource;
@@ -1470,7 +1470,7 @@ package weave.application
 					_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
 						lang("Export CSV"), 
 						this,
-						function(event:ContextMenuEvent):void { exportCSV(_panelToExport as IVisToolWithSelectableAttributes); },
+						function(event:ContextMenuEvent):void { exportCSV(_panelToExport as IObjectWithSelectableAttributes); },
 						"4 exportMenuItems"
 					);
 				}
@@ -1489,7 +1489,7 @@ package weave.application
 		private var _panelPrintContextMenuItem:ContextMenuItem = null;
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
 		private var exportCSVfileRef:FileReference = new FileReference();	// CSV download file references
-		public function exportCSV(tool:IVisToolWithSelectableAttributes = null):void
+		public function exportCSV(tool:IObjectWithSelectableAttributes = null):void
 		{
 			try
 			{
@@ -1509,7 +1509,7 @@ package weave.application
 					VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(IAttributeColumn), attrs);
 					// get probe columns
 					VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(ILinkableHashMap), attrs);
-					for each (tool in WeaveAPI.globalHashMap.getObjects(IVisToolWithSelectableAttributes))
+					for each (tool in WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes))
 						VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
 				}
 				

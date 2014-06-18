@@ -64,7 +64,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
-			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.core.LinkableWatcher;
 			import weave.ui.CustomDataGrid.CustomDataGrid;
 			import weave.utils.ColumnUtils;
@@ -148,7 +148,7 @@
 					callLater(updateLabel);
 					return;
 				}
-				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
+				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
 				if (!tool)
 					return;
 				var names:Array = tool.getSelectableAttributeNames();

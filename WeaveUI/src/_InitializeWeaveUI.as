@@ -19,6 +19,8 @@
 
 package
 {
+	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.core.ClassUtils;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -26,7 +28,6 @@ package
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
-	import weave.data.Transforms.PartitionDataTransform;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
@@ -34,6 +35,7 @@ package
 	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.NumberDataFilter;
 	import weave.data.KeySets.StringDataFilter;
+	import weave.data.Transforms.PartitionDataTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
@@ -47,6 +49,7 @@ package
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.PartitionDataTransformEditor;
+	import weave.editors.RectanglePlotterEditor;
 	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
@@ -72,6 +75,7 @@ package
 	import weave.visualization.plotters.GeometryRelationPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.RectanglePlotter;
 	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
@@ -90,6 +94,7 @@ package
 	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
+	import weave.visualization.tools.KeyMappingTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
@@ -103,7 +108,6 @@ package
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 	import weave.visualization.tools.TreeTool;
-	import weave.visualization.tools.KeyMappingTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -145,6 +149,7 @@ package
 			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
 			EditorManager.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
 			EditorManager.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
+			EditorManager.registerEditor(RectanglePlotter, RectanglePlotterEditor);
 			
 			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
@@ -187,6 +192,8 @@ package
 				TreeTool,
 				KeyMappingTool
 			]);
+			
+			ClassUtils.registerDeprecatedClass('weave.api.ui::IVisToolWithSelectableAttributes', IObjectWithSelectableAttributes);
 			
 			/**
 			 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

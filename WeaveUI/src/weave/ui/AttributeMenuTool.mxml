@@ -20,7 +20,7 @@
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				implements="weave.api.ui.IVisToolWithSelectableAttributes"
+				implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
@@ -124,8 +124,8 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.api.ui.IVisTool;
-			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
@@ -283,9 +283,9 @@
 			}
 			
 			// this returns the tool object corresponding to the selected item in the toolCombo
-			public function getTargetTool():IVisToolWithSelectableAttributes
+			public function getTargetTool():IObjectWithSelectableAttributes
 			{
-				return toolWatcher.target as IVisToolWithSelectableAttributes;
+				return toolWatcher.target as IObjectWithSelectableAttributes;
 			}
 			
 			public function get targetAttributeName():String
@@ -298,7 +298,7 @@
 			{
 				// update the list of tools
 				_thisName = WeaveAPI.globalHashMap.getName(this);
-				targetToolCombo.dataProvider = WeaveAPI.globalHashMap.getNames(IVisToolWithSelectableAttributes).filter(notThisName);
+				targetToolCombo.dataProvider = WeaveAPI.globalHashMap.getNames(IObjectWithSelectableAttributes).filter(notThisName);
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = targetTool.value;
 				validateToolWatcherTarget();
@@ -311,7 +311,7 @@
 			
 			private function validateToolWatcherTarget():void
 			{
-				toolWatcher.target = WeaveAPI.globalHashMap.getObject(targetTool.value) as IVisToolWithSelectableAttributes;
+				toolWatcher.target = WeaveAPI.globalHashMap.getObject(targetTool.value) as IObjectWithSelectableAttributes;
 			}
 			
 			// called when the tool triggers callbacks
@@ -325,7 +325,7 @@
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = targetTool.value;
 				
-				var tool:IVisToolWithSelectableAttributes = getTargetTool();
+				var tool:IObjectWithSelectableAttributes = getTargetTool();
 				// update the list of available attributes
 				if (tool)
 				{
@@ -404,7 +404,7 @@
 			// called when the user clicks on the combo in the main AttributeMenuTool window
 			private function handleAttrSelected(selectedIndex:int):void
 			{
-				var tool:IVisToolWithSelectableAttributes = getTargetTool();
+				var tool:IObjectWithSelectableAttributes = getTargetTool();
 				// do nothing if there is no tool or the component doesn't have focus
 				if (!tool)
 					return;

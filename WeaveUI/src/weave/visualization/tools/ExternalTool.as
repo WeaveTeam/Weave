@@ -23,12 +23,12 @@ package weave.visualization.tools
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.reportError;
-	import weave.api.ui.IVisToolWithSelectableAttributes;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 
-	public class ExternalTool extends LinkableHashMap implements IVisToolWithSelectableAttributes 
+	public class ExternalTool extends LinkableHashMap implements IObjectWithSelectableAttributes
 	{
 		/**
 		 * The name of the global JavaScript variable which is a mapping from a popup's

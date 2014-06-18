@@ -74,7 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.ClassUtils;
 			import weave.core.LinkableBoolean;
@@ -1312,7 +1312,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				conditions = [
 					Weave.properties.enableToolControls.value && _controlPanel,
 					enableSubMenu.value,
-					Weave.properties.enableToolControls.value && this is IVisToolWithSelectableAttributes && (this as IVisToolWithSelectableAttributes).getSelectableAttributes().length
+					Weave.properties.enableToolControls.value && this is IObjectWithSelectableAttributes && (this as IObjectWithSelectableAttributes).getSelectableAttributes().length
 				];
 				for (i = 0; i < buttons.length; i++)
 				{
@@ -1419,7 +1419,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function openAttributeSelector(attrIndex:int = 0):AttributeSelectorPanel
 			{
-				var tool:IVisToolWithSelectableAttributes = this as IVisToolWithSelectableAttributes;
+				var tool:IObjectWithSelectableAttributes = this as IObjectWithSelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();

@@ -29,7 +29,7 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute" implements="weave.api.ui.IVisToolWithSelectableAttributes"
+				   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
@@ -103,9 +103,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.desktop.Clipboard;
-			import flash.desktop.ClipboardFormats;
-			
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.UIComponent;

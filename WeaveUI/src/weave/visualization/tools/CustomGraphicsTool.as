@@ -35,8 +35,8 @@ package weave.visualization.tools
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IVisTool;
-	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.data.KeySets.FilteredKeySet;
@@ -48,7 +48,7 @@ package weave.visualization.tools
 	import weave.utils.PlotterUtils;
 	import weave.utils.TextGraphics;
 	
-	public class CustomGraphicsTool extends DraggablePanel implements IVisToolWithSelectableAttributes
+	public class CustomGraphicsTool extends DraggablePanel implements IVisTool, IObjectWithSelectableAttributes
 	{
 		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
 		
