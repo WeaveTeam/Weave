@@ -113,7 +113,8 @@ package weave.visualization.tools
 					"windowName": windowName,
 					"catch": ignoreError
 				},
-				'window[WEAVE_EXTERNAL_TOOLS][windowName].window.close();'
+				'window[WEAVE_EXTERNAL_TOOLS][windowName].window.close();',
+				'delete window[WEAVE_EXTERNAL_TOOLS][windowName];'
 			);
 		}
 		
