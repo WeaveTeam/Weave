@@ -18,10 +18,7 @@
 */
 package weave.visualization.tools
 {
-	import com.hurlant.crypto.hash.MD5;
-	
 	import mx.utils.Base64Encoder;
-	import mx.utils.UIDUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
