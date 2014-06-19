@@ -50,7 +50,7 @@ public class AwsRService implements IScriptEngine
 
 		try
 		{
-			REXP evalValue = rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
+			REXP evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 			names = evalValue.asList().names;
 			columnNames = new String[names.size()];
 			names.toArray(columnNames);
