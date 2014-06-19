@@ -19,8 +19,6 @@
 
 package
 {
-	import weave.api.ui.IObjectWithSelectableAttributes;
-	import weave.core.ClassUtils;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -192,8 +190,6 @@ package
 				TreeTool,
 				KeyMappingTool
 			]);
-			
-			ClassUtils.registerDeprecatedClass('weave.api.ui::IVisToolWithSelectableAttributes', IObjectWithSelectableAttributes);
 			
 			/**
 			 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
