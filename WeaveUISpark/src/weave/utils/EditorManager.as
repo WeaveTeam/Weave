@@ -21,24 +21,23 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.api.core.ILinkableObject;
 	import weave.api.newDisposableChild;
-	import weave.api.registerDisposableChild;
+	import weave.api.ui.IEditorManager;
 	import weave.api.ui.ILinkableObjectEditor;
 	import weave.core.ClassUtils;
 
-	public class EditorManager
+	/**
+	 * Manages implementations of ILinkableObjectEditor.
+	 */
+	public class EditorManager implements IEditorManager
 	{
-		private static const _editorLookup:Dictionary = new Dictionary();
+		private const _editorLookup:Dictionary = new Dictionary();
 		
 		/**
-		 * This function will register an ILinkableObjectEditor Class corresponding to an ILinkableObject Class.
-		 * @param objType A Class that implements ILinkableObject
-		 * @param editorType The corresponding Class implementing ILinkableObjectEditor
+		 * @inheritDoc
 		 */
-		public static function registerEditor(objType:Class, editorType:Class):void
+		public function registerEditor(objType:Class, editorType:Class):void
 		{
 			var editorQName:String = getQualifiedClassName(editorType);
 			var interfaceQName:String = getQualifiedClassName(ILinkableObjectEditor);
@@ -49,10 +48,9 @@ package weave.utils
 		}
 		
 		/**
-		 * @param obj An object or Class implementing ILinkableObject.
-		 * @return The Class implementing ILinkableObjectEditor that was previously registered for the given type of object or one of its superclasses.
+		 * @inheritDoc
 		 */
-		public static function getEditorClass(linkableObjectOrClass:Object):Class
+		public function getEditorClass(linkableObjectOrClass:Object):Class
 		{
 			var classQName:String = linkableObjectOrClass as String || getQualifiedClassName(linkableObjectOrClass);
 			var superClasses:Array = ClassUtils.getClassExtendsList(classQName);
@@ -68,7 +66,10 @@ package weave.utils
 			return null;
 		}
 		
-		public static function getNewEditor(obj:ILinkableObject):ILinkableObjectEditor
+		/**
+		 * @inheritDoc
+		 */
+		public function getNewEditor(obj:ILinkableObject):ILinkableObjectEditor
 		{
 			var Editor:Class = getEditorClass(obj);
 			if (Editor)

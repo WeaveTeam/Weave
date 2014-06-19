@@ -54,7 +54,6 @@
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
-			import weave.utils.EditorManager;
 			
 
 			protected var _targetObjects:Array = null;
@@ -371,7 +370,7 @@
 				var controlPanel:ControlPanel = editorPanels[linkableObject] as ControlPanel;
 				if (!controlPanel || objectWasDisposed(controlPanel))
 				{
-					var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
+					var editor:ILinkableObjectEditor = WeaveAPI.EditorManager.getNewEditor(linkableObject);
 					if (!editor)
 					{
 						if (sessionEditorFallback)

@@ -72,8 +72,8 @@ package weave.application
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
-	import weave.api.ui.IVisTool;
 	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.data.DataSources.WeaveDataSource;
@@ -117,7 +117,6 @@ package weave.application
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
-	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
 	import weave.utils.fixErrorMessage;
 	import weave.visualization.tools.WeaveAnalyst;
@@ -697,7 +696,7 @@ package weave.application
 			
 			if (!historySlider)
 			{
-				historySlider = EditorManager.getNewEditor(Weave.history) as UIComponent;
+				historySlider = WeaveAPI.EditorManager.getNewEditor(Weave.history) as UIComponent;
 				var shs:SessionHistorySlider = historySlider as SessionHistorySlider;
 				if (shs)
 					shs.squashActive.addImmediateCallback(this, function():void{

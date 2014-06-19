@@ -47,8 +47,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -85,7 +83,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.UIUtils;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
-			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
 			
 			public var debug:Boolean = false;
@@ -279,10 +276,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 				
-				if (!_controlPanel && EditorManager.getEditorClass(this))
+				if (!_controlPanel && WeaveAPI.EditorManager.getEditorClass(this))
 				{
 					_controlPanel = newDisposableChild(this, ControlPanel);
-					var editor:UIComponent = EditorManager.getNewEditor(this) as UIComponent;
+					var editor:UIComponent = WeaveAPI.EditorManager.getNewEditor(this) as UIComponent;
 					addChild(_controlPanel);
 					removeChild(_controlPanel);
 					_controlPanel.tabNavigator.addChild(editor);

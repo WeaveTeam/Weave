@@ -38,6 +38,7 @@ package weave.api
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.api.ui.IEditorManager;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -147,6 +148,13 @@ package weave.api
 		public static function get LocaleManager():ILocaleManager
 		{
 			return getSingletonInstance(ILocaleManager);
+		}
+		/**
+		 * This is the singleton instance of the registered IEditorManager implementation.
+		 */
+		public static function get EditorManager():IEditorManager
+		{
+			return getSingletonInstance(IEditorManager);
 		}
 		/**
 		 * This is the top-level object in Weave.

@@ -46,34 +46,14 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.controls.Alert;
-			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.copySessionState;
 			import weave.api.data.IDataSource;
 			import weave.api.disposeObject;
 			import weave.api.newDisposableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IDataSourceEditor;
-			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.ClassUtils;
 			import weave.core.UIUtils;
-			import weave.data.DataSources.CSVDataSource;
-			import weave.data.DataSources.DBFDataSource;
-			import weave.data.DataSources.TransposedDataSource;
-			import weave.data.DataSources.WFSDataSource;
-			import weave.data.DataSources.WeaveDataSource;
-			import weave.data.DataSources.XLSDataSource;
-			import weave.editors.CSVDataSourceEditor;
-			import weave.editors.DBFDataSourceEditor;
-			import weave.editors.TransposedDataSourceEditor;
-			import weave.editors.WFSDataSourceEditor;
-			import weave.editors.WeaveDataSourceEditor;
-			import weave.editors.XLSDataSourceEditor;
-			import weave.utils.EditorManager;
 
 			private static const padding:int = 5;
 			
@@ -102,7 +82,7 @@
 				_editor = null;
 				if (!options.selectedItem)
 					return;
-				var Editor:Class = EditorManager.getEditorClass(options.selectedItem);
+				var Editor:Class = WeaveAPI.EditorManager.getEditorClass(options.selectedItem);
 				if (!ClassUtils.classImplements(getQualifiedClassName(Editor), getQualifiedClassName(IDataSourceEditor)))
 				{
 					reportError(getQualifiedClassName(Editor) + " does not implement IDataSourceEditor");

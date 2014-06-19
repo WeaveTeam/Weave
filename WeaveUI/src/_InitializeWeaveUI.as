@@ -19,6 +19,8 @@
 
 package
 {
+	import weave.api.WeaveAPI;
+	import weave.api.ui.IEditorManager;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -116,45 +118,47 @@ package
 	{
 		private static var _:* = function():void
 		{
+			WeaveAPI.registerSingleton(IEditorManager, EditorManager);
+			var em:IEditorManager = WeaveAPI.EditorManager;
+			
 			/**
 			 * Register all ILinkableObjectEditor implementations.
 			 */
-			//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
+			//em.registerEditor(WeaveProperties, WeavePropertiesEditor);
 			
-			EditorManager.registerEditor(LinkableTextFormat, FontControl);
-			EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
+			em.registerEditor(LinkableTextFormat, FontControl);
+			em.registerEditor(DynamicColumn, DynamicColumnEditor);
 			
-			EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
-			EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
-			EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
-			EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
-			EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
-			EditorManager.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
-			EditorManager.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
-			EditorManager.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
-			EditorManager.registerEditor(CKANDataSource, CKANDataSourceEditor);
-			EditorManager.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
+			em.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
+			em.registerEditor(WFSDataSource, WFSDataSourceEditor);
+			em.registerEditor(XLSDataSource, XLSDataSourceEditor);
+			em.registerEditor(DBFDataSource, DBFDataSourceEditor);
+			em.registerEditor(CSVDataSource, CSVDataSourceEditor);
+			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
+			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
+			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
+			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
+			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			
-			EditorManager.registerEditor(StringDataFilter, StringDataFilterEditor);
-			EditorManager.registerEditor(NumberDataFilter, NumberDataFilterEditor);
+			em.registerEditor(StringDataFilter, StringDataFilterEditor);
+			em.registerEditor(NumberDataFilter, NumberDataFilterEditor);
 			
-			EditorManager.registerEditor(GeometryRelationPlotter, GeometryRelationPlotterEditor);
-			EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
-			EditorManager.registerEditor(GeometryPlotter, GeometryPlotterEditor);
-			EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
-			EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
-			EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
-			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
-			EditorManager.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
-			EditorManager.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
-			EditorManager.registerEditor(RectanglePlotter, RectanglePlotterEditor);
+			em.registerEditor(GeometryRelationPlotter, GeometryRelationPlotterEditor);
+			em.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
+			em.registerEditor(GeometryPlotter, GeometryPlotterEditor);
+			em.registerEditor(WMSPlotter, WMSPlotterEditor);
+			em.registerEditor(GridLinePlotter, GridLinePlotterEditor);
+			em.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
+			em.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
+			em.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
+			em.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
+			em.registerEditor(RectanglePlotter, RectanglePlotterEditor);
 			
-			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
-	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
-	        EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
-			EditorManager.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
+			em.registerEditor(ColorRamp, ColorRampEditor);
+	        em.registerEditor(RadVizTool, RadVizToolEditor);
+			em.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
 			
-			EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
+			em.registerEditor(SessionStateLog, SessionHistorySlider);
 			
 			// reference these tools so they will run their static initialization code
 			([

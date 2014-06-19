@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -50,7 +51,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class RectanglePlotter extends AbstractPlotter
+	public class RectanglePlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		WeaveAPI.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
 		
@@ -65,6 +66,16 @@ package weave.visualization.plotters
 				[xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset],
 				[false, false, true, true]
 			);
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ['X', 'Y', 'Width', 'Height', 'xMin Screen Offset', 'yMin Screen Offset', 'xMax Screen Offset', 'yMax Screen Offset'];
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset];
 		}
 		
 		// spatial properties

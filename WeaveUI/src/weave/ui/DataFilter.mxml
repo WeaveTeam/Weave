@@ -40,7 +40,6 @@
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.utils.ColumnUtils;
-			import weave.utils.EditorManager;
 			
 			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
 
@@ -114,7 +113,7 @@
 				var filter:IKeyFilter = keyFilter;
 				if (filter && !_editor)
 				{
-					_editor = EditorManager.getNewEditor(filter);
+					_editor = WeaveAPI.EditorManager.getNewEditor(filter);
 					addChild(_editor as DisplayObject);
 				}
 				_filterWatcher.target = filter;
