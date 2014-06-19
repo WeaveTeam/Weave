@@ -22,6 +22,8 @@
 		    var responseResults;
 		    var dataSourceName;
 		    var checkstring;
+		    var logvar;
+		    var setSession;
 		    
 			function weaveReady(weave)
 			{
@@ -34,8 +36,12 @@
 				   workOnData(responseResults);
 			   }
 			   
-			   if(checkString){
-				   log(checkString);
+			   if(logvar){
+				   log(logvar)
+			   }
+			   
+			   if(setSession){
+				   setSessionHistory(myvar)
 			   }
 			}
 			
@@ -124,7 +130,6 @@
 			
 			function log (string)
 			{
-				checkString = string || checkString ;
 				console.log("logging ", string);
 				resultTextArea.value = string;
 			}
