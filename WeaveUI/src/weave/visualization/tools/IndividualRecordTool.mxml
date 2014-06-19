@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tools:SimpleVisTool xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:tools="weave.visualization.tools.*" layout="vertical" width="400" height="300" xmlns:ui="weave.ui.*">
+<tools:SimpleVisTool xmlns:mx="http://www.adobe.com/2006/mxml"
+					 xmlns:tools="weave.visualization.tools.*"
+					 xmlns:ui="weave.ui.*"
+					 width="400" height="300" layout="vertical">
 	<mx:HBox width="100%" height="30%">
-		<mx:Canvas id="profileImage" height="100%" width="30%" backgroundColor="0xF443DC"/>
-		<mx:Box id="personalInformationBox" direction="vertical" height="100%" width="70%">
-			<mx:Label id="infoLine1" text="test1" />
-			<mx:Label id="infoLine2" text="test2" />
-			<mx:Label id="infoLine3" text="test3" />
-			<mx:Label id="infoLine4" text="test4" />
-			<mx:Label id="infoLine5" text="test5" />
+		<mx:Canvas id="profileImage" width="30%" height="100%" backgroundColor="0xF443DC"/>
+		<mx:Box id="personalInformationBox" width="70%" height="100%" direction="vertical">
+			<mx:Label id="infoLine1" text="test1"/>
+			<mx:Label id="infoLine2" text="test2"/>
+			<mx:Label id="infoLine3" text="test3"/>
+			<mx:Label id="infoLine4" text="test4"/>
+			<mx:Label id="infoLine5" text="test5"/>
 		</mx:Box>
 	</mx:HBox>
 	<mx:Script>
@@ -23,13 +26,14 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.KeySets.FilteredKeySet;
+			import weave.utils.BitmapUtils;
 			
 			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
-			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
-			public const secondProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
-			public const thirdProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
-			public const fourthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
-			public const fifthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, null, true);
+			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
+			public const secondProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine2Update, true);
+			public const thirdProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine3Update, true);
+			public const fourthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine4Update, true);
+			public const fifthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine5Update, true);
 			
 			public const line1LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine1);
 			public const line2LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine2);
@@ -54,6 +58,8 @@
 				_recordKey.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				
 				_recordKey.setColumnKeySources([profilePicturesColumn,firstProfileColumn,secondProfileColumn,thirdProfileColumn,fourthProfileColumn,fifthProfileColumn]);
+				
+				_recordKey.addGroupedCallback(this, handleSubsetChange);
 			}
 			
 			override protected function childrenCreated():void
@@ -80,6 +86,19 @@
 				linkBindableProperty(line5LeadingText, this.infoLine1FrontText5, "text");
 			}
 			
+			private function handleSubsetChange():void
+			{
+				if( _recordKey.keys.length == 1 )
+				{
+					handlePictureChange();
+					columnLine1Update();
+					columnLine2Update();
+					columnLine3Update();
+					columnLine4Update();
+					columnLine5Update();
+				}
+			}
+			
 			override public function getSelectableAttributeNames():Array
 			{
 				//Enter attribute names here once determined.
@@ -98,8 +117,52 @@
 			
 			private function handlePictureChange():void
 			{
-				
+				if( _recordKey.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_recordKey.keys[0]) as BitmapData) != null)
+						BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_recordKey.keys[0]) as BitmapData);
 			}
+			
+			private function columnLine1Update():void
+			{
+				if( _recordKey.keys.length == 1 && firstProfileColumn.getValueFromKey(_recordKey.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + " " + (firstProfileColumn.getValueFromKey(_recordKey.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+			}
+			private function columnLine2Update():void
+			{
+				if( _recordKey.keys.length == 1 && secondProfileColumn.getValueFromKey(_recordKey.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + " " + (secondProfileColumn.getValueFromKey(_recordKey.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+			}
+			private function columnLine3Update():void
+			{
+				if( _recordKey.keys.length == 1 && thirdProfileColumn.getValueFromKey(_recordKey.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + " " + (thirdProfileColumn.getValueFromKey(_recordKey.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+			}
+			private function columnLine4Update():void
+			{
+				if( _recordKey.keys.length == 1 && fourthProfileColumn.getValueFromKey(_recordKey.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + " " + (fourthProfileColumn.getValueFromKey(_recordKey.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+			}
+			private function columnLine5Update():void
+			{
+				if( _recordKey.keys.length == 1 && fifthProfileColumn.getValueFromKey(_recordKey.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + " " + (fifthProfileColumn.getValueFromKey(_recordKey.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+			}
+			
+			
 			private function updateLine1():void
 			{
 				infoLine1.text = line1LeadingText.value + " " + infoLine1.text.replace(previousText1 + " ","");
@@ -129,7 +192,7 @@
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="toolOptions" label="{lang('Visualization Controls')}" >
+		<mx:VBox id="toolOptions" label="{lang('Visualization Controls')}">
 			<ui:DynamicColumnComponent id="imageCol" label="{lang('Profile image')}"/>
 			<ui:DynamicColumnComponent id="profileFirstCol" label="{lang('First line')}"/>
 			<ui:DynamicColumnComponent id="profileSecondCol" label="{lang('Second line')}"/>
@@ -137,24 +200,24 @@
 			<ui:DynamicColumnComponent id="profileFourthCol" label="{lang('Fourth line')}"/>
 			<ui:DynamicColumnComponent id="profileFifthCol" label="{lang('Fifth line')}"/>
 			<mx:HBox>
-				<mx:Label text="Line 1 leading text:" />
-				<mx:TextInput id="infoLine1FrontText1" />
+				<mx:Label text="Line 1 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText1"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Line 2 leading text:" />
-				<mx:TextInput id="infoLine1FrontText2" />
+				<mx:Label text="Line 2 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText2"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Line 3 leading text:" />
-				<mx:TextInput id="infoLine1FrontText3" />
+				<mx:Label text="Line 3 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText3"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Line 4 leading text:" />
-				<mx:TextInput id="infoLine1FrontText4" />
+				<mx:Label text="Line 4 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText4"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Line 5 leading text:" />
-				<mx:TextInput id="infoLine1FrontText5" />
+				<mx:Label text="Line 5 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText5"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
