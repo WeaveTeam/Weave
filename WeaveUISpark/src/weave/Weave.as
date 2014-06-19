@@ -37,6 +37,7 @@ package weave
 	import weave.api.WeaveArchive;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -487,6 +488,9 @@ package weave
 					return;
 				}
 				obj.close();
+				
+				// before reloading, dispose everything in case any JavaScript cleanup needs to happen.
+				disposeObject(WeaveAPI.globalHashMap);
 				
 				// reload the application
 				if (ExternalInterface.objectID)

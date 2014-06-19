@@ -19,6 +19,7 @@
 package weave.visualization.tools
 {
 	import mx.utils.Base64Encoder;
+	import mx.utils.UIDUtil;
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.reportError;
@@ -27,6 +28,7 @@ package weave.visualization.tools
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
+	import weave.core.UIUtils;
 
 	public class ExternalTool extends LinkableHashMap implements IObjectWithSelectableAttributes
 	{
@@ -44,22 +46,7 @@ package weave.visualization.tools
 		/**
 		 * The popup's window.name
 		 */
-		public function get windowName():String
-		{
-			var object:Object = {
-				id: JavaScript.objectID,
-				path: path
-			};
-			
-			var encoder:Base64Encoder = new Base64Encoder();
-			encoder.encode(Compiler.stringify(object));
-			return StandardLib.replace(encoder.drain(), '+', '_p', '/', '_s', '=', '_e');
-		}
-		
-		public function get path():Array
-		{
-			return WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
-		}
+		public const windowName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
 		
 		public function ExternalTool()
 		{
@@ -85,10 +72,17 @@ package weave.visualization.tools
 					"url": toolUrl.value,
 					"windowName": windowName,
 					"features": "menubar=no,status=no,toolbar=no",
-					"path": path
+					"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
 				},
-				'if (!window[WEAVE_EXTERNAL_TOOLS])',
+				'if (!window[WEAVE_EXTERNAL_TOOLS]) {',
 				'    window[WEAVE_EXTERNAL_TOOLS] = {};',
+				'    // when we close this window, close all popups',
+				'    if (window.addEventListener)',
+				'        window.addEventListener("unload", function(){',
+				'            for (var key in window[WEAVE_EXTERNAL_TOOLS])',
+				'                try { window[WEAVE_EXTERNAL_TOOLS][key].window.close(); } catch (e) { }',
+				'        });',
+				'}',
 				'var popup = window.open(url, windowName, features);',
 				'window[WEAVE_EXTERNAL_TOOLS][windowName] = {"path": this.path(path), "window": popup};',
 				'return !!popup;'
