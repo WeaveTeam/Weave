@@ -166,12 +166,12 @@ public function getSelectableAttributeNames():Array
         <mx:VBox label="{lang('Attributes')}">
             <mx:HBox>
                 <mx:Label text="{lang('Source KeyType')}"/>
-                <mx:TextInput id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500)"/>
+                <ui:KeyTypesMenu id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
             <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent" label="{lang('Source LocalName')}"/>
             <mx:HBox>
                 <mx:Label text="{lang('Target KeyType')}"/>
-                <mx:TextInput id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500)"/>
+                <ui:KeyTypesMenu id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
 
             <ui:DynamicColumnComponent id="targetLocalNameColumnComponent" label="{lang('Target LocalName')}"/>
