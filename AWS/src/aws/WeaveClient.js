@@ -84,23 +84,25 @@ aws.WeaveClient.prototype.updateVisualization = function (visualization, dataSou
 
 aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 
-    var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
-    
-    this.weave.path(toolName).request('MapTool');
-    
-    var z = this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters']);
-    z.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
-    z.push('statelayer', 'line', 'color', 'defaultValue').state('0');
-    z.push('statelayer', 'geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
-    .push('dataSourceName').state('WeaveDataSource').pop()
-    .push('metadata').state({
-      "keyType": keyType,
-      "title": title,
-      "entityType": "column",
-      "weaveEntityId": entityId,
-      "projection": "EPSG:4326",
-      "dataType": "geometry"
-    });
+	var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+  
+	this.weave.path(toolName).request('MapTool');
+  
+	  this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
+	  .push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
+	  .push('line', 'color', 'defaultValue').state('0').pop()
+	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('metadata').state({
+	    "keyType": keyType,
+	    "title": title,
+	    "entityType": "column",
+	    "weaveEntityId": entityId,
+	    "projection": "EPSG:4326",
+	    "dataType": "geometry"
+	  });
+   return toolName;
+};
     
 //    this.weave.path(toolName).request('MapTool');
 //    this.weave.path().push(toolName,'children', 'visualization', 'plotManager', 'plotters', 'Geometries')
@@ -111,9 +113,7 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 //      hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
 //    .state('line','color','defaultValue', 0x000000)
 //    .exec('fill.color.internalDynamicColumn.globalName = "defaultColorColumn"');
-    
-    return toolName;
-};
+
 
 /**
  * This function accesses the weave instance and create a new scatter plot, regardless of wether or not 
