@@ -228,7 +228,7 @@
 
         if (positions == null || positions == "")
         {
-            cy.layout(layout_params);
+            run_layout();
         }
 
         cy.nodes().positions(function (i, ele) { return positions[stringToQKeyString(ele.id())]; });
@@ -344,12 +344,10 @@
         viewport_value['zoom'] = cy.zoom();
 
         toolPath.push(VIEWPORT).state(viewport_value);
-        console.log("Setting session state:", viewport_value)
     }
     var update_viewport_disabled = false;
     function viewport_changed()
     {
-        console.log("BOO");
         var viewport_value = toolPath.push(VIEWPORT).getState();
         if (viewport_value == null || viewport_value == undefined || 
              (viewport_value.x == undefined) || 
@@ -357,16 +355,14 @@
              (viewport_value.zoom == undefined))
         {
             update_viewport();
-            console.log("Invalid viewport value, setting from current.")
             return;
         };
         var pan_to = {x: viewport_value.x, y: viewport_value.y};
         var zoom_level = viewport_value.zoom;
         
-        console.log("Moving viewport:", pan_to);
         update_viewport_disabled = true;
         cy.pan(pan_to);
-        console.log("Changing zoom to:", zoom_level);
+
         cy.zoom(zoom_level);
         update_viewport_disabled = false;
     }
