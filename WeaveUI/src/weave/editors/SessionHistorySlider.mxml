@@ -42,6 +42,7 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.newLinkableChild;
+			import weave.api.objectWasDisposed;
 			import weave.api.reportError;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableWatcher;
@@ -213,6 +214,9 @@
 			// called when state log changes
 			private function handleStateLogChange():void
 			{
+				if (objectWasDisposed(_stateLog))
+					return;
+				
 				if (!parent)
 				{
 					callLater(handleStateLogChange);
