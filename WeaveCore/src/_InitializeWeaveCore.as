@@ -27,6 +27,8 @@ package
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
 	import weave.api.ui.IEditorManager;
+	import weave.compiler.Compiler;
+	import weave.core.ClassUtils;
 	import weave.core.EditorManager;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
@@ -39,6 +41,10 @@ package
 
 	public class _InitializeWeaveCore
 	{
+		Compiler.deprecatedClassReplacements['weave.api.WeaveAPI'] = WeaveAPI;
+		Compiler.deprecatedClassReplacements['weave.api::WeaveAPI'] = WeaveAPI;
+		ClassUtils.registerDeprecatedClass('weave.api::WeaveAPI', WeaveAPI);
+		
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */

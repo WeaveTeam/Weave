@@ -277,6 +277,22 @@ package weave.compiler
 		}
 		
 		/**
+		 * Add keys to this dictionary for deprecated library replacements.
+		 */
+		public static const deprecatedClassReplacements:Object = {};
+		
+		/**
+		 * First checks deprecatedClassReplacements, then getDefinitionByName().
+		 * @param name The name used to look up a definition.
+		 * @return The corresponding object.
+		 * @throws Error If there is no definition corresponding to the name.
+		 */
+		private static function getDefinition(name:String):Object
+		{
+			return deprecatedClassReplacements[name] as Class || getDefinitionByName(name);
+		}
+		
+		/**
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
 		 * @param classesOrObjects An Array of Class definitions or objects containing functions to be supported by the compiler.
 		 */
@@ -291,7 +307,7 @@ package weave.compiler
 					if (library is String)
 					{
 						className = library as String;
-						library = getDefinitionByName(className);
+						library = getDefinition(className);
 						if (libraries.indexOf(library) >= 0)
 							continue;
 					}
@@ -411,7 +427,7 @@ package weave.compiler
 			{
 				var classDef:Class = classOrQName as Class;
 				if (!classDef && classOrQName)
-					classDef = getDefinitionByName(String(classOrQName)) as Class;
+					classDef = getDefinition(String(classOrQName)) as Class;
 				switch (params.length)
 				{
 					case 0: return new classDef();
@@ -535,7 +551,7 @@ package weave.compiler
 			pureOperators['is'] = pureOperators['instanceof'] = function(a:*, classOrQName:*):Boolean {
 				var classDef:Class = classOrQName as Class;
 				if (!classDef && classOrQName)
-					classDef = getDefinitionByName(String(classOrQName)) as Class;
+					classDef = getDefinition(String(classOrQName)) as Class;
 				return a is classDef;
 			};
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
@@ -1796,7 +1812,7 @@ package weave.compiler
 						{
 							try
 							{
-								var def:Object = getDefinitionByName(_lib.value);
+								var def:Object = getDefinition(_lib.value);
 								if (def is Class)
 									_lib.value = def;
 							}
@@ -2417,7 +2433,7 @@ package weave.compiler
 							}
 							
 							if (i == allSymbolTables.length)
-								result = getDefinitionByName(symbolName);
+								result = getDefinition(symbolName);
 						}
 						else if (JUMP_LOOKUP[method as Function])
 						{
@@ -2483,7 +2499,7 @@ package weave.compiler
 							{
 								symbolName = result as String;
 								if (symbolName)
-									result = getDefinitionByName(result);
+									result = getDefinition(result);
 								else if (!(result is Class))
 									throw new Error("Unable to import non-Class: " + decompileObject(call));
 								
@@ -2517,7 +2533,7 @@ package weave.compiler
 							// special case for Class('some.qualified.ClassName')
 							else if (method === Class && call.evaluatedParams[0] is String)
 							{
-								result = getDefinitionByName(call.evaluatedParams[0]);
+								result = getDefinition(call.evaluatedParams[0]);
 							}
 							else // all other single-parameter type casting operations
 							{
