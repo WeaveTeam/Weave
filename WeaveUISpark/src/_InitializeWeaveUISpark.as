@@ -41,7 +41,6 @@ package
 	 */
 	public class _InitializeWeaveUISpark
 	{
-		
 		/**
 		 * Register all ILinkableObjectEditor implementations.
 		 */

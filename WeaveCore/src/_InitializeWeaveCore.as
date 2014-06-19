@@ -27,6 +27,8 @@ package
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
+	import weave.api.ui.IEditorManager;
+	import weave.core.EditorManager;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableHashMap;
@@ -47,6 +49,7 @@ package
 		WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
 		WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
 		WeaveAPI.registerSingleton(ILocaleManager, LocaleManager);
+		WeaveAPI.registerSingleton(IEditorManager, EditorManager);
 		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
 		
 		/**

@@ -67,7 +67,6 @@ package
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.userControls.SchafersMissingDataTool;
-	import weave.utils.EditorManager;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -118,7 +117,6 @@ package
 	{
 		private static var _:* = function():void
 		{
-			WeaveAPI.registerSingleton(IEditorManager, EditorManager);
 			var em:IEditorManager = WeaveAPI.EditorManager;
 			
 			/**
