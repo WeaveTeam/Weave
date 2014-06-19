@@ -23,7 +23,6 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;

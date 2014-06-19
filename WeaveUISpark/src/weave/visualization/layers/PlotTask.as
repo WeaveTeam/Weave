@@ -28,7 +28,6 @@ package weave.visualization.layers
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;

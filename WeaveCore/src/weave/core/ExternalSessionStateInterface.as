@@ -22,7 +22,6 @@ package weave.core
 	import flash.external.ExternalInterface;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;

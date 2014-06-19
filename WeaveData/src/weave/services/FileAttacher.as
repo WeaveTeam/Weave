@@ -25,7 +25,6 @@ package weave.services
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerDisposableChild;

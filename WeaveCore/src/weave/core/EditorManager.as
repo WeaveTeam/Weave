@@ -25,7 +25,6 @@ package weave.core
 	import weave.api.newDisposableChild;
 	import weave.api.ui.IEditorManager;
 	import weave.api.ui.ILinkableObjectEditor;
-	import weave.core.ClassUtils;
 
 	/**
 	 * Manages implementations of ILinkableObjectEditor.

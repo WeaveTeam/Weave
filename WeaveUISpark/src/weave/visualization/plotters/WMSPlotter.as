@@ -32,7 +32,6 @@ package weave.visualization.plotters
 	
 	import org.openscales.proj4as.ProjConstants;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;

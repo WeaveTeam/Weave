@@ -22,7 +22,6 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;

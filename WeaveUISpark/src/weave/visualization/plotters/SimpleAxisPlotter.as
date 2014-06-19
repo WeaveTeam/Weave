@@ -28,7 +28,6 @@ package weave.visualization.plotters
 	
 	import mx.formatters.NumberFormatter;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;

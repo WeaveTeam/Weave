@@ -66,7 +66,6 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
 			import weave.api.reportError;
 			import weave.compiler.StandardLib;

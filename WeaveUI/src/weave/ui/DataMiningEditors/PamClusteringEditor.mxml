@@ -49,17 +49,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.controls.Button;
 			
-			import weave.services.beans.PartitionAroundMedoidsClusteringResult;
-			
-			import spark.components.TextArea;
-			
 			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.services.WeaveRServlet;
-			import weave.services.beans.KMeansClusteringResult;
+			import weave.services.beans.PartitionAroundMedoidsClusteringResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
 			import weave.visualization.tools.SimpleVisTool;

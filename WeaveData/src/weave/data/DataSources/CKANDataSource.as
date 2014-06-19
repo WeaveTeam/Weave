@@ -21,7 +21,6 @@ package weave.data.DataSources
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IDataSource;
@@ -242,7 +241,6 @@ import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
 import mx.utils.URLUtil;
 
-import weave.api.WeaveAPI;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
 import weave.api.data.IExternalLink;

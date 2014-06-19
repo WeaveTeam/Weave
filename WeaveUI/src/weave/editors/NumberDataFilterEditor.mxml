@@ -39,7 +39,6 @@
 		<![CDATA[
 			import mx.events.SliderEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableWatcher;

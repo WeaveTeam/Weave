@@ -21,7 +21,6 @@ package weave.data.DataSources
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IAttributeColumn;

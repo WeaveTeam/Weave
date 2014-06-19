@@ -24,18 +24,15 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkSessionState;
-	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -59,7 +56,6 @@ package weave.visualization.plotters
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
-	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**

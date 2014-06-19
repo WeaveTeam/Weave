@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	

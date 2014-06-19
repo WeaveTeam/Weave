@@ -20,18 +20,13 @@
 package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.NumberFormatter;
-	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;

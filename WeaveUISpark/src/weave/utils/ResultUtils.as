@@ -25,12 +25,9 @@ package weave.utils
 	import mx.collections.ArrayCollection;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.CSVColumn;
-	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.KeySets.KeySet;

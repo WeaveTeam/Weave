@@ -30,7 +30,6 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;

@@ -63,10 +63,7 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
-			import weave.api.setSessionState;
-			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.utils.DebugUtils;

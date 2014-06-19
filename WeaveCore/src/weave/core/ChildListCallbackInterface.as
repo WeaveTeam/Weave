@@ -19,9 +19,8 @@
 
 package weave.core
 {
-	import weave.core.CallbackCollection;
-	import weave.api.core.ILinkableObject;
 	import weave.api.core.IChildListCallbackInterface;
+	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * @private

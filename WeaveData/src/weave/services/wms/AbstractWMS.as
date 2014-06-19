@@ -21,7 +21,6 @@ package weave.services.wms
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;

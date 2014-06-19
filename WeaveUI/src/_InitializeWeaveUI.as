@@ -19,7 +19,6 @@
 
 package
 {
-	import weave.api.WeaveAPI;
 	import weave.api.ui.IEditorManager;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;

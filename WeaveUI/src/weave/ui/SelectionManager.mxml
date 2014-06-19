@@ -34,11 +34,8 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
 			import weave.api.newDisposableChild;
-			import weave.api.newLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;

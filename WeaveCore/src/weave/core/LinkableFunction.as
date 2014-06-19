@@ -22,7 +22,6 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.registerLinkableChild;

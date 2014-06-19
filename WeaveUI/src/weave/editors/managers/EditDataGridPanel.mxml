@@ -34,12 +34,7 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.collections.ICollectionView;
-			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.utils.ObjectUtil;
 			
-			import weave.api.WeaveAPI;
 			
 			/**
 			 * @return The modified rows with columns in modified order.

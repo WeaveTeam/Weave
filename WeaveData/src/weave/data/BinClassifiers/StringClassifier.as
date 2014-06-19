@@ -19,7 +19,6 @@
 
 package weave.data.BinClassifiers
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IBinClassifier;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;

@@ -42,7 +42,6 @@ package weave.api
 
 import flash.utils.Dictionary;
 
-import weave.api.WeaveAPI;
 import weave.api.core.ILinkableObject;
 
 internal class Internal

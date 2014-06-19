@@ -27,11 +27,9 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
-	import weave.compiler.Compiler;
 	import weave.core.ClassUtils;
 
 	public class JsonCache implements ILinkableObject

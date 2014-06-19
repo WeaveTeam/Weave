@@ -37,19 +37,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.collections.ArrayCollection;
 			import mx.collections.Sort;
 			import mx.collections.SortField;
-			import mx.controls.Menu;
-			import mx.controls.MenuBar;
-			import mx.core.Application;
 			import mx.core.UIComponent;
 			import mx.events.MenuEvent;
-			import mx.managers.FocusManager;
 			import mx.managers.PopUpManager;
-			import mx.utils.ArrayUtil;
 			
-			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.core.UIUtils;
-			import weave.ui.controlBars.VisTaskbar;
 			import weave.ui.controlBars.WeaveMenuItem;
 			
 			private var autosuggest:SubMenu;

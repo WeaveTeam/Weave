@@ -69,7 +69,6 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.reportError;

@@ -20,7 +20,6 @@ package weave.ui
 {
 	import mx.collections.ArrayCollection;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.utils.EventUtils;
 

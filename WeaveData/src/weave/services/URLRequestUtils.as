@@ -35,7 +35,6 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.URLUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
 	import weave.compiler.StandardLib;
@@ -312,7 +311,6 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
 
-import weave.api.WeaveAPI;
 import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
 import weave.compiler.StandardLib;

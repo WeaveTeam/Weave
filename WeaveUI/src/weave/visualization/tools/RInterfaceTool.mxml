@@ -314,7 +314,6 @@
 			import spark.components.Image;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -323,9 +322,7 @@
 			import weave.api.reportError;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;

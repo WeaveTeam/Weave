@@ -18,7 +18,6 @@
 */
 package weave.data.hierarchy
 {
-    import weave.api.WeaveAPI;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;

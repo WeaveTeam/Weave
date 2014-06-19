@@ -217,7 +217,6 @@ package weave.services
 
 import mx.rpc.AsyncToken;
 
-import weave.api.WeaveAPI;
 import weave.api.services.IWeaveGeometryTileService;
 import weave.services.WeaveDataServlet;
 

@@ -19,7 +19,6 @@
 
 package weave.data.DataSources
 {
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;

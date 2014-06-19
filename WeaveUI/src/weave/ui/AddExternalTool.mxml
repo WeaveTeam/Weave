@@ -40,16 +40,13 @@
     </mx:VBox>
         <mx:Script>
             <![CDATA[
-                import weave.Weave;
-                
-                import weave.api.WeaveAPI;
-                import weave.api.core.ILinkableObject;
-                import weave.core.LinkableString;
-                import weave.api.getCallbackCollection;
-                import weave.visualization.tools.ExternalTool;
                 import mx.controls.Alert;
-
                 import mx.managers.PopUpManager;
+                
+                import weave.Weave;
+                import weave.api.getCallbackCollection;
+                import weave.core.LinkableString;
+                import weave.visualization.tools.ExternalTool;
 
                 override protected function createChildren():void
                 {

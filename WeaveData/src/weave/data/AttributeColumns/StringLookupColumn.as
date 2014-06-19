@@ -23,7 +23,6 @@ package weave.data.AttributeColumns
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IQualifiedKey;

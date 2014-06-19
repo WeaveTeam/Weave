@@ -49,8 +49,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.controls.Button;
 			
-			import spark.components.TextArea;
-			
 			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;

@@ -17,7 +17,6 @@
 			import mx.controls.Alert;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;

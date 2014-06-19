@@ -129,7 +129,6 @@
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.events.DataGridEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IBinningDefinition;
 			import weave.api.linkBindableProperty;

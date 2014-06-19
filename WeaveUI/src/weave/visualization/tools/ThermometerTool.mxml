@@ -27,7 +27,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.ui.IVisTool;
 			import weave.ui.AttributeSelectorPanel;

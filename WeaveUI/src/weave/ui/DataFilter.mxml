@@ -28,7 +28,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
 			import weave.api.getSessionState;

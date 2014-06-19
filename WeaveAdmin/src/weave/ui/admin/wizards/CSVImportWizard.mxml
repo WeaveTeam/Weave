@@ -106,13 +106,12 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.reportError;
+			import weave.api.services.beans.EntityMetadata;
 			import weave.compiler.StandardLib;
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
 			import weave.services.addAsyncResponder;
-			import weave.api.services.beans.EntityMetadata;
 			import weave.ui.BusyIndicator;
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;

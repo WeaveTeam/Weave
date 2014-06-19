@@ -103,7 +103,6 @@
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
 			
-			import weave.api.WeaveAPI;
 			import weave.core.UIUtils;
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;

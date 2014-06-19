@@ -35,9 +35,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
@@ -45,7 +43,6 @@
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.DataSources.CSVDataSource;
@@ -58,8 +55,6 @@
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
-			import weave.utils.HierarchyUtils;
-			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			

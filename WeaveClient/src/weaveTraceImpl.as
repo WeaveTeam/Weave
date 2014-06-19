@@ -1,6 +1,5 @@
 package
 {
-	import weave.ui.Console;
 	import weave.ui.ErrorLogPanel;
 
 	public function weaveTraceImpl(...args):void
@@ -18,7 +17,6 @@ package
 		}
 	}
 }
-import weave.api.WeaveAPI;
 
 internal class Internal
 {

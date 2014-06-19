@@ -52,7 +52,6 @@
 	import mx.managers.PopUpManager;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;

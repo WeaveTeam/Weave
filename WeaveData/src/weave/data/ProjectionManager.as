@@ -27,7 +27,6 @@ package weave.data
 	import org.openscales.proj4as.ProjPoint;
 	import org.openscales.proj4as.ProjProjection;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
@@ -305,7 +304,6 @@ import org.openscales.proj4as.Proj4as;
 import org.openscales.proj4as.ProjPoint;
 import org.openscales.proj4as.ProjProjection;
 
-import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.DataTypes;

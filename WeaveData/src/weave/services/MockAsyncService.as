@@ -25,8 +25,6 @@ package weave.services
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
-	
 	use namespace mx_internal;
 	
 	/**

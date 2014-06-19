@@ -49,19 +49,15 @@
         <![CDATA[
             import mx.controls.Alert;
             
-            import weave.api.WeaveAPI;
             import weave.api.copySessionState;
             import weave.api.core.ILinkableHashMap;
             import weave.api.core.ILinkableObject;
-            import weave.api.data.ColumnMetadata;
             import weave.api.data.IAttributeColumn;
             import weave.api.data.IDataSource;
-            import weave.api.getCallbackCollection;
             import weave.api.getSessionState;
             import weave.api.newLinkableChild;
             import weave.api.registerLinkableChild;
             import weave.core.LinkableHashMap;
-            import weave.core.UIUtils;
             import weave.data.AttributeColumns.DynamicColumn;
             import weave.data.Transforms.PartitionDataTransform;
             

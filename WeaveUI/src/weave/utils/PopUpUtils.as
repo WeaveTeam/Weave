@@ -30,8 +30,6 @@ package weave.utils
 	import mx.events.CloseEvent;
 	import mx.managers.PopUpManager;
 	
-	import weave.api.WeaveAPI;
-	
 	public class PopUpUtils
 	{
 		public static function createDisplayObjectAsPopUp(destination:DisplayObject, classType:Class):IFlexDisplayObject

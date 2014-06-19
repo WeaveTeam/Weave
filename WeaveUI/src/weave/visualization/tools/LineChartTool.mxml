@@ -26,7 +26,6 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;

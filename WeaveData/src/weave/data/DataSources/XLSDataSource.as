@@ -30,7 +30,6 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;

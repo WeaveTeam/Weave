@@ -29,7 +29,6 @@ package weave.data
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	
@@ -92,11 +91,9 @@ package weave.data
 		}
 	}
 }
-import weave.api.core.IDisposableObject;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IStatisticsCache;
 import weave.api.registerDisposableChild;
-import weave.api.registerLinkableChild;
 import weave.core.SessionManager;
 
 internal class ColumnStatisticsWrapper implements IColumnStatistics
@@ -216,7 +213,6 @@ internal class ColumnStatisticsWrapper implements IColumnStatistics
 
 import flash.utils.Dictionary;
 
-import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnStatistics;

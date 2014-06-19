@@ -26,7 +26,6 @@ package weave.visualization.tools
 	import mx.containers.Canvas;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.detectLinkableObjectChange;

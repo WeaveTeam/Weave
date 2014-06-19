@@ -27,7 +27,6 @@ package weave.visualization.layers
 	import mx.managers.ToolTipManager;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;

@@ -24,7 +24,6 @@ package weave.utils
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;

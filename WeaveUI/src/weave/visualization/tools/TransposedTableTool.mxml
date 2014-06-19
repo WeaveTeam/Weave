@@ -56,7 +56,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DataGridEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;

@@ -21,7 +21,6 @@ package weave.core
 {
 	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.events.EventPhase;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -33,7 +32,6 @@ package weave.core
 	import mx.core.UIComponentGlobals;
 	import mx.core.mx_internal;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IStageUtils;

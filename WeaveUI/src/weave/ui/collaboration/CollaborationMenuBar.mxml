@@ -45,7 +45,6 @@
 			import org.igniterealtime.xiff.events.RoomEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.registerDisposableChild;
 			import weave.api.reportError;
 			import weave.services.collaboration.CollaborationEvent;

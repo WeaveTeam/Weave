@@ -31,7 +31,6 @@ package weave.data.DataSources
 	import org.vanrijkom.dbf.DbfRecord;
 	import org.vanrijkom.dbf.DbfTools;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
@@ -386,7 +385,6 @@ package weave.data.DataSources
 	}
 }
 
-import weave.api.WeaveAPI;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
 import weave.api.data.IWeaveTreeNode;

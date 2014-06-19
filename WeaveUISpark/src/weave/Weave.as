@@ -34,7 +34,6 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.WeaveArchive;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;

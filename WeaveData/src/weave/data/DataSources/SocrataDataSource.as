@@ -21,7 +21,6 @@ package weave.data.DataSources
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IDataSource;
@@ -358,7 +357,6 @@ package weave.data.DataSources
 import mx.utils.ObjectUtil;
 import mx.utils.URLUtil;
 
-import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;

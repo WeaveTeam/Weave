@@ -20,7 +20,6 @@ package weave.data.hierarchy
 {
     import flash.utils.Dictionary;
     
-    import weave.api.WeaveAPI;
     import weave.api.core.ILinkableHashMap;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;

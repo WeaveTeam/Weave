@@ -1,38 +1,25 @@
 package weave.data.DataSources
 {
     import flare.data.converters.GraphMLConverter;
-
+    
+    import flash.net.URLLoaderDataFormat;
+    import flash.net.URLRequest;
+    
     import mx.rpc.events.FaultEvent;
     import mx.rpc.events.ResultEvent;
-    import flash.net.URLRequest;
-    import flash.net.URLLoaderDataFormat;
-
-    import weave.api.WeaveAPI;
+    
     import weave.api.data.ColumnMetadata;
-    import weave.api.data.DataTypes;
-    import weave.api.data.IDataSource;
-    import weave.api.data.IWeaveTreeNode;
+    import weave.api.data.IAttributeColumn;
     import weave.api.data.IColumnReference;
-    import weave.api.data.IAttributeColumn;    
-    import weave.api.data.IQualifiedKey; 
-    import weave.api.getCallbackCollection;
-    import weave.api.registerLinkableChild;
+    import weave.api.data.IDataSource;
+    import weave.api.data.IQualifiedKey;
+    import weave.api.data.IWeaveTreeNode;
     import weave.api.newLinkableChild;
-    import weave.compiler.Compiler;
-    import weave.core.LinkableBoolean;
-    import weave.core.LinkableNumber;
+    import weave.api.reportError;
     import weave.core.LinkableString;
-    import weave.core.LinkableVariable;
-    import weave.core.SessionManager;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.AttributeColumns.StringColumn;
-    import weave.data.AttributeColumns.NumberColumn;
-    import weave.data.AttributeColumns.DateColumn;
     import weave.data.QKeyManager;
-    import weave.core.ClassUtils;
-    import weave.api.reportError;
-
-    import weave.utils.VectorUtils;
 
     public class GraphMLDataSource extends AbstractDataSource
     {
@@ -303,14 +290,13 @@ package weave.data.DataSources
     }
 }
 
-import weave.api.WeaveAPI;
+import flare.data.converters.GraphMLConverter;
+
 import weave.api.data.ColumnMetadata;
-import weave.api.data.DataTypes;
+import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
 import weave.api.data.IWeaveTreeNode;
-import weave.api.data.IColumnReference;
 import weave.data.DataSources.GraphMLDataSource;
-import flare.data.converters.GraphMLConverter;
 
 internal class GraphMLGraphNode implements IWeaveTreeNode
 {

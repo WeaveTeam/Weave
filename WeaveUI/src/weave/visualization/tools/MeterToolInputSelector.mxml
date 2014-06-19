@@ -21,8 +21,6 @@
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:gce="geometryCollectionEditor.*">
     <mx:Script><![CDATA[
-        import mx.controls.Alert;
-        import mx.core.UIComponent;
         import weave.visualization.plotters.MeterPlotter;
         private var meterPlotter:MeterPlotter;
         private function setMeterPlotter(meterPlotter:MeterPlotter):void{

@@ -20,7 +20,6 @@
 package weave.visualization.plotters
 {
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;

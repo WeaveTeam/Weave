@@ -76,7 +76,6 @@
 	import spark.collections.Sort;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;

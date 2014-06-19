@@ -47,8 +47,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.controls.Tree;
-			import mx.events.TreeEvent;
 			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IWeaveTreeNode;

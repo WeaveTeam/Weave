@@ -22,15 +22,12 @@ package weave.data.BinningDefinitions
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IPrimitiveColumn;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
-	import weave.utils.ColumnUtils;
 	
 	/**
 	 * Divides a data range into a number of bins based on range entered by user.

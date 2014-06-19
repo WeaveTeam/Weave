@@ -22,7 +22,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
@@ -40,9 +39,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
-	import weave.data.KeySets.KeySetUnion;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.utils.ColumnUtils;
 	
 	/**
 	 * A glyph represents a point of data at an X and Y coordinate.

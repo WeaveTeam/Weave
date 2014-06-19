@@ -187,7 +187,6 @@
 			import weave.core.UIUtils;
 			import weave.primitives.Bounds2D;
 			import weave.visualization.layers.PlotManager;
-			import weave.api.WeaveAPI;
 			import weave.api.newDisposableChild;
 			import weave.ui.VariableListController;
 			import weave.visualization.layers.Visualization;

@@ -75,14 +75,12 @@
 		<![CDATA[
 			import mx.events.ListEvent;
 			
-			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.UIUtils;
 			import weave.editors.PrincipalComponentEditor;
-			import weave.services.WeaveRServlet;
 
 
 			private static var analystInstance:WeaveAnalyst = null;

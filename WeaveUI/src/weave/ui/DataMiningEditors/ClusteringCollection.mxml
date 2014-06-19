@@ -82,9 +82,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ICallbackCollection;
-			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.disposeObject;
@@ -93,16 +91,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.core.CallbackCollection;
 			import weave.core.LinkableHashMap;
-			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.NumberColumn;
-			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.utils.VectorUtils;
 
 
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);

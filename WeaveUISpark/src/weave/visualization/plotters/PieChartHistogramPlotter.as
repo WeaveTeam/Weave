@@ -24,7 +24,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;

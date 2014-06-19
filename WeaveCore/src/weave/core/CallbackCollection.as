@@ -22,7 +22,6 @@ package weave.core
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
@@ -333,7 +332,6 @@ internal const STACK_TRACE_REMOVE:String = "This is the stack trace from when th
 import flash.events.Event;
 import flash.utils.Dictionary;
 
-import weave.api.WeaveAPI;
 import weave.api.core.ICallbackCollection;
 import weave.core.CallbackCollection;
 

@@ -42,7 +42,6 @@
 						<mx:Canvas horizontalScrollPolicy="off">
 							<mx:Script>
 								<![CDATA[
-									import weave.api.WeaveAPI;
 									import weave.api.core.ILinkableObject;
 								]]>
 							</mx:Script>
@@ -153,7 +152,6 @@
 				import weave.api.reportError;
 				import mx.managers.PopUpManager;
 				
-				import weave.api.WeaveAPI;
 				import weave.api.core.ILinkableObject;
 				import weave.api.data.IDataSource;
 				import weave.api.ui.ILinkableObjectEditor;

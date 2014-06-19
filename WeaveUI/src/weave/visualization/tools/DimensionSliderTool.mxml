@@ -32,7 +32,6 @@
 
 <mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;

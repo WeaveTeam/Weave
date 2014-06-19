@@ -33,7 +33,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;

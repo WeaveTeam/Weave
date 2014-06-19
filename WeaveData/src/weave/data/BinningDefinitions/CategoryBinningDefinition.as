@@ -21,7 +21,6 @@ package weave.data.BinningDefinitions
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.SessionManager;

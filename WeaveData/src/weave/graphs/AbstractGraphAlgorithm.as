@@ -23,14 +23,10 @@ package weave.graphs
 	import flash.net.URLLoader;
 	import flash.utils.Dictionary;
 	
-	import mx.utils.StringUtil;
-
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;

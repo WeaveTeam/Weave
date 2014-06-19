@@ -23,9 +23,9 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import weave.api.registerLinkableChild;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;

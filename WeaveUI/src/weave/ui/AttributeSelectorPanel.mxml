@@ -49,9 +49,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Label;
-			import mx.managers.PopUpManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;

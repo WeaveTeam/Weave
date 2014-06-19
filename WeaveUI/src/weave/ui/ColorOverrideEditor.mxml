@@ -95,7 +95,6 @@
 			import weave.data.KeySets.KeySet;
 			import weave.api.getCallbackCollection;
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;

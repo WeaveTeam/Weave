@@ -27,7 +27,6 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
 			import weave.editors.managers.LayerListComponent;
 			import weave.primitives.Bounds2D;

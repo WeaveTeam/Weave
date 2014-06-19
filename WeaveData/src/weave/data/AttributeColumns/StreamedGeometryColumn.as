@@ -24,9 +24,7 @@ package weave.data.AttributeColumns
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IQualifiedKey;
@@ -38,8 +36,6 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.services.addAsyncResponder;
-	import weave.services.beans.GeometryStreamMetadata;
-	import weave.utils.AsyncSort;
 	import weave.utils.GeometryStreamDecoder;
 	
 	/**

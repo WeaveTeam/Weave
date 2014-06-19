@@ -19,17 +19,15 @@
 
 package weave.data.KeySets
 {
-	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
-	import weave.core.LinkableVariable;
 	
 	/**
 	 * This class is used to include and exclude IQualifiedKeys from a set.

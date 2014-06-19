@@ -65,25 +65,17 @@
     <mx:Label text="{lang('* = required')}"/>
     <mx:Script>
         <![CDATA[
-            import mx.controls.Alert;
-            import mx.managers.PopUpManager;
             import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
             
-            import weave.api.WeaveAPI;
             import weave.api.core.ILinkableObject;
             import weave.api.data.IDataSource;
-            import weave.api.getCallbackCollection;
-            import weave.api.getSessionState;
             import weave.api.newDisposableChild;
-            import weave.api.registerDisposableChild;
-            import weave.api.reportError;
-            import weave.services.FileAttacher;
             import weave.compiler.StandardLib;
             import weave.data.DataSources.GraphMLDataSource;
-            import weave.editors.managers.EditDataGridPanel;
+            import weave.services.FileAttacher;
             import weave.ui.BusyIndicator;
             import weave.ui.IndentGroup;
-            import weave.utils.VectorUtils;
             
             [Bindable] private var indentGroup:IndentGroup = new IndentGroup();
             

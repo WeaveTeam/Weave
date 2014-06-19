@@ -62,7 +62,6 @@ package weave.application
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;

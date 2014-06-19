@@ -21,7 +21,6 @@ package weave.visualization.plotters
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;

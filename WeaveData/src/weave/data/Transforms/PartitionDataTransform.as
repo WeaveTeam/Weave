@@ -1,44 +1,19 @@
 package weave.data.Transforms
 {
-    import flare.data.converters.GraphMLConverter;
-
-    import mx.rpc.events.FaultEvent;
-    import mx.rpc.events.ResultEvent;
-    import flash.net.URLRequest;
-    import flash.net.URLLoaderDataFormat;
-
-    import weave.api.WeaveAPI;
+    import weave.api.core.ILinkableHashMap;
     import weave.api.data.ColumnMetadata;
-    import weave.api.data.DataTypes;
+    import weave.api.data.IAttributeColumn;
+    import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.data.IColumnReference;
-    import weave.api.data.IAttributeColumn;    
-    import weave.api.data.IQualifiedKey;
-    import weave.api.data.IKeySet;
-    import weave.api.core.ILinkableHashMap;
-    import weave.api.getCallbackCollection;
-    import weave.api.registerLinkableChild;
     import weave.api.newLinkableChild;
-    import weave.data.KeySets.KeySet;
-    import weave.data.KeySets.StringDataFilter;
-    import weave.compiler.Compiler;
-    import weave.core.LinkableBoolean;
-    import weave.core.LinkableNumber;
-    import weave.core.LinkableString;
-    import weave.core.LinkableVariable;
+    import weave.api.registerLinkableChild;
     import weave.core.LinkableHashMap;
-    import weave.core.SessionManager;
-    import weave.data.AttributeColumns.ProxyColumn;
-    import weave.data.AttributeColumns.NumberColumn;
-    import weave.data.AttributeColumns.DateColumn;
     import weave.data.AttributeColumns.DynamicColumn;
     import weave.data.AttributeColumns.FilteredColumn;
-    import weave.data.QKeyManager;
+    import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.DataSources.AbstractDataSource;
-    import weave.core.ClassUtils;
-    import weave.api.reportError;
-
+    import weave.data.KeySets.StringDataFilter;
     import weave.utils.VectorUtils;
 
     public class PartitionDataTransform extends AbstractDataSource
@@ -139,12 +114,10 @@ package weave.data.Transforms
     }
 }
 
-import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
-import weave.api.data.DataTypes;
+import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
 import weave.api.data.IWeaveTreeNode;
-import weave.api.data.IColumnReference;
 import weave.data.Transforms.PartitionDataTransform;
 
 internal class PartitionTransformNode implements IWeaveTreeNode

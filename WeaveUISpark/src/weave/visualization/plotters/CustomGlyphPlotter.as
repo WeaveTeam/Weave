@@ -21,7 +21,6 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;

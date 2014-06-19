@@ -39,7 +39,6 @@
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;

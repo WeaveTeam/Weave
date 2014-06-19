@@ -69,7 +69,6 @@
 		import mx.controls.Button;
 		import mx.managers.PopUpManager;
 		
-		import weave.api.WeaveAPI;
 		import weave.compiler.StandardLib;
 		import weave.core.UIUtils;
 		

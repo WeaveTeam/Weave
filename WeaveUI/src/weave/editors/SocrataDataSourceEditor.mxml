@@ -43,11 +43,8 @@
 		<![CDATA[
 			import mx.controls.Alert;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
-			import weave.api.getCallbackCollection;
-			import weave.compiler.StandardLib;
 			import weave.data.DataSources.SocrataDataSource;
 			
 			override protected function createChildren():void

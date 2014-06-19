@@ -21,7 +21,6 @@ package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.Compiler;

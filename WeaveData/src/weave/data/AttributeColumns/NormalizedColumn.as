@@ -19,7 +19,6 @@
 
 package weave.data.AttributeColumns
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;

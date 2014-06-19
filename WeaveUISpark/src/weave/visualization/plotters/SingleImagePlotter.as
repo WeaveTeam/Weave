@@ -29,25 +29,16 @@ package weave.visualization.plotters
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.data.ISimpleGeometry;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.IPlotter;
-	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.primitives.Bounds2D;
-	import weave.primitives.GeometryType;
-	import weave.primitives.SimpleGeometry;
 	import weave.utils.BitmapText;
 
 	/**

@@ -105,7 +105,6 @@
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;

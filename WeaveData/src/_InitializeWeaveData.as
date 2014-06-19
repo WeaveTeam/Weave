@@ -19,7 +19,6 @@
 
 package
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
 	import weave.api.data.IProjectionManager;

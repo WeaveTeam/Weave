@@ -56,7 +56,6 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;

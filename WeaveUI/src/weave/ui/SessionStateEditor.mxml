@@ -123,7 +123,6 @@ A text editor to change the Session State on the fly.
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;

@@ -26,7 +26,6 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLDecoder;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.reportError;
 	
 	/**

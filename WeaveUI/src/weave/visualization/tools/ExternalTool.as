@@ -20,7 +20,6 @@ package weave.visualization.tools
 {
 	import mx.utils.Base64Encoder;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;

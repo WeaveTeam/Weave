@@ -25,8 +25,6 @@ package weave.utils
 	import mx.rpc.events.ResultEvent;
 	import mx.styles.CSSStyleDeclaration;
 	import mx.styles.StyleManager;
-	
-	import weave.api.WeaveAPI;
 
 	/**
 	 * CSSUtils

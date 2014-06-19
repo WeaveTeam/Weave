@@ -23,8 +23,6 @@ package weave.core
 	
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
-	
 	/**
 	 * This is an all-static class containing functions for loading SWC libraries at runtime.
 	 * 
@@ -135,7 +133,6 @@ import mx.rpc.Fault;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
-import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
 import weave.core.ClassUtils;
 import weave.utils.AsyncSort;

@@ -19,11 +19,8 @@
 
 package weave.core
 {
-	import flash.utils.getDefinitionByName;
-	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;

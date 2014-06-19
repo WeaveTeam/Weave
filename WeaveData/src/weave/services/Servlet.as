@@ -34,7 +34,6 @@ package weave.services
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.services.IAsyncService;
 	import weave.utils.VectorUtils;

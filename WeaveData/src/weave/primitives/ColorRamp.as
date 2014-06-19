@@ -23,7 +23,6 @@ package weave.primitives
 	import flash.display.Sprite;
 	import flash.utils.ByteArray;
 	
-	import weave.api.WeaveAPI;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	

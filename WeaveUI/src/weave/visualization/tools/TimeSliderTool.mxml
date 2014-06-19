@@ -32,7 +32,6 @@
 
 <mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IDataSource;

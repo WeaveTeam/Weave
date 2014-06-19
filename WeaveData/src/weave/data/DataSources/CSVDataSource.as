@@ -21,7 +21,6 @@ package weave.data.DataSources
 {
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.rpc.AsyncToken;
@@ -29,7 +28,6 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
@@ -647,7 +645,6 @@ package weave.data.DataSources
 	}
 }
 
-import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;

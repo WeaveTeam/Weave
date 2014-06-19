@@ -60,7 +60,6 @@
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
 			import weave.api.getCallbackCollection;

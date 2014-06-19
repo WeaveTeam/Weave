@@ -27,13 +27,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.core.LinkableWatcher;
 			import weave.core.LinkableNumber;
+			import weave.core.LinkableWatcher;
 			
 			public var column:CustomDataGridColumn;
 			

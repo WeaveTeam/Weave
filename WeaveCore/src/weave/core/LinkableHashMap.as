@@ -19,11 +19,9 @@
 
 package weave.core
 {
-	import flash.net.registerClassAlias;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;

@@ -43,15 +43,12 @@
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.ProxyObject;
-			import weave.core.ErrorManager;
-			import weave.core.ExternalSessionStateInterface;
 			
 			private var LOG_MAX_LENGTH:int = 10000;
 			

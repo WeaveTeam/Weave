@@ -26,7 +26,6 @@ package weave.visualization.plotters
 	
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.setSessionState;

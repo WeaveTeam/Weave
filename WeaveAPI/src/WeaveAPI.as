@@ -13,7 +13,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api
+package
 {
 	import avmplus.DescribeType;
 	

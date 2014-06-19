@@ -34,10 +34,8 @@ package weave.ui
 	import mx.events.FlexEvent;
 	import mx.events.ResizeEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.core.IStageUtils;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;

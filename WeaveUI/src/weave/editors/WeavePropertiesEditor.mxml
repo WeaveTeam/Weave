@@ -105,7 +105,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
 			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.StreamedGeometryColumn;

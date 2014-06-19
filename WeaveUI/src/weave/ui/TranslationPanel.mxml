@@ -62,12 +62,9 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getDefinitionByName;
-			
 			import mx.events.DataGridEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.reportError;
 			import weave.core.UIUtils;
 			import weave.utils.AsyncSort;

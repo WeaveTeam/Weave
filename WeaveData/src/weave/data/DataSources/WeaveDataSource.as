@@ -26,7 +26,6 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.EntityType;
@@ -629,7 +628,6 @@ import flash.utils.getTimer;
 
 import mx.rpc.events.ResultEvent;
 
-import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.DataTypes;
 import weave.api.data.EntityType;

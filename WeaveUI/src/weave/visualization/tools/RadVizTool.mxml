@@ -31,14 +31,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			  >
 	<mx:Script>
 		<![CDATA[
-			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import spark.core.SpriteVisualElement;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
@@ -61,7 +59,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
-			import weave.services.beans.RResult;
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;

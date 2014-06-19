@@ -32,7 +32,6 @@ package weave.visualization.plotters
 	import mx.graphics.ImageSnapshot;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -44,7 +43,6 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -55,7 +53,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.radviz.BruteForceLayoutAlgorithm;
@@ -64,7 +61,6 @@ package weave.visualization.plotters
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.ColumnUtils;
-	import weave.utils.EquationColumnLib;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;

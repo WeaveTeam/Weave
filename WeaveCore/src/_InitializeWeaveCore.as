@@ -19,7 +19,6 @@
 
 package
 {
-	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;

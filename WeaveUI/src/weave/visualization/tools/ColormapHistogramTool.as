@@ -20,7 +20,6 @@
 package weave.visualization.tools
 {
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.ui.IVisTool;
 	
 	/**

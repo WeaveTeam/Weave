@@ -29,8 +29,6 @@ package weave.ui
 	import mx.core.UIComponent;
 	import mx.events.MenuEvent;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.reportError;
 	import weave.primitives.Bounds2D;
 	
 	/**

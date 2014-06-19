@@ -35,9 +35,7 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
-			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
-			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.ColorBinLegendPlotter;

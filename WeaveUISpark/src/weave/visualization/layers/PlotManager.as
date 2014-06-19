@@ -34,7 +34,6 @@ package weave.visualization.layers
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;

@@ -23,7 +23,6 @@ package weave.services
 	
 	import mx.rpc.AsyncToken;
 	
-	import weave.api.reportError;
 	import weave.compiler.Compiler;
 
 	/**

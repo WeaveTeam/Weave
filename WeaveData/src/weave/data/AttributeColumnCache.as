@@ -19,7 +19,6 @@
 
 package weave.data
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.IDataSource;

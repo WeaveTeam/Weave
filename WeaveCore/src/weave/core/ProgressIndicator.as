@@ -24,7 +24,6 @@ package weave.core
 	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;

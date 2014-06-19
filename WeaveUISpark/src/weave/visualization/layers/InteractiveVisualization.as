@@ -37,7 +37,6 @@ package weave.visualization.layers
 	import spark.components.Group;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
 	import weave.api.primitives.IBounds2D;
