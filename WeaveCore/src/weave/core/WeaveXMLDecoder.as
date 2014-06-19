@@ -164,7 +164,7 @@ package weave.core
 			var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
 			if (encoding == WeaveXMLEncoder.JSON_ENCODING)
 			{
-				var str:String = dataNode.firstChild.nodeValue;
+				var str:String = dataNode.firstChild ? dataNode.firstChild.nodeValue : '';
 				var object:Object = null;
 				var json:Object = ClassUtils.getClassDefinition('JSON');
 				if (json)
