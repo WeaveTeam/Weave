@@ -16,7 +16,7 @@ angular.module('aws.outputView', [])
 		
 		if($scope.projectListMode == 'multiple'){
 			//get pictures of all records(projects)
-			queryService.getListOfQueryObjectVisualizations("SKC");
+			queryService.getListOfQueryObjectVisualizations(null);
 		}
 		
 		if($scope.projectListMode == 'single'){
@@ -74,32 +74,16 @@ angular.module('aws.outputView', [])
 	//testing
 	var newWeave ;
 	
-	$scope.checking = function(){
-		if(!newWeave.log) {
-            setTimeout($scope.checking,1000);
-        } else { newWeave.log("KKOOOO"); }
-		
-		
-	};
-	
 	/**********************************************************Button controls*****************************/
 	$scope.openRealWeave = function(){
+
 		if(!newWeave || newWeave.closed) {
-			newWeave = window.open("aws/visualization/weave/weave.html",
-				"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-		}
-		
-		
-		
-			newWeave.addEventListener("load", function() {
-		        console.log("received load event");
-		        newWeave.log("KKOO");
-		        console.log("checking");
-		    }, false);
-		
-		//var currentSessionString = $scope.listOfSessionStates[$scope.index];
-		//console.log("currentSessionString", currentSessionString);
-		
-		//var c = newWeave.setSessionHistory(currentSessionString);
+		newWeave = window.open("aws/visualization/weave/weave.html",
+			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+	}
+	
+	 newWeave.logvar = "Loading Session State";
+ 	var currentSessionString = $scope.listOfSessionStates[$scope.index];
+		newWeave.setSession = currentSessionString;
 	};
 });
