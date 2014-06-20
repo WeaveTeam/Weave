@@ -12,6 +12,7 @@
 			<mx:Label id="infoLine4" text="test4"/>
 			<mx:Label id="infoLine5" text="test5"/>
 		</mx:Box>
+		<mx:Button id="lockButton" label="{lang('Lock Record')}" click="lockRecordClick(event)"/>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
@@ -22,6 +23,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
@@ -50,6 +52,8 @@
 			public const _recordKeySubset:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 			public const _recordKeyProbe:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 			public const _recordKeySelection:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
+			
+			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
 			
 			WeaveAPI.registerImplementation(IVisTool, IndividualRecordTool, lang("Individual Record Tool"));
 			
@@ -94,7 +98,7 @@
 			
 			private function handleSubsetChange():void
 			{
-				if( _recordKeySubset.keys.length == 1 )
+				if( _recordKeySubset.keys.length == 1 && !_locked.value)
 				{
 					handlePictureChange();
 					columnLine1Update();
@@ -193,6 +197,23 @@
 			{
 				infoLine5.text = line5LeadingText.value + " " + infoLine5.text.replace(previousText5 + " ","");
 				previousText5 = line5LeadingText.value;
+			}
+			
+			protected function lockRecordClick(event:MouseEvent):void
+			{
+				_locked.value = ( lockButton.label == lang("Lock Record") ) ? true : false;
+				if( _locked.value )
+					lockButton.label = lang("Unlock Record");
+				else
+					lockButton.label = lang("Lock Record");
+			}
+			
+			private function updateLockLabel():void
+			{
+				if( _locked.value )
+					lockButton.label = lang("Unlock Record");
+				else
+					lockButton.label = lang("Lock Record");
 			}
 			
 		]]>
