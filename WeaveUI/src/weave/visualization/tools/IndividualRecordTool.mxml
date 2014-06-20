@@ -28,6 +28,7 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.KeySets.FilteredKeySet;
+			import weave.data.KeySets.KeySet;
 			import weave.utils.BitmapUtils;
 			
 			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
@@ -50,8 +51,8 @@
 			private var previousText5:String;
 			
 			public const _recordKeySubset:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
-			public const _recordKeyProbe:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
-			public const _recordKeySelection:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet;	
 			
 			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
 			
@@ -62,14 +63,12 @@
 				super.constructor();
 				
 				_recordKeySubset.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-				_recordKeyProbe.keyFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
-				_recordKeySelection.keyFilter.globalName = Weave.DEFAULT_SELECTION_KEYSET;
 				
 				_recordKeySubset.setColumnKeySources([profilePicturesColumn,firstProfileColumn,secondProfileColumn,thirdProfileColumn,fourthProfileColumn,fifthProfileColumn]);
 				
 				_recordKeySubset.addGroupedCallback(this, handleSubsetChange);
-				_recordKeyProbe.addGroupedCallback(this, handleSubsetChange);
-				_recordKeySelection.addGroupedCallback(this, handleSubsetChange);
+				_probe.addGroupedCallback(this, handleSubsetChange);
+				_selection.addGroupedCallback(this, handleSubsetChange);
 			}
 			
 			override protected function childrenCreated():void
@@ -98,7 +97,7 @@
 			
 			private function handleSubsetChange():void
 			{
-				if( _recordKeySubset.keys.length == 1 && !_locked.value)
+				if( (_selection.keys.length == 1 || _probe.keys.length == 1 || _recordKeySubset.keys.length == 1) && !_locked.value)
 				{
 					handlePictureChange();
 					columnLine1Update();
@@ -129,6 +128,11 @@
 			{
 				if( _recordKeySubset.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData) != null)
 						BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData);
+				else if( _probe.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData);
+				else if( _selection.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData);
+				
 			}
 			
 			private function columnLine1Update():void
@@ -136,6 +140,16 @@
 				if( _recordKeySubset.keys.length == 1 && firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
 					infoLine1.text = line1LeadingText.value + " " + (firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && firstProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + " " + (firstProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && firstProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + " " + (firstProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText1 = line1LeadingText.value;
 				}
 			}
@@ -146,12 +160,32 @@
 					infoLine2.text = line2LeadingText.value + " " + (secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
 					previousText2 = line2LeadingText.value;
 				}
+				else if( _probe.keys.length == 1 && secondProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + " " + (secondProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && secondProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + " " + (secondProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
 			}
 			private function columnLine3Update():void
 			{
 				if( _recordKeySubset.keys.length == 1 && thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
 					infoLine3.text = line3LeadingText.value + " " + (thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && thirdProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + " " + (thirdProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && thirdProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + " " + (thirdProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText3 = line3LeadingText.value;
 				}
 			}
@@ -162,12 +196,32 @@
 					infoLine4.text = line4LeadingText.value + " " + (fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
 					previousText4 = line4LeadingText.value;
 				}
+				else if( _probe.keys.length == 1 && fourthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + " " + (fourthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && fourthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + " " + (fourthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
 			}
 			private function columnLine5Update():void
 			{
 				if( _recordKeySubset.keys.length == 1 && fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
 					infoLine5.text = line5LeadingText.value + " " + (fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && fifthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + " " + (fifthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && fifthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + " " + (fifthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText5 = line5LeadingText.value;
 				}
 			}
