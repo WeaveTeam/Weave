@@ -348,6 +348,10 @@ package weave.core
 		{
 			super.dispose();
 			
+			// first, remove all objects that aren't locked
+			removeAllObjects();
+			
+			// remove all locked objects
 			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
 			{
 				_nameIsLocked[name] = undefined; // make sure removeObject() will carry out its action
