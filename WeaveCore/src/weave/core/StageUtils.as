@@ -35,6 +35,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IStageUtils;
+	import weave.api.newDisposableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
@@ -635,7 +636,7 @@ package weave.core
 			{
 				// create a new callback collection for each type of event
 				for each (type in _eventTypes)
-					_callbackCollections[type] = new CallbackCollection();
+					_callbackCollections[type] = newDisposableChild(WeaveAPI.globalHashMap, CallbackCollection);
 				
 				// set this flag so callback collections won't be initialized again
 				_callbackCollectionsInitialized = true;
@@ -817,6 +818,12 @@ package weave.core
 			// If the target is the stage, the capture listener won't be called, so add
 			// an additional listener that runs callbacks when the stage is the target.
 			_stage.addEventListener(eventType, stageListener, false, 0, true); // do not use capture phase
+			
+			// when callbacks are disposed, remove the listeners
+			cc.addDisposeCallback(null, function():void {
+				_stage.removeEventListener(eventType, captureListener, true);
+				_stage.removeEventListener(eventType, stageListener, false);
+			});
 		}
 		
 		/**
