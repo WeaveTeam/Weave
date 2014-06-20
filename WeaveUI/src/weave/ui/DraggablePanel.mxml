@@ -68,6 +68,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.getLinkableOwner;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
+			import weave.api.objectWasDisposed;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
@@ -689,6 +690,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function get borderIsVisible():Boolean
 			{
+				if (objectWasDisposed(this))
+					return false;
 				return enableBorders.value && (parent is ISystemManager || !Weave.properties.dashboardMode.value);
 			}
 			
