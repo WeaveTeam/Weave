@@ -127,7 +127,7 @@
 			private function handlePictureChange():void
 			{
 				if( _recordKeySubset.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData) != null)
-						BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData);
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData);
 				else if( _probe.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData) != null)
 					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData);
 				else if( _selection.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData) != null)
@@ -139,17 +139,17 @@
 			{
 				if( _recordKeySubset.keys.length == 1 && firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
-					infoLine1.text = line1LeadingText.value + " " + (firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
 					previousText1 = line1LeadingText.value;
 				}
 				else if( _probe.keys.length == 1 && firstProfileColumn.getValueFromKey(_probe.keys[0]) != null)
 				{
-					infoLine1.text = line1LeadingText.value + " " + (firstProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
 					previousText1 = line1LeadingText.value;
 				}
 				else if( _selection.keys.length == 1 && firstProfileColumn.getValueFromKey(_selection.keys[0]) != null)
 				{
-					infoLine1.text = line1LeadingText.value + " " + (firstProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText1 = line1LeadingText.value;
 				}
 			}
@@ -157,17 +157,17 @@
 			{
 				if( _recordKeySubset.keys.length == 1 && secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
-					infoLine2.text = line2LeadingText.value + " " + (secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
 					previousText2 = line2LeadingText.value;
 				}
 				else if( _probe.keys.length == 1 && secondProfileColumn.getValueFromKey(_probe.keys[0]) != null)
 				{
-					infoLine2.text = line2LeadingText.value + " " + (secondProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
 					previousText2 = line2LeadingText.value;
 				}
 				else if( _selection.keys.length == 1 && secondProfileColumn.getValueFromKey(_selection.keys[0]) != null)
 				{
-					infoLine2.text = line2LeadingText.value + " " + (secondProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText2 = line2LeadingText.value;
 				}
 			}
@@ -175,17 +175,17 @@
 			{
 				if( _recordKeySubset.keys.length == 1 && thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
-					infoLine3.text = line3LeadingText.value + " " + (thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
 					previousText3 = line3LeadingText.value;
 				}
 				else if( _probe.keys.length == 1 && thirdProfileColumn.getValueFromKey(_probe.keys[0]) != null)
 				{
-					infoLine3.text = line3LeadingText.value + " " + (thirdProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
 					previousText3 = line3LeadingText.value;
 				}
 				else if( _selection.keys.length == 1 && thirdProfileColumn.getValueFromKey(_selection.keys[0]) != null)
 				{
-					infoLine3.text = line3LeadingText.value + " " + (thirdProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText3 = line3LeadingText.value;
 				}
 			}
@@ -193,17 +193,17 @@
 			{
 				if( _recordKeySubset.keys.length == 1 && fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
-					infoLine4.text = line4LeadingText.value + " " + (fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
 					previousText4 = line4LeadingText.value;
 				}
 				else if( _probe.keys.length == 1 && fourthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
 				{
-					infoLine4.text = line4LeadingText.value + " " + (fourthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
 					previousText4 = line4LeadingText.value;
 				}
 				else if( _selection.keys.length == 1 && fourthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
 				{
-					infoLine4.text = line4LeadingText.value + " " + (fourthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText4 = line4LeadingText.value;
 				}
 			}
@@ -211,17 +211,17 @@
 			{
 				if( _recordKeySubset.keys.length == 1 && fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
 				{
-					infoLine5.text = line5LeadingText.value + " " + (fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
 					previousText5 = line5LeadingText.value;
 				}
 				else if( _probe.keys.length == 1 && fifthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
 				{
-					infoLine5.text = line5LeadingText.value + " " + (fifthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
 					previousText5 = line5LeadingText.value;
 				}
 				else if( _selection.keys.length == 1 && fifthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
 				{
-					infoLine5.text = line5LeadingText.value + " " + (fifthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
 					previousText5 = line5LeadingText.value;
 				}
 			}
@@ -229,27 +229,27 @@
 			
 			private function updateLine1():void
 			{
-				infoLine1.text = line1LeadingText.value + " " + infoLine1.text.replace(previousText1 + " ","");
+				infoLine1.text = line1LeadingText.value + infoLine1.text.replace(previousText1,"");
 				previousText1 = line1LeadingText.value;
 			}
 			private function updateLine2():void
 			{
-				infoLine2.text = line2LeadingText.value + " " + infoLine2.text.replace(previousText2 + " ","");
+				infoLine2.text = line2LeadingText.value + infoLine2.text.replace(previousText2,"");
 				previousText2 = line2LeadingText.value;
 			}
 			private function updateLine3():void
 			{
-				infoLine3.text = line3LeadingText.value + " " + infoLine3.text.replace(previousText3 + " ","");
+				infoLine3.text = line3LeadingText.value + infoLine3.text.replace(previousText3,"");
 				previousText3 = line3LeadingText.value;
 			}
 			private function updateLine4():void
 			{
-				infoLine4.text = line4LeadingText.value + " " + infoLine4.text.replace(previousText4 + " ","");
+				infoLine4.text = line4LeadingText.value + infoLine4.text.replace(previousText4,"");
 				previousText4 = line4LeadingText.value;
 			}
 			private function updateLine5():void
 			{
-				infoLine5.text = line5LeadingText.value + " " + infoLine5.text.replace(previousText5 + " ","");
+				infoLine5.text = line5LeadingText.value + infoLine5.text.replace(previousText5,"");
 				previousText5 = line5LeadingText.value;
 			}
 			
