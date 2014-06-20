@@ -490,7 +490,14 @@ package weave
 				obj.close();
 				
 				// before reloading, dispose everything in case any JavaScript cleanup needs to happen.
-				disposeObject(WeaveAPI.globalHashMap);
+				try
+				{
+					disposeObject(WeaveAPI.globalHashMap);
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
 				
 				// reload the application
 				if (ExternalInterface.objectID)
