@@ -70,6 +70,7 @@ package weave.application
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
+	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IVisTool;
@@ -132,6 +133,7 @@ package weave.application
 		public function VisApplication()
 		{
 			super();
+			registerDisposableChild(Weave.properties, this);
 
 			setStyle("paddingLeft", 0);
 			setStyle("paddingRight", 0);
@@ -542,7 +544,7 @@ package weave.application
 		
 		private function updateWorkspaceSize(..._):void
 		{
-			if (!this.parent)
+			if (!this.parent || !Weave.properties)
 				return;
 			
 			var w:Number = Weave.properties.workspaceWidth.value;
