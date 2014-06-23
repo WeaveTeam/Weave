@@ -18,13 +18,6 @@ analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorS
   };
 });
 
-analysis_mod.controller('SaveVisualizationCtrl', function($scope, $filter, dasboard_widget_service) {
-	
-	
-	
-});
-
-
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
 	$scope.box_enabled = {};
@@ -33,9 +26,9 @@ analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_
 	$scope.dash_focused = false;
 	
 	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
-	// $scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
+	$scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
 	$scope.tool_list = dasboard_widget_service.get_tool_list('visualization');
-	// $scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
+	$scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
 
 	$scope.add_widget = function(element_id) {
 		
@@ -79,57 +72,6 @@ analysis_mod.config(function($selectProvider) {
 
 analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 
-	
-	$scope.content_tools = [{
-		id : 'Indicator',
-		title : 'Indicator',
-		template_url : 'aws/analysis/indicator/indicator.tpl.html',
-		description : 'Choose an Indicator for the Analysis',
-		category : 'indicatorfilter'
-	},
-	{
-		id : 'GeographyFilter',
-		title : 'Geography Filter',
-		template_url : 'aws/analysis/data_filters/geography.tpl.html',
-		description : 'Filter data by States and Counties',
-		category : 'datafilter'
-
-	},
-	{
-		id : 'TimePeriodFilter',
-		title : 'Time Period Filter',
-		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
-		description : 'Filter data by Time Period',
-		category : 'datafilter'
-	},
-	{
-		id : 'ByVariableFilter',
-		title : 'By Variable Filter',
-		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
-		description : 'Filter data by Variables',
-		category : 'datafilter'
-	},
-	{
-		id : 'ScriptSettings',
-		title : 'Script Settings',
-		template_url : 'aws/analysis/script_settings.tpl.html',
-		description : 'Script Settings',
-		category : 'datafilter'
-	}
-	
-	/*{
-		id : 'Visualization',
-		title : 'Configure Visulas',
-		template_url : 'aws/analysis/visualization.tpl.html',
-		description : 'Configure output chart for Weave',
-		category : 'visualization'
-	}*/];
-	
-	
-	
-	
-	
-	
 	$scope.setting_loaded = false;
 	$scope.secret_state = false;
 	$scope.show_load = false;
@@ -148,14 +90,14 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	/*??*/
 	queryService.getDataTableList();
 	$scope.dataTableList = [];
-	$scope.dataTable=null;
+	var dataTable;
 
 	$scope.$watch(function() {
 		return queryService.dataObject.dataTableList;
 	}, function() {
 		if (queryService.dataObject.hasOwnProperty("dataTableList")) {
 			for (var i = 0; i < queryService.dataObject.dataTableList.length; i++) {
-				var dataTable = queryService.dataObject.dataTableList[i];
+				dataTable = queryService.dataObject.dataTableList[i];
 				$scope.dataTableList.push({
 					id : dataTable.id,
 					title : dataTable.title
@@ -187,12 +129,12 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	$scope.scriptSelected = '';
 	$scope.scriptList = [];
 
-	//$scope.populateScriptsBar = function() {
-	//	$scope.script_focused = true;
+	$scope.populateScriptsBar = function() {
+		$scope.script_focused = true;
 
-	$scope.scriptList = queryService.getListOfScripts();
+		$scope.scriptList = queryService.getListOfScripts();
 
-	//};
+	};
 
 	$scope.script_selected_set = function() {
 		$scope.script_focused = true;
@@ -243,7 +185,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 				$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
 
 				// look for default values in the db
-
+				
 				for (var i in $scope.inputs){
 					for(var j in queryService.dataObject.columns) {
 						if($scope.inputs[i]['default'] == queryService.dataObject.columns[j].publicMetadata.title) {
@@ -267,7 +209,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 			}
 		}
 	});
-
+	
 	$scope.columns = [];
 
 	$scope.$watch(function() {
@@ -319,11 +261,11 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	queryService.queryObject.ScriptColumnRequest = [];
 
 	$scope.$watchCollection('selection', function() {
-
+		
 		if(!$scope.selection.length) {
 			queryService.queryObject.ScriptColumnRequest = [];
 		}
-
+		
 		for (var i = 0; i < $scope.selection.length; i++) {
 			if ($scope.selection != undefined) {
 				if ($scope.selection[i] != undefined && $scope.selection[i] != "") {

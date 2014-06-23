@@ -1,12 +1,13 @@
 <div class="panel-body" ng-controller="byVariableCtrl">
+	
 	<ul class="input-controls">
+		<a class="btn btn-primary" style="padding: 1px 2px; margin-bottom: 7px;" ng-click="addByVariable()">Add Filter</a>
 		<div ng-repeat="item in items" class="byvariable-contents">
-			<select ui-select2 ng-model="byVariableSelection[$index]" data-placeholder="Choose By Variable Filter">
+			<select style="width: 100%" ui-select2 ng-model="byVariableSelection[$index]" data-placeholder="Choose By Variable Filter">
 				<option></option>
 				<option value="{{col}}" ng-repeat="col in $parent.byVariableColumns"> {{col.title}}</option>
 			</select>
-			<a style="display: inline-block; margin-left: 10px;" ng-click='removeByVariable($index)'>Remove</a>
-			<br>
+			<a style="display: inline-block;" ng-click='removeByVariable($index)'>Remove</a>
 			<div  ng-if="$parent.filterType[$index] == 'continuous'" style="padding-top: 5px">
 	 			<div ui-slider="$parent.filterOptions[$index]" ng-model="$parent.filterValues[$index]"></div>
 			</div>
@@ -15,9 +16,8 @@
 	 				<option value="{{cat}}" ng-repeat="cat in $parent.filterOptions[$index]">{{cat.label}}</option>
 	 			</select>
 			</div>
-			<br>
 		</div>
-		<br>
-		<a class="btn" ng-click="addByVariable()"><i class="glyphicon glyphicon-plus"></i>Add</a>
+
+		
 	</ul>
 </div>

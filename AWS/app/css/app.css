@@ -50,7 +50,7 @@ body{
 }
 
 #header{
-	min-height: 42px;
+	min-height: 50px;
 }
 
 #header .navbar {
@@ -224,12 +224,12 @@ body{
 
 .tab-container{
 	
-    position:absolute;
-    top: 42px;
+    /*position:absolute;*/
+    /*top: 42px;*/
     left:0px;
     right:0px;
     bottom:0px;
-    overflow-y:scroll;        
+    /*overflow-y:scroll;*/        
 
 }
 

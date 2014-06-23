@@ -3,32 +3,32 @@
 		
 		<div style="display: inline">
 			<div style="display: list-item">
-					<select ui-select2 ng-model="stateDBSelection" data-placeholder="State Column">
+					<select style="width: 100%" ui-select2 ng-model="stateDBSelection" data-placeholder="State Column">
 						<option></option>
 						<option value="{{col}}" ng-repeat="col in stateDBOptions">{{col.title}}</option>
 					</select>
 			</div>
-			<div style="display: list-item; padding-top: 15px;">
-				<select ui-select2 ng-model="countyDBSelection" data-placeholder="County Column">
+			<div style="display: list-item; padding-top: 5px;">
+				<select style="width: 100%" ui-select2 ng-model="countyDBSelection" data-placeholder="County Column">
 					<option></option>
 					<option value="{{col}}" ng-repeat="col in countyDBOptions">{{col.title}}</option>
 				</select>	
 			</div>
-			<div style="display: list-item; padding-top: 15px;">
-				<select ui-select2 ng-model="metadataTableSelection" data-placeholder="Metadata Table">
+			<div style="display: list-item; padding-top: 5px;">
+				<select style="width: 100%" ui-select2 ng-model="metadataTableSelection" data-placeholder="Metadata Table">
 					<option></option>
 					<option value="{{dt}}" ng-repeat="dt in dataTableOptions">{{dt.title}}</option>
 				</select>
 			</div>
 		</div>
 		
-		<br><br>
-		<p>
+		
+		<p style="margin-top: 5px;">
 			<a ng-click='selectAll()'>Select all</a> -
 			<a ng-click='deSelectAll()'>Deselect all</a>
 					<!-- 			<a ng-click='toggleSelect()'>Toggle select</a> -->
 		</p>
-   		<div id="geoTree"style="width: 95%; height: 200px; overflow: scroll"></div>
+   		<div id="geoTree"style="width: 95%; height: 100px; overflow:scroll"></div>
    		<br>
       		
 	</ul>

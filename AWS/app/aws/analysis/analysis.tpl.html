@@ -1,187 +1,168 @@
-<div class="container-fluid analysis-tpl" style="width: 100%; height: 100%" ng-controller="AnalysisMainCtrl">
-	<div class="row analysis-wizard" ng-controller="ScriptsBarController">
-		<div class="wizard-vertical">
-
-			<div class="wizard-steps show">
-				<div class="wstep" ng-class="{current: dt_focused}" data-step-num="0">
-					<div class="donut">
-						<div>
-							<span class="step" ng-class="{active: dt_focused}">1</span>
-						</div>
-					</div>
-					<span class="txt">Select a Datatable</span>
-
+<div style="height: 100%" ng-controller="AnalysisMainCtrl">
+	<div style="height: 100%" class=".container-fluid" style="padding: 5px;" ng-controller="ScriptsBarController">
+		<div class=".row " style="height: 100%; margin-top: 10px;">
+			<!--Indicator and datatable-->
+			<div class="databox" style="width: 15%">
+				<!-- <div class="databox" style="width: 200px;"> -->
+				<div class=" header panel-heading">
+					<h2>Indicator</h2>
 				</div>
-				<div class="wstep " ng-class="{current: script_focused}" data-step-num="0">
-					<div class="donut ">
-						<div>
-							<span class="step" ng-class="{active: script_focused}">2</span>
-						</div>
-					</div>
-					<span class="txt">Select a Script and Configure its parameters</span>
-
-				</div>
-				<div class="wstep last-child" ng-class="{current: dash_focused}" data-step-num="0">
-					<div class="donut">
-						<div>
-							<span class="step" ng-class="{active: dash_focused}">3</span>
-						</div>
-					</div>
-					<span class="txt">Configure Visuals for Weave in the Dashboard</span>
-
-				</div>
-			</div>
-
-		</div>
-
-		<div class="wrap">
-			<div class="search-bar-content">
-
-				<!--<button style="width: 40%; text-align: left; height: 30px; vertical-align: middle" type="button"
-				class="btn btn-default .strap-dropdown-input" ng-model="dataTable" data-html="1"  ng-options="dt.title for dt in dataTableList" ng-change = 'populateScriptsBar()' bs-select bs-select>
-				Select a Datatable
-				<span style="float: right; margin-top: 5px;" class="caret .strap-caret"></span>
-				</button>-->
-
-				<div class="input-group-btn dtatable-dropdown">
-					<button style="width: 30%;border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
-					ng-model="dataTable" data-html="1"  ng-options="dt.title for dt in dataTableList" ng-change = 'populateScriptsBar()' bs-select>
+				<div  class="input-group-btn dtatable-dropdown" ng-controller="ScriptsBarController">
+					<button style="min-width: 100%; width: 100%; border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
+					ng-model="dataTable" data-html="1"  ng-options="dt.title for dt in dataTableList" ng-change = 'populateScriptsBar()' placeholder="Select Datatable" bs-select>
 						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
 					</button>
 				</div>
-
-				<!--save for later-->
-				<!-- href>Set preferences for this page</a>-->
-
-				<div class="input-group search-script" >
-
-					<select class=" form-control search-script-div" ui-select2 ng-change="script_selected_set()" ng-disabled="!dataTable" ng-model="scriptSelected" data-placeholder="Select Script">
+				
+				<!-- <div style="width: 100%; margin-top: 10px;" ng-controller="ScriptsBarController">
+					<select style="width: 100%;" ui-select2 ng-model="dataTable" data-placeholder="Choose Datatble" ng-change = 'populateScriptsBar()'>
 						<option></option>
-						<option value="{{scr}}" ng-repeat="scr in scriptList">{{scr}}</option>
+						<option value="{{dt.title}}" ng-repeat="dt in dataTableList">{{dt.title}}</option>
 					</select>
-
-					<!--<input type="text" class=""  data-min-length="0"
-					data-html="1" ng-options="script for script in scriptList"
-					placeholder="Select or Search for Scripts"
-					ng-focus="script_focused = true" ng-change="script_selected_set()" select-on-click bs-typeahead>
-
-					</input>-->
-					<div id="loading" ng-show="show_load" class="ng-hide">
-						<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
-					</div>
-					<a href="javascript:" /*data-trigger="focus"*/ ng-class="{'link-active': (setting_loaded == true)}" class="input-group-addon link-inactive" title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" bs-popover>Settings</a>
-
-					<!--<button type="button" class="btn btn-default" title="{{popover.title}}" data-content="{{popover.content}}" data-template="aws/analysis/script_settings.tpl.demo.html" data-animation="am-flip-x" bs-popover>
-					Settings
-					</button>-->
+				</div> -->
+				
+				
+				
+				<!--<div style="width: 100%; margin-bottom: 3px;" ng-controller="ScriptsBarController">
+				<select style="width: 100%" ui-select2 ng-model="dataTable" data-placeholder="Choose Datatable"  ng-change = 'populateScriptsBar()'>
+				<option></option>
+				<option value="{{dt.title}}" ng-repeat="dt in dataTableList"  data-title="{{dt.title}}" data-placement="tip">{{dt.title}}</option>
+				</select>
+				</div>-->
+				<div style="width: 100%; margin-top: 10px;" ng-controller="IndicatorCtrl">
+					<select style="width: 100%;" ui-select2 ng-model="indicSelection" data-placeholder="Choose Indicator">
+						<option></option>
+						<option value="{{indic}}" ng-repeat="indic in indicOptions">{{indic.label}}</option>
+					</select>
 				</div>
-
-				<!--<div class="form-group">
-				<input type="text" class="form-control script-search-bar" ng-disabled="!dataTable" ng-model="scriptSelected" data-min-length="0"
-				data-html="1" ng-options="script for script in scriptList"
-				placeholder="Select or Search for Scripts" select-on-click bs-typeahead>
-				</input>
-
-				<button type="button" class="btn btn-default" ng-disabled="!scriptSelected" ng-click = 'show_script_settings()'>
-				Settings
-				</button>
+				<!--<div class="body">
 
 				</div>-->
 
-				<div id="heading" class="page-header" ng-controller="IndicatorCtrl">
+			</div>
 
-					<h1><i class="glyphicon glyphicon-th-large"></i>&nbsp; Dashboard</h1>
+			<!--Geography filter -->
+			<div class="databox" style="width: 15%;" ng-model="content_tools">
+				<!-- <div class="databox" style="width: 160px;"> -->
 
-					<span style="font-size: 10px; font-weight: 400" class="indicator-float" ng-show="indicator.label"> <span>Indicator: {{indicator.label}}</span>
-						<br />
-						<span style="font-size: 10px;">{{ indicatorDescription}}</span> </span>
+				<div class="header panel-heading">
+					<h2>Geography filter</h2>
+				</div>
+
+				<div class="body">
+
+					<div style="height:100%" ng-include="content_tools[1].template_url"></div>
+
 				</div>
 
 			</div>
-			
-		</div>
 
-	</div>
-	<div style="height: 3px; width: 100%; background-color: #ccc">
-		
-	</div>
-	<!--Indicator Content-->
-	<div style="height: 100%" class ng-controller="AnalysisFiltersControllers">
-		<div class='masonry-parent' masonry="{ transitionDuration: '0.0s', gutter: 20 }">
-			<div style="width: 22%%;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in filter_widget_bricks" ng-model="widtget_bricks">
-				<div class="panel-heading">
-					<h2>{{widget_brick.title}}</h2>
-					<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="remove_widget($index)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+			<!--Timeperiod filter -->
+			<div class="databox" style="width: 12%" ng-model= "content_tools">
+				<!-- <div class="databox" style="width: 130px;"> -->
+
+				<div class="header panel-heading">
+					<h2>Time Period</h2>
 				</div>
-				<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>
-				<h6 style = "font-size: 13px" class="widget-description" ng-show = "widget_brick.note"> {{widget_brick.note}} </h6>
-				<div  class="" ng-include="widget_brick.template_url"></div>
-			</div>
-		</div>
-	</div>
 
-	<!-- The Dashboard Content-->
-	<div id='configure_visuals' style="height: 20px; border-top: 2px solid #CCCCCC">
-		Configure Visuals	
-		
-	<!--<div style='float: right'>
-		<a ng-click="scrollTo('heading')">Back to Dashboard</a>
-	</div>	-->
-	</div>
-	<div style="height: 100%" >
-		<div style="height: 100%" class="row dashboard-content" ng-controller="WidgetsController">
-
-			<!--<div style="height: 100%" class="container-fluid">
-			<div style="height: 100%" class="row">-->
-
-			<div style="height:100%" class="col-md-4 sidebar-content">
-				<div style="width: 100%; height: 30px; border-bottom: 1px solid #CCCCCC;" class="possible-search-hide"></div>
-
-				<div class="tool-bar">
-					<ul class="tool-list" >
-						<!--<li id= "general_tool.id" ng-repeat="general_tool in general_tools">
-						<span class="checkbox">
-						<input type="checkbox"  ng-model = "box_enabled[general_tool.id]" ng-change = "enable_widget(general_tool.id)">
-						</span>
-						<a href='javascript: void()'> {{general_tool.title}}</a>
-						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(general_tool.id)">
-						<i class="glyphicon glyphicon-plus"></i>
-						</button>
-						</li>
-						<li >
-						<h4 class='tool-category'>Data Filters</h4>
-						</li>
-						<li id= "filter_tool.id" ng-repeat="filter_tool in filter_tools">
-						<span class="checkbox">
-						<input type="checkbox" ng-model = "box_enabled[filter_tool.id]" ng-change = "enable_widget(filter_tool.id)">
-						</span>
-						<a href='javascript: void()'> {{filter_tool.title}}</a>
-						<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(filter_tool.id)">
-						<i class="glyphicon glyphicon-plus"></i>
-						</button>
-						</li>-->
-						<li>
-							<h4 class='tool-category'>Visualization Tools</h4>
-						</li>
-
-						<li id="tool.id" ng-repeat= "tool in tool_list">
-							<span class="checkbox">
-								<input type="checkbox"  ng-model = "box_enabled[tool.id]" ng-change = "enable_widget(tool.id)">
-							</span>
-							<a href='javascript: void()'> {{tool.title}}</a>
-							<button type="button" class="btn btn-default add-widget" data-trigger='hover' placement="right" title= "Add to dashboard" ng-click="add_widget(tool.id)">
-								<i class="glyphicon glyphicon-plus"></i>
-							</button>
-						</li>
-					</ul>
+				<div class="body">
+					<div style="height:100%" ng-include="content_tools[2].template_url"></div>
 				</div>
+
 			</div>
 
-			<div style="height:100%" class="col-md-8 widget-container">
+			<!--Byvariable filter -->
+			<div class="databox" style="width: 15%" ng-model= "content_tools">
+				<!-- <div class="databox" style="width: 160px;"> -->
 
-				<div class='masonry-parent' masonry="{ transitionDuration: '0.0s', gutter: 40 }">
+				<div class="header panel-heading">
+					<h2>By-variable</h2>
+				</div>
 
-					<div class="masonry-brick panel panel-default" ng-repeat="widget_brick in widtget_bricks" ng-model="widtget_bricks">
+				<div class="body">
+					<div style="height:100%" ng-include="content_tools[3].template_url"></div>
+				</div>
+
+			</div>
+
+			<!--Calculations -->
+			<div class="databox" style="width: 20%">
+				<!-- <div class="databox" style="width: 220px;"> -->
+
+				<div class="header panel-heading">
+					<h2>Calculations</h2>
+				</div>
+				<div ng-controller="ScriptsBarController">
+					<div style="margin-bottom: 3px;">
+						<select style="width: 100%;" ui-select2 ng-model="scriptSelected" ng-change="script_selected_set()" data-placeholder="Select Script">
+							<option></option>
+							<option value="{{scr}}" ng-repeat="scr in scriptList">{{scr}}</option>
+						</select>
+					</div>
+
+					<!--<div id="loading" ng-show="show_load" class="ng-hide">
+					<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
+					</div>-->
+					<a href="javascript:"  title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" placement="bottom" bs-popover>Settings</a>
+				</div>
+
+				<!--<div class="body" ng-model="content-tools">
+				<div style="height:100%" ng-include="content_tools[4].template_url"></div>
+				</div>-->
+
+			</div>
+
+			<div ng-controller="WidgetsController">
+
+				<!--Configure Visuals-->
+				<div class="databox" style="width: 20%">
+					<!-- <div class="databox" style="width: 220px;"> -->
+
+					<div class="header panel-heading">
+						<h2>Output Display</h2>
+					</div>
+
+					<div class="body">
+
+						<div class="tool-bar">
+
+							<ul class="tool-list">
+								<li>
+									<h6 class='tool-category'>Visualization Tools</h6>
+								</li>
+								<li id="tool.id" ng-repeat= "tool in tool_list">
+									<span class="checkbox">
+										<input type="checkbox"  ng-model = "box_enabled[tool.id]" ng-change = "enable_widget(tool.id)" ng-click="add_widget(tool.id)">
+									</span>
+									<a href='javascript: void()'> {{tool.title}}</a>
+								</li>
+							</ul>
+						</div>
+						<!-- <span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span> -->
+						<div style="width: 100%" class="master-select2-container">
+							<select style="width: 100%" ui-select2 ng-controller="ColorColumnCtrl" ng-model="selected" data-placeholder="Choose Color Column">
+								<option></option>
+								<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+							</select>
+						</div>
+						<div ng-controller="RunQueryCtrl">
+							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="runQuery()"> <span style="vertical-align: middle">Run</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
+						</div>
+						
+						<div ng-controller="SaveVisualizationCtrl">
+							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualization()"> <span style="vertical-align: middle">Save output visuals</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+
+			<div style="height:100%; margin-top: 10px; width: 100%;" class="col-md-8 widget-container">
+
+				<div class='masonry-parent' style="width: 100%;" masonry="{ transitionDuration: '0.0s', gutter: 10 }">
+
+					<div style="width: 220px;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in widtget_bricks" ng-model="widtget_bricks">
 
 						<div class="panel-heading">
 							<h2>{{widget_brick.title}}</h2>
@@ -197,34 +178,4 @@
 			</div>
 		</div>
 
-		<div class = 'run-bar' ng-controller="RunQueryCtrl">
-			<span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span>
-			<div class="master-select2-container">
-				<select ui-select2 ng-controller="ColorColumnCtrl" ng-model="selected" data-placeholder="Choose Color Column">
-					<option></option>
-					<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
-				</select>
-			</div>
-			<a href="javascript:void(0);" class="btn btn-primary run-btn" id="" ng-click="runQuery()"><span style="vertical-align: middle">Run</span> <i class="glyphicon glyphicon-play-circle play-button"></i></a>
-
-			<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float:right; margin-top: 10px; margin-right: 5px;">
-
-				<a href="javascript:void(0);" class="btn btn-primary export-btn" id="" ng-click="exportQueryObject()"> <span style="vertical-align: middle">Export Query</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
-
-				<!-- Feature not included
-				<a href="javascript:void(0);" class="btn btn-primary import-button">
-				Import Query
-				<input class="btn-primary" type="file" id="queryImport" name="queryImport"	ng-submit="importQueryObject()" file-upload />
-				</a>
-				-->
-			</div>
-
-		</div>
 	</div>
-
-</div>
-
-<!--</div>
-</div>-->
-</div>
-
