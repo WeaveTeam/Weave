@@ -88,7 +88,7 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
   
 	this.weave.path(toolName).request('MapTool');
   
-	  this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
+	 this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
 	  .push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
 	  .push('line', 'color', 'defaultValue').state('0').pop()
 	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
@@ -100,6 +100,27 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	    "weaveEntityId": entityId,
 	    "projection": "EPSG:4326",
 	    "dataType": "geometry"
+	  }).pop().pop().pop()
+	  .push('statelabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
+	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('metadata').state({
+	    "keyType": keyType,
+	    "title": title,
+	    "entityType": "column",
+	    "weaveEntityId": entityId,
+	    "projection": "EPSG:4326",
+	    "dataType": "geometry"
+	  }).pop().pop()
+	  .push('text', null).request('ReferencedColumn')
+	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('metadata').state({
+	    "keyType": keyType,
+	    "title": "STATE_NAME",
+	    "entityType": "column",
+	    "weaveEntityId": "960",
+	    "projection": "EPSG:4326",
+	    "dataType": "string"
 	  });
    return toolName;
 };
