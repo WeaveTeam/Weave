@@ -12,8 +12,8 @@ weave.WeavePath._numeric_key_idx = 0;
 weave.WeavePath._keyIdPrefix = "WeaveQKey";
 
 weave.WeavePath.qkeyToIndex = function(key)
-{
-    var key_str = JSON.stringify([key.keyType.toString(), key.localName.toString()]);
+{   
+    var key_str = JSON.stringify([key.keyType && key.keyType.toString(), key.localName && key.localName.toString()]);
 
     if (this._qkeys_to_numeric[key_str] == undefined)
     {
