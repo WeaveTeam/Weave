@@ -142,9 +142,8 @@
             }
             edges[row] = {data: new_edge};
         }
-
+        cy.layout({name: 'preset', positions: get_positions()});
         cy.load({nodes: nodes, edges: edges});
-        run_layout();
     };
 
     
@@ -213,30 +212,38 @@
     {
         return toolPath.qkeyToString(JSON.parse(qkey_string));
     }
+
     function stringToQKeyString(str)
     {
         return JSON.stringify(toolPath.stringToQKey(str));
     }
 
+    function get_positions()
+    {
+        var positions = toolPath.push(POSITIONS).getState();
+        var new_positions = {};
+
+        for (var key in positions)
+        {
+            new_position = positions[key];
+            new_positions[qkeyStringToString(key)] = new_position;
+        }
+        return new_positions;
+    }
+
     function positions_changed()
     {
-        if (position_change_ignore)
-        {
-            return;
-        }
         var positions = toolPath.push(POSITIONS).getState();
 
         if (positions == null || positions == "")
         {
-            run_layout();
+            return;
         }
 
         cy.nodes().positions(function (i, ele) { return positions[stringToQKeyString(ele.id())]; });
     }
 
-    var position_timeout_id = null;
-
-    function send_positions(evt)
+    function update_positions(evt)
     {
         var nodes = cy.nodes();
         var idx;
@@ -251,14 +258,8 @@
             }
             positions[id] = pos;
         }
-        toolPath.push(POSITIONS).state(positions);
 
-        position_timeout_id = null;
-    }
-    function update_positions(evt)
-    {
-        if (position_timeout_id == null)
-            position_timeout_id = window.setTimeout(send_positions, 50);
+        toolPath.push(POSITIONS).state(positions);
     }
 
     function array_to_set(arr)
@@ -301,8 +302,10 @@
             layout_name = "circle";
         }
         layout_params['name'] = layout_name;
+        layout_params['stop'] = function(){update_positions()};
 
         cy.layout(layout_params);
+
     };
 
     function open_attribute_selector()
@@ -311,19 +314,9 @@
         return;
     }
 
-    var position_change_ignore = false;
-    function disable_position_change()
-    {
-        position_change_ignore = true;
-    }
-    function enable_position_change()
-    {
-        position_change_ignore = false;
-    }
-
     $('select[name="layout_dropdown"]').change(function ()
     {
-        var new_value = $('select[name="layout_dropdown"] option:selected').attr("value");
+        var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
         toolPath.push(LAYOUT_NAME).state(new_value);
     });
 
@@ -331,7 +324,7 @@
     {
         var layout_value = toolPath.push(LAYOUT_NAME).getState();
         $('select[name="layout_dropdown"] option:selected').removeAttr("selected")
-        $('select[name="layout_dropdown"] option[value="' + layout_value + '"]').attr("selected", "yes");
+        $('select[name="layout_dropdown"] option[value="' + layout_value + '"]').prop("selected", "yes");
     }
 
     function update_viewport()
@@ -390,10 +383,9 @@
         toolPath.probe_keyset.addCallback(probe_changed, true);
 
         cy.on({select: add_to_selection, unselect: remove_from_selection});
-        cy.on({position: update_positions}, 'node');
         cy.on({mouseover: probe, mouseout: unprobe}, 'node');
         cy.on({mouseover: probe, mouseout: unprobe}, 'edge');
-        cy.on({drag: disable_position_change, free: enable_position_change});
+        cy.on({free: update_positions});
         cy.on({zoom: update_viewport, pan: update_viewport});
 
         } })
