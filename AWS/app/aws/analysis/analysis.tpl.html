@@ -7,9 +7,14 @@
 				<div class=" header panel-heading">
 					<h2>Indicator</h2>
 				</div>
-				<div  class="input-group-btn dtatable-dropdown" ng-controller="ScriptsBarController">
+				<div  class="input-group-btn dtatable-dropdown">
 					<button style="min-width: 100%; width: 100%; border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
-					ng-model="dataTable" data-html="1"  ng-options="dt.title for dt in dataTableList" ng-change = 'populateScriptsBar()' placeholder="Select Datatable" bs-select>
+					ng-model="service.queryObject.dataTable" 
+					data-html="1"  
+					ng-options="dt.title for dt in service.dataObject.dataTableList track by dt.id" 
+					placeholder="Select Datatable" 
+					bs-select
+					ng-change="service.getDataColumnsEntitiesFromId(service.queryObject.dataTable.id, true)">
 						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
 					</button>
 				</div>
@@ -94,10 +99,13 @@
 				</div>
 				<div ng-controller="ScriptsBarController">
 					<div style="margin-bottom: 3px;">
-						<select style="width: 100%;" ui-select2 ng-model="scriptSelected" ng-change="script_selected_set()" data-placeholder="Select Script">
-							<option></option>
-							<option value="{{scr}}" ng-repeat="scr in scriptList">{{scr}}</option>
-						</select>
+						<select style="width: 100%;" ui-select2
+							ng-model="service.queryObject.scriptSelected"
+							class=" form-control search-script-div"
+							data-placeholder="Select Script">
+						<option></option>
+						<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
+					</select>
 					</div>
 
 					<!--<div id="loading" ng-show="show_load" class="ng-hide">

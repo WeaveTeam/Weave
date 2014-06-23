@@ -125,108 +125,23 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 		category : 'visualization'
 	}*/];
 	
-	
-	
-	
+	// This sets the service variable to the queryService 
+	$scope.service = queryService;
 	
 	
 	$scope.setting_loaded = false;
 	$scope.secret_state = false;
 	$scope.show_load = false;
 
-	/*
-	 *
-	 * Data Table Section
-	 *
-	 *
-	 */
-	queryService.queryObject.dataTable = {
-		id : -1,
-		title : ""
-	};
 
-	/*??*/
-	queryService.getDataTableList();
-	$scope.dataTableList = [];
-	$scope.dataTable=null;
+	queryService.getDataTableList(true);
+	queryService.getListOfScripts(true);
 
-	$scope.$watch(function() {
-		return queryService.dataObject.dataTableList;
-	}, function() {
-		if (queryService.dataObject.hasOwnProperty("dataTableList")) {
-			for (var i = 0; i < queryService.dataObject.dataTableList.length; i++) {
-				var dataTable = queryService.dataObject.dataTableList[i];
-				$scope.dataTableList.push({
-					id : dataTable.id,
-					title : dataTable.title
-				});
-			}
-		}
-	});
-
-	$scope.$watch('dataTable', function() {
-		if ($scope.dataTable != undefined && $scope.dataTable != "") {
-			var dataTable_s = angular.fromJson($scope.dataTable);
-			queryService.queryObject.dataTable = dataTable_s;
-			if (dataTable_s.hasOwnProperty('id') && dataTable_s.id != null) {
-				queryService.getDataColumnsEntitiesFromId(dataTable_s.id);
-			}
-
-		}
-		/*console.log(angular.toJson(queryService.queryObject));*/
-	});
-
-	/*
-	 *
-	 *
-	 * Search Bar section
-	 *
-	 *
-	 */
-
-	$scope.scriptSelected = '';
-	$scope.scriptList = [];
-
-	//$scope.populateScriptsBar = function() {
-	//	$scope.script_focused = true;
-
-	$scope.scriptList = queryService.getListOfScripts();
-
-	//};
-
-	$scope.script_selected_set = function() {
-		$scope.script_focused = true;
-		if ($scope.setting_loaded == false) {
-			$scope.show_load = true;
-		};
-
-		//$scope.setting_data_loaded = false;
-
-	};
-
-	$scope.enable_settings = function(load_flag) {
-		if (load_flag) {
-			$scope.show_load = false;
-			$scope.setting_loaded = true;
-		}
-
-	};
 
 	$scope.enable_dashboard = function() {
 		$scope.dash_focused = true;
 
 	};
-
-	queryService.queryObject.scriptSelected = "";
-	$scope.$watch('scriptSelected', function() {
-		if ($scope.scriptSelected != undefined && $scope.scriptSelected != "") {
-			queryService.queryObject.scriptSelected = $scope.scriptSelected;
-			queryService.getScriptMetadata($scope.scriptSelected, true);
-			$scope.selection = [];
-		} else {
-			$scope.scriptList = queryService.getListOfScripts();
-		}
-	});
 
 	//*Building the Input controls from the script metadata
 	// array of column selected
@@ -266,54 +181,6 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 				}
 			}
 		}
-	});
-
-	$scope.columns = [];
-
-	$scope.$watch(function() {
-		return queryService.queryObject.dataTable;
-	}, function() {
-		queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
-		// reset these values when the data table changes
-	});
-
-	$scope.$watch(function() {
-		return queryService.dataObject.columns;
-	}, function() {
-		var load_flag = false;
-		if (queryService.dataObject.columns != undefined) {
-			var columns = queryService.dataObject.columns;
-			var orderedColumns = {};
-			orderedColumns.all = [];
-			for (var i = 0; i < columns.length; i++) {
-				if (columns[i].publicMetadata.hasOwnProperty("aws_metadata")) {
-					var column = columns[i];
-					orderedColumns.all.push({
-						id : column.id,
-						title : column.publicMetadata.title
-					});
-					var aws_metadata = angular.fromJson(column.publicMetadata.aws_metadata);
-					if (aws_metadata.hasOwnProperty("columnType")) {
-						load_flag = true
-						var key = aws_metadata.columnType;
-						if (!orderedColumns.hasOwnProperty(key)) {
-							orderedColumns[key] = [{
-								id : column.id,
-								title : column.publicMetadata.title
-							}];
-						} else {
-							orderedColumns[key].push({
-								id : column.id,
-								title : column.publicMetadata.title
-							});
-						}
-					}
-				}
-			}
-			$scope.columns = orderedColumns;
-			$scope.enable_settings(load_flag);
-		}
-
 	});
 
 	queryService.queryObject.ScriptColumnRequest = [];
