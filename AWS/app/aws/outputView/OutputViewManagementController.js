@@ -16,12 +16,21 @@ angular.module('aws.outputView', [])
 		
 		if($scope.projectListMode == 'multiple'){
 			//get pictures of all records(projects)
+			if($scope.thumbnails.length > 0 ){
+				$scope.thumbnails = [];
+				$scope.currentThumbnail = "";
+				$scope.existingProjects = 'Select a project';
+			}
 			queryService.getListOfQueryObjectVisualizations(null);
 		}
 		
 		if($scope.projectListMode == 'single'){
 			//enable the drop down box
 			//returns the list of projects to select from 
+			if($scope.thumbnails.length > 0 ){
+				$scope.thumbnails = [];
+				$scope.showThumbnail("");
+			}
 			queryService.getListOfProjectsfromDatabase();
 		}
 	});
@@ -48,6 +57,7 @@ angular.module('aws.outputView', [])
 		return queryService.dataObject.thumbnails;
 	}, function(){
 		//list of base64 encoded images returned
+		$scope.thumbnails = [];
 		$scope.listItems = queryService.dataObject.thumbnails;
 		if(!(angular.isUndefined($scope.listItems)))
 			{
@@ -67,6 +77,7 @@ angular.module('aws.outputView', [])
 	
 	$scope.showThumbnail = function(item){
 		$scope.currentThumbnail = item;
+		if(!(item == ""))
 		$scope.index = $scope.thumbnails.indexOf(item);
 		console.log("index", $scope.index);
 	};
@@ -82,7 +93,7 @@ angular.module('aws.outputView', [])
 			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 	}
 	
-	 newWeave.logvar = "Loading Session State";
+	 newWeave.logvar = "Displaying Visualizations";
  	var currentSessionString = $scope.listOfSessionStates[$scope.index];
 		newWeave.setSession = currentSessionString;
 	};

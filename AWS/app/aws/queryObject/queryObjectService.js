@@ -198,10 +198,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     
     this.getListOfQueryObjectVisualizations = function(projectName){
     	 var deferred = $q.defer();
-    	var params = {};
-    	params.projectName = projectName;
+    	if(projectName == null){
+    		console.log("projectName", projectName);
+    		projectName = "";
+    	}
     	
-    	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [params], function(AWSQueryObjectCollectionObject){
+    	
+    	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [projectName], function(AWSQueryObjectCollectionObject){
     		var returnedQueryObjects = [];
     		if(!(angular.isUndefined(AWSQueryObjectCollectionObject)))
     			{
