@@ -101,7 +101,7 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	    "projection": "EPSG:4326",
 	    "dataType": "geometry"
 	  }).pop().pop().pop()
-	  .push('statelabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
+	  .push('stateLabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
 	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
 	  .push('dataSourceName').state('WeaveDataSource').pop()
 	  .push('metadata').state({
@@ -114,7 +114,7 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	  }).pop().pop()
 	  .push('text', null).request('ReferencedColumn')
 	  .push('dataSourceName').state('WeaveDataSource').pop()
-	  .push('metadata').state({
+	  .push('metadata').state({//hard coding the label layer paramterize later
 	    "keyType": keyType,
 	    "title": "STATE_NAME",
 	    "entityType": "column",
@@ -335,7 +335,6 @@ aws.WeaveClient.prototype.updateRadviz = function(toolName, columnNames, dataSou
  * 		   
  */
 aws.WeaveClient.prototype.newBarChart = function (sort, label, heights, dataSourceName) {
-	
 	var toolName = this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
 	
 	this.weave.path(toolName).request('CompoundBarChartTool');
@@ -343,11 +342,12 @@ aws.WeaveClient.prototype.newBarChart = function (sort, label, heights, dataSour
 	var labelPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
 	var sortColumnPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
 
+	//var heightColumns = heights;
 	
    	this.setCSVColumn(dataSourceName,labelPath, label);
     this.setCSVColumn(dataSourceName, sortColumnPath, sort);
 
-    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state(null);
+    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state('null');
     
     for (var i in heights)
 	{
