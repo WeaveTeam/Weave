@@ -21,14 +21,16 @@ import weave.models.computations.ScriptResult;
 
 public class ComputationalServlet extends WeaveServlet
 {	
-	public ComputationalServlet()
+	public ComputationalServlet() throws Exception
 	{
+		rService = new AwsRService();
 	}
 	
 	private String programPath = "";
 	private String tempDirPath = "";
 	private String stataScriptsPath = "";
 	private String rScriptsPath = "";
+	private AwsRService rService = null;
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
@@ -38,7 +40,6 @@ public class ComputationalServlet extends WeaveServlet
 		
 		stataScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath();
 		rScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath();
-		
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -70,13 +71,13 @@ public class ComputationalServlet extends WeaveServlet
  
  		// Run and time the script
  		startTime = System.currentTimeMillis();
- 		try {
- 			AwsRService rService = new AwsRService();
+// 		try {
+// 			AwsRService rService = new AwsRService();
  			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), columnData);
- 		} catch (Exception e) {
- 			// TODO Auto-generated catch block
- 			e.printStackTrace();
- 		}
+// 		} catch (Exception e) {
+// 			// TODO Auto-generated catch block
+// 			e.printStackTrace();
+// 		}
  		endTime = System.currentTimeMillis();
  		time2 = endTime - startTime;
  

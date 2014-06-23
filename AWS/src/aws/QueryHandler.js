@@ -173,6 +173,7 @@ aws.QueryHandler = function(queryObject)
 	console.log(angular.toJson(this.rRequestObject));
 	
 	this.keyType = "";
+	this.ColorColumn = "";
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
 		if(queryObject.ColorColumn.enabled) {
@@ -267,7 +268,10 @@ aws.QueryHandler.prototype.runQuery = function() {
 			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 	}
 	
-	
+	if(newWeaveWindow.log) {
+		newWeaveWindow.log("Running Query...");
+	};
+
 	aws.queryService(computationServiceURL, 'runScript', [this.rRequestObject.scriptName, this.rRequestObject.ids, this.rRequestObject.filters], function(result){	
 
 		newWeaveWindow.log("Load Time : " + result.times[0]/1000 + " secs,  Analysis Time: " + result.times[1]/1000 + " secs");
