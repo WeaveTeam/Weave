@@ -91,6 +91,8 @@
 									 creationComplete="linkBindableProperty(Weave.properties.showProbeWindow, event.target, 'selected')"/>
 						<ui:CustomCheckBox label="{lang('Equation Editor')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
+						<ui:CustomCheckBox label="{lang('Add External Tool')}"
+									 creationComplete="linkBindableProperty(Weave.properties.showAddExternalTools, event.target, 'selected')"/>
 						<ui:CustomCheckBox id="collabSettings"
 									 label="{lang('Collaboration Settings')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationEditor, event.target, 'selected');"
