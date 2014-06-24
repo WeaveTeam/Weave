@@ -104,7 +104,7 @@
 				}
 			}
 			
-			private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter('Image', '*.png,*.jpg,*.bmp')], handleURL);
+			private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter('Image', '*.png;*.jpg;*.bmp'), new FileFilter('All files', "*")], handleURL);
 			private function handleURL(url:String):void
 			{
 				urlInput.text = url;
