@@ -13,10 +13,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api
+package weave.core
 {
+	import flash.display.BitmapData;
 	import flash.utils.ByteArray;
 	
+	import mx.core.IFlexDisplayObject;
+	import mx.graphics.codec.PNGEncoder;
+	
+	import weave.utils.BitmapUtils;
 	import weave.utils.OrderedHashMap;
 
 	/**
@@ -85,6 +90,66 @@ package weave.api
 			for (name in objects)
 				zip[FOLDER_AMF + '/' + name] = objects[name];
 			return weave.utils.writeZip(zip);
+		}
+		
+		public static const HISTORY_SYNC_DELAY:int = 100;
+		public static const THUMBNAIL_SIZE:int = 200;
+		public static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
+		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
+		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
+		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
+		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
+		
+		private static var _history:SessionStateLog;
+		
+		/**
+		 * Contains the session history.
+		 */
+		public static function get history():SessionStateLog
+		{
+			if (!_history)
+				_history = new SessionStateLog(WeaveAPI.globalHashMap, HISTORY_SYNC_DELAY);
+			return _history;
+		}
+		
+		/**
+		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
+		 */
+		public static function createWeaveFileContent(saveScreenshot:Boolean=false, pluginList:Array = null):ByteArray
+		{
+			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
+			var output:WeaveArchive = new WeaveArchive();
+			var component:IFlexDisplayObject = WeaveAPI.topLevelApplication['visApp'];
+			// screenshot thumbnail
+			try
+			{
+				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+				WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_THUMBNAIL_PNG, _pngEncoder.encode(_thumbnail));
+				if (saveScreenshot)
+				{
+					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(component);
+					WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_SCREENSHOT_PNG, _pngEncoder.encode(_screenshot));
+				}
+				else
+					WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
+			}
+			catch (e:SecurityError)
+			{
+				WeaveAPI.ErrorManager.reportError(e, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + e.message);
+			}
+			
+			// embedded files
+			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
+				output.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
+			
+			if (pluginList)
+				output.objects[ARCHIVE_PLUGINS_AMF] = pluginList;
+			
+			// session history
+			var _history:Object = history.getSessionState();
+			output.objects[ARCHIVE_HISTORY_AMF] = _history;
+			
+			return output.serialize();
 		}
 	}
 }

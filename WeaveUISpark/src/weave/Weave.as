@@ -34,7 +34,6 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.WeaveArchive;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
@@ -45,6 +44,7 @@ package weave
 	import weave.core.LibraryUtils;
 	import weave.core.LinkableHashMap;
 	import weave.core.SessionStateLog;
+	import weave.core.WeaveArchive;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -67,20 +67,14 @@ package weave
 		
 		
 		private static var _root:ILinkableHashMap = null; // root object of Weave
-		private static var _history:SessionStateLog = null; // root session history
 
 		/**
 		 * This is the root object in Weave, which is an ILinkableHashMap.
 		 */
 		public static function get root():ILinkableHashMap
 		{
-			if (_root == null)
-			{
-				_root = WeaveAPI.globalHashMap;
-				createDefaultObjects(_root);
-				_history = new SessionStateLog(_root, 100);
-			}
-			return _root;
+			createDefaultObjects(WeaveAPI.globalHashMap);
+			return WeaveAPI.globalHashMap;
 		}
 		
 		/**
@@ -88,9 +82,8 @@ package weave
 		 */		
 		public static function get history():SessionStateLog
 		{
-			if (!root) // this check will initialize the _history variable
-				throw "unexpected";
-			return _history;
+			createDefaultObjects(WeaveAPI.globalHashMap);
+			return WeaveArchive.history;
 		}
 
 		/**
@@ -141,6 +134,9 @@ package weave
 		 */
 		private static function createDefaultObjects(target:ILinkableHashMap):void
 		{
+			if (target.objectIsLocked(DEFAULT_WEAVE_PROPERTIES))
+				return;
+			
 			target.requestObject(DEFAULT_WEAVE_PROPERTIES, WeaveProperties, true);
 
 			// default color column
@@ -161,18 +157,14 @@ package weave
 
 			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
 			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
+			
+			// clear history afterwards so that the creation of these default objects do not get recorded.
+			history.clearHistory();
 		}
 		
 		
 		
 		/******************************************************************************************/
-		
-		public static const THUMBNAIL_SIZE:int = 200;
-		public static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
-		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
-		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
-		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
-		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
 		
 		private static var _pluginList:Array = [];
 		
@@ -308,39 +300,7 @@ package weave
 		 */
 		public static function createWeaveFileContent(saveScreenshot:Boolean=false):ByteArray
 		{
-			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
-			var output:WeaveArchive = new WeaveArchive();
-			var component:UIComponent = WeaveAPI.topLevelApplication['visApp'];
-			// screenshot thumbnail
-			try
-			{
-				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-				WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_THUMBNAIL_PNG, _pngEncoder.encode(_thumbnail));
-				if (saveScreenshot)
-				{
-					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(component);
-					WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_SCREENSHOT_PNG, _pngEncoder.encode(_screenshot));
-				}
-				else
-					WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
-			}
-			catch (e:SecurityError)
-			{
-				reportError(e, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + e.message);
-			}
-			
-			// embedded files
-			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
-				output.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
-			
-			if (Weave.ALLOW_PLUGINS)
-				output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
-			
-			// session history
-			var _history:Object = history.getSessionState();
-			output.objects[ARCHIVE_HISTORY_AMF] = _history;
-			
-			return output.serialize();
+			return WeaveArchive.createWeaveFileContent(saveScreenshot, ALLOW_PLUGINS ? _pluginList : null);
 		}
 		
 		/**
@@ -403,7 +363,7 @@ package weave
 				}
 				
 				_lastLoadedArchive = content as WeaveArchive;
-				var _history:Object = _lastLoadedArchive.objects[ARCHIVE_HISTORY_AMF];
+				var _history:Object = _lastLoadedArchive.objects[WeaveArchive.ARCHIVE_HISTORY_AMF];
 				if (!_history)
 					throw new Error("Weave session history not found.");
 				
@@ -413,7 +373,7 @@ package weave
 				for (fileName in _lastLoadedArchive.files)
 					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, _lastLoadedArchive.files[fileName]);
 				
-				plugins = _lastLoadedArchive.objects[ARCHIVE_PLUGINS_AMF] as Array || [];
+				plugins = _lastLoadedArchive.objects[WeaveArchive.ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
@@ -435,7 +395,7 @@ package weave
 		 * */
 		public static function getScreenshotFromArchive():ByteArray
 		{
-			return _lastLoadedArchive ? _lastLoadedArchive.files[ARCHIVE_SCREENSHOT_PNG] : null;
+			return _lastLoadedArchive ? _lastLoadedArchive.files[WeaveArchive.ARCHIVE_SCREENSHOT_PNG] : null;
 		}
 		
 		public static function loadDraggedCSV(content:Object):void

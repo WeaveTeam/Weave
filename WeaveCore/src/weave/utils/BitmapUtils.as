@@ -21,10 +21,11 @@ package weave.utils
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.display.IBitmapDrawable;
 	import flash.geom.Matrix;
 	import flash.utils.ByteArray;
 	
-	import mx.core.UIComponent;
+	import mx.core.IFlexDisplayObject;
 	import mx.graphics.ImageSnapshot;
 	import mx.graphics.codec.PNGEncoder;
 	import mx.utils.Base64Encoder;
@@ -150,13 +151,13 @@ package weave.utils
 			return result;
 		}
 		/**
-		 * This function gets a screenshot of a UIComponent and optionally creates a thumbnail version.
+		 * This function gets a screenshot of a component and optionally creates a thumbnail version.
 		 * @param component A component from which to get a screenshot.
 		 * @param desiredWidth If > 0, the width of the thumbnail version.
 		 * @param desiredHeight If > 0, the height of the thumbnail version.
 		 * @return A screenshot of the component. If desired width or height is specified, a thumbnail version is returned.
 		 */
-		public static function getBitmapDataFromComponent(component:UIComponent, desiredWidth:int = 0, desiredHeight:int = 0):BitmapData
+		public static function getBitmapDataFromComponent(component:IFlexDisplayObject, desiredWidth:int = 0, desiredHeight:int = 0):BitmapData
 		{
 			var screenshot:BitmapData = new BitmapData(component.width, component.height, true, 0x00000000);
 			screenshot.draw(component);
@@ -177,7 +178,7 @@ package weave.utils
 		 * @param component The component for which to get the string encoding.
 		 * @return A base 64 encoding of the image.
 		 */		
-		public static function getBase64Image(component:UIComponent):String
+		public static function getBase64Image(component:IBitmapDrawable):String
 		{
 			// getBitmapDataFromComponent doesn't give a valid image that can be saved to disk
 //			var data:BitmapData = getBitmapDataFromComponent(component);
@@ -199,7 +200,7 @@ package weave.utils
 //		 * @return A JPEG version of the screenshot, stored in a ByteArray.
 //		 * @see mx.graphics.codec.JPEGEncoder
 //		 */
-//		public static function getJPEGFromComponent(component:UIComponent, quality:int = 100):ByteArray
+//		public static function getJPEGFromComponent(component:IBitmapDrawable, quality:int = 100):ByteArray
 //		{		
 //			var bitmap:BitmapData = getBitmapDataFromComponent(component);
 //			return new JPEGEncoder(quality).encode(bitmap);
@@ -210,7 +211,7 @@ package weave.utils
 		 * @param component The component from which to get a screenshot.
 		 * @return A PNG version of the screenshot, stored in a ByteArray.
 		 */
-		public static function getPNGFromComponent(component:UIComponent):ByteArray
+		public static function getPNGFromComponent(component:IFlexDisplayObject):ByteArray
 		{		
 			var bitmap:BitmapData = getBitmapDataFromComponent(component);
 			return new PNGEncoder().encode(bitmap);

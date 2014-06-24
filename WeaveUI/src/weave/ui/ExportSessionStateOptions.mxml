@@ -25,7 +25,10 @@
 			<creationComplete>
 				<![CDATA[
 				var list:Array = WeaveAPI.URLRequestUtils.getLocalFileNames();
-				list = list.filter(function(s:String, ..._):Boolean{ return s != Weave.ARCHIVE_THUMBNAIL_PNG && s != Weave.ARCHIVE_SCREENSHOT_PNG; });
+				list = list.filter(function(s:String, ..._):Boolean {
+					return s != WeaveArchive.ARCHIVE_THUMBNAIL_PNG
+						&& s != WeaveArchive.ARCHIVE_SCREENSHOT_PNG;
+				});
 				(event.target as Paragraph).text = list.join('\n');
 				embeddedFiles.visible = embeddedFiles.includeInLayout = !!list.length;
 				]]>
@@ -71,6 +74,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.UIUtils;
+			import weave.core.WeaveArchive;
 			import weave.utils.EventUtils;
 			
 			private const padding:Number = 5;

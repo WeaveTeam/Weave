@@ -50,12 +50,12 @@ package weave.utils
 			var table:Array = [];
 			for (var k:int = 0; k < keys.length; k++)
 				table.push([(keys[k] as IQualifiedKey).localName, column[k]]);
-			var testColumn:CSVColumn = Weave.root.requestObject(colName, CSVColumn, false);
+			var testColumn:CSVColumn = WeaveAPI.globalHashMap.requestObject(colName, CSVColumn, false);
 			testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
 			testColumn.numericMode.value = true;
 			testColumn.data.setSessionState(table);
 			testColumn.title.value =colName;
-			Weave.defaultColorDataColumn.internalDynamicColumn.globalName = Weave.root.getName(testColumn);
+			Weave.defaultColorDataColumn.internalDynamicColumn.globalName = WeaveAPI.globalHashMap.getName(testColumn);
 			
 		}
 		
@@ -120,7 +120,7 @@ package weave.utils
 		
 		public static function get selection():KeySet
 		{
-		return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			return Weave.defaultSelectionKeySet;
 		}
 		
 		public static function rResultToColumn(keys:Array, RresultArray:Array,Robj:Array):void
@@ -136,7 +136,7 @@ package weave.utils
 				var title:String = RresultArray[p].name;
 				if (data[0] is String)
 				{
-					var testStringColumn:StringColumn = Weave.root.requestObject(title, StringColumn, false);
+					var testStringColumn:StringColumn = WeaveAPI.globalHashMap.requestObject(title, StringColumn, false);
 					var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 					var dataVec:Vector.<String> = new Vector.<String>();
 					VectorUtils.copy(keys, keyVec);
@@ -155,7 +155,7 @@ package weave.utils
 						table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
 					
 					//testColumn are named after respective Objects Name (i.e) object{name: , value:}
-					var testColumn:CSVColumn = Weave.root.requestObject(title, CSVColumn, false);
+					var testColumn:CSVColumn = WeaveAPI.globalHashMap.requestObject(title, CSVColumn, false);
 					testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
 					testColumn.numericMode.value = true;
 					testColumn.data.setSessionState(table);
