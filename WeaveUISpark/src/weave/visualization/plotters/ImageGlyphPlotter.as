@@ -22,16 +22,21 @@ package weave.visualization.plotters
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.net.URLRequest;
 	
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
+	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.DynamicColumn;
 	
 	/**
 	 * ImagePlotter
@@ -52,6 +57,12 @@ package weave.visualization.plotters
 		
 		public const imageURL:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const imageSize:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
+		
+		public const rotation:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const rotationOffset:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, isFinite));
+		public const dataInDegrees:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+
+		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
 		private const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		[Embed(source="/weave/resources/images/missing.png")]
@@ -66,50 +77,61 @@ package weave.visualization.plotters
 			if (task.iteration < task.recordKeys.length)
 			{
 				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
-				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
-				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number);
-				getCoordsFromRecordKey(recordKey, tempPoint);
-				task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
 				
+				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
 				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
-				if (image)
-				{
-					if (debug)
-						trace(debugId(this), 'draw', _imageURL, image == _missingImage ? '(missing)' : debugId(image));
-					
-					// translate image so it is centered on the screen coordinates of this record
-					tempMatrix.identity();
-					var sx:Number = 1 / image.width * _imageSize;
-					var sy:Number = 1 / image.height * _imageSize;
-					if (isFinite(sx) && isFinite(sy))
-						tempMatrix.scale(sx, sy);
-					else
-						sx = 1, sy = 1;
-					tempMatrix.translate(
-							Math.round(tempPoint.x - sx * image.width / 2),
-							Math.round(tempPoint.y - sy * image.height / 2)
-						);
-					// draw image
-					task.buffer.draw(image, tempMatrix);
-				}
-				else // if the url hasn't started downloading yet...
+				if (!image) // if there is no image yet...
 				{
 					// set a placeholder so it doesn't get downloaded again
-					_urlToImageMap[_imageURL] = _missingImage;
+					_urlToImageMap[_imageURL] = image = _missingImage;
 					
 					// download the image - this triggers callbacks when download completes or fails
 					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, null, _imageURL);
 				}
+				
+				// center the image at 0,0
+				tempMatrix.identity();
+				tempMatrix.translate(-image.width / 2, -image.height / 2);
+				
+				// scale the image
+				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number);
+				if (isFinite(_imageSize))
+				{
+					var _scale:Number = _imageSize / Math.max(image.width, image.height);
+					if (isFinite(_scale))
+						tempMatrix.scale(_scale, _scale);
+					else
+						_scale = 1;
+				}
+				
+				// rotate the image around 0,0
+				// undefined rotation = no rotation
+				var _rotation:Number = rotation.getValueFromKey(recordKey, Number);
+				if (!isFinite(_rotation))
+					_rotation = 0;
+				_rotation += rotationOffset.value;
+				if (dataInDegrees.value)
+					_rotation = _rotation * Math.PI / 180;
+				var direction:Number = task.screenBounds.getYDirection() < 0 ? -1 : 1;
+				if (_rotation != 0)
+					tempMatrix.rotate(_rotation * direction);
+				
+				// translate the image
+				// if there is no rotation, adjust to pixel coordinates to get a sharper image
+				getCoordsFromRecordKey(recordKey, tempPoint);
+				task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
+				var dx:Number = Math.round(tempPoint.x) + (_rotation == 0 && image.width % 2 ? 0.5 : 0);
+				var dy:Number = Math.round(tempPoint.y) + (_rotation == 0 && image.height % 2 ? 0.5 : 0);
+				tempMatrix.translate(dx, dy);
+				
+				// draw image
+				task.buffer.draw(image, tempMatrix);
 				
 				return task.iteration / task.recordKeys.length;
 			}
 			return 1;
 		}
 		
-		/**
-		 * This is the image cache.
-		 */
-		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
 		/**
 		 * This function will save a downloaded image into the image cache.
 		 */
