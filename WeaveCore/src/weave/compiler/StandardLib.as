@@ -19,10 +19,13 @@
 
 package weave.compiler
 {
+	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
+	import mx.utils.Base64Decoder;
+	import mx.utils.Base64Encoder;
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
@@ -781,6 +784,28 @@ package weave.compiler
 				if (compareDynamicObjects(o1,o2) != 0)
 					throw "StandardLib.compareDynamicObjects fail";
 			DebugTimer.end('StandardLib.compareDynamicObjects');
+		}
+		
+		/**
+		 * Binary to Ascii (Base64)
+		 */
+		public static function btoa(binary:ByteArray):String
+		{
+			var encoder:Base64Encoder = new Base64Encoder();
+			encoder.insertNewLines = false;
+			if (binary)
+				encoder.encodeBytes(binary);
+			return encoder.drain();
+		}
+		
+		/**
+		 * Ascii (Base64) to Binary
+		 */
+		public static function atob(ascii:String):ByteArray
+		{
+			var decoder:Base64Decoder = new Base64Decoder();
+			decoder.decode(ascii);
+			return decoder.drain();
 		}
 	}
 }

@@ -29,11 +29,10 @@ package weave.services
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.Base64Decoder;
-	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 
 	public class ExternalDownloader
 	{
@@ -88,11 +87,7 @@ package weave.services
 					bytes.writeUTFBytes(urlRequest.data as String);
 				}
 				
-				var encoder:Base64Encoder = new Base64Encoder();
-				encoder.insertNewLines = false;
-				if (bytes)
-					encoder.encodeBytes(bytes);
-				base64data = encoder.drain();
+				base64data = StandardLib.btoa(bytes);
 			}
 			else
 			{
@@ -123,12 +118,11 @@ package weave.services
 			var result:Object;
 			if (base64data)
 			{
-				var decoder:Base64Decoder = new Base64Decoder();
-				decoder.decode(base64data);
+				var bytes:ByteArray = StandardLib.atob(base64data);
 				if (qt.dataFormat == URLRequestUtils.DATA_FORMAT_BINARY)
-					result = decoder.flush();
+					result = bytes;
 				else
-					result = decoder.flush().toString();
+					result = bytes.toString();
 			}
 			
 			if (status == 200)
