@@ -9,7 +9,8 @@
 	
 	<ui:DynamicColumnComponent id="imageURL" label="{lang('Image URL Column')}" />
 	<ui:Indent>
-		<ui:IndentTextInput label="{lang('Default URL')}" creationComplete="linkBindableProperty(plotter.imageURL.defaultValue, event.target, 'text', 500)"/>
+		<ui:IndentTextInput id="defaultURL" label="{lang('Default URL')}" creationComplete="linkBindableProperty(plotter.imageURL.defaultValue, event.target, 'text', 500)"/>
+		<mx:Button label="{lang('Open file')}" click="fileAttacher.browseAndAttachFile()"/>
 	</ui:Indent>
 	
 	<ui:DynamicColumnComponent id="imageSize" label="{lang('Image Size Column')}" />
@@ -32,11 +33,11 @@
 	<ui:Indent>
 		<mx:HBox verticalAlign="middle" horizontalGap="{hgap}">
 			<mx:HBox>
-				<mx:Label text="{lang('Rotation Offset')}"/>
+				<mx:Label text="{lang('Offset')}"/>
 				<mx:NumericStepper id="rotationStepper" width="64" maximum="360" minimum="-360" stepSize="90"
 								   creationComplete="linkBindableProperty(plotter.rotationOffset, event.target, 'value', 500)" />
 			</mx:HBox>
-			<ui:CustomCheckBox id="rotationCheckbox" label="{lang('Rotation Data in Degrees')}"
+			<ui:CustomCheckBox id="rotationCheckbox" label="{lang('Data in Degrees')}"
 							   creationComplete="linkBindableProperty(plotter.dataInDegrees, event.target, 'selected')">
 				<ui:change>
 					<![CDATA[
@@ -48,6 +49,8 @@
 					]]>
 				</ui:change>
 			</ui:CustomCheckBox>
+			<ui:CustomCheckBox label="{lang('Reverse')}"
+							   creationComplete="linkBindableProperty(plotter.reverseRotation, event.target, 'selected')"/>
 		</mx:HBox>
 	</ui:Indent>
 	<mx:Script>
@@ -56,6 +59,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
+			import weave.services.FileAttacher;
 			import weave.visualization.plotters.ImageGlyphPlotter;
 			
 			private const hgap:int = 30;
@@ -92,6 +96,12 @@
 					linkBindableProperty(plotter.imageSize.defaultValue, defaultSize, 'value', 250);
 				else
 					unlinkBindableProperty(plotter.imageSize.defaultValue, defaultSize, 'value');
+			}
+			
+			private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter('Image', '*.png;*.jpg;*.bmp'), new FileFilter('All files', "*")], handleURL);
+			private function handleURL(url:String):void
+			{
+				defaultURL.text = url;
 			}
 		]]>
 	</mx:Script>

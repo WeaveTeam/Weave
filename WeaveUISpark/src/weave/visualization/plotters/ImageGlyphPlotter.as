@@ -61,6 +61,7 @@ package weave.visualization.plotters
 		public const rotation:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const rotationOffset:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, isFinite));
 		public const dataInDegrees:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const reverseRotation:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
 		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
 		private const tempMatrix:Matrix = new Matrix(); // reusable object
@@ -113,6 +114,8 @@ package weave.visualization.plotters
 				if (dataInDegrees.value)
 					_rotation = _rotation * Math.PI / 180;
 				var direction:Number = task.screenBounds.getYDirection() < 0 ? -1 : 1;
+				if (reverseRotation.value)
+					direction = -direction;
 				if (_rotation != 0)
 					tempMatrix.rotate(_rotation * direction);
 				
