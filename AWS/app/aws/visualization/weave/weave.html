@@ -54,7 +54,7 @@
 				if(client)
 				{
 						   //Todo parameterize keyColumnName ; here "fips"
-						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "");
+						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "fips");
 						   var toolName;
 						    //creating the visualizations
 							for (var i in queryHandler.visualizations) {
