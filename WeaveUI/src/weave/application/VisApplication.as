@@ -32,6 +32,7 @@ package weave.application
 	import flash.net.FileReference;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
+	import flash.net.URLRequestHeader;
 	import flash.net.navigateToURL;
 	import flash.system.Capabilities;
 	import flash.ui.ContextMenu;
@@ -265,16 +266,32 @@ package weave.application
 		private var _loadFileCallback:Function;
 		/**
 		 * Loads a session state file from a URL.
-		 * @param url The URL to the session state file (.weave or .xml) specified as a String or a URLRequest.
+		 * @param url The URL to the session state file (.weave or .xml) specified as a String, a URLRequest, or an Object containing properties "url" and "requestHeaders".
+		 *            Example:  {"url": "myfile.ext", "requestHeaders": {"Content-type", "foo"}}
 		 * @param callback Either a Function or a String containing a JavaScript function definition. The callback will be invoked when the file loading completes.
 		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.  Only works when url is given as a String.
 		 */
 		public function loadFile(url:Object, callback:Object = null, noCacheHack:Boolean = false):void
 		{
-			if (noCacheHack && url is String)
-				url = String(url) + "?" + (new Date()).getTime(); // prevent flex from using cache
+			var request:URLRequest;
+			if (url is URLRequest)
+			{
+				request = url as URLRequest;
+			}
+			else if (url is String)
+			{
+				if (noCacheHack)
+					url = String(url) + "?" + (new Date()).getTime(); // prevent flex from using cache
+				request = new URLRequest(String(url));
+			}
+			else
+			{
+				request = new URLRequest(String(url['url']));
+				var headers:Object = url['requestHeaders'];
+				for (var k:String in headers)
+					request.requestHeaders.push(new URLRequestHeader(k, headers[k]));
+			}
 			
-			var request:URLRequest = url as URLRequest || new URLRequest(String(url));
 			_requestedConfigFile = request.url;
 			_loadFileCallback = callback as Function;
 			if (callback is String)
