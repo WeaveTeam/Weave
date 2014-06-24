@@ -265,21 +265,22 @@ package weave.application
 		private var _loadFileCallback:Function;
 		/**
 		 * Loads a session state file from a URL.
-		 * @param url The URL to the session state file (.weave or .xml).
+		 * @param url The URL to the session state file (.weave or .xml) specified as a String or a URLRequest.
 		 * @param callback Either a Function or a String containing a JavaScript function definition. The callback will be invoked when the file loading completes.
-		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.
+		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.  Only works when url is given as a String.
 		 */
-		public function loadFile(url:String, callback:Object = null, noCacheHack:Boolean = false):void
+		public function loadFile(url:Object, callback:Object = null, noCacheHack:Boolean = false):void
 		{
-			_requestedConfigFile = url;
+			if (noCacheHack && url is String)
+				url = String(url) + "?" + (new Date()).getTime(); // prevent flex from using cache
+			
+			var request:URLRequest = url as URLRequest || new URLRequest(String(url));
+			_requestedConfigFile = request.url;
 			_loadFileCallback = callback as Function;
 			if (callback is String)
 				_loadFileCallback = function():void { JavaScript.exec(callback + "();"); };
 			
-			if (noCacheHack)
-				url += "?" + (new Date()).getTime(); // prevent flex from using cache
-			
-			WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
+			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
 		}
 		
 		private function downloadConfigFile():void
