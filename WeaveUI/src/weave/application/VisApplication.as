@@ -33,6 +33,7 @@ package weave.application
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
 	import flash.net.URLRequestHeader;
+	import flash.net.URLRequestMethod;
 	import flash.net.navigateToURL;
 	import flash.system.Capabilities;
 	import flash.ui.ContextMenu;
@@ -287,7 +288,7 @@ package weave.application
 			else
 			{
 				request = new URLRequest(String(url['url']));
-				request.method = url['method'];
+				request.method = url['method'] || URLRequestMethod.GET;
 				var headers:Object = url['requestHeaders'];
 				for (var k:String in headers)
 					request.requestHeaders.push(new URLRequestHeader(k, headers[k]));
