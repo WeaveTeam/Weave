@@ -36,19 +36,10 @@ weave.ExternalDownloader_request = function (id, method, url, requestHeaders, ba
 		request.setRequestHeader(name, requestHeaders[name], false);
 	request.responseType = "blob";
 	request.onload = function(event) {
-		var blob = request.response;
-		var reader = new FileReader();
-		reader.onloadend = function(event) {
-			var dataurl = reader.result;
-			var base64data = dataurl.split(',').pop();
-			weave.ExternalDownloader_callback(id, request.status, base64data);
+		weave.Blob_to_b64(request.response, function(b64){
+			weave.ExternalDownloader_callback(id, request.status, b64);
 			done = true;
-		};
-		reader.onerror = function(event) {
-			weave.ExternalDownloader_callback(id, request.status, null);
-			done = true;
-		};
-		reader.readAsDataURL(blob);
+		});
 	};
 	request.onerror = function(event) {
 		if (!done)
@@ -70,13 +61,32 @@ weave.ExternalDownloader_request = function (id, method, url, requestHeaders, ba
 	};
 	var data = null;
 	if (method == "POST" && base64data)
-	{
-		var byteCharacters = atob(base64data);
-		var myArray = new ArrayBuffer(byteCharacters.length);
-		var longInt8View = new Uint8Array(myArray);
-        for (var i = 0; i < byteCharacters.length; i++)
-        	longInt8View[i] = byteCharacters.charCodeAt(i);
-        data = myArray;
-	}
+		data = weave.b64_to_ArrayBuffer(base64data);
 	request.send(data);
 };
+
+weave.b64_to_ArrayBuffer = function(base64)
+{
+	var byteCharacters = atob(base64data);
+	var myArray = new ArrayBuffer(byteCharacters.length);
+	var longInt8View = new Uint8Array(myArray);
+    for (var i = 0; i < byteCharacters.length; i++)
+    	longInt8View[i] = byteCharacters.charCodeAt(i);
+    return myArray;
+};
+
+weave.Blob_to_b64 = function(blob, callback)
+{
+	var reader = new FileReader();
+	reader.onloadend = function(event) {
+		var dataurl = reader.result;
+		var base64data = dataurl.split(',').pop();
+		callback(base64data);
+	};
+	reader.onerror = function(event) {
+		callback(null);
+	};
+	reader.readAsDataURL(blob);
+};
+
+
