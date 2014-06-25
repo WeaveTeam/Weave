@@ -34,10 +34,10 @@
 				<option value="{{dt.title}}" ng-repeat="dt in dataTableList"  data-title="{{dt.title}}" data-placement="tip">{{dt.title}}</option>
 				</select>
 				</div>-->
-				<div style="width: 100%; margin-top: 10px;" ng-controller="IndicatorCtrl">
-					<select style="width: 100%;" ui-select2 ng-model="indicSelection" data-placeholder="Choose Indicator">
+				<div style="width: 100%; margin-top: 10px;">
+					<select style="width: 100%;" ui-select2 ng-model="service.queryObject.indicator" data-placeholder="Choose Indicator">
 						<option></option>
-						<option value="{{indic}}" ng-repeat="indic in indicOptions">{{indic.label}}</option>
+						<option value="{{indicator}}" ng-repeat="indicator in service.dataObject.columns | filter : { columnType : 'indicator' }">{{indicator.title}}</option>
 					</select>
 				</div>
 				<!--<div class="body">

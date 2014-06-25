@@ -233,19 +233,22 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			if(id) {
 				aws.queryService(dataServiceURL, "getEntityChildIds", [id], function(idsArray) {
 					aws.queryService(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
-						console.log(dataEntityArray);
+						
+						
 						that.dataObject.columns = $.map(dataEntityArray, function(entity) {
 							if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {
-								var metadata = angular.fromJson(aws_metadata);
+								var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
 								if(metadata.hasOwnProperty("columnType")) {
 									return {
 										id : entity.id,
 										title : entity.publicMetadata.title,
-										columnType : angular.fromJson(entity.publicMetadata.aws_metadata).columnType
+										columnType : metadata.columnType
 									};
 								}
 							}
 						});
+						
+						scope.$apply();
 					});
 				});
 			}

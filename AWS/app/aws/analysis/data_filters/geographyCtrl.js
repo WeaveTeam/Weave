@@ -10,39 +10,15 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 	var geographyMetadata = null;
 	var metadataTableTitle = null;
 	
-	$scope.$watch(function() {
-		return queryService.dataObject.dataTableList;
-	}, function() {
-		$scope.dataTableOptions = queryService.dataObject.dataTableList;
-	});
 	
-	$scope.$watch('stateDBSelection', function() {
-		if($scope.stateDBSelection != undefined) {
-			if($scope.stateDBSelection != "") {
-				queryService.queryObject.GeographyFilter.stateColumn = angular.fromJson($scope.stateDBSelection);
-			} else {
-				queryService.queryObject.GeographyFilter.stateColumn = {};
-			}
-		}
-	});
+	$scope.service = queryService;
 	
-	$scope.$watch('countyDBSelection', function() {
-		if($scope.stateDBSelection != undefined) {
-			if($scope.stateDBSelection != "") {
-				queryService.queryObject.GeographyFilter.countyColumn = angular.fromJson($scope.countyDBSelection);
-			} else {
-				queryService.queryObject.GeographyFilter.countyColumn = {};
-			}
-		}
-	});
 	
-	$scope.$watch('metadataTableSelection', function() {
-		if($scope.metadataTableSelection != undefined) {
+	$scope.$watch('metadataTable', function() {
+		if($scope.metadataTable != undefined) {
 			if($scope.metadataTableSelection != "") {
 				
-				queryService.queryObject.GeographyFilter.metadataTableId = angular.fromJson($scope.metadataTableSelection).id;
-				
-				aws.DataClient.getDataColumnEntities([angular.fromJson($scope.metadataTableSelection).id], function(metadataTableArray) {
+				aws.DataClient.getDataColumnEntities([angular.fromJson($scope.metadataTable).id], function(metadataTableArray) {
 					
 					var metadataTable = metadataTableArray[0];
 					
@@ -136,11 +112,11 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 
 	$scope.$watchCollection(function() {
 
-		return [$scope.stateDBSelection, $scope.countyDBSelection, processedMetadata];
+		return [$scope.stateColumn, $scope.countyColumn, processedMetadata];
 		
 	}, function() {
 		
-		if($scope.stateDBSelection != undefined && $scope.countyDBSelection != undefined && processedMetadata != undefined) {
+		if($scope.stateColumn != undefined && $scope.countyColumn != undefined && processedMetadata != undefined) {
 			if($scope.stateDBSelection != "" && $scope.countyDBSelection != "" && processedMetadata.length) {
 				geoTreeData = createGeoTreeData(processedMetadata);
 			}
@@ -157,27 +133,6 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 		}
 		return treeData;
 	}
-	
-	$scope.$watch(function() {
-		return queryService.dataObject.columns;
-	}, function() {
-		if(queryService.dataObject.columns != undefined) {
-			
-			$scope.stateDBOptions = $.map(queryService.dataObject.columns, function(column) {
-					var aws_metadata = angular.fromJson(column.publicMetadata.aws_metadata);
-					if(aws_metadata != undefined){
-						if(aws_metadata.hasOwnProperty("columnType")) {
-							if(aws_metadata.columnType == "geography") {
-								return { id : column.id , title : column.publicMetadata.title};
-							} else {
-								// skip
-							}
-						}
-					}
-				});
-			$scope.countyDBOptions = $scope.stateDBOptions;
-		};
-	});
 	
 	$scope.$watch(function() {
 		return geoTreeData;
