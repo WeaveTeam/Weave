@@ -30,12 +30,14 @@
                         'content': 'data(name)',
                         'text-valign': 'center',
                         'color': 'white',
-                        'text-outline-width': 2,
+                        'text-outline-width': 1,
                         'border-color':'black',
                         'line-width': 1,
                         'border-width': 1,
                         'text-outline-color': '#888',
-                        'background-color': 'data(color)'
+                        'background-color': 'data(color)',
+                        'height': 30,
+                        'width': 30
                         })
             .selector('edge')
                 .css({
@@ -64,7 +66,9 @@
                         })
             .selector('node.probed')
                 .css({
-                        'border-width': 7
+                        'border-width': 7,
+                        'height': 28,
+                        'width':28
                 })
             .selector('edge.probed')
                 .css({
