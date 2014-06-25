@@ -64,16 +64,16 @@ package weave.application
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IDataSource;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IDataSource;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
@@ -84,6 +84,7 @@ package weave.application
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.editors.managers.DataSourceManager;
+	import weave.services.GoogleDrive;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.AddExternalTool;
@@ -220,8 +221,11 @@ package weave.application
 			
 			// disable application until it's ready
 			enabled = false;
-			
-			if (getAdminConnectionName())
+			if(GoogleDrive.openedFromDrive(_flashVars)){
+				GoogleDrive.authorize();
+				enabled = true;
+			}
+			else if (getAdminConnectionName())
 			{
 				// disable interface while connecting to admin console
 				var _this:VisApplication = this;
@@ -951,6 +955,14 @@ package weave.application
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
 						lang("Save session state to server"),
 						function():void { saveSessionStateToServer(); }
+					));
+				}
+				if (GoogleDrive.isAuthorized)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+						lang("Save session state to Google Drive"),
+						function():void { GoogleDrive.saveToDrive(); }
 					));
 				}
 				
