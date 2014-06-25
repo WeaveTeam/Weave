@@ -171,7 +171,6 @@
 			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
-			private var _lastHighlighted:IQualifiedKey;
 
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -517,19 +516,9 @@
 					callLater(updateGlobalProbeChange);
 					return;
 				}
-				dataGrid.drawItemForced(_lastHighlighted, _selection.containsKey(_lastHighlighted), false);
-				if (_probe.keys.length > 0)
-				{
-					var key:IQualifiedKey = _probe.keys[0];
-					var keySelected:Boolean = _selection.containsKey(key);
-					dataGrid.drawItemForced(key, keySelected, true);
-					_lastHighlighted = key;
-				}
-				else
-				{
-					_lastHighlighted = null;
-				}
-				return;
+				dataGrid.invalidateList();
+				dataGrid.validateNow();
+				dataGrid.highlightItemsForced(_probe.keys, _selection.containsKey);
 			}
 			
 			/**

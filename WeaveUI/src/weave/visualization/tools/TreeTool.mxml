@@ -8,22 +8,22 @@
 <ui:CustomTree width="100%" height="100%" id="treeView" allowMultipleSelection="true" dataDescriptor="{new ParentColumnTreeDescriptor()}"/>
 <mx:Script>
 <![CDATA[
-
-import mx.controls.listClasses.IListItemRenderer;
-import mx.events.ListEvent;
-import mx.events.TreeEvent;
-
-import weave.Weave;
-import weave.api.data.IQualifiedKey;
-import weave.api.linkBindableProperty;
-import weave.api.newLinkableChild;
-import weave.api.ui.IVisTool;
-import weave.core.LinkableBoolean;
-import weave.core.LinkableHashMap;
-import weave.data.AttributeColumns.DynamicColumn;
-import weave.data.KeySets.KeyFilter;
-import weave.data.KeySets.KeySet;
-import weave.data.KeySets.KeySetUnion;
+	import mx.controls.listClasses.IListItemRenderer;
+	import mx.events.ListEvent;
+	import mx.events.TreeEvent;
+	import mx.rpc.events.ResultEvent;
+	
+	import weave.Weave;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
+	import weave.api.ui.IVisTool;
+	import weave.core.LinkableBoolean;
+	import weave.core.LinkableHashMap;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.KeySets.KeyFilter;
+	import weave.data.KeySets.KeySet;
+	import weave.data.KeySets.KeySetUnion;
 
 public const parentColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleParentChange, true);
 public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleLabelColumnChange, true);
@@ -133,7 +133,25 @@ private function columnLabelFunction(item:Object):String
 }
 private function iconFunction(item:Object):Class
 {
-    return null;
+	return null;
+	//TODO - this won't work because we have to return a Class here.
+	// Instead of using iconFunction, we need to use a custom TreeItemRenderer.
+	
+	var key:IQualifiedKey = item as IQualifiedKey;
+	if (!key)
+		return null;
+	var url:String = iconColumn.getValueFromKey(key, String);
+    var icon:* = _iconLookup[url];
+	if (!icon && url)
+		WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(url), handleIcon, null, url);
+	
+	return icon; // BitmapData
+}
+private var _iconLookup:Object = {};
+private function handleIcon(event:ResultEvent, url:String):void
+{
+	_iconLookup[url] = event.result;
+	treeView.invalidateList();
 }
 private function updateSelection():void 
 {
@@ -142,12 +160,9 @@ private function updateSelection():void
 /* TODO Fix probing */
 private function updateProbe():void
 {
-    for (var idx:String in _probe.keys)
-    {
-        var key:IQualifiedKey = _probe.keys[idx] as IQualifiedKey;
-        treeView.drawItemForced(key, _selection.containsKey(key), false);
-    }
-    return;
+	treeView.invalidateList();
+	treeView.validateNow();
+	treeView.highlightItemsForced(_probe.keys, _selection.containsKey);
 }
 
 private function updateExpanded():void
@@ -192,9 +207,9 @@ private function handleIconColumnChange():void
 {
     treeView.iconFunction = iconColumn.getInternalColumn() ? iconFunction : null;
     iconMappingGrid.enabled = (iconColumn.getInternalColumn() != null);
-
+/*
     var idx:int;
-    var values:Object;
+    var values:Object = {};
     var keys:Array = iconColumn.keys;
     for (idx = 0; idx < keys.length; idx++)
     {
@@ -203,7 +218,7 @@ private function handleIconColumnChange():void
     }
 
     weaveTrace(values);
-
+*/
     refresh();
 }
 private function handleLabelColumnChange():void
