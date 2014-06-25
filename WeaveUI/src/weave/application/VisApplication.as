@@ -278,9 +278,11 @@ package weave.application
 			if (url is URLRequest)
 			{
 				request = url as URLRequest;
+				_requestedConfigFile = request.url;
 			}
 			else if (url is String)
 			{
+				_requestedConfigFile = String(url);
 				if (noCacheHack)
 					url = String(url) + "?" + (new Date()).getTime(); // prevent flex from using cache
 				request = new URLRequest(String(url));
@@ -292,9 +294,9 @@ package weave.application
 				var headers:Object = url['requestHeaders'];
 				for (var k:String in headers)
 					request.requestHeaders.push(new URLRequestHeader(k, headers[k]));
+				_requestedConfigFile = request.url;
 			}
 			
-			_requestedConfigFile = request.url;
 			_loadFileCallback = callback as Function;
 			if (callback is String)
 				_loadFileCallback = function():void { JavaScript.exec(callback + "();"); };
