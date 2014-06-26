@@ -81,7 +81,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Grouping values"), lang("Height values (Optional)")];
+				return ["Grouping values", "Height values (Optional)"];
 			}
 			override public function getSelectableAttributes():Array
 			{

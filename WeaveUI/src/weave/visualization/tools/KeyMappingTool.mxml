@@ -156,7 +156,7 @@ public function getSelectableAttributes():Array
 
 public function getSelectableAttributeNames():Array
 {
-    return [sourceLocalNameColumnComponent.label, targetLocalNameColumnComponent.label];
+    return ['Source LocalName', 'Target LocalName'];
 }
 
 ]]>
@@ -167,13 +167,13 @@ public function getSelectableAttributeNames():Array
                 <mx:Label text="{lang('Source KeyType')}"/>
                 <ui:KeyTypesMenu id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
-            <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent" label="{lang('Source LocalName')}"/>
+            <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent"/>
             <mx:HBox>
                 <mx:Label text="{lang('Target KeyType')}"/>
                 <ui:KeyTypesMenu id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500)"/>
             </mx:HBox>
 
-            <ui:DynamicColumnComponent id="targetLocalNameColumnComponent" label="{lang('Target LocalName')}"/>
+            <ui:DynamicColumnComponent id="targetLocalNameColumnComponent"/>
 
             <mx:CheckBox id="enableSelectionCheckBox"
                 label="{lang('Perform Mapping on Selection')}"

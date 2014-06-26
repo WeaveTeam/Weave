@@ -326,26 +326,28 @@
 				_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
 			}
 			
-			/*
+			override public function getSelectableAttributes():Array
+			{
+				return [nodeLabelColumn, nodeColorColumn, nodeRadiusColumn, nodeParentColumn, edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeLabelColumn, edgeWeightColumn];
+			}
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Color"), lang("Node IDs"), lang("Label"), lang("Edge Source IDs"), lang("Edge Target IDs"), lang("Edge Color Column")];
+				return ["Node Labels", "Node Color", "Node Size", "Node Parent ID", "Edge Sources", "Edge Targets", "Edge Thickness", "Edge Labels", "Edge Weight"];
 			}
-			*/
 
 		]]>
 	</mx:Script>
 		<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
-			<ui:DynamicColumnComponent id="nodeLabelComponent" label="{lang('Node Labels')}"/>
-			<ui:DynamicColumnComponent id="nodeColorComponent" label="{lang('Node Color')}"/> 
-			<ui:DynamicColumnComponent id="nodeRadiusComponent" label="{lang('Node Size')}"/> 
-			<ui:DynamicColumnComponent id="nodeParentComponent" label="{lang('Node Parent ID')}"/>
-			<ui:DynamicColumnComponent id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
-			<ui:DynamicColumnComponent id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
-			<ui:DynamicColumnComponent id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
-			<ui:DynamicColumnComponent id="edgeLabelComponent" label="{lang('Edge Labels')}"/>
-			<ui:DynamicColumnComponent id="edgeWeightComponent" label="{lang('Edge Weight')}"/>
+			<ui:DynamicColumnComponent id="nodeLabelComponent"/>
+			<ui:DynamicColumnComponent id="nodeColorComponent"/>
+			<ui:DynamicColumnComponent id="nodeRadiusComponent"/>
+			<ui:DynamicColumnComponent id="nodeParentComponent"/>
+			<ui:DynamicColumnComponent id="edgeSourceComponent"/>
+			<ui:DynamicColumnComponent id="edgeTargetComponent"/>
+			<ui:DynamicColumnComponent id="edgeThicknessComponent"/>
+			<ui:DynamicColumnComponent id="edgeLabelComponent"/>
+			<ui:DynamicColumnComponent id="edgeWeightComponent"/>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 		 	<mx:HBox>

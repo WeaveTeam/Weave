@@ -117,7 +117,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("X"),lang("Y"),lang("Color"),lang("Size"),lang("Histogram Column")];
+				return ["X","Y","Color","Size","Histogram Column"];
 			}
 			override public function getSelectableAttributes():Array
 			{

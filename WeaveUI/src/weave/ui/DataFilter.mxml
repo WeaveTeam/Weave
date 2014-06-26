@@ -128,7 +128,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return filterColumn ? [lang('Filter')] : [];
+				return filterColumn ? ['Filter'] : [];
 			}
 			
 			public function getSelectableAttributes():Array

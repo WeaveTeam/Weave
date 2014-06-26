@@ -332,7 +332,7 @@
 			{
 				var className:String = getQualifiedClassName(object).split('::').pop();
 				var objectName:String = getSessionStateName(object);
-				var str:String = className;
+				var str:String = WeaveAPI.getRegisteredImplementationDisplayName(Object(object).constructor) || lang(className);
 				if (objectName && objectName != className)
 					str += ' ' + Compiler.encodeString(objectName);
 				return lang(format, str);

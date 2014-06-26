@@ -34,7 +34,7 @@
 				id="dimensionTypeLinks"
 				width="100%"
 				useHandCursor="true"
-				dataProvider="{selectableAttributeNames}"
+				dataProvider="{selectableAttributeNames.map(translateAttrName)}"
 				itemClick="linkToObject(selectableAttributes[event.index]);"/>
 		</mx:HBox>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
@@ -166,6 +166,11 @@
 				
 				paramSelector.visible = paramSelector.includeInLayout = !!tool;
 				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
+			}
+			
+			private static function translateAttrName(name:String, i:int, a:Array):String
+			{
+				return lang(name);
 			}
 			
 			private static const DEFAULT_TITLE:String = "Attribute selector";

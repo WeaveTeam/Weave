@@ -78,7 +78,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Gauge Column")];
+				return ["Gauge Column"];
 			}
 			override public function getSelectableAttributes():Array
 			{

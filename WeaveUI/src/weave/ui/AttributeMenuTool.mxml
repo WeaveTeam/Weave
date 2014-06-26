@@ -473,7 +473,7 @@
 			}
 			public function getSelectableAttributeNames():Array
 			{
-				return [lang("Choices")];
+				return ["Choices"];
 			}
 			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void

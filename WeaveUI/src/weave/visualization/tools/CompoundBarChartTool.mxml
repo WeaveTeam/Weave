@@ -144,12 +144,12 @@
 			override public function getSelectableAttributeNames():Array
 			{
 				return [
-					lang("Color"),
-					lang("Label"),
-					lang("Sort"),
-					lang("Height"),
-					lang("Positive Error"),
-					lang("Negative Error")
+					"Color",
+					"Label",
+					"Sort",
+					"Height",
+					"Positive Error",
+					"Negative Error"
 				];
 			}
 			override public function getSelectableAttributes():Array

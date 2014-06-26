@@ -26,8 +26,10 @@
 -->
 <Indent xmlns:mx="http://www.adobe.com/2006/mxml" 
 		xmlns="weave.ui.*"
+		implements="weave.api.core.ILinkableObject"
 		height="30" creationPolicy="all"
-		verticalAlign="middle" implements="weave.api.core.ILinkableObject"
+		verticalAlign="middle"
+		translate="true"
 		>
 	<mx:HBox horizontalGap="4" width="100%">
 		<mx:List id="internalList"

@@ -377,7 +377,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return [lang("Columns")];
+				return ["Columns"];
 			}
 			
 			

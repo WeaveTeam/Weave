@@ -76,7 +76,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Meter")];
+				return ["Meter"];
 			}
 			override public function getSelectableAttributes():Array
 			{

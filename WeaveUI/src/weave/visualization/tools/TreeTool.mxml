@@ -246,16 +246,16 @@ public function getSelectableAttributes():Array
 
 public function getSelectableAttributeNames():Array
 {
-    return [parentColumnComponent.label, labelColumnComponent.label, iconColumnComponent.label];
+    return ['Parent', 'Label', 'Icon'];
 }
 
 ]]>
 </mx:Script>
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
-            <ui:DynamicColumnComponent id="parentColumnComponent" label="{lang('Parent')}"/>
-            <ui:DynamicColumnComponent id="labelColumnComponent" label="{lang('Label')}"/>
-            <ui:DynamicColumnComponent id="iconColumnComponent" label="{lang('Icon')}" visible="true"/> 
+            <ui:DynamicColumnComponent id="parentColumnComponent"/>
+            <ui:DynamicColumnComponent id="labelColumnComponent"/>
+            <ui:DynamicColumnComponent id="iconColumnComponent" visible="true"/>
             <ui:Indent>
                 <mx:VBox>
                     <mx:Label text="{lang('Icon Column Value Mapping')}" enabled="{iconMappingGrid.enabled}"/>
