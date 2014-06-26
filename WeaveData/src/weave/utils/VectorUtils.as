@@ -420,5 +420,16 @@ package weave.utils
 			}
 			return output;
 		}
+		
+		/**
+		 * Gets a list of values of a property from a list of objects.
+		 * @param array An Array or Vector of Objects.
+		 * @param property The property name to get from each object
+		 * @return A list of the values of the specified property for each object in the original list.
+		 */
+		public static function pluck(array:*, property:String):*
+		{
+			return array.map(function(item:Object, i:int, a:*):* { return item[property]; });
+		}
 	}
 }
