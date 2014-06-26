@@ -5,7 +5,7 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 	$scope.$watchCollection('[yearColumn, monthColumn]', function() {
 		if($scope.yearColumn && $scope.monthColumn) {
 				
-				aws.queryDataService('getEntities', [yearColumnId, monthColumn], function(entities) {
+				aws.queryDataService('getEntities', [angular.fromJson(yearColumn).id, angular.fromJson(monthColumn).id], function(entities) {
 					yearColumnEntity = entities[0];
 					monthColumnEntity = entities[1];
 				});

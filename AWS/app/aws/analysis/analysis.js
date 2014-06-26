@@ -143,78 +143,34 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 
 	};
 
-	//*Building the Input controls from the script metadata
-	// array of column selected
-	$scope.selection = [];
-
-	$scope.inputs = [];
-
-	$scope.$watchCollection(function() {
-		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
-	}, function() {
-		if (queryService.dataObject.hasOwnProperty("scriptMetadata") && queryService.dataObject.columns.length) {
-			$scope.inputs = [];
-			if (queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
-				$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
-
-				// look for default values in the db
-
-				for (var i in $scope.inputs){
-					for(var j in queryService.dataObject.columns) {
-						if($scope.inputs[i]['default'] == queryService.dataObject.columns[j].publicMetadata.title) {
-							$scope.selection[i] = angular.toJson({ id : queryService.dataObject.columns[j].id , title: queryService.dataObject.columns[j].publicMetadata.title  });
-							break;
-						}
-					}
-				}
-			}
-		}
-	});
-
-	$scope.$watchCollection(function() {
-		return [queryService.queryObject.Indicator, $scope.inputs];
-	}, function() {
-		if(queryService.queryObject.Indicator.hasOwnProperty("id")) {
-			for(var i in $scope.inputs) {
-				if($scope.inputs[i].columnType.toLowerCase() == "indicator") {
-					$scope.selection[i] = angular.toJson({ id : queryService.queryObject.Indicator.id, title : queryService.queryObject.Indicator.label });
-				}
-			}
-		}
-	});
+//	$scope.$watchCollection(function() {
+//		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
+//	}, function() {
+//		if (queryService.dataObject.hasOwnProperty("scriptMetadata") && queryService.dataObject.columns.length) {
+//			$scope.inputs = [];
+//			if (queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
+//				$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
+//
+//				// look for default values in the db
+//
+//				for (var i in $scope.inputs){
+//					for(var j in queryService.dataObject.columns) {
+//						if($scope.inputs[i]['default'] == queryService.dataObject.columns[j].publicMetadata.title) {
+//							$scope.selection[i] = angular.toJson({ id : queryService.dataObject.columns[j].id , title: queryService.dataObject.columns[j].publicMetadata.title  });
+//							break;
+//						}
+//					}
+//				}
+//			}
+//		}
+//	});
 
 	queryService.queryObject.ScriptColumnRequest = [];
 
-	$scope.$watchCollection('selection', function() {
 
-		if(!$scope.selection.length) {
-			queryService.queryObject.ScriptColumnRequest = [];
-		}
-
-		for (var i = 0; i < $scope.selection.length; i++) {
-			if ($scope.selection != undefined) {
-				if ($scope.selection[i] != undefined && $scope.selection[i] != "") {
-					var selection = angular.fromJson($scope.selection[i]);
-					if (queryService.queryObject.ScriptColumnRequest[i]) {
-						queryService.queryObject.ScriptColumnRequest[i] = selection;
-					} else {
-						queryService.queryObject.ScriptColumnRequest[i] = selection;
-					}
-				} 
-			} // end if undefined
-		}
-	});
-
-
-	$scope.$watchCollection(function() {
-		return queryService.queryObject.ScriptColumnRequest;
+	$scope.$watch(function() {
+		return queryService.queryObject;
 	}, function() {
-		if (queryService.queryObject.ScriptColumnRequest != undefined) {
-			for (var i = 0; i < queryService.queryObject.ScriptColumnRequest.length; i++) {
-				if (queryService.queryObject.ScriptColumnRequest[i] != undefined && queryService.queryObject.ScriptColumnRequest[i] != "") {
-					$scope.selection[i] = angular.toJson(queryService.queryObject.ScriptColumnRequest[i]);
-				}
-			}
-		}
-	});
+		console.log(queryService.queryObject);
+	}, true);
 });

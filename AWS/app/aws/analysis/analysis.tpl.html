@@ -35,7 +35,7 @@
 				</select>
 				</div>-->
 				<div style="width: 100%; margin-top: 10px;">
-					<select style="width: 100%;" ui-select2 ng-model="service.queryObject.indicator" data-placeholder="Choose Indicator">
+					<select style="width: 100%;" ui-select2 ng-model="service.queryObject.Indicator" data-placeholder="Choose Indicator">
 						<option></option>
 						<option value="{{indicator}}" ng-repeat="indicator in service.dataObject.columns | filter : { columnType : 'indicator' }">{{indicator.title}}</option>
 					</select>

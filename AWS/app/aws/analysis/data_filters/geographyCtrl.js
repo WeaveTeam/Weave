@@ -7,46 +7,44 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 	var countyValueKey = null;
 	var countyLabelKey = null;
 	var processedMetadata;
-	var geographyMetadata = null;
 	var metadataTableTitle = null;
 	
 	
 	$scope.service = queryService;
 	
 	
-	$scope.$watch('metadataTable', function() {
-		if($scope.metadataTable != undefined) {
-			if($scope.metadataTableSelection != "") {
+	$scope.$watch(function() {
+		return queryService.queryObject.GeographyFilter.metadaTable;
+	}, function(newValue, oldValue) {
+		if(newValue) {
+			metadataTable = angular.fromJson(newValue);
+			metadataTableTitle = metadataTable.title;
+			aws.DataClient.getDataColumnEntities([angular.fromJson($scope.metadataTable).id], function(metadataTableArray) {
 				
-				aws.DataClient.getDataColumnEntities([angular.fromJson($scope.metadataTable).id], function(metadataTableArray) {
-					
-					var metadataTable = metadataTableArray[0];
-					
-					if(metadataTable.publicMetadata.hasOwnProperty("stateValues")) {
-						stateValueKey = metadataTable.publicMetadata.stateValues;
-					}
-					if( metadataTable.publicMetadata.hasOwnProperty("stateLabels")) {
-						stateLabelKey = metadataTable.publicMetadata.stateLabels;
-					}
-					
-					if( metadataTable.publicMetadata.hasOwnProperty("countyValues")) {
-						countyValueKey = metadataTable.publicMetadata.countyValues;
-					}
-					
-					if( metadataTable.publicMetadata.hasOwnProperty("countyLabels")) {
-						countyLabelKey = metadataTable.publicMetadata.countyLabels;
-					}
-					if( metadataTable.publicMetadata.hasOwnProperty("title")) {
-						metadataTableTitle = metadataTable.publicMetadata.title;
-					}
-					
-					$scope.$apply();
-					
-					queryService.getDataSetFromTableId(metadataTable.id);
-					
-					
-				});
-			}
+				var metadataTable = metadataTableArray[0];
+				
+				if(metadataTable.publicMetadata.hasOwnProperty("stateValues")) {
+					stateValueKey = metadataTable.publicMetadata.stateValues;
+				}
+				if( metadataTable.publicMetadata.hasOwnProperty("stateLabels")) {
+					stateLabelKey = metadataTable.publicMetadata.stateLabels;
+				}
+				
+				if( metadataTable.publicMetadata.hasOwnProperty("countyValues")) {
+					countyValueKey = metadataTable.publicMetadata.countyValues;
+				}
+				
+				if( metadataTable.publicMetadata.hasOwnProperty("countyLabels")) {
+					countyLabelKey = metadataTable.publicMetadata.countyLabels;
+				}
+				if( metadataTable.publicMetadata.hasOwnProperty("title")) {
+					metadataTableTitle = metadataTable.publicMetadata.title;
+				}
+				
+				$scope.$apply();
+				
+				queryService.getDataSetFromTableId(metadataTable.id);
+			});
 		}
 	});
 	
@@ -112,7 +110,7 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 
 	$scope.$watchCollection(function() {
 
-		return [$scope.stateColumn, $scope.countyColumn, processedMetadata];
+		return [queryService.queryObject.stateColumn, queryService.queryObject.countyColumn, processedMetadata];
 		
 	}, function() {
 		
