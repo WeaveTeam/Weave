@@ -226,8 +226,6 @@
 				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
 				filterComponents.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
 				
-				dimensionsList.hashMap = columns;
-				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 			}
 
@@ -365,8 +363,8 @@
 			
 			private function addImageColumn():void
 			{
-				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
-				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
+				var imageColumnName:String = columns.generateUniqueName("ImageColumn");
+				var imageCol:ImageColumn = columns.requestObject(imageColumnName,ImageColumn, false);
 				AttributeSelectorPanel.open(imageCol);
 			}
 			
@@ -989,7 +987,7 @@
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
-			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
+			<ui:ColumnListComponent id="dimensionsList" creationComplete="dimensionsList.hashMap = columns;"/>
 			<mx:HBox>
 				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>
