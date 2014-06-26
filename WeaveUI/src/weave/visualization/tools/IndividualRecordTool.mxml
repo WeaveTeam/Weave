@@ -3,7 +3,7 @@
 					 xmlns:tools="weave.visualization.tools.*"
 					 xmlns:ui="weave.ui.*"
 					 width="400" height="300" layout="vertical">
-	<mx:HBox width="100%" height="30%">
+	<mx:HBox id="profileArea" width="100%" height="30%">
 		<mx:Canvas id="profileImage" width="30%" height="100%" backgroundColor="0xF443DC"/>
 		<mx:Box id="personalInformationBox" width="70%" height="100%" direction="vertical">
 			<mx:Label id="infoLine1" text="test1"/>
@@ -30,6 +30,8 @@
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeySet;
 			import weave.utils.BitmapUtils;
+			import weave.visualization.plotters.AxisLabelPlotter;
+			import weave.visualization.plotters.IndividualRecordToolPlotter;
 			
 			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
 			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
@@ -58,9 +60,18 @@
 			
 			WeaveAPI.registerImplementation(IVisTool, IndividualRecordTool, lang("Individual Record Tool"));
 			
+			[Bindable]
+			public var plotter:IndividualRecordToolPlotter = null;
+			
 			override protected function constructor():void
 			{
 				super.constructor();
+				
+				plotter = initializePlotters(IndividualRecordToolPlotter, true);
+				
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableFixedAspectRatio.value = true;
+				visualization.enableZoomAndPan.value = false;
 				
 				_recordKeySubset.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				
@@ -74,6 +85,11 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
+				visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
+				visualization.plotManager.marginLeft.value = "100";
+				visualization.plotManager.marginRight.value = "20";
+				visualization.plotManager.marginBottom.value = "25";
 				
 				previousText1 = line1LeadingText.value;
 				previousText2 = line1LeadingText.value;
@@ -132,7 +148,6 @@
 					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData);
 				else if( _selection.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData) != null)
 					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData);
-				
 			}
 			
 			private function columnLine1Update():void
