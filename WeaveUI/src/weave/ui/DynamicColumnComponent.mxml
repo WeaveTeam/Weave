@@ -152,7 +152,7 @@
 			
 			private function updateLabel():void
 			{
-				toolWatcher.target = AttributeSelectorPanel.getVisTool(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
+				toolWatcher.target = AttributeSelectorPanel.getOwnerWithSelectableAttributes(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
 				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
 				if (!tool)
 					return;

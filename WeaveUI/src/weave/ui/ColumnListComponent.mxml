@@ -107,7 +107,7 @@
 			[Bindable] private var _internalList:ListBase;
 			private const _internalListChildIndex:int = 1;
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
-			private const toolWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
+			private const ownerWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
 			
 			public function get showVariableNames():Boolean
 			{
@@ -148,14 +148,14 @@
 					callLater(updateLabel);
 					return;
 				}
-				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
+				var tool:IObjectWithSelectableAttributes = ownerWatcher.target as IObjectWithSelectableAttributes;
 				if (!tool)
 					return;
 				var names:Array = tool.getSelectableAttributeNames();
 				var attrs:Array = tool.getSelectableAttributes();
 				var index:int = attrs.indexOf(controller.hashMap);
 				if (index >= 0)
-					label = names[index];
+					label = lang(names[index]);
 			}
 			
 			private function openSelector():void
@@ -167,7 +167,7 @@
 			{
 				enabled = !!value;
 				controller.hashMap = value;
-				toolWatcher.target = AttributeSelectorPanel.getVisTool(value);
+				ownerWatcher.target = AttributeSelectorPanel.getOwnerWithSelectableAttributes(value);
 				updateLabel();
 			}
 			public function get hashMap():ILinkableHashMap

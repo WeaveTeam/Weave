@@ -190,7 +190,7 @@
 				editor.explorer.fileView.allowMultipleSelection = !!columnList.hashMap;
 				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
 
-				var tool:IObjectWithSelectableAttributes = getVisTool(columnOrHashMap);
+				var tool:IObjectWithSelectableAttributes = getOwnerWithSelectableAttributes(columnOrHashMap);
 				toolWatcher.target = tool;
 				// make sure we call handleTool() later
 				getCallbackCollection(toolWatcher).triggerCallbacks();
@@ -246,7 +246,7 @@
 				instance.copyCoordinatesFromSessionedProperties();
 				return instance;
 			}
-			public static function getVisTool(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IObjectWithSelectableAttributes
+			public static function getOwnerWithSelectableAttributes(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IObjectWithSelectableAttributes
 			{
 				var owner:ILinkableObject = getLinkableOwner(selectableAttribute);
 				while (owner && !(owner is IObjectWithSelectableAttributes))
