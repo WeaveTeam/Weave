@@ -833,7 +833,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function removePanel():void
 			{
 				var owner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
-				if (owner)
+				if (owner && owner.getName(this))
 				{
 					owner.removeObject(owner.getName(this));
 					return;
