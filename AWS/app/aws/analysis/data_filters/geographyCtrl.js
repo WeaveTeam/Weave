@@ -40,9 +40,6 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 				if( metadataTable.publicMetadata.hasOwnProperty("title")) {
 					metadataTableTitle = metadataTable.publicMetadata.title;
 				}
-				
-				$scope.$apply();
-				
 				queryService.getDataSetFromTableId(metadataTable.id, true);
 			});
 		}
@@ -105,7 +102,6 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 				}
 			}
 		}
-		
 	});
 
 	$scope.$watchCollection(function() {

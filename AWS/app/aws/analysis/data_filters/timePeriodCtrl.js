@@ -92,7 +92,6 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 		var node = $("#timeTree").dynatree("getRoot");
 	    node.sortChildren(cmp, true);
 		$("#timeTree").dynatree("getTree").reload();
-		$scope.$apply();
 	});
 	
 	 $scope.toggleSelect = function(){
