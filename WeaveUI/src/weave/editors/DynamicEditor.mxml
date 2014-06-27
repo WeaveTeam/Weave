@@ -40,7 +40,7 @@
 			private function setSessionStateTree(tree:Object):void
 			{
 				_tree = tree;
-				setTarget(_tree[SessionManager.TREE_OBJECT]);
+				setTarget(_tree[OBJECT]);
 			}
 			
 			public function set target(object:ILinkableObject):void
@@ -63,6 +63,10 @@
 				init();
 			}
 			
+			private static const LABEL:String = SessionManager.TREE_LABEL;
+			private static const OBJECT:String = SessionManager.TREE_OBJECT;
+			private static const CHILDREN:String = SessionManager.TREE_CHILDREN;
+			
 			private function init():void
 			{
 				if (!_target)
@@ -77,15 +81,15 @@
 				
 				var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
 				var tree:Object = _tree || sm.getSessionStateTree(_target, label);
-				var subtrees:Array = tree[SessionManager.TREE_CHILDREN];
+				var subtrees:Array = tree[CHILDREN];
 				var subtree:Object;
 				
 				// sort by class, then by name
 				StandardLib.sort(subtrees, function(st1:Object, st2:Object):int {
-					var c1:Class = st1[SessionManager.TREE_OBJECT].constructor;
-					var c2:Class = st2[SessionManager.TREE_OBJECT].constructor;
-					var l1:String = st1[SessionManager.TREE_LABEL];
-					var l2:String = st2[SessionManager.TREE_LABEL];
+					var c1:Class = st1[OBJECT].constructor;
+					var c2:Class = st2[OBJECT].constructor;
+					var l1:String = st1[LABEL];
+					var l2:String = st2[LABEL];
 					return ObjectUtil.stringCompare(c1.toString(), c2.toString())
 						|| ObjectUtil.stringCompare(l1, l2);
 				});
@@ -105,8 +109,8 @@
 				// create editors for all properties
 				for each (subtree in subtrees)
 				{
-					var childLabel:String = subtree[SessionManager.TREE_LABEL];
-					var childObject:ILinkableObject = subtree[SessionManager.TREE_OBJECT];
+					var childLabel:String = subtree[LABEL];
+					var childObject:ILinkableObject = subtree[OBJECT];
 					
 					// make sure we don't add duplicate editors
 					if (ignore[childObject])
