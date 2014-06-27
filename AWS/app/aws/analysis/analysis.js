@@ -33,16 +33,17 @@ analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_
 	$scope.dash_focused = false;
 	
 	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
-	// $scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
 	$scope.tool_list = dasboard_widget_service.get_tool_list('visualization');
-	// $scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
 
 	$scope.add_widget = function(element_id) {
 		
 		dasboard_widget_service.add_widget_bricks(element_id);
 		try{
-			
-			$scope.box_enabled[element_id] = true;
+			//if the entry does not exist or is set to false
+			if(!($scope.box_enabled.hasOwnProperty(element_id)) || !($scope.box_enabled[element_id]))
+				$scope.box_enabled[element_id] = true;
+			else//required when disabling a viz tool
+				$scope.box_enabled[element_id] = false;
 		}
 		catch(e){
 			

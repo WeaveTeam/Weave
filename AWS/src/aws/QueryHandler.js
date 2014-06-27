@@ -20,6 +20,7 @@ aws.QueryHandler = function(queryObject)
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
 	this.title = queryObject.title;
+	this.queryObject = queryObject;
 	
 	this.dateGenerated = queryObject.date;
 	this.author = queryObject.author;
@@ -236,7 +237,7 @@ aws.QueryHandler = function(queryObject)
 	}
 	
 	this.currentVisualizations = {};
-
+	console.log("query", angular.toJson(this.queryObject));
 	this.ComputationEngine = null;
 	//TODO decide this according to script selected or UI selection of computation engine
 	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {

@@ -79,8 +79,8 @@ function($filter, queryService) {
 
 	this.get_filter_widget_bricks = function(){
 		
-		return content_tools
-	}
+		return content_tools;
+	};
 	
 	this.get_widget_bricks = function() {
 
@@ -92,7 +92,7 @@ function($filter, queryService) {
 		var widget_id = element_id;
 		var widget_brick_found = $filter('filter')(widget_bricks, {
 			id : widget_id
-		})
+		});
 		if (widget_brick_found.length == 0) {
 			var tool = $filter('filter')(tool_list, {
 				id : widget_id
@@ -104,9 +104,12 @@ function($filter, queryService) {
 	};
 
 	this.remove_widget_bricks = function(widget_index) {
-
-		widget_bricks.splice(widget_index, 1);
-
+		for(i in widget_bricks){
+			var name = widget_bricks[i].id;
+			if(widget_index == name){
+				widget_bricks.splice(i,1);
+			}
+		}
 	};
 
 	this.get_tool_list = function(category) {
@@ -118,6 +121,9 @@ function($filter, queryService) {
 	};
 	
 	this.enable_widget = function(tool_id, enabled){
+		if(!(enabled)){
+			this.remove_widget_bricks(tool_id);//if it isnt enabled remove it from dashboard(disable)
+		}
 		queryService.queryObject[tool_id].enabled =  enabled;
 	};
 }]);
