@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;

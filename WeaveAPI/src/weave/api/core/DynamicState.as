@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.core
+package weave.api.core
 {
 	/**
 	 * Dynamic state objects have three properties: objectName, className, sessionState

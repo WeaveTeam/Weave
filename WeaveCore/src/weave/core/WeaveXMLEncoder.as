@@ -26,6 +26,7 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLEncoder;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
@@ -98,7 +99,7 @@ package weave.core
 			if (obj is Array)
 			{
 				var array:Array = obj as Array;
-				var encoding:String = JSON_ENCODING;
+				var encoding:String = JSON_ENCODING; // JSON is the fallback if nothing else applies
 				var arrayType:Class = StandardLib.getArrayType(array);
 				var item:Object;
 				
@@ -120,7 +121,7 @@ package weave.core
 					array = [array];
 					encoding = CSVROW_ENCODING;
 				}
-				else if (array.length == 0 || arrayType == Object || arrayType == DynamicState)
+				else if (array.length == 0 || arrayType == Object)
 				{
 					encoding = DYNAMIC_ENCODING;
 					for each (item in array)

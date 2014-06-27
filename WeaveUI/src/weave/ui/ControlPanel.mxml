@@ -37,12 +37,12 @@
 		<![CDATA[
 			import mx.containers.Box;
 			import mx.containers.TabNavigator;
-			import mx.containers.VBox;
 			import mx.core.INavigatorContent;
 			import mx.core.IUIComponent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
+			import weave.api.core.DynamicState;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
@@ -55,7 +55,6 @@
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.compiler.Compiler;
 			import weave.core.ClassUtils;
-			import weave.core.DynamicState;
 			import weave.core.SessionManager;
 			import weave.editors.DynamicEditor;
 			
