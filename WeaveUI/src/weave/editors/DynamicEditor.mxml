@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns="weave.editors.*"
+		 xmlns:ui="weave.ui.*"
+		 verticalGap="4"
+		 implements="weave.api.ui.ILinkableObjectEditor">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Button;
+			import mx.core.IContainer;
+			import mx.events.FlexEvent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.core.ILinkableVariable;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.linkBindableProperty;
+			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
+			import weave.core.SessionManager;
+			import weave.core.UIUtils;
+			import weave.ui.CodeEditor;
+			import weave.ui.ColumnListComponent;
+			import weave.ui.CustomCheckBox;
+			import weave.ui.CustomVRule;
+			import weave.ui.DynamicColumnComponent;
+			import weave.ui.ExpandButton;
+			import weave.ui.Indent;
+			import weave.ui.IndentTextInput;
+			import weave.ui.SessionStateEditor;
+			import weave.utils.VectorUtils;
+			
+			private var _target:ILinkableObject = null;
+			private var _tree:Object = null;
+			
+			private function setSessionStateTree(tree:Object):void
+			{
+				_tree = tree;
+				setTarget(_tree[SessionManager.TREE_OBJECT]);
+			}
+			
+			public function set target(object:ILinkableObject):void
+			{
+				setTarget(object);
+			}
+			public function get target():ILinkableObject
+			{
+				return _target;
+			}
+			
+			public function setTarget(object:ILinkableObject):void { _target = object; }
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
+			
+			override protected function createChildren():void
+			{
+				UIUtils.pad(this, 4, 100, 100);
+				super.createChildren();
+				init();
+			}
+			
+			private function init():void
+			{
+				if (!_target)
+				{
+					callLater(init);
+					return;
+				}
+				
+				var component:DisplayObject = createComponent(_target, label);
+				if (component)
+					this.addChild(component);
+				
+				var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
+				var tree:Object = _tree || sm.getSessionStateTree(_target, label);
+				var subtrees:Array = tree[SessionManager.TREE_CHILDREN];
+				var subtree:Object;
+				
+				// sort by class, then by name
+				StandardLib.sort(subtrees, function(st1:Object, st2:Object):int {
+					var c1:Class = st1[SessionManager.TREE_OBJECT].constructor;
+					var c2:Class = st2[SessionManager.TREE_OBJECT].constructor;
+					var l1:String = st1[SessionManager.TREE_LABEL];
+					var l2:String = st2[SessionManager.TREE_LABEL];
+					return ObjectUtil.stringCompare(c1.toString(), c2.toString())
+						|| ObjectUtil.stringCompare(l1, l2);
+				});
+				
+				var owsa:IObjectWithSelectableAttributes = _target as IObjectWithSelectableAttributes;
+				if (owsa)
+				{
+					// create editors for all enumerated selectable attributes first
+					var names:Array = owsa.getSelectableAttributeNames();
+					var attrs:Array = owsa.getSelectableAttributes();
+					for (var i:int = attrs.length - 1; i >= 0; i--)
+						subtrees.unshift(sm.getSessionStateTree(attrs[i], names[i]));
+				}
+				
+				var ignore:Dictionary = new Dictionary(true);
+				
+				// create editors for all properties
+				for each (subtree in subtrees)
+				{
+					var childLabel:String = subtree[SessionManager.TREE_LABEL];
+					var childObject:ILinkableObject = subtree[SessionManager.TREE_OBJECT];
+					
+					// make sure we don't add duplicate editors
+					if (ignore[childObject])
+						continue;
+					ignore[childObject] = true;
+					
+					var childComponent:DisplayObject = createComponent(childObject, childLabel);
+					if (childComponent)
+					{
+						this.addChild(childComponent);
+					}
+					else
+					{
+						var indent:Indent = new Indent();
+						indent.translate = true;
+						indent.label = childLabel;
+						indent.setStyle('verticalAlign', 'top');
+						
+						indent.addChild(new CustomVRule());
+						
+						var de:DynamicEditor = new DynamicEditor();
+						de.label = childLabel;
+						de.setSessionStateTree(subtree);
+						indent.addChild(de);
+						
+						this.addChild(indent);
+					}
+				}
+			}
+			
+			public static function createComponent(obj:ILinkableObject, label:String):DisplayObject
+			{
+				var indent:Indent;
+				
+				var lb:LinkableBoolean = obj as LinkableBoolean;
+				if (lb)
+				{
+					var checkBox:CustomCheckBox = new CustomCheckBox();
+					checkBox.label = lang(label);
+					linkBindableProperty(lb, checkBox, 'selected');
+					return checkBox;
+				}
+				
+				var ln:LinkableNumber = obj as LinkableNumber;
+				if (ln)
+				{
+					var input:IndentTextInput = new IndentTextInput();
+					input.translate = true;
+					input.label = label;
+					linkBindableProperty(ln, input, 'text');
+					return input;
+				}
+				
+				var lv:ILinkableVariable = obj as ILinkableVariable;
+				if (lv)
+				{
+					var codeEditor:CodeEditor = new CodeEditor();
+					codeEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(event:Event):void {
+						linkBindableProperty(lv, event.target, 'text', 500)
+						
+						var eb:ExpandButton = ExpandButton.makeExpandable(codeEditor, false, 24);
+						eb.addEventListener(MouseEvent.CLICK, function(e:Event):void {
+							indent.setStyle('verticalAlign', eb.expanded ? 'top' : 'middle');
+						});
+						
+						function onchange(event:Event = null):void {
+							if (codeEditor.text.indexOf('\r') >= 0 || codeEditor.text.indexOf('\n') >= 0)
+								eb.expanded = true;
+						}
+						codeEditor.addEventListener(Event.CHANGE, onchange);
+						onchange();
+					});
+
+					indent = new Indent();
+					indent.translate = true;
+					indent.label = label;
+					indent.setStyle('verticalAlign', 'top');
+					indent.addChild(codeEditor);
+					
+					return indent;
+				}
+				
+				var column:IAttributeColumn = obj as IAttributeColumn;
+				var ldo:ILinkableDynamicObject = obj as ILinkableDynamicObject;
+				if (column && ldo)
+				{
+					var dcc:DynamicColumnComponent = new DynamicColumnComponent();
+					dcc.label = label;
+					dcc.dynamicObject = ldo;
+					return dcc;
+				}
+				
+				var lhm:ILinkableHashMap = obj as ILinkableHashMap;
+				if (lhm && lhm.typeRestriction == IAttributeColumn)
+				{
+					var clc:ColumnListComponent = new ColumnListComponent();
+					clc.label = label;
+					clc.hashMap = lhm;
+					clc.listHeight = 96;
+					return clc;
+				}
+				
+				if (ldo || lhm)
+				{
+					var button:Button = new Button();
+					button.data = obj;
+					button.label = lang("Edit session state");
+					button.addEventListener(MouseEvent.CLICK, function(event:Event):void {
+						SessionStateEditor.openDefaultEditor(event.target.data as ILinkableObject);
+					});
+					
+					indent = new Indent();
+					indent.label = label;
+					indent.addChild(button);
+					
+					return indent;
+				}
+				
+				return null;
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

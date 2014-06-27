@@ -53,6 +53,7 @@
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
+			import weave.editors.DynamicEditor;
 			
 
 			protected var _targetObjects:Array = null;
@@ -372,9 +373,13 @@
 					var editor:ILinkableObjectEditor = WeaveAPI.EditorManager.getNewEditor(linkableObject);
 					if (!editor)
 					{
-						if (sessionEditorFallback)
-							SessionStateEditor.openDefaultEditor(linkableObject);
-						return null;
+						editor = new DynamicEditor();
+						(editor as DynamicEditor).label = getSessionStateName(linkableObject);
+						editor.setTarget(linkableObject);
+						
+//						if (sessionEditorFallback)
+//							SessionStateEditor.openDefaultEditor(linkableObject);
+//						return null;
 					}
 					
 					editors[linkableObject] = editor;

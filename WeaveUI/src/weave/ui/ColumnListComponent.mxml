@@ -105,9 +105,26 @@
 			}
 			
 			[Bindable] private var _internalList:ListBase;
+			private var _listHeight:Number = NaN;
 			private const _internalListChildIndex:int = 1;
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
 			private const ownerWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
+			
+			public function set listHeight(value:Number):void
+			{
+				_listHeight = value;
+				setListHeight();
+			}
+			private function setListHeight():void
+			{
+				if (_internalList)
+				{
+					if (isFinite(_listHeight))
+						_internalList.height = _listHeight;
+					else
+						_internalList.percentHeight = 100;
+				}
+			}
 			
 			public function get showVariableNames():Boolean
 			{
@@ -128,7 +145,7 @@
 					controller.view = _internalList;
 					
 					_internalList.percentWidth = 100;
-					_internalList.percentHeight = 100;
+					setListHeight();
 					_internalList.invalidateDisplayList();
 				}
 				
