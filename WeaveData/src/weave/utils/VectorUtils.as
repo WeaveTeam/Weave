@@ -431,5 +431,23 @@ package weave.utils
 		{
 			return array.map(function(item:Object, i:int, a:*):* { return item[property]; });
 		}
+		
+		/**
+		 * Creates a lookup from item (or item property) to index. Does not consider duplicate items (or item property values).
+		 * @param propertyChain A property name or chain of property names to index on rather than the item itself.
+		 * @return A reverse lookup.
+		 */
+		public static function createLookup(array:*, ...propertyChain):Dictionary
+		{
+			var lookup:Dictionary = new Dictionary(true);
+			for (var key:* in array)
+			{
+				var value:* = array[key];
+				for each (var prop:String in propertyChain)
+					value = value[prop];
+				lookup[value] = key;
+			}
+			return lookup;
+		}
 	}
 }
