@@ -220,11 +220,11 @@
 					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(object))
 						setSessionState(object, _savedTargetSessionStates[i++]); 
 				}
-				for each (var dynamicState:DynamicState in _savedGlobalSessionStates)
+				for each (var dynamicState:Object in _savedGlobalSessionStates)
 				{
-					var classDef:Class = ClassUtils.getClassDefinition(dynamicState.className);
-					var globalObject:ILinkableObject = WeaveAPI.globalHashMap.requestObject(dynamicState.objectName, classDef, false);
-					setSessionState(globalObject, dynamicState.sessionState);
+					var classDef:Class = ClassUtils.getClassDefinition(dynamicState[DynamicState.CLASS_NAME]);
+					var globalObject:ILinkableObject = WeaveAPI.globalHashMap.requestObject(dynamicState[DynamicState.OBJECT_NAME], classDef, false);
+					setSessionState(globalObject, dynamicState[DynamicState.SESSION_STATE]);
 				}
 			}
 			
@@ -286,7 +286,7 @@
 						_savedGlobalNames[dynamicObject.globalName] = true;
 						// save the session state of the global object
 						_savedGlobalSessionStates.push(
-							new DynamicState(
+							DynamicState.create(
 								dynamicObject.globalName,
 								getQualifiedClassName(dynamicObject.internalObject),
 								getSessionState(dynamicObject.internalObject)

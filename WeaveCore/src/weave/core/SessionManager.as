@@ -351,7 +351,7 @@ package weave.core
 				{
 					var array:Array = [];
 					for (var key:String in newState)
-						array.push(new DynamicState(key, null, newState[key]));
+						array.push(DynamicState.create(key, null, newState[key]));
 					newState = array;
 				}
 				
@@ -1637,7 +1637,7 @@ package weave.core
 					}
 					
 					// save in new array and remove from lookup
-					result.push(new DynamicState(objectName || null, className, sessionState)); // convert empty string to null
+					result.push(DynamicState.create(objectName || null, className, sessionState)); // convert empty string to null
 					changeDetected = true;
 				}
 				
@@ -1645,7 +1645,7 @@ package weave.core
 				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
 				for (objectName in oldLookup)
 				{
-					result.push(new DynamicState(objectName || null, DIFF_DELETE)); // convert empty string to null
+					result.push(DynamicState.create(objectName || null, DIFF_DELETE)); // convert empty string to null
 					changeDetected = true;
 				}
 				

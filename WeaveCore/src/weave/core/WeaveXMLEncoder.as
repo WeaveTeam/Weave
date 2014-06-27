@@ -80,7 +80,7 @@ package weave.core
 		
 		override public function encodeValue(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
 		{
-			if (DynamicState.objectHasProperties(obj) && obj[DynamicState.CLASS_NAME])
+			if (DynamicState.isDynamicState(obj) && obj[DynamicState.CLASS_NAME])
 			{
 				var className:String = obj[DynamicState.CLASS_NAME];
 				var objectName:String = obj[DynamicState.OBJECT_NAME];
@@ -125,7 +125,7 @@ package weave.core
 					encoding = DYNAMIC_ENCODING;
 					for each (item in array)
 					{
-						if (!DynamicState.objectHasProperties(item) || !item[DynamicState.CLASS_NAME])
+						if (!DynamicState.isDynamicState(item) || !item[DynamicState.CLASS_NAME])
 						{
 							encoding = JSON_ENCODING;
 							break;

@@ -388,7 +388,7 @@ package weave.core
 			{
 				var name:String = _orderedNames[i];
 				var object:ILinkableObject = _nameToObjectMap[name];
-				result[i] = new DynamicState(
+				result[i] = DynamicState.create(
 						name,
 						getQualifiedClassName(object),
 						WeaveAPI.SessionManager.getSessionState(object)
@@ -424,7 +424,7 @@ package weave.core
 				for (i = 0; i < newStateArray.length; i++)
 				{
 					typedState = newStateArray[i];
-					if (!DynamicState.objectHasProperties(typedState))
+					if (!DynamicState.isDynamicState(typedState))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
@@ -452,7 +452,7 @@ package weave.core
 						continue;
 					}
 					
-					if (!DynamicState.objectHasProperties(typedState))
+					if (!DynamicState.isDynamicState(typedState))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					if (objectName == null)

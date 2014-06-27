@@ -162,12 +162,12 @@ package weave.core
 		{
 			// handle global link
 			if (_globalName != null)
-				return [ new DynamicState(_globalName, GlobalObjectReference.qualifiedClassName, null) ];
+				return [ DynamicState.create(_globalName, GlobalObjectReference.qualifiedClassName, null) ];
 			
 			// handle local link or no link
 			var state:Array = _localHashMap.getSessionState();
 			if (state.length == 1)
-				(state[0] as DynamicState).objectName = null;
+				state[0][DynamicState.OBJECT_NAME] = null;
 			return state;
 		}
 
@@ -189,7 +189,7 @@ package weave.core
 				var objectName:String;
 				for each (var item:Object in newState)
 				{
-					if (DynamicState.objectHasProperties(item))
+					if (DynamicState.isDynamicState(item))
 					{
 						if (item[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
 						{

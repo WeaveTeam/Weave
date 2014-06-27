@@ -65,25 +65,13 @@ package weave.core
 		 */
 		private function convertSessionStateToPrimitives(state:Object):void
 		{
-			if (state is Array)
+			for (var key:* in state)
 			{
-				for each (state in state)
-					convertSessionStateToPrimitives(state);
-			}
-			else if (state is DynamicState)
-			{
-				convertSessionStateToPrimitives((state as DynamicState).sessionState);
-			}
-			else if (state is Object)
-			{
-				for (var name:String in state)
-				{
-					var value:Object = state[name];
-					if (value is XML)
-						state[name] = (value as XML).toXMLString();
-					else
-						convertSessionStateToPrimitives(value);
-				}
+				var value:* = state[key];
+				if (value is XML)
+					state[key] = (value as XML).toXMLString();
+				else
+					convertSessionStateToPrimitives(value);
 			}
 		}
 		

@@ -706,13 +706,13 @@ A text editor to change the Session State on the fly.
 									var lookupName:String = _currentSessionStateDataProvider[j][NAME_FIELD];
 									for (i = 0; i < newSessionState.length; ++i)
 									{
-										if ((newSessionState[i] as DynamicState).objectName == lookupName)
+										if (newSessionState[i][DynamicState.OBJECT_NAME] == lookupName)
 										{
 											newValue = _currentSessionStateDataProvider[j][VALUE_FIELD];
 											if (newValue === ' ')
 												newValue = '';
 											newValue = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
-											(newSessionState[i] as DynamicState).sessionState = newValue;
+											newSessionState[i][DynamicState.SESSION_STATE] = newValue;
 											break;
 										}
 									}
