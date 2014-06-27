@@ -171,6 +171,8 @@ A text editor to change the Session State on the fly.
 			override protected function constructor():void
 			{
 				super.constructor();
+				_nameColumn.headerText = lang(NAME_FIELD);
+				_valueColumn.headerText = lang(VALUE_FIELD);
 			}
 			
 			override public function reposition():void
@@ -800,12 +802,6 @@ A text editor to change the Session State on the fly.
 			
 			//-----------------------------------------------------------------
 			
-			// STATIC CODE
-			public static var initialize:* = function():void {
-				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
-				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
-			}();
-			
 			public static function openDefaultEditor(rootObject:ILinkableObject = null):void
 			{
 				var defaultEditor:SessionStateEditor = DraggablePanel.openStaticInstance(SessionStateEditor);
@@ -886,6 +882,12 @@ A text editor to change the Session State on the fly.
 					function getDebugId(o:*):* { return debugId(o); }
 				}
 			}
+			
+			// STATIC CODE
+			public static var initialize:* = (function():* {
+				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
+			}());
 		]]>
 	</mx:Script>
 </ui:DraggablePanel>
