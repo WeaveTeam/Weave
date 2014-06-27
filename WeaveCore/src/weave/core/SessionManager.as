@@ -1334,7 +1334,8 @@ package weave.core
 			var callLaterTime:int = 0;
 			var uiComponent:UIComponent = bindableParent as UIComponent;
 			var recursiveCall:Boolean = false;
-			// a function that takes zero parameters and sets the bindable value.
+			// When given zero parameters, this function copies the linkable value to the bindable value.
+			// When given one or more parameters, this function copies the bindable value to the linkable value.
 			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
 				// unlink if linkableVariable was disposed
@@ -1410,7 +1411,7 @@ package weave.core
 							// if we haven't reached the target time yet or callbacks are delayed, call later
 							if (currentTime < callLaterTime)
 							{
-								uiComponent.callLater(synchronize, [firstParam, true]);
+								uiComponent.callLater(synchronize, [firstParam, true]); // callingLater = true
 								return;
 							}
 						}
