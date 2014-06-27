@@ -35,7 +35,11 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
+			import mx.containers.Box;
 			import mx.containers.TabNavigator;
+			import mx.containers.VBox;
+			import mx.core.INavigatorContent;
+			import mx.core.IUIComponent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
@@ -141,9 +145,17 @@
 			public function set children(array:Array):void
 			{
 				initialize();
-				for (var i:int = 0; i < array.length; i++)
+				for each (var child:DisplayObject in array)
 				{
-					controlPanelControls.tabNavigator.addChild(array[i]);
+					if (!(child as INavigatorContent))
+					{
+						var box:Box = new Box();
+						box.percentWidth = 100;
+						box.percentHeight = 100;
+						box.addChild(child);
+						child = box;
+					}
+					controlPanelControls.tabNavigator.addChild(child);
 				}
 			}
 			
@@ -339,7 +351,7 @@
 				return lang(format, str);
 			}
 			
-			private static function getSessionStateName(object:ILinkableObject):String
+			public static function getSessionStateName(object:ILinkableObject):String
 			{
 				var childName:String = null;
 				var owner:ILinkableObject = getLinkableOwner(object);
@@ -365,21 +377,27 @@
 			private static const editors:Dictionary = new Dictionary(true); // ILinkableObject -> ILinkableObjectEditor
 			private static const editorPanels:Dictionary = new Dictionary(true); // ILinkableObject -> ControlPanel
 			
-			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null, sessionEditorFallback:Boolean = true):ILinkableObjectEditor
+			/**
+			 * Opens a panel for editing an object.
+			 * @param linkableObject The object for which to create a ControlPanel.
+			 * @param targets An Array of ILinkableObject targets for the ControlPanel.
+			 * @param initialSessionStates An Array of session states corresponding to the Array of targets.
+			 * @param sessionEditorFallback If this is set to true and no editor could be created, the default session editor is opened.
+			 * @return true if an editor window was opened.
+			 */
+			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null, sessionEditorFallback:Boolean = true):Boolean
 			{
 				var controlPanel:ControlPanel = editorPanels[linkableObject] as ControlPanel;
 				if (!controlPanel || objectWasDisposed(controlPanel))
 				{
-					var editor:ILinkableObjectEditor = WeaveAPI.EditorManager.getNewEditor(linkableObject);
+					var editor:IUIComponent = WeaveAPI.EditorManager.getNewEditor(linkableObject);
+					if (!editor)
+						editor = DynamicEditor.createComponent(linkableObject, getSessionStateName(linkableObject), false);
 					if (!editor)
 					{
-						editor = new DynamicEditor();
-						(editor as DynamicEditor).label = getSessionStateName(linkableObject);
-						editor.setTarget(linkableObject);
-						
-//						if (sessionEditorFallback)
-//							SessionStateEditor.openDefaultEditor(linkableObject);
-//						return null;
+						if (sessionEditorFallback)
+							SessionStateEditor.openDefaultEditor(linkableObject);
+						return sessionEditorFallback;
 					}
 					
 					editors[linkableObject] = editor;
@@ -404,8 +422,7 @@
 				controlPanel.targets = targets || [linkableObject];
 				if (initialSessionStates)
 					controlPanel._savedTargetSessionStates = initialSessionStates;
-				
-				return editors[linkableObject] as ILinkableObjectEditor;
+				return true;
 			}
 		]]>
 	</mx:Script>
