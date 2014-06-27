@@ -55,6 +55,7 @@
                     getCallbackCollection(Weave.properties.externalTools).addGroupedCallback(this, function():void 
                     { 
                         toolTypeInput.dataProvider = Weave.properties.externalTools.getNames();
+                        onToolTypeChange();
                     }, true);
                 }
 
