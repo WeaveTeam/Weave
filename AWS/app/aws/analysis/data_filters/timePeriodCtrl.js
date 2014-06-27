@@ -1,22 +1,31 @@
 analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 	
+	$scope.service = queryService;
+	
 	var timeTreeData;
 	
-	$scope.$watchCollection('[yearColumn, monthColumn]', function() {
-		if($scope.yearColumn && $scope.monthColumn) {
-				
-				aws.queryDataService('getEntities', [angular.fromJson(yearColumn).id, angular.fromJson(monthColumn).id], function(entities) {
+	$scope.$watchCollection(function() {
+		return [queryService.queryObject.TimePeriodFilter.yearColumn, queryService.queryObject.TimePeriodFilter.monthColumn];
+	}, function() {
+		if(queryService.queryObject.TimePeriodFilter.yearColumn &&
+	    	queryService.queryObject.TimePeriodFilter.monthColumn) {
+				var yearColumn = angular.fromJson(queryService.queryObject.TimePeriodFilter.yearColumn);
+				var monthColumn = angular.fromJson(queryService.queryObject.TimePeriodFilter.monthColumn);
+
+				aws.DataClient.getDataColumnEntities([yearColumn.id, monthColumn.id], function(entities) {
 					yearColumnEntity = entities[0];
 					monthColumnEntity = entities[1];
+					if(yearColumnEntity.publicMetadata.hasOwnProperty("aws_metadata") &&
+							monthColumnEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
+						var year_metadata; 
+						var month_metadata;
+						
+						year_metadata = angular.fromJson(yearColumnEntity.publicMetadata.aws_metadata).varValues;
+						month_metadata = angular.fromJson(monthColumnEntity.publicMetadata.aws_metadata).varValues;
+						
+						timeTreeData = createTimeTreeData(year_metadata, month_metadata);
+					}
 				});
-
-				var year_metadata; 
-				var month_metadata;
-				
-				year_metadata = angular.fromJson(entities[0].publicMetadata.aws_metadata).varValues;
-				month_metadata = angular.fromJson(entities[1].publicMetadata.aws_metadata).varValues;
-				
-				timeTreeData = createTimeTreeData(year_metadata, month_metadata);
 		}
 	});
 	
@@ -68,7 +77,7 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 						}
 					}
 				}
-				queryService.queryObject.TimePeriodFilter.filters = treeSelection;
+				queryqueryService.queryObject.TimePeriodFilter.filters = treeSelection;
 			},
 			 onKeydown: function(node, event) {
 				 if( event.which == 32 ) {
@@ -83,6 +92,7 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 		var node = $("#timeTree").dynatree("getRoot");
 	    node.sortChildren(cmp, true);
 		$("#timeTree").dynatree("getTree").reload();
+		$scope.$apply();
 	});
 	
 	 $scope.toggleSelect = function(){

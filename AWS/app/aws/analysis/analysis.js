@@ -137,40 +137,8 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	queryService.getDataTableList(true);
 	queryService.getListOfScripts(true);
 
-
 	$scope.enable_dashboard = function() {
 		$scope.dash_focused = true;
 
 	};
-
-//	$scope.$watchCollection(function() {
-//		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
-//	}, function() {
-//		if (queryService.dataObject.hasOwnProperty("scriptMetadata") && queryService.dataObject.columns.length) {
-//			$scope.inputs = [];
-//			if (queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
-//				$scope.inputs = queryService.dataObject.scriptMetadata.inputs;
-//
-//				// look for default values in the db
-//
-//				for (var i in $scope.inputs){
-//					for(var j in queryService.dataObject.columns) {
-//						if($scope.inputs[i]['default'] == queryService.dataObject.columns[j].publicMetadata.title) {
-//							$scope.selection[i] = angular.toJson({ id : queryService.dataObject.columns[j].id , title: queryService.dataObject.columns[j].publicMetadata.title  });
-//							break;
-//						}
-//					}
-//				}
-//			}
-//		}
-//	});
-
-	queryService.queryObject.ScriptColumnRequest = [];
-
-
-	$scope.$watch(function() {
-		return queryService.queryObject;
-	}, function() {
-		console.log(queryService.queryObject);
-	}, true);
 });

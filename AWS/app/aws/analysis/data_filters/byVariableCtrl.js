@@ -1,5 +1,6 @@
 analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 	
+	$scope.service = queryService;
 	queryService.queryObject.ByVariableFilter = [];
 	$scope.byVariableColumns = [];
 	$scope.byVariableSelection = [];
