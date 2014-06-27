@@ -59,6 +59,13 @@ package weave.core
 		private var _typeRestriction:Class = null; // restricts the type of object that can be stored
 		private var _typeRestrictionClassName:String = null; // qualified class name of _typeRestriction
 		
+		/**
+		 * @inheritDoc
+		 */
+		public function get typeRestriction():Class
+		{
+			return _typeRestriction;
+		}
 		
 		/**
 		 * @inheritDoc

@@ -25,6 +25,11 @@ package weave.api.core
 	public interface ILinkableHashMap extends ILinkableCompositeObject
 	{
 		/**
+		 * The child type restriction, or null if there is none.
+		 */
+		function get typeRestriction():Class;
+		
+		/**
 		 * This is an interface for adding and removing callbacks that will get triggered immediately
 		 * when an object is added or removed.
 		 * @return An interface for adding callbacks that get triggered when the list of child objects changes.
