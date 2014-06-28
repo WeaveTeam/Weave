@@ -100,7 +100,16 @@ package weave.ui.CustomDataGrid
 			var c:DataGridColumn = columns[event.columnIndex];
 			if (c.sortable && !(collection.sort is CustomSort))
 				collection.sort = new CustomSort(collection.sort);
+			if (sortCompareFunction != null && collection.sort.compareFunction != sortCompareFunction)
+			{
+				collection.sort.compareFunction = sortCompareFunction;
+				collection.refresh();
+			}
 		}
+		/**
+		 * Use this to set a custom compare function like function(a:Object, b:Object, fields:Array = null):int
+		 */
+		public var sortCompareFunction:Function = null;
 		
 		public function drawItemForced(item:Object,
  										selected:Boolean = false,

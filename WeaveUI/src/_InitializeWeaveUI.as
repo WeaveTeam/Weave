@@ -100,6 +100,7 @@ package
 	import weave.visualization.tools.RadVizToolEditor;
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.SimpleDataTableTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
@@ -186,7 +187,8 @@ package
 				DataStatisticsTool,
 				RInterfaceTool,
 				TreeTool,
-				KeyMappingTool
+				KeyMappingTool,
+				SimpleDataTableTool
 			]);
 			
 			/**

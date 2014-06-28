@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!---
+@author skolman
+@author kmonico
+@author sanbalag
+-->
+<ui:DraggablePanel xmlns="weave.visualization.tools.*"
+				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*" 
+				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
+				   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
+				   >
+	<CustomDataGrid:CustomDataGrid
+		id="dataGrid"
+		horizontalScrollPolicy="auto"
+		verticalScrollPolicy="auto"
+		dataProvider="{dataRowKeys}" 
+		width="100%" height="100%"
+		allowMultipleSelection="true"
+		minWidth="0"
+		change="handleItemSelection(event)"
+		doubleClick="handleItemSelection(event)" doubleClickEnabled="true" 
+		headerShift="handleColumnReorder(event)"
+		headerRelease="handleHeaderRelease(event)"
+		paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"									   
+		fontWeight="normal"
+		alternatingItemColors="{DEFAULT_BACKGROUND_COLORS}"
+		rollOverColor="0xDADAFF"
+		selectionColor="0xFFAAAA"
+		mouseDown="handleMouseDown()"
+		click="handleMouseClick()"
+		/>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ISortField;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.mx_internal;
+			import mx.events.DataGridEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.ListEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.IFocusManagerComponent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.KeyColumn;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			import weave.data.KeySets.SortedKeySet;
+			import weave.data.QKeyManager;
+			import weave.ui.DraggablePanel;
+			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
+			import weave.utils.NumberUtils;
+			import weave.utils.ProbeTextUtils;
+			import weave.utils.VectorUtils;
+			use namespace mx_internal;
+			
+			WeaveAPI.registerImplementation(IVisTool, SimpleDataTableTool, "Data Table (Simple)");
+
+			private static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
+			
+			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
+			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
+			
+			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
+
+			public const dataGridHorizontalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			
+			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
+			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
+			
+			public const lockedColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLockedColumnCount));
+			
+			private const dataGridColumns:Dictionary = new Dictionary();
+			private var _currentDataGridColumns:Array = [];
+			
+			private var _textFormat:LinkableTextFormat = Weave.properties.visTextFormat;
+			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet;
+
+			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
+
+			public function getSelectableAttributes():Array
+			{
+				return [columns];
+			}
+			
+			public function getSelectableAttributeNames():Array
+			{
+				return ["Columns"];
+			}
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				var probeHeaderColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
+				var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
+				var allColumns:Array = (probeHeaderColumns.concat as Function).apply(null, probedColumns);
+				for (var i:int = 0; i < allColumns.length; i++)
+				{
+					var dynamicColumn:DynamicColumn = columns.requestObject(null, DynamicColumn, false);
+					var probedColumn:ILinkableObject = allColumns[i] as ILinkableObject;
+					if (probedColumn is DynamicColumn)
+						copySessionState(probedColumn, dynamicColumn);
+					else
+						dynamicColumn.requestLocalObjectCopy(probedColumn);
+				}
+				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
+				getCallbackCollection(_subset).addImmediateCallback(this,invalidateDisplayList);
+				_selection.addImmediateCallback(this,invalidateDisplayList);
+				_probe.addImmediateCallback(this,invalidateDisplayList);
+				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
+				getCallbackCollection(_textFormat).addImmediateCallback(this,invalidateDisplayList);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				dataGrid.sortCompareFunction = sortCompareFunction;
+				dataGrid.labelFunction = labelFunction;
+				dataRowKeys.filterFunction = filterKeys;
+				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
+				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
+				
+				dataGrid.addEventListener(ListEvent.ITEM_ROLL_OVER, handleRollOver);
+				dataGrid.addEventListener(MouseEvent.ROLL_OUT, handleRollOut);
+
+				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
+				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
+				
+				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);
+				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
+				
+				dimensionsList.hashMap = columns;
+			}
+
+			private function sortCompareFunction(key1:IQualifiedKey, key2:IQualifiedKey, fields:Array = null):int
+			{
+				for each (var field:Object in fields)
+				{
+					if (field is ISortField)
+						field = (field as ISortField).name;
+					var column:IAttributeColumn = columns.getObject(field as String) as IAttributeColumn;
+					if (!column)
+						continue;
+					var value1:* = column.getValueFromKey(key1, Number);
+					var value2:* = column.getValueFromKey(key2, Number);
+					var result:int = ObjectUtil.numericCompare(value1, value2);
+					if (result != 0)
+						return result;
+				}
+				return QKeyManager.keyCompare(key1, key2);
+			}
+			private function labelFunction(key:IQualifiedKey, dgc:DataGridColumn):String
+			{
+				var column:IAttributeColumn = columns.getObject(dgc.dataField) as IAttributeColumn;
+				if (column)
+					return column.getValueFromKey(key, String);
+				return '';
+			}
+			private var filterKeys:Function = Weave.defaultSubsetKeyFilter.containsKey;
+			
+			private function assertColumnOrder():void
+			{
+				var columnOrder:Array = columns.getNames();
+				columnWidths.setNameOrder(columnOrder);
+			}
+			
+			/**
+			 * This function(event ListeSner) gets called during dataGrid Resize event
+			 * handleDataGridHorizontalScroll calls updateColumnWidths, when the dataGridHorizontalScrollPosition.value is Maximum
+			 * handleDataGridHorizontalScroll is called to update FilterComponents Position
+			 */			
+			private function handleToolResize(event:Event = null):void
+			{
+				updateColumnWidths();
+			}
+			
+			private function handleRollOver(event:ListEvent):void
+			{
+				var index:int = event.rowIndex;
+				var obj:Object = (dataGrid.dataProvider as ArrayCollection).getItemAt( index );
+				var key:IQualifiedKey = obj as IQualifiedKey;
+
+				_probe.replaceKeys([key]);
+			}
+			private function handleRollOut(event:MouseEvent):void
+			{
+				_probe.clearKeys();
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				if (!parent) 
+					return;
+				
+				var columnsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, columns);
+				if (columnsChanged)
+				{
+					updateDataGridColumns();
+					super.updateDisplayList(unscaledWidth, unscaledHeight); // avoids crashing below
+				}
+				if (detectLinkableObjectChange(updateDisplayList, lockedColumns) || columnsChanged)
+				{
+					handleLockedColumnChange();
+				}
+				if (detectLinkableObjectChange(updateDisplayList, maxRows) || columnsChanged)
+				{
+					updateKeysColumnsDataProviderAndSelection();
+				}
+				if (columnsChanged)
+				{
+					updateBorders();
+				}
+				if (detectLinkableObjectChange(updateDisplayList, columnWidths, maxHeaderHeight))
+				{
+					updateColumnWidths();
+				}
+				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition) || columnsChanged)
+				{
+					handleDataGridHorizontalScroll();
+				}
+				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition) || columnsChanged)
+				{
+					if (dataGrid.verticalScrollPosition != dataGridVerticalScrollPosition.value)
+						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
+				}
+				var subsetChanged:Boolean = detectLinkableObjectChange(updateDisplayList, _subset);
+				if (subsetChanged)
+				{
+					// temporary solution
+					dataGrid.dataProvider = dataGrid.dataProvider;
+				}
+				
+				if (detectLinkableObjectChange(updateDisplayList, _selection))
+				{
+					updateGlobalSelectionChange();
+					dataGrid.invalidateList();
+				}
+				
+				if (detectLinkableObjectChange(updateDisplayList, _textFormat))
+				{
+					_textFormat.copyToStyle(dataGrid);
+				}
+				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
+				{
+					callLater(sortCallback);
+				}
+				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1, backgroundColor2))
+				{
+					dataGrid.setStyle("alternatingItemColors", [backgroundColor1.value, backgroundColor2.value]);
+				}
+				callLater(updateGlobalProbeChange);
+			}
+			
+			override public function get defaultPanelTitle():String
+			{
+				return "Data Table";
+			}
+			
+			/**
+			 * This function(event Listener) gets called during 
+			 * HeaderRelease event in Datagrid 
+			 * or Called (Manually )when column or sortFieldIndex or sortInDescendingOrder changes
+			 */				
+			private function handleHeaderRelease(event:DataGridEvent):void
+			{
+				// There is a bug in flex: column.sortDescending will always return false				
+				//need to update sessionState when called by User Interaction
+				if (UIUtils.hasFocus(dataGrid))
+				{
+					sortInDescendingOrder.value = !isSortedDescending(); // each time will toggle ascending/descending
+					sortFieldIndex.value = event.columnIndex;
+				}
+				
+			}
+			
+			private function isSortedDescending():Boolean
+			{
+				return dataGrid.sortDirection != 'ASC';
+			}
+			
+			/**
+			 * This function gets called in Updatedisplaylist, 
+			 * when there is change in sortFieldIndex or sortInDescending 	
+			 * called with parameter if called from change in column 
+			 */							
+			private function sortCallback():void
+			{
+				if (!parent)
+				{
+					callLater(sortCallback)
+					return;
+				}
+				
+				if (isNaN(sortFieldIndex.value))
+					return;
+				
+				var c:DataGridColumn = dataGrid.columns[sortFieldIndex.value];
+				if (c == null)
+					return;
+				
+				// sort by the column specified in the session state , flip the sorting order if it is wrong
+				// each time we dispatch a header event, the sort order gets flipped, so we may have to flip it again
+				var changeDir:Boolean = isSortedDescending() != sortInDescendingOrder.value;
+				var changeIndex:Boolean = dataGrid.sortIndex != sortFieldIndex.value;
+				var times:int = 0;
+				if (changeDir)
+					times = 1; // change direction only requires one event
+				else if (changeIndex)
+					times = 2; // (change index and keep direction) requires two events
+
+				var prevFocus:IFocusManagerComponent = focusManager.getFocus();
+				for (var i:int = 0 ; i < times; i++)
+					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
+				if (prevFocus)
+					focusManager.setFocus(prevFocus);
+			}
+			
+			/**
+			 * This function(event Listener) gets called during 
+			 * Change event in DataGrid
+			 * DoubleClick event in DataGrid
+			 */	
+			private function handleItemSelection(event:Event=null):void
+			{
+				dataGrid.validateNow();
+				var selectedKeys:Array = new Array();
+				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
+				{
+					selectedKeys[i] = (dataGrid.dataProvider as ArrayCollection).getItemAt( dataGrid.selectedIndices[i] ) as IQualifiedKey;
+				}
+				_selection.replaceKeys(selectedKeys);
+			}
+			
+			/* TODO: Move this method into an abstract class to extend CustomDataGrid off of;
+			   this functionality is duplicated used in TreeTool */ 
+			private function updateGlobalSelectionChange():void
+			{
+				if (!parent)
+					return callLater(updateGlobalSelectionChange);
+				//flex will crash if we try to select items immediately
+				if (dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
+					validateNow();
+				
+				var item:Object;
+				var isSelected:Dictionary = new Dictionary(true);
+				for each (item in dataGrid.selectedItems)
+					isSelected[item] = true;
+				
+				var changeDetected:Boolean = false;
+				var selectedItems:Array = [];
+				for each (item in dataGrid.dataProvider)
+				{
+					if (_selection.containsKey(item as IQualifiedKey))
+					{
+						if (!isSelected[item])
+							changeDetected = true;
+						selectedItems.push(item);
+					}
+					else if (isSelected[item])
+						changeDetected = true;
+				}
+				if (selectedItems.length != dataGrid.selectedItems.length)
+					changeDetected = true;
+				
+				if (changeDetected)
+					dataGrid.selectedItems = selectedItems;
+			}
+			private function updateGlobalProbeChange():void 
+			{
+				if (!parent)
+				{
+					callLater(updateGlobalProbeChange);
+					return;
+				}
+				dataGrid.invalidateList();
+				dataGrid.validateNow();
+				dataGrid.highlightItemsForced(_probe.keys, _selection.containsKey);
+			}
+			
+			/**
+			 * @TODO This should be a mode, not a one-time action.
+			 *       Use AdvancedDataGrid and lockedRowCount.
+			 *       The locked rows should also be sorted by the active sort column.
+			 *       We shouldn't be resetting the sort.
+			 */
+			private function moveSelectedToTop():void
+			{
+				//push selected Objects into an Array
+				var selectedItems:Array = dataGrid.selectedItems;
+				
+				//datagrid.selectedItems returns null. So have to loop through indices to get the items
+				(dataGrid.dataProvider as ArrayCollection).sort = null;
+				
+				for each(var item:Object in selectedItems)
+				{
+					var index:int = dataRowKeys.getItemIndex(item);
+					dataRowKeys.removeItemAt(index);
+					dataRowKeys.source.unshift(item);
+				}
+				
+				dataRowKeys.refresh();
+				dataGrid.validateNow();
+				updateGlobalSelectionChange();
+				dataGrid.scrollToIndex(0);
+			}
+			
+			private function updateKeysColumnsDataProviderAndSelection():void
+			{
+				dataRowKeys.source = ColumnUtils.getAllKeys(columns.getObjects());
+				updateGlobalSelectionChange();
+			}
+			
+			private var _minSuggestedColumnSize:int = 32;
+			
+			private function updateDataGridColumns():void
+			{
+				// if there isn't a parent or the grid isn't fully instantiated, return
+				if (!parent)
+					return callLater(updateDataGridColumns);
+				try
+				{
+					var attrColumns:Array = columns.getObjects();
+					_currentDataGridColumns = [];
+					for each (var attrColumn:IAttributeColumn in attrColumns)
+					{
+						var columnName:String = columns.getName(attrColumn);
+						var dataType:String = ColumnUtils.getDataType(attrColumn);
+						
+						//column Section
+						var dgc:DataGridColumn;
+						if (dataGridColumns[columnName])
+						{
+							dgc = dataGridColumns[columnName];
+						}
+						else
+						{
+							dgc = new DataGridColumn(columnName);
+							dataGridColumns[columnName] = dgc;
+						}
+						
+						dgc.headerWordWrap = true;
+						dgc.headerText = ColumnUtils.getTitle(attrColumn);
+						_currentDataGridColumns.push(dgc);
+						
+						//columnWidth section
+						columnWidths.requestObject(columnName, LinkableString, false);
+					}  
+					dataGrid.columns = _currentDataGridColumns;
+					numLockedColumns.maximum = Math.max(0, attrColumns.length - 2);
+					numLockedColumns.enabled = numLockedColumns.maximum > 0;
+				}
+				catch (error:Error)
+				{
+					reportError(error);
+				}
+			}
+			
+			private function handleColumnReorder(event:IndexChangedEvent):void
+			{
+				columns.setNameOrder(VectorUtils.pluck(dataGrid.columns, 'dataField'));
+			}
+			
+			private function handleColumnListChange():void
+			{
+				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;
+				
+				//if column is added , we need to add respective sessioned FilterComponent and ColumnWidth
+				if (columns.childListCallbacks.lastObjectAdded)
+				{
+				}  			
+				//if column is removed , we need to remove respective sessioned FilterComponent and ColumnWidth
+				else if (columns.childListCallbacks.lastObjectRemoved)
+				{
+					delete dataGridColumns[columns.childListCallbacks.lastNameRemoved]
+					columnWidths.removeObject(columns.childListCallbacks.lastNameRemoved);
+				}
+				assertColumnOrder();
+			}
+			
+			private function handleColumnStretch(event:Event):void
+			{
+				var dataGridColumnsWidth:Number = dataGrid.getColumnDisplayWidth();
+				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)
+				{
+					var dgc:DataGridColumn = _currentDataGridColumns[i];
+					var colWidth:Number = dgc.width;
+					var sessionedWidth:LinkableString = columnWidths.requestObject(dgc.dataField, LinkableString, false);
+					
+					if (isNaN(colWidth) || width <= _minSuggestedColumnSize) // this happens when a column is stretched all the way to the right
+						colWidth = _minSuggestedColumnSize;
+					
+					sessionedWidth.value = (100 * colWidth / dataGridColumnsWidth) + "%";
+				}
+			}
+			
+			private  function updateColumnWidths():void
+			{
+				// if there isn't a parent or the grid isn't fully instantiated, return
+				if (!parent || dataGrid.width == 0  )
+				{
+					callLater(updateColumnWidths);
+					return;
+				}
+				var allottedDisplayWidth:Number = dataGrid.getColumnDisplayWidth();
+				var sessionedWidth:LinkableString;
+				var defaultValue:Number = allottedDisplayWidth/_currentDataGridColumns.length;
+				var displayedColumnsTotalWidth:Number = 0;
+				for (var j:int = 0  ; j < _currentDataGridColumns.length; j++)
+				{
+					var dgc:DataGridColumn = _currentDataGridColumns[j] as DataGridColumn;
+					sessionedWidth = columnWidths.getObject(dgc.dataField) as LinkableString;
+					var tempWidth:Number;
+					// when we reset width, we need all columns to have default value
+					 if (sessionedWidth && sessionedWidth.value)
+					 {
+						 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allottedDisplayWidth);
+						 tempWidth = sessionedValue;
+					 }
+					 else
+					 {
+						 tempWidth = defaultValue;
+						 //sessionedWidth.value = (100 * tempWidth/allottedDisplayWidth) + "%";
+					 } 
+					
+					//last column gets width to adjust in datgrid, so its necessay to get that width.					
+					if (j == _currentDataGridColumns.length -1) 
+						tempWidth = allottedDisplayWidth - displayedColumnsTotalWidth;
+					if (tempWidth <= _minSuggestedColumnSize || isNaN(tempWidth))
+						tempWidth = _minSuggestedColumnSize;
+					if (tempWidth >= allottedDisplayWidth - _minSuggestedColumnSize)
+						tempWidth = allottedDisplayWidth - _minSuggestedColumnSize;
+					//int casting required as rendering works fast with whole number than with an floating number
+					var newWidth:Number = int(Math.min(tempWidth, allottedDisplayWidth));
+					
+					dgc.setWidth(newWidth);
+					dgc.width = newWidth;
+					
+					//add those columns which are displayed on datagrid
+					if (j >= dataGridHorizontalScrollPosition.value)
+					{
+						displayedColumnsTotalWidth = displayedColumnsTotalWidth + dgc.width;
+					}
+				}
+				displayedColumnsTotalWidth = 0;
+				
+				// Set max header height
+				dataGrid.headerHeight = NaN;
+				dataGrid._explicitHeaderHeight = false;
+				var calcHeaderHeight:Number = dataGrid.calculateHeaderHeight();
+				if (calcHeaderHeight > maxHeaderHeight.value)
+					dataGrid.headerHeight = maxHeaderHeight.value;
+			}
+			
+			private function handleDataGridHorizontalScroll():void
+			{
+				var maximumValue:int = dataGrid.maxHorizontalScrollPosition;
+				var hsp:int = 0;
+				for (var i:int = 0; i < dataGridHorizontalScrollPosition.value && i < _currentDataGridColumns.length; i++)
+				{
+					hsp += (_currentDataGridColumns[i] as DataGridColumn).width;
+				}
+				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;
+				
+				if (maximumValue > 0 && dataGridHorizontalScrollPosition.value == maximumValue)
+				{
+					updateColumnWidths();
+				}
+			}
+			
+			
+			private function handleKeyColumnCheckBox():void
+			{
+				if (showKeyColumnCheckBox.selected)
+				{
+					var kc:Array= columns.getObjects(KeyColumn);
+					if (kc.length == 0)
+					{
+						var nameOrder:Array = columns.getNames();
+						columns.requestObject("KeyColumn", KeyColumn, false);
+						columns.setNameOrder(nameOrder);
+					}
+				}
+				else
+				{
+					var keyCols:Array = columns.getNames(KeyColumn);
+					for each (var keyCol:String in keyCols)
+					{
+						columns.removeObject(keyCol);
+					}
+				}
+				
+			}
+			
+			private function verifyLockedColumnCount(value:Number):Boolean
+			{
+				return value == uint(value);
+			}
+			
+			private function handleLockedColumnChange():void
+			{
+				var numColumns:int = dataGrid.columns.length;
+				if (lockedColumns.value >= numColumns)
+					dataGrid.lockedColumnCount = 0;
+				else
+					dataGrid.lockedColumnCount = lockedColumns.value;
+			}
+			
+			private var _previousSelection:Object ;
+			
+			private function handleMouseDown():void
+			{
+				detectLinkableObjectChange( handleMouseClick, _selection )
+			}
+			
+			private function handleMouseClick():void
+			{
+				if (!detectLinkableObjectChange( handleMouseClick, _selection ))
+					if ( dataGrid.mouseY > dataGrid.headerHeight )
+						if ( dataGrid.mouseX < dataGrid.width - 16 )
+							if ( WeaveAPI.StageUtils.pointClicked )
+								_selection.clearKeys() ;
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox label="{lang('Columns')}">
+			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show key column')}" change="handleKeyColumnCheckBox()"/>
+			<mx:HBox>
+				<mx:Label text="{lang('Number of locked columns')}"/>
+				<mx:NumericStepper id="numLockedColumns" minimum="0" 
+								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
+			</mx:HBox>
+			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
+
+			<mx:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
+
+			<ui:Indent id="backgroundColorIndent" label="{lang('Background colors')}">
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
+				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
+			</ui:Indent>
+		</mx:VBox>
+		<editors:WindowSettingsEditor id="windowSettings" target="{this}">
+			<editors:creationComplete>
+				<![CDATA[
+					windowSettings.removeChild(windowSettings.backgroundColorIndent);
+					windowSettings.addChild(backgroundColorIndent);
+				]]>
+			</editors:creationComplete>
+		</editors:WindowSettingsEditor>
+	</ui:ControlPanel>
+</ui:DraggablePanel>

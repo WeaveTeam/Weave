@@ -66,11 +66,12 @@ package weave.ui.CustomDataGrid
 			else
 			{
 				// this will properly initialize _sort so fixedCompareFunction won't crash
-				_sort.sort([items[0],items[1]]);
+				try {
+					_sort.sort([null, null]);
+				} catch (e:*) { }
 				
 				AsyncSort.sortImmediately(items, fixedCompareFunction);
 			}
 		}
-
 	}
 }
