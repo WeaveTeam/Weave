@@ -152,11 +152,11 @@ package weave.utils
 		 */
 		public static function randomSort(vector:*):void
 		{
-			var length:int = vector.length;
-			for (var i:int = length; i--;)
+			var i:int = vector.length;
+			while (i)
 			{
 				// randomly choose index j
-				var j:int = Math.floor(Math.random() * length);
+				var j:int = Math.floor(Math.random() * i--);
 				// swap elements i and j
 				var temp:* = vector[i];
 				vector[i] = vector[j];
