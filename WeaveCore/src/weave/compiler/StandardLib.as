@@ -66,6 +66,7 @@ package weave.compiler
 		}
 		
 		/**
+		 * Converts a value to a non-null String
 		 * @param value A value to cast to a String.
 		 * @return The value cast to a String.
 		 */
@@ -98,15 +99,25 @@ package weave.compiler
 			return value;
 		}
 		
+		/**
+		 * Tests if a value is anything other than undefined, null, or NaN.
+		 */
 		public static function isDefined(value:*):Boolean
 		{
 			return value !== undefined && value !== null && !(value is Number && isNaN(value));
 		}
+		
+		/**
+		 * Tests if a value is undefined, null, or NaN.
+		 */
 		public static function isUndefined(value:*):Boolean
 		{
 			return value === undefined || value === null || (value is Number && isNaN(value));
 		}
 		
+		/**
+		 * Pads a string on the left.
+		 */
 		public static function lpad(str:String, length:uint, padString:String = ' '):String
 		{
 			if (str.length >= length)
@@ -115,6 +126,10 @@ package weave.compiler
 				padString += padString;
 			return padString.substr(0, length - str.length) + str;
 		}
+		
+		/**
+		 * Pads a string on the right.
+		 */
 		public static function rpad(str:String, length:uint, padString:String = ' '):String
 		{
 			if (str.length >= length)
@@ -226,6 +241,7 @@ package weave.compiler
 		}
 
 		/**
+		 * Converts a number to a String using a specific numeric base and optionally pads with leading zeros.
 		 * @param number The Number to convert to a String.
 		 * @param base Specifies the numeric base (from 2 to 36) to use.
 		 * @param zeroPad This is the minimum number of digits to return.  The number will be padded with zeros if necessary.
@@ -326,6 +342,7 @@ package weave.compiler
 		}
 		
 		/**
+		 * Scales a number between 0 and 1 using specified min and max values.
 		 * @param value The value between min and max.
 		 * @param min The minimum value that corresponds to a result of 0.
 		 * @param max The maximum value that corresponds to a result of 1.
@@ -419,9 +436,10 @@ package weave.compiler
 		}
 
 		/**
+		 * Calculates an interpolated color for a normalized value.
 		 * @param normValue A Number between 0 and 1.
 		 * @param colors An Array or list of colors to interpolate between.  Normalized values of 0 and 1 will be mapped to the first and last colors.
-		 * @return An interpolated color associated with the given normValue based on the min,max color values.
+		 * @return An interpolated color associated with the given normValue based on the list of color values.
 		 */
 		public static function interpolateColor(normValue:Number, ...colors):Number
 		{
@@ -536,6 +554,9 @@ package weave.compiler
 			return values;
 		}
 		
+		/**
+		 * Calculates the mean value from a list of Numbers.
+		 */
 		public static function mean(...args):Number
 		{
 			if (args.length == 1 && args[0] is Array)
@@ -546,6 +567,9 @@ package weave.compiler
 			return sum / args.length;
 		}
 		
+		/**
+		 * Calculates the sum of a list of Numbers.
+		 */
 		public static function sum(...args):Number
 		{
 			if (args.length == 1 && args[0] is Array)
