@@ -171,7 +171,6 @@
 			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
-			private var _lastHighlighted:IQualifiedKey;
 
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -226,8 +225,6 @@
 				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);
 				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
 				filterComponents.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
-				
-				dimensionsList.hashMap = columns;
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 			}
@@ -366,8 +363,8 @@
 			
 			private function addImageColumn():void
 			{
-				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
-				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
+				var imageColumnName:String = columns.generateUniqueName("ImageColumn");
+				var imageCol:ImageColumn = columns.requestObject(imageColumnName,ImageColumn, false);
 				AttributeSelectorPanel.open(imageCol);
 			}
 			
@@ -378,7 +375,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return [lang("Columns")];
+				return ["Columns"];
 			}
 			
 			
@@ -517,19 +514,9 @@
 					callLater(updateGlobalProbeChange);
 					return;
 				}
-				dataGrid.drawItemForced(_lastHighlighted, _selection.containsKey(_lastHighlighted), false);
-				if (_probe.keys.length > 0)
-				{
-					var key:IQualifiedKey = _probe.keys[0];
-					var keySelected:Boolean = _selection.containsKey(key);
-					dataGrid.drawItemForced(key, keySelected, true);
-					_lastHighlighted = key;
-				}
-				else
-				{
-					_lastHighlighted = null;
-				}
-				return;
+				dataGrid.invalidateList();
+				dataGrid.validateNow();
+				dataGrid.highlightItemsForced(_probe.keys, _selection.containsKey);
 			}
 			
 			/**
@@ -1000,7 +987,7 @@
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
-			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
+			<ui:ColumnListComponent id="dimensionsList" creationComplete="dimensionsList.hashMap = columns;"/>
 			<mx:HBox>
 				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>

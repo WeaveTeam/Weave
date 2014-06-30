@@ -105,9 +105,26 @@
 			}
 			
 			[Bindable] private var _internalList:ListBase;
+			private var _listHeight:Number = NaN;
 			private const _internalListChildIndex:int = 1;
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
-			private const toolWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
+			private const ownerWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
+			
+			public function set listHeight(value:Number):void
+			{
+				_listHeight = value;
+				setListHeight();
+			}
+			private function setListHeight():void
+			{
+				if (_internalList)
+				{
+					if (isFinite(_listHeight))
+						_internalList.height = _listHeight;
+					else
+						_internalList.percentHeight = 100;
+				}
+			}
 			
 			public function get showVariableNames():Boolean
 			{
@@ -128,7 +145,7 @@
 					controller.view = _internalList;
 					
 					_internalList.percentWidth = 100;
-					_internalList.percentHeight = 100;
+					setListHeight();
 					_internalList.invalidateDisplayList();
 				}
 				
@@ -148,14 +165,14 @@
 					callLater(updateLabel);
 					return;
 				}
-				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
+				var tool:IObjectWithSelectableAttributes = ownerWatcher.target as IObjectWithSelectableAttributes;
 				if (!tool)
 					return;
 				var names:Array = tool.getSelectableAttributeNames();
 				var attrs:Array = tool.getSelectableAttributes();
 				var index:int = attrs.indexOf(controller.hashMap);
 				if (index >= 0)
-					label = names[index];
+					label = lang(names[index]);
 			}
 			
 			private function openSelector():void
@@ -167,7 +184,7 @@
 			{
 				enabled = !!value;
 				controller.hashMap = value;
-				toolWatcher.target = AttributeSelectorPanel.getVisTool(value);
+				ownerWatcher.target = AttributeSelectorPanel.getOwnerWithSelectableAttributes(value);
 				updateLabel();
 			}
 			public function get hashMap():ILinkableHashMap

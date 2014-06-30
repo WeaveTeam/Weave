@@ -78,12 +78,12 @@
 				<mx:Array>
 					<mx:Array>
 						<mx:Spacer/>
-						<mx:Label text="Color"/>
-						<mx:Label text="Strength"/>
-						<mx:Label text="Alpha"/>
+						<mx:Label text="{lang('Color')}"/>
+						<mx:Label text="{lang('Strength')}"/>
+						<mx:Label text="{lang('Alpha')}"/>
 					</mx:Array>
 					<mx:Array>
-						<mx:Label text="Inner glow"/>
+						<mx:Label text="{lang('Inner glow')}"/>
 						<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.color, event.target, 'selectedColor');"/>
 						<mx:NumericStepper maximum="255"
 										   creationComplete="linkBindableProperty(Weave.properties.probeInnerGlow.strength, event.target, 'value');"
@@ -94,7 +94,7 @@
 										   />
 					</mx:Array>
 					<mx:Array>
-						<mx:Label text="Outer glow"/>
+						<mx:Label text="{lang('Outer glow')}"/>
 						<ui:CustomColorPicker
 										creationComplete="linkBindableProperty(Weave.properties.probeOuterGlow.color, event.target, 'selectedColor');"
 										/>

@@ -191,7 +191,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Size"), lang("Color"), lang("Anchor Dimensions")];
+				return ["Size", "Color", "Anchor Dimensions"];
 			}
 			
 			override public function getSelectableAttributes():Array

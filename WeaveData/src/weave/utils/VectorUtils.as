@@ -152,11 +152,11 @@ package weave.utils
 		 */
 		public static function randomSort(vector:*):void
 		{
-			var length:int = vector.length;
-			for (var i:int = length; i--;)
+			var i:int = vector.length;
+			while (i)
 			{
 				// randomly choose index j
-				var j:int = Math.floor(Math.random() * length);
+				var j:int = Math.floor(Math.random() * i--);
 				// swap elements i and j
 				var temp:* = vector[i];
 				vector[i] = vector[j];
@@ -419,6 +419,35 @@ package weave.utils
 					output[key] = object[key];
 			}
 			return output;
+		}
+		
+		/**
+		 * Gets a list of values of a property from a list of objects.
+		 * @param array An Array or Vector of Objects.
+		 * @param property The property name to get from each object
+		 * @return A list of the values of the specified property for each object in the original list.
+		 */
+		public static function pluck(array:*, property:String):*
+		{
+			return array.map(function(item:Object, i:int, a:*):* { return item[property]; });
+		}
+		
+		/**
+		 * Creates a lookup from item (or item property) to index. Does not consider duplicate items (or item property values).
+		 * @param propertyChain A property name or chain of property names to index on rather than the item itself.
+		 * @return A reverse lookup.
+		 */
+		public static function createLookup(array:*, ...propertyChain):Dictionary
+		{
+			var lookup:Dictionary = new Dictionary(true);
+			for (var key:* in array)
+			{
+				var value:* = array[key];
+				for each (var prop:String in propertyChain)
+					value = value[prop];
+				lookup[value] = key;
+			}
+			return lookup;
 		}
 	}
 }

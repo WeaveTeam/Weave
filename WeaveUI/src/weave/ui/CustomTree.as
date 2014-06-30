@@ -18,6 +18,8 @@
 */
 package weave.ui
 {
+	import flash.display.Graphics;
+	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -46,8 +48,6 @@ package weave.ui
 	 */
 	public class CustomTree extends Tree
 	{
-		[Bindable] public var highlightedItems:Array = [];
-		
 		public function CustomTree()
 		{
 			super();
@@ -289,13 +289,6 @@ package weave.ui
 			actualIterator = ai;
 		}
 		
-		
-
-		protected function drawHighlightedItems():void
-		{
-
-		}
-
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			updateHScrollLater();
@@ -325,8 +318,40 @@ package weave.ui
 			var renderer:IListItemRenderer = itemToItemRenderer(item);
 			drawItem(renderer, selected, highlighted, caret, transition);
 		}
-
+		/**
+		 * @param items Array of items
+		 * @param selected function(item):Boolean
+		 */
+		public function highlightItemsForced(items:Array, selected:Function):void
+		{
+			_drawingItems = 0;
+			for each (var item:Object in items)
+			{
+				drawItemForced(item, selected(item), true);
+				_drawingItems++;
+			}
+			_drawingItems = 0;
+		}
+		private var _drawingItems:int = 0;
+		override protected function drawItem(item:IListItemRenderer, selected:Boolean=false, highlighted:Boolean=false, caret:Boolean=false, transition:Boolean=false):void
+		{
+			if (highlighted)
+				highlightUID = null;
 			
+			super.drawItem(item, selected, highlighted, caret, transition);
+		}
+		override protected function drawHighlightIndicator(indicator:Sprite, x:Number, y:Number, width:Number, height:Number, color:uint, itemRenderer:IListItemRenderer):void
+		{
+			var g:Graphics = Sprite(indicator).graphics;
+			if (_drawingItems == 0)
+				g.clear();
+			g.beginFill(color);
+			g.drawRect(x, y, width, height);
+			g.endFill();
+			
+			indicator.x = 0;
+			indicator.y = 0;
+		}
 
 		private var _pendingScrollToIndex:int = -1;
 		override public function scrollToIndex(index:int):Boolean

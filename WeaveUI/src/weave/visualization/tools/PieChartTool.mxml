@@ -139,7 +139,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Wedge Size"),lang("Wedge Color"),lang("Label")];
+				return ["Wedge Size","Wedge Color","Label"];
 			}
 			override public function getSelectableAttributes():Array
 			{

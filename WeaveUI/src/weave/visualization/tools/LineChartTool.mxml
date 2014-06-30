@@ -276,9 +276,9 @@
 			override public function getSelectableAttributeNames():Array
 			{
 				if (_plotter.enableGroupBy.value)
-					return [lang("X values"), lang("Y values"), lang("Group by"), lang("Group color"), lang("Group label"), ];
+					return ["X values", "Y values", "Group by", "Group color", "Group label"];
 				else
-					return [lang("Color"), lang("Label"), lang("Y Columns")];
+					return ["Color", "Label", "Y Columns"];
 			}
 			override public function getSelectableAttributes():Array
 			{

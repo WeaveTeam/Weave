@@ -122,7 +122,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("X"), lang("Y"), lang("Color"), lang("Size")];
+				return ["X", "Y", "Color", "Size"];
 			}
 			override public function getSelectableAttributes():Array
 			{

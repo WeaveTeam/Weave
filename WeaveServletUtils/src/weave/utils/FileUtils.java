@@ -72,7 +72,7 @@ public class FileUtils
 	
 	/**
 	 * Extracts a single file from an archive.
-	 * @param archiveBase64 The bytes of the archive encoded as base64
+	 * @param archiveBytesBase64 The bytes of the archive encoded as base64
 	 * @param filePath The path in the archive of the file to extract
 	 * @return The bytes of the extracted file encoded as base64
 	 * @throws IOException

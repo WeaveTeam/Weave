@@ -25,6 +25,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.core.DynamicState;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -37,7 +38,6 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableWatcher;

@@ -70,6 +70,7 @@
 			</Indent>
 			<Indent label="{lang('Visualization attribute')}">
 				<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
+								initialize="targetAttributeCombo.labelFunction = lang;"
 								valueCommit="handleComboChangeIndex(targetAttributeCombo, targetAttributeNumber);"/>
 				<HelpComponent>
 					Select the visualization attribute that you want the menu to be linked to.
@@ -473,7 +474,7 @@
 			}
 			public function getSelectableAttributeNames():Array
 			{
-				return [lang("Choices")];
+				return ["Choices"];
 			}
 			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void

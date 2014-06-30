@@ -25,6 +25,7 @@ package weave.api.ui
 		/**
 		 * This function should be defined with override by subclasses.
 		 * @return An Array of names corresponding to the objects returned by getSelectableAttributes().
+		 *         These names will be passed to lang() before being displayed to the user.
 		 */
 		function getSelectableAttributeNames():Array;
 		

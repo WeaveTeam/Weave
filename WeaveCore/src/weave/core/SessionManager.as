@@ -38,6 +38,7 @@ package weave.core
 	import mx.rpc.AsyncToken;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableCompositeObject;
@@ -351,7 +352,7 @@ package weave.core
 				{
 					var array:Array = [];
 					for (var key:String in newState)
-						array.push(new DynamicState(key, null, newState[key]));
+						array.push(DynamicState.create(key, null, newState[key]));
 					newState = array;
 				}
 				
@@ -1334,7 +1335,8 @@ package weave.core
 			var callLaterTime:int = 0;
 			var uiComponent:UIComponent = bindableParent as UIComponent;
 			var recursiveCall:Boolean = false;
-			// a function that takes zero parameters and sets the bindable value.
+			// When given zero parameters, this function copies the linkable value to the bindable value.
+			// When given one or more parameters, this function copies the bindable value to the linkable value.
 			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
 				// unlink if linkableVariable was disposed
@@ -1410,7 +1412,7 @@ package weave.core
 							// if we haven't reached the target time yet or callbacks are delayed, call later
 							if (currentTime < callLaterTime)
 							{
-								uiComponent.callLater(synchronize, [firstParam, true]);
+								uiComponent.callLater(synchronize, [firstParam, true]); // callingLater = true
 								return;
 							}
 						}
@@ -1636,7 +1638,7 @@ package weave.core
 					}
 					
 					// save in new array and remove from lookup
-					result.push(new DynamicState(objectName || null, className, sessionState)); // convert empty string to null
+					result.push(DynamicState.create(objectName || null, className, sessionState)); // convert empty string to null
 					changeDetected = true;
 				}
 				
@@ -1644,7 +1646,7 @@ package weave.core
 				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
 				for (objectName in oldLookup)
 				{
-					result.push(new DynamicState(objectName || null, DIFF_DELETE)); // convert empty string to null
+					result.push(DynamicState.create(objectName || null, DIFF_DELETE)); // convert empty string to null
 					changeDetected = true;
 				}
 				

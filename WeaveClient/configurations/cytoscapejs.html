@@ -5,6 +5,11 @@
     <meta charset=utf-8 />
     <title>CytoscapeJS Weave Tool</title>
     <link href="cytoscapejs.css" rel="stylesheet" type="text/css"/>
+    <style>
+        body { font: 14px helvetica neue, helvetica, arial, sans-serif;}
+        #cy { height: 100%; width: 100%; position: absolute; left: 0; top: 0;}
+        #controls {position: absolute;top: 0;left: 0;}
+    </style>
     <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.2.4/cytoscape.js"></script>
     <!-- script src="cytoscape.js"></script -->
     <script src="arbor.js"></script>
@@ -30,8 +35,14 @@
                         'content': 'data(name)',
                         'text-valign': 'center',
                         'color': 'white',
-                        'text-outline-width': 2,
-                        'text-outline-color': '#888'
+                        'text-outline-width': 1,
+                        'border-color':'black',
+                        'line-width': 1,
+                        'border-width': 1,
+                        'text-outline-color': '#888',
+                        'background-color': 'data(color)',
+                        'height': 30,
+                        'width': 30
                         })
             .selector('edge')
                 .css({
@@ -58,12 +69,17 @@
                         'opacity': 0,
                         'text-opacity': 0
                         })
-            .selector('.probed')
+            .selector('node.probed')
                 .css({
-                        'background-color': 'red',
+                        'border-width': 7,
+                        'height': 28,
+                        'width':28
+                })
+            .selector('edge.probed')
+                .css({
                         'line-color': 'red',
                         'line-width': 3
-                });
+                })
 
     /* Session variable names */
     var NODE_LABEL = "Node Label";
@@ -82,6 +98,7 @@
 
     var column_to_prop_mappings = {};
     column_to_prop_mappings[NODE_LABEL] = "name";
+    column_to_prop_mappings[NODE_COLOR] = "color";
     column_to_prop_mappings[EDGE_SOURCE] = "source";
     column_to_prop_mappings[EDGE_TARGET] = "target";
     column_to_prop_mappings[NODE_PARENT] = "parent";
@@ -95,8 +112,14 @@
         var node_keytype = toolPath.push(NODE_LABEL).getValue("getMetadata('keyType')");
 
         var node_data = toolPath.retrieveColumns(node_column_names);
+        var labels_only = toolPath.retrieveColumns([NODE_LABEL])[0];
         var edge_data = toolPath.retrieveColumns(edge_column_names);
 
+        var included_keys = {};
+        for (var row = 0; row < labels_only.length; row++)
+        {
+            included_keys[labels_only[row]] = true;
+        }
         function fixNodeReferences(column)
         {
             for (var row = 0; row < column.length; row++)
@@ -113,11 +136,12 @@
 
         fixNodeReferences(node_data[3]); // NODE_PARENT
 
-        var nodes = Array(node_data[0].length);
+        var nodes = Array();
         for (var row = 0; row < node_data[0].length; row++)
         {
             new_node = {};
             new_node.id = node_data[0][row];
+            if (!included_keys[new_node.id]) continue;
             for (var col = 0; col < node_column_names.length; col++)
             {
                 property = column_to_prop_mappings[node_column_names[col]];
@@ -126,8 +150,11 @@
                     new_node[property] = value.trim();
                 else
                     new_node[property] = value;
+
+                if (property == "color" && typeof value == "number")
+                    new_node[property] = "#" + value.toString(16);
             }
-            nodes[row] = {data: new_node};
+            nodes.push({data: new_node});
         }
 
         var edges = Array(edge_data[0].length);
@@ -381,6 +408,8 @@
         
         toolPath.selection_keyset.addCallback(selection_changed, true);
         toolPath.probe_keyset.addCallback(probe_changed, true);
+
+        toolPath.push(NODE_COLOR).state('defaultColorColumn');
 
         cy.on({select: add_to_selection, unselect: remove_from_selection});
         cy.on({mouseover: probe, mouseout: unprobe}, 'node');

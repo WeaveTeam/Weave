@@ -22,6 +22,7 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
@@ -59,6 +60,13 @@ package weave.core
 		private var _typeRestriction:Class = null; // restricts the type of object that can be stored
 		private var _typeRestrictionClassName:String = null; // qualified class name of _typeRestriction
 		
+		/**
+		 * @inheritDoc
+		 */
+		public function get typeRestriction():Class
+		{
+			return _typeRestriction;
+		}
 		
 		/**
 		 * @inheritDoc
@@ -381,7 +389,7 @@ package weave.core
 			{
 				var name:String = _orderedNames[i];
 				var object:ILinkableObject = _nameToObjectMap[name];
-				result[i] = new DynamicState(
+				result[i] = DynamicState.create(
 						name,
 						getQualifiedClassName(object),
 						WeaveAPI.SessionManager.getSessionState(object)
@@ -417,7 +425,7 @@ package weave.core
 				for (i = 0; i < newStateArray.length; i++)
 				{
 					typedState = newStateArray[i];
-					if (!DynamicState.objectHasProperties(typedState))
+					if (!DynamicState.isDynamicState(typedState))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
@@ -445,7 +453,7 @@ package weave.core
 						continue;
 					}
 					
-					if (!DynamicState.objectHasProperties(typedState))
+					if (!DynamicState.isDynamicState(typedState))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					if (objectName == null)

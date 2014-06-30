@@ -88,11 +88,14 @@
 			
 			public function get selectedMacroName():String
 			{
-				return controller.hashMap.getName(selectedMacro);
+				return controller.hashMap ? controller.hashMap.getName(selectedMacro) : '';
 			}
 			
 			private function handleMacroChange():void
 			{
+				if (!controller.hashMap)
+					return;
+				
 				setSelectedMacro(selectedMacro); // will set macroList.selectedItem if necessary
 				
 				if (!selectedMacro)

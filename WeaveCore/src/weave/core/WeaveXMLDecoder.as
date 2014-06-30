@@ -26,6 +26,7 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLDecoder;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.reportError;
 	
 	/**
@@ -150,7 +151,7 @@ package weave.core
 				delete childNode.attributes["name"];
 				delete childNode.attributes["package"];
 				//trace("decoding property of dynamic session state xml:",name,qualifiedClassName,childNode);
-				result.push(new DynamicState(name, qualifiedClassName, decodeXML(childNode)));
+				result.push(DynamicState.create(name, qualifiedClassName, decodeXML(childNode)));
 	    	}
 	    	return result;
 	    }

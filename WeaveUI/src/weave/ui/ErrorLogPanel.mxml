@@ -25,7 +25,7 @@
 		title="Error Log"
 		escapeKeyClosesPanel="true"
 		>
-	<Console id="console" context="{(function():*{return WeaveAPI.ErrorManager;}())}" padding="0"/>
+	<Console id="console" context="{(function _():*{return WeaveAPI.ErrorManager;}())}" padding="0"/>
 	<HelpComponent id="help" visible="false" includeInLayout="false">
 		How to get a pointer to a display object:
 		
@@ -35,28 +35,6 @@
 		If you use the # operator followed by an object pointer, it will generate an ID for that object.
 		Use the # operator by itself to see a list of object IDs which have been generated so far.
 	</HelpComponent>
-<!--
-	<mx:List id="list" variableRowHeight="true"  width="100%" height="100%">
-		<mx:itemRenderer>
-			<mx:Component>
-			<mx:Box dataChange="handleDataChange();">
-				<mx:TextArea id="textArea" width="100%"
-					editable="false"
-					verticalScrollPolicy="off"
-					/>
-			<mx:Script>
-				<![CDATA[
-					private function handleDataChange():void
-					{
-						textArea.text = (data as Error).name + ': ' + (data as Error).message;
-					}
-				]]>
-			</mx:Script>
-			</mx:Box>
-			</mx:Component>
-		</mx:itemRenderer>
-	</mx:List>
--->
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
@@ -150,7 +128,6 @@
 				console.log.verticalScrollPosition = console.log.maxVerticalScrollPosition;
 			}
 			
-			private static var _instance:ErrorLogPanel;
 			public static function getInstance():ErrorLogPanel
 			{
 				if (!_instance)
@@ -176,6 +153,7 @@
 				}
 				instance.restorePanel();
 			}
+			private static var _instance:ErrorLogPanel;
 		]]>
 	</mx:Script>
 </DraggablePanel>

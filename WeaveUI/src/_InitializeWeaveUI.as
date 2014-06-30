@@ -48,7 +48,6 @@ package
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.PartitionDataTransformEditor;
-	import weave.editors.RectanglePlotterEditor;
 	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
@@ -73,7 +72,6 @@ package
 	import weave.visualization.plotters.GeometryRelationPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
-	import weave.visualization.plotters.RectanglePlotter;
 	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
@@ -149,7 +147,6 @@ package
 			em.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
 			em.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
 			em.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
-			em.registerEditor(RectanglePlotter, RectanglePlotterEditor);
 			
 			em.registerEditor(ColorRamp, ColorRampEditor);
 	        em.registerEditor(RadVizTool, RadVizToolEditor);

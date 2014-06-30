@@ -133,7 +133,7 @@ package weave.utils
 		{
 			// initialize
 			compare = compareFunction || defaultCompare;
-			original = arrayToSort;
+			original = arrayToSort || [];
 			source = original;
 			length = original.length;
 			

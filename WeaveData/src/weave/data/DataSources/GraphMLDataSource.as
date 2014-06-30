@@ -147,6 +147,9 @@ package weave.data.DataSources
                 data_remap_src = (metadata[COLUMNNAME_META] == GraphMLConverter.SOURCE ||
                                  metadata[COLUMNNAME_META] == GraphMLConverter.TARGET) ? nodeIdToKey : null;
 
+                if (data_remap_src)
+                    metadata[ColumnMetadata.DATA_TYPE] = nodeKeyType.value;
+
                 key_remap_src = edgeIdToKey;
 
                 keyType = edgeKeyType.value;

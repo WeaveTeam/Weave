@@ -239,18 +239,41 @@ package weave.utils
 		 **  Miscellaneous  **
 		 *********************/
 		
-		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, currentDepth:int = 0):String
+		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, labelPropertyOrFunction:* = 'name'):String
 		{
-			var pad:String = StandardLib.lpad('', currentDepth * 2, '| ');
+			return _debugDisplayList(root, maxDepth, labelPropertyOrFunction, 0, '', '');
+		}
+		private static function _debugDisplayList(root:DisplayObject, maxDepth:int, labelPropertyOrFunction:*, currentDepth:int, indent:String, childIndent:String):String
+		{
 			var rect:Rectangle = root.getRect(root.parent);
-			var str:String = StandardLib.substitute("{0}{1} ({2}) {3}\n", pad, root.name, debugId(root), rect);
+			var label:String;
+			try
+			{
+				if (labelPropertyOrFunction is Function)
+					label = labelPropertyOrFunction(root);
+				else
+					label = root[labelPropertyOrFunction];
+			}
+			catch (e:*) { }
+			
+			var str:String = StandardLib.substitute("{0}{1} ({2}) {3}\n", indent, label, debugId(root), rect);
 			
 			var container:DisplayObjectContainer = root as DisplayObjectContainer;
 			if (container && currentDepth != maxDepth)
-				for (var i:int = 0; i < container.numChildren; i++)
-					str += debugDisplayList(container.getChildAt(i), maxDepth, currentDepth + 1);
+			{
+				var n:int = container.numChildren;
+				for (var i:int = 0; i < n; i++)
+				{
+					var nextIndent:String = childIndent + (i < n - 1 ? indents[0] : indents[1]);
+					var nextChildIndent:String = childIndent + (i < n - 1 ? indents[2] : indents[3]);
+					str += _debugDisplayList(container.getChildAt(i), maxDepth, labelPropertyOrFunction, currentDepth + 1, nextIndent, nextChildIndent);
+				}
+			}
 			return str;
 		}
+		private static const indents:Array = ['|- ', '`- ', '|  ', '   '];
+		private static const indentsHeavy:Array = ['\u2523 ', '\u2517 ', '\u2503 ', '   '];
+		private static const indentsLight:Array = ['\u251c ', '\u2514 ', '\u2502 ', '   '];
 		
 		private static const STACK_TRACE_DELIM:String = '\n\tat ';
 		/**

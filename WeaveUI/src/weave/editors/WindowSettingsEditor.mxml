@@ -56,7 +56,7 @@
 		</ui:Indent>
 	</ui:CheckBoxWithNestedOptions>
 
-	<ui:Indent label="{lang('Background color')}">
+	<ui:Indent id="backgroundColorIndent" label="{lang('Background color')}">
 		<ui:CustomColorPicker id="backgroundColorPicker" change="backgroundColorPicked();"/>
 		<mx:Button label="{lang('Reset')}" click="_panel.panelBackgroundColor.value = NaN;"/>
 	</ui:Indent>

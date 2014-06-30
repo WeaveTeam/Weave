@@ -1935,16 +1935,16 @@ package weave.compiler
 						// check the first parameter of the 'in' operator
 						call = call.compiledParams[0] as CompiledFunctionCall;
 						
-						if (call.evaluatedMethod == operators[','] && call.compiledParams.length == 2)
+						if (call && call.evaluatedMethod == operators[','] && call.compiledParams.length == 2)
 						{
 							var _var:CompiledFunctionCall = call.compiledParams[0] as CompiledFunctionCall;
 							if (!_var || _var.evaluatedMethod != operators[ST_VAR])
 								throwInvalidSyntax(statement);
-							call = call.compiledParams[1]; // should be the variable
+							call = call.compiledParams[1] as CompiledFunctionCall; // should be the variable
 						}
 							
 						// the 'in' operator must have a variable or property reference as its first parameter
-						if (!(call.compiledParams == null || call.evaluatedMethod == operators['.'])) // not a variable and not a property
+						if (!call || !(call.compiledParams == null || call.evaluatedMethod == operators['.'])) // not a variable and not a property
 							throwInvalidSyntax(statement);
 					}
 					
