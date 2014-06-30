@@ -5,6 +5,8 @@ var activeFileID;
 
 var openedFileTitle;
 var openedFileUrl;
+var checkAuthCallCount = 0;
+var expires_in_millisecs;
 
 
 var CLIENT_ID = '377791640380-2ndttp4bqp4nos7u2lu145ntdg2iv90c.apps.googleusercontent.com';
@@ -14,35 +16,47 @@ var SCOPES = [
               'https://www.googleapis.com/auth/userinfo.email',
               'https://www.googleapis.com/auth/userinfo.profile',
               ];
-const boundary = '-------314159265358979323846';
-const delimiter = "\r\n--" + boundary + "\r\n";
-const close_delim = "\r\n--" + boundary + "--";
+var boundary = '-------314159265358979323846';
+var delimiter = "\r\n--" + boundary + "\r\n";
+var close_delim = "\r\n--" + boundary + "--";
 
+//Step 1: get authorization to use private data
 weave.GoogleDrive.init = function( ) {
 	console.log("init");	
 	gapi.auth.authorize(  {'client_id': CLIENT_ID, 'scope': SCOPES.join(' '), 'immediate': false}, handleAuthResult);
 };
 
+// automated authorization based on token expiry time
+function checkAuth() {
+	checkAuthCallCount++;
+	console.log('checkAuth: ' + checkAuthCallCount);
+    gapi.auth.authorize({'client_id': CLIENT_ID, 'scope': SCOPES.join(' '), 'immediate': true}, handleAuthResult);
+}
 
-
-
+//Step 2: Load the Google drive API
 /**
- * Called when authorization server replies.
- *
+ * Called when authorization server replies. *
  * @param {Object} authResult Authorization result.
  */
 function handleAuthResult(authResult) {
 
-	if (authResult) {
-		console.log('Authorization Result:');
-		console.log(authResult);
-		gapi.client.load('drive', 'v2', readStateObject);
+	if (authResult && !authResult.error) {	
+		
+		expires_in_millisecs = authResult.expires_in * 1000;
+		console.log(expires_in_millisecs);
+		gapi.client.load('drive', 'v2', handleClientLoad);
 	} 
 	else{
 		weave.path().getValue('import "weave.services.GoogleDrive";\
 		GoogleDrive.busy = false;');
 	}
 };
+
+function handleClientLoad() {
+	// call for authorization 1 minute before token expiry time
+    window.setTimeout(checkAuth,expires_in_millisecs - 60000);
+    readStateObject();
+}
 
 
 
@@ -54,7 +68,6 @@ function readStateObject(  ) {
 			Weave.properties.version.triggerCallbacks();');
 	var paramObj  = 	getParams();
 	var stateJson = paramObj['state'];
-	console.log('Reading State Object: ');
 	var jsonObj = JSON.parse(stateJson);
 	if(jsonObj && jsonObj.action == 'open'){
 		activeFileID = jsonObj.ids[0];
@@ -78,25 +91,22 @@ function getParams() {
 	var params = {};
 	var queryString = window.location.search;
 	if (queryString) {
-		console.log('queryString: ' + queryString);
-		// split up the query string and store in an object
 		var paramStrs = queryString.slice(1).split("&");
 		for (var i = 0; i < paramStrs.length; i++) {
 			var paramStr = paramStrs[i].split("=");
 			params[paramStr[0]] = unescape(paramStr[1]);
 		}
 	}			 
-	console.log(params);
 	return params;
 };
 
 function loadWeaveFile(fileId) {
-	console.log('fileId: ' + fileId);
+	// Step 3: Assemble the API request
 	var request = gapi.client.drive.files.get({  'fileId': fileId  });
+	// Step 4 (Final): Execute the API request
 	request.execute(function(resp) {
 		openedFileTitle =  resp.title;
 		openedFileUrl = resp.downloadUrl;
-		console.log('Title: ' + resp.title);
 		var accessToken = gapi.auth.getToken().access_token;
 		var urlObject = {"url": resp.downloadUrl, "requestHeaders": {"Authorization": "Bearer "  + accessToken}};
 		weave.loadFile(urlObject);
@@ -148,13 +158,9 @@ function changesSaved(){
 };
 
 function updateFile(fileId, fileMetadata, fileData, callback) {
-
 	var request = getDriveRequest(fileData,'PUT',fileMetadata,fileId);
 	request.execute(saveFileID);
 };
-
-
-
 
 
 function getDriveRequest(base64Data,requestMethod,fileMetadata,fileID){
