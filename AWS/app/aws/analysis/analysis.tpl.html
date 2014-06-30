@@ -102,7 +102,8 @@
 						<select style="width: 100%;" ui-select2
 							ng-model="service.queryObject.scriptSelected"
 							class=" form-control search-script-div"
-							data-placeholder="Select Script">
+							data-placeholder="Select Script"
+							ng-change="service.getScriptMetadata(service.queryObject.scriptSelected, true)">
 						<option></option>
 						<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
 					</select>

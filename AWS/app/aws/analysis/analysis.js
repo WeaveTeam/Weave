@@ -1,6 +1,7 @@
 /**
  * Handle all Analysis Tab related work - Controllers to handle Analysis Tab
- */'use strict';
+ */
+'use strict';
 
 var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
 
@@ -141,4 +142,70 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 		$scope.dash_focused = true;
 
 	};
+	
+	$scope.$watchCollection(function() {
+		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
+	}, function(newValue, oldValue) {
+		
+		if(newValue != oldValue) {
+			var scriptMetadata = newValue[0];
+			var columns = newValue[1];
+			
+			if(scriptMetadata && columns) {
+				if(scriptMetadata.hasOwnProperty("inputs")) {
+					for(var i in scriptMetadata.inputs) {
+						var input = scriptMetadata.inputs[i];
+						if(input.type == "column") {
+							for(var j in columns) {
+								var column = columns[j];
+								if(input.hasOwnProperty("default")) {
+									if(column.title == input['default']) {
+										queryService.queryObject.scriptOptions[input.param] = angular.toJson(column);
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+	
+	$scope.$watch(function() {
+		return queryService.queryObject.scriptOptions;
+	}, function(newValue, oldValue) {
+		if(newValue != oldValue) {
+			var scriptOptions = newValue;
+			for(var key in scriptOptions) { 
+				var option = scriptOptions[key];
+				if(option != "") {
+					if(angular.fromJson(option).hasOwnProperty("columnType")) {
+						if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
+							queryService.queryObject.Indicator = option;
+						}
+					}
+				}
+			}
+			
+		}
+	}, true);
+	
+	$scope.$watch(function() {
+		return queryService.queryObject.Indicator;
+	}, function(newValue, oldValue) {
+		if(newValue != oldValue) {
+			var indicator = newValue;
+			for(var key in queryService.queryObject.scriptOptions) { 
+				var option = queryService.queryObject.scriptOptions[key];
+				if(angular.fromJson(option).hasOwnProperty("columnType")) {
+					if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
+						queryService.queryObject.scriptOptions[key] = indicator;
+						break;
+					}
+				}
+			}
+		}
+	});
+	
 });

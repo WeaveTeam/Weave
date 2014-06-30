@@ -3,14 +3,14 @@
 
 	<div style="width: 100%" class="portlet-content" ng-repeat="input in service.dataObject.scriptMetadata.inputs">
 		<div class="label-p">{{input.param}}:</div>
-		<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'column'" ui-select2 ng-model="service.queryObject[input.param]">
+		<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'column'" ui-select2 ng-model="service.queryObject.scriptOptions[input.param]">
 			<option></option>
 			<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter:input.columnType"> {{col.title}}</option>
 		</select>
 
-		<input style="width: 100%" ng-if="input.type == 'value'" ng-model="service.queryObject[input.param]">
+		<input style="width: 100%" ng-if="input.type == 'value'" ng-model="service.queryObject.scriptOptions[input.param]">
 
-		<select style="width: 100%" ng-if="input.type == 'table'" ui-select2 multiple ng-model="service.queryObject[input.param]">
+		<select style="width: 100%" ng-if="input.type == 'table'" ui-select2 multiple ng-model="service.queryObject.scriptOptions[input.param]">
 			<option></option>
 			<option value="{{ col }}" ng-repeat="col in service.dataObject.columns | filter:input.columnType"> {{col.title}}</option>
 		</select>
