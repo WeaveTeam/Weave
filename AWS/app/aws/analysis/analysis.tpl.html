@@ -139,9 +139,9 @@
 								<li>
 									<h6 class='tool-category'>Visualization Tools</h6>
 								</li>
-								<li id="tool.id" ng-repeat= "tool in tool_list">
+								<li ng-repeat= "tool in widget_service.tool_list">
 									<span class="checkbox">
-										<input type="checkbox"  ng-model = "box_enabled[tool.id]" ng-change = "enable_widget(tool.id)" ng-click="add_widget(tool.id)">
+										<input type="checkbox"  ng-model="widget_service.box_enabled[tool.id]" ng-change = "enable_widget(tool.id)" ng-click="add_widget(tool.id)">
 									</span>
 									<a href='javascript: void()'> {{tool.title}}</a>
 								</li>
@@ -171,7 +171,7 @@
 
 				<div class='masonry-parent' style="width: 100%;" masonry="{ transitionDuration: '0.0s', gutter: 10 }">
 
-					<div style="width: 220px;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in widtget_bricks" ng-model="widtget_bricks">
+					<div style="width: 220px;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in service.widtget_bricks">
 
 						<div class="panel-heading">
 							<h2>{{widget_brick.title}}</h2>

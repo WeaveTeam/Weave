@@ -28,14 +28,15 @@ analysis_mod.controller('SaveVisualizationCtrl', function($scope, $filter, dasbo
 
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
+	
+	$scope.widget_service = dasboard_widget_service;
+	
 	$scope.box_enabled = {};
 	$scope.dt_focused = true;
 	$scope.script_focused = false;
 	$scope.dash_focused = false;
 	
-	$scope.widtget_bricks = dasboard_widget_service.get_widget_bricks();
 	// $scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
-	$scope.tool_list = dasboard_widget_service.get_tool_list('visualization');
 	// $scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
 
 	$scope.add_widget = function(element_id) {
@@ -179,7 +180,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 			var scriptOptions = newValue;
 			for(var key in scriptOptions) { 
 				var option = scriptOptions[key];
-				if(option != "") {
+				if(option) {
 					if(angular.fromJson(option).hasOwnProperty("columnType")) {
 						if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
 							queryService.queryObject.Indicator = option;
@@ -198,10 +199,26 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 			var indicator = newValue;
 			for(var key in queryService.queryObject.scriptOptions) { 
 				var option = queryService.queryObject.scriptOptions[key];
-				if(angular.fromJson(option).hasOwnProperty("columnType")) {
-					if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
-						queryService.queryObject.scriptOptions[key] = indicator;
-						break;
+				if(option){
+					if(angular.fromJson(option).hasOwnProperty("columnType")) {
+						if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
+							queryService.queryObject.scriptOptions[key] = indicator;
+						}
+					}
+				} else {
+					if(queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
+						for(var i in queryService.dataObject.scriptMetadata.inputs) {
+							var metadata = queryService.dataObject.scriptMetadata.inputs[i];
+							if(metadata.hasOwnProperty('type')) {
+								if(metadata.type == 'column') {
+									if(metadata.hasOwnProperty('columnType')) {
+										if(metadata.columnType.toLowerCase() == "indicator") {
+											queryService.queryObject.scriptOptions[metadata.param] = indicator;
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}

@@ -8,7 +8,7 @@ angular.module('aws.analysisService', [])
 .service('dasboard_widget_service', ['$filter', 'queryService', 
 function($filter, queryService) {
 
-	var content_tools = [{
+	this.content_tools = [{
 		id : 'Indicator',
 		title : 'Indicator',
 		template_url : 'aws/analysis/indicator/indicator.tpl.html',
@@ -46,7 +46,7 @@ function($filter, queryService) {
 	}*/];
 	
 	
-	var tool_list = [
+	this.tool_list = [
 	{
 		id : 'BarChartTool',
 		title : 'Bar Chart Tool',
@@ -73,31 +73,27 @@ function($filter, queryService) {
 		description : 'Display a Scatter Plot in Weave',
 		category : 'visualization'
 	}];
-
+	
 	/*Model to hold the widgets that are being displayed in dashboard*/
-	var widget_bricks = [];
-
+	this.widget_bricks = [];
+	this.box_enabled = {};
+	
 	this.get_filter_widget_bricks = function(){
 		
-		return content_tools
-	}
-	
-	this.get_widget_bricks = function() {
-
-		return widget_bricks;
+		return content_tools;
 	};
 
 	this.add_widget_bricks = function(element_id) {
 
 		var widget_id = element_id;
-		var widget_brick_found = $filter('filter')(widget_bricks, {
+		var widget_brick_found = $filter('filter')(this.tool_list, {
 			id : widget_id
-		})
+		});
 		if (widget_brick_found.length == 0) {
-			var tool = $filter('filter')(tool_list, {
+			var tool = $filter('filter')(this.tool_list, {
 				id : widget_id
 			});
-			widget_bricks.splice(widget_bricks.length, 0, tool[0]);
+			this.widget_bricks.splice(this.widget_bricks.length, 0, tool[0]);
 		} else {
 			//TODO: Hightlight the div if already added to dashboard. Use ScrollSpy
 		}
@@ -105,13 +101,13 @@ function($filter, queryService) {
 
 	this.remove_widget_bricks = function(widget_index) {
 
-		widget_bricks.splice(widget_index, 1);
+		this.widget_bricks.splice(widget_index, 1);
 
 	};
 
 	this.get_tool_list = function(category) {
 
-			return $filter('filter')(tool_list, {
+			return $filter('filter')(this.tool_list, {
 				category : category
 			});
 
