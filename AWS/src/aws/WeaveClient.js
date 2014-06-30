@@ -124,17 +124,6 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	  });
    return toolName;
 };
-    
-//    this.weave.path(toolName).request('MapTool');
-//    this.weave.path().push(toolName,'children', 'visualization', 'plotManager', 'plotters', 'Geometries')
-//    .request('weave.visualization.plotters::GeometryPlotter')
-//    .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
-//    .push('dynamicColumnReference', null).request('HierarchyColumnReference')
-//    .state({dataSourceName :"WeaveDataSource",
-//      hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-//    .state('line','color','defaultValue', 0x000000)
-//    .exec('fill.color.internalDynamicColumn.globalName = "defaultColorColumn"');
-
 
 /**
  * This function accesses the weave instance and create a new scatter plot, regardless of wether or not 
@@ -151,17 +140,44 @@ aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyTyp
 	
 	if(toolName == undefined)
 		 toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
-   
-   this.weave.path(toolName).request('MapTool');
-   this.weave.path().push(toolName,'children', 'visualization', 'plotManager', 'plotters', 'Geometries')
-   .request('weave.visualization.plotters::GeometryPlotter')
-   .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
-   .push('dynamicColumnReference', null).request('HierarchyColumnReference')
-   .state({dataSourceName :"WeaveDataSource",
-     hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-//   .state('line','color','defaultValue', 0x000000)
-//   .exec('fill.color.internalDynamicColumn.globalName = "defaultColorColumn"');
-   
+	
+	this.weave.path(toolName).request('MapTool');
+	
+	this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
+	  .push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
+	  .push('line', 'color', 'defaultValue').state('0').pop()
+	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('metadata').state({
+	    "keyType": keyType,
+	    "title": title,
+	    "entityType": "column",
+	    "weaveEntityId": entityId,
+	    "projection": "EPSG:4326",
+	    "dataType": "geometry"
+	  }).pop().pop().pop()
+	  .push('stateLabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
+	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('metadata').state({
+	    "keyType": keyType,
+	    "title": title,
+	    "entityType": "column",
+	    "weaveEntityId": entityId,
+	    "projection": "EPSG:4326",
+	    "dataType": "geometry"
+	  }).pop().pop()
+	  .push('text', null).request('ReferencedColumn')
+	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('metadata').state({//hard coding the label layer paramterize later
+	    "keyType": keyType,
+	    "title": "STATE_NAME",
+	    "entityType": "column",
+	    "weaveEntityId": "960",
+	    "projection": "EPSG:4326",
+	    "dataType": "string"
+	  });
+
    return toolName;
 };
 
@@ -383,7 +399,7 @@ aws.WeaveClient.prototype.updateBarChart = function (toolName, sort, label, heig
    	this.setCSVColumn(dataSourceName,labelPath, label);
     this.setCSVColumn(dataSourceName, sortColumnPath, sort);
     
-    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state(null);
+    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state('null');
 
     for (var i in heights)
 	{
@@ -464,6 +480,16 @@ aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceN
 											   keyColName : keyColName});
 	return dataSourceName;
 	
+};
+
+/**
+ * This function sets the keyType of the columns in the CSVDataSource
+ * 
+ * @param {string} keyType
+ * @return setStatus
+ */
+aws.WeaveClient.prototype.setCSVDataSouceKeyType = function(keyType){
+	this.weave.path('CSVDataSource').push('keyType').state(keyType);
 };
 
 /**

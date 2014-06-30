@@ -278,15 +278,16 @@ aws.QueryHandler.prototype.runQuery = function() {
 	});
 };
 
-aws.QueryHandler.prototype.clearWeave = function () {
+aws.QueryHandler.prototype.clearSessionState = function () {
 	//$("#LogBox").html('');
 	if(newWeaveWindow) {
-		newWeaveWindow.clearWeave(this);
+		//newWeaveWindow.clearWeave(this);
+		console.log("reached query handler");
+		newWeaveWindow.clearSessionState();
 	}
 };
 
 aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
-	
 	this.visualizations = [];
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
@@ -295,8 +296,6 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 		}
 	}
 
-	this.visualizations = [];
-	
 	if (queryObject.hasOwnProperty("MapTool")) {
 		if(queryObject.MapTool.enabled == true) {
 			this.keyType = queryObject.MapTool.keyType;

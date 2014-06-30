@@ -16,7 +16,7 @@ analysis_mod.controller("RunQueryCtrl", function($scope, queryService) {
 
 	$scope.clearWeave = function() {
 		if (queryHandler != undefined) {
-			queryHandler.clearWeave();
+			queryHandler.clearSessionState();
 		}
 	};
 });
