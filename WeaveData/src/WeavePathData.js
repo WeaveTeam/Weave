@@ -116,7 +116,7 @@ weave.WeavePath.prototype.filterKeys = function (/* [relpath], keyStringArray */
     {
         var keyStringArray = args.pop();
         var keyObjects = keyStringArray.map(this.stringToQKey, this);
-        var resultArray = this.push(args).libs("weave.api.WeaveAPI").vars({containsKeysArgs: keyObjects}).getValue(
+        var resultArray = this.push(args).vars({containsKeysArgs: keyObjects}).getValue(
             'WeaveAPI.QKeyManager.convertToQKeys(containsKeysArgs).filter(function(d) { return containsKey(d); })'
         );
         return resultArray.map(this.qkeyToString, this);

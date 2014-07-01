@@ -147,7 +147,7 @@ package weave.api.core
 		 * </listing>
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
-		 * @see weave.api.WeaveAPI
+		 * @see WeaveAPI
 		 */
 		function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null):void;
 		

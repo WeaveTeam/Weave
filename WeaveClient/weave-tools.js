@@ -157,8 +157,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 		metadata['weaveEntityId'] = columnId;
 	
 	if (sqlParams)
-		metadata['sqlParams'] = path.libs('weave.api.WeaveAPI')
-			.vars({"_arr": sqlParams})
+		metadata['sqlParams'] = path.vars({"_arr": sqlParams})
 			.getValue('WeaveAPI.CSVParser.createCSVRow(_arr)');
 	
 	// make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
