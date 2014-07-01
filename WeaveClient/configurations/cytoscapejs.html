@@ -137,11 +137,13 @@
         fixNodeReferences(node_data[3]); // NODE_PARENT
 
         var nodes = Array();
+        var valid_nodes = {};
         for (var row = 0; row < node_data[0].length; row++)
         {
             new_node = {};
             new_node.id = node_data[0][row];
             if (!included_keys[new_node.id]) continue;
+            valid_nodes[new_node.id] = true;
             for (var col = 0; col < node_column_names.length; col++)
             {
                 property = column_to_prop_mappings[node_column_names[col]];
@@ -153,11 +155,13 @@
 
                 if (property == "color" && typeof value == "number")
                     new_node[property] = "#" + value.toString(16);
+
             }
             nodes.push({data: new_node});
         }
 
-        var edges = Array(edge_data[0].length);
+        var edges = Array();
+
         for (var row = 0; row < edge_data[0].length; row++)
         {
             new_edge = {};
@@ -165,9 +169,11 @@
             for (var col = 0; col < edge_column_names.length; col++)
             {
                 property = column_to_prop_mappings[edge_column_names[col]];
+                if ((property == "source" || property == "target") && !valid_nodes[edge_data[col+1][row]]) continue;
                 new_edge[property] = edge_data[col+1][row];
             }
-            edges[row] = {data: new_edge};
+            if (!new_edge["source"] || !new_edge["target"]) continue;
+            edges.push({data: new_edge});
         }
         cy.layout({name: 'preset', positions: get_positions()});
         cy.load({nodes: nodes, edges: edges});
@@ -219,6 +225,10 @@
         toolPath.selection_keyset.setKeys(Object.keys(local_selection));
 
         selection_timeout_id = null;
+    }
+    function deselect_all()
+    {
+        toolPath.selection_keyset.setKeys([]);
     }
     function add_to_selection(evt)
     {
@@ -350,7 +360,6 @@
     function layout_changed()
     {
         var layout_value = toolPath.push(LAYOUT_NAME).getState();
-        $('select[name="layout_dropdown"] option:selected').removeAttr("selected")
         $('select[name="layout_dropdown"] option[value="' + layout_value + '"]').prop("selected", "yes");
     }
 
@@ -387,9 +396,22 @@
         update_viewport_disabled = false;
     }
 
+    function subset_changed()
+    {
+
+        return;
+    }
+
     var toolPath;
 
     $(function() {
+    $.each(valid_layouts, function(key, value)
+    {
+        $('select[name="layout_dropdown"]')
+            .append($('<option></option>')
+            .text(value).attr("value",key));
+    });
+
     $('#cy').cytoscape( { style: cytoscape_style, ready: function () { 
         window.cy = this
         toolPath = opener.WeaveExternalTools[window.name].path;
@@ -408,24 +430,18 @@
         
         toolPath.selection_keyset.addCallback(selection_changed, true);
         toolPath.probe_keyset.addCallback(probe_changed, true);
+        toolPath.subset_filter.addCallback(subset_changed, true);
 
         toolPath.push(NODE_COLOR).state('defaultColorColumn');
 
         cy.on({select: add_to_selection, unselect: remove_from_selection});
         cy.on({mouseover: probe, mouseout: unprobe}, 'node');
         cy.on({mouseover: probe, mouseout: unprobe}, 'edge');
+        cy.on({click: deselect_all});
         cy.on({free: update_positions});
         cy.on({zoom: update_viewport, pan: update_viewport});
 
-        } })
-        
-
-        $.each(valid_layouts, function(key, value)
-        {
-            $('select[name="layout_dropdown"]')
-                .append($('<option></option>')
-                .text(value).attr("value",key));
-        });
+        } });
     });
 
 </script>
