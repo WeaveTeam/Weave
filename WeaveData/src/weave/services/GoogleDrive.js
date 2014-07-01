@@ -3,7 +3,6 @@ weave.GoogleDrive = {};
 var authWin = null;
 var activeFileID;
 
-var openedFileTitle;
 var openedFileUrl;
 var checkAuthCallCount = 0;
 var expires_in_millisecs;
@@ -77,16 +76,6 @@ function readStateObject(  ) {
 		weave.GoogleDrive.insertWeaveFile();
 	}		
 };
-
-function generateWeaveArchive(){
-	return weave.path().getValue('import "weave.compiler.StandardLib";\
-			import "weave.core.WeaveArchive";\
-			return StandardLib.btoa(WeaveArchive.createWeaveFileContent());');
-};
-function generateWeaveFileName(){
-	return weave.path().getValue('import "weave.Weave";\
-			return Weave.fileName;');
-}
 function getParams() {
 	var params = {};
 	var queryString = window.location.search;
@@ -100,74 +89,86 @@ function getParams() {
 	return params;
 };
 
+
+
+
 function loadWeaveFile(fileId) {
 	// Step 3: Assemble the API request
 	var request = gapi.client.drive.files.get({  'fileId': fileId  });
 	// Step 4 (Final): Execute the API request
 	request.execute(function(resp) {
-		openedFileTitle =  resp.title;
+		console.log(resp);
 		openedFileUrl = resp.downloadUrl;
 		var accessToken = gapi.auth.getToken().access_token;
-		var urlObject = {"url": resp.downloadUrl, "requestHeaders": {"Authorization": "Bearer "  + accessToken}};
+		var urlObject = {"url": openedFileUrl, "requestHeaders": {"Authorization": "Bearer "  + accessToken}};
 		weave.loadFile(urlObject);
 	});
 };
 
-
+function generateThumbnailMetadata(isNewFile){
+	var rawBase64 = weave.evaluateExpression(null, 'getBase64Image(Application.application)', null, ['weave.utils.BitmapUtils', 'mx.core.Application']);
+	var thumbnailData = rawBase64.replace(/\+/g, '-').replace(/\//g, '_');
+	var metadata;
+	if(isNewFile){
+		metadata = {
+				'title': generateWeaveFileName(),
+				'mimeType': 'application/octet-stream',
+				'thumbnail': {
+				    'image': thumbnailData,
+				    'mimeType': 'image/png'
+				  }				
+		};
+	}
+	else{
+		metadata = {
+				'thumbnail': {
+				    'image': thumbnailData,
+				    'mimeType': 'image/png'
+				  }				
+		};
+	}
+	
+	return metadata;
+}
 
 /**
  * Called from AS3, after user gives name for the new file.
- *
  * @param {base64EncodedData} base64EncodedData Binary-String object to insert to drive.
  * @param {fileName} File name given by the user.
  */
 weave.GoogleDrive.insertWeaveFile = function() {	
-	console.log('inserting weave file to google drive');
-	var metadata = {
-			'title': generateWeaveFileName(),
-			'mimeType': 'application/octet-stream'
-	};
-	
-	var request = getDriveRequest(generateWeaveArchive(),'POST',metadata);		    
+	//console.log('inserting weave file to google drive');
+	var request = getDriveRequest(generateWeaveArchive(),'POST',generateThumbnailMetadata(true));		    
+	request.execute(saveFileID);
+};
+
+/**
+ * Called from AS3, for auto saving.
+ * @param {base64EncodedData} base64EncodedData Binary-String object to insert to drive.
+ */
+weave.GoogleDrive.updateWeaveFile = function(){  
+	var request = getDriveRequest(generateWeaveArchive(),'PUT',generateThumbnailMetadata(false),activeFileID);
 	request.execute(saveFileID);
 };
 
 function saveFileID(file){
 	activeFileID = file.id;
-	console.log(activeFileID);
-	console.log(file);
 };
 
-
-/**
- * Called from AS3, for auto saving.
- *
- * @param {base64EncodedData} base64EncodedData Binary-String object to insert to drive.
- */
-weave.GoogleDrive.updateWeaveFile = function(){   
-	var request = gapi.client.drive.files.get({'fileId': activeFileID});
-	request.execute(function(resp) {
-		console.log('file Meta data: ');
-		console.log(resp);
-		updateFile(activeFileID,resp,generateWeaveArchive(),changesSaved);
-	});
+function generateWeaveArchive(){
+	return weave.path().getValue('import "weave.compiler.StandardLib";\
+			import "weave.core.WeaveArchive";\
+			return StandardLib.btoa(WeaveArchive.createWeaveFileContent());');
 };
-
-function changesSaved(){
-	console.log('Update Successfull');
-};
-
-function updateFile(fileId, fileMetadata, fileData, callback) {
-	var request = getDriveRequest(fileData,'PUT',fileMetadata,fileId);
-	request.execute(saveFileID);
-};
-
+function generateWeaveFileName(){
+	return weave.path().getValue('import "weave.Weave";\
+			return Weave.fileName;');
+}
 
 function getDriveRequest(base64Data,requestMethod,fileMetadata,fileID){
 	var path =  '/upload/drive/v2/files';
 	var params = {'uploadType': 'multipart'};
 	if(fileID && requestMethod == 'PUT'){
-		//requestMethod = 'POST';
 		path = path +'/' + fileID;
 		params = {'uploadType': 'multipart', 'alt': 'json'};
 	}
