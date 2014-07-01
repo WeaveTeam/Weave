@@ -137,3 +137,33 @@ weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArr
         return results;
     }
 }
+
+
+/**
+ * Sets a human-readable label for an ILinkableObject to be used in editors.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param The human-readable label for an ILinkableObject.
+ */
+weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
+{
+	var args = this._A(arguments, 2);
+	if (this._assertParams('setLabel', args))
+	{
+		var label = args.pop();
+		var pathcopy = this._path.concat(args);
+		this.weave.evaluateExpression(pathcopy, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label});
+	}
+	return this;
+}
+
+/**
+ * Gets the previously-stored human-readable label for an ILinkableObject.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return The human-readable label for an ILinkableObject.
+ */
+weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
+{
+	return this.weave.evaluateExpression(this._path.concat(this._A(arguments, 1)), "WeaveAPI.EditorManager.getLabel(this)")
+};
