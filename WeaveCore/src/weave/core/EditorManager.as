@@ -79,5 +79,23 @@ package weave.core
 			}
 			return null;
 		}
+		
+		private const labels:Dictionary = new Dictionary(true);
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function setLabel(object:ILinkableObject, label:String):void
+		{
+			labels[object] = label;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getLabel(object:ILinkableObject):String
+		{
+			return labels[object];
+		}
 	}
 }
