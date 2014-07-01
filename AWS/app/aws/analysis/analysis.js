@@ -5,64 +5,104 @@
 
 var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
 
-analysis_mod.controller('AnalysisFiltersControllers', function($scope, $filter, dasboard_widget_service) {
+analysis_mod.controller('AnalysisFiltersControllers', function($scope, queryService) {
 
-	$scope.filter_widget_bricks = dasboard_widget_service.get_filter_widget_bricks();
+	$scope.service = queryService;
 	
 });
 
 analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorScroll){
   $scope.scrollTo = function(id) {
     $location.hash(id);
-    
     $anchorScroll();
   };
 });
 
 analysis_mod.controller('SaveVisualizationCtrl', function($scope, $filter, dasboard_widget_service) {
 	
-	
-	
 });
 
 
-analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
+analysis_mod.controller('WidgetsController', function($scope, queryService) {
 
+	$scope.service = queryService;
 	
-	$scope.widget_service = dasboard_widget_service;
+	$scope.toggle_widget = function(tool) {
+		queryService.queryObject[tool.id].enabled = tool.enabled;
+	};
 	
-	$scope.box_enabled = {};
-	$scope.dt_focused = true;
-	$scope.script_focused = false;
-	$scope.dash_focused = false;
+	$scope.disable_widget = function(tool) {
+		tool.enabled = false;
+		queryService.queryObject[tool.id].enabled = false;
+	};
 	
-	// $scope.general_tools = dasboard_widget_service.get_tool_list('indicatorfilter');
-	// $scope.filter_tools = dasboard_widget_service.get_tool_list('datafilter');
-
-	$scope.add_widget = function(element_id) {
-		
-		dasboard_widget_service.add_widget_bricks(element_id);
-		try{
-			
-			$scope.box_enabled[element_id] = true;
-		}
-		catch(e){
-			
-				$scope.box_enabled.push({key: element_id, value : true});
+	$scope.$watch(function() {
+		return queryService.tool_list;
+	}, function(newVal, oldVal) {
+		if(newVal, oldVal) {
+			for(var i in newVal) {
+				var tool = newVal[i];
+				queryService.queryObject[tool.id].enabled = tool.enabled;
 			}
-		
-		dasboard_widget_service.enable_widget(element_id, $scope.box_enabled[element_id]);
-		
-	};
-
-	$scope.remove_widget = function(widget_index) {
-		dasboard_widget_service.remove_widget_bricks(widget_index);
-	};
-
-	$scope.enable_widget = function(id) {
-		dasboard_widget_service.enable_widget(id, $scope.box_enabled[id]);
-	};
-
+		}
+	}, true);
+	
+	$scope.$watch(function () {
+		return queryService.queryObject.BarChartTool.enabled;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			for(var i in queryService.tool_list) {
+				var tool = queryService.tool_list[i];
+				if(tool.id == "BarCharTool") {
+					tool.enabled = newVal;
+					break;
+				}
+			}
+		}
+	});
+	
+	$scope.$watch(function () {
+		return queryService.queryObject.MapTool.enabled;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			for(var i in queryService.tool_list) {
+				var tool = queryService.tool_list[i];
+				if(tool.id == "MapTool") {
+					tool.enabled = newVal;
+					break;
+				}
+			}
+		}
+	});
+	
+	$scope.$watch(function () {
+		return queryService.queryObject.ScatterPlotTool.enabled;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			for(var i in queryService.tool_list) {
+				var tool = queryService.tool_list[i];
+				if(tool.id == "ScatterPlotTool") {
+					tool.enabled = newVal;
+					break;
+				}
+			}
+		}
+	});
+	
+	$scope.$watch(function () {
+		return queryService.queryObject.DataTableTool.enabled;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			for(var i in queryService.tool_list) {
+				var tool = queryService.tool_list[i];
+				if(tool.id == "DataTableTool") {
+					tool.enabled = newVal;
+					break;
+				}
+			}
+		}
+	});
+	
 });
 
 
@@ -81,69 +121,13 @@ analysis_mod.config(function($selectProvider) {
 
 analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 
-	
-	$scope.content_tools = [{
-		id : 'Indicator',
-		title : 'Indicator',
-		template_url : 'aws/analysis/indicator/indicator.tpl.html',
-		description : 'Choose an Indicator for the Analysis',
-		category : 'indicatorfilter'
-	},
-	{
-		id : 'GeographyFilter',
-		title : 'Geography Filter',
-		template_url : 'aws/analysis/data_filters/geography.tpl.html',
-		description : 'Filter data by States and Counties',
-		category : 'datafilter'
-
-	},
-	{
-		id : 'TimePeriodFilter',
-		title : 'Time Period Filter',
-		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
-		description : 'Filter data by Time Period',
-		category : 'datafilter'
-	},
-	{
-		id : 'ByVariableFilter',
-		title : 'By Variable Filter',
-		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
-		description : 'Filter data by Variables',
-		category : 'datafilter'
-	},
-	{
-		id : 'ScriptSettings',
-		title : 'Script Settings',
-		template_url : 'aws/analysis/script_settings.tpl.html',
-		description : 'Script Settings',
-		category : 'datafilter'
-	}
-	
-	/*{
-		id : 'Visualization',
-		title : 'Configure Visulas',
-		template_url : 'aws/analysis/visualization.tpl.html',
-		description : 'Configure output chart for Weave',
-		category : 'visualization'
-	}*/];
-	
 	// This sets the service variable to the queryService 
 	$scope.service = queryService;
 	
-	
-	$scope.setting_loaded = false;
-	$scope.secret_state = false;
-	$scope.show_load = false;
-
-
 	queryService.getDataTableList(true);
 	queryService.getListOfScripts(true);
 
-	$scope.enable_dashboard = function() {
-		$scope.dash_focused = true;
 
-	};
-	
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {
@@ -225,4 +209,18 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 		}
 	});
 	
+	$scope.$watchCollection(function() {
+		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected];
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			var indicator = newVal[0];
+			var scriptSelected = newVal[1];
+			
+			if(indicator && scriptSelected) {
+				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
+				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
+				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
+			}
+		}
+	});
 });

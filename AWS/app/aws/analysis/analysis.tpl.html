@@ -47,7 +47,7 @@
 			</div>
 
 			<!--Geography filter -->
-			<div class="databox" style="width: 15%;" ng-model="content_tools">
+			<div class="databox" style="width: 15%;" ng-model="service.content_tools">
 				<!-- <div class="databox" style="width: 160px;"> -->
 
 				<div class="header panel-heading">
@@ -56,14 +56,14 @@
 
 				<div class="body">
 
-					<div style="height:100%" ng-include="content_tools[1].template_url"></div>
+					<div style="height:100%" ng-include="service.content_tools[1].template_url"></div>
 
 				</div>
 
 			</div>
 
 			<!--Timeperiod filter -->
-			<div class="databox" style="width: 12%" ng-model= "content_tools">
+			<div class="databox" style="width: 12%" ng-model= "service.content_tools">
 				<!-- <div class="databox" style="width: 130px;"> -->
 
 				<div class="header panel-heading">
@@ -71,13 +71,13 @@
 				</div>
 
 				<div class="body">
-					<div style="height:100%" ng-include="content_tools[2].template_url"></div>
+					<div style="height:100%" ng-include="service.content_tools[2].template_url"></div>
 				</div>
 
 			</div>
 
 			<!--Byvariable filter -->
-			<div class="databox" style="width: 15%" ng-model= "content_tools">
+			<div class="databox" style="width: 15%" ng-model= "service.content_tools">
 				<!-- <div class="databox" style="width: 160px;"> -->
 
 				<div class="header panel-heading">
@@ -85,7 +85,7 @@
 				</div>
 
 				<div class="body">
-					<div style="height:100%" ng-include="content_tools[3].template_url"></div>
+					<div style="height:100%" ng-include="service.content_tools[3].template_url"></div>
 				</div>
 
 			</div>
@@ -139,9 +139,9 @@
 								<li>
 									<h6 class='tool-category'>Visualization Tools</h6>
 								</li>
-								<li ng-repeat= "tool in widget_service.tool_list">
+								<li ng-repeat= "tool in service.tool_list">
 									<span class="checkbox">
-										<input type="checkbox"  ng-model="widget_service.box_enabled[tool.id]" ng-change = "enable_widget(tool.id)" ng-click="add_widget(tool.id)">
+										<input type="checkbox"  ng-model="tool.enabled" ng-change="toggle_widget(tool)">
 									</span>
 									<a href='javascript: void()'> {{tool.title}}</a>
 								</li>
@@ -149,9 +149,9 @@
 						</div>
 						<!-- <span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span> -->
 						<div style="width: 100%" class="master-select2-container">
-							<select style="width: 100%" ui-select2 ng-controller="ColorColumnCtrl" ng-model="selected" data-placeholder="Choose Color Column">
+							<select style="width: 100%" ui-select2 ng-controller="ColorColumnCtrl" ng-model="queryService.queryObject.ColorColumn.column" data-placeholder="Choose Color Column">
 								<option></option>
-								<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+								<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
 							</select>
 						</div>
 						<div ng-controller="RunQueryCtrl">
@@ -166,24 +166,18 @@
 				</div>
 
 			</div>
-
-			<div style="height:100%; margin-top: 10px; width: 100%;" class="col-md-8 widget-container">
-
-				<div class='masonry-parent' style="width: 100%;" masonry="{ transitionDuration: '0.0s', gutter: 10 }">
-
-					<div style="width: 220px;" class="masonry-brick panel panel-default" ng-repeat="widget_brick in service.widtget_bricks">
-
-						<div class="panel-heading">
-							<h2>{{widget_brick.title}}</h2>
-							<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="remove_widget($index)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
-
-						</div>
-						<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>
-						<h6 style = "font-size: 13px" class="widget-description" ng-show = "widget_brick.note"> {{widget_brick.note}} </h6>
-						<div class="" ng-include="widget_brick.template_url"></div>
-
+			<br><br>		
+			<div style="height:100%; margin-top: 100px; width: 100%;" class="col-md-8 widget-container">
+					<div style="width: 270px; float : left; margin-right : 20px" ng-repeat="tool in service.tool_list | filter : { enabled : 'true' }" class="panel panel-default">
+							<div class="panel-heading">
+								<h2>{{tool.title}}</h2>
+								<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="disable_widget(tool)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+	
+							</div>
+							<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>
+							<h6 style = "font-size: 13px" class="widget-description" ng-show = "tool.note"> {{widget_brick.note}} </h6>
+							<div class="" ng-include="tool.template_url"></div>
 					</div>
-				</div>
 			</div>
 		</div>
 

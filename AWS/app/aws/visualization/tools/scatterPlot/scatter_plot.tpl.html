@@ -1,22 +1,20 @@
 <div class="panel-body" ng-controller="ScatterPlotCtrl">
 	<ul class="input-controls">
 	
-	<input type="checkbox" ng-model="enableTitle"/> Title:
-	
-	<input type="text" placeholder="Default" ng-model='title'>
+	<input type="text" placeholder="Default" value="service.queryObject.ScatterPlotTool.title">
 	
 	<br>X Column<br>
 	
-	<select ui-select2 ng-model="XSelection" data-placeholder="Choose X Column">
+	<select ui-select2 ng-model="service.queryObject.ScatterPlotTool.X" data-placeholder="Choose X Column">
 		<option></option>
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+		<option value="{{output.param}}" ng-repeat="opt in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
 	</select>
 	
 	<br>Y Column<br>
 	
-	<select ui-select2 ng-model="YSelection" data-placeholder="Choose Y Column">
+	<select ui-select2 ng-model="service.queryObject.ScatterPlotTool.Y" data-placeholder="Choose Y Column">
 		<option></option>
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+		<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
 	</select>	
 	</ul>
 

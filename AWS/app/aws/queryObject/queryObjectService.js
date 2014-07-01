@@ -38,10 +38,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			TimePeriodFilter : {},
 			ByVariableFilterColumns : [],
 			ByVariableFilterFilters : [],
-			BarChartTool : {},
-			MapTool : {},
-			ScatterPlotTool : {},
-			DataTableTool : {}
+			BarChartTool : { enabled : false },
+			MapTool : { enabled : false },
+			ScatterPlotTool : { enabled : false },
+			DataTableTool : { enabled : false }
 	};    		
     
 	this.dataObject = {
@@ -49,6 +49,69 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			scriptList : []
 	};
 
+	this.content_tools = [{
+		id : 'Indicator',
+		title : 'Indicator',
+		template_url : 'aws/analysis/indicator/indicator.tpl.html',
+		description : 'Choose an Indicator for the Analysis',
+		category : 'indicatorfilter'
+	},
+	{
+		id : 'GeographyFilter',
+		title : 'Geography Filter',
+		template_url : 'aws/analysis/data_filters/geography.tpl.html',
+		description : 'Filter data by States and Counties',
+		category : 'datafilter'
+
+	},
+	{
+		id : 'TimePeriodFilter',
+		title : 'Time Period Filter',
+		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+		description : 'Filter data by Time Period',
+		category : 'datafilter'
+	},
+	{
+		id : 'ByVariableFilter',
+		title : 'By Variable Filter',
+		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+		description : 'Filter data by Variables',
+		category : 'datafilter',
+	}];
+	
+	
+	this.tool_list = [
+	{
+		id : 'BarChartTool',
+		title : 'Bar Chart Tool',
+		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
+		description : 'Display Bar Chart in Weave',
+		category : 'visualization',
+		enabled : false
+
+	}, {
+		id : 'MapTool',
+		title : 'Map Tool',
+		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
+		description : 'Display Map in Weave',
+		category : 'visualization',
+		enabled : false
+	}, {
+		id : 'DataTableTool',
+		title : 'Data Table Tool',
+		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
+		description : 'Display a Data Table in Weave',
+		category : 'visualization',
+		enabled : false
+	}, {
+		id : 'ScatterPlotTool',
+		title : 'Scatter Plot Tool',
+		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+		description : 'Display a Scatter Plot in Weave',
+		category : 'visualization',
+		enabled : false
+	}];
+	
 	/**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
@@ -271,7 +334,14 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 
 		aws.queryService(dataServiceURL, 'getEntityIdsByMetadata', [{"dataType" :"geometry"}, 1], function(idsArray){
 			aws.queryService(dataServiceURL, 'getEntitiesById', [idsArray], function(dataEntityArray){
-				that.dataObject.geometryColumns = dataEntityArray;
+				that.dataObject.geometryColumns = $.map(dataEntityArray, function(entity) {
+					return {
+						id : entity.id,
+						title : entity.publicMetadata.title,
+						keyType : entity.publicMetadata.keyType
+					};
+				});
+				
 			});
 		});
     };

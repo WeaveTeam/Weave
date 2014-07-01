@@ -24,7 +24,7 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 							} else {
 								queryService.dataObject.filterType[i] = "";
 								queryService.dataObject.filterOptions[i] = [];
-								queryService.dataObject.filterValues[i] = "";
+								queryService.queryObject.filterValues[i] = "";
 							}
 						}
 					}
@@ -42,9 +42,9 @@ analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 		if($scope.items.length != 1) {
 			$scope.items.splice(index, 1);
 			queryService.queryObject.ByVariableFilterColumns.splice(index, 1);
-			$scope.filterValues[index] = "";
+			queryService.queryObject.filterValues[index] = "";
 		} else {
-			$scope.filterValues[index] = "";
+			queryService.queryObject.filterValues[index] = "";
 			$scope.filterType[index] = "";
 		}
 	};
