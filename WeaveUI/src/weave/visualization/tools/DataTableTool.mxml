@@ -879,7 +879,6 @@
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
 				function (column, key, cell) {\n\
-					import 'weave.api.WeaveAPI';\n\
 					var name = 'defaultColorColumn';\n\
 					var cc = WeaveAPI.globalHashMap.getObject(name);\n\
 					return cc.getValueFromKey(key, Number);\n\

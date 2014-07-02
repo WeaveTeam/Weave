@@ -21,6 +21,7 @@ package weave.visualization.tools
 	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;
@@ -115,7 +116,12 @@ package weave.visualization.tools
 		 */
 		public function getSelectableAttributeNames():Array
 		{
-			return getNames(IAttributeColumn);
+			return getObjects(IAttributeColumn).map(getLabel);
+		}
+		
+		private function getLabel(obj:ILinkableObject, i:int, a:Array):String
+		{
+			return WeaveAPI.EditorManager.getLabel(obj);
 		}
 
 		/**

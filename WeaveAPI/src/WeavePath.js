@@ -480,7 +480,6 @@ weave.WeavePath.prototype.naturalize = function()
 }
 
 
-
 // non-chainable methods
 
 /**
@@ -540,9 +539,7 @@ weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 	{
 		var otherState = args.pop();
 		var pathcopy = this._path.concat(args);
-		var script = "import 'weave.api.WeaveAPI';"
-			+ "import 'weave.api.core.ILinkableObject';"
-			+ "return WeaveAPI.SessionManager.computeDiff(otherState, this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null);";
+		var script = "return WeaveAPI.SessionManager.computeDiff(otherState, this ? WeaveAPI.SessionManager.getSessionState(this) : null);";
 		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
 	return null;
@@ -562,9 +559,7 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
 	{
 		var otherState = args.pop();
 		var pathcopy = this._path.concat(args);
-		var script = "import 'weave.api.WeaveAPI';"
-			+ "import 'weave.api.core.ILinkableObject';"
-			+ "return WeaveAPI.SessionManager.computeDiff(this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null, otherState);";
+		var script = "return WeaveAPI.SessionManager.computeDiff(this ? WeaveAPI.SessionManager.getSessionState(this) : null, otherState);";
 		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
 	return null;

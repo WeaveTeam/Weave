@@ -30,7 +30,6 @@ package weave.visualization.layers
 	import mx.controls.Label;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IKeySet;

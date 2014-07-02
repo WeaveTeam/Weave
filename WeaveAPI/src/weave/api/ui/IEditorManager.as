@@ -42,5 +42,15 @@ package weave.api.ui
 		 * @return A new editor for the object, or null if there is no registered editor class.
 		 */
 		function getNewEditor(obj:ILinkableObject):ILinkableObjectEditor;
+		
+		/**
+		 * Sets a human-readable label for an ILinkableObject to be used in editors.
+		 */
+		function setLabel(object:ILinkableObject, label:String):void;
+		
+		/**
+		 * Gets the previously-stored human-readable label for an ILinkableObject.
+		 */
+		function getLabel(object:ILinkableObject):String;
 	}
 }
