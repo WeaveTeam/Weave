@@ -100,7 +100,7 @@ function getEntityTree(dataServiceUrl, rootEntityId, callback)
 			callback(lookup[rootEntityId]);
 		});
 	}
-	cacheEntityTree([rootEntityId], callback);
+	cacheEntityTree([rootEntityId]);
 }
 
 /**
