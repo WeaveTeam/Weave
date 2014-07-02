@@ -1,52 +1,62 @@
 analysis_mod.controller('byVariableCtrl', function($scope, queryService){
 	
 	$scope.service = queryService;
-	$scope.items = [1];
-	var lastIndex = 1;
+	
+	queryService.dataObject.byVariableItems = [0];
+	queryService.dataObject.byVariableFilters = [0];
+	queryService.dataObject.filterType = [];
+	queryService.dataObject.filterOptions = [];
+	
+	$scope.addByVariable = function() {
+		queryService.dataObject.byVariableItems.push(queryService.dataObject.byVariableItems.length + 1);
+		queryService.dataObject.byVariableFilters.push(queryService.dataObject.byVariableItems.length + 1);
+	};
+	
+	$scope.removeByVariable = function(index) {
+		if(queryService.dataObject.byVariableItems.length == 1) {
+			queryService.dataObject.byVariableItems[0] = 0;
+			queryService.dataObject.byVariableFilters[0] = 0;
+			
+			queryService.queryObject.ByVariableColumns[0] = "";
+			queryService.queryObject.ByVariableFilters[0] = [];
+		} else {
+			queryService.dataObject.byVariableItems.splice(index, 1);
+			queryService.dataObject.byVariableFilters.splice(index, 1);
 
-	$scope.$watchCollection(function() {
-		return queryService.queryObject.ByVariableFilter;
-	}, function(newValue, oldValue) {
-	    // loop over the selections
-		var ByVariableFilter = queryService.queryObject.ByVariableFilter;
+			queryService.queryObject.ByVariableFilters.splice(index, 1);
+			queryService.queryObject.ByVariableColumns.splice(index, 1);
+		}
+	};
+	
+	$scope.getFilterType = function(columnStr, index) {
 		
-		if(ByVariableFilter) {
-			for(var i in ByVariableFilter) {
-				var column = angular.fromJson(ByVariableFilterColumns[i]);
+		var column;
+		if(columnStr) {
+			column = angular.fromJson(columnStr);
+			if(column.hasOwnProperty("id")) {
 				aws.DataClient.getDataColumnEntities([column.id], function(entities) {
-					var entity = entities[0];
-					if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {
-						var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
-						if(metadata) {
-							if(metadata.hasOwnProperty("varType") && metadata.hasOwnProperty("varValues")) {
-								queryService.dataObject.filterType[i] = metadata.varType;
-								queryService.dataObject.filterOptions[i] = metadata.varValues;
-							} else {
-								queryService.dataObject.filterType[i] = "";
-								queryService.dataObject.filterOptions[i] = [];
-								queryService.queryObject.filterValues[i] = "";
+					entity = entities[0];
+					if(entity.publicMetadata.hasOwnProperty('aws_metadata')) {
+						aws_metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
+						if(aws_metadata.hasOwnProperty("varType")) {
+							if(aws_metadata.varType == "continuous") {
+								queryService.dataObject.filterType[index] = aws_metadata.varType;
+								console.log(aws_metadata.varRange[1]);
+								queryService.dataObject.filterOptions[index] = { 
+																				range : true, 
+																				min : aws_metadata.varRange[0], 
+																				max : aws_metadata.varRange[1],
+																				values : [(aws_metadata.varRange[1] - aws_metadata.varRange[0]) / 3, 2 * (aws_metadata.varRange[1] - aws_metadata.varRange[0]) / 3]};
+							} else if(aws_metadata.varType == "categorical") {
+								queryService.dataObject.filterType[index] = aws_metadata.varType;
+								queryService.dataObject.filterOptions[index] = aws_metadata.varValues;
 							}
 						}
+						$scope.$apply();
 					}
 				});
 			}
 		}
-	});
-	
-	$scope.addByVariable = function() {
-		lastIndex++;
-		$scope.items.push(lastIndex);
 	};
 	
-	$scope.removeByVariable = function(index) {
-		if($scope.items.length != 1) {
-			$scope.items.splice(index, 1);
-			queryService.queryObject.ByVariableFilterColumns.splice(index, 1);
-			queryService.queryObject.filterValues[index] = "";
-		} else {
-			queryService.queryObject.filterValues[index] = "";
-			$scope.filterType[index] = "";
-		}
-	};
-	
-});
+}); 

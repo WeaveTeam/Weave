@@ -3,25 +3,30 @@
 	<ul class="input-controls">
 		<a class="btn btn-primary" style="padding: 1px 2px; margin-bottom: 7px;" ng-click="addByVariable()">Add Filter</a>
 		
-		<div ng-repeat="item in items" class="byvariable-contents">
+		<div ng-repeat="item in service.dataObject.byVariableItems" class="byvariable-contents">
 			
-			<select style="width: 100%" ui-select2 ng-model="service.queryObject.ByVariableFilterColumns[$index]" data-placeholder="Choose By Variable Filter">
+			<select style="width: 100%" ui-select2
+			 ng-model="service.queryObject.ByVariableColumns[$index]"
+			  data-placeholder="Choose Column to Filter"
+			  ng-click="getFilterType(service.queryObject.ByVariableColumns[$index], $index)">
 				<option></option>
 				<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'by-variable' }"> {{col.title}}</option>
 			</select>
 			
 			<a style="display: inline-block;" ng-click='removeByVariable($index)'>Remove</a>
-			
 			<div  ng-if="service.dataObject.filterType[$index] == 'continuous'" style="padding-top: 5px">
-	 			<div ui-slider="service.dataObject.filterOptions[$index]" ng-model="service.queryObject.ByVariableFilterFilters[$index]"></div>
+				{{ service.queryObject.ByVariableFilters[$index][0] }} - {{ service.queryObject.ByVariableFilters[$index][1] }}
+	 			<div ui-slider="service.dataObject.filterOptions[$index]" ng-model="service.queryObject.ByVariableFilters[$index]"></div>
 			</div>
 		
 			<div ng-if="service.dataObject.filterType[$index] == 'categorical'" >
-	 			<select ui-select2 multiple ng-model="service.queryObject.ByVariableFilterFilters[$index]" data-placeholder="Choose Filter(s)">
+	 			<select ui-select2 multiple ng-model="service.queryObject.ByVariableFilters[$index]" data-placeholder="Choose Filter(s)">
 	 				<option value="{{cat}}" ng-repeat="cat in service.dataObject.filterOptions[$index]">{{cat.label}}</option>
 	 			</select>
 			</div>
 			
 		</div>
+		
+		<br><br>
 	</ul>
 </div>
