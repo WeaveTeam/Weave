@@ -24,11 +24,7 @@
 		<Paragraph trim="false">
 			<creationComplete>
 				<![CDATA[
-				var list:Array = WeaveAPI.URLRequestUtils.getLocalFileNames();
-				list = list.filter(function(s:String, ..._):Boolean {
-					return s != WeaveArchive.ARCHIVE_THUMBNAIL_PNG
-						&& s != WeaveArchive.ARCHIVE_SCREENSHOT_PNG;
-				});
+				var list:Array = getEmbeddedFileNames();
 				(event.target as Paragraph).text = list.join('\n');
 				embeddedFiles.visible = embeddedFiles.includeInLayout = !!list.length;
 				]]>
@@ -104,9 +100,17 @@
 				handleXMLToggle();
 			}
 			
+			private function getEmbeddedFileNames():Array
+			{
+				return WeaveAPI.URLRequestUtils.getLocalFileNames().filter(function(s:String, ..._):Boolean {
+					return s != WeaveArchive.ARCHIVE_THUMBNAIL_PNG
+						&& s != WeaveArchive.ARCHIVE_SCREENSHOT_PNG;
+				});
+			}
+			
 			private function handleXMLToggle():void
 			{
-				if (WeaveAPI.URLRequestUtils.getLocalFileNames().length)
+				if (getEmbeddedFileNames().length)
 					saveXML.enabled = saveXML.selected = false;
 				else
 					saveXML.enabled = true;
