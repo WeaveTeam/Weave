@@ -1,5 +1,4 @@
 package weave.models;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -11,12 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.imageio.plugins.common.ImageUtil;
+import org.json.simple.parser.ParseException;
 
-import weave.beans.WeaveFileInfo;
 import weave.config.WeaveConfig;
 import weave.utils.FileUtils;
-import weave.utils.ImageUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -65,50 +62,50 @@ public class AwsProjectService
    * @return finalQueryObjectCollection array of [jsonObjects, title of queryObjects]   
    * @throws Exception
    */
-	public static AWSQueryObjectCollectionObject getQueryObjectsFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
-	{
-		AWSQueryObjectCollectionObject finalQueryObjectCollection = null;
-		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
-		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
-		
-		String[] finalQueryNames= null;;
-		String[] finalQueryObjects= null;
-		String finalProjectDescription = null;
-		List<String> selectColumns = new ArrayList<String>();
-		selectColumns.add("queryObjectTitle");
-		selectColumns.add("queryObjectContent");
-		selectColumns.add("projectDescription");
-		
-		
-		Map<String,String> whereParams = new HashMap<String, String>();
-		whereParams.put("projectName", params.get("projectName").toString());
-		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
-		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
-		
-		if(queryObjectsSQLresult.rows.length != 0)//run this code only if the project contains rows
-		{
-			Object[][] rows = queryObjectsSQLresult.rows;
-			finalQueryNames = new String[rows.length];
-			finalQueryObjects = new String[rows.length];
-			
-			for(int i = 0; i < rows.length; i++)
-			{
-				Object[] singleRow = rows[i];
-				finalQueryNames[i]= singleRow[0].toString();
-				finalQueryObjects[i] = singleRow[1].toString();
-				finalProjectDescription = singleRow[2].toString();
-			}
-			
-			finalQueryObjectCollection = new AWSQueryObjectCollectionObject();
-			finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
-			finalQueryObjectCollection.projectDescription = finalProjectDescription;
-			finalQueryObjectCollection.queryObjectNames = finalQueryNames;
-		
-		}//end of if statement
-		con.close();
-		return finalQueryObjectCollection;
-		
-	}
+//	public static AWSQueryObjectCollectionObject getQueryObjectsFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
+//	{
+//		AWSQueryObjectCollectionObject finalQueryObjectCollection = null;
+//		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+//		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
+//		
+//		String[] finalQueryNames= null;;
+//		String[] finalQueryObjects= null;
+//		String finalProjectDescription = null;
+//		List<String> selectColumns = new ArrayList<String>();
+//		selectColumns.add("queryObjectTitle");
+//		selectColumns.add("queryObjectContent");
+//		selectColumns.add("projectDescription");
+//		
+//		
+//		Map<String,String> whereParams = new HashMap<String, String>();
+//		whereParams.put("projectName", params.get("projectName").toString());
+//		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
+//		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
+//		
+//		if(queryObjectsSQLresult.rows.length != 0)//run this code only if the project contains rows
+//		{
+//			Object[][] rows = queryObjectsSQLresult.rows;
+//			finalQueryNames = new String[rows.length];
+//			finalQueryObjects = new String[rows.length];
+//			
+//			for(int i = 0; i < rows.length; i++)
+//			{
+//				Object[] singleRow = rows[i];
+//				finalQueryNames[i]= singleRow[0].toString();
+//				finalQueryObjects[i] = singleRow[1].toString();
+//				finalProjectDescription = singleRow[2].toString();
+//			}
+//			
+//			finalQueryObjectCollection = new AWSQueryObjectCollectionObject();
+//			finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
+//			finalQueryObjectCollection.projectDescription = finalProjectDescription;
+//			finalQueryObjectCollection.queryObjectNames = finalQueryNames;
+//		
+//		}//end of if statement
+//		con.close();
+//		return finalQueryObjectCollection;
+//		
+//	}
 	
 	/** 
 	   * deletes an entire project from a database
@@ -226,10 +223,8 @@ public class AwsProjectService
 	   * @return an array of base64 strings, each encoding one image 
 	   * @throws Exception
 	   */
-	public static AWSQueryObjectCollectionObject getListOfQueryObjectVisualizations(String projectName) throws RemoteException, SQLException
+	public static AWSQueryObjectCollectionObject getListOfQueryObjects(Map<String , Object> params) throws RemoteException, SQLException
 	{
-		System.out.println(projectName);
-		
 		String[] visualizationCollection = null;
 		String[]thumbnails;
 		AWSQueryObjectCollectionObject  finalQueryObjectCollection = null;
@@ -239,16 +234,10 @@ public class AwsProjectService
 		String[] finalQueryNames= null;;
 		String[] finalQueryObjects= null;
 		String finalProjectDescription = null;
-		//Object project = params.get("projectName");
-		//String projectName = params.get("projectName").toString();
 		
 		Map<String,Object> whereParams = new HashMap<String, Object>();
-		//whereParams.put("projectName", params.get("projectName").toString());
+		whereParams.put("projectName", params.get("projectName").toString());
 		
-		if(!(projectName.matches(""))){
-			whereParams.put("projectName", projectName);
-		}
-	
 		List<String> selectColumns = new ArrayList<String>();
 		selectColumns.add("queryObjectTitle");
 		selectColumns.add("queryObjectContent");
@@ -288,7 +277,6 @@ public class AwsProjectService
 			finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
 			finalQueryObjectCollection.projectDescription = finalProjectDescription;
 			finalQueryObjectCollection.queryObjectNames = finalQueryNames;
-			finalQueryObjectCollection.weaveSessions = visualizationCollection;
 			finalQueryObjectCollection.thumbnails = thumbnails;
 			
 			//for base64 screenshot taken directly
@@ -322,6 +310,40 @@ public class AwsProjectService
 		return finalQueryObjectCollection;
 	}
 	
+	//retrives the session state of the Weave instance created by the respective query object
+	public static String returnSessionState(String queryObject) throws SQLException, RemoteException, ParseException
+	{
+		String sessionStateString = null;
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
+		//JSONObject json = (JSONObject) new JSONParser().parse(queryObject);
+		
+		
+		Map<String,Object> whereParams = new HashMap<String, Object>();
+		whereParams.put("queryObjectContent", queryObject);
+		
+		List<String> selectColumns = new ArrayList<String>();
+		selectColumns.add("resultVisualizations");
+		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
+		
+		SQLResult visualizationSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
+			
+		//process visualizationSQLresult
+		if(visualizationSQLresult.rows.length != 0)
+		{
+			Object[][] rows = visualizationSQLresult.rows;
+			
+			for(int i = 0; i < rows.length; i++)
+			{
+				Object[] singleRow = rows[i];
+				sessionStateString= singleRow[0].toString();
+				
+			}
+		}
+		con.close();
+		return sessionStateString;
+	}
+	
 	/**
 	 * This class represents a collection object that is returned to the WeaveAnalyst
 	 *@param queryObjectNames names of the queryObjects belonging to a project
@@ -333,7 +355,6 @@ public class AwsProjectService
 		String[] finalQueryObjects;
 		String[] queryObjectNames;
 		String projectDescription;
-		String[] weaveSessions;
 		String[] thumbnails;
 	}
 }

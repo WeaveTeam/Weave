@@ -180,7 +180,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 	    			that.dataObject.listofQueryObjectsInProject = returnedQueryObjects;
 	    			that.dataObject.queryNames = AWSQueryObjectCollectionObject.queryObjectNames;
 	    			that.dataObject.projectDescription = AWSQueryObjectCollectionObject.projectDescription;
-	    			
+	    			that.dataObject.thumbnails = AWSQueryObjectCollectionObject.thumbnails;
     			}
         	scope.$safeApply(function() {
                 deferred.resolve(AWSQueryObjectCollectionObject);
@@ -196,15 +196,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      * This function returns the visualizations belonging to query(ies)
      */
     
-    this.getListOfQueryObjectVisualizations = function(projectName){
+    this.getListOfQueryObjects = function(projectName){
     	 var deferred = $q.defer();
-    	if(projectName == null){
-    		console.log("projectName", projectName);
-    		projectName = "";
-    	}
+    	 var params = {};
+     	params.projectName = projectName;
     	
-    	
-    	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [projectName], function(AWSQueryObjectCollectionObject){
+    	aws.queryService(projectManagementURL, 'getListOfQueryObjects', [projectName], function(AWSQueryObjectCollectionObject){
     		var returnedQueryObjects = [];
     		if(!(angular.isUndefined(AWSQueryObjectCollectionObject)))
     			{
@@ -215,10 +212,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 	    				returnedQueryObjects[i] = JSON.parse(AWSQueryObjectCollectionObject.finalQueryObjects[i]);
 	    			}
 	    			
-	    			that.dataObject.listofRespectiveQueryObjects = returnedQueryObjects;
+	    			that.dataObject.listofQueryObjectsInProject = returnedQueryObjects;
 	    			that.dataObject.queryNamesViz = AWSQueryObjectCollectionObject.queryObjectNames;
 	    			that.dataObject.projectDescriptionViz = AWSQueryObjectCollectionObject.projectDescription;
-	    			that.dataObject.listOfSessionStates = AWSQueryObjectCollectionObject.weaveSessions;
 	    			that.dataObject.thumbnails = AWSQueryObjectCollectionObject.thumbnails;
     			}
         	scope.$safeApply(function() {
@@ -229,6 +225,24 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     		
   
 		return deferred.promise;
+    };
+    
+    this.returnSessionState = function(queryObject){
+    	 var deferred = $q.defer();
+    	 queryObject = angular.toJson(queryObject);
+    	 console.log("stringified queryObject", queryObject);
+    	 aws.queryService(projectManagementURL, 'returnSessionState', [queryObject], function(result){
+     		
+    		 that.dataObject.weaveSessionState = result;
+    		 
+         	scope.$safeApply(function() {
+                 deferred.resolve(result);
+             });
+         	
+         });
+     		
+   
+ 		return deferred.promise;
     };
     
     /**
