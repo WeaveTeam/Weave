@@ -28,7 +28,7 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 	var toolName;
 	switch(visualization.type) {
 		case 'MapTool':
-			toolName = this.newMap(parameters["id"], parameters["title"], parameters["keyType"]);
+			toolName = this.newMap(parameters["id"], parameters["title"], parameters["keyType"], visualization.labelLayer, dataSourceName);
 			this.setPosition(toolName, "0%", "0%");
 			return toolName;
 		case 'ScatterPlotTool':
@@ -61,7 +61,7 @@ aws.WeaveClient.prototype.updateVisualization = function (visualization, dataSou
 	var toolName;
 	switch(visualization.type) {
 		case 'MapTool':
-			toolName = this.updateMap(visualization.toolName, parameters["id"], parameters["title"], parameters["keyType"]);
+			toolName = this.updateMap(visualization.toolName, parameters["id"], parameters["title"], parameters["keyType"],visualization.labelLayer, dataSourceName);
 			this.setPosition(toolName, "0%", "0%");
 			return toolName;
 		case 'ScatterPlotTool':
@@ -82,7 +82,7 @@ aws.WeaveClient.prototype.updateVisualization = function (visualization, dataSou
 	
 };
 
-aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
+aws.WeaveClient.prototype.newMap = function (entityId, title, keyType, labelLayer, dataSourceName){
 
 	var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
   
@@ -113,14 +113,11 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	    "dataType": "geometry"
 	  }).pop().pop()
 	  .push('text', null).request('ReferencedColumn')
-	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('dataSourceName').state(dataSourceName).pop()
 	  .push('metadata').state({//hard coding the label layer paramterize later
-	    "keyType": keyType,
-	    "title": "STATE_NAME",
-	    "entityType": "column",
-	    "weaveEntityId": "960",
-	    "projection": "EPSG:4326",
-	    "dataType": "string"
+	    "csvColumn": labelLayer,
+	    "title": labelLayer,
+	    "keyType": keyType
 	  });
    return toolName;
 };
@@ -136,7 +133,7 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
  * @return {string} The name of the MapTool that was created. Visualizations are created at the root of the HashMap.
  * 		  
  */
-aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyType){
+aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyType, labelLayer, dataSourceName){
 	
 	if(toolName == undefined)
 		 toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
@@ -168,14 +165,11 @@ aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyTyp
 	    "dataType": "geometry"
 	  }).pop().pop()
 	  .push('text', null).request('ReferencedColumn')
-	  .push('dataSourceName').state('WeaveDataSource').pop()
+	  .push('dataSourceName').state(dataSourceName).pop()
 	  .push('metadata').state({//hard coding the label layer paramterize later
-	    "keyType": keyType,
-	    "title": "STATE_NAME",
-	    "entityType": "column",
-	    "weaveEntityId": "960",
-	    "projection": "EPSG:4326",
-	    "dataType": "string"
+		    "csvColumn": labelLayer,
+		    "title": labelLayer,
+		    "keyType": keyType
 	  });
 
    return toolName;

@@ -4,9 +4,16 @@
 		Title:
 		<input type="text" placeholder="Default" ng-model='title'>
 		<br>
-		<select ui-select2 ng-model="selected" data-placeholder="Choose Map">
+		<select ui-select2 ng-model="selected" 
+						   data-placeholder="Choose Map"
+						   ng-change="getLabelLayerColumns()">
 			<option></option>
 			<option value="{{gt}}"  ng-repeat="gt in geomTables">{{gt.title}}</option>
+		</select>
+		<br>
+		<select class="widget-ui-control" ui-select2 ng-model="label" data-placeholder="Choose Label Column">
+			<option></option>
+			<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 		</select>
 	</ul>
 

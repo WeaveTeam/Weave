@@ -35,11 +35,30 @@ analysis_mod.controller("MapCtrl", function($scope, queryService){
 		$scope.enabled = queryService.queryObject.MapTool.enabled;
 	});
 		
-	$scope.$watch('selected', function() {
-		if($scope.selected != undefined && $scope.selected != "") {
-			queryService.queryObject.MapTool.selected = angular.fromJson($scope.selected);
+	$scope.$watch('selected', function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			if(newVal)  {
+				queryService.queryObject.MapTool.selected = angular.fromJson(newVal);
+			}
 		}
 	});
+	
+	
+	$scope.options = [];
+	
+	$scope.$watch(function(){
+		return queryService.dataObject.scriptMetadata;
+	}, function() {
+		$scope.options = [];
+		if(queryService.dataObject.hasOwnProperty("scriptMetadata")) {
+			if(queryService.dataObject.scriptMetadata.hasOwnProperty("outputs")) {
+				var outputs = queryService.dataObject.scriptMetadata.outputs;
+				for( var i = 0; i < outputs.length; i++) {
+					$scope.options.push(outputs[i].param);
+				}
+			}
+		}
+	});		
 	
 	$scope.$watch(function(){
 		return queryService.queryObject.MapTool.selected;
@@ -50,6 +69,12 @@ analysis_mod.controller("MapCtrl", function($scope, queryService){
 	$scope.$watch('title', function() {
 		if($scope.title != undefined) {
 			queryService.queryObject.MapTool.title = $scope.title;
+		}
+	});
+	
+	$scope.$watch('label', function() {
+		if($scope.label) {
+			queryService.queryObject.MapTool.labelLayer = $scope.label;
 		}
 	});
 	

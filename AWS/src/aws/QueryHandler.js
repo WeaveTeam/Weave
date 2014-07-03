@@ -189,7 +189,8 @@ aws.QueryHandler = function(queryObject)
 						type : "MapTool",
 						parameters : queryObject.MapTool.selected,
 						title : queryObject.MapTool.title,
-						enableTitle : queryObject.MapTool.enableTitle
+						enableTitle : queryObject.MapTool.enableTitle,
+						labelLayer : queryObject.MapTool.labelLayer
 					}
 			);
 		}
@@ -304,7 +305,8 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 						type : "MapTool",
 						parameters : queryObject.MapTool.selected,
 						title : queryObject.MapTool.title,
-						enableTitle : queryObject.MapTool.enableTitle
+						enableTitle : queryObject.MapTool.enableTitle,
+						labelLayer : queryObject.MapTool.labelLayer
 					}
 			);
 		}
