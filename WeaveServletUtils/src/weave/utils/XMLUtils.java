@@ -209,6 +209,14 @@ public class XMLUtils
 		Document doc = builder.parse(is);
 		return doc;
 	}
+	public static Document getXMLFromFile(File file) throws ParserConfigurationException, SAXException, IOException
+	{
+		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = domFactory.newDocumentBuilder();
+		builder.setErrorHandler(new SimpleErrorHandler());
+		Document doc = builder.parse(file);
+		return doc;
+	}
 	public static Document getValidatedXMLFromString(String str) throws ParserConfigurationException, SAXException, IOException
 	{
 		return getValidatedXMLFromStream(new ByteArrayInputStream(str.getBytes()));

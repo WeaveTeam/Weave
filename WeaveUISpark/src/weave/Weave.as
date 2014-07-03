@@ -32,6 +32,7 @@ package weave
 	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.core.ILinkableHashMap;
@@ -100,8 +101,25 @@ package weave
 		public static function getSessionStateXML():XML
 		{
 			var xml:XML = WeaveXMLEncoder.encode(root.getSessionState(), "Weave");
+			
 			if (ALLOW_PLUGINS)
 				xml.@plugins = WeaveAPI.CSVParser.createCSVRow(getPluginList());
+			
+			WeaveArchive.updateLocalThumbnailAndScreenshot(false);
+			
+			// embed local files
+			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
+			{
+				var bytes:ByteArray = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
+				
+				// use Base64Encoder here instead of StandardLib.btoa() because we want the line breaks in the XML.
+				var encoder:Base64Encoder = new Base64Encoder();
+				encoder.encodeBytes(bytes);
+				var ascii:String = encoder.flush();
+				
+				xml.appendChild(<ByteArray name={ fileName } encoding="base64">{ ascii }</ByteArray>);
+			}
+			
 			return xml;
 		}
 		
@@ -313,8 +331,6 @@ package weave
 			return 'Weave_' + StandardLib.formatDate(new Date(), "YYYY-MM-DD_HH.NN.SS", false) + '.weave';
 		}
 		
-		private static var _lastLoadedArchive:WeaveArchive = null;
-		
 		/**
 		 * This function will load content that was previously created with createWeaveFileContent().
 		 * @param content The contents of a Weave file.
@@ -339,9 +355,11 @@ package weave
 					// begin with empty history after loading the session state from the xml
 					history.clearHistory();
 					
-					// remove all local files and replace with list from archive
+					// remove all local files and replace with list from xml
 					for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 						WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
+					for each (var node:XML in xml.ByteArray)
+						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(node.text()));
 				}
 			}
 			else if (content)
@@ -362,18 +380,18 @@ package weave
 					}
 				}
 				
-				_lastLoadedArchive = content as WeaveArchive;
-				var _history:Object = _lastLoadedArchive.objects[WeaveArchive.ARCHIVE_HISTORY_AMF];
+				var archive:WeaveArchive = content as WeaveArchive;
+				var _history:Object = archive.objects[WeaveArchive.ARCHIVE_HISTORY_AMF];
 				if (!_history)
 					throw new Error("Weave session history not found.");
 				
 				// remove all local files and replace with list from archive
 				for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 					WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
-				for (fileName in _lastLoadedArchive.files)
-					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, _lastLoadedArchive.files[fileName]);
+				for (fileName in archive.files)
+					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, archive.files[fileName]);
 				
-				plugins = _lastLoadedArchive.objects[WeaveArchive.ARCHIVE_PLUGINS_AMF] as Array || [];
+				plugins = archive.objects[WeaveArchive.ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
@@ -388,19 +406,6 @@ package weave
 				Weave.initExternalDragDrop();
 				properties.runStartupJavaScript();
 			}
-		}
-		
-		/**
-		 * This function returns the screenshot image if saved in the last loaded archive file
-		 * */
-		public static function getScreenshotFromArchive():ByteArray
-		{
-			return _lastLoadedArchive ? _lastLoadedArchive.files[WeaveArchive.ARCHIVE_SCREENSHOT_PNG] : null;
-		}
-		
-		public static function loadDraggedCSV(content:Object):void
-		{
-			WeaveAPI.topLevelApplication['visApp'].CSVWizardWithData(content);
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";

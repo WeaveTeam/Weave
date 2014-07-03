@@ -78,6 +78,7 @@ package weave.application
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.WeaveArchive;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SessionHistorySlider;
@@ -1001,7 +1002,7 @@ package weave.application
 		}
 		
 		private var _screenshot:Image = null;
-		private var _snapshotTimer:Timer = new Timer(1000);
+		private var _screenshotTimer:Timer = new Timer(1000);
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
@@ -1096,7 +1097,7 @@ package weave.application
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);
-			var ssba:ByteArray = Weave.getScreenshotFromArchive();
+			var ssba:ByteArray = WeaveAPI.URLRequestUtils.getLocalFile(WeaveArchive.ARCHIVE_SCREENSHOT_PNG);
 			if (ssba)
 			{
 				_screenshot = new Image();
@@ -1108,8 +1109,8 @@ package weave.application
 				{
 					PopUpManager.addPopUp(_screenshot,this,false);
 					PopUpManager.bringToFront(_screenshot);
-					_snapshotTimer.addEventListener(TimerEvent.TIMER,handleSnapShotTimer);
-					_snapshotTimer.start();
+					_screenshotTimer.addEventListener(TimerEvent.TIMER,handleScreenshotTimer);
+					_screenshotTimer.start();
 				}
 			}
 			callLater(toggleMenuBar);
@@ -1142,7 +1143,7 @@ package weave.application
 		}
 		
 		private var fadeEffect:Fade = new Fade();
-		private function handleSnapShotTimer(event:Event):void
+		private function handleScreenshotTimer(event:Event):void
 		{
 			if(WeaveAPI.ProgressIndicator.getNormalizedProgress() ==1)
 			{
@@ -1159,8 +1160,8 @@ package weave.application
 		{
 			if (_screenshot)
 			{
-				_snapshotTimer.stop();
-				_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
+				_screenshotTimer.stop();
+				_screenshotTimer.removeEventListener(TimerEvent.TIMER,handleScreenshotTimer);
 				PopUpManager.removePopUp(_screenshot);
 				_screenshot = null;
 			}
@@ -1618,7 +1619,7 @@ package weave.application
 			var printPopUp:PrintPanel = new PrintPanel();
    			PopUpManager.addPopUp(printPopUp, WeaveAPI.topLevelApplication as UIComponent, true);
    			PopUpManager.centerPopUp(printPopUp);
-   			//add current snapshot to Print Format
+   			//add current screenshot to Print Format
 			printPopUp.componentToScreenshot = component;
 		}
 

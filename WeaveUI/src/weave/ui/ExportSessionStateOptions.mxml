@@ -40,7 +40,8 @@
 							 change="handleXMLToggle()"
 							 selected="false"/>
 				<HelpComponent id="xmlHelp">
-					XML format does not support embedded files.
+					A ".weave" file is a zip archive which includes the session state and history encoded in AMF3.
+					XML format is uncompressed and does not support saving the session history.
 				</HelpComponent>
 			</mx:HBox>
 			<mx:CheckBox label="{lang('Dashboard mode')}"
@@ -110,15 +111,10 @@
 			
 			private function handleXMLToggle():void
 			{
-				if (getEmbeddedFileNames().length)
-					saveXML.enabled = saveXML.selected = false;
-				else
-					saveXML.enabled = true;
-				
 				var xml:Boolean = saveXML.selected;
 				saveHistory.selected = !xml;
 				saveHistory.enabled = !xml;
-				saveScreenshot.selected = !xml && !!Weave.getScreenshotFromArchive();
+				saveScreenshot.selected = !xml && !!WeaveAPI.URLRequestUtils.getLocalFile(WeaveArchive.ARCHIVE_SCREENSHOT_PNG);
 				saveScreenshot.enabled = !xml;
 				fixFileName();
 			}
@@ -152,7 +148,8 @@
 				if (saveXML.selected)
 				{
 					content = new ByteArray();
-					(content as ByteArray).writeMultiByte(Weave.getSessionStateXML().toXMLString(), "utf-8");
+					var xml:XML = Weave.getSessionStateXML();
+					(content as ByteArray).writeMultiByte(xml.toXMLString(), "utf-8");
 				}
 				else if (!saveHistory.selected)
 				{

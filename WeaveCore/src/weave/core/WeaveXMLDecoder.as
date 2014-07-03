@@ -137,6 +137,11 @@ package weave.core
 			{
 				var childNode:XMLNode = dataNode.childNodes[i];
 				var className:String = childNode.nodeName;
+				
+				// hack - skip ByteArray nodes
+				if (className == "ByteArray")
+					continue;
+				
 				var packageName:String = childNode.attributes["package"] as String;
 				// ignore child nodes that do not have tag names (whitespace)
 				if (className == null)
