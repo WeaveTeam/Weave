@@ -13,7 +13,6 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
      * This function wraps the async aws getListOfProjects function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    
    
     this.getListOfProjectsfromDatabase = function() {
 		aws.queryService(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
@@ -79,10 +78,6 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         					}
         				}
         			
-        		//	console.log("complete Objects", that.data.completeObjects);
-        			
-        			//console.log('scope in service', scope);
-        			//scope.$broadcast('objects:updated', that.data.completeObjects);
     			}
     		
 	    		scope.$safeApply(function() {
@@ -91,6 +86,8 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         	
         });
     };
+    
+    var newWeave;
     
     /**
      * this function returns the session state corresponding to the thumbnail that was clicked
@@ -101,7 +98,21 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
    	 console.log("stringified queryObject", queryObject);
    	 aws.queryService(projectManagementURL, 'returnSessionState', [queryObject], function(result){
     		
-   		 that.dataObject.weaveSessionState = result;
+   		 that.data.weaveSessionState = result;
+   		 
+   		if(!(angular.isUndefined(that.data.weaveSessionState))){
+   		 if (!newWeave || newWeave.closed) {
+				newWeave = window
+						.open("aws/visualization/weave/weave.html",
+								"abc",
+								"toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+				newWeave.setSession = that.data.weaveSessionState;
+			}
+   		 else{
+   			 newWeave.setSessionHistory(that.data.weaveSessionState);
+   		 }
+   		 newWeave.logvar = "Displaying Visualizations";
+   		}
    		 
         	scope.$safeApply(function() {
                 deferred.resolve(result);

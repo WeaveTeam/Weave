@@ -35,17 +35,6 @@ angular.module('aws.project', [])
 		projectService.getListOfQueryObjects(projectService.data.projectSelectorUI);
 	};
 
-	
-//	$scope.$on('objects:updated', function(event, data){
-//		console.log("scope in controller", $scope);
-//		console.log("completeObjects in controller", data);
-//		console.log("event in controller", event);
-//		
-//		$scope.listItems = data;
-//		console.log("listitms", $scope.listItems);
-//		
-//	});
-	
 	//as soon as service returns deleteStatus
 	//1. report status
 	//2. reset required variables
@@ -109,30 +98,6 @@ angular.module('aws.project', [])
      	queryService.dataObject.insertQueryObjectStatus = 0;//reset
       });
      
-    var newWeave;
-     
-     $scope.$watch(function(){
-    	 return queryService.dataObject.weaveSessionState;//string which is the session state
-    	 console.log("weaveSessionState", queryService.dataObject.weaveSessionState);
-     }, function(newVal, oldVal){
-    	 if(!(newVal == oldVal)){
-    		 if(!(angular.isUndefined(queryService.dataObject.weaveSessionState))){
-        		 if (!newWeave || newWeave.closed) {
-     				newWeave = window
-     						.open("aws/visualization/weave/weave.html",
-     								"abc",
-     								"toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-     				newWeave.setSession = queryService.dataObject.weaveSessionState;
-     			}
-        		 else{
-        			 newWeave.setSessionHistory(queryService.dataObject.weaveSessionState);
-        		 }
-        		 newWeave.logvar = "Displaying Visualizations";
-        	 }
-    	 }
-    	 
-    	 
-     });
 	/****************Button Controls***************************************************************************************************************************************/
      $scope.loadConstructedQueryObject = function(){
      	 console.log("cconstructed query Object", queryService.queryObject);

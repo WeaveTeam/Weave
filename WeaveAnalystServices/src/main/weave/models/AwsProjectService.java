@@ -56,57 +56,6 @@ public class AwsProjectService
 		return projectNames;
 	}
 	
-
-   /** 
-   * @param projectName project from which queryObjects have to be listed
-   * @return finalQueryObjectCollection array of [jsonObjects, title of queryObjects]   
-   * @throws Exception
-   */
-//	public static AWSQueryObjectCollectionObject getQueryObjectsFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
-//	{
-//		AWSQueryObjectCollectionObject finalQueryObjectCollection = null;
-//		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
-//		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
-//		
-//		String[] finalQueryNames= null;;
-//		String[] finalQueryObjects= null;
-//		String finalProjectDescription = null;
-//		List<String> selectColumns = new ArrayList<String>();
-//		selectColumns.add("queryObjectTitle");
-//		selectColumns.add("queryObjectContent");
-//		selectColumns.add("projectDescription");
-//		
-//		
-//		Map<String,String> whereParams = new HashMap<String, String>();
-//		whereParams.put("projectName", params.get("projectName").toString());
-//		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
-//		SQLResult queryObjectsSQLresult = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields);
-//		
-//		if(queryObjectsSQLresult.rows.length != 0)//run this code only if the project contains rows
-//		{
-//			Object[][] rows = queryObjectsSQLresult.rows;
-//			finalQueryNames = new String[rows.length];
-//			finalQueryObjects = new String[rows.length];
-//			
-//			for(int i = 0; i < rows.length; i++)
-//			{
-//				Object[] singleRow = rows[i];
-//				finalQueryNames[i]= singleRow[0].toString();
-//				finalQueryObjects[i] = singleRow[1].toString();
-//				finalProjectDescription = singleRow[2].toString();
-//			}
-//			
-//			finalQueryObjectCollection = new AWSQueryObjectCollectionObject();
-//			finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
-//			finalQueryObjectCollection.projectDescription = finalProjectDescription;
-//			finalQueryObjectCollection.queryObjectNames = finalQueryNames;
-//		
-//		}//end of if statement
-//		con.close();
-//		return finalQueryObjectCollection;
-//		
-//	}
-	
 	/** 
 	   * deletes an entire project from a database
 	   * @param params map of key value pairs to construct the where clause
