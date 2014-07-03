@@ -112,7 +112,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
 			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
-			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
+			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
 			
 			private function verifyMinimized(value:Boolean):Boolean { return !minimizable || minimizable.value || !value; }
@@ -732,25 +732,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else
 					value = super.getStyle(styleProp);
 				
-				var cornerRadius:int = _overriddenStyles["cornerRadius"] != undefined ? 
-					_overriddenStyles["cornerRadius"] :
-					super.getStyle("cornerRadius");
-				
-				var roundedBottomCorners:Boolean = _overriddenStyles["roundedBottomCorners"] != undefined ? 
-					_overriddenStyles["roundedBottomCorners"] : 
-					super.getStyle("roundedBottomCorners");
-				
-				// if the bottom corners are rounded, we want to adjust the bottomThicknessBottom to be at least the size
-				// of the cornerRadius, otherwise you get an odd looking panel
-				
-				// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
-				/*if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
-				return Math.max( cornerRadius, value );*/
-				
-				// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
-				// outside the panel
+				// make sure the headerHeight is at least the size of the cornerRadius,
+				// otherwise the stuff inside the panel sticks outside the panel
 				if (styleProp == "headerHeight")
-					return Math.max( cornerRadius, value );
+					return Math.max(getStyle("cornerRadius"), value );
 				
 				return value;
 			}
