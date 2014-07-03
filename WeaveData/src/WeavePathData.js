@@ -138,6 +138,48 @@ weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArr
     }
 }
 
+/** 
+ * Retrieve a table of columns defined by a mapping of property names to column paths. 
+ * @param path Mapping An object containing a mapping of desired property names to column paths. "key" is a reserved name.
+ * @param keys A path object pointing to a valid keyset (columns are also keysets.)
+ * @return An array of record objects.
+ */
+weave.WeavePath.prototype.retrieveRecords = function(/* ..pathMapping, keySetPath */)
+{
+    var args = this._A(arguments, 2);
+    if (this._assertParams('joinColumns', 1))
+    {
+        var keys = Object.keys(args[0]);
+
+        var values = keys.map(function (d,i,a) {return args[0][d].getPath();});
+
+        var keySetPath = args[1] ? args[1].getPath() : null;
+        
+        var results = this.push(args).libs("weave.utils.ColumnUtils").vars({paths: values, keySetPath: keySetPath}).getValue(
+            'var keySet = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, keySetPath);'+
+            'var keyArray = keySet ? keySet.keys : null;'+
+            'var columns = paths.map(function(path){return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);});'+
+            'return ColumnUtils.joinColumns(columns, null, true, keyArray);');
+        
+        results[0] = results[0].map(this.qkeyToString, this);
+
+        var records = Array(results[0].length);
+        for (var record_idx = 0; record_idx < results[0].length; record_idx++)
+        {
+            var new_record = {};
+
+            new_record.key = results[0][record_idx];
+
+            for (var column_idx = 0; column_idx < keys.length; column_idx++)
+            {
+                new_record[keys[column_idx]] = results[column_idx+1][record_idx];
+            }
+
+            records[record_idx] = new_record;
+        }
+        return records;
+    }
+}
 
 /**
  * Sets a human-readable label for an ILinkableObject to be used in editors.
