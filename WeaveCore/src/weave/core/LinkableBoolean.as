@@ -35,7 +35,7 @@ package weave.core
 
 		public function get value():Boolean
 		{
-			return _sessionState;
+			return _sessionStateExternal;
 		}
 		public function set value(value:Boolean):void
 		{
