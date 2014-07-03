@@ -135,7 +135,6 @@ weave.WeavePath = function(/*...basePath*/)
 	// "private" instance variables
 	this._path = this._A(arguments, 1);
 	this._parent = null; // parent WeavePath returned by pop()
-	this._reconstructArgs = false; // if true, JSON.parse(JSON.stringify(...)) will be used on all Object parameters
 }
 
 
@@ -162,31 +161,18 @@ weave.WeavePath.prototype._vars = {};
 weave.WeavePath.prototype._A = function(args, option)
 {
 	var array;
-	var value;
 	var n = args.length;
 	if (n && n == option && args[0] && Array.isArray(args[0]))
 	{
 		array = [].concat(args[0]);
 		for (var i = 1; i < n; i++)
-		{
-			value = args[i];
-			if (this._reconstructArgs && typeof value == 'object')
-				array.push(JSON.parse(JSON.stringify(value)));
-			else
-				array.push(value);
-		}
+			array.push(args[i]);
 	}
 	else // just convert Arguments to Array
 	{
 		array = [];
 		while (n--)
-		{
-			value = args[n];
-			if (this._reconstructArgs && typeof value == 'object')
-				array[n] = JSON.parse(JSON.stringify(value));
-			else
-				array[n] = value;
-		}
+			array[n] = args[n];
 	}
 	return array;
 }
@@ -213,10 +199,8 @@ weave.WeavePath.prototype.weave = weave;
 weave.WeavePath.prototype.push = function(/*...relativePath*/)
 {
 	var args = this._A(arguments, 1);
-	// note: we accept the arguments even if there are none
 	var newWeavePath = new weave.WeavePath(this._path.concat(args));
 	newWeavePath._parent = this;
-	newWeavePath._reconstructArgs = this._reconstructArgs;
 	return newWeavePath;
 };
 
@@ -228,8 +212,6 @@ weave.WeavePath.prototype.pop = function()
 {
 	if (this._parent)
 		return this._parent;
-	else if (this._reconstructArgs)
-		this._failMessage('pop', 'stack is empty after naturalize()')
 	else
 		this._failMessage('pop', 'stack is empty');
 	return null;
@@ -373,13 +355,7 @@ weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
 weave.WeavePath.prototype.vars = function(newVars)
 {
 	for (var key in newVars)
-	{
-		var value = newVars[key];
-		if (this._reconstructArgs && typeof value == 'object')
-			this._vars[key] = JSON.parse(JSON.stringify(value));
-		else
-			this._vars[key] = value;
-	}
+		this._vars[key] = newVars[key];
 	return this;
 };
 
@@ -462,22 +438,6 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 	}
 	return this;
 };
-
-/**
- * @deprecated No longer necessary for Flash Player 11 or later because Weave uses JSON.stringify() and JSON.parse() internally.
- * Returns a copy of the current WeavePath that enables automatic conversion of foreign Arrays from windows other than the one Weave is in.
- * This new WeavePath starts with an empty stack, meaning pop() cannot be called without first calling push().
- * Any child WeavePath objects created with push() from this new one will also be in naturalize mode.
- * Note that if you use this mode, any occurrences of NaN and Infinity will be converted to null
- * because this mode uses JSON.parse(JSON.stringify(...)) and those values are not supported by JSON.
- * @return A copy of the current WeavePath object in naturalize mode with no memory of a parent WeavePath.
- */
-weave.WeavePath.prototype.naturalize = function()
-{
-	var newWeavePath = new weave.WeavePath(this._path);
-	newWeavePath._reconstructArgs = true;
-	return newWeavePath;
-}
 
 
 // non-chainable methods
