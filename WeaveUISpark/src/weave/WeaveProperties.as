@@ -442,7 +442,7 @@ package weave
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 
-		public const externalTools:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
+		public const externalTools:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 		
 		private function handleRServiceURLChange():void
 		{
