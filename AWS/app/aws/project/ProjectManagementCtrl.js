@@ -1,17 +1,14 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope,queryService){
-	$scope.defaultProjectOption = 'Select Project';
-	$scope.currentProjectSelected = "";//used as flag for keeping track of projects deleted
+.controller("ProjectManagementCtrl", function($scope,queryService,projectService){
+	$scope.projectService = projectService;
 	
-	$scope.listOfProjects =[];
-	queryService.getListOfProjectsfromDatabase();
-	$scope.thumbnailsToDisplay = [];
-	$scope.listItems = [];//list of returned JSON Objects 
-	$scope.currentQuerySelected = {};//current query Selected by the user for loading/running/deleting etc
+	projectService.getListOfProjectsfromDatabase();
+	
+	
+	$scope.currentProjectSelected = "";//used as flag for keeping track of projects deleted
 	$scope.deleteProjectStatus = 0;//count changes depending on how many queryObjects (rows) belonging to a project have been deleted from database
 	$scope.deleteQueryObjectStatus = 0;//count changes to 1 when a single queryObject has been deleted from database
 	$scope.insertQueryObjectStatus = 0;//count changes when single queryObject or multiple are added to the database
-	$scope.columnString= "";//string that displays the by-variables in the 'Columns:' section of each list item 
 	var nameOfQueryToDelete = "";
 	//external directives
 	$scope.aside = {
@@ -34,50 +31,21 @@ angular.module('aws.project', [])
 		}
 	};
 	
-	$scope.$watch(function(){
-		return queryService.dataObject.listOfProjectsFromDatabase;
-	}, function(){
-		$scope.listOfProjects = queryService.dataObject.listOfProjectsFromDatabase;
-	});
-	
-	//as soon as the UI is updated fetch the project and the list of queryObjects within
-	$scope.$watch('projectSelectorUI', function(){
-		if($scope.projectSelectorUI != undefined && $scope.projectSelectorUI != ""){
-			$scope.currentProjectSelected = $scope.projectSelectorUI;
-			//if its isnt undefined clean and reset for every project selection iteration
-			if(!(angular.isUndefined($scope.listItems))){
-				$scope.listItems = [];
-			}
-			
-			//works
-			//$scope.listItems = queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);
-			$scope.listItems = queryService.getListOfQueryObjects($scope.projectSelectorUI);
-		}
-	});
-	
-	
-	// as soon as dataObject in queryService is updated, update the listItems(dataSource to populate list of queryObjects dynamically)
-	$scope.$watch(function() {
-		return queryService.dataObject.listofQueryObjectsInProject;
-	}, function() {
-		$scope.listItems = queryService.dataObject.listofQueryObjectsInProject;//updating the list of projects in this controller
-		//for retrieving the columns section on the listItem to be displayed
-		for(var i in $scope.listItems){
-			$scope.columnString = "";
-			var columns = $scope.listItems[i].ScriptColumnRequest;
-			for(var j in columns){
-				var title = columns[j].title;
-				$scope.columnString= $scope.columnString.concat(title) + " , ";
-			}
-		}
-	});
-	
-	$scope.$watch(function(){
-		return queryService.dataObject.projectDescription;
-	},function(){
-		$scope.projectDescriptionStatement = queryService.dataObject.projectDescription;
-	});
+	$scope.getListOfQueryObject = function(){
+		projectService.getListOfQueryObjects(projectService.data.projectSelectorUI);
+	};
 
+	
+//	$scope.$on('objects:updated', function(event, data){
+//		console.log("scope in controller", $scope);
+//		console.log("completeObjects in controller", data);
+//		console.log("event in controller", event);
+//		
+//		$scope.listItems = data;
+//		console.log("listitms", $scope.listItems);
+//		
+//	});
+	
 	//as soon as service returns deleteStatus
 	//1. report status
 	//2. reset required variables
@@ -109,8 +77,8 @@ angular.module('aws.project', [])
     	 return queryService.dataObject.deleteQueryObjectStatus;
      }, function(){
     	 $scope.deleteQueryObjectStatus = queryService.dataObject.deleteQueryObjectStatus;
-    	    	 console.log("deleteStatus", $scope.deleteQueryObjectStatus);
-    	     	 console.log("name ofQueryToDelete", nameOfQueryToDelete);
+    	    	// console.log("deleteStatus", $scope.deleteQueryObjectStatus);
+    	     	// console.log("name ofQueryToDelete", nameOfQueryToDelete);
     	     	 
     	     	 if(!(angular.isUndefined($scope.deleteQueryObjectStatus)))
     	  		 {
@@ -141,37 +109,7 @@ angular.module('aws.project', [])
      	queryService.dataObject.insertQueryObjectStatus = 0;//reset
       });
      
-     $scope.completeObjects= [];
-     //watch when thumbnails are returned
-     $scope.$watch(function() {
-			return queryService.dataObject.thumbnails;
-		}, function() {
-			// list of base64 encoded images returned
-			$scope.thumbnailsToDisplay = [];
-			$scope.thumbnailsReturned = queryService.dataObject.thumbnails;
-			if (!(angular.isUndefined($scope.thumbnailsReturned))) {
-				for ( var i = 0; i < $scope.thumbnailsReturned.length; i++) {
-					var imageString = "data:image/png;base64,"
-							+ $scope.thumbnailsReturned[i];
-					$scope.thumbnailsToDisplay[i] = imageString;
-				}
-			}
-			
-			//make the complete object 
-			if(!(angular.isUndefined($scope.listItems)))
-				{
-					$scope.completeObjects = [];
-					for(var f = 0; f < $scope.listItems.length; f++){
-						var tempObject = {};
-						tempObject.queryObject = $scope.listItems[f];
-						tempObject.thumbnail = $scope.thumbnailsToDisplay[f];
-						$scope.completeObjects.push(tempObject);
-					}
-				}
-			
-		});
-     
-     var newWeave;
+    var newWeave;
      
      $scope.$watch(function(){
     	 return queryService.dataObject.weaveSessionState;//string which is the session state
@@ -246,7 +184,7 @@ angular.module('aws.project', [])
 	};
 	
 	$scope.returnSessionState = function(queryObject){
-		queryService.returnSessionState(queryObject);
+		projectService.returnSessionState(queryObject);
 	};
 	
 });

@@ -17,10 +17,14 @@
 					<h2>Manage Query Object and Projects</h2>
 				</div>
 				<div class="widget-selectors">
-					<select ui-select2 ng-model="projectSelectorUI" style="width:200px;" data-placeholder="Select a project">
-						<option></option>
-						<option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option>
-					</select>
+<!-- 					<select ui-select2 ng-model="projectSelectorUI" style="width:200px;" data-placeholder="Select a project" ng-change= "update(pjt)"> -->
+<!-- 						<option></option> -->
+<!-- 						<option ng-repeat = "pjt in projectService.data.listOfProjectsFromDatabase" value = "{{pjt}}" >{{pjt}}</option> -->
+<!-- 					</select> -->
+						
+						<select ui-select  ng-model = "projectService.data.projectSelectorUI" style="width:200px;" ng-options = "pjt as pjt for pjt in projectService.data.listOfProjectsFromDatabase" 
+						ng-change = "getListOfQueryObject()">
+						</select>
 
 					<div style="display: inline-block; margin-left: 90px;">
 						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
@@ -46,14 +50,14 @@
 
 				</div>
 				<div style="width: 100%; height: 40px;">
-					<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{projectDescriptionStatement}}</h5>
+					<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{projectService.data.projectDescription}}</h5>
 
 				</div>
 
 				<div class="dd" id="nestable3">
 					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
 <!-- 						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems"> -->
-							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in completeObjects">
+							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.data.completeObjects">
 							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
 							<div class="dd-handle dd3-handle">
 								<!--Drag-->
@@ -80,7 +84,7 @@
 											</li>
 											<li>
 												<span class="prj-txt-lbl">Columns: </span>
-												<span class="prj-txt-val">{{columnString}}</span>
+												<span class="prj-txt-val">{{projectService.data.columnString}}</span>
 											</li>
 										</ul>
 									</div>

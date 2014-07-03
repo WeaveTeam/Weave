@@ -44,20 +44,6 @@ public class ProjectManagementServlet extends WeaveServlet implements
 		return returnStatus;
 	}
 		
-	public Object getQueryObjectsFromDatabase(Map<String, Object> params){
-		Object returnStatus = null;
-		try {
-			returnStatus = AwsProjectService
-					.getQueryObjectsFromDatabase(params);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		return returnStatus;
-	}
-
 	public Object deleteProjectFromDatabase(Map<String, Object> params){
 		Object returnStatus = null;
 		try {
