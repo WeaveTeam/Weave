@@ -186,4 +186,18 @@ function getDriveRequest(base64Data,requestMethod,fileMetadata,fileID){
 		},
 		'body': multipartRequestBody});
 	return request;
-};
+}
+
+function getIndexableText() {
+	return weave.path().getValue("\
+		import 'weave.ui.DraggablePanel';\
+		import 'weave.api.data.IAttributeColumn';\
+		import 'weave.utils.VectorUtils';\
+		var sm = WeaveAPI.SessionManager;\
+		var panels = sm.getLinkableDescendants(WeaveAPI.globalHashMap, DraggablePanel);\
+		var columns = sm.getLinkableDescendants(WeaveAPI.globalHashMap, IAttributeColumn);\
+		var panelTitles = panels.map(function(panel){ return panel.title; });\
+		var columnTitles = columns.map(function(column){ return column.getMetadata('title'); });\
+		return VectorUtils.union(panelTitles, columnTitles);\
+	");
+}
