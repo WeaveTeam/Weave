@@ -445,6 +445,7 @@ package weave.compiler
 				}
 			};
 			operators[FUNCTION] = function(..._):*{};
+			operators['=>'] = function(..._):*{};
 			// property access should not be optimized to constants
 			operators["."] = function(object:*, ...chain):* {
 				var iHost:int = chain.length - 2;
@@ -799,6 +800,7 @@ package weave.compiler
 			var i:int;
 			var token:String;
 			var str:String;
+			var call:CompiledFunctionCall;
 			
 			// first step: compile quoted Strings and Numbers
 			for (i = 0; i < tokens.length; i++)
@@ -934,6 +936,24 @@ package weave.compiler
 			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
 				throw new Error('Invalid conditional branch');
 			
+			// next step: inline functions, right to left
+			i = tokens.length;
+			while (i--)
+			{
+				if (tokens[i] == FUNCTION)
+					tokens.splice(i, 3, compileOperator(FUNCTION, [tokens[i + 1], tokens[i + 2]]));
+				if (tokens[i] == '=>')
+					tokens.splice(i - 1, 3, compileOperator('=>', [tokens[i - 1], tokens[i + 1]]));
+			}
+			
+			// next step: function applications
+			for (i = 0; i < tokens.length; i++)
+			{
+				call = tokens[i] as CompiledFunctionCall;
+				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject)
+					tokens.splice(i - 1, 2, new CompiledFunctionCall(tokens[i - 1], call.compiledParams));
+			}
+			
 			// next step: variable assignment, right to left
 			while (true)
 			{
@@ -954,7 +974,6 @@ package weave.compiler
 			// next step: handle statements
 			if (allowSemicolons)
 			{
-				var call:CompiledFunctionCall;
 				// remove leading ';'
 				while (tokens[0] == ';')
 					tokens.shift();
@@ -1286,47 +1305,6 @@ package weave.compiler
 					// It's ok if it creates an extra {} wrapper because finalize() will take care of that.
 					// It's important to remember that the brackets existed for statement processing.
 					tokens.splice(open, 2, compileOperator(';', [compileTokens(subArray, true)]));
-					
-					// compile inline function
-					if (open >= 2 && tokens[open - 2] == FUNCTION)
-					{
-						var call:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
-						if (!call || call.evaluatedMethod != operators[','])
-							throwInvalidSyntax(FUNCTION);
-						
-						// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
-						var variableNames:Array = [];
-						var variableValues:Array = [];
-						for each (token in call.compiledParams)
-						{
-							var variable:CompiledFunctionCall = token as CompiledFunctionCall;
-							if (!variable)
-								throwInvalidSyntax(FUNCTION);
-							
-							if (!variable.compiledParams)
-							{
-								// local variable
-								variableNames.push(variable.evaluatedMethod);
-								variableValues.push(undefined);
-							}
-							else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
-							{
-								// local variable assignment
-								variableNames.push(variable.evaluatedParams[0]);
-								variableValues.push(variable.evaluatedParams[1]);
-							}
-							else
-								throwInvalidSyntax(FUNCTION);
-						}
-						var functionParams:Object = {};
-						functionParams[FUNCTION_PARAM_NAMES] = variableNames;
-						functionParams[FUNCTION_PARAM_VALUES] = variableValues;
-						functionParams[FUNCTION_CODE] = finalize(tokens[open]);
-						call = compileOperator(FUNCTION, [new CompiledConstant(null, functionParams)]);
-						call.originalTokens = tokens.splice(open - 2, 3, call);
-						continue;
-					}
-					
 					continue;
 				}
 				
@@ -1355,7 +1333,9 @@ package weave.compiler
 					continue;
 				}
 				
-				if (leftBracket == '(' && compiledToken) // if there is a compiled token to the left, this is a function call
+				var compiledCall:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
+				// if there is a compiled token to the left, this is a function call (unless the token is a call to operator ';')
+				if (leftBracket == '(' && compiledToken && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
 				{
 					if (open >= 2)
 					{
@@ -1378,7 +1358,7 @@ package weave.compiler
 				
 				// '{' or '(' group that does not correspond to a function call
 				
-				if (leftBracket == '(' && compiledParams.length == 0 && token != FUNCTION)
+				if (leftBracket == '(' && compiledParams.length == 0 && (token != FUNCTION && tokens[open + 2] != '=>'))
 					throw new Error("Missing expression inside parentheses");
 				
 				if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
@@ -1614,6 +1594,54 @@ package weave.compiler
 		 */
 		private function compileOperator(operatorName:String, compiledParams:Array):CompiledFunctionCall
 		{
+			// special case for inline functions
+			if (operatorName == FUNCTION || operatorName == '=>')
+			{
+				// compiledParams should have two parameters: argument list and function body
+				var args:CompiledFunctionCall = compiledParams[0] as CompiledFunctionCall;
+				var body:ICompiledObject = compiledParams[1] as ICompiledObject;
+				if (compiledParams.length != 2 || !args || !body)
+					throwInvalidSyntax(operatorName);
+				
+				// if there is only a single variable name, wrap it in an operator ',' call
+				if (!args.compiledParams)
+					args = compileOperator(',', [args]);
+				
+				if (args.evaluatedMethod != operators[','])
+					throwInvalidSyntax(operatorName);
+				
+				// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
+				var variableNames:Array = [];
+				var variableValues:Array = [];
+				for each (var token:Object in args.compiledParams)
+				{
+					var variable:CompiledFunctionCall = token as CompiledFunctionCall;
+					if (!variable)
+						throwInvalidSyntax(operatorName);
+					
+					if (!variable.compiledParams)
+					{
+						// local variable
+						variableNames.push(variable.evaluatedMethod);
+						variableValues.push(undefined);
+					}
+					else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
+					{
+						// local variable assignment
+						variableNames.push(variable.evaluatedParams[0]);
+						variableValues.push(variable.evaluatedParams[1]);
+					}
+					else
+						throwInvalidSyntax(operatorName);
+				}
+				var functionParams:Object = {};
+				functionParams[FUNCTION_PARAM_NAMES] = variableNames;
+				functionParams[FUNCTION_PARAM_VALUES] = variableValues;
+				functionParams[FUNCTION_CODE] = finalize(body);
+				
+				compiledParams = [new CompiledConstant(null, functionParams)];
+			}
+			
 			operatorName = OPERATOR_ESCAPE + operatorName;
 			return new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
@@ -2547,7 +2575,7 @@ package weave.compiler
 									localSymbolTable[result] = undefined;
 							result = undefined;
 						}
-						else if (method == operators[FUNCTION]) // inline function definition
+						else if (method == operators[FUNCTION] || method == operators['=>']) // inline function definition
 						{
 							var _symbolTables:Array = [localSymbolTable].concat(symbolTable); // works whether symbolTable is an Array or Object
 							if (useThisScope)
@@ -2658,7 +2686,8 @@ package weave.compiler
 		 */
 		public function compiledObjectIsFunctionDefinition(compiledObject:ICompiledObject):Boolean
 		{
-			return compiledObject is CompiledFunctionCall && (compiledObject as CompiledFunctionCall).evaluatedMethod == operators[FUNCTION];
+			var cfc:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
+			return cfc && (cfc.evaluatedMethod == operators[FUNCTION] || cfc.evaluatedMethod == operators['=>']);
 		}
 		
 		/**

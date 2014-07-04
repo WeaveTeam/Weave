@@ -57,7 +57,7 @@ package weave.data.KeySets
 		 */
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
-			return StandardLib.arrayCompare(_sessionState, otherSessionState) == 0;
+			return StandardLib.arrayCompare(_sessionStateInternal, otherSessionState) == 0;
 		}
 		
 		/**
@@ -77,7 +77,7 @@ package weave.data.KeySets
 
 			// each row of CSV represents a different keyType (keyType is the first token in the row)
 			var newKeys:Array = [];
-			for each (var row:Array in _sessionState)
+			for each (var row:Array in _sessionStateInternal)
 				(newKeys.push as Function).apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
 			
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards

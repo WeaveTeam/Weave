@@ -57,7 +57,7 @@ package weave.core
 		 * This function will run the callbacks attached to this LinkableXML if the session state has changed.
 		 * This function should be called if the XML is modified without calling set value() or setSessionState().
 		 */
-		public function detectChanges():void
+		override public function detectChanges():void
 		{
 			value = value;
 		}
@@ -74,8 +74,8 @@ package weave.core
 				_sessionStateXML = null;
 				try
 				{
-					if (_sessionState) // false if empty string (prefer null over empty xml)
-						_sessionStateXML = XML(_sessionState);
+					if (_sessionStateInternal) // false if empty string (prefer null over empty xml)
+						_sessionStateXML = XML(_sessionStateInternal);
 				}
 				catch (e:Error)
 				{
@@ -107,7 +107,7 @@ package weave.core
 		{
 			// return an XMLString wrapper object for use with WeaveXMLEncoder.
 			var result:Object = {};
-			result[XML_STRING] = _sessionState;
+			result[XML_STRING] = _sessionStateExternal;
 			return result;
 		}
 		

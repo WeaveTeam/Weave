@@ -11,10 +11,8 @@
         #controls {position: absolute;top: 0;left: 0;}
     </style>
     <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.2.4/cytoscape.js"></script>
-    <!-- script src="cytoscape.js"></script -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
     <script src="arbor.js"></script>
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <script src="cubehelix.js" charset="utf-8"></script>
 </head>
 <body>
     <div id="cy">
@@ -96,87 +94,51 @@
     var VIEWPORT = "Viewport";
     var DIRECTIONAL = "Directional";
 
-    var column_to_prop_mappings = {};
-    column_to_prop_mappings[NODE_LABEL] = "name";
-    column_to_prop_mappings[NODE_COLOR] = "color";
-    column_to_prop_mappings[EDGE_SOURCE] = "source";
-    column_to_prop_mappings[EDGE_TARGET] = "target";
-    column_to_prop_mappings[NODE_PARENT] = "parent";
-    column_to_prop_mappings[EDGE_LABEL] = "name";
-
-    var node_column_names = [NODE_LABEL, NODE_COLOR, NODE_PARENT];
-    var edge_column_names = [EDGE_SOURCE, EDGE_TARGET, EDGE_LABEL];
+    var nodeColumns = {};
+    var edgeColumns = {};
+    var node_data;
+    var edge_data;
 
     function data_updated()
     {
         var node_keytype = toolPath.push(NODE_LABEL).getValue("getMetadata('keyType')");
 
-        var node_data = toolPath.retrieveColumns(node_column_names);
-        var labels_only = toolPath.retrieveColumns([NODE_LABEL])[0];
-        var edge_data = toolPath.retrieveColumns(edge_column_names);
+        node_data = toolPath.retrieveRecords(nodeColumns, nodeColumns["name"]);
+        edge_data = toolPath.retrieveRecords(edgeColumns, edgeColumns["source"]);
 
-        var included_keys = {};
-        for (var row = 0; row < labels_only.length; row++)
+        function keyToId(record) {record.id = record.key; delete record.key;};
+
+        node_data.forEach(keyToId);
+        edge_data.forEach(keyToId);
+
+        function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
+
+        function colorIntToColorString(colorInt) {return (typeof colorInt == "number") ? "#" + colorInt.toString(16) : undefined;}
+
+        function modifyRecords(records, field, func)
         {
-            included_keys[labels_only[row]] = true;
-        }
-        function fixNodeReferences(column)
-        {
-            for (var row = 0; row < column.length; row++)
-            {
-                if (column[row] === undefined) continue;
-                new_entry = { localName: column[row], keyType: node_keytype };
-                column[row] = toolPath.qkeyToString(new_entry);
-            }
+            records.forEach(function (record) { record[field] = func(record[field]); });
         }
 
-        fixNodeReferences(edge_data[1]); // EDGE_SOURCE
+        //modifyRecords(node_data, 'parent', localNameToKeyString);
+        modifyRecords(node_data, 'color', colorIntToColorString);
 
-        fixNodeReferences(edge_data[2]); // EDGE_TARGET
+        modifyRecords(edge_data, 'source', localNameToKeyString);
+        modifyRecords(edge_data, 'target', localNameToKeyString);
+        modifyRecords(edge_data, 'color', colorIntToColorString);
 
-        fixNodeReferences(node_data[3]); // NODE_PARENT
+        var node_ids = _.zipObject(_.pluck(node_data, 'id'));
 
-        var nodes = Array();
-        var valid_nodes = {};
-        for (var row = 0; row < node_data[0].length; row++)
-        {
-            new_node = {};
-            new_node.id = node_data[0][row];
-            if (!included_keys[new_node.id]) continue;
-            valid_nodes[new_node.id] = true;
-            for (var col = 0; col < node_column_names.length; col++)
-            {
-                property = column_to_prop_mappings[node_column_names[col]];
-                var value = node_data[col+1][row];
-                if (typeof value == String)
-                    new_node[property] = value.trim();
-                else
-                    new_node[property] = value;
+        edge_data = edge_data.filter(function(d) {return _.has(node_ids, d.source) && _.has(node_ids, d.target);});
 
-                if (property == "color" && typeof value == "number")
-                    new_node[property] = "#" + value.toString(16);
+        // Convert to valid cytoscape.js elements
 
-            }
-            nodes.push({data: new_node});
-        }
+        node_data = _.map(node_data, function (d) {return {data: d};});
+        edge_data = _.map(edge_data, function (d) {return {data: d};});
 
-        var edges = Array();
-
-        for (var row = 0; row < edge_data[0].length; row++)
-        {
-            new_edge = {};
-            new_edge.id = edge_data[0][row];
-            for (var col = 0; col < edge_column_names.length; col++)
-            {
-                property = column_to_prop_mappings[edge_column_names[col]];
-                if ((property == "source" || property == "target") && !valid_nodes[edge_data[col+1][row]]) continue;
-                new_edge[property] = edge_data[col+1][row];
-            }
-            if (!new_edge["source"] || !new_edge["target"]) continue;
-            edges.push({data: new_edge});
-        }
         cy.layout({name: 'preset', positions: get_positions()});
-        cy.load({nodes: nodes, edges: edges});
+
+        cy.load({nodes: node_data, edges: edge_data});
     };
 
     
@@ -186,10 +148,10 @@
     function probe_changed()
     {
 
-        var local_probes = array_to_set(toolPath.probe_keyset.getKeys());
+        var local_probes = _.zipObject(toolPath.probe_keyset.getKeys());
 
-        cy.filter(function(i, ele) { return is_in(ele.id(), local_probes); }).toggleClass("probed", true);
-        cy.filter(function(i, ele) { return !is_in(ele.id(), local_probes); }).toggleClass("probed", false);
+        cy.filter(function(i, ele) { return _.has(local_probes, ele.id()); }).toggleClass("probed", true);
+        cy.filter(function(i, ele) { return !_.has(local_probes, ele.id()); }).toggleClass("probed", false);
 
     };
 
@@ -209,13 +171,13 @@
 
     function selection_changed()
     {
-        local_selection = array_to_set(toolPath.selection_keyset.getKeys());
+        local_selection = _.zipObject(toolPath.selection_keyset.getKeys());
 
         cy.off({select: add_to_selection, unselect: remove_from_selection});
 
         cy.elements().unselect();
 
-        cy.filter(function(i, ele) { return is_in(ele.id(), local_selection); }).select();
+        cy.filter(function(i, ele) { return _.has(local_selection, ele.id()); }).select();
 
         cy.on({select: add_to_selection, unselect: remove_from_selection});
     };
@@ -299,25 +261,6 @@
         toolPath.push(POSITIONS).state(positions);
     }
 
-    function array_to_set(arr)
-    {
-        new_set = {};
-        for (var i in arr)
-        {
-            new_set[arr[i]] = true;
-        }
-        return new_set;
-    }
-    function is_in(key, set)
-    {
-        if (typeof key != "string") throw "is_in takes a string, not an object.";
-
-        if (Array.isArray(set))
-            return is_in(key, array_to_set(set));
-        else
-            return set[key] ? true : false;
-    }
-
     var valid_layouts = {null: 'Null', random: 'Random', preset: 'Preset', 
                          grid: 'Grid', circle: 'Circle', concentric: 'Concentric', 
                          breadthfirst: 'Breadth-First', arbor: 'Arbor (Force-Directed)', 
@@ -333,7 +276,7 @@
             toolPath.push(LAYOUT_PARAMS).state({});
             layout_params = {};
         }
-        if (layout_name == null || !is_in(layout_name, valid_layouts))
+        if (layout_name == null || !_.has(valid_layouts, layout_name))
         {
             toolPath.push(LAYOUT_NAME).state("circle");
             layout_name = "circle";
@@ -365,16 +308,13 @@
 
     function update_viewport()
     {
-        if (update_viewport_disabled)
-        {
-            return;
-        }
         var viewport_value = cy.pan();
         viewport_value['zoom'] = cy.zoom();
 
         toolPath.push(VIEWPORT).state(viewport_value);
     }
     var update_viewport_disabled = false;
+
     function viewport_changed()
     {
         var viewport_value = toolPath.push(VIEWPORT).getState();
@@ -388,17 +328,15 @@
         };
         var pan_to = {x: viewport_value.x, y: viewport_value.y};
         var zoom_level = viewport_value.zoom;
-        
-        update_viewport_disabled = true;
-        cy.pan(pan_to);
 
+        cy.on({zoom: update_viewport, pan: update_viewport});
+        cy.pan(pan_to);
         cy.zoom(zoom_level);
-        update_viewport_disabled = false;
+        cy.on({zoom: update_viewport, pan: update_viewport});
     }
 
     function subset_changed()
     {
-
         return;
     }
 
@@ -419,15 +357,29 @@
         toolPath.newProperty(LAYOUT_NAME, 'LinkableString', layout_changed)
                 .request(LAYOUT_PARAMS, 'LinkableVariable')
                 .newProperty(NODE_LABEL, 'DynamicColumn', data_updated)
-                .newProperty(NODE_COLOR, 'DynamicColumn', data_updated) // TODO
+                .newProperty(NODE_COLOR, 'DynamicColumn', data_updated)
                 .newProperty(NODE_SIZE, 'DynamicColumn', data_updated) // TODO
                 .newProperty(NODE_PARENT, 'DynamicColumn', data_updated)
                 .newProperty(EDGE_SOURCE, 'DynamicColumn', data_updated)
                 .newProperty(EDGE_TARGET, 'DynamicColumn', data_updated)
-                .newProperty(EDGE_LABEL, 'DynamicColumn', data_updated)
+                .newProperty(EDGE_LABEL, 'DynamicColumn', data_updated) // TODO
                 .newProperty(POSITIONS, 'LinkableVariable', positions_changed)
                 .newProperty(VIEWPORT, 'LinkableVariable', viewport_changed);
-        
+
+        nodeColumns['name'] = toolPath.push(NODE_LABEL).label("Node Label");
+        nodeColumns['color'] = toolPath.push(NODE_COLOR).label("Node Color");
+        nodeColumns['size'] = toolPath.push(NODE_SIZE).label("Node Size");
+        nodeColumns['parent'] = toolPath.push(NODE_PARENT).label("Node Parent");
+
+        edgeColumns['name'] = toolPath.push(EDGE_LABEL).label("Edge Label");
+        edgeColumns['source'] = toolPath.push(EDGE_SOURCE).label("Edge Source");
+        edgeColumns['target'] = toolPath.push(EDGE_TARGET).label("Edge Target");
+
+        toolPath.label(LAYOUT_NAME, "Layout Name");
+        toolPath.label(LAYOUT_PARAMS, "Layout Parameters");
+        toolPath.label(POSITIONS, "Node Positions");
+        toolPath.label(VIEWPORT, "Viewport");
+
         toolPath.selection_keyset.addCallback(selection_changed, true);
         toolPath.probe_keyset.addCallback(probe_changed, true);
         toolPath.subset_filter.addCallback(subset_changed, true);

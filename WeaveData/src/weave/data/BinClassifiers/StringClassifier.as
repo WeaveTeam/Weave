@@ -65,7 +65,7 @@ package weave.data.BinClassifiers
 			{
 				_triggerCount = triggerCounter;
 				_valueMap = {};
-				for each (var str:String in _sessionState)
+				for each (var str:String in _sessionStateInternal)
 					_valueMap[str] = true;
 			}
 			

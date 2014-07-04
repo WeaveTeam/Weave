@@ -22,7 +22,17 @@ package weave.beans;
 import java.io.File;
 import java.io.IOException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+
+import org.postgresql.util.Base64;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
 import weave.utils.FileUtils;
+import weave.utils.Strings;
+import weave.utils.XMLUtils;
 
 public class WeaveFileInfo 
 {
@@ -47,16 +57,33 @@ public class WeaveFileInfo
 		fileName = file.getName();
 		lastModified = file.lastModified();
 		fileSize = file.length();
-		if (getExtension(fileName).equals("weave"))
+		try
 		{
-			try
+			String ext = getExtension(fileName);
+			if (ext.equals("xml"))
+			{
+				Document doc = XMLUtils.getXMLFromFile(file);
+				XPath xpath = XPathFactory.newInstance().newXPath();
+				String ascii = XMLUtils.getStringFromXPath(doc, xpath, "//ByteArray[@name = \"thumbnail.png\" and @encoding = \"base64\"]");
+				if (!Strings.isEmpty(ascii))
+					this.thumb = Base64.decode(ascii);
+			}
+			else if (ext.equals("weave"))
 			{
 				this.thumb = FileUtils.extractFileFromArchive(file, "weave-files/thumbnail.png");
 			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch (ParserConfigurationException e)
+		{
+			e.printStackTrace();
+		}
+		catch (SAXException e)
+		{
+			e.printStackTrace();
 		}
 	}
 	
