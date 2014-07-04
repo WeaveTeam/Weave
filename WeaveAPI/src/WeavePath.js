@@ -24,7 +24,13 @@
 
 // browser backwards compatibility
 if (!Array.isArray)
-	Array.isArray = function(o) { return Object.prototype.toString.call(o) === '[object Array]'; }
+	Array.isArray = function(o) { return Object.prototype.toString.call(o) === '[object Array]'; };
+if (!Function.prototype.bind)
+	Function.prototype.bind = function(/* that, ...args */)
+	{
+		var args = Array.prototype.slice.call(arguments), that = args.shift();
+		return function(){ return this.apply(that, args.concat(Array.prototype.slice.call(arguments))); };
+	};
 
 // enhance weave.addCallback() to support function pointers
 var _addCallback = weave.addCallback;
@@ -100,7 +106,7 @@ weave.callbackToString = function(callback, thisObj)
 		"this": thisObj
 	});
 	return string;
-}
+};
 
 /**
  * Creates a WeavePath object.  WeavePath objects are immutable after they are created.
@@ -111,13 +117,7 @@ weave.callbackToString = function(callback, thisObj)
  */
 weave.path = function(/*...basePath*/)
 {
-	var basePath = arguments[0];
-	if (!Array.isArray(basePath))
-	{
-		basePath = [];
-		for (var i in arguments)
-			basePath[i] = arguments[i];
-	}
+	var basePath = Array.isArray(arguments[0]) ? arguments[0] : Array.prototype.slice.call(arguments);
 	return new weave.WeavePath(basePath);
 };
 
@@ -135,7 +135,7 @@ weave.WeavePath = function(/*...basePath*/)
 	// "private" instance variables
 	this._path = this._A(arguments, 1);
 	this._parent = null; // parent WeavePath returned by pop()
-}
+};
 
 
 
@@ -160,22 +160,10 @@ weave.WeavePath.prototype._vars = {};
  */
 weave.WeavePath.prototype._A = function(args, option)
 {
-	var array;
-	var n = args.length;
-	if (n && n == option && args[0] && Array.isArray(args[0]))
-	{
-		array = [].concat(args[0]);
-		for (var i = 1; i < n; i++)
-			array.push(args[i]);
-	}
-	else // just convert Arguments to Array
-	{
-		array = [];
-		while (n--)
-			array[n] = args[n];
-	}
-	return array;
-}
+	if (args.length == option && Array.isArray(args[0]))
+		return [].concat(args[0], Array.prototype.slice.call(args, 1));
+	return Array.prototype.slice.call(args);
+};
 
 
 
@@ -503,7 +491,7 @@ weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
 	return null;
-}
+};
 
 /**
  * Gets the changes that would have to occur to get to another state for the object at the current path or relative to the current path.
@@ -523,7 +511,7 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
 		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
 	return null;
-}
+};
 
 /**
  * Returns the value of an ActionScript expression or variable using the current path, vars, and libs.
