@@ -707,7 +707,7 @@ package weave.application
 		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
 		 * view to add new tools, manage windows, do advanced tasks, etc.
 		 */
-		private var _weaveMenu:WeaveMenuBar = null;
+		protected var _weaveMenu:WeaveMenuBar = null;
 		
 		private function toggleMenuBar():void
 		{
@@ -789,7 +789,7 @@ package weave.application
 		private var _subsetsMenu:WeaveMenuItem = null;
 		private var _aboutMenu:WeaveMenuItem   = null;
 
-		private function setupVisMenuItems():void
+		protected function setupVisMenuItems():void
 		{
 			setupContextMenu();
 			
@@ -985,6 +985,8 @@ package weave.application
 				
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Weave version: {0}", Weave.properties.version.value)));
 			}
+			
+			
 		}
 		
 		private function createToolMenuItem(toggle:LinkableBoolean, title:String, callback:Function, params:Array = null):void
