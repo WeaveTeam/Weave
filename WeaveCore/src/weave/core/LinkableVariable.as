@@ -22,7 +22,6 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableVariable;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -175,7 +174,7 @@ package weave.core
 				// and we don't want two LinkableVariables to share the same object as their session state.
 				if (type == 'xml')
 				{
-					reportError("XML is not supported directly as a session state primitive type. Using String instead.");
+					WeaveAPI.ErrorManager.reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 					value = XML(value).toXMLString();
 				}
 				else if (type == 'object' && value.constructor != Object && value.constructor != Array)

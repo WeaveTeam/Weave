@@ -73,7 +73,7 @@ package weave.core
 		 * defaultPackages Array if the specified packageName returns no result.
 		 * @param className The name of a class.
 		 * @param packageName The package the class exists in.
-		 * @return The class definition, or null if the class cannot be resolved.
+		 * @return The qualified class name, or null if the class cannot be found.
 		 */
 		public static function getClassName(className:String, packageName:String = null):String
 		{
