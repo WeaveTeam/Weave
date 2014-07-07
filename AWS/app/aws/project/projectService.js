@@ -41,22 +41,22 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         			var countOfJsons = AWSQueryObjectCollection.length;
         			for(var i = 0; i < countOfJsons; i++)
         			{
-        				var singleQueryObject = {};
-        				singleQueryObject.finalQueryObject = JSON.parse(AWSQueryObjectCollection[i].finalQueryObject);
-        				singleQueryObject.queryObjectName = AWSQueryObjectCollection[i].queryName;
-        				singleQueryObject.projectDescription = AWSQueryObjectCollection[i].projectDescription;
+        				var singleObject = {};
+        				singleObject.queryObject = JSON.parse(AWSQueryObjectCollection[i].finalQueryObject);
+        				singleObject.queryObjectName = AWSQueryObjectCollection[i].queryName;
+        				singleObject.projectDescription = AWSQueryObjectCollection[i].projectDescription;
         				that.data.projectDescription = AWSQueryObjectCollection[i].projectDescription;
-        				singleQueryObject.thumbnail = "data:image/png;base64," + AWSQueryObjectCollection[i].thumbnail;
+        				singleObject.thumbnail = "data:image/png;base64," + AWSQueryObjectCollection[i].thumbnail;
         				
         				
         				that.data.columnstring = "";
-        				var columns = singleQueryObject.finalQueryObject.ScriptColumnRequest;
+        				var columns = singleObject.queryObject.ScriptColumnRequest;
         				for(var j in columns){
         					var title = columns[j].title;
         					that.data.columnstring= that.data.columnstring.concat(title) + " , ";
         				}
-        				singleQueryObject.columnstring = that.data.columnstring.slice(0,-2);//getting rid of the last comma
-        				that.data.returnedQueryObjects[i] = singleQueryObject;
+        				singleObject.columnstring = that.data.columnstring.slice(0,-2);//getting rid of the last comma
+        				that.data.returnedQueryObjects[i] = singleObject;
         			}
         			
     			}
@@ -126,10 +126,9 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
        	
       	 if(! (that.data.deleteProjectStatus == 0 )){
       		 
-      		 that.data.completeObjects = [];
+      		that.data.returnedQueryObjects = [];//reset
+      		that.data.projectDescription = "";
       		 alert("The Project " + projectName + " has been deleted");
-      		 that.data.listOfProjectsFromDatabase = [];//reset and clean for next iteration
-      		 that.data.listofQueryObjectsInProject = [];//clean list for the current project being deleted
       		 console.log("checking projectSelectorUI", that.data.projectSelectorUI);
       		 
       		 that.getListOfProjectsfromDatabase();//call the updated projects list
