@@ -18,20 +18,25 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.linkBindableProperty;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeySet;
+			import weave.utils.BitmapText;
 			import weave.utils.BitmapUtils;
+			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.AxisLabelPlotter;
 			import weave.visualization.plotters.IndividualRecordToolPlotter;
+			import weave.visualization.plotters.SimpleAxisPlotter;
 			
 			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
 			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
@@ -55,19 +60,21 @@
 			public const _recordKeySubset:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;	
+			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), sizeAxisTickCountRequestedChanged, true);
+			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxes, true);
 			
 			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
 			
 			WeaveAPI.registerImplementation(IVisTool, IndividualRecordTool, lang("Individual Record Tool"));
 			
 			[Bindable]
-			public var plotter:IndividualRecordToolPlotter = null;
+			public var _plotter:IndividualRecordToolPlotter = null;
 			
 			override protected function constructor():void
 			{
 				super.constructor();
 				
-				plotter = initializePlotters(IndividualRecordToolPlotter, true);
+				_plotter = initializePlotters(IndividualRecordToolPlotter, true);
 				
 				visualization.plotManager.enableAutoZoomToExtent.value = true;
 				visualization.plotManager.enableFixedAspectRatio.value = true;
@@ -87,9 +94,9 @@
 				super.childrenCreated();
 				
 				visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
-				visualization.plotManager.marginLeft.value = "100";
+				visualization.plotManager.marginLeft.value = "70";
 				visualization.plotManager.marginRight.value = "20";
-				visualization.plotManager.marginBottom.value = "25";
+				visualization.plotManager.marginBottom.value = "40";
 				
 				previousText1 = line1LeadingText.value;
 				previousText2 = line1LeadingText.value;
@@ -110,6 +117,76 @@
 				linkBindableProperty(line4LeadingText, this.infoLine1FrontText4, "text");
 				linkBindableProperty(line5LeadingText, this.infoLine1FrontText5, "text");
 			}
+			
+			private function updateAxes():void
+			{
+				var heightColumns:Array = _plotter.heightColumns.getObjects();
+				
+				var sortAxisTitle:String = "Testing";
+				var sortAxisToolTipColumn:IAttributeColumn = _plotter.sortColumn;
+				var heightAxisTitle:String = 'Year';
+				var heightAxisToolTipColumn:IAttributeColumn = null;
+				
+				var sortAxis:SimpleAxisPlotter;
+				var heightAxis:SimpleAxisPlotter;
+				
+				var xAxisTitle:String; // title for x axis
+				var yAxisTitle:String; // title for y axis 
+				
+				yAxisTitle = sortAxisTitle;
+				sortAxis = yAxisPlotter;
+				visualization.leftMarginColumn = sortAxisToolTipColumn;
+				
+				heightAxis = xAxisPlotter;
+				xAxisTitle = heightAxisTitle;
+				visualization.bottomMarginColumn = heightAxisToolTipColumn;
+				
+				visualization.enableProbeLine(false, false);
+				
+				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction, _plotter.sortColumn);
+				heightAxis.setLabelFunction(heightAxisLabelFunction, heightColumns[0]);
+				
+				// height axis uses automatic min,max based on data
+				heightAxis.tickMinValue.value = NaN;
+				heightAxis.tickMaxValue.value = NaN;
+				heightAxis.forceTickCount.value = false;
+				if( sizeAxisTickChange )
+					heightAxis.tickCountRequested.value = sizeAxisTickCountRequested.value;
+				else
+					sizeAxisTickCountRequested.value = heightAxis.tickCountRequested.value;
+				heightAxis.showLabels.value = true;
+				
+				sizeAxisTickChange = false;
+				
+				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
+				sortAxis.tickMinValue.value = 0;
+				sortAxis.tickMaxValue.value = _plotter.maxTickMarks - 1;
+				sortAxis.forceTickCount.value = showAllLabels.value;
+				if (showAllLabels.value)
+					sortAxis.tickCountRequested.value = _plotter.maxTickMarks;
+				else
+					sortAxis.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
+				sortAxis.showLabels.value = !_plotter.showLabels.value || showAllLabels.value;
+
+				
+				xAxisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+			}
+			
+			private function heightAxisLabelFunction(value:Number):String
+			{
+				//Define function.
+				return null;
+			}
+			
+			private var sizeAxisTickChange:Boolean = false;
+			
+			private function sizeAxisTickCountRequestedChanged():void
+			{
+				sizeAxisTickChange = true;
+				updateAxes();
+			}
+			
 			
 			private function handleSubsetChange():void
 			{
