@@ -17,6 +17,24 @@ var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 
 aws.QueryHandler = function(queryObject)
 {
+	
+	
+	var tryParseJSON = function(jsonString){
+	    try {
+	        var o = JSON.parse(jsonString);
+
+	        // Handle non-exception-throwing cases:
+	        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+	        // but... JSON.parse(null) returns 'null', and typeof null === "object", 
+	        // so we must check for that, too.
+	        if (o && typeof o === "object" && o !== null) {
+	            return o;
+	        }
+	    }
+	    catch (e) { }
+
+	    return false;
+	};
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
 	//testing dont know if this is the right way
@@ -47,13 +65,37 @@ aws.QueryHandler = function(queryObject)
 		}
 	}
 	
-	var scriptColumnRequest = [];
-	if(queryObject.hasOwnProperty("ScriptColumnRequest")) {
-		for( var i = 0; i < queryObject.ScriptColumnRequest.length; i++) {
-			scriptColumnRequest.push(queryObject.ScriptColumnRequest[i].id);
+	var scriptInputs = {};
+	
+	for(var key in queryObject.scriptOptions) {
+		var input = queryObject.scriptOptions[key];
+		console.log(typeof input);
+		switch(typeof input) {
+			case 'array': // array of columns
+				scriptInputs[key] = $.map(input, function(inputVal) {
+					return { id : JSON.parse(inputVal).id };
+				});
+				break;
+			case 'string' :
+				var inputVal = tryParseJSON(input);
+				if(inputVal) {  // column input
+					scriptInputs[key] = { id : inputVal.id };
+				} else { // regular string
+					scriptInputs[key] = input;
+				}
+				break;
+			case 'number' : // regular number
+				scriptInputs[key] = input;
+				break;
+			case 'boolean' : // boolean 
+				scriptInputs[key] = input;
+				break;
+			default:
+				console.log("unknown script input type");
 		}
 	}
-	this.rRequestObject.ids = scriptColumnRequest;
+
+	this.rRequestObject.inputs = scriptInputs;
 	
 	var nestedFilterRequest = {and : []};
 	
@@ -165,6 +207,8 @@ aws.QueryHandler = function(queryObject)
 			nestedFilterRequest.and.push(byVarQuery);
 		}
 	}	
+	
+	
 	
 	if(nestedFilterRequest.and.length) {
 		this.rRequestObject.filters = nestedFilterRequest;
