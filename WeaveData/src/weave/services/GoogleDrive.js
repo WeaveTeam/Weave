@@ -38,9 +38,7 @@ function checkAuth() {
  * @param {Object} authResult Authorization result.
  */
 function handleAuthResult(authResult) {
-
-	if (authResult && !authResult.error) {	
-		
+	if (authResult && !authResult.error) {			
 		expires_in_millisecs = authResult.expires_in * 1000;
 		console.log(expires_in_millisecs);
 		gapi.client.load('drive', 'v2', handleClientLoad);
@@ -56,8 +54,6 @@ function handleClientLoad() {
     window.setTimeout(checkAuth,expires_in_millisecs - 60000);
     readStateObject();
 }
-
-
 
 function readStateObject(  ) {
 	weave.path().getValue('import "weave.services.GoogleDrive";\
@@ -89,14 +85,12 @@ function getParams() {
 	return params;
 };
 
-
-
-
 function loadWeaveFile(fileId) {
 	// Step 3: Assemble the API request
 	var request = gapi.client.drive.files.get({  'fileId': fileId  });
 	// Step 4 (Final): Execute the API request
 	request.execute(function(resp) {
+		console.log('loadWeaveFile:');
 		console.log(resp);
 		openedFileUrl = resp.downloadUrl;
 		var accessToken = gapi.auth.getToken().access_token;
@@ -105,9 +99,12 @@ function loadWeaveFile(fileId) {
 	});
 };
 
-function generateThumbnailMetadata(isNewFile){
+function generateFileMetadata(isNewFile){
 	var rawBase64 = weave.evaluateExpression(null, 'getBase64Image(Application.application)', null, ['weave.utils.BitmapUtils', 'mx.core.Application']);
 	var thumbnailData = rawBase64.replace(/\+/g, '-').replace(/\//g, '_');
+	var indexableTextArray = getIndexableText();
+	var indexableText = new String(indexableTextArray.join());
+	console.log(indexableText);
 	var metadata;
 	if(isNewFile){
 		metadata = {
@@ -116,7 +113,10 @@ function generateThumbnailMetadata(isNewFile){
 				'thumbnail': {
 				    'image': thumbnailData,
 				    'mimeType': 'image/png'
-				  }				
+				  }	,
+				  "indexableText": {
+					    "text": indexableText.
+				  }
 		};
 	}
 	else{
@@ -124,7 +124,10 @@ function generateThumbnailMetadata(isNewFile){
 				'thumbnail': {
 				    'image': thumbnailData,
 				    'mimeType': 'image/png'
-				  }				
+				  }	,
+				  "indexableText": {
+					    "text": indexableText
+				  }
 		};
 	}
 	
@@ -138,7 +141,7 @@ function generateThumbnailMetadata(isNewFile){
  */
 weave.GoogleDrive.insertWeaveFile = function() {	
 	//console.log('inserting weave file to google drive');
-	var request = getDriveRequest(generateWeaveArchive(),'POST',generateThumbnailMetadata(true));		    
+	var request = getDriveRequest(generateWeaveArchive(),'POST',generateFileMetadata(true));		    
 	request.execute(saveFileID);
 };
 
@@ -147,7 +150,7 @@ weave.GoogleDrive.insertWeaveFile = function() {
  * @param {base64EncodedData} base64EncodedData Binary-String object to insert to drive.
  */
 weave.GoogleDrive.updateWeaveFile = function(){  
-	var request = getDriveRequest(generateWeaveArchive(),'PUT',generateThumbnailMetadata(false),activeFileID);
+	var request = getDriveRequest(generateWeaveArchive(),'PUT',generateFileMetadata(false),activeFileID);
 	request.execute(saveFileID);
 };
 
