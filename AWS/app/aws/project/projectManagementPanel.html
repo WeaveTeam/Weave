@@ -57,7 +57,7 @@
 				<div class="dd" id="nestable3">
 					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
 <!-- 						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems"> -->
-							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.data.completeObjects">
+							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.data.returnedQueryObjects">
 							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
 							<div class="dd-handle dd3-handle">
 								<!--Drag-->
@@ -68,23 +68,23 @@
 										<ul style="list-style:initial">
 											<li>
 												<span class="prj-txt-lbl">Title: </span> 
-												<span class="prj-txt-val"> {{item.queryObject.title}} </span>
+												<span class="prj-txt-val"> {{item.finalQueryObject.title}} </span>
 											</li>
 											<li>
 												<span class="prj-txt-lbl">Date: </span>
-												<span class="prj-txt-val">{{item.queryObject.date}}</span>
+												<span class="prj-txt-val">{{item.finalQueryObject.date}}</span>
 											</li>
 											<li>
 												<span class="prj-txt-lbl">Datatable: </span>
-												<span class="prj-txt-val">{{item.queryObject.dataTable.title}}</span>
+												<span class="prj-txt-val">{{item.finalQueryObject.dataTable.title}}</span>
 											</li>
 											<li>
 												<span class="prj-txt-lbl">Script: </span>
-												<span class="prj-txt-val">{{item.queryObject.scriptSelected}}</span>
+												<span class="prj-txt-val">{{item.finalQueryObject.scriptSelected}}</span>
 											</li>
 											<li>
 												<span class="prj-txt-lbl">Columns: </span>
-												<span class="prj-txt-val">{{projectService.data.columnString}}</span>
+												<span class="prj-txt-val">{{item.columnstring}}</span>
 											</li>
 										</ul>
 									</div>

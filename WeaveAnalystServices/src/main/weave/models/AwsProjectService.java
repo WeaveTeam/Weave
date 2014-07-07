@@ -172,17 +172,13 @@ public class AwsProjectService
 	   * @return an array of base64 strings, each encoding one image 
 	   * @throws Exception
 	   */
-	public static AWSQueryObjectCollectionObject getListOfQueryObjects(Map<String , Object> params) throws RemoteException, SQLException
+	public static AWSQueryObjectCollection[] getListOfQueryObjects(Map<String , Object> params) throws RemoteException, SQLException
 	{
 		String[] visualizationCollection = null;
-		String[]thumbnails;
-		AWSQueryObjectCollectionObject  finalQueryObjectCollection = null;
+		AWSQueryObjectCollection[]  finalQueryObjectCollection = null;
 		SQLResult visualizationSQLresult = null;
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
-		String[] finalQueryNames= null;;
-		String[] finalQueryObjects= null;
-		String finalProjectDescription = null;
 		
 		Map<String,Object> whereParams = new HashMap<String, Object>();
 		whereParams.put("projectName", params.get("projectName").toString());
@@ -200,34 +196,30 @@ public class AwsProjectService
 		{
 			Object[][] rows = visualizationSQLresult.rows;
 			visualizationCollection = new String[visualizationSQLresult.rows.length];
-			thumbnails = new String[visualizationSQLresult.rows.length];
-			
-			finalQueryNames = new String[rows.length];
-			finalQueryObjects = new String[rows.length];
+			finalQueryObjectCollection = new AWSQueryObjectCollection[rows.length];
 			
 			for(int i = 0; i < rows.length; i++)
 			{
+				AWSQueryObjectCollection singleObject = new AWSQueryObjectCollection();
+				
 				Object[] singleRow = rows[i];
-				finalQueryNames[i]= singleRow[0].toString();
-				finalQueryObjects[i] = singleRow[1].toString();
-				finalProjectDescription = singleRow[2].toString();
+				singleObject.queryObjectName= singleRow[0].toString();
+				singleObject.finalQueryObject = singleRow[1].toString();
+				singleObject.projectDescription = singleRow[2].toString();
 				
 				String weaveSessionString = singleRow[3].toString();
 				visualizationCollection[i] = weaveSessionString;
 				try {
 					String oneThumbnail = FileUtils.extractFileFromArchiveBase64(weaveSessionString, "weave-files/screenshot.png");
-					thumbnails[i] = oneThumbnail;
+					singleObject.thumbnail = oneThumbnail;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				
+				finalQueryObjectCollection[i] = singleObject;
 			}
 			
-			finalQueryObjectCollection = new AWSQueryObjectCollectionObject();
-			finalQueryObjectCollection.finalQueryObjects = finalQueryObjects;
-			finalQueryObjectCollection.projectDescription = finalProjectDescription;
-			finalQueryObjectCollection.queryObjectNames = finalQueryNames;
-			finalQueryObjectCollection.thumbnails = thumbnails;
-			
+
 			//for base64 screenshot taken directly
 //			for(int i = 0; i < rows.length; i++){
 //
@@ -299,12 +291,12 @@ public class AwsProjectService
 	 *@param finalQueryObjects the actual json objects belonging to a project
 	 *@param projectDescription description of the project
 	 */
-	public static class AWSQueryObjectCollectionObject
+	public static class AWSQueryObjectCollection
 	{
-		String[] finalQueryObjects;
-		String[] queryObjectNames;
+		String finalQueryObject;
+		String queryObjectName;
 		String projectDescription;
-		String[] thumbnails;
+		String thumbnail;
 	}
 }
 
