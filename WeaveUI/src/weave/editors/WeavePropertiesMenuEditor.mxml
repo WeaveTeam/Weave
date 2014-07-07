@@ -24,10 +24,14 @@
 		 width="100%" 
 		 height="100%" xmlns:ui="weave.ui.*"
 		 >
-		<ui:CustomCheckBox id="enableMenuBar"
-					 label="{lang('Show menu bar')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
+	<ui:CheckBoxWithNestedOptions id="enableMenuBar"
+								  label="{lang('Show menu bar')}"
+								  creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');">
+		<ui:CustomCheckBox label="{lang('Show session history controls')}"
+					 enabled="{enableMenuBar.selected}"
+					 creationComplete="linkBindableProperty(Weave.properties.showSessionHistoryControls, event.target, 'selected');"
 					/>
+	</ui:CheckBoxWithNestedOptions>
 
 		<ui:CustomCheckBox label="{lang('Enable tool control panels and attribute selection')}"
 						   creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>

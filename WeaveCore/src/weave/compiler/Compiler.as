@@ -423,6 +423,14 @@ package weave.compiler
 			
 			// impure operators
 			operators["["] = function(...args):* { return args; }; // array creation
+			operators["{"] = function(...args):Object // object creation
+			{
+				var o:Object = {};
+				var end:int = args.length - 1;
+				for (var i:int = 0; i < end; i += 2)
+					o[args[i]] = args[i + 1];
+				return o;
+			}
 			operators[OPERATOR_NEW] = function(classOrQName:Object, ...params):Object
 			{
 				var classDef:Class = classOrQName as Class;
@@ -446,6 +454,7 @@ package weave.compiler
 			};
 			operators[FUNCTION] = function(..._):*{};
 			operators['=>'] = function(..._):*{};
+			operators[':'] = function(key:String, value:*):* { this[key] = value; };
 			// property access should not be optimized to constants
 			operators["."] = function(object:*, ...chain):* {
 				var iHost:int = chain.length - 2;
@@ -933,7 +942,7 @@ package weave.compiler
 				tokens.splice(left - 1, end - left + 1, compileOperator('?:', [condition, trueBranch, falseBranch]));
 			}
 			// stop if any branch operators remain
-			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
+			if (Math.max(tokens.indexOf('?')) >= 0)
 				throw new Error('Invalid conditional branch');
 			
 			// next step: inline functions, right to left
@@ -967,6 +976,27 @@ package weave.compiler
 					throw new Error("Misplaced '" + tokens[i] + "'");
 				tokens.splice(i - 1, 3, compileVariableAssignment(tokens[i - 1], tokens[i], tokens[i + 1]));
 			}
+			
+			//next step: object literal property declarations: [variable, ":", expr]
+			for (i = 0; i < tokens.length; i++)
+			{
+				if (tokens[i + 1] == ':' && tokens[i + 2] is ICompiledObject)
+				{
+					var constant:CompiledConstant = tokens[i] as CompiledConstant;
+					if (constant && !(constant.value is String) && constants.hasOwnProperty(constant.name) && isValidSymbolName(constant.name))
+						constant = new CompiledConstant(constant.name, constant.name);
+					
+					call = tokens[i] as CompiledFunctionCall;
+					if (isVariableLookup(call))
+						constant = call.compiledMethod as CompiledConstant;
+					
+					if (constant && constant.value is String)
+						tokens.splice(i, 3, compileOperator(":", [constant, tokens[i + 2]]));
+				}
+			}
+			// stop if any ":" remain
+			if (tokens.indexOf(':') >= 0)
+				throw new Error('Misplaced ":"');
 			
 			// next step: commas
 			compileInfixOperators(tokens, [',']);
@@ -1302,9 +1332,39 @@ package weave.compiler
 				
 				if (leftBracket == '{')
 				{
+					var block:ICompiledObject = compileTokens(subArray, true);
+					var blockCall:CompiledFunctionCall = block as CompiledFunctionCall;
+					if (blockCall)
+					{
+						var blockItems:Array;
+						if (blockCall.evaluatedMethod == operators[';'] && blockCall.compiledParams.length == 0)
+							blockItems = [];
+						if (blockCall.evaluatedMethod == operators[','])
+							blockItems = blockCall.compiledParams;
+						if (blockCall.evaluatedMethod == operators[':'])
+							blockItems = [blockCall];
+						if (blockItems && (blockItems.length == 0 || StandardLib.getArrayType(blockItems) == CompiledFunctionCall))
+						{
+							var params:Array = [];
+							for each (var item:CompiledFunctionCall in blockItems)
+							{
+								if (item.evaluatedMethod != operators[':'])
+								{
+									params = null;
+									break;
+								}
+								params.push(item.compiledParams[0], item.compiledParams[1]);
+							}
+							if (params != null)
+							{
+								tokens.splice(open, 2, compileOperator('{', params));
+								continue;
+							}
+						}
+					}
 					// It's ok if it creates an extra {} wrapper because finalize() will take care of that.
 					// It's important to remember that the brackets existed for statement processing.
-					tokens.splice(open, 2, compileOperator(';', [compileTokens(subArray, true)]));
+					tokens.splice(open, 2, compileOperator(';', [block]));
 					continue;
 				}
 				
@@ -1758,7 +1818,7 @@ package weave.compiler
 						}
 						
 						// if there is only a single variable, wrap it in an operator ',' call
-						if (!call.compiledParams || call.evaluatedMethod == operators['='])
+						if (isVariableLookup(call) || call.evaluatedMethod == operators['='])
 							tokens[startIndex + iPattern] = token = call = compileOperator(',', [call]);
 						
 						// special case for "for (var x in y) { }"
@@ -1766,7 +1826,7 @@ package weave.compiler
 						{
 							// check the variable
 							call = call.compiledParams[0] as CompiledFunctionCall;
-							if (!call || call.compiledParams) // not a variable?
+							if (!isVariableLookup(call))
 								throwInvalidSyntax(stmt);
 							// save single variable name
 							varNames = [call.evaluatedMethod];
@@ -1783,7 +1843,7 @@ package weave.compiler
 							if (!variable)
 								throwInvalidSyntax(stmt);
 							
-							if (!variable.compiledParams) // local initialization
+							if (isVariableLookup(variable)) // local initialization
 							{
 								// variable initialization only -- remove from ',' params
 								call.compiledParams.splice(iParam--, 1);
@@ -2056,6 +2116,9 @@ package weave.compiler
 			
 			var method:Object = call.evaluatedMethod;
 			
+			if (method == operators[':'])
+				throw new Error("Invalid object literal syntax");
+			
 			// remove var declarations from their current locations
 			if (method == operators[ST_VAR])
 			{
@@ -2160,7 +2223,7 @@ package weave.compiler
 			}
 			
 			// special case for variable lookup
-			if (!call.compiledParams)
+			if (isVariableLookup(call))
 				return decompileObject(call.compiledMethod);
 			
 			var cMethod:CompiledConstant = call.compiledMethod as CompiledConstant
@@ -2194,7 +2257,7 @@ package weave.compiler
 						var variable:CompiledFunctionCall = null;
 						try {
 							variable = compileToObject(constant.value) as CompiledFunctionCall;
-							if (variable.compiledParams)
+							if (!isVariableLookup(variable))
 								variable = null;
 						} catch (e:Error) { }
 						
@@ -2270,9 +2333,10 @@ package weave.compiler
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
+		 * @param flattenFunctionDefinition If set to true and the compiledObject represents a function definition, that function definition will be evaluated and returned.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -2551,7 +2615,7 @@ package weave.compiler
 								if (method === Object)
 								{
 									var params:Array = call.evaluatedParams;
-									result = {}
+									result = {};
 									for (i = 0; i < params.length - 1; i += 2)
 										result[params[i]] = params[i + 1];
 								}
@@ -2588,7 +2652,8 @@ package weave.compiler
 								errorHandler,
 								cascadeThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
-								funcParams[FUNCTION_PARAM_VALUES]
+								funcParams[FUNCTION_PARAM_VALUES],
+								false
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
@@ -2670,13 +2735,22 @@ package weave.compiler
 			};
 			
 			// if the compiled object is a function definition, return that function definition instead of the wrapper.
-			if (compiledObjectIsFunctionDefinition(compiledObject))
+			if (flattenFunctionDefinition && compiledObjectIsFunctionDefinition(compiledObject))
 			{
 				cascadeThisScope = useThisScope;
 				return wrapperFunction() as Function;
 			}
 			
 			return wrapperFunction;
+		}
+		
+		/**
+		 * Tests if a token is a variable lookup.
+		 */
+		private function isVariableLookup(token:Object):Boolean
+		{
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
+			return cfc && !cfc.compiledParams;
 		}
 		
 		/**
