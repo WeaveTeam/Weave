@@ -316,7 +316,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		newWeaveWindow.log("Running Query...");
 	};
 
-	aws.queryService(computationServiceURL, 'runScript', [this.rRequestObject.scriptName, this.rRequestObject.ids, this.rRequestObject.filters], function(result){	
+	aws.queryService(computationServiceURL, 'runScript', [this.rRequestObject.scriptName, this.rRequestObject.inputs, this.rRequestObject.filters], function(result){	
 
 		newWeaveWindow.log("Load Time : " + result.times[0]/1000 + " secs,  Analysis Time: " + result.times[1]/1000 + " secs");
 		newWeaveWindow.workOnData(that, result.data);

@@ -37,10 +37,11 @@ public class AwsRService implements IScriptEngine
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public Object runScript(String scriptAbsPath, Object[][] dataSet) throws Exception
+	public Object runScript(String scriptAbsPath, String[] inputNames, Object[] inputValues) throws Exception
 	{
 
 		rConnection.assign("scriptPath", scriptAbsPath);
+		
 		rConnection.assign("data", getREXP(dataSet));
 		Object results = null;
 		Vector<String> names = null;
