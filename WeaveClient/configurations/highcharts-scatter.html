@@ -1,0 +1,108 @@
+<html>
+<head>
+<title>Highcharts Scatterplot</title>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//code.highcharts.com/highcharts.js"></script>
+<script src="//code.highcharts.com/modules/exporting.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+<!-- script src="http://code.highcharts.com/modules/no-data-to-display.js"></script -->
+</head>
+<body>
+<div id="container" style="min-width: 310px; height: 400px; max-width: 800px; margin: 0 auto"></div>
+<script>
+    var chart;
+    var toolPath;
+
+    var X_COLUMN = "x";
+    var Y_COLUMN = "y";
+    var COLOR_COLUMN = "color";
+    var columns = {};
+
+    function weavetool_init(event)
+    {
+        chart = this;
+        toolPath = opener.WeaveExternalTools[window.name].path;
+
+        columns = toolPath.initProperties([
+            {name: X_COLUMN, type: "DynamicColumn", label: "X", callback: data_updated},
+            {name: Y_COLUMN, type: "DynamicColumn", label: "Y", callback: data_updated},
+            {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: data_updated, default: 'defaultColorColumn'}]);
+        toolPath.subset_filter.addCallback(data_updated, true);
+        toolPath.selection_keyset.addCallback(selection_updated, true);
+    }
+    
+    var selection_updating = false;
+    function selection_updated()
+    {
+
+        selection_updating = true;
+
+        var keys = toolPath.selection_keyset.getKeys();
+
+        chart.getSelectedPoints().forEach(function (p) {p.select(false, true);});
+
+        keys.forEach(
+            function (p_id) {
+                var p = chart.get(p_id);
+                if (p != null) 
+                    p.select(true, true);
+            });
+
+        selection_updating = false;
+    }
+
+    var update_timeout = null;
+
+    function update_selection()
+    { 
+        if (selection_updating) return true;
+
+        var ids = chart.getSelectedPoints().map(function (p) {return p.id});
+
+        toolPath.selection_keyset.setKeys(ids);
+
+        update_timeout = null;
+    }
+    
+    function selection_handler(event)
+    {
+        if (selection_updating) return true;
+        
+        if (update_timeout === null)
+        {
+            update_timeout = window.setTimeout(update_selection, 50);
+        }
+        return true;
+    }
+
+    function data_updated()
+    {
+        var data = toolPath.retrieveRecords(columns, toolPath.subset_filter);
+
+        /* Empty out all the series. */
+        while (chart.series.length > 0)
+            chart.series[0].remove(false);
+
+        chart.addSeries({data: data}, true, false);
+    }
+
+    $(function () {
+        $('#container').highcharts({
+            chart: {
+                type: 'scatter',
+                zoomType: 'xy',
+                events: {
+                    load: weavetool_init
+                },
+            },
+            plotOptions:{scatter:{allowPointSelect: true, animation: false, marker:{lineWidth: 1, lineColor: '#000', symbol: 'circle'},
+                point:{events:{select:selection_handler, unselect: selection_handler}}
+            }}
+        })
+    });
+
+    
+
+</script>
+</body>
+</html>
