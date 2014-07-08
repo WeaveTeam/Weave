@@ -41,13 +41,13 @@ public class AwsRService implements IScriptEngine
 	{
 
 		rConnection.assign("scriptPath", scriptAbsPath);
+		assignNamesToVector(rConnection, inputNames, inputValues);
 		
-		rConnection.assign("data", getREXP(dataSet));
 		Object results = null;
 		Vector<String> names = null;
 		String [] columnNames;
 		String script = "scriptFromFile <- source(scriptPath)\n" +
-					         "scriptFromFile$value(data)"; 
+					         "scriptFromFile$value()"; 
 
 		try
 		{
@@ -58,7 +58,6 @@ public class AwsRService implements IScriptEngine
 			results = rexp2javaObj(evalValue);
 			// clear R Objects
 			rConnection.eval("rm(list=ls())");
-			 
 		}
 		catch (Exception e)	{
 			e.printStackTrace();
@@ -324,5 +323,14 @@ public class AwsRService implements IScriptEngine
 			}
 
 			return final2DArray;
+	}
+	
+	private static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws RserveException, RemoteException
+	{
+		for (int i = 0; i < inputNames.length; i++)
+		{
+			String name = inputNames[i];
+			rConnection.assign(name, getREXP(inputValues[i]));
+		}
 	}
 }
