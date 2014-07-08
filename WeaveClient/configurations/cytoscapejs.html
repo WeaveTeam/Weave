@@ -106,11 +106,6 @@
         node_data = toolPath.retrieveRecords(nodeColumns, nodeColumns["name"]);
         edge_data = toolPath.retrieveRecords(edgeColumns, edgeColumns["source"]);
 
-        function keyToId(record) {record.id = record.key; delete record.key;};
-
-        node_data.forEach(keyToId);
-        edge_data.forEach(keyToId);
-
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
 
         function colorIntToColorString(colorInt) {return (typeof colorInt == "number") ? "#" + colorInt.toString(16) : undefined;}
