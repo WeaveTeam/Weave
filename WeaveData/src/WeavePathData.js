@@ -64,6 +64,59 @@ weave.WeavePath.prototype.newProperty = function(name, type, callback)
     return this;
 };
 
+weave.WeavePath.prototype.initProperty = function(property_descriptor)
+{
+    var name = property_descriptor["name"] || this._failMessage('initProperty', 'A "name" is required');
+    var type = property_descriptor["type"] || "LinkableVariable";
+    var callback = property_descriptor["callback"];
+    var triggerCallbackNow = property_descriptor["triggerCallbackNow"] !== undefined ? property_descriptor["triggerCallbackNow"] : true;
+    var immediate = property_descriptor["immediate"] !== undefined ? property_descriptor["immediate"] : false;
+
+    var label = property_descriptor["label"];
+    
+    var new_prop = this.push(name);
+
+    var existed = !!new_prop.getType();
+
+    new_prop.request(type);
+
+    if (label)
+    {
+        new_prop.label(label);
+    }
+
+    if (!existed && property_descriptor.hasOwnProperty("default"))
+    {
+        new_prop.state(property_descriptor["default"]);
+    }
+
+    if (callback)
+    {
+        new_prop.addCallback(callback, triggerCallbackNow, immediate);
+    }
+
+    return this;
+}
+
+weave.WeavePath.prototype.initProperties = function(property_descriptor_array)
+{
+    if (this.getType() == null) 
+        this.request("ExternalTool");
+
+    var results = {};
+
+    for (var idx = 0; idx < property_descriptor_array.length; idx++)
+    {
+        var property_descriptor = property_descriptor_array[idx];
+        var name = property_descriptor["name"];
+        
+        this.initProperty(property_descriptor);
+        results[name] = this.push(name);
+    }
+
+    return results;
+}
+
 weave.WeavePath.prototype.getKeys = function(/* [relpath] */)
 {
     var raw_keys = this.weave.evaluateExpression(this._path.concat(this._A(arguments, 1)), "this.keys", this._vars);
@@ -125,11 +178,11 @@ weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArr
 
 /** 
  * Retrieve a table of columns defined by a mapping of property names to column paths. 
- * @param path Mapping An object containing a mapping of desired property names to column paths. "key" is a reserved name.
+ * @param path Mapping An object containing a mapping of desired property names to column paths. "id" is a reserved name.
  * @param keys A path object pointing to a valid keyset (columns are also keysets.)
  * @return An array of record objects.
  */
-weave.WeavePath.prototype.retrieveRecords = function(/* ..pathMapping, keySetPath */)
+weave.WeavePath.prototype.retrieveRecords = function(/* pathMapping, keySetPath */)
 {
     var args = this._A(arguments, 2);
     if (this._assertParams('joinColumns', 1))
@@ -141,10 +194,9 @@ weave.WeavePath.prototype.retrieveRecords = function(/* ..pathMapping, keySetPat
         var keySetPath = args[1] ? args[1].getPath() : null;
         
         var results = this.push(args).libs("weave.utils.ColumnUtils").vars({paths: values, keySetPath: keySetPath}).getValue(
-            'var keySet = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, keySetPath);'+
-            'var keyArray = keySet ? keySet.keys : null;'+
+            'var keySet = keySetPath ? WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, keySetPath) : null;'+
             'var columns = paths.map(function(path){return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);});'+
-            'return ColumnUtils.joinColumns(columns, null, true, keyArray);');
+            'return ColumnUtils.joinColumns(columns, null, true, keySet);');
         
         results[0] = results[0].map(this.qkeyToString, this);
 
@@ -153,7 +205,7 @@ weave.WeavePath.prototype.retrieveRecords = function(/* ..pathMapping, keySetPat
         {
             var new_record = {};
 
-            new_record.key = results[0][record_idx];
+            new_record.id = results[0][record_idx];
 
             for (var column_idx = 0; column_idx < keys.length; column_idx++)
             {
