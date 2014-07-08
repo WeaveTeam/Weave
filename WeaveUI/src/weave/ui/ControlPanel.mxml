@@ -405,8 +405,7 @@
 					
 					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
 					
-					controlPanel.tabNavigator.addChild(editor as DisplayObject);
-					
+					controlPanel.children = [editor];
 					controlPanel.title = getControlPanelTitle(linkableObject);
 					controlPanel.sessionEditorTarget = linkableObject;
 				}
