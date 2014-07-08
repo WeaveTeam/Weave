@@ -14,7 +14,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
      * So that the UI asynchronously wait for the data to be available...
      */
    
-    this.getListOfProjectsfromDatabase = function() {
+    this.getListOfProjects = function() {
     	var deferred = $q.defer();
 		aws.queryService(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
 			that.data.listOfProjectsFromDatabase = result;
@@ -43,9 +43,10 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         			{
         				var singleObject = {};
         				singleObject.queryObject = JSON.parse(AWSQueryObjectCollection[i].finalQueryObject);
-        				singleObject.queryObjectName = AWSQueryObjectCollection[i].queryName;
+        				singleObject.queryObjectName = AWSQueryObjectCollection[i].queryObjectName;
         				singleObject.projectDescription = AWSQueryObjectCollection[i].projectDescription;
         				that.data.projectDescription = AWSQueryObjectCollection[i].projectDescription;
+        				//TODO add check for empty image
         				singleObject.thumbnail = "data:image/png;base64," + AWSQueryObjectCollection[i].thumbnail;
         				
         				
@@ -129,14 +130,10 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
       		that.data.returnedQueryObjects = [];//reset
       		that.data.projectDescription = "";
       		 alert("The Project " + projectName + " has been deleted");
-      		 console.log("checking projectSelectorUI", that.data.projectSelectorUI);
-      		 
-      		 that.getListOfProjectsfromDatabase();//call the updated projects list
+      		 that.getListOfProjects();//call the updated projects list
       	 }
       	 
       	 that.data.deleteProjectStatus = 0;//reset 
-       	
-       	
        	
        	scope.$safeApply(function() {
                deferred.resolve(result);
@@ -148,29 +145,34 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
        
    };
    
+   /**
+    * This function wraps the async aws deleteQueryObject function into an angular defer/promise
+    * So that the UI asynchronously wait for the data to be available...
+    */
+   this.deleteQueryObject = function(projectName, queryObjectTitle){
+	   var deferred = $q.defer();
+	   	var params = {};
+	   	params.projectName = projectName;
+	   	params.queryObjectTitle = queryObjectTitle;
+	   
+		aws.queryService(projectManagementURL, 'deleteQueryObjectFromProject', [params], function(result){
+	       	that.data.deleteQueryObjectStatus = result;
+	       	console.log("in the service",that.data.deleteQueryObjectStatus );
+	       	
+	       	alert("Query Object " + queryObjectTitle + " has been deleted");
+	       	
+	       	that.data.returnedQueryObjects = [];//clears list
+	       	
+	       	that.getListOfQueryObjects(projectName);//fetches new list
+	       	
+	       	
+	       	scope.$safeApply(function() {
+	               deferred.resolve(result);
+	           });
+	       	
+	       });
+	       
+	       return deferred.promise;
+   };
    
-   
-   
-   
-   
-   
-//   	 if(! ($scope.deleteProjectStatus == 0 || angular.isUndefined($scope.deleteProjectStatus)))
-//   		 {
-//   		 if(!($scope.currentProjectSelected != "" || angular.isUndefined($scope.currentProjectSelected)))
-//   			 {
-//	    			 alert("The Project " + $scope.currentProjectSelected + " has been deleted");
-//	    			 queryService.dataObject.listOfProjectsFromDatabase = [];//emptying projects list
-//	    			 queryService.dataObject.listofQueryObjectsInProject = [];//emptying queryObjects list
-//	    			 $scope.projectSelectorUI = $scope.defaultProjectOption;//resetting dropDown UI
-//	    			 $scope.currentProjectSelected = "";//reset
-//	    			 queryService.getListOfProjectsfromDatabase();//fetch new list
-//   			 }
-//   		 	
-//   		 }
-//   	 
-//	    	 queryService.dataObject.deleteProjectStatus = 0;
-//   	
-//    });
-    
-    
 }]);

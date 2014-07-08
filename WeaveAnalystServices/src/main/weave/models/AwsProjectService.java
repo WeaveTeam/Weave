@@ -84,7 +84,7 @@ public class AwsProjectService
 	   * @return count number of rows(query Objects) deleted from the database
 	   * @throws Exception
 	   */
-	public static int deleteQueryObjectFromProjectFromDatabase(Map<String, Object> params)throws RemoteException, SQLException{
+	public static int deleteQueryObjectFromProject(Map<String, Object> params)throws RemoteException, SQLException{
 		
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;

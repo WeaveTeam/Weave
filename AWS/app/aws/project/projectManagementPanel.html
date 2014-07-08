@@ -23,7 +23,7 @@
 <!-- 					</select> -->
 						
 						<select ui-select  ng-model = "projectService.data.projectSelectorUI" style="width:200px;" ng-options = "pjt as pjt for pjt in projectService.data.listOfProjectsFromDatabase" 
-						ng-change = "getListOfQueryObject()">
+						ng-change = "getListOfQueryObjects()">
 						</select>
 
 					<div style="display: inline-block; margin-left: 90px;">
@@ -99,7 +99,7 @@
 										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
 										Run Query
 									</button>
-									<button ng-click = "deleteSpecificQueryObject(item.queryObject)" class="btn btn-sm query-button">
+									<button ng-click = "deleteSpecificQueryObject(item)" class="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
 										Delete the query
 									</button>
