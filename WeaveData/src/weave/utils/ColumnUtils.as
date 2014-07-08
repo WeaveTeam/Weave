@@ -349,30 +349,37 @@ package weave.utils
 		 * @param columns A list of IAttributeColumns to compute a join table from.
 		 * @param dataType The dataType parameter to pass to IAttributeColumn.getValueFromKey().
 		 * @param allowMissingData If this is set to true, then all keys will be included in the join result.  Otherwise, only the keys that have associated values will be included.
-		 * @param keys A list of IQualifiedKey objects to use to filter the results.
+		 * @param keyFilter Either an IKeyFilter or an Array of IQualifiedKey objects used to filter the results.
 		 * @return An Array of Arrays, the first being IQualifiedKeys and the rest being Arrays data values from the given columns that correspond to the IQualifiedKeys. 
 		 */
-		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keys:Array = null):Array
+		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keyFilter:Object = null):Array
 		{
+			var keys:Array;
 			var key:IQualifiedKey;
 			var column:IAttributeColumn;
 			// if no keys are specified, get the keys from the columns
-			if (keys == null)
+			if (keyFilter is Array)
+			{
+				keys = (keyFilter as Array).concat(); // make a copy so we don't modify the original
+			}
+			else if (keyFilter is IKeySet)
+			{
+				keys = (keyFilter as IKeySet).keys.concat(); // make a copy so we don't modify the original
+			}
+			else
 			{
 				// count the number of appearances of each key in each column
 				var keyCounts:Dictionary = new Dictionary();
 				for each (column in columns)
 					for each (key in column.keys)
 						keyCounts[key] = int(keyCounts[key]) + 1;
-				// get a list of keys that appeared in every column
+				// get a list of keys
 				keys = [];
+				var filter:IKeyFilter = keyFilter as IKeyFilter;
 				for (var qkey:* in keyCounts)
 					if (allowMissingData || keyCounts[qkey] == columns.length)
-						keys.push(qkey);
-			}
-			else
-			{
-				keys = keys.concat(); // make a copy so we don't modify the original
+						if (!filter || filter.containsKey(qkey))
+							keys.push(qkey);
 			}
 			// put the keys in the result
 			var result:Array = [keys];
