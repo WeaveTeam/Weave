@@ -103,7 +103,7 @@ function generateFileMetadata(isNewFile){
 	var rawBase64 = weave.evaluateExpression(null, 'getBase64Image(Application.application)', null, ['weave.utils.BitmapUtils', 'mx.core.Application']);
 	var thumbnailData = rawBase64.replace(/\+/g, '-').replace(/\//g, '_');
 	var indexableTextArray = getIndexableText();
-	var indexableText = new String(indexableTextArray.join());
+	var indexableText = indexableTextArray.join();
 	console.log(indexableText);
 	var metadata;
 	if(isNewFile){
@@ -115,7 +115,7 @@ function generateFileMetadata(isNewFile){
 				    'mimeType': 'image/png'
 				  }	,
 				  "indexableText": {
-					    "text": indexableText.
+					    "text": indexableText
 				  }
 		};
 	}
