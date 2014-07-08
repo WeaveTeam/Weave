@@ -800,6 +800,60 @@ package weave.application
 			_weaveMenu.validateNow();
 			
 			_weaveMenu.removeAllMenus();
+
+			var showHistorySlider:Boolean = false;
+			if (Weave.properties.enableSessionMenu.value || adminService)
+			{
+				_sessionMenu = _weaveMenu.addMenuToMenuBar(lang("Session"), false);
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Edit session state"), SessionStateEditor.openDefaultEditor));
+				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Import session history"), handleImportSessionState));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history"), ExportSessionStateOptions.openExportPanel));
+				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+					function():String { return lang( (Weave.properties.showSessionHistoryControls.value ? "Hide" : "Show") + " session history controls" ); },
+					function():void { Weave.properties.showSessionHistoryControls.value = !Weave.properties.showSessionHistoryControls.value; }
+				));
+				if (Weave.ALLOW_PLUGINS)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Manage plugins"), managePlugins));
+				}
+				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				if (JavaScript.available)
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang('Restart Weave'), Weave.externalReload));
+				if (Weave.properties.showCollaborationMenuItem.value)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(
+						_sessionMenu,
+						new WeaveMenuItem(
+							function():String
+							{
+								var collabTool:CollaborationTool = CollaborationTool.instance;
+								if (collabTool && collabTool.collabService.isConnected)
+									return lang("Open collaboration window");
+								else
+									return lang("Connect to collaboration server");
+							},
+							DraggablePanel.openStaticInstance,
+							[CollaborationTool]
+						)
+					);
+				}
+				if (adminService)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+						lang("Save session state to server"),
+						function():void { saveSessionStateToServer(); }
+					));
+				}
+				
+				showHistorySlider = Weave.properties.showSessionHistoryControls.value;
+			}
+			if (historySlider)
+				historySlider.visible = historySlider.includeInLayout = showHistorySlider;
 			
 			if (Weave.properties.enableDataMenu.value)
 			{
@@ -908,59 +962,6 @@ package weave.application
 				setupSubsetsMenu();
 			}
 			
-			var showHistorySlider:Boolean = false;
-			if (Weave.properties.enableSessionMenu.value || adminService)
-			{
-				_sessionMenu = _weaveMenu.addMenuToMenuBar(lang("Session"), false);
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Edit session state"), SessionStateEditor.openDefaultEditor));
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Import session history"), handleImportSessionState));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history"), ExportSessionStateOptions.openExportPanel));
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
-					function():String { return lang( (Weave.properties.showSessionHistoryControls.value ? "Hide" : "Show") + " session history controls" ); },
-					function():void { Weave.properties.showSessionHistoryControls.value = !Weave.properties.showSessionHistoryControls.value; }
-				));
-				if (Weave.ALLOW_PLUGINS)
-				{
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Manage plugins"), managePlugins));
-				}
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				if (JavaScript.available)
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang('Restart Weave'), Weave.externalReload));
-				if (Weave.properties.showCollaborationMenuItem.value)
-				{
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(
-						_sessionMenu,
-						new WeaveMenuItem(
-							function():String
-							{
-								var collabTool:CollaborationTool = CollaborationTool.instance;
-								if (collabTool && collabTool.collabService.isConnected)
-									return lang("Open collaboration window");
-								else
-									return lang("Connect to collaboration server");
-							},
-							DraggablePanel.openStaticInstance,
-							[CollaborationTool]
-						)
-					);
-				}
-				if (adminService)
-				{
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
-						lang("Save session state to server"),
-						function():void { saveSessionStateToServer(); }
-					));
-				}
-				
-				showHistorySlider = Weave.properties.showSessionHistoryControls.value;
-			}
-			if (historySlider)
-				historySlider.visible = historySlider.includeInLayout = showHistorySlider;
 			
 			if (Weave.properties.enableWindowMenu.value || adminService)
 			{
