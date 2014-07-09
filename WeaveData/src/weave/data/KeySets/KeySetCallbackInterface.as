@@ -32,28 +32,6 @@ package weave.data.KeySets
 			// variables will be set before each change callback.
 			super(setCallbackVariables);
 		}
-		
-		/**
-		 * The keys that were most recently added, causing callbacks to trigger.
-		 * This can be used as a buffer prior to calling flushKeys().
-		 * @see #flushKeys()
-		 */
-		public var keysAdded:Array = [];
-		
-		/**
-		 * The keys that were most recently removed, causing callbacks to trigger.
-		 * This can be used as a buffer prior to calling flushKeys().
-		 * @see #flushKeys()
-		 */
-		public var keysRemoved:Array = [];
-		
-		/**
-		 * This function will set the list callback variables:
-		 *     lastNameAdded, lastObjectAdded, lastNameRemoved, lastObjectRemoved, childListChanged
-		 * @param name This is the name of the object that was just added or removed from the hash map.
-		 * @param objectAdded This is the object that was just added to the hash map.
-		 * @param objectRemoved This is the object that was just removed from the hash map.
-		 */
 		private function setCallbackVariables(keysAdded:Array, keysRemoved:Array):void
 		{
 			this.keysAdded = keysAdded;
@@ -70,5 +48,19 @@ package weave.data.KeySets
 				_runCallbacksImmediately(keysAdded, keysRemoved);
 			setCallbackVariables([], []); // reset the variables to new arrays
 		}
+		
+		/**
+		 * The keys that were most recently added, causing callbacks to trigger.
+		 * This can be used as a buffer prior to calling flushKeys().
+		 * @see #flushKeys()
+		 */
+		public var keysAdded:Array = [];
+		
+		/**
+		 * The keys that were most recently removed, causing callbacks to trigger.
+		 * This can be used as a buffer prior to calling flushKeys().
+		 * @see #flushKeys()
+		 */
+		public var keysRemoved:Array = [];
 	}
 }
