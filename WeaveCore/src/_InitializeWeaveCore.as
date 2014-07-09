@@ -62,6 +62,15 @@ package
 		 */
 		WeaveXMLDecoder.includePackages(
 			"weave",
+			"weave.api",
+			"weave.api.core",
+			"weave.api.data",
+			"weave.api.primitives",
+			"weave.api.services",
+			"weave.api.services.beans",
+			"weave.api.ui",
+			"weave.compiler",
+			"weave.core",
 			"weave.utils"
 		);
 	}
