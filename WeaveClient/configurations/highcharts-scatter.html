@@ -75,7 +75,12 @@
         var keys = toolPath.probe_keyset.getKeys();
         var point 
 
-        if (keys.length == 0 && chart.hoverPoint) chart.hoverPoint.onMouseOut();
+        if (keys.length == 0 && chart.hoverPoint) 
+        { 
+            chart.hoverPoint.onMouseOut();
+            chart.tooltip.hide();
+        }
+        
         if (keys[0] && (point = chart.get(keys[0]))) point.onMouseOver();
     }
 
