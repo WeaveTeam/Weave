@@ -177,6 +177,7 @@
 				'chain': methodChainer,
 				'display': debugDisplayList,
 				'identify': Identify.identify,
+				'debugCompiler': function(script:String):String { return ObjectUtil.toString(new Compiler().compileToObject(script), null, 'evaluatedMethod,evaluatedHost,evaluatedMethodName,evaluatedParams,evalIndex,originalTokens'.split(',')); },
 				'_': {}
 			}, new ProxyObject(getClassDef, getClassDef, null)];
 			

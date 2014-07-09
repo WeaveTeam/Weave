@@ -1336,7 +1336,7 @@ package weave.compiler
 					var blockCall:CompiledFunctionCall = block as CompiledFunctionCall;
 					if (blockCall)
 					{
-						var blockItems:Array;
+						var blockItems:Array = null;
 						if (blockCall.evaluatedMethod == operators[';'] && blockCall.compiledParams.length == 0)
 							blockItems = [];
 						if (blockCall.evaluatedMethod == operators[','])
