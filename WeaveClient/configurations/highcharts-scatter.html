@@ -29,6 +29,7 @@
             {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: set_local_data, default: 'defaultColorColumn'}]);
         toolPath.subset_filter.addCallback(set_local_data, true);
         toolPath.selection_keyset.addCallback(set_local_selection, true);
+        toolPath.probe_keyset.addCallback(set_local_probe, true);
     }
     
     function set_local_selection()
@@ -61,6 +62,22 @@
     {
         toolPath.selection_keyset.addKeys([this.id]);
     }
+    function probe_handler(event)
+    {
+        toolPath.probe_keyset.setKeys([this.id]);
+    }
+    function unprobe_handler(event)
+    {
+        toolPath.probe_keyset.setKeys([]);
+    }
+    function set_local_probe(event)
+    {
+        var keys = toolPath.probe_keyset.getKeys();
+        var point 
+
+        if (keys.length == 0 && chart.hoverPoint) chart.hoverPoint.onMouseOut();
+        if (keys[0] && (point = chart.get(keys[0]))) point.onMouseOver();
+    }
 
     function set_local_data()
     {
@@ -83,7 +100,7 @@
                 },
             },
             plotOptions:{scatter:{allowPointSelect: true, animation: false, marker:{lineWidth: 1, lineColor: '#000', symbol: 'circle'},
-                point:{events:{select:select_handler, unselect: deselect_handler}}
+                point:{events:{select:select_handler, unselect: deselect_handler, mouseOver: probe_handler, mouseOut: unprobe_handler}}
             }}
         })
     });
