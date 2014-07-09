@@ -24,58 +24,45 @@
         toolPath = opener.WeaveExternalTools[window.name].path;
 
         columns = toolPath.initProperties([
-            {name: X_COLUMN, type: "DynamicColumn", label: "X", callback: data_updated},
-            {name: Y_COLUMN, type: "DynamicColumn", label: "Y", callback: data_updated},
-            {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: data_updated, default: 'defaultColorColumn'}]);
-        toolPath.subset_filter.addCallback(data_updated, true);
-        toolPath.selection_keyset.addCallback(selection_updated, true);
+            {name: X_COLUMN, type: "DynamicColumn", label: "X", callback: set_local_data},
+            {name: Y_COLUMN, type: "DynamicColumn", label: "Y", callback: set_local_data},
+            {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: set_local_data, default: 'defaultColorColumn'}]);
+        toolPath.subset_filter.addCallback(set_local_data, true);
+        toolPath.selection_keyset.addCallback(set_local_selection, true);
     }
     
-    var selection_updating = false;
-    function selection_updated()
+    function set_local_selection()
     {
+        var new_keys = toolPath.selection_keyset.getKeys();
+        var old_keys = _.pluck(chart.getSelectedPoints(), 'id');
 
-        selection_updating = true;
+        var deselect_keys = _.difference(old_keys, new_keys);
+        var select_keys = _.difference(new_keys, old_keys);
 
-        var keys = toolPath.selection_keyset.getKeys();
-
-        chart.getSelectedPoints().forEach(function (p) {p.select(false, true);});
-
-        keys.forEach(
+        select_keys.forEach(
             function (p_id) {
                 var p = chart.get(p_id);
-                if (p != null) 
-                    p.select(true, true);
+                if (p != null) p.select(true, true);
+            });
+        deselect_keys.forEach(
+            function (p_id) {
+                var p = chart.get(p_id);
+                if (p != null) p.select(false, true);
             });
 
-        selection_updating = false;
-    }
-
-    var update_timeout = null;
-
-    function update_selection()
-    { 
-        if (selection_updating) return true;
-
-        var ids = chart.getSelectedPoints().map(function (p) {return p.id});
-
-        toolPath.selection_keyset.setKeys(ids);
-
-        update_timeout = null;
+        return;
     }
     
-    function selection_handler(event)
+    function deselect_handler(event)
     {
-        if (selection_updating) return true;
-        
-        if (update_timeout === null)
-        {
-            update_timeout = window.setTimeout(update_selection, 50);
-        }
-        return true;
+        toolPath.selection_keyset.removeKeys([this.id]);
+    }
+    function select_handler(event)
+    {
+        toolPath.selection_keyset.addKeys([this.id]);
     }
 
-    function data_updated()
+    function set_local_data()
     {
         var data = toolPath.retrieveRecords(columns, toolPath.subset_filter);
 
@@ -96,7 +83,7 @@
                 },
             },
             plotOptions:{scatter:{allowPointSelect: true, animation: false, marker:{lineWidth: 1, lineColor: '#000', symbol: 'circle'},
-                point:{events:{select:selection_handler, unselect: selection_handler}}
+                point:{events:{select:select_handler, unselect: deselect_handler}}
             }}
         })
     });
