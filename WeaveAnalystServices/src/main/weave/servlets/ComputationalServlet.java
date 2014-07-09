@@ -121,7 +121,7 @@ public class ComputationalServlet extends WeaveServlet
 	 		startTime = System.currentTimeMillis();
 	 		try {
 				AwsRService rService = new AwsRService();
-				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), (String[]) inputNames.toArray(), inputValues.toArray());
+				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), (String[]) inputNames.toArray(new String[inputNames.size()]), inputValues.toArray());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -131,8 +131,44 @@ public class ComputationalServlet extends WeaveServlet
 		} else if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
 		{
 			// create JSON data
+			StringMap<Object> inputData = new StringMap<Object>();
 			
+			Gson gson = new Gson();
 			
+			for(String key : scriptInputs.keySet()) {
+				
+				Object value = scriptInputs.get(key);
+				
+				if(value instanceof String) {
+					inputData.put(key, value);
+				} else if (value instanceof Number) {
+					inputData.put(key, value);
+				} else if (value instanceof Boolean) {
+					inputData.put(key, value);
+				} else if (value instanceof StringMap<?>){
+					WeaveRecordList data = null;
+					data = DataService.getFilteredRows( new int[] {(Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue()}, filters, null);
+					Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
+					inputData.put(key, columnData[0]);
+				} else if (value instanceof Object[]) {
+					ArrayList<Integer> ids = new ArrayList<Integer>();
+					Object[] values = (Object[]) value;
+					for(int i = 0; i < values.length; i++)
+					{	
+						StringMap<Object> strMap = (StringMap<Object>) values[i];
+						ids.add((Integer) ((Double) strMap.get("id")).intValue());
+					}
+					
+					WeaveRecordList data = null;
+					data = DataService.getFilteredRows(Ints.toArray(ids), filters, null);
+					inputData.put(key, AWSUtils.transpose(data.recordData));
+				}
+			}
+			
+			String json = gson.toJson(inputData);
+			resultData = AwsStataService.runScript(scriptName, json, programPath, tempDirPath, stataScriptsPath);
+			
+			json = json;
 		}
 		
 		

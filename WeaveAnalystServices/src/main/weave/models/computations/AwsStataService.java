@@ -19,14 +19,14 @@ import weave.models.computations.IScriptEngine;
 
 public class AwsStataService implements IScriptEngine {
 
-	public static Object runScript(String scriptName, Object[][] dataSet, String programPath, String tempDirPath, String scriptPath) throws Exception {
+	public static Object runScript(String scriptName, String json, String programPath, String tempDirPath, String scriptPath) throws Exception {
 
+		
 		int exitValue = -1;
 		CSVParser parser = new CSVParser();
 		String tempScript = "";
 		String[][] resultData;
 		String[] args = null;
-		File dataSetCSV = null;
 		File tempScriptFile = null;
 		File tempDirectory = new File(tempDirPath);
 		if(!tempDirectory.exists() || !tempDirectory.isDirectory())
@@ -41,24 +41,20 @@ public class AwsStataService implements IScriptEngine {
 			}
 		}
 
-		try 
-		{
-			dataSetCSV = new File(FilenameUtils.concat(tempDirectory.getCanonicalPath(), "data.csv"));
-			BufferedWriter out = new BufferedWriter(new FileWriter(dataSetCSV));
-			parser.createCSV(dataSet, true, out, true);
-			//jsonParser.toJson(dataSet, out);
-			out.close();
-		} 
-
-		catch( IOException e)
-		{
+		try {
+			//write converted json data to a file named "file.json"
+			FileWriter writer = new FileWriter(FilenameUtils.concat(tempDirPath, "data.json"));
+			writer.write(json);
+			writer.close();
+	 
+		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RemoteException("Error while trying to write dataset to file");
 		}
 
 		try 
 		{
-			tempScript += "insheet using " + dataSetCSV.getAbsolutePath() + ", clear" + "\n" +
+			tempScript += "insheetjson using " + FilenameUtils.concat(tempDirPath, "data.json") + ", clear" + "\n" +
 					"global path=\"" + tempDirPath + "\"\n" +
 					"cd \"$path/\" \n" +
 					"noisily do " + new File(FilenameUtils.concat(scriptPath, scriptName)).getAbsolutePath() + "\n";
