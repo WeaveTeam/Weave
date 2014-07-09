@@ -149,6 +149,26 @@ weave.WeavePath = function(/*...basePath*/)
 weave.WeavePath.prototype._vars = {};
 
 /**
+ * Remembers which JavaScript variables should be unset after the next call to exec() or getValue().
+ * @private
+ */
+weave.WeavePath.prototype._tempVars = {};
+
+/**
+ * Cleans up temporary variables.
+ * @private
+ */
+weave.WeavePath.prototype._deleteTempVars = function()
+{
+	var vars = weave.WeavePath.prototype._vars;
+	var tempVars = weave.WeavePath.prototype._tempVars;
+	for (var key in tempVars)
+		if (tempVars[key])
+			delete vars[key];
+	weave.WeavePath.prototype._tempVars = {};
+};
+
+/**
  * Private function for internal use.
  * 
  * Converts an arguments object to an Array, and then reconstructs the Array using JSON if natualize() was previously called.
@@ -338,12 +358,17 @@ weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
  * Specifies additional variables to be used in subsequent calls to exec() and getValue().
  * The variables will be made globally available for any WeavePath object created from the same Weave instance.
  * @param newVars An object mapping variable names to values.
+ * @param temporary Optional parameter. If set to true, these variables will be unset after the next call to exec() or getValue()
+ *                  no matter where those functions are called, including from inside other WeavePath functions.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.vars = function(newVars)
+weave.WeavePath.prototype.vars = function(newVars, temporary)
 {
 	for (var key in newVars)
+	{
+		this._tempVars[key] = !!temporary;
 		this._vars[key] = newVars[key];
+	}
 	return this;
 };
 
@@ -382,6 +407,7 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
 	var variableName = type == 'string' ? callback_or_variableName : "";
 	var result = weave.evaluateExpression(this._path, script, this._vars, null, variableName);
+	this._deleteTempVars();
 	// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
 	if (variableName)
 		delete this._vars[variableName];
@@ -521,7 +547,9 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
  */
 weave.WeavePath.prototype.getValue = function(script_or_variableName)
 {
-	return this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);
+	var result = this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);
+	this._deleteTempVars();
+	return result;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
