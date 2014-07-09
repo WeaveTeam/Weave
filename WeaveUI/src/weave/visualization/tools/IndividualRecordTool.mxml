@@ -33,8 +33,6 @@
 			import weave.data.KeySets.KeySet;
 			import weave.utils.BitmapText;
 			import weave.utils.BitmapUtils;
-			import weave.utils.ColumnUtils;
-			import weave.visualization.plotters.AxisLabelPlotter;
 			import weave.visualization.plotters.IndividualRecordToolPlotter;
 			import weave.visualization.plotters.SimpleAxisPlotter;
 			
@@ -167,7 +165,6 @@
 				else
 					sortAxis.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
 				sortAxis.showLabels.value = !_plotter.showLabels.value || showAllLabels.value;
-
 				
 				xAxisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
 				yAxisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
@@ -392,6 +389,11 @@
 				<mx:Label text="Line 5 leading text:"/>
 				<mx:TextInput id="infoLine1FrontText5"/>
 			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox id="axisSettings" label="{lang('Plotter Axis Settings')}">
+			<mx:CheckBox label="{lang('Show all axis labels')}"
+						 creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
+			<ui:ColumnListComponent label="{lang('Attributes')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </tools:SimpleVisTool>
