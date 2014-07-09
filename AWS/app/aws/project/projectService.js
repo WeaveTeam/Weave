@@ -46,8 +46,14 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         				singleObject.queryObjectName = AWSQueryObjectCollection[i].queryObjectName;
         				singleObject.projectDescription = AWSQueryObjectCollection[i].projectDescription;
         				that.data.projectDescription = AWSQueryObjectCollection[i].projectDescription;
-        				//TODO add check for empty image
-        				singleObject.thumbnail = "data:image/png;base64," + AWSQueryObjectCollection[i].thumbnail;
+        				if(angular.isUndefined(AWSQueryObjectCollection[i].thumbnail)){
+        					singleObject.thumbnail = undefined;
+        					console.log("This queryObject does not contain any stored visualizations");
+        				}
+        				else{
+        					
+        					singleObject.thumbnail = "data:image/png;base64," + AWSQueryObjectCollection[i].thumbnail;
+        				}
         				
         				
         				that.data.columnstring = "";
@@ -174,5 +180,54 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
 	       
 	       return deferred.promise;
    };
+   
+   /**
+    * This function wraps the async aws insertQueryObjectToProject function into an angular defer/promise
+    * adds a query object (row) to the specified project in the database
+    * So that the UI asynchronously wait for the data to be available...
+    */
+   this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
+     	
+   	var deferred = $q.defer();
+   	var params = {};
+   	params.userName = userName;
+   	params.projectName = projectName;
+   	params.projectDescription = projectDescription;
+   	params.queryObjectTitle = queryObjectTitle;
+   	params.queryObjectContent = queryObjectContent;
+
+   	aws.queryService(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
+   		that.data.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
+       	console.log("insertQueryObjectStatus", that.data.insertQueryObjectStatus);
+       	if(that.data.insertQueryObjectStatus != 0){
+       		alert("Query Object" + queryObjectTitle+ " has been added to project:" + projectName);
+       	}
+       	
+       	scope.$safeApply(function() {
+               deferred.resolve(result);
+           });
+       	
+       });
+       
+       return [deferred.promise, that.data.insertQueryObjectStatus] ;
+       
+   };
+   
+//   $scope.$watch(function(){
+//    	return queryService.dataObject.insertQueryObjectStatus;
+//     }, function(){ 
+//    	 $scope.insertQueryObjectStatus = queryService.dataObject.insertQueryObjectStatus;
+//    	if(!(angular.isUndefined($scope.insertQueryObjectStatus)))
+//		 {
+//		 	if($scope.insertQueryObjectStatus != 0)
+//		 		{
+//   		 		alert("Query Object has been added");
+//   		 		queryService.dataObject.listofQueryObjectsInProject = [];
+//	    			queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);//makes a new call
+//		 		}
+//		 }
+//	 
+//    	queryService.dataObject.insertQueryObjectStatus = 0;//reset
+//     });
    
 }]);

@@ -90,7 +90,7 @@
 									</div>
  <!-- Contains the picture -->		<!-- div style="display : table-cell" ng-repeat = "pic in thumbnailsToDisplay"-->
 										<div style="display : table-cell">
-										<img width = "150" height = "100" ng-src={{item.thumbnail}} style="border: 1px solid #000000;" ng-click = "returnSessionState(item.queryObject)"
+										<img width = "150" height = "100" ng-src= "{{item.thumbnail || '../aws/css/img/ImageUnavailable.png'}}" style="border: 1px solid #000000;" ng-click = "returnSessionState(item.queryObject)"
 										></img>
 									</div>
 								</div>
