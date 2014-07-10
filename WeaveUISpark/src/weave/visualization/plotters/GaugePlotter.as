@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
@@ -37,7 +38,7 @@ package weave.visualization.plotters
 	/**
 	 * This is the plotter for the semi-circular Gauge tool.
 	 */
-	public class GaugePlotter extends MeterPlotter
+	public class GaugePlotter extends MeterPlotter implements IObjectWithSelectableAttributes
 	{
 		
 		//the radius of the Gauge (from 0 to 1)
@@ -95,6 +96,15 @@ package weave.visualization.plotters
 			meterColumn.addImmediateCallback(this, updateAxis);
 			binningDefinition.generateBinClassifiersForColumn(meterColumn);
 			registerLinkableChild(this, binningDefinition.asyncResultCallbacks);
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Gauge Column"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [meterColumn]
 		}
 		
 		/**

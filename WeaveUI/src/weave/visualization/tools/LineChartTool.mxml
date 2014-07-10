@@ -275,17 +275,11 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				if (_plotter.enableGroupBy.value)
-					return ["X values", "Y values", "Group by", "Group color", "Group label"];
-				else
-					return ["Color", "Label", "Y Columns"];
+				return super.getSelectableAttributeNames().concat([_plotter.enableGroupBy.value ? 'Group label' : 'Label']);
 			}
 			override public function getSelectableAttributes():Array
 			{
-				if (_plotter.enableGroupBy.value)
-					return [_plotter.xData, _plotter.yData, _plotter.groupBy, _plotter.lineStyle.color, labelPlotter.text];
-				else
-					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns];
+				return super.getSelectableAttributes().concat([labelPlotter.text]);
 			}
 			
 			private function getColumnObjects():Array

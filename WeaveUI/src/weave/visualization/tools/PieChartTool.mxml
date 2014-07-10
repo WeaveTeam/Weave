@@ -137,15 +137,6 @@
 				visualization.additionalProbeColumns = columns;
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["Wedge Size","Wedge Color","Label"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.data, _plotter.fill.color, _plotter.label];
-			}
-			
 			private function invalidateAxes():void
 			{
 				handlePanelTitleChange();

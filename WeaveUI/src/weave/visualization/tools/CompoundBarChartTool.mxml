@@ -141,29 +141,6 @@
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [
-					"Color",
-					"Label",
-					"Sort",
-					"Height",
-					"Positive Error",
-					"Negative Error"
-				];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [
-					_plotter.colorColumn,
-					_plotter.labelColumn,
-					_plotter.sortColumn,
-					_plotter.heightColumns,
-					_plotter.positiveErrorColumns,
-					_plotter.negativeErrorColumns
-				];
-			}
-			
 			public function get heightColumns():ILinkableHashMap { return _plotter.heightColumns; }
 			public function get chartColors():ColorRamp { return _plotter.chartColors; }
 			

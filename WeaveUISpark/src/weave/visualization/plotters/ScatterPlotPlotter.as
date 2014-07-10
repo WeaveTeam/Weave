@@ -35,6 +35,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
@@ -52,7 +53,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class ScatterPlotPlotter extends AbstractGlyphPlotter
+	public class ScatterPlotPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
 	{
 		WeaveAPI.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
 		
@@ -64,6 +65,15 @@ package weave.visualization.plotters
 			
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["X", "Y", "Color", "Size"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [dataX, dataY, fill.color, sizeBy];
 		}
 		
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);

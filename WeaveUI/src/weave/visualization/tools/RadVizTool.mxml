@@ -377,12 +377,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Size", "Color", "Anchor Dimensions", "Class Discriminator"];
+				return super.getSelectableAttributeNames().concat(['Class Descriminator']);
 			}
 			
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.radiusColumn, _plotter.fillStyle.color, _plotter.columns, classDiscriminatorColumn];
+				return super.getSelectableAttributes().concat([classDiscriminatorColumn]);
 			}
 			
 			override public function get defaultPanelTitle():String

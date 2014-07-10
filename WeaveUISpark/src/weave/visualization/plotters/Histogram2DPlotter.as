@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
@@ -49,7 +50,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author skolman
 	 */
-	public class Histogram2DPlotter extends AbstractPlotter
+	public class Histogram2DPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		WeaveAPI.registerImplementation(IPlotter, Histogram2DPlotter, "Histogram 2D");
 		
@@ -60,6 +61,15 @@ package weave.visualization.plotters
 			registerLinkableChild(this, cc);
 			
 			setColumnKeySources([xColumn, yColumn]);
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["X", "Y"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [xColumn, yColumn];
 		}
 		
 		private var _keySet:KeySet = newDisposableChild(this, KeySet);

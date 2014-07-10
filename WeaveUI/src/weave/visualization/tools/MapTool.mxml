@@ -87,17 +87,6 @@
 			
 			private var selectionSubMenu:SubMenu;
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				// hack
-				return ["Color"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				// hack
-				return [Weave.defaultColorColumn];
-			}
-			
 			/**
 			 * This function moves the overview window in front of the visualization
 			 */

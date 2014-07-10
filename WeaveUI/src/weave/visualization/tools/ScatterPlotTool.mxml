@@ -119,15 +119,6 @@
 				// save new order
 				children.setNameOrder(order);
 			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["X", "Y", "Color", "Size"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.dataX, plotter.dataY, plotter.fill.color, plotter.sizeBy];
-			}
 		
 			[Bindable]
 			public var regressionPlotter:RegressionLinePlotter = null;

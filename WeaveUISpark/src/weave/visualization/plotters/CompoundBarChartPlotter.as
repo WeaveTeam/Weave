@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -64,7 +65,7 @@ package weave.visualization.plotters
 	 * @author adufilie
 	 * @author kmanohar
 	 */
-	public class CompoundBarChartPlotter extends AbstractPlotter
+	public class CompoundBarChartPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		public function CompoundBarChartPlotter()
 		{
@@ -95,6 +96,30 @@ package weave.visualization.plotters
 			var newColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
 				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+		}
+		
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return [
+				"Color",
+				"Label",
+				"Sort",
+				"Height",
+				"Positive Error",
+				"Negative Error"
+			];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [
+				colorColumn,
+				labelColumn,
+				sortColumn,
+				heightColumns,
+				positiveErrorColumns,
+				negativeErrorColumns
+			];
 		}
 		
 		/**

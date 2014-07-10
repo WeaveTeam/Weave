@@ -94,15 +94,6 @@
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["X","Y"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.xColumn,plotter.yColumn];
-			}
-			
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
 			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
 			{
