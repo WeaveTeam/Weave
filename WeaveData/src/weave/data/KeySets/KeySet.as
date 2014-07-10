@@ -219,6 +219,8 @@ package weave.data.KeySets
 			// stop if there are no keys to remove
 			if (_keys.length == 0)
 				return false; // set did not change
+			
+			keyCallbacks.keysRemoved = keyCallbacks.keysRemoved.concat(_keys);
 
 			// clear key-to-index mapping
 			_keyIndex = new Dictionary();
