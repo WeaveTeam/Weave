@@ -6,12 +6,14 @@ weave.WeavePath.prototype.probe_keyset = weave.path("defaultProbeKeySet");
 weave.WeavePath.prototype.selection_keyset = weave.path("defaultSelectionKeySet");
 weave.WeavePath.prototype.subset_filter = weave.path("defaultSubsetKeyFilter");
 
-weave.WeavePath._qkeys_to_numeric = {};
-weave.WeavePath._numeric_to_qkeys = {};
-weave.WeavePath._numeric_key_idx = 0;
-weave.WeavePath._keyIdPrefix = "WeaveQKey";
+weave.WeavePath.Keys = {};
 
-weave.WeavePath.qkeyToIndex = function(key)
+weave.WeavePath.Keys._qkeys_to_numeric = {};
+weave.WeavePath.Keys._numeric_to_qkeys = {};
+weave.WeavePath.Keys._numeric_key_idx = 0;
+weave.WeavePath.Keys._keyIdPrefix = "WeaveQKey";
+
+weave.WeavePath.Keys.qkeyToIndex = function(key)
 {   
     var key_str = JSON.stringify([""+key.keyType, ""+key.localName]);
 
@@ -27,29 +29,92 @@ weave.WeavePath.qkeyToIndex = function(key)
     return this._qkeys_to_numeric[key_str];
 };
 
-weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.qkeyToIndex.bind(weave.WeavePath);
-
-weave.WeavePath.indexToQKey = function (index)
+weave.WeavePath.Keys.indexToQKey = function (index)
 {
     return this._numeric_to_qkeys[index];
 };
 
-weave.WeavePath.prototype.indexToQKey = weave.WeavePath.indexToQKey.bind(weave.WeavePath);
-
-weave.WeavePath.qkeyToString = function(key)
+weave.WeavePath.Keys.qkeyToString = function(key)
 {
     return this._keyIdPrefix + this.qkeyToIndex(key);
 };
 
-weave.WeavePath.prototype.qkeyToString = weave.WeavePath.qkeyToString.bind(weave.WeavePath);
-
-weave.WeavePath.stringToQKey = function(s) 
+weave.WeavePath.Keys.stringToQKey = function(s) 
 {
     idx = s.substr(this._keyIdPrefix.length);
     return this.indexToQKey(idx);
 };
 
-weave.WeavePath.prototype.stringToQKey = weave.WeavePath.stringToQKey.bind(weave.WeavePath);
+weave.WeavePath.Keys._getKeyBuffers = function (pathArray)
+{
+    var path_key = JSON.stringify(pathArray);
+
+    var key_buffers_dict = (this._key_buffers = this._key_buffers || {});
+    var key_buffers = (key_buffers_dict[path_key] = key_buffers_dict[path_key] || {});
+
+    if (key_buffers.add === undefined) key_buffers.add = {};
+    if (key_buffers.remove === undefined) key_buffers.remove = {};
+    if (key_buffers.timeout_id === undefined) key_buffers.timeout_id = null;
+
+    return key_buffers;
+};
+
+weave.WeavePath.Keys._flushKeys = function (pathArray)
+{
+    var key_buffers = this._getKeyBuffers(pathArray);
+    var add_keys = Object.keys(key_buffers.add);
+    var remove_keys = Object.keys(key_buffers.remove);
+
+    add_keys = add_keys.map(this.stringToQKey, this)
+    remove_keys = remove_keys.map(this.stringToQKey, this);
+
+    key_buffers.add = {};
+    key_buffers.remove = {};
+
+    weave.evaluateExpression(pathArray, 'this.addKeys(keys)', {keys: add_keys});
+    weave.evaluateExpression(pathArray, 'this.removeKeys(keys)', {keys: remove_keys});
+
+    key_buffers.timeout_id = null;
+}.bind(weave.WeavePath.Keys);
+
+weave.WeavePath.Keys._flushKeysLater = function(pathArray)
+{
+    var key_buffers = this._getKeyBuffers(pathArray);
+    if (key_buffers.timeout_id === null)
+        key_buffers.timeout_id = window.setTimeout(weave.WeavePath.Keys._flushKeys, 25, pathArray);
+};
+
+weave.WeavePath.Keys._addKeys = function(pathArray, keyStringArray)
+{
+    var key_buffers = this._getKeyBuffers(pathArray);
+    
+    keyStringArray.forEach(function(key)
+    {
+        key_buffers.add[key] = true;
+        delete key_buffers.remove[key];
+    })
+
+    this._flushKeysLater(pathArray);
+};
+
+weave.WeavePath.Keys._removeKeys = function(pathArray, keyStringArray)
+{
+    var key_buffers = this._getKeyBuffers(pathArray);
+    
+    keyStringArray.forEach(function(key)
+    {
+        key_buffers.remove[key] = true;
+        delete key_buffers.add[key];
+    })
+
+    this._flushKeysLater(pathArray);
+};
+
+weave.WeavePath.prototype.qkeyToString = weave.WeavePath.Keys.qkeyToString.bind(weave.WeavePath.Keys);
+weave.WeavePath.prototype.stringToQKey = weave.WeavePath.Keys.stringToQKey.bind(weave.WeavePath.Keys);
+weave.WeavePath.prototype.indexToQKey = weave.WeavePath.Keys.indexToQKey.bind(weave.WeavePath.Keys);
+weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(weave.WeavePath.Keys);
+
 
 /**
  * Creates a new property of the specified type, and binds the appropriate callback.
@@ -90,7 +155,7 @@ weave.WeavePath.prototype.initProperty = function(property_descriptor)
     }
 
     return this;
-}
+};
 
 weave.WeavePath.prototype.initProperties = function(property_descriptor_array)
 {
@@ -119,15 +184,30 @@ weave.WeavePath.prototype.getKeys = function(/* [relpath] */)
     return raw_keys.map(this.qkeyToString);
 };
 
+
+
+weave.WeavePath.prototype.flushKeys = function (/* [relpath] */)
+{
+    var args = this._A(arguments, 1);
+    if (this._assertParams('flushKeys', args))
+    {
+        var path = this._path.concat(args);
+
+        this.weave.WeavePath.Keys._flushKeys(path);
+    }
+    return this;
+};
+
 weave.WeavePath.prototype.addKeys = function (/* [relpath], keyStringArray */)
 {
     var args = this._A(arguments, 2);
+
     if (this._assertParams('addKeys', args))
     {
         var keyStringArray = args.pop();
-        var keyObjectArray = keyStringArray.map(this.stringToQKey);
         var path = this._path.concat(args);
-        this.weave.evaluateExpression(path, 'this.addKeys(keys)', {keys: keyObjectArray});
+
+        this.weave.WeavePath.Keys._addKeys(path, keyStringArray);
     }
     return this;
 };
@@ -135,12 +215,13 @@ weave.WeavePath.prototype.addKeys = function (/* [relpath], keyStringArray */)
 weave.WeavePath.prototype.removeKeys = function (/* [relpath], keyStringArray */)
 {
     var args = this._A(arguments, 2);
+
     if (this._assertParams('removeKeys', args))
     {
         var keyStringArray = args.pop();
-        var keyObjectArray = keyStringArray.map(this.stringToQKey);
         var path = this._path.concat(args);
-        this.weave.evaluateExpression(path, "this.removeKeys(keys)", {keys: keyObjectArray});
+
+        this.weave.WeavePath.Keys._removeKeys(path, keyStringArray);
     }
     return this;
 };
