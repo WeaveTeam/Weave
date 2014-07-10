@@ -28,30 +28,22 @@
             {name: Y_COLUMN, type: "DynamicColumn", label: "Y", callback: set_local_data},
             {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: set_local_data, default: 'defaultColorColumn'}]);
         toolPath.subset_filter.addCallback(set_local_data, true);
-        toolPath.selection_keyset.addCallback(set_local_selection, true);
+        toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
         toolPath.probe_keyset.addCallback(set_local_probe, true);
     }
     
-    function set_local_selection()
+    function set_local_selection(keys)
     {
-        var new_keys = toolPath.selection_keyset.getKeys();
-        var old_keys = _.pluck(chart.getSelectedPoints(), 'id');
-
-        var deselect_keys = _.difference(old_keys, new_keys);
-        var select_keys = _.difference(new_keys, old_keys);
-
-        select_keys.forEach(
+        keys.added.forEach(
             function (p_id) {
                 var p = chart.get(p_id);
-                if (p != null) p.select(true, true);
+                if (p && p.select && !p.selected) p.select(true, true);
             });
-        deselect_keys.forEach(
+        keys.removed.forEach(
             function (p_id) {
                 var p = chart.get(p_id);
-                if (p != null) p.select(false, true);
+                if (p && p.select && p.selected) p.select(false, true);
             });
-
-        return;
     }
     
     function deselect_handler(event)
@@ -80,7 +72,7 @@
             chart.hoverPoint.onMouseOut();
             chart.tooltip.hide();
         }
-        
+
         if (keys[0] && (point = chart.get(keys[0]))) point.onMouseOver();
     }
 
