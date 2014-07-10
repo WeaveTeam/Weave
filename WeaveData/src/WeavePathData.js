@@ -14,19 +14,18 @@ weave.WeavePath.Keys._numeric_key_idx = 0;
 weave.WeavePath.Keys._keyIdPrefix = "WeaveQKey";
 
 weave.WeavePath.Keys.qkeyToIndex = function(key)
-{   
-    var key_str = JSON.stringify([""+key.keyType, ""+key.localName]);
+{
+    var local_map = (this._qkeys_to_numeric[key.keyType] = this._qkeys_to_numeric[key.keyType] || {});
 
-    if (this._qkeys_to_numeric[key_str] == undefined)
+    if (local_map[key.localName] === undefined)
     {
-        var idx = this._numeric_key_idx;
+        var idx = this._numeric_key_idx++;
 
+        local_map[key.localName] = idx;
         this._numeric_to_qkeys[idx] = key;
-        this._qkeys_to_numeric[key_str] = idx;
-        
-        this._numeric_key_idx = idx + 1;
     }
-    return this._qkeys_to_numeric[key_str];
+
+    return local_map[key.localName];
 };
 
 weave.WeavePath.Keys.indexToQKey = function (index)
