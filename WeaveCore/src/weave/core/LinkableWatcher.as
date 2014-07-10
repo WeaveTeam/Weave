@@ -20,7 +20,9 @@
 package weave.core
 {
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * This is used to dynamically attach a set of callbacks to different targets.
@@ -43,14 +45,16 @@ package weave.core
 		}
 		
 		private var _typeRestriction:Class;
-		private var _target:ILinkableObject; // the current target
+		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
+		private var _foundTarget:Boolean = true; // false when _target is not the desired target
+		private var _targetPath:Array; // the path that is being watched
 		
 		/**
 		 * This is the linkable object currently being watched.
 		 */		
 		public function get target():ILinkableObject
 		{
-			return _target;
+			return _foundTarget ? _target : null;
 		}
 		
 		/**
@@ -59,23 +63,26 @@ package weave.core
 		 */
 		public function set target(newTarget:ILinkableObject):void
 		{
-			if (_typeRestriction)
+			if (_foundTarget && _typeRestriction)
 				newTarget = newTarget as _typeRestriction as ILinkableObject;
 			
 			// do nothing if the targets are the same.
 			if (_target == newTarget)
 				return;
 			
+			var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
+			
 			// unlink from old target
 			if (_target)
 			{
-				WeaveAPI.SessionManager.getCallbackCollection(_target).removeCallback(_handleTargetDispose);
+				sm.getCallbackCollection(_target).removeCallback(_handleTargetTrigger);
+				sm.getCallbackCollection(_target).removeCallback(_handleTargetDispose);
 				
 				// if we own the previous target, dispose it
-				if (WeaveAPI.SessionManager.getLinkableOwner(_target) == this)
-					WeaveAPI.SessionManager.disposeObject(_target);
+				if (sm.getLinkableOwner(_target) == this)
+					sm.disposeObject(_target);
 				else
-					(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _target);
+					sm.unregisterLinkableChild(this, _target);
 			}
 			
 			_target = newTarget;
@@ -83,17 +90,91 @@ package weave.core
 			// link to new target
 			if (_target)
 			{
-				WeaveAPI.SessionManager.registerLinkableChild(this, _target);
-				WeaveAPI.SessionManager.getCallbackCollection(_target).addDisposeCallback(this, _handleTargetDispose);
+				// we want to register the target as a linkable child (for busy status)
+				sm.registerLinkableChild(this, _target);
+				// we don't want the target triggering our callbacks directly
+				sm.getCallbackCollection(_target).removeCallback(sm.getCallbackCollection(this).triggerCallbacks);
+				sm.getCallbackCollection(_target).addImmediateCallback(this, _handleTargetTrigger, false, true);
+				// we need to know when the target is disposed
+				sm.getCallbackCollection(_target).addDisposeCallback(this, _handleTargetDispose);
 			}
 			
-			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+			if (_foundTarget)
+				_handleTargetTrigger();
+		}
+		
+		private function _handleTargetTrigger():void
+		{
+			if (_foundTarget)
+				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+			else
+				handlePath();
 		}
 		
 		private function _handleTargetDispose():void
 		{
-			_target = null;
-			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+			if (_targetPath)
+			{
+				handlePath();
+			}
+			else
+			{
+				_target = null;
+				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+			}
+		}
+		
+		/**
+		 * This will set a path which should be watched for new targets.
+		 * Callbacks will be triggered immediately if the path points to a new target.
+		 */
+		public function set targetPath(path:Array):void
+		{
+			// do not allow watching the globalHashMap
+			if (path && path.length == 0)
+				path = null;
+			if (StandardLib.arrayCompare(_targetPath, path) != 0)
+			{
+				_targetPath = path;
+				handlePath();
+			}
+		}
+		
+		private function handlePath():void
+		{
+			if (!_targetPath)
+			{
+				_foundTarget = true;
+				target = null;
+				return;
+			}
+			
+			var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
+			var obj:ILinkableObject = sm.getObject(WeaveAPI.globalHashMap, _targetPath);
+			if (obj)
+			{
+				// we found a desired target if there is no type restriction or the object fits the restriction
+				_foundTarget = !_typeRestriction || obj is _typeRestriction;
+			}
+			else
+			{
+				_foundTarget = false;
+				var path:Array = _targetPath.concat();
+				while (!obj && path.length)
+				{
+					path.pop();
+					obj = sm.getObject(WeaveAPI.globalHashMap, path);
+				}
+				
+				if (obj is ILinkableHashMap)
+				{
+					// watching childListCallbacks instead of the hash map accomplishes two things:
+					// 1. eliminate unnecessary calls to handlePath()
+					// 2. avoid watching the root hash map (and registering the root as a child of the watcher)
+					obj = (obj as ILinkableHashMap).childListCallbacks;
+				}
+			}
+			target = obj;
 		}
 		
 		/**
