@@ -13,7 +13,7 @@ weave.WeavePath._keyIdPrefix = "WeaveQKey";
 
 weave.WeavePath.qkeyToIndex = function(key)
 {   
-    var key_str = JSON.stringify([key.keyType && key.keyType.toString(), key.localName && key.localName.toString()]);
+    var key_str = JSON.stringify([key.keyType, key.localName]);
 
     if (this._qkeys_to_numeric[key_str] == undefined)
     {
@@ -70,7 +70,7 @@ weave.WeavePath.prototype.initProperty = function(property_descriptor)
     
     var new_prop = this.push(name);
 
-    var existed = !!new_prop.getType();
+    var oldType = new_prop.getType();
 
     new_prop.request(type);
 
@@ -79,7 +79,7 @@ weave.WeavePath.prototype.initProperty = function(property_descriptor)
         new_prop.label(label);
     }
 
-    if (!existed && property_descriptor.hasOwnProperty("default"))
+    if (oldType != type && property_descriptor.hasOwnProperty("default"))
     {
         new_prop.state(property_descriptor["default"]);
     }
@@ -113,7 +113,9 @@ weave.WeavePath.prototype.initProperties = function(property_descriptor_array)
 
 weave.WeavePath.prototype.getKeys = function(/* [relpath] */)
 {
-    var raw_keys = this.weave.evaluateExpression(this._path.concat(this._A(arguments, 1)), "this.keys", this._vars);
+	var args = this._A(arguments, 1);
+	var path = this._path.concat(args);
+    var raw_keys = this.weave.evaluateExpression(path, "this.keys");
     return raw_keys.map(this.qkeyToString);
 };
 
@@ -124,9 +126,10 @@ weave.WeavePath.prototype.addKeys = function (/* [relpath], keyStringArray */)
     {
         var keyStringArray = args.pop();
         var keyObjectArray = keyStringArray.map(this.stringToQKey);
-
-        this.push(args).vars({addKeysArgs: keyObjectArray}).exec('addKeys(addKeysArgs)');
+        var path = this._path.concat(args);
+        this.weave.evaluateExpression(path, 'this.addKeys(keys)', {keys: keyObjectArray});
     }
+    return this;
 };
 
 weave.WeavePath.prototype.removeKeys = function (/* [relpath], keyStringArray */)
@@ -136,39 +139,38 @@ weave.WeavePath.prototype.removeKeys = function (/* [relpath], keyStringArray */
     {
         var keyStringArray = args.pop();
         var keyObjectArray = keyStringArray.map(this.stringToQKey);
-
-        this.push(args).vars({removeKeysArgs: keyObjectArray}).exec('removeKeys(removeKeysArgs)');
+        var path = this._path.concat(args);
+        this.weave.evaluateExpression(path, "this.removeKeys(keys)", {keys: keyObjectArray});
     }
+    return this;
 };
 
-weave.WeavePath.prototype.addKeySetCallback = function (func, triggerCallbackNow)
+weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbackNow)
 {
     function wrapper()
     {
-        var key_event = this.getValue('{added: addedKeys, removed: removedKeys}');
+        var key_event = this.weave.evaluateExpression(this._path, '{added: this.keysAdded, removed: this.keysRemoved}');
         
-
         key_event.added = key_event.added.map(this.qkeyToString);
         key_event.removed = key_event.removed.map(this.qkeyToString);
 
-        func(key_event);
+        callback.call(this, key_event);
     }
-
 
     this.push('keyCallbacks').addCallback(wrapper, false, true);
 
     if (triggerCallbackNow)
     {
-        var key_event = {};
-        var added_keys = this.getKeys();
-        key_event.removed = [];
+        var key_event = {
+        	added: this.getKeys(),
+        	removed: []
+        };
 
-        func.call(this, key_event);
+        callback.call(this, key_event);
     }
 
     return this;
 };
-
 
 weave.WeavePath.prototype.setKeys = function(/* [relpath], keyStringArray */)
 {
@@ -177,8 +179,8 @@ weave.WeavePath.prototype.setKeys = function(/* [relpath], keyStringArray */)
     {
         var keyStringArray = args.pop();
         var keyObjectArray = keyStringArray.map(this.stringToQKey);
-
-        this.push(args).vars({setKeysArgs: keyObjectArray}).exec('replaceKeys(setKeysArgs)');
+        var path = this._path.concat(args);
+        this.weave.evaluateExpression(path, 'this.replaceKeys(keys)', {keys: keyObjectArray});
 
         return this;
     };
@@ -192,22 +194,31 @@ weave.WeavePath.prototype.filterKeys = function (/* [relpath], keyStringArray */
     {
         var keyStringArray = args.pop();
         var keyObjects = keyStringArray.map(this.stringToQKey);
-        var resultArray = this.push(args).vars({containsKeysArgs: keyObjects}).getValue(
-            'WeaveAPI.QKeyManager.convertToQKeys(containsKeysArgs).filter(function(d) { return containsKey(d); })'
+        var path = this._path.concat(args);
+        var resultArray = this.weave.evaluateExpression(
+        	path,
+            'WeaveAPI.QKeyManager.convertToQKeys(keys).filter(key => this.containsKey(key), this)',
+            {keys: keyObjects}
         );
         return resultArray.map(this.qkeyToString, this);
     }
 };
 
+/**
+ * This only works on an ILinkableHashMap.
+ */
 weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArray */)
 {
     var args = this._A(arguments, 2);
     if (this._assertParams('retrieveColumns', args))
     {
         var columnNameArray = args.pop();
-
-        var results = this.push(args).libs("weave.utils.ColumnUtils").vars({retrieveColumnsArgs: columnNameArray}).getValue(
-            'ColumnUtils.joinColumns(retrieveColumnsArgs.map(function(name){ return getObject(name); }, this),  null, true)'
+        var path = this._path.concat(args);
+        var results = this.weave.evaluateExpression(
+        	path,
+        	'ColumnUtils.joinColumns(names.map(name => this.getObject(name), this), null, true)',
+        	{names: columnNameArray},
+        	['weave.utils.ColumnUtils']
         );
         /* Convert the keys to strings */
         results[0] = results[0].map(this.qkeyToString, this);
@@ -217,44 +228,49 @@ weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArr
 
 /** 
  * Retrieve a table of columns defined by a mapping of property names to column paths. 
- * @param path Mapping An object containing a mapping of desired property names to column paths. "id" is a reserved name.
- * @param keys A path object pointing to a valid keyset (columns are also keysets.)
+ * @param pathMapping An object containing a mapping of desired property names to column paths. "id" is a reserved name.
+ * @param keySetPath A path object pointing to an IKeySet (columns are also IKeySets.)
  * @return An array of record objects.
  */
-weave.WeavePath.prototype.retrieveRecords = function(/* pathMapping, keySetPath */)
+weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 {
-    var args = this._A(arguments, 2);
-    if (this._assertParams('joinColumns', 1))
+    var columnNames = Object.keys(pathMapping);
+    var columnPaths = columnNames.map(function (name) { return pathMapping[name].getPath(); });
+
+    var keySetPath = keySetPath ? keySetPath.getPath() : null;
+    var results = this.weave.evaluateExpression(
+    	this._path,
+        '\
+    		var getObject = WeaveAPI.SessionManager.getObject;\
+        	var root = WeaveAPI.globalHashMap;\
+        	var keySet = keySetPath ? getObject(root, keySetPath) : null;\
+        	var columns = paths.map(path => getObject(root, path));\
+        	return ColumnUtils.joinColumns(columns, null, true, keySet);\
+    	',
+    	{
+    		paths: columnPaths,
+    		keySetPath: keySetPath
+    	},
+    	['weave.utils.ColumnUtils']
+    );
+    
+    results[0] = results[0].map(this.qkeyToString);
+
+    var records = new Array(results[0].length);
+    for (var record_idx = 0; record_idx < results[0].length; record_idx++)
     {
-        var keys = Object.keys(args[0]);
+        var new_record = {};
 
-        var values = keys.map(function (d,i,a) {return args[0][d].getPath();});
+        new_record.id = results[0][record_idx];
 
-        var keySetPath = args[1] ? args[1].getPath() : null;
-        
-        var results = this.push(args).libs("weave.utils.ColumnUtils").vars({paths: values, keySetPath: keySetPath}).getValue(
-            'var keySet = keySetPath ? WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, keySetPath) : null;'+
-            'var columns = paths.map(function(path){return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);});'+
-            'return ColumnUtils.joinColumns(columns, null, true, keySet);');
-        
-        results[0] = results[0].map(this.qkeyToString, this);
-
-        var records = Array(results[0].length);
-        for (var record_idx = 0; record_idx < results[0].length; record_idx++)
+        for (var column_idx = 0; column_idx < columnNames.length; column_idx++)
         {
-            var new_record = {};
-
-            new_record.id = results[0][record_idx];
-
-            for (var column_idx = 0; column_idx < keys.length; column_idx++)
-            {
-                new_record[keys[column_idx]] = results[column_idx+1][record_idx];
-            }
-
-            records[record_idx] = new_record;
+            new_record[columnNames[column_idx]] = results[column_idx+1][record_idx];
         }
-        return records;
+
+        records[record_idx] = new_record;
     }
+    return records;
 }
 
 /**
@@ -269,8 +285,8 @@ weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
 	if (this._assertParams('setLabel', args))
 	{
 		var label = args.pop();
-		var pathcopy = this._path.concat(args);
-		this.weave.evaluateExpression(pathcopy, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label});
+		var path = this._path.concat(args);
+		this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label});
 	}
 	return this;
 }
@@ -283,5 +299,7 @@ weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
  */
 weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
 {
-	return this.weave.evaluateExpression(this._path.concat(this._A(arguments, 1)), "WeaveAPI.EditorManager.getLabel(this)")
+	var args = this._A(arguments, 1);
+	var path = this._path.concat(args);
+	return this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.getLabel(this)")
 };
