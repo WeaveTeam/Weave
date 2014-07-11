@@ -1,61 +1,67 @@
 {
-        "inputs" : [
-
-                {
-                 "type" : "column",
-		 "param" : "state",
-                 "description" : "State variable",
-		 "columnType" : "geography"
-                },
-
-                {
-                 "type" : "column",
-		 "param" : "PSU",
-                 "description" : "PSU variable",
-		 "columnType" : "analytic"
-                },
-
-                {
-                 "type" : "column",
-		 "param" : "FinalWt",
-                 "description" : "State variable",
-		 "columnType" : "analytic"
-                },
-
-                {
-                 "type" : "column",
-		 "param" : "StStr",
-                 "description" : "StStr variable",
-		 "columnType" : "analytic"
-                },
-
-                {
-                 "type" : "column",
-		 "param" : "indicator",
-                 "description" : "indicator variable",
-		 "columnType" : "indicator"
-                }
-        ],
-        "outputs" : [
-
-                {"param" : "fips",
-                 "description" : "fips result"
-                },
-
-                {"param" : "response",
-                 "description" : "response result"
-                },
-
-                {"param" : "prev.percent",
-                 "description" : "prevalence percentage"
-                },
-
-                {"param" : "CI_LOW",
-                 "description" : "CI_LOW result"
-                },
-
-                {"param" : "CI_HI",
-                 "description" : "CI_HI result"
-                }
-        ]
+   "inputs":[
+      {
+         "type":"column",
+         "param":"year",
+         "description":"State variable",
+         "columnType":"time",
+         "default" : "year"
+      },
+      {
+         "type":"column",
+         "param":"state",
+         "description":"State variable",
+         "columnType":"geography",
+         "default" : "X_STATE"
+      },
+      {
+         "type":"column",
+         "param":"PSU",
+         "description":"PSU variable",
+         "columnType":"analytic",
+         "default" : "X_PSU"
+      },
+      {
+         "type":"column",
+         "param":"FinalWt",
+         "description":"Final weight variable",
+         "columnType":"analytic",
+         "default" : "X_FINALWT"
+      },
+      {
+         "type":"column",
+         "param":"StStr",
+         "description":"StStr variable",
+         "columnType":"analytic",
+         "default" : "X_STSTR"
+      },
+      {
+         "type":"column",
+         "param":"indicator",
+         "description":"indicator variable",
+         "columnType":"indicator"
+      }
+   ],
+   "outputs":[
+      {
+         "param":"fips",
+         "description":"fips result"
+      },
+      {
+         "param":"state",
+         "description":"state result"
+      },
+      {
+         "param":"prevpct",
+         "description":"prevalence percentage"
+      },
+      {
+         "param":"ci_low",
+         "description":"CI_LOW result"
+      },
+      {
+         "param":"ci_hi",
+         "description":"CI_HI result"
+      }
+   ]
 }
