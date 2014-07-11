@@ -47,7 +47,7 @@ public class AwsRService implements IScriptEngine
 		Vector<String> names = null;
 		String [] columnNames;
 		String script = "scriptFromFile <- source(scriptPath)\n" +
-					         "scriptFromFile$value()"; 
+					         "scriptFromFile$value"; 
 
 		try
 		{

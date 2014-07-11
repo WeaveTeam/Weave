@@ -121,7 +121,7 @@ public class ComputationalServlet extends WeaveServlet
 	 		startTime = System.currentTimeMillis();
 	 		try {
 				AwsRService rService = new AwsRService();
-				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), (String[]) inputNames.toArray(new String[inputNames.size()]), inputValues.toArray());
+				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), (String[]) inputNames.toArray(new String[inputNames.size()]), inputValues.toArray(new Object[inputValues.size()]));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
