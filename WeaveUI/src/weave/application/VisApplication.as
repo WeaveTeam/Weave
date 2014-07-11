@@ -905,7 +905,8 @@ package weave.application
 
 				createToolMenuItem(Weave.properties.showColorController, lang("Color Controller"), DraggablePanel.openStaticInstance, [ColorController]);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Edit Mouseover Info"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showProbeWindow, lang("Mouseover Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
+				if (!Weave.properties.dashboardMode.value)
+					createToolMenuItem(Weave.properties.showProbeWindow, lang("Mouseover Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Column Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
 				createToolMenuItem(Weave.properties.showAddExternalTools, lang("Add external tool..."), AddExternalTool.show);
