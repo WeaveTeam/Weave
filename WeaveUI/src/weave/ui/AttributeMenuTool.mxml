@@ -68,6 +68,7 @@
 				<HelpComponent>
 					Select the visualization tool that you want the attribute menu to be linked to.
 				</HelpComponent>
+				<mx:Button label="{lang('Refresh')}" click="handleGlobalListChange()"/>
 			</Indent>
 			<Indent label="{lang('Visualization attribute')}">
 				<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
@@ -112,6 +113,8 @@
 	</ControlPanel>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
 			
@@ -129,6 +132,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
@@ -326,7 +330,10 @@
 			{
 				// update the list of tools
 				var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, IObjectWithSelectableAttributes);
-				targetToolCombo.dataProvider = descendants.filter(filterDescendants).map(objectToPathString);
+				// two filter passes because the filter function may modify the array on the first pass
+				descendants = descendants.filter(filterDescendants).filter(filterDescendants).map(objectToPathString);
+				StandardLib.sort(descendants);
+				targetToolCombo.dataProvider = descendants;
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = pathToString(targetToolPath.getSessionState() as Array);
 				validateToolWatcherTarget();
@@ -341,9 +348,14 @@
 				if (that is SimpleVisTool)
 				{
 					// skip the main plotter of a SimpleVisTool
-					var indexOfMainPlotter:int = all.indexOf((that as SimpleVisTool).visualization.getMainPlotter());
-					if (indexOfMainPlotter >= 0)
-						all[indexOfMainPlotter] = null;
+					var mainPlotter:IPlotter = (that as SimpleVisTool).visualization.getMainPlotter();
+					var indexOfMainPlotter:int = all.indexOf(mainPlotter);
+					if (mainPlotter && indexOfMainPlotter >= 0)
+						all[indexOfMainPlotter] = this; // skip the main plotter
+					
+					// TEMPORARY SOLUTION so we don't have redundant entries for MapTool 
+					if (getQualifiedClassName(that) == "weave.visualization.tools::MapTool")
+						return false;
 				}
 				return true;
 			}
@@ -387,7 +399,7 @@
 				{
 					var sm:ISessionManager = WeaveAPI.SessionManager;
 					var descendants:Array = sm.getLinkableDescendants(tool, IObjectWithSelectableAttributes);
-					descendants = descendants.filter(filterDescendants);
+					descendants = descendants.filter(filterDescendants).filter(filterDescendants);
 					if (descendants.length)
 					{
 						var path:Array = sm.getPath(WeaveAPI.globalHashMap, descendants[0]);
