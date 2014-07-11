@@ -1,11 +1,15 @@
 package weave.visualization.plotters
 {
+	import flash.display.Graphics;
+	import flash.geom.Rectangle;
+	
 	import spark.primitives.supportClasses.FilledElement;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -39,6 +43,40 @@ package weave.visualization.plotters
 		{
 			//to be implemented.
 			return 10;
+		}
+		
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			if (!(task.asyncState is Function))
+			{
+				var _heightColumns:Array;
+				var graphics:Graphics = tempShape.graphics;
+				var numHeightColumns:int;
+				var clipRectangle:Rectangle = new Rectangle();
+				
+				task.asyncState = function():Number
+				{
+					if (task.iteration == 0)
+					{
+						//Initial setup stuff for each complete drawing of the plot.
+						_heightColumns = heightColumns.getObjects();
+						
+						numHeightColumns = _heightColumns.length;
+						
+						task.screenBounds.getRectangle(clipRectangle, true);
+						clipRectangle.width++; // avoid clipping lines
+						clipRectangle.height++; // avoid clipping lines
+					}
+					if (task.iteration < task.recordKeys.length)
+					{
+						//Each draw call.
+						return task.iteration / task.recordKeys.length;
+					}
+					//Case for when there is no record keys.
+					return 1;
+				}
+			}
+			return (task.asyncState as Function).apply(this, arguments);
 		}
 	}
 }

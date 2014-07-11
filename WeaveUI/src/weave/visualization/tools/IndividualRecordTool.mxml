@@ -184,7 +184,6 @@
 				updateAxes();
 			}
 			
-			
 			private function handleSubsetChange():void
 			{
 				if( (_selection.keys.length == 1 || _probe.keys.length == 1 || _recordKeySubset.keys.length == 1) && !_locked.value)
