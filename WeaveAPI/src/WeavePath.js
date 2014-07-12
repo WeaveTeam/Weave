@@ -400,7 +400,7 @@ weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
  * The variables will be made globally available for any WeavePath object created from the same Weave instance.
  * @param newVars An object mapping variable names to values.
  * @param temporary Optional parameter. If set to true, these variables will be unset after the next call to exec() or getValue()
- *                  no matter where those functions are called, including from inside other WeavePath functions.
+ *                  no matter how either function is called, including from inside custom WeavePath functions.
  * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.vars = function(newVars, temporary)
