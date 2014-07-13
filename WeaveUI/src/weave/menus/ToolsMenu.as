@@ -176,7 +176,7 @@ package weave.menus
 				label: lang("Tools"),
 				children: function():Array
 				{
-					if (detectLinkableObjectChange(this, Weave.properties.dashboardMode, Weave.properties.toolToggles.childListCallbacks))
+					if (detectLinkableObjectChange(this, Weave.properties.toolToggles.childListCallbacks))
 						cachedItems = createItems(
 							staticItems,
 							TYPE_SEPARATOR,

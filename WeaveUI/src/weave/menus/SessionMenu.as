@@ -111,15 +111,21 @@ package weave.menus
 				shown: adminService_or_(Weave.properties.enableSessionMenu),
 				label: lang("Session"),
 				children: [
-					{label: lang("Edit Session State"), click: SessionStateEditor.openDefaultEditor},
+					{
+						label: lang("Edit Session State"),
+						click: SessionStateEditor.openDefaultEditor
+					},
 					TYPE_SEPARATOR,
 					{
 						label: lang("Import session history"),
 						click: importSessionHistory
 					},
-					{label: lang("Export session history"), click: ExportSessionStateOptions.openExportPanel},
+					{
+						label: lang("Export session history"),
+						click: ExportSessionStateOptions.openExportPanel
+					},
 					TYPE_SEPARATOR,
-					{ // session history controls
+					{
 						label: function():String {
 							var shown:Boolean = Weave.properties.showSessionHistoryControls.value;
 							return lang((shown ? "Hide" : "Show") + " session history controls");
@@ -127,11 +133,19 @@ package weave.menus
 						click: Weave.properties.showSessionHistoryControls
 					},
 					TYPE_SEPARATOR,
-					{shown: Weave.ALLOW_PLUGINS, label: lang("Manage plugins"), click: managePlugins},
+					{
+						shown: Weave.ALLOW_PLUGINS,
+						label: lang("Manage plugins"),
+						click: managePlugins
+					},
 					TYPE_SEPARATOR,
-					{shown: JavaScript.available, label: lang("Restart Weave"), click: Weave.externalReload},
+					{
+						shown: JavaScript.available,
+						label: lang("Restart Weave"),
+						click: Weave.externalReload
+					},
 					TYPE_SEPARATOR,
-					{ // collaboration
+					{
 						shown: Weave.properties.showCollaborationMenuItem,
 						label: function():String {
 							var collabTool:CollaborationTool = CollaborationTool.instance;
@@ -143,7 +157,11 @@ package weave.menus
 						click: function():void { DraggablePanel.openStaticInstance(CollaborationTool); }
 					},
 					TYPE_SEPARATOR,
-					{shown: has_adminService, label: lang("Save session state to server"), click: saveSessionStateToServer}
+					{
+						shown: has_adminService,
+						label: lang("Save session state to server"),
+						click: saveSessionStateToServer
+					}
 				]
 			});
 		}

@@ -25,7 +25,6 @@ package weave.menus
 	import weave.api.data.IDataSource;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.editors.managers.DataSourceManager;
-	import weave.menus.WeaveMenuItem;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
 	import weave.ui.NewUserWizard;
