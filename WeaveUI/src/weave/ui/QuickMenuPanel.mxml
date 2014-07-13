@@ -41,7 +41,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.MenuEvent;
 			import mx.managers.PopUpManager;
 			
-			import weave.ui.controlBars.WeaveMenuItem;
+			import weave.menus.WeaveMenuItem;
 			
 			private var autosuggest:SubMenu;
 			
@@ -61,7 +61,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//Assumes 2D array
 				for each (var a:WeaveMenuItem in items.source)
 				{
-					if(a.children == null && a.weaveLabel)
+					if(a.children == null && a.label)
 					{
 						menuItemsSource.push(a);
 						continue;
@@ -69,7 +69,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					for each (var i:WeaveMenuItem in a.children.source)
 					{
-						if(i.weaveLabel)
+						if(i.label)
 							menuItemsSource.push(i);
 					}
 				}
@@ -134,7 +134,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				for each(var item:WeaveMenuItem in items)
 				{
-					autosuggest.menuItems.push(new SubMenuItem(item.weaveLabel,item.runClickFunction));
+					autosuggest.menuItems.push(new SubMenuItem(item.label,item.runClickFunction));
 				}
 				
 				autosuggest.showSubMenu();

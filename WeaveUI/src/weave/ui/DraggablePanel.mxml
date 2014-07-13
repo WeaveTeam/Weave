@@ -1630,7 +1630,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public static function getTopPanel():DraggablePanel
 			{
-				return Weave.root.getObjects(DraggablePanel).pop();
+				var children:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
+				while (children.length)
+				{
+					var panel:DraggablePanel = children.pop() as DraggablePanel;
+					if (panel.visible)
+						return panel;
+				}
+				return null;
 			}
 			public static function getTopPanelName():String
 			{
