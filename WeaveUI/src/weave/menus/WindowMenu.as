@@ -124,13 +124,13 @@ package weave.menus
 				label: lang("Minimize all windows"),
 				click: function():void {
 					for each (var panel:DraggablePanel in getAllPanels())
-					if (panel.minimizable.value && !panel.minimized.value)
-						panel.minimizePanel();
+						if (panel.minimizable.value && !panel.minimized.value)
+							panel.minimizePanel();
 				},
 				enabled: function():Boolean {
 					for each (var panel:DraggablePanel in getAllPanels())
-					if (panel.minimizable.value && !panel.minimized.value)
-						return true;
+						if (panel.minimizable.value && !panel.minimized.value)
+							return true;
 					return false;
 				}
 			},{
@@ -138,13 +138,13 @@ package weave.menus
 				label: lang("Restore all minimized windows"),
 				click: function():void {
 					for each (var panel:DraggablePanel in getAllPanels())
-					if (panel.minimized.value)
-						panel.restorePanel();
+						if (panel.minimized.value)
+							panel.restorePanel();
 				},
 				enabled: function():Boolean {
 					for each (var panel:DraggablePanel in getAllPanels())
-					if (panel.minimized.value)
-						return true;
+						if (panel.minimized.value)
+							return true;
 					return false;
 				}
 			},{
@@ -152,13 +152,13 @@ package weave.menus
 				label: lang("Close all windows"),
 				click: function():void {
 					for each (var panel:DraggablePanel in getAllPanels())
-					if (panel.closeable.value)
-						panel.removePanel();
+						if (panel.closeable.value)
+							panel.removePanel();
 				},
 				enabled: function():Boolean {
 					for each (var panel:DraggablePanel in getAllPanels())
-					if (panel.closeable.value)
-						return true;
+						if (panel.closeable.value)
+							return true;
 					return false;
 				}
 			}
