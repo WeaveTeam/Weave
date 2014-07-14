@@ -12,7 +12,7 @@ analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
 				var yearColumn = angular.fromJson(queryService.queryObject.TimePeriodFilter.yearColumn);
 				var monthColumn = angular.fromJson(queryService.queryObject.TimePeriodFilter.monthColumn);
 
-				aws.DataClient.getDataColumnEntities([yearColumn.id, monthColumn.id], function(entities) {
+				queryService.getEntitiesById([yearColumn.id, monthColumn.id], true).then(function(entities) {
 					yearColumnEntity = entities[0];
 					monthColumnEntity = entities[1];
 					if(yearColumnEntity.publicMetadata.hasOwnProperty("aws_metadata") &&

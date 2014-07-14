@@ -19,7 +19,7 @@ analysis_mod.controller('GeographyCtrl', function($scope, queryService){
 		if(newValue) {
 			metadataTable = angular.fromJson(newValue);
 			metadataTableTitle = metadataTable.title;
-			aws.DataClient.getDataColumnEntities([metadataTable.id], function(metadataTableArray) {
+			queryService.getEntitiesById([metadataTable.id], true).then(function(metadataTableArray) {
 				
 				var metadataTable = metadataTableArray[0];
 				

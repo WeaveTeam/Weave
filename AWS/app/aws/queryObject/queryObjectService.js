@@ -274,15 +274,21 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      * So that the UI asynchronously wait for the data to be available...
      */
     this.getScriptMetadata = function(scriptName, forceUpdate) {
-       
-        if (!forceUpdate) {
+        
+    	var deferred = $q.defer();
+
+    	if (!forceUpdate) {
     		return this.dataObject.scriptMetadata;
-        }
-        if(scriptName) {
-        	aws.queryService(scriptManagementURL, 'getScriptMetadata', [scriptName], function(result){
-        		that.dataObject.scriptMetadata = result;
-        	});
-        }
+    	}
+    	if(scriptName) {
+    		aws.queryService(scriptManagementURL, 'getScriptMetadata', [scriptName], function(result){
+    			that.dataObject.scriptMetadata = result;
+    			scope.$safeApply(function() {
+    				deferred.resolve(that.dataObject.scriptMetadata);
+    			});
+    		});
+    	}
+        return deferred.promise;
     };
 
 	/**
@@ -291,6 +297,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
 	  */
 	this.getDataColumnsEntitiesFromId = function(id, forceUpdate) {
+
+		var deferred = $q.defer();
 
 		if(!forceUpdate) {
 			return that.dataObject.columns;
@@ -312,12 +320,37 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 								}
 							}
 						});
-						
-						scope.$apply();
+						scope.$safeApply(function() {
+							deferred.resolve(that.dataObject.columns);
+						});
 					});
 				});
 			}
 		}
+        return deferred.promise;
+    };
+    
+    this.getEntitiesById = function(idsArray, forceUpdate) {
+    	
+    	var deferred = $q.defer();
+
+		if(!forceUpdate) {
+			return that.dataObject.dataColumnEntities;
+		} else {
+			if(idsArray) {
+				aws.queryService(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
+					
+					that.dataObject.dataColumnEntities = dataEntityArray;
+					
+					scope.$safeApply(function() {
+						deferred.resolve(that.dataObject.dataColumnEntities);
+					});
+				});
+			}
+		}
+		
+        return deferred.promise;
+    	
     };
         
         
@@ -328,10 +361,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 	  */
 	this.getGeometryDataColumnsEntities = function(forceUpdate) {
 
+		var deferred = $q.defer();
+
 		if(!forceUpdate) {
 			return that.dataObject.geometryColumns;
 		}
-
+		
 		aws.queryService(dataServiceURL, 'getEntityIdsByMetadata', [{"dataType" :"geometry"}, 1], function(idsArray){
 			aws.queryService(dataServiceURL, 'getEntitiesById', [idsArray], function(dataEntityArray){
 				that.dataObject.geometryColumns = $.map(dataEntityArray, function(entity) {
@@ -342,8 +377,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 					};
 				});
 				
+				scope.$safeApply(function() {
+					deferred.resolve(that.dataObject.geometryColumns);
+				});
 			});
 		});
+
+		return deferred.promise;
     };
     
     /**
@@ -351,14 +391,19 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
      * again angular defer/promise so that the UI asynchronously wait for the data to be available...
      */
     this.getDataTableList = function(forceUpdate){
+    	var deferred = $q.defer();
 
     	if(!forceUpdate) {
 			return that.dataObject.dataTableList;
     	} else {
     		aws.queryService(dataServiceURL, 'getDataTableList', null, function(EntityHierarchyInfoArray){
     			that.dataObject.dataTableList = EntityHierarchyInfoArray;
+    			scope.$safeApply(function() {
+    				deferred.resolve(that.dataObject.dataTableList);
+    			});
     		 });
     	}
+        return deferred.promise;
     };
         
     this.getDataMapping = function(varValues)
@@ -396,15 +441,22 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
       
         this.getDataSetFromTableId = function(id,forceUpdate){
           	
-          	if(!forceUpdate) {
-          			return this.dataObject.geographyMetadata;
-          	} else {
-         		aws.queryService(dataServiceURL, "getEntityChildIds", [id], function(ids){
-         			aws.queryService(dataServiceURL, "getDataSet", [ids], function(result){
-         				that.dataObject.geographyMetadata = result;
-          			});
-          		});
-         	}
+        	var deferred = $q.defer();
+        	
+        	if(!forceUpdate) {
+      			return this.dataObject.geographyMetadata;
+        	} else {
+        		aws.queryService(dataServiceURL, "getEntityChildIds", [id], function(ids){
+        			aws.queryService(dataServiceURL, "getDataSet", [ids], function(result){
+        				that.dataObject.geographyMetadata = result;
+        				scope.$safeApply(function() {
+            				deferred.resolve(that.dataObject.geographyMetadata);
+            			});
+        			});
+        		});
+        	}
+        	
+            return deferred.promise;
         };
         
         this.updateEntity = function(user, password, entityId, diff) {

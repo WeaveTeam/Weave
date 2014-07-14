@@ -4,7 +4,22 @@ goog.require('aws');
 //goog.require('aws.RClient');
 //goog.require('aws.StataClient');
 //goog.require('aws.WeaveClient');
+var tryParseJSON = function(jsonString){
+    try {
+        var o = JSON.parse(jsonString);
 
+        // Handle non-exception-throwing cases:
+        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+        // but... JSON.parse(null) returns 'null', and typeof null === "object", 
+        // so we must check for that, too.
+        if (o && typeof o === "object" && o !== null) {
+            return o;
+        }
+    }
+    catch (e) { }
+
+    return false;
+};
 /**
  * This class is designed to receive a query object and interpret its content.
  * 
@@ -17,24 +32,6 @@ var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 
 aws.QueryHandler = function(queryObject)
 {
-	
-	
-	var tryParseJSON = function(jsonString){
-	    try {
-	        var o = JSON.parse(jsonString);
-
-	        // Handle non-exception-throwing cases:
-	        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
-	        // but... JSON.parse(null) returns 'null', and typeof null === "object", 
-	        // so we must check for that, too.
-	        if (o && typeof o === "object" && o !== null) {
-	            return o;
-	        }
-	    }
-	    catch (e) { }
-
-	    return false;
-	};
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
 	//testing dont know if this is the right way

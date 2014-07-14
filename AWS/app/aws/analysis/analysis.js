@@ -165,7 +165,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 			for(var key in scriptOptions) { 
 				var option = scriptOptions[key];
 				if(option) {
-					if(angular.fromJson(option).hasOwnProperty("columnType")) {
+					if(tryParseJSON(option).hasOwnProperty("columnType")) {
 						if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
 							queryService.queryObject.Indicator = option;
 						}
@@ -175,22 +175,28 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 			
 		}
 	}, true);
-	
-	$scope.$watch(function() {
-		return queryService.queryObject.Indicator;
-	}, function(newValue, oldValue) {
-		if(newValue != oldValue) {
-			var indicator = newValue;
-			for(var key in queryService.queryObject.scriptOptions) { 
-				var option = queryService.queryObject.scriptOptions[key];
-				if(option){
-					if(angular.fromJson(option).hasOwnProperty("columnType")) {
-						if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
-							queryService.queryObject.scriptOptions[key] = indicator;
-						}
-					}
-				} else {
-					if(queryService.dataObject.scriptMetadata.hasOwnProperty("inputs")) {
+
+	$scope.$watchCollection(function() {
+		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected, queryService.dataObject.scriptMetadata];
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			var indicator = newVal[0];
+			var scriptSelected = newVal[1];
+			var scriptMetadata = newVal[3];
+			
+			if(indicator && scriptSelected) {
+				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
+				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
+				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
+
+			}
+			
+			$scope.$watch(function() {
+				return queryService.dataObject.scriptMetadata;
+			}, function(newValue, oldValue) {
+				if(newValue) {
+					scriptMetadata = newValue;
+					if(indicator && scriptMetadata) {
 						for(var i in queryService.dataObject.scriptMetadata.inputs) {
 							var metadata = queryService.dataObject.scriptMetadata.inputs[i];
 							if(metadata.hasOwnProperty('type')) {
@@ -205,22 +211,16 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 						}
 					}
 				}
-			}
+			}, true);
 		}
-	});
-	
-	$scope.$watchCollection(function() {
-		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected];
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			var indicator = newVal[0];
-			var scriptSelected = newVal[1];
-			
-			if(indicator && scriptSelected) {
-				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
-				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
-				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
-			}
+	}, true);
+		
+	$scope.toggleButton = function(input) {
+		
+		if (queryService.queryObject.scriptOptions[input.param] == input.options[0]) {
+			queryService.queryObject.scriptOptions[input.param] = input.options[1];
+		} else {
+			queryService.queryObject.scriptOptions[input.param] = input.options[0];
 		}
-	});
+	};
 });

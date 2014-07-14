@@ -33,6 +33,9 @@ body{
 	color: #CCCCCC;
 }
 
+.popover {
+	max-width: 450px;
+}
 #header .navbar-default {
 
 	background-image: linear-gradient(to bottom,#0F0202 0,#292626 100%);
