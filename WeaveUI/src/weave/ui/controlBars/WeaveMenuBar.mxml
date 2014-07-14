@@ -97,17 +97,19 @@
 
     <mx:Script>
     	<![CDATA[
-			import flash.debugger.enterDebugger;
-			
 			import mx.collections.ArrayCollection;
-			import mx.controls.Menu;
 			import mx.core.mx_internal;
-			import mx.events.MenuEvent;
 			
 			import weave.Weave;
-			import weave.compiler.StandardLib;
+			import weave.menus.DataMenu;
+			import weave.menus.HelpMenu;
+			import weave.menus.SessionMenu;
+			import weave.menus.ToolsMenu;
 			import weave.menus.WeaveMenuItem;
+			import weave.menus.WindowMenu;
 			import weave.ui.OICLogoPane;
+			import weave.ui.SelectionManager;
+			import weave.ui.SubsetManager;
 			
 			use namespace mx_internal;
 			
@@ -118,7 +120,20 @@
 				super.createChildren();
 				
 				Weave.properties.showCopyright.addGroupedCallback(this, addLogo, true);
+				rootMenuItem = new WeaveMenuItem({
+					children: defaultMenus
+				});
 			}
+			
+			public static const defaultMenus:Array = [
+				new SessionMenu(),
+				new DataMenu(),
+				new ToolsMenu(),
+				SelectionManager.createMenu(),
+				SubsetManager.createMenu(),
+				new WindowMenu(),
+				new HelpMenu()
+			];
 			
 			public var maxLabelLength:int = 75;
 			private function trimLabel(item:WeaveMenuItem):String

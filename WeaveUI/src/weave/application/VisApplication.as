@@ -68,12 +68,6 @@ package weave.application
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
-	import weave.menus.DataMenu;
-	import weave.menus.HelpMenu;
-	import weave.menus.SessionMenu;
-	import weave.menus.ToolsMenu;
-	import weave.menus.WeaveMenuItem;
-	import weave.menus.WindowMenu;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
@@ -86,9 +80,7 @@ package weave.application
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
-	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
-	import weave.ui.SubsetManager;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
@@ -707,20 +699,6 @@ package weave.application
 				if (!_weaveMenu)
 				{
 					_weaveMenu = new WeaveMenuBar();
-					_weaveMenu.rootMenuItem = new WeaveMenuItem({
-						children: [
-							new SessionMenu(),
-							new DataMenu(),
-							new ToolsMenu(),
-							SelectionManager.createMenu(),
-							SubsetManager.createMenu(),
-							new WindowMenu(),
-							new HelpMenu()
-						]
-					});
-
-					//trace("MENU BAR ADDED");
-					_weaveMenu.percentWidth = 100;
 					
 					this.addChildAt(_weaveMenu, 0);
 					
