@@ -225,9 +225,7 @@ package weave
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
 		
-		// enable/disable advanced features
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);
-		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
 		// Collaboration
 		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar (bottom of screen)
@@ -239,6 +237,7 @@ package weave
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
+		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // tools menu
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
@@ -272,7 +271,7 @@ package weave
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
 		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
-		public const showSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
+		public const enableSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
 		
@@ -562,6 +561,7 @@ package weave
 		[Deprecated(replacement="visTextFormat.italic")] public function set axisFontFontItalic(value:Boolean):void { visTextFormat.italic.value = value; }
 		[Deprecated(replacement="visTextFormat.underline")] public function set axisFontFontUnderline(value:Boolean):void { visTextFormat.underline.value = value; }
 		
+		[Deprecated(replacement="enableSessionHistoryControls")] public function set showSessionHistoryControls(value:Boolean):void { enableSessionHistoryControls.value = enableSessionMenu.value && value; }
 		[Deprecated(replacement="enableLoadMyData")] public function set enableNewUserWizard(value:Boolean):void { enableLoadMyData.value = value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }

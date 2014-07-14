@@ -32,8 +32,7 @@
 	</ui:CheckBoxWithNestedOptions>
 	
 	<ui:CustomCheckBox label="{lang('Show session history controls')}"
-				 enabled="{enableMenuBar.selected}"
-				 creationComplete="linkBindableProperty(Weave.properties.showSessionHistoryControls, event.target, 'selected');"
+				 creationComplete="linkBindableProperty(Weave.properties.enableSessionHistoryControls, event.target, 'selected');"
 				/>
 
 	<ui:CustomCheckBox label="{lang('Enable tool control panels and attribute selection')}"

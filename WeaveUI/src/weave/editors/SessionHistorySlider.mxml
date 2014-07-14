@@ -195,7 +195,7 @@
 			private function handleAnyClick():void
 			{
 				// hack so slider doesn't disappear
-				Weave.properties.showSessionHistoryControls.value = true;
+				Weave.properties.enableSessionHistoryControls.value = true;
 			}
 			
 			// called when slider value changes
