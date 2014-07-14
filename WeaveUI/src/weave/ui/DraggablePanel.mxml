@@ -251,6 +251,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					new SubMenuItem(lang('Always above'), function():void { zOrder.value = 1; }, null, function():Boolean { return zOrder.value <= 0; }),
 					new SubMenuItem(lang('Always below'), function():void { zOrder.value = -1; }, null, function():Boolean { return zOrder.value >= 0; })
 				);
+				
+				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+				if (hashMap)
+					hashMap.childListCallbacks.addGroupedCallback(this, updatePanelZOrder);
 
 				/*
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
