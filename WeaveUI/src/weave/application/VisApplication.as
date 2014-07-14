@@ -76,7 +76,6 @@ package weave.application
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
 	import weave.ui.NewUserWizard;
-	import weave.ui.OICLogoPane;
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
@@ -660,11 +659,6 @@ package weave.application
 		}
 
 		/**
-		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
-		 */
-		private var _oicLogoPane:OICLogoPane = new OICLogoPane();
-		
-		/**
 		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
 		 * view to add new tools, manage windows, do advanced tasks, etc.
 		 */
@@ -702,9 +696,6 @@ package weave.application
 					
 					this.addChildAt(_weaveMenu, 0);
 					
-					if (this == _oicLogoPane.parent)
-						this.removeChild(_oicLogoPane);
-					
 					refreshMenu();
 				}
 				
@@ -712,7 +703,6 @@ package weave.application
 				if (historySlider)
 					historySlider.alpha = _weaveMenu.alpha = Weave.properties.enableMenuBar.value ? 1.0 : 0.3;
 			}
-			// otherwise there is no menu bar, (which normally includes the oiclogopane, so add one to replace it)
 			else
 			{
 				if (historySlider)
@@ -723,13 +713,6 @@ package weave.application
 						removeChild(_weaveMenu);
 
 		   			_weaveMenu = null;
-					
-					if (Weave.properties.showCopyright.value)
-					{
-						addChild(_oicLogoPane);
-					}
-					else if (this == _oicLogoPane.parent)
-						removeChild(_oicLogoPane);
 				}
 				catch(error:Error)
 				{
