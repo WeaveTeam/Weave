@@ -70,9 +70,9 @@ package weave.menus
 		
 		public static const staticItems:Array = createItems(
 			{
+				shown: SessionMenu.fn_adminMode_or_(Weave.properties.enableUserPreferences),
 				label: lang("Preferences"),
-				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); },
-				shown: SessionMenu.adminService_or_(Weave.properties.enableUserPreferences)
+				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); }
 			},
 			TYPE_SEPARATOR,
 			{
@@ -187,7 +187,7 @@ package weave.menus
 		{
 			var cachedItems:Array;
 			super({
-				shown: SessionMenu.adminService_or_(Weave.properties.enableWindowMenu),
+				shown: SessionMenu.fn_adminMode_or_(Weave.properties.enableWindowMenu),
 				label: lang("Window"),
 				children: function():Array {
 					if (detectLinkableObjectChange(this, WeaveAPI.globalHashMap.childListCallbacks))

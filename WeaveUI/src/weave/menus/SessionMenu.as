@@ -48,15 +48,19 @@ package weave.menus
 		{
 			WeaveAPI.topLevelApplication['visApp']['saveSessionStateToServer']();
 		}
-		public static function has_adminService():Boolean
+		public static function fn_adminMode():Boolean
+		{
+			return WeaveAPI.topLevelApplication['visApp']['adminMode'];
+		}
+		public static function fn_adminService():Boolean
 		{
 			return WeaveAPI.topLevelApplication['visApp']['adminService'] ? true : false;
 		}
 		//-----------
 		
-		public static function adminService_or_(lb:LinkableBoolean):Function
+		public static function fn_adminMode_or_(lb:LinkableBoolean):Function
 		{
-			return function():Boolean { return has_adminService() || lb.value; }
+			return function():Boolean { return fn_adminMode() || lb.value; }
 		}
 		
 		private var _weaveFileRef:FileReference;
@@ -108,7 +112,7 @@ package weave.menus
 		public function SessionMenu()
 		{
 			super({
-				shown: adminService_or_(Weave.properties.enableSessionMenu),
+				shown: fn_adminMode_or_(Weave.properties.enableSessionMenu),
 				label: lang("Session"),
 				children: [
 					{
@@ -158,7 +162,7 @@ package weave.menus
 					},
 					TYPE_SEPARATOR,
 					{
-						shown: has_adminService,
+						shown: fn_adminService,
 						label: lang("Save session state to server"),
 						click: saveSessionStateToServer
 					}

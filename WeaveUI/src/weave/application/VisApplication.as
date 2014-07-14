@@ -298,14 +298,8 @@ package weave.application
 				loadSessionState(event.result, fileName);
 			}
 			
-			if (getFlashVarEditable())
-			{
-				Weave.properties.enableMenuBar.value = true;
-				Weave.properties.enableSessionMenu.value = true;
-				Weave.properties.enableWindowMenu.value = true;
-				Weave.properties.enableUserPreferences.value = true;
-			}
-			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
+			// if "editable" was explicitly set to false, disable menu bar and enable dashboard mode.
+			if (getFlashVarEditable() === false) // explicit compare because it may also be undefined
 			{
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
@@ -569,6 +563,7 @@ package weave.application
 			}
 		}
 		
+		public function get adminMode():Boolean { return getFlashVarEditable() || adminService; }
 		public var adminService:LocalAsyncService = null;
 
 		private const saveTimer:Timer = new Timer( 10000 );
@@ -687,8 +682,8 @@ package weave.application
 					reportError("Unable to get editor for SessionStateLog");
 			}
 			
-			DraggablePanel.adminMode = adminService || getFlashVarEditable();
-			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
+			DraggablePanel.adminMode = adminMode;
+			if (Weave.properties.enableMenuBar.value || adminMode)
 			{
 				if (!_weaveMenu)
 				{

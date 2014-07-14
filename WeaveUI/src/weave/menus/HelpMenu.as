@@ -36,11 +36,24 @@ package weave.menus
 				shown: Weave.properties.enableAboutMenu,
 				label: lang("Help"),
 				children: [
-					{label: lang("Report a problem"), click: go_to_url, data: "http://info.oicweave.org/projects/weave/issues/new"},
-					{label: lang("Visit {0}", "OICWeave.org"), click: go_to_url, data: "http://www.oicweave.org"},
-					{label: lang("Visit Weave Wiki"), click: go_to_url, data: "http://info.oicweave.org/projects/weave/wiki"},
+					{
+						label: lang("Report a problem"),
+						click: go_to_url,
+						data: "http://info.oicweave.org/projects/weave/issues/new"
+					},{
+						label: lang("Visit {0}", "OICWeave.org"),
+						click: go_to_url,
+						data: "http://www.oicweave.org"
+					},{
+						label: lang("Visit Weave Wiki"),
+						click: go_to_url,
+						data: "http://info.oicweave.org/projects/weave/wiki"
+					},
 					TYPE_SEPARATOR,
-					{label: lang("Weave version: {0}", Weave.properties.version.value), enabled: false}
+					{
+						label: lang("Weave version: {0}", Weave.properties.version.value),
+						enabled: false
+					}
 				]
 			});
 		}
