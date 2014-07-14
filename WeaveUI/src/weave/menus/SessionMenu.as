@@ -50,7 +50,11 @@ package weave.menus
 		}
 		public static function fn_adminMode():Boolean
 		{
-			return WeaveAPI.topLevelApplication['visApp']['adminMode'] ? true : false;
+			return WeaveAPI.topLevelApplication['visApp']['adminMode'];
+		}
+		public static function fn_adminService():Boolean
+		{
+			return WeaveAPI.topLevelApplication['visApp']['adminService'] ? true : false;
 		}
 		//-----------
 		
@@ -158,7 +162,7 @@ package weave.menus
 					},
 					TYPE_SEPARATOR,
 					{
-						shown: fn_adminMode,
+						shown: fn_adminService,
 						label: lang("Save session state to server"),
 						click: saveSessionStateToServer
 					}

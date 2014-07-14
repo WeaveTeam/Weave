@@ -564,7 +564,7 @@ package weave.application
 		}
 		
 		public function get adminMode():Boolean { return getFlashVarEditable() || adminService; }
-		private var adminService:LocalAsyncService = null;
+		public var adminService:LocalAsyncService = null;
 
 		private const saveTimer:Timer = new Timer( 10000 );
 		private static const RECOVER_SHARED_OBJECT:String = "WeaveAdminConsoleRecover";
