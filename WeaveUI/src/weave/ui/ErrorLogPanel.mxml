@@ -25,7 +25,7 @@
 		title="Error Log"
 		escapeKeyClosesPanel="true"
 		>
-	<Console id="console" context="{(function _():*{return WeaveAPI.ErrorManager;}())}" padding="0"/>
+	<Console id="console" context="{errorManager}" padding="0"/>
 	<HelpComponent id="help" visible="false" includeInLayout="false">
 		How to get a pointer to a display object:
 		
@@ -41,11 +41,14 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.core.IErrorManager;
 			import weave.api.getCallbackCollection;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
+			
+			[Bindable] private var errorManager:IErrorManager = WeaveAPI.ErrorManager;
 			
 			override protected function createChildren():void
 			{

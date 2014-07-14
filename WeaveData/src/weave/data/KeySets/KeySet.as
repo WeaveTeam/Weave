@@ -23,6 +23,7 @@ package weave.data.KeySets
 	
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
@@ -42,6 +43,11 @@ package weave.data.KeySets
 		}
 		
 		/**
+		 * An interface for keys added and removed
+		 */
+		public const keyCallbacks:KeySetCallbackInterface = newLinkableChild(this, KeySetCallbackInterface);
+		
+		/**
 		 * Verifies that the value is a two-dimensional array or null.
 		 */		
 		private function verifySessionState(value:Array):Boolean
@@ -57,7 +63,7 @@ package weave.data.KeySets
 		 */
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
-			return StandardLib.arrayCompare(_sessionState, otherSessionState) == 0;
+			return StandardLib.arrayCompare(_sessionStateInternal, otherSessionState) == 0;
 		}
 		
 		/**
@@ -77,8 +83,8 @@ package weave.data.KeySets
 
 			// each row of CSV represents a different keyType (keyType is the first token in the row)
 			var newKeys:Array = [];
-			for each (var row:Array in _sessionState)
-				(newKeys.push as Function).apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
+			for each (var row:Array in _sessionStateInternal)
+				newKeys.push.apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
 			
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
 			delayCallbacks();
@@ -118,6 +124,7 @@ package weave.data.KeySets
 			delayCallbacks();
 			_currentlyUpdating = true;
 			setSessionState(keyTable);
+			keyCallbacks.flushKeys();
 			_currentlyUpdating = false;
 			resumeCallbacks();
 		}
@@ -176,21 +183,21 @@ package weave.data.KeySets
 				_keyIndex[key] = outputIndex;
 				// if the previous key index did not have this key, a change has been detected.
 				if (prevKeyIndex[key] == undefined)
+				{
 					changeDetected = true;
+					keyCallbacks.keysAdded.push(key);
+				}
 				// increase stored index
 				outputIndex++;
 			}
 			_keys.length = outputIndex; // trim to actual length
 			// loop through old keys and see if any were removed
-			if (!changeDetected)
+			for (key in prevKeyIndex)
 			{
-				for (key in prevKeyIndex)
+				if (_keyIndex[key] == undefined) // if this previous key is gone now, change detected
 				{
-					if (_keyIndex[key] == undefined) // if this previous key is gone now, change detected
-					{
-						changeDetected = true;
-						break;
-					}
+					changeDetected = true;
+					keyCallbacks.keysRemoved.push(key);
 				}
 			}
 
@@ -212,6 +219,8 @@ package weave.data.KeySets
 			// stop if there are no keys to remove
 			if (_keys.length == 0)
 				return false; // set did not change
+			
+			keyCallbacks.keysRemoved = keyCallbacks.keysRemoved.concat(_keys);
 
 			// clear key-to-index mapping
 			_keyIndex = new Dictionary();
@@ -255,6 +264,7 @@ package weave.data.KeySets
 					_keyIndex[key] = newIndex;
 					
 					changeDetected = true;
+					keyCallbacks.keysAdded.push(key);
 				}
 			}
 			
@@ -298,6 +308,7 @@ package weave.data.KeySets
 					delete _keyIndex[key];
 
 					changeDetected = true;
+					keyCallbacks.keysRemoved.push(key);
 				}
 			}
 

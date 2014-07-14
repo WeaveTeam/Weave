@@ -77,26 +77,12 @@
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
 			private const visibleScaleController:VariableListController = newDisposableChild(this, VariableListController);
 			
-			// no main plotter
-			override protected function get mainPlotter():IPlotter { return null; }
-			
 			override protected function constructor():void
 			{
 				super.constructor();
 			}
 			
 			private var selectionSubMenu:SubMenu;
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				// hack
-				return ["Color"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				// hack
-				return [Weave.defaultColorColumn];
-			}
 			
 			/**
 			 * This function moves the overview window in front of the visualization

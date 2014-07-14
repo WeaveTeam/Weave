@@ -95,10 +95,16 @@ public class WeaveServlet extends HttpServlet
 	public static long debugThreshold = 1000;
 	
 	/**
-	 * This is the name of the URL parameter corresponding to the method name.
+	 * The name of the property which contains the remote method name.
 	 */
 	protected final String METHOD = "method";
+	/**
+	 * The name of the property which contains method parameters.
+	 */
 	protected final String PARAMS = "params";
+	/**
+	 * The name of the property which specifies the index in the params Array that corresponds to an InputStream.
+	 */
 	protected final String STREAM_PARAMETER_INDEX = "streamParameterIndex";
 	
 	private Map<String, ExposedMethod> methodMap = new HashMap<String, ExposedMethod>(); //Key: methodName

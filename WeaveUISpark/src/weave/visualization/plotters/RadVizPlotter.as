@@ -42,6 +42,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -70,7 +71,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class RadVizPlotter extends AbstractPlotter
+	public class RadVizPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		public function RadVizPlotter()
 		{
@@ -109,6 +110,16 @@ package weave.visualization.plotters
 				// invariant: same number of anchors and columns
 				anchors.removeObject(oldColumnName);
 			}
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Size", "Color", "Anchor Dimensions"];
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [radiusColumn, fillStyle.color, columns];
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));

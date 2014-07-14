@@ -113,30 +113,50 @@ package weave.core
 		}
 		
 		/**
-		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
+		 * Creates a thumbnail to be included in a WeaveArchive.
 		 */
-		public static function createWeaveFileContent(saveScreenshot:Boolean=false, pluginList:Array = null):ByteArray
+		public static function createScreenshot(thumbnailSize:int = 0):ByteArray
 		{
-			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
-			var output:WeaveArchive = new WeaveArchive();
-			var component:IFlexDisplayObject = WeaveAPI.topLevelApplication['visApp'];
-			// screenshot thumbnail
+			var application:Object = WeaveAPI.topLevelApplication;
+			
+			// HACK
+			var component:IFlexDisplayObject = application.hasOwnProperty('visApp') ? application['visApp'] : application as IFlexDisplayObject;
+			
+			var bitmapData:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, thumbnailSize, thumbnailSize);
+			return _pngEncoder.encode(bitmapData);
+		}
+		
+		/**
+		 * Updates the local embedded thumbnail and screenshot files.
+		 */
+		public static function updateLocalThumbnailAndScreenshot(saveScreenshot:Boolean):void
+		{
 			try
 			{
-				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-				WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_THUMBNAIL_PNG, _pngEncoder.encode(_thumbnail));
+				WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_THUMBNAIL_PNG, createScreenshot(THUMBNAIL_SIZE));
+				
 				if (saveScreenshot)
-				{
-					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(component);
-					WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_SCREENSHOT_PNG, _pngEncoder.encode(_screenshot));
-				}
+					WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_SCREENSHOT_PNG, createScreenshot());
 				else
 					WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
 			}
 			catch (e:SecurityError)
 			{
+				WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_THUMBNAIL_PNG);
+				WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
 				WeaveAPI.ErrorManager.reportError(e, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + e.message);
 			}
+		}
+		
+		/**
+		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
+		 */
+		public static function createWeaveFileContent(saveScreenshot:Boolean=false, pluginList:Array = null):ByteArray
+		{
+			var output:WeaveArchive = new WeaveArchive();
+			
+			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
+			updateLocalThumbnailAndScreenshot(saveScreenshot);
 			
 			// embedded files
 			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())

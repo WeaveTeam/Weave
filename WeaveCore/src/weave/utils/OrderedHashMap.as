@@ -30,6 +30,16 @@ package weave.utils
 		protected var names:Array = [];
 		protected var values:Array = [];
 		
+		override flash_proxy function callProperty(name:*, ...parameters):*
+		{
+			var i:int = names.indexOf(String(name));
+			var value:Function = values[i];
+			return value.apply(this, parameters);
+		}
+		override flash_proxy function hasProperty(name:*):Boolean
+		{
+			return names.indexOf(String(name)) >= 0;
+		}
 		override flash_proxy function getProperty(name:*):*
 		{
 			var i:int = names.indexOf(String(name));

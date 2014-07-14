@@ -112,7 +112,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
 			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
-			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
+			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
 			
 			private function verifyMinimized(value:Boolean):Boolean { return !minimizable || minimizable.value || !value; }
@@ -211,6 +211,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, updateButtons, true);
+				getCallbackCollection(this).addGroupedCallback(this, updateButtonsIfSelectableAttributesChanged, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 			}
@@ -732,25 +733,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else
 					value = super.getStyle(styleProp);
 				
-				var cornerRadius:int = _overriddenStyles["cornerRadius"] != undefined ? 
-					_overriddenStyles["cornerRadius"] :
-					super.getStyle("cornerRadius");
-				
-				var roundedBottomCorners:Boolean = _overriddenStyles["roundedBottomCorners"] != undefined ? 
-					_overriddenStyles["roundedBottomCorners"] : 
-					super.getStyle("roundedBottomCorners");
-				
-				// if the bottom corners are rounded, we want to adjust the bottomThicknessBottom to be at least the size
-				// of the cornerRadius, otherwise you get an odd looking panel
-				
-				// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
-				/*if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
-				return Math.max( cornerRadius, value );*/
-				
-				// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
-				// outside the panel
+				// make sure the headerHeight is at least the size of the cornerRadius,
+				// otherwise the stuff inside the panel sticks outside the panel
 				if (styleProp == "headerHeight")
-					return Math.max( cornerRadius, value );
+					return Math.max(getStyle("cornerRadius"), value );
 				
 				return value;
 			}
@@ -1276,6 +1262,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return w;
 			}
 			
+			private var _prevShouldShowAttributeButton:Boolean = false;
+			private function updateButtonsIfSelectableAttributesChanged():void
+			{
+				if (_prevShouldShowAttributeButton != shouldShowAttributeButton)
+				{
+					_prevShouldShowAttributeButton = !_prevShouldShowAttributeButton;
+					updateButtons();
+				}
+			}
+			
+			private function get shouldShowAttributeButton():Boolean
+			{
+				return Weave.properties.enableToolControls.value
+					&& this is IObjectWithSelectableAttributes
+					&& (this as IObjectWithSelectableAttributes).getSelectableAttributes().length;
+			}
+			
 			private function updateButtons():void
 			{
 				// don't do anything if not added to a parent to avoid errors like the following:
@@ -1311,7 +1314,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				conditions = [
 					Weave.properties.enableToolControls.value && _controlPanel,
 					enableSubMenu.value,
-					Weave.properties.enableToolControls.value && this is IObjectWithSelectableAttributes && (this as IObjectWithSelectableAttributes).getSelectableAttributes().length
+					shouldShowAttributeButton
 				];
 				for (i = 0; i < buttons.length; i++)
 				{
@@ -1627,7 +1630,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public static function getTopPanel():DraggablePanel
 			{
-				return Weave.root.getObjects(DraggablePanel).pop();
+				var children:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
+				while (children.length)
+				{
+					var panel:DraggablePanel = children.pop() as DraggablePanel;
+					if (panel.visible)
+						return panel;
+				}
+				return null;
 			}
 			public static function getTopPanelName():String
 			{

@@ -46,12 +46,13 @@ package weave.primitives
 		public function copyTo(destinationBounds:IBounds2D):void
 		{
 			tempBounds.reset();
-			if (_sessionState)
+			detectChanges();
+			if (_sessionStateInternal && typeof _sessionStateInternal == 'object')
 			{
-				tempBounds.xMin = StandardLib.asNumber(_sessionState.xMin);
-				tempBounds.yMin = StandardLib.asNumber(_sessionState.yMin);
-				tempBounds.xMax = StandardLib.asNumber(_sessionState.xMax);
-				tempBounds.yMax = StandardLib.asNumber(_sessionState.yMax);
+				tempBounds.xMin = StandardLib.asNumber(_sessionStateInternal.xMin);
+				tempBounds.yMin = StandardLib.asNumber(_sessionStateInternal.yMin);
+				tempBounds.xMax = StandardLib.asNumber(_sessionStateInternal.xMax);
+				tempBounds.yMax = StandardLib.asNumber(_sessionStateInternal.yMax);
 			}
 			destinationBounds.copyFrom(tempBounds);
 		}

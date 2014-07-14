@@ -76,15 +76,6 @@
 				visualization.plotManager.marginBottom.value    = DEFAULT_MARGIN_BOTTOM.toString();
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["Gauge Column"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.meterColumn]
-			}
-			
 			private function invalidateAxes():void
 			{
 				handlePanelTitleChange();

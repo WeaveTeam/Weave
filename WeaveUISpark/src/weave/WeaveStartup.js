@@ -55,7 +55,7 @@ function handleFile(file) {
 		
 		var script = "var ba = new Base64Decoder(); ba.decode(data); ";
 		if( file.name.substr(-4).toLowerCase() == ".csv" )
-			script += "Weave.loadDraggedCSV(ba.flush())";
+			script += "WeaveAPI.topLevelApplication['visApp'].CSVWizardWithData(ba.flush())";
 		else
 			script += "Weave.loadWeaveFileContent(ba.flush())";
 		

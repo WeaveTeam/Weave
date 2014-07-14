@@ -81,29 +81,31 @@
 			{
 				BindingUtils.bindSetter(function(files:Array):void {
 					sharedTreeWithSearch.generateFlatTreeFromLabels(files);
-					previewSelectedFile(sharedTreeWithSearch, false);
+					previewSelectedFile(sharedTreeWithSearch);
 				}, Admin.instance, "weaveFileNames");
 				BindingUtils.bindSetter(function(files:Array):void {
 					userFolderTreeWithSearch.generateFlatTreeFromLabels(files);
-					previewSelectedFile(userFolderTreeWithSearch, false);
+					previewSelectedFile(userFolderTreeWithSearch);
 				}, Admin.instance, "privateWeaveFileNames");
 				
-				var delay:int = 100;
-				var preview:Function = function(event:Event):void {
-						var tree:Tree = event.currentTarget as Tree;
-						if (tree.selectedItem)
-						{
-							if (tree == sharedTreeWithSearch.tree)
-								userFolderTreeWithSearch.tree.selectedItem = null;
-							else
-								sharedTreeWithSearch.tree.selectedItem = null;
-						}
-						previewSelectedFile(tree.owner as TreeWithSearch);
-					};
-				preview = EventUtils.generateDelayedCallback(this, preview, delay, true);
-				userFolderTreeWithSearch.tree.addEventListener(Event.CHANGE, preview);
-				sharedTreeWithSearch.tree.addEventListener(Event.CHANGE, preview);
+				userFolderTreeWithSearch.tree.addEventListener(Event.CHANGE, handleListChange);
+				sharedTreeWithSearch.tree.addEventListener(Event.CHANGE, handleListChange);
 			}
+			
+			private const handleListChange:Function = EventUtils.generateDelayedCallback(this, _handleListChange, 100, true);DEFAULT_MAX_HEIGHT;
+			
+			private function _handleListChange(event:Event):void
+			{
+				var tree:Tree = event.currentTarget as Tree;
+				if (tree.selectedItem)
+				{
+					if (tree == sharedTreeWithSearch.tree)
+						userFolderTreeWithSearch.tree.selectedItem = null;
+					else
+						sharedTreeWithSearch.tree.selectedItem = null;
+				}
+				previewSelectedFile(tree.owner as TreeWithSearch);
+			};
 			
 			private function openSelectedFile(component:TreeWithSearch):void
 			{
@@ -112,12 +114,12 @@
 					Admin.instance.openWeavePopup(item.label);
 			}
 			
-			private function previewSelectedFile(component:TreeWithSearch, clearIfNoSelection:Boolean = true):void
+			private function previewSelectedFile(component:TreeWithSearch):void
 			{
 				var item:Object = component.tree.selectedItem;
 				if (item)
 					weaveFileInfo.updatePreview(item.label);
-				else if (clearIfNoSelection)
+				else
 					weaveFileInfo.clearPreview();
 			}
 			

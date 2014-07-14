@@ -35,7 +35,7 @@ package weave.core
 
 		public function get value():Boolean
 		{
-			return _sessionState;
+			return _sessionStateExternal;
 		}
 		public function set value(value:Boolean):void
 		{
@@ -51,8 +51,6 @@ package weave.core
 		{
 			if (value is String)
 				value = ObjectUtil.stringCompare(value as String, "true", true) == 0;
-			else if (value is Number)
-				value = value != 0;
 			super.setSessionState(value ? true : false);
 		}
 	}

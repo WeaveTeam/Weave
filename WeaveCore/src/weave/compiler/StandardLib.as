@@ -159,6 +159,8 @@ package weave.compiler
 			return string;
 		}
 		
+		private static const argRef:RegExp = new RegExp("^(0|[1-9][0-9]*)\}");
+		
 		/**
 		 * Substitutes "{n}" tokens within the specified string with the respective arguments passed in.
 		 * Same syntax as StringUtil.substitute() without the side-effects of using String.replace() with a regex.
@@ -167,14 +169,21 @@ package weave.compiler
 		 */
 		public static function substitute(format:String, ...args):String
 		{
-			for (var i:int = 0; i < args.length; i++)
+			var split:Array = format.split('{')
+			var output:String = split[0];
+			for (var i:int = 1; i < split.length; i++)
 			{
-				var str:String = '{' + i + '}';
-				var j:int = int.MAX_VALUE;
-				while ((j = format.lastIndexOf(str, j)) >= 0)
-					format = format.substr(0, j) + args[i] + format.substr(j + str.length);
+				var str:String = split[i] as String;
+				if (argRef.test(str))
+				{
+					var j:int = str.indexOf("}");
+					output += args[str.substring(0, j)];
+					output += str.substring(j + 1);
+				}
+				else
+					output += "{" + str;
 			}
-			return format;
+			return output;
 		}
 		
 		/**

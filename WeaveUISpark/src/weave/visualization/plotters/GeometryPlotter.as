@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -61,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IDisposableObject
+	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IDisposableObject, IObjectWithSelectableAttributes
 	{
 		WeaveAPI.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
 		
@@ -83,6 +84,15 @@ package weave.visualization.plotters
 			
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ['Color', 'Geometry'];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [fill.color, geometryColumn];
 		}
 		
 		public const symbolPlotters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));

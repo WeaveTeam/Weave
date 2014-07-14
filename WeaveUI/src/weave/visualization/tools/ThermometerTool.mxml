@@ -74,15 +74,6 @@
 				
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["Meter"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.meterColumn];
-			}
-			
 			private function invalidateAxes():void
 			{
 				handlePanelTitleChange();
