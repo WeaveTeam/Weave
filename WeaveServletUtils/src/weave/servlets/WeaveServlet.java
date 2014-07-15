@@ -55,6 +55,7 @@ import weave.beans.JsonRpcRequestModel;
 import weave.beans.JsonRpcResponseModel;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
+import weave.utils.MapUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -153,6 +154,14 @@ public class WeaveServlet extends HttpServlet
 	protected void initLocalMethods()
 	{
 		initAllMethods(this);
+		try
+		{
+			initMethod(this, WeaveServlet.class.getMethod(GET_CAPABILITIES));
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -180,9 +189,6 @@ public class WeaveServlet extends HttpServlet
 			if (!shouldIgnore)
 				initMethod(serviceObject, declaredMethod);
 		}
-		
-		// for debugging
-		printExposedMethods();
 	}
 	
 	/**
@@ -211,34 +217,6 @@ public class WeaveServlet extends HttpServlet
 			
 			methodMap.put(methodName, new ExposedMethod(serviceObject, method, paramNames));
 		}
-	}
-	
-	protected void printExposedMethods()
-	{
-		String output = "";
-		List<String> methodNames = new Vector<String>(methodMap.keySet());
-		Collections.sort(methodNames);
-		for (String methodName : methodNames)
-		{
-			ExposedMethod m = methodMap.get(methodName);
-			if (m != null)
-			{
-				if (m.method.getAnnotation(Deprecated.class) != null)
-					continue;
-				output += String.format(
-	    				"Exposed servlet method: %s.%s\n",
-	    				m.instance.getClass().getName(),
-	    				formatFunctionSignature(
-	    						m.method.getName(),
-	    						m.method.getParameterTypes(),
-	    						m.paramNames
-	    					)
-	    			);
-			}
-			else
-				output += "Not exposed: "+methodName;
-		}
-		System.out.print(output);
 	}
 	
 	private static class ServletRequestInfo
@@ -613,6 +591,10 @@ public class WeaveServlet extends HttpServlet
 	{
 		ServletRequestInfo info = getServletRequestInfo();
 		
+		// when no method is specified, call getCapabilities()
+		if (methodName == null)
+			methodName = GET_CAPABILITIES;
+		
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		if (exposedMethod == null)
 		{
@@ -829,6 +811,37 @@ public class WeaveServlet extends HttpServlet
 		// Return original value if not handled above.
 		// Primitives and their Object equivalents will cast automatically.
 		return value;
+	}
+	
+	private static final String GET_CAPABILITIES = "getCapabilities";
+	
+	/**
+	 * Lists available methods.
+	 */
+	public Map<String,Object> getCapabilities()
+	{
+		List<String> methodNames = new Vector<String>(methodMap.keySet());
+		Collections.sort(methodNames);
+		List<String> methods = new Vector<String>();
+		List<String> deprecatedMethods = new Vector<String>();
+		for (String methodName : methodNames)
+		{
+			ExposedMethod em = methodMap.get(methodName);
+			String str = String.format(
+				"%s %s",
+				em.method.getReturnType().getSimpleName(),
+				formatFunctionSignature(methodName, em.method.getParameterTypes(), em.paramNames)
+			);
+			if (em.method.getAnnotation(Deprecated.class) != null)
+				deprecatedMethods.add(str);
+			else
+				methods.add(str);
+		}
+		return MapUtils.fromPairs(
+				"class", this.getClass().getCanonicalName(),
+				"methods", methods.toArray(),
+				"deprecated", deprecatedMethods.toArray()
+			);
 	}
 	
 	/**
