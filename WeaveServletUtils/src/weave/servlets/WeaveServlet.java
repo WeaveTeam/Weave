@@ -319,6 +319,7 @@ public class WeaveServlet extends HttpServlet
 				json.params = params;
 				
 	    		info.currentJsonRequest = json;
+	    		info.prettyPrinting = true;
 	    		invokeMethod(json.method, params);
 			}
 			else // post
