@@ -244,6 +244,7 @@ public class WeaveServlet extends HttpServlet
 		public Number streamParameterIndex = null;
 		public PeekableInputStream inputStream;
 		public Boolean isBatchRequest = false;
+		public boolean prettyPrinting = false;
 	}
 	
 	/**
@@ -364,6 +365,12 @@ public class WeaveServlet extends HttpServlet
 		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
 		.disableHtmlEscaping()
 		.create();
+	private static final Gson GSON_PRETTY = new GsonBuilder()
+		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
+		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
+		.disableHtmlEscaping()
+		.setPrettyPrinting()
+		.create();
 	
 	// Base64 adapter modified from GsonHelper.java, https://gist.github.com/orip/3635246
 	private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]>
@@ -470,10 +477,12 @@ public class WeaveServlet extends HttpServlet
 			// However, this means we have to add a special case in our JS code when we send an empty batch request.
 			// It is more convenient if the server returns an empty Array, so we don't follow this part of the specification.
 			
+			Gson gson = info.prettyPrinting ? GSON_PRETTY : GSON;
+			
 			if (info.isBatchRequest)
-				result = GSON.toJson(info.jsonResponses);
+				result = gson.toJson(info.jsonResponses);
 			else
-				result = GSON.toJson(info.jsonResponses.get(0));
+				result = gson.toJson(info.jsonResponses.get(0));
 			
 			PrintWriter writer = new PrintWriter(info.getOutputStream());
 			writer.print(result);
@@ -593,7 +602,10 @@ public class WeaveServlet extends HttpServlet
 		
 		// when no method is specified, call getCapabilities()
 		if (methodName == null)
+		{
 			methodName = GET_CAPABILITIES;
+			info.prettyPrinting = true;
+		}
 		
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		if (exposedMethod == null)
@@ -823,7 +835,7 @@ public class WeaveServlet extends HttpServlet
 		List<String> methodNames = new Vector<String>(methodMap.keySet());
 		Collections.sort(methodNames);
 		List<String> methods = new Vector<String>();
-		List<String> deprecatedMethods = new Vector<String>();
+		List<String> deprecated = new Vector<String>();
 		for (String methodName : methodNames)
 		{
 			ExposedMethod em = methodMap.get(methodName);
@@ -833,14 +845,14 @@ public class WeaveServlet extends HttpServlet
 				formatFunctionSignature(methodName, em.method.getParameterTypes(), em.paramNames)
 			);
 			if (em.method.getAnnotation(Deprecated.class) != null)
-				deprecatedMethods.add(str);
+				deprecated.add(str);
 			else
 				methods.add(str);
 		}
 		return MapUtils.fromPairs(
 				"class", this.getClass().getCanonicalName(),
 				"methods", methods.toArray(),
-				"deprecated", deprecatedMethods.toArray()
+				"deprecated", deprecated.toArray()
 			);
 	}
 	
