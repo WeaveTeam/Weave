@@ -31,7 +31,6 @@ package weave.ui.controlBars
 	
 	import mx.controls.Menu;
 	import mx.controls.MenuBar;
-	import mx.controls.menuClasses.MenuBarItem;
 	import mx.core.ClassFactory;
 	import mx.core.mx_internal;
 	import mx.events.MenuEvent;
@@ -47,6 +46,15 @@ package weave.ui.controlBars
 			this.addEventListener(MenuEvent.MENU_SHOW, handleMenuShow);
 			this.addEventListener(MenuEvent.MENU_HIDE, handleMenuHide);
 			this.menuBarItemRenderer = new ClassFactory(CustomMenuBarItem);
+		}
+		
+		override public function styleChanged(styleProp:String):void
+		{
+			// Fixes bug where styleChanged() stores menuBarItems.length into a local
+			// variable and then calls getMenuAt(), which modifies menuBarItems.length.
+			if (menuBarItems.length)
+				getMenuAt(0);
+			super.styleChanged(styleProp);
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void

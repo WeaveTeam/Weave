@@ -71,7 +71,7 @@
 					Weave.properties.enableWindowMenu,
 					Weave.properties.enableAboutMenu,
 					Weave.properties.enableToolControls,
-					Weave.properties.showSessionHistoryControls
+					Weave.properties.enableSessionHistoryControls
 				];
 				enableSubMenu.value = true;
 				subMenu.menuItems.push(

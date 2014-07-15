@@ -131,10 +131,10 @@ package weave.menus
 					TYPE_SEPARATOR,
 					{
 						label: function():String {
-							var shown:Boolean = Weave.properties.showSessionHistoryControls.value;
+							var shown:Boolean = Weave.properties.enableSessionHistoryControls.value;
 							return lang((shown ? "Hide" : "Show") + " session history controls");
 						},
-						click: Weave.properties.showSessionHistoryControls
+						click: Weave.properties.enableSessionHistoryControls
 					},
 					TYPE_SEPARATOR,
 					{

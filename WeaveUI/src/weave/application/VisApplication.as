@@ -166,10 +166,7 @@ package weave.application
 			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
 			
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, handleError, WeaveAPI.ErrorManager.errors.length > 0);
-			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
-			
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, refreshMenu);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
@@ -481,8 +478,6 @@ package weave.application
 			}
 		}
 		
-		private var historySlider:UIComponent = null;
-		
 		override protected function createChildren():void
 		{
 			super.createChildren();
@@ -653,20 +648,28 @@ package weave.application
 			}
 		}
 
-		/**
-		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
-		 * view to add new tools, manage windows, do advanced tasks, etc.
-		 */
-		protected var _weaveMenu:WeaveMenuBar = null;
+
+		private var menuBar:WeaveMenuBar = null;
+		private var historySlider:UIComponent = null;
 		
-		private function toggleMenuBar():void
+		private function refreshMenu():void
 		{
 			if (!enabled)
 			{
-				callLater(toggleMenuBar);
+				callLater(refreshMenu);
 				return;
 			}
 			
+			setupContextMenu();
+			
+			DraggablePanel.adminMode = adminMode;
+			
+			// create components if not already created
+			if (!menuBar)
+			{
+				menuBar = new WeaveMenuBar();
+				this.addChildAt(menuBar, 0);
+			}
 			if (!historySlider)
 			{
 				historySlider = WeaveAPI.EditorManager.getNewEditor(Weave.history) as UIComponent;
@@ -680,55 +683,26 @@ package weave.application
 					this.addChildAt(historySlider, this.getChildIndex(visDesktop));
 				else
 					reportError("Unable to get editor for SessionStateLog");
-			}
-			
-			DraggablePanel.adminMode = adminMode;
-			if (Weave.properties.enableMenuBar.value || adminMode)
-			{
-				if (!_weaveMenu)
-				{
-					_weaveMenu = new WeaveMenuBar();
-					
-					this.addChildAt(_weaveMenu, 0);
-					
-					refreshMenu();
-				}
-				
-				// always show menu bar when admin service is present
-				if (historySlider)
-					historySlider.alpha = _weaveMenu.alpha = Weave.properties.enableMenuBar.value ? 1.0 : 0.3;
-			}
-			else
-			{
-				if (historySlider)
-					historySlider.visible = historySlider.includeInLayout = false;
-				try
-				{
-		   			if (_weaveMenu && this == _weaveMenu.parent)
-						removeChild(_weaveMenu);
+			}			
 
-		   			_weaveMenu = null;
-				}
-				catch(error:Error)
-				{
-					reportError(error);
-				}
-			}
-		}
-		
-
-		public function refreshMenu():void
-		{
-			setupContextMenu();
+			const alpha_full:Number = 1.0;
+			const alpha_partial:Number = 0.3;
 			
-			if (_weaveMenu)
-				_weaveMenu.refresh();
+			// show/hide menuBar
+			var showMenu:Boolean = Weave.properties.enableMenuBar.value || adminMode;
+			menuBar.visible = menuBar.includeInLayout = showMenu;
+			menuBar.alpha = Weave.properties.enableMenuBar.value ? alpha_full : alpha_partial;
+			if (showMenu)
+				menuBar.refresh();
 			
-			var showHistoryControls:Boolean = Weave.properties.showSessionHistoryControls.value
-				&& (adminService || Weave.properties.enableSessionMenu.value);
+			// show/hide historySlider
 			if (historySlider)
+			{
+				var showHistory:Boolean = Weave.properties.enableSessionHistoryControls.value || adminMode;
+				historySlider.visible = historySlider.includeInLayout = showHistory;
+				historySlider.alpha = Weave.properties.enableSessionHistoryControls.value ? alpha_full : alpha_partial;
+			}
 
-				historySlider.visible = historySlider.includeInLayout = showHistoryControls;
 		}
 
 		public function CSVWizardWithData(content:Object):void
@@ -850,7 +824,7 @@ package weave.application
 					_screenshotTimer.start();
 				}
 			}
-			callLater(toggleMenuBar);
+			callLater(refreshMenu);
 			
 			if (!getAdminConnectionName())
 				enabled = true;

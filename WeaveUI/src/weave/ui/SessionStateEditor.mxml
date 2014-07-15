@@ -823,7 +823,7 @@ A text editor to change the Session State on the fly.
 					openConsole();
 					Weave.properties.enableMenuBar.value = true;
 					Weave.properties.enableSessionMenu.value = true;
-					Weave.properties.showSessionHistoryControls.value = true;
+					Weave.properties.enableSessionHistoryControls.value = true;
 				}
 			}
 			private static function handleKeyDown():void
