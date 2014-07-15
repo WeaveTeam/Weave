@@ -128,40 +128,27 @@ public class WeaveServlet extends HttpServlet
 	}
 	
 	/**
-	 * Default constructor.
-	 * This initializes all public methods defined in a class extending WeaveServlet.
-	 */
-	protected WeaveServlet()
-	{
-		super();
-		initLocalMethods();
-	}
-	
-	/**
 	 * @param serviceObjects The objects to invoke methods on.
 	 */
 	protected WeaveServlet(Object ...serviceObjects)
 	{
 	    super();
-	    initLocalMethods();
+	    
+	    try
+	    {
+	    	// explicitly initialize this method
+	    	initMethod(this, WeaveServlet.class.getMethod(GET_CAPABILITIES));
+	    }
+	    catch (NoSuchMethodException e)
+	    {
+	    	e.printStackTrace();
+	    }
+	    
+	    // automatically initialize methods of this object
+	    initAllMethods(this);
+	    
 	    for (Object serviceObject : serviceObjects)
 	    	initAllMethods(serviceObject);
-	}
-	
-	/**
-	 * This function will expose all the public methods of this object as servlet methods.
-	 */
-	protected void initLocalMethods()
-	{
-		initAllMethods(this);
-		try
-		{
-			initMethod(this, WeaveServlet.class.getMethod(GET_CAPABILITIES));
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -171,23 +158,18 @@ public class WeaveServlet extends HttpServlet
 	 */
 	protected void initAllMethods(Object serviceObject)
 	{
-		Method[] weaveServletMethods = WeaveServlet.class.getMethods();
-		Method[] declaredMethods = serviceObject.getClass().getDeclaredMethods();
-		for (int i = declaredMethods.length; i-- > 0;)
+		for (Method method : serviceObject.getClass().getDeclaredMethods())
 		{
-			Method declaredMethod = declaredMethods[i];
-			boolean shouldIgnore = false;
-			for (Method weaveServletMethod : weaveServletMethods)
+			try
 			{
-				if (declaredMethod.getName().equals(weaveServletMethod.getName()) &&
-					Arrays.equals(declaredMethod.getParameterTypes(), weaveServletMethod.getParameterTypes()) )
-				{
-					shouldIgnore = true;
-					break;
-				}
+				// if this succeeds, we don't want to initialize the method automatically
+				WeaveServlet.class.getMethod(method.getName(), method.getParameterTypes());
 			}
-			if (!shouldIgnore)
-				initMethod(serviceObject, declaredMethod);
+			catch (NoSuchMethodException e)
+			{
+				// no matching method found in WeaveServlet, so initialize the method
+				initMethod(serviceObject, method);
+			}
 		}
 	}
 	
