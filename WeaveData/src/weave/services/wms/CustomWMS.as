@@ -77,9 +77,6 @@ package weave.services.wms
 		private const _tempFullDataBounds:Bounds2D = new Bounds2D(); 
 		private const _tempDataBounds:Bounds2D = new Bounds2D(); 
 		
-		private var _imageHeight:Number = NaN;
-		private var _imageWidth:Number = NaN;
-		
 		private var imageAttributesSet:Boolean= false;
 		
 		

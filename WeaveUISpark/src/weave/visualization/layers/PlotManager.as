@@ -194,7 +194,11 @@ package weave.visualization.layers
 		/**
 		 * This can be set to a function that will be called whenever updateZoom is called.
 		 */
-		public var hack_updateZoom:Function = null;
+		private var hack_updateZoom_callbacks:Array = [];
+		public function hack_onUpdateZoom(callback:Function):void
+		{
+			hack_updateZoom_callbacks.push(callback);
+		}
 		
 		/**
 		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
@@ -278,8 +282,8 @@ package weave.visualization.layers
 				zoomToSelection();
 			
 			// ----------------- hack --------------------
-			if (hack_updateZoom != null)
-				hack_updateZoom();
+			for each (var callback:Function in hack_updateZoom_callbacks)
+				callback();
 			// -------------------------------------------
 			
 			getCallbackCollection(zoomBounds).resumeCallbacks();
