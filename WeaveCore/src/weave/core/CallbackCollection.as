@@ -192,7 +192,7 @@ package weave.core
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
-						entry.callback();
+						entry.callback.apply();
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
