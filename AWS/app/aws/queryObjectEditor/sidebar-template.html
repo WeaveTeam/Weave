@@ -1,22 +1,12 @@
-<div class="aside" tabindex="-1" role="dialog">
-    <div class="aside-dialog">
-        <div class="aside-content">
-            <div class="aside-header" ng-show="title">
-                <button type="button" class="close" ng-click="$hide()">
-                    &times;
-                </button>
-                <span class="aside-title" ng-bind-html="title"></span>
-            </div>
-            <div class="aside-body">
-            </div>
-            <div class="aside-footer">
-                <button type="button" class="btn btn-default" ng-click="$hide()">
-                    Close
-                </button>
-                <button type="button" class="btn btn-primary" ng-click="runQuery()">
-                    Save and Display
-                </button>
-            </div>
-        </div>
-    </div>
+<div class= "btn-group" dropdown is-open= "status.isopen">
+       							<button type="button" class="btn btn-primary dropdown-toggle">
+       									 Open <span class="caret"></span>
+      									</button>
+									      <ul class="dropdown-menu" role="menu">
+									        <li><a href="#" ng-click = "hello()" >Action</a></li>
+									        <li><a href="#">Another action</a></li>
+									        <li><a href="#">Something else here</a></li>
+									        <li class="divider"></li>
+									        <li><a href="#">Separated link</a></li>
+									      </ul>
 </div>
