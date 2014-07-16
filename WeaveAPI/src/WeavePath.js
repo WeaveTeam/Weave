@@ -447,7 +447,7 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 	var callback = type == 'function' ? callback_or_variableName : null;
 	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
 	var variableName = type == 'string' ? callback_or_variableName : "";
-	var result = weave.evaluateExpression(this._path, script, this._vars, null, variableName);
+	var result = this.weave.evaluateExpression(this._path, script, this._vars, null, variableName);
 	this._deleteTempVars();
 	// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
 	if (variableName)
@@ -491,6 +491,18 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 		else
 			for (var key in items) visitorFunction.call(this, items[key], key, items);
 	}
+	return this;
+};
+
+/**
+ * Calls weaveTrace() in Weave to print to the log window.
+ * @param args A list of parameters to pass to weaveTrace().
+ * @return The current WeavePath object.
+ */
+weave.WeavePath.prototype.trace = function(/* ...args */)
+{
+	var args = this._A(arguments);
+	this.weave.evaluateExpression(this._path, "weaveTrace.apply(null, args)", {"args": args}, null, "");
 	return this;
 };
 
