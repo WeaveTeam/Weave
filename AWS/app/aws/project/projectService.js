@@ -8,7 +8,17 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
 	
 	var that = this;
 	this.data= {};
+	this.projectBundle = {};
 	this.data.projectSelectorUI;//for state preservation between tabs
+	
+	//for project addition
+	this.projectBundle.userName;
+	this.projectBundle.projectName;
+	this.projectBundle.projectDescription;
+	this.projectBundle.uploadStatus;
+	this.projectBundle.queryObjectJsons = [];
+	this.projectBundle.queryObjectTitles = [];
+	//this.data.fileUpload;
 	/**
      * This function wraps the async aws getListOfProjects function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
@@ -32,9 +42,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
      */
     this.getListOfQueryObjects = function(projectName) {
     	var deferred = $q.defer();
-    	var params = {};
-    	params.projectName = projectName;
-    	aws.queryService(projectManagementURL, 'getListOfQueryObjects', [params], function(AWSQueryObjectCollection){
+    	aws.queryService(projectManagementURL, 'getListOfQueryObjects', [projectName], function(AWSQueryObjectCollection){
     		that.data.returnedQueryObjects = [];
     		if(!(angular.isUndefined(AWSQueryObjectCollection)))
     			{    			
@@ -66,6 +74,10 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         				that.data.returnedQueryObjects[i] = singleObject;
         			}
         			
+    			}else{
+    				that.data.projectSelectorUI = "";
+    				that.data.projectDescription = "";
+    				that.data.userName = "";
     			}
     		
 	    		scope.$safeApply(function() {
@@ -84,7 +96,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
    	 var deferred = $q.defer();
    	 queryObject = angular.toJson(queryObject);
    	 console.log("stringified queryObject", queryObject);
-   	 aws.queryService(projectManagementURL, 'returnSessionState', [queryObject], function(result){
+   	 aws.queryService(projectManagementURL, 'getSessionState', [queryObject], function(result){
     		
    		 that.data.weaveSessionState = result;
    		 
@@ -123,11 +135,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
    this.deleteProject = function(projectName) {
     console.log("currently selectec project", projectName);
    	var deferred = $q.defer();
-   	var params = {};
-   	params.projectName = projectName;
-
-   	aws.queryService(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
-       	console.log("deleteProjectStatus", result);
+   	aws.queryService(projectManagementURL, 'deleteProjectFromDatabase', [projectName], function(result){
            
        	that.data.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
        	
@@ -157,11 +165,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
     */
    this.deleteQueryObject = function(projectName, queryObjectTitle){
 	   var deferred = $q.defer();
-	   	var params = {};
-	   	params.projectName = projectName;
-	   	params.queryObjectTitle = queryObjectTitle;
-	   
-		aws.queryService(projectManagementURL, 'deleteQueryObjectFromProject', [params], function(result){
+		aws.queryService(projectManagementURL, 'deleteQueryObjectFromProject', [projectName, queryObjectTitle], function(result){
 	       	that.data.deleteQueryObjectStatus = result;
 	       	console.log("in the service",that.data.deleteQueryObjectStatus );
 	       	
@@ -186,21 +190,20 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
     * adds a query object (row) to the specified project in the database
     * So that the UI asynchronously wait for the data to be available...
     */
-   this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
-     	
+   this.insertQueryObjectToProject = function(userName, projectName, projectDescription,queryObjectTitles,queryObjectJsons, resultVisualizations){
+ 
    	var deferred = $q.defer();
-   	var params = {};
-   	params.userName = userName;
-   	params.projectName = projectName;
-   	params.projectDescription = projectDescription;
-   	params.queryObjectTitle = queryObjectTitle;
-   	params.queryObjectContent = queryObjectContent;
 
-   	aws.queryService(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
+   	aws.queryService(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [userName,
+   	                                                                                          projectName,
+   	                                                                                          projectDescription,
+   	                                                                                          queryObjectTitles,
+   	                                                                                          queryObjectJsons,
+   	                                                                                          resultVisualizations], function(result){
    		that.data.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
        	console.log("insertQueryObjectStatus", that.data.insertQueryObjectStatus);
        	if(that.data.insertQueryObjectStatus != 0){
-       		alert("Query Object" + queryObjectTitle+ " has been added to project:" + projectName);
+       		alert(that.data.insertQueryObjectStatus + " Query Object(s)" +  " have been added to project:" + projectName);
        	}
        	
        	scope.$safeApply(function() {
@@ -209,25 +212,18 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
        	
        });
        
-       return [deferred.promise, that.data.insertQueryObjectStatus] ;
+       return deferred.promise;
        
    };
    
-//   $scope.$watch(function(){
-//    	return queryService.dataObject.insertQueryObjectStatus;
-//     }, function(){ 
-//    	 $scope.insertQueryObjectStatus = queryService.dataObject.insertQueryObjectStatus;
-//    	if(!(angular.isUndefined($scope.insertQueryObjectStatus)))
-//		 {
-//		 	if($scope.insertQueryObjectStatus != 0)
-//		 		{
-//   		 		alert("Query Object has been added");
-//   		 		queryService.dataObject.listofQueryObjectsInProject = [];
-//	    			queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);//makes a new call
-//		 		}
-//		 }
-//	 
-//    	queryService.dataObject.insertQueryObjectStatus = 0;//reset
-//     });
+   //this.createNewProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent){
+   this.createNewProject = function(projectBundle){
+	   that.insertQueryObjectToProject(projectBundle.userName, projectBundle.projectName, projectBundle.projectDescription,projectBundle.queryObjectTitles, projectBundle.queryObjectJsons,null)
+	   .then(function(){
+		   that.data.listOfProjectsFromDatabase = [];//clear
+		   that.getListOfProjects();//fetch new list
+	   });
+
+   };
    
 }]);

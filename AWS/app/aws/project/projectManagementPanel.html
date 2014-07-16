@@ -5,7 +5,7 @@
 			<div class="project-username">
 				<span class="user-label">Username: </span>
 
-				<input class="user-input" ng-model = "username" type = "text" placeholder = "Enter a username for the project" />
+				<input class="user-input" ng-model = "projectService.projectBundle.userName" type = "text" placeholder = "Enter a username for the project" />
 
 			</div>
 
@@ -103,7 +103,19 @@
 										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
 										Delete the query
 									</button>
-									<!--button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button-->
+<!--        							<div class= "btn-group" dropdown is-open= "status.isopen"> -->
+<!--        							<button type="button" class="btn btn-primary dropdown-toggle"> -->
+<!--        									 Open <span class="caret"></span> -->
+<!--       									</button> -->
+<!-- 									      <ul class="dropdown-menu" role="menu"> -->
+<!-- 									        <li><a href="#" ng-click = "hello()" >Action</a></li> -->
+<!-- 									        <li><a href="#">Another action</a></li> -->
+<!-- 									        <li><a href="#">Something else here</a></li> -->
+<!-- 									        <li class="divider"></li> -->
+<!-- 									        <li><a href="#">Separated link</a></li> -->
+<!-- 									      </ul> -->
+<!--        							</div> -->
+		
 									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item.queryObject)" type="button" class="btn btn-sm query-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
 									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
 										Open in editor
