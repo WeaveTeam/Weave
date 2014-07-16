@@ -90,7 +90,7 @@ package weave.core
 			if (linkableParent == linkableChild)
 				throw new Error("registerLinkableChild(): Invalid attempt to register sessioned property having itself as its parent");
 			
-			// add a callback that will be cleaned up when the parent is disposed of.
+			// add a callback that will be cleaned up when the parent is disposed.
 			// this callback will be called BEFORE the child triggers the parent callbacks.
 			if (callback != null)
 			{
@@ -911,7 +911,7 @@ package weave.core
 		/**
 		 * This function will register a UIComponent/ILinkableObject as a disposable child of an ancestral
 		 * DisplayObjectContainer/ILinkableObject if it has no linkable owner yet.  This makes sure that the
-		 * component is disposed of when its ancestor is disposed of.
+		 * component is disposed when its ancestor is disposed.
 		 * @param linkableComponent A UIComponent that implements ILinkableObject.
 		 * @return true if the component has a linkable owner, either before or after this function is called, or if the object was disposed.
 		 */
@@ -991,7 +991,7 @@ package weave.core
 				var linkableObject:ILinkableObject = object as ILinkableObject;
 				if (linkableObject)
 				{
-					// dispose of the callback collection corresponding to the object.
+					// dispose the callback collection corresponding to the object.
 					// this removes all callbacks, including the one that triggers parent callbacks.
 					var objectCC:ICallbackCollection = getCallbackCollection(linkableObject);
 					if (objectCC != linkableObject)
@@ -1028,14 +1028,14 @@ package weave.core
 				for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
 					unlinkSessionState(linkableObject, otherObject as ILinkableObject);
 				
-				// dispose of all registered children that this object owns
+				// dispose all registered children that this object owns
 				var children:Dictionary = ownerToChildDictionaryMap[object] as Dictionary;
 				if (children != null)
 				{
 					// clear the pointers to the child dictionaries for this object
 					delete ownerToChildDictionaryMap[object];
 					delete parentToChildDictionaryMap[object];
-					// dispose of the children this object owned
+					// dispose the children this object owned
 					for (var child:Object in children)
 						disposeObject(child);
 				}

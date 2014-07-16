@@ -408,7 +408,7 @@ package weave.core
 				return;
 
 			// When the child is added to the parent, the child order should be updated.
-			// When the child is removed from the parent with removeChild() or removeChildAt(), it should be disposed of.
+			// When the child is removed from the parent with removeChild() or removeChildAt(), it should be disposed.
 			var listenLater:Function = function(event:Event):void
 			{
 				if (event.target == uiChild && !objectWasDisposed(uiChild))

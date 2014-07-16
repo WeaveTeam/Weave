@@ -344,7 +344,7 @@
 				this.setStyle("borderStyle","none");
 			}
 			
-			// remove and dispose of all children
+			// remove and dispose all children
 			private function removeAllEquationChildren():void
 			{
 				var children:Array = equationStringContainer.getChildren();

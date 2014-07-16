@@ -184,7 +184,7 @@ package weave.services
 		{
 			var tileService:IWeaveGeometryTileService = new WeaveGeometryTileServlet(this, columnId);
 			
-			// when we dispose of this servlet, we also want to dispose of the spawned tile servlet
+			// when we dispose this servlet, we also want to dispose the spawned tile servlet
 			registerDisposableChild(this, tileService);
 			
 			return tileService;
