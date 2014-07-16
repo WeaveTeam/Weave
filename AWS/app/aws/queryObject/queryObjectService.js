@@ -63,7 +63,33 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         return deferred.promise;
         
     };
+    
+    this.getSessionState = function(){
+    	if(!(newWeaveWindow.closed)){
+    		var base64SessionState = newWeaveWindow.getSessionState();
+    		this.writeSessionState(base64SessionState);
+    	}
+    };
    
+    this.writeSessionState = function(base64String){
+    	
+    	var params = {};
+    	params.queryObjectJsons = angular.toJson(this.queryObject);
+    	params.projectName = "Other";
+    	params.userName = "Awesome User";
+    	params.projectDescription = "These query objects do not belong to any project";
+    	params.resultVisualizations = base64String;
+    	params.queryObjectTitles = this.queryObject.title;
+    	
+    	
+    	console.log("got it", base64String);
+    	aws.queryService(projectManagementURL, 'writeSessionState', params, function(result){
+    		console.log("adding status", result);
+    		alert(params.queryObjectTitles + " has been added");
+    	});
+    	
+    };
+    
     /**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...

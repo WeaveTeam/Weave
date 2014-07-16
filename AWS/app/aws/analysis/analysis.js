@@ -18,13 +18,6 @@ analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorS
   };
 });
 
-analysis_mod.controller('SaveVisualizationCtrl', function($scope, $filter, dasboard_widget_service) {
-	
-	
-	
-});
-
-
 analysis_mod.controller('WidgetsController', function($scope, $filter, dasboard_widget_service) {
 
 	$scope.box_enabled = {};

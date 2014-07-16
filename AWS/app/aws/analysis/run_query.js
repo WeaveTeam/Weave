@@ -19,6 +19,10 @@ analysis_mod.controller("RunQueryCtrl", function($scope, queryService) {
 			queryHandler.clearSessionState();
 		}
 	};
+	
+	$scope.saveVisualization = function(){
+		queryService.getSessionState();
+	};
 });
 
 analysis_mod.controller("ColorColumnCtrl", function($scope, queryService) {

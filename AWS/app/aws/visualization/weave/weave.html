@@ -43,6 +43,7 @@
 			   if(setSession){
 				   setSessionHistory(setSession);
 			   }
+			   
 			}
 			
 			function workOnData(queryHandler, input)
@@ -160,6 +161,15 @@
 			    ");
 					
 				
+			}
+			
+			function getSessionState()
+			{
+				return weave.path().getValue("\
+				        var e = new 'mx.utils.Base64Encoder'();\
+				        e.encodeBytes( Class('weave.Weave').createWeaveFileContent(true) );\
+				        return e.drain();\
+				    ");
 			}
 			
 		</script>
