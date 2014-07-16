@@ -34,62 +34,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.collections.Sort;
-			import mx.collections.SortField;
-			import mx.core.UIComponent;
 			import mx.events.MenuEvent;
 			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
 			
+			import weave.compiler.StandardLib;
 			import weave.menus.WeaveMenuItem;
+			import weave.ui.controlBars.WeaveMenuBar;
 			
 			private var autosuggest:SubMenu;
 			
-			private var menuItems:ArrayCollection = new ArrayCollection(); 
-			
-			private var lastFocus:UIComponent;
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				autosuggest =  new SubMenu(keyword, [], []);
-				
-				var items:ArrayCollection = (WeaveAPI.topLevelApplication.visApp).getMenuItems();
-				
-				var menuItemsSource:Array = [];
-				
-				//Assumes 2D array
-				for each (var a:WeaveMenuItem in items.source)
-				{
-					if(a.children == null && a.label)
-					{
-						menuItemsSource.push(a);
-						continue;
-					}	
-					
-					for each (var i:WeaveMenuItem in a.children.source)
-					{
-						if(i.label)
-							menuItemsSource.push(i);
-					}
-				}
-				
-				
-				menuItems.source = menuItemsSource;
-				
-				menuItems.filterFunction = filterMenuItems;
-				
-				var sort:Sort = new Sort();
-				sort.fields = [new SortField("weaveLabel")];
-				
-				menuItems.sort = sort;
-				
 				keyword.setFocus();
-				
 				keyword.addEventListener(KeyboardEvent.KEY_DOWN,handleUpDown);
 				
+				autosuggest = new SubMenu(keyword, [], []);
 				autosuggest.addEventListener(MenuEvent.ITEM_CLICK,close);
-				
 			}
 			
 			private function close(event:Event=null):void
@@ -100,42 +63,50 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleUpDown(event:KeyboardEvent):void
 			{
-				if(event.keyCode == Keyboard.DOWN)
+				if (event.keyCode == Keyboard.DOWN)
 				{
 					autosuggest.setFocus();
 					autosuggest.selectedIndex = 0;
-				}else if(event.keyCode == Keyboard.ESCAPE)
+				}
+				else if(event.keyCode == Keyboard.ESCAPE)
 				{
 					close();
 				}
 			}
-			
-			private function filterMenuItems(item:Object):Boolean
+
+			private function getMenuItems():Array
 			{
-				var searchKeywords:String = keyword.text.toLowerCase();
+				var menus:Array = WeaveMenuBar.defaultMenus;
 				
-				var menuLabel:String = item.weaveLabel;
-				
-				return menuLabel.toLowerCase().search(searchKeywords) > -1;
+				var leafItems:Array = [];
+				menus.forEach(getLeafItems);
+				function getLeafItems(item:WeaveMenuItem, i:int, a:Array):void
+				{
+					var children:Array = item.children;
+					if (children)
+						children.forEach(getLeafItems);
+					else
+						leafItems.push(item);
+				}
+				return leafItems;
+			}
+			private function sortMenuItems(item1:WeaveMenuItem, item2:WeaveMenuItem):int
+			{
+				return ObjectUtil.stringCompare(item1.label, item2.label, true);
+			}
+			private function filterMenuItems(item:WeaveMenuItem, i:int, a:Array):Boolean
+			{
+				return item.label.toLowerCase().search(keyword.text.toLowerCase()) > -1;
 			}
 			
 			private function filter():void
 			{
 				autosuggest.hide();
 				
-				menuItems.refresh();
+				var items:Array = getMenuItems().filter(filterMenuItems);
+				StandardLib.sort(items, sortMenuItems);
 				
-				autosuggest.menuItems.length = 0;
-				
-				if(menuItems.length == 0)
-					return;
-				
-				var items:Array = menuItems.toArray();
-				
-				for each(var item:WeaveMenuItem in items)
-				{
-					autosuggest.menuItems.push(new SubMenuItem(item.label,item.runClickFunction));
-				}
+				autosuggest.dataProvider = items;
 				
 				autosuggest.showSubMenu();
 				keyword.setFocus();

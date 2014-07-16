@@ -246,11 +246,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, TOOLTIP_MAXIMIZE);
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
-				zOrderSubMenu.menuItems.push(
-					new SubMenuItem(lang('Reset'), function():void { zOrder.value = 0; }, null, function():Boolean { return zOrder.value != 0; }),
-					new SubMenuItem(lang('Always above'), function():void { zOrder.value = 1; }, null, function():Boolean { return zOrder.value <= 0; }),
-					new SubMenuItem(lang('Always below'), function():void { zOrder.value = -1; }, null, function():Boolean { return zOrder.value >= 0; })
-				);
+				zOrderSubMenu.dataProvider = [
+					{
+						label: lang('Reset'),
+						click: function():void { zOrder.value = 0; },
+						shown: function():Boolean { return zOrder.value != 0; }
+					},{
+						label: lang('Always above'),
+						click: function():void { zOrder.value = 1; },
+						shown: function():Boolean { return zOrder.value <= 0; }
+					},{
+						label: lang('Always below'),
+						click: function():void { zOrder.value = -1; },
+						shown: function():Boolean { return zOrder.value >= 0; }
+					}
+				];
 				
 				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 				if (hashMap)
