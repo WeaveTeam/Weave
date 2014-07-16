@@ -33,7 +33,7 @@ public class AwsProjectService
 	    * @throws Exception
 	    */
 	//retrieves all the projects belonging to a particular user
-	public static String[] getProjectListFromDatabase() throws SQLException, RemoteException{
+	public String[] getProjectListFromDatabase() throws SQLException, RemoteException{
 		SQLResult projectObjects= null;//all the projects belonging to the userName
 		
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
@@ -62,12 +62,12 @@ public class AwsProjectService
 	   * @return count number of rows(query Objects in the project) deleted from the database
 	   * @throws Exception
 	   */
-	public static int deleteProjectFromDatabase(Map<String, Object> params)throws RemoteException, SQLException
+	public int deleteProjectFromDatabase(String projectName)throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		Map<String,Object> whereParams = new HashMap<String, Object>();
-		whereParams = params;
+		whereParams.put("projectName", projectName);
 		
 		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
 		builder.addGroupedConditions(whereParams, null,null);
@@ -84,12 +84,13 @@ public class AwsProjectService
 	   * @return count number of rows(query Objects) deleted from the database
 	   * @throws Exception
 	   */
-	public static int deleteQueryObjectFromProject(Map<String, Object> params)throws RemoteException, SQLException{
+	public int deleteQueryObjectFromProject(String projectName, String queryObjectTitle) throws RemoteException, SQLException{
 		
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		Map<String,Object> whereParams = new HashMap<String, Object>();
-		whereParams = params;
+		whereParams.put("projectName", projectName);
+		whereParams.put("queryObjectTitle", queryObjectTitle);
 		
 		WhereClauseBuilder<Object> builder = new WhereClauseBuilder<Object>(false);
 		builder.addGroupedConditions(whereParams, null,null);
@@ -106,13 +107,19 @@ public class AwsProjectService
 	   * @return count number of rows(query Objects in the project) added to the database
 	   * @throws Exception
 	   */
-	public int insertQueryObjectInProjectFromDatabase(String userName, String projectName, String queryObjectTitle, String queryObjectContent, String encodedViz) throws RemoteException, SQLException
+	public int insertQueryObjectInProjectFromDatabase(String userName,
+													  String projectName,
+													  String projectDescription,
+													  String queryObjectTitle,
+													  String queryObjectContent, 
+													  String encodedViz) throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		Map<String,Object> record = new HashMap<String, Object>();
 		record.put("userName", userName);
 		record.put("projectName", projectName);
+		record.put("projectDescription", projectDescription);
 		record.put("queryObjectTitle", queryObjectTitle);
 		record.put("queryObjectContent", queryObjectContent);
 		record.put("resultVisualizations", encodedViz);
@@ -129,37 +136,27 @@ public class AwsProjectService
 	   * @return count number of rows(query Objects in the project) added to the database
 	   * @throws Exception
 	   */
-	public static int insertMultipleQueryObjectInProjectFromDatabase(Map<String, Object> params) throws RemoteException, SQLException
+	public int insertMultipleQueryObjectInProjectFromDatabase(String userName, 
+															  String projectName,
+															  String projectDescription,
+															  String[] queryObjectTitles,
+															  String[] queryObjectContent,
+															  String resultVisualizations) throws RemoteException, SQLException
 	{
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		List<Map<String, Object>> records = new ArrayList<Map<String, Object>>();
-		String[] queryObjectTitle = null;
-		String[] queryObjectContent = null;
 		
-		//getting the queryObject titles
-		 Object titlesObject = params.get("queryObjectTitle");
-		 ArrayList<Object> queryObjectTitleList = new ArrayList<Object>();
-		 queryObjectTitleList.add(titlesObject);
-		 queryObjectTitle = queryObjectTitleList.toArray(queryObjectTitle);
-		 
-		 //getting the queryObject content 
-		 Object contentsObject = params.get("queryObjectContent");
-		 ArrayList<Object> contentList = new ArrayList<Object>();
-		 contentList.add(contentsObject);
-		 queryObjectContent = contentList.toArray(queryObjectContent);
-		 
-		
-		for(int i = 0; i < queryObjectTitle.length; i++){
+		for(int i = 0; i < queryObjectTitles.length; i++){
 			Map<String,Object> record = new HashMap<String, Object>();
-			record.put("userName", params.get("userName"));
-			record.put("projectName", params.get("projectName"));
-			record.put("projectDescription", params.get("projectDescription"));
-			record.put("queryObjectTitle", queryObjectTitle[i]);
+			record.put("userName",userName);
+			record.put("projectName", projectName);
+			record.put("projectDescription", projectDescription);
+			record.put("queryObjectTitle", queryObjectTitles[i]);
 			record.put("queryObjectContent", queryObjectContent[i]);
+			record.put("resultVisualizations",resultVisualizations);
 			records.add(record);
 		}
-		
 		
 		int count = SQLUtils.insertRows(con, schema , "stored_query_objects", records );
 		con.close();
@@ -172,7 +169,7 @@ public class AwsProjectService
 	   * @returns an array of AWSQueryObjectCollection objects one each for every queryObject 
 	   * @throws Exception
 	   */
-	public static AWSQueryObjectCollection[] getListOfQueryObjects(Map<String , Object> params) throws RemoteException, SQLException
+	public AWSQueryObjectCollection[] getListOfQueryObjects(String  projectName) throws RemoteException, SQLException
 	{
 		AWSQueryObjectCollection[]  finalQueryObjectCollection = null;
 		SQLResult visualizationSQLresult = null;
@@ -180,7 +177,7 @@ public class AwsProjectService
 		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
 		
 		Map<String,Object> whereParams = new HashMap<String, Object>();
-		whereParams.put("projectName", params.get("projectName").toString());
+		whereParams.put("projectName", projectName);
 		
 		List<String> selectColumns = new ArrayList<String>();
 		selectColumns.add("queryObjectTitle");
@@ -259,7 +256,7 @@ public class AwsProjectService
 	   * @returns a base64 string representing the session state
 	   * @throws Exception
 	   */
-	public static String returnSessionState(String queryObject) throws SQLException, RemoteException, ParseException
+	public String getSessionState(String queryObject) throws SQLException, RemoteException, ParseException
 	{
 		String sessionStateString = null;
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
@@ -290,6 +287,51 @@ public class AwsProjectService
 		}
 		con.close();
 		return sessionStateString;
+	}
+	
+	/** 
+	   * writes the session state of the Weave instance created by the query object, adds it as a property to the queryObject
+	   * @param params queryObject json string that represents a queryObject
+	   * @returns the number of rows successfully added or updated
+	   * @throws Exception
+	   */
+	//public static int writeSessionState(Map<String, Object> params)throws RemoteException, SQLException
+	public int writeSessionState( String userName,
+								 String projectDescription,
+								 String queryObjectTitles,
+								 String queryObjectJsons,
+								 String resultVisualizations,
+								 String projectName)throws RemoteException, SQLException
+	{
+		int count; 
+		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
+		String schema = WeaveConfig.getConnectionConfig().getDatabaseConfigInfo().schema;
+		
+		Map<String,Object> whereParams = new HashMap<String, Object>();
+		//whereParams.put("projectName", projectName);
+		whereParams.put("queryObjectContent", queryObjectJsons);
+		
+		List<String> selectColumns = new ArrayList<String>();
+		//selectColumns.add("projectName");
+		selectColumns.add("queryObjectContent");
+		Set<String> caseSensitiveFields  = new HashSet<String>();//empty 
+		//check if queryObject exists
+		SQLResult checkExistStatus = SQLUtils.getResultFromQuery(con,selectColumns, schema, "stored_query_objects", whereParams, caseSensitiveFields ) ;
+		if(checkExistStatus.rows.length > 0)
+		{			//if yes then update
+			
+			String dbTable = SQLUtils.quoteSchemaTable(con,schema, "stored_query_objects");
+			
+			Map<String, Object> dataUpdate = new HashMap<String, Object>();
+			dataUpdate.put("resultVisualizations", resultVisualizations);
+			
+			count = SQLUtils.updateRows(con, schema, dbTable, whereParams, dataUpdate, caseSensitiveFields);	
+		}
+		else{
+			//else insert new row
+			count = insertQueryObjectInProjectFromDatabase(userName, projectName,projectDescription,queryObjectTitles,queryObjectJsons,resultVisualizations);
+		}
+		return count;
 	}
 	
 	/**
