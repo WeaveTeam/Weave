@@ -10,7 +10,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'aws.queryObjectEditor', // Shweta's module
                                  'aws.project',  // shweta's module
                                  'aws.outputView',
-                                 'aws.BioWeave',
+                                 'aws.bioWeave',
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
@@ -65,7 +65,7 @@ app.run(['$rootScope', function($rootScope){
 		controller : 'OutputViewManagementController',
 		activetab : 'output_view'
 	}).when('/BioWeave_management', {
-		templateUrl : 'aws/outputView/BioWeaveManager.html',
+		templateUrl : 'aws/bioWeave/BioWeaveManager.html',
 		controller : 'BioWeaveController',
 		activetab : 'BioWeave_management'
 	});
