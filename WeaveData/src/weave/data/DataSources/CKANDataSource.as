@@ -393,7 +393,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		}
 		else
 		{
-			var error:Object = response.hasOwnProperty('error') ? response['error'] : response;
+			var error:Object = response && response.hasOwnProperty('error') ? response['error'] : response;
 			reportError("CKAN action failed: " + this.toString() + "; error=" + Compiler.stringify(error));
 		}
 		
