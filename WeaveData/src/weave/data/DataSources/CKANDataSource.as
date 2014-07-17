@@ -195,7 +195,7 @@ package weave.data.DataSources
 						datastore.metadata.setSessionState(
 							result['fields'].map(function(field:Object, i:*, a:*):Object {
 								var type:String = field['type'];
-								if (type == 'numeric' || type == 'int4')
+								if (type == 'numeric' || type == 'int4' || type == 'int' || type == 'float' || type == 'double')
 									type = DataTypes.NUMBER;
 								if (type == 'text')
 									type = DataTypes.STRING;
