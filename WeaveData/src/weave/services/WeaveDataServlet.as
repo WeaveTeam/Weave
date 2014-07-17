@@ -207,7 +207,10 @@ package weave.services
 		////////////////////////////
 		// backwards compatibility
 		
-		[Deprecated] public function getColumnFromMetadata(metadata:Object):AsyncToken
+		/**
+		 * Deprecated. Use getColumn() instead.
+		 */
+		public function getColumnFromMetadata(metadata:Object):AsyncToken
 		{
 			return invoke(getColumnFromMetadata, arguments, AttributeColumnData);
 		}
