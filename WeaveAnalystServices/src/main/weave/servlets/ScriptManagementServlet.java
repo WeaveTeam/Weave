@@ -22,10 +22,12 @@ public class ScriptManagementServlet extends WeaveServlet
 
 	private File rDirectory;
 	private File stataDirectory;
+	private File pythonDirectory;
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		rDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath());
 		stataDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath());
+		pythonDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getPythonScriptsPath());
 		
 	}
 	
