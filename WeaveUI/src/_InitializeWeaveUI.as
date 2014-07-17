@@ -196,6 +196,7 @@ package
 				"weave.application",
 				"weave.editors",
 				"weave.editors.managers",
+				"weave.menus",
 				"weave.ui",
 				"weave.ui.annotation",
 				"weave.ui.collaboration",

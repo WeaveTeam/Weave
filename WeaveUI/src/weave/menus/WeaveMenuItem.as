@@ -287,9 +287,5 @@ package weave.menus
 			if (lb)
 				lb.value = !lb.value;
 		}
-		
-		// support for alternate spellings
-		[Exclude(kind="property")] public function set enable(value:*):void { _enabled = value; }
-		[Exclude(kind="property")] public function set show(value:*):void { _shown = value; }
 	}
 }
