@@ -22,7 +22,7 @@ package weave.menus
 	import weave.core.LinkableBoolean;
 	
 	/**
-	 * Dynamic menu item for use with a MenuBar.
+	 * Dynamic menu item for use with Flex Menus.
 	 * 
 	 * Flex's DefaultDataDescriptor checks the following properties:
 	 *     label, children, enabled, toggled, type, groupName
