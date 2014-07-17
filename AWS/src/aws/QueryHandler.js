@@ -224,7 +224,7 @@ aws.QueryHandler = function(queryObject)
 	
 	if (queryObject.hasOwnProperty("MapTool")) {
 		if(queryObject.MapTool.enabled) {
-			this.keyType = queryObject.MapTool.selected.keyType;
+			this.keyType = queryObject.MapTool.geometryLayer.keyType;
 			this.visualizations.push(
 					{
 						type : "MapTool",
