@@ -34,10 +34,8 @@ aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
-	//testing dont know if this is the right way
-	this.queryObject = queryObject;
-	//testing
 	this.title = queryObject.title;
+	this.queryObject = queryObject;
 	
 	this.dateGenerated = queryObject.date;
 	this.author = queryObject.author;
@@ -230,9 +228,10 @@ aws.QueryHandler = function(queryObject)
 			this.visualizations.push(
 					{
 						type : "MapTool",
-						parameters : queryObject.MapTool.selected,
+						parameters : queryObject.MapTool.geometryLayer,
 						title : queryObject.MapTool.title,
-						enableTitle : queryObject.MapTool.enableTitle
+						enableTitle : queryObject.MapTool.enableTitle,
+						labelLayer : queryObject.MapTool.labelLayer
 					}
 			);
 		}
@@ -280,7 +279,7 @@ aws.QueryHandler = function(queryObject)
 	}
 	
 	this.currentVisualizations = {};
-
+	console.log("query", angular.toJson(this.queryObject));
 	this.ComputationEngine = null;
 	//TODO decide this according to script selected or UI selection of computation engine
 	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {
@@ -321,15 +320,16 @@ aws.QueryHandler.prototype.runQuery = function() {
 	});
 };
 
-aws.QueryHandler.prototype.clearWeave = function () {
+aws.QueryHandler.prototype.clearSessionState = function () {
 	//$("#LogBox").html('');
 	if(newWeaveWindow) {
-		newWeaveWindow.clearWeave(this);
+		//newWeaveWindow.clearWeave(this);
+		console.log("reached query handler");
+		newWeaveWindow.clearSessionState();
 	}
 };
 
 aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
-	
 	this.visualizations = [];
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
@@ -338,8 +338,6 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 		}
 	}
 
-	this.visualizations = [];
-	
 	if (queryObject.hasOwnProperty("MapTool")) {
 		if(queryObject.MapTool.enabled == true) {
 			this.keyType = queryObject.MapTool.keyType;
@@ -348,7 +346,8 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 						type : "MapTool",
 						parameters : queryObject.MapTool.selected,
 						title : queryObject.MapTool.title,
-						enableTitle : queryObject.MapTool.enableTitle
+						enableTitle : queryObject.MapTool.enableTitle,
+						labelLayer : queryObject.MapTool.labelLayer
 					}
 			);
 		}

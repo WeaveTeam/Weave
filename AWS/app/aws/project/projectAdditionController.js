@@ -1,63 +1,57 @@
 angular.module('aws.project')
-.controller("projectAdditionController", function($scope, queryService){
+.controller("projectAdditionController", function($scope, projectService){
 	
-	var project = "";
+	//var project = "";
 	//var projectDescription = "";
-	var user = "";
-	$scope.uploadStatus = "No file uploaded";
-	var queryObjectJsons = []; //array of uploaded queryObject jsons
-	var queryObjectTitles = [];
+	//var user = "";
+	projectService.data.uploadStatus = "No file uploaded";
+	//projectService.data.queryObjectJsons = []; //array of uploaded queryObject jsons
+	//projectService.data.queryObjectTitles = [];
 	var fileCount = 0;
     $scope.fileUpload;
 	
-    $scope.projtDescription = ""; 
-	$scope.$watch('projectName', function(){
-		 project = $scope.projectName;
-	});
-	
-	$scope.$watch('userName', function(){
-		 user = $scope.userName;
-	});
-	
-//	$scope.$on('fileUploaded', function(e) {
-//        $scope.$safeApply(function() {
-//        	$scope.uploadStatus = "";
-//        	fileCount++;
-//        	var countString = fileCount.toString();
-//        	console.log("fileUploaded", e.targetScope.file);
-//        	$scope.uploadStatus = countString + " files uploaded";
-//        	queryObjectJsons.push(e.targetScope.file);//filling up the json array
-//        	var jsonObject = JSON.parse(e.targetScope.file);
-//        	queryObjectTitles.push(jsonObject.title);
-////        	$scope.uploadStatus = $scope.uploadStatus.concat(qOTitle + " uploaded") + "\n";
-//        });
+    //$scope.projtDescription = ""; 
+//	$scope.$watch('projectName', function(){
+//		 project = $scope.projectName;
 //	});
+//	
+//	$scope.$watch('userName', function(){
+//		 user = $scope.userName;
+//	});
+//	
 	$scope.$watch('fileUpload', function(n, o) {
             if ($scope.fileUpload && $scope.fileUpload.then) {
               $scope.fileUpload.then(function(result) {
-                $scope.uploadStatus = "";
-//                fileCount++;
-//                var countString = fileCount.toString();
-//                console.log("fileUploaded", result);
-                $scope.uploadStatus = result.filename+ " uploaded";
-                queryObjectJsons.push(result.contents);//filling up the json array
+               // $scope.uploadStatus = "";
+            	projectService.projectBundle.uploadStatus = "";
+            	
+            	//TODO find way to retain file uploaded for state retention
+            	projectService.projectBundle.queryObjectJsons = [];//reset
+            	projectService.projectBundle.queryObjectTitles = [];//reset before every upload
+            	
+            	projectService.projectBundle.uploadStatus = result.filename+ " uploaded";  
+                projectService.projectBundle.queryObjectJsons.push(result.contents);//filling up the json array
                 var jsonObject = JSON.parse(result.contents);
-                queryObjectTitles.push(jsonObject.title);
+                console.log("json",jsonObject);
+                projectService.projectBundle.queryObjectTitles.push(jsonObject.title);
               });
             }
           }, true);
 	
+	
+	
 	 $scope.saveNewProjectToDatabase = function(){
 		
-		 var queryObjectTitle = []; //array of titles extracted from the queryObjectJsons
-		 var queryObjectContent = [];//array of stringifed json objects
+		 console.log("jsons", projectService.projectBundle.queryObjectJsons);
+		 console.log("titles", projectService.projectBundle.queryObjectTitles);
+		 console.log("userName", projectService.projectBundle.userName);
 		 
-		 console.log("jsons", queryObjectJsons);
-		 console.log("titles", queryObjectTitles);
-		 queryObjectTitle = queryObjectTitles;
-		 queryObjectContent = queryObjectJsons;
+		 if(angular.isUndefined(projectService.projectBundle.userName))
+			 projectService.projectBundle.userName = "Awesome User";
+		 projectService.projectBundle.resultVisualizations = null;//when queryObjects will be added with a project, generated visualizations will be null
 				 
-		 queryService.insertQueryObjectToProject(user, project, $scope.projtDescription, queryObjectTitle, queryObjectContent);
+		 projectService.createNewProject(projectService.projectBundle);
+		
 		 
 	 };
 	

@@ -127,7 +127,7 @@
 			<div ng-controller="WidgetsController">
 
 				<!--Configure Visuals-->
-				<div class="databox" style="width: 20%">
+				<div class="databox" style="width: 20% ; margin-bottom : 40px">
 					<!-- <div class="databox" style="width: 220px;"> -->
 
 					<div class="header panel-heading">
@@ -157,15 +157,21 @@
 								<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
 							</select>
 						</div>
+						<!-- Contains the buttons pertaining to a query and its visualizations -->
 						<div ng-controller="RunQueryCtrl">
 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="runQuery()"> <span style="vertical-align: middle">Run</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
+						
+						
+						<div>
+							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualization()"> <span style="vertical-align: middle">Save output visuals</span> </a>
+						</div>
+						<div style="display: table ; width : 100%; padding-top : 5px">
+							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a>
+							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a>
+<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> -->
 						</div>
 						
-						<div ng-controller="SaveVisualizationCtrl">
-							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualization()"> <span style="vertical-align: middle">Save output visuals</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
 						</div>
-					</div>
-
 				</div>
 
 			</div>

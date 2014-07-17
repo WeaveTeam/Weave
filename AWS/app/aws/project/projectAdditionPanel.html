@@ -10,29 +10,19 @@
 			</div>
 			<div class="aside-body">
 				Name of the Project
-				<input ng-model = "projectName" type = "text">
+				<input ng-model = "projectService.projectBundle.projectName" type = "text">
 				</input>
 				<br>
 				</br>
-				Author of the Project
-				<input ng-model = "userName" type = "text">
-				</input>
-				<br>
-				</br>
-				Project Description 				<textarea ng-model = "projtDescription" style = "width:200px; overflow-y : scroll;" type = "text"></textarea>
+				Project Description<textarea ng-model = "projectService.projectBundle.projectDescription" style = "width:200px; overflow-y : scroll;" type = "text"></textarea>
 				<br>
 				</br>
 				Query Objects (.json) files to include in the project
 				<br>
 				</br>
-                    <b>{{uploadStatus}}</b>
+                    <b>{{projectService.projectBundle.uploadStatus}}</b>
 
                     <file-upload label="Browse"></file-upload>
-
-
-
-	
-
 			</div>
 		</div>
 	</div>

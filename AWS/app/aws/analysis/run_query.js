@@ -15,10 +15,14 @@ analysis_mod.controller("RunQueryCtrl", function($scope, queryService) {
 		}
 	};
 
-	$scope.clearWeave = function() {
+	$scope.clearSessionState = function() {
 		if (queryHandler != undefined) {
-			queryHandler.clearWeave();
+			queryHandler.clearSessionState();
 		}
+	};
+	
+	$scope.saveVisualization = function(){
+		queryService.getSessionState();
 	};
 });
 

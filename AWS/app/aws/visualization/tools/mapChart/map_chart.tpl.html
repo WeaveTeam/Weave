@@ -11,12 +11,10 @@
 			<option></option>
 			<option value="output.param" ng-repeat="output in service.dataObject.scriptMetadata.outputs"> {{output.param}} </option>
 		</select>
-		
-		<select ui-select2 ng-model="service.queryObject.MapTool.keyColumn" data-placeholder="Choose key Column">
+		<br>
+		<select class="widget-ui-control" ui-select2 ng-model="label" data-placeholder="Choose Label Column">
 			<option></option>
-			<option value="output.param" ng-repeat="output in service.dataObject.scriptMetadata.outputs"> {{output.param}} </option>
+			<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 		</select>
-		<br>		
-		<input type="checkbox" ng-init="service.queryObject.MapTool.useCSVKeyType = true" ng-model="service.queryObject.MapTool.useCSVKeyType"/> Use CSV data keyType
 	</ul>
 </div>

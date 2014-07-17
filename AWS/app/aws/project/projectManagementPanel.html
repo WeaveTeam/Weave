@@ -5,7 +5,7 @@
 			<div class="project-username">
 				<span class="user-label">Username: </span>
 
-				<input class="user-input" ng-model = "username" type = "text" placeholder = "Enter a username for the project" />
+				<input class="user-input" ng-model = "projectService.projectBundle.userName" type = "text" placeholder = "Enter a username for the project" />
 
 			</div>
 
@@ -17,10 +17,14 @@
 					<h2>Manage Query Object and Projects</h2>
 				</div>
 				<div class="widget-selectors">
-					<select ui-select2 ng-model="projectSelectorUI" style="width:200px;" data-placeholder="Select a project">
-						<option></option>
-						<option ng-repeat = "pjt in listOfProjects" value = "{{pjt}}">{{pjt}}</option>
-					</select>
+<!-- 					<select ui-select2 ng-model="projectSelectorUI" style="width:200px;" data-placeholder="Select a project" ng-change= "update(pjt)"> -->
+<!-- 						<option></option> -->
+<!-- 						<option ng-repeat = "pjt in projectService.data.listOfProjectsFromDatabase" value = "{{pjt}}" >{{pjt}}</option> -->
+<!-- 					</select> -->
+						
+						<select ui-select  ng-model = "projectService.data.projectSelectorUI" style="width:200px;" ng-options = "pjt as pjt for pjt in projectService.data.listOfProjectsFromDatabase" 
+						ng-change = "getListOfQueryObjects()">
+						</select>
 
 					<div style="display: inline-block; margin-left: 90px;">
 						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
@@ -46,44 +50,52 @@
 
 				</div>
 				<div style="width: 100%; height: 40px;">
-					<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{projectDescriptionStatement}}</h5>
+					<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{projectService.data.projectDescription}}</h5>
 
 				</div>
 
 				<div class="dd" id="nestable3">
 					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
-						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems">
+<!-- 						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems"> -->
+							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.data.returnedQueryObjects">
 							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
 							<div class="dd-handle dd3-handle">
 								<!--Drag-->
 							</div>
 							<div class= "dd3-content d-list-content">
-								<div style='inline-block'>
-									<ul style="list-style:initial">
-										<li>
-											<span class="prj-txt-lbl">Title: </span> 
-											<span class="prj-txt-val"> {{item.title}} </span>
-										</li>
-										<li>
-											<span class="prj-txt-lbl">Date: </span>
-											<span class="prj-txt-val">{{item.date}}</span>
-										</li>
-										<li>
-											<span class="prj-txt-lbl">Datatable: </span>
-											<span class="prj-txt-val">{{item.dataTable.title}}</span>
-										</li>
-										<li>
-											<span class="prj-txt-lbl">Script: </span>
-											<span class="prj-txt-val">{{item.scriptSelected}}</span>
-										</li>
-										<li>
-											<span class="prj-txt-lbl">Columns: </span>
-											<span class="prj-txt-val">{{columnString}}</span>
-										</li>
-									</ul>
+								<div style='display : table'; inline-block; >
+	<!---Contains the list	-->		<div style="width : 85%; display : table-cell">
+										<ul style="list-style:initial">
+											<li>
+												<span class="prj-txt-lbl">Title: </span> 
+												<span class="prj-txt-val"> {{item.queryObject.title}} </span>
+											</li>
+											<li>
+												<span class="prj-txt-lbl">Date: </span>
+												<span class="prj-txt-val">{{item.queryObject.date}}</span>
+											</li>
+											<li>
+												<span class="prj-txt-lbl">Datatable: </span>
+												<span class="prj-txt-val">{{item.queryObject.dataTable.title}}</span>
+											</li>
+											<li>
+												<span class="prj-txt-lbl">Script: </span>
+												<span class="prj-txt-val">{{item.queryObject.scriptSelected}}</span>
+											</li>
+											<li>
+												<span class="prj-txt-lbl">Columns: </span>
+												<span class="prj-txt-val">{{item.columnstring}}</span>
+											</li>
+										</ul>
+									</div>
+ <!-- Contains the picture -->		<!-- div style="display : table-cell" ng-repeat = "pic in thumbnailsToDisplay"-->
+										<div style="display : table-cell">
+										<img width = "150" height = "100" ng-src= "{{item.thumbnail || '../aws/css/img/ImageUnavailable.png'}}" style="border: 1px solid #000000;" ng-click = "returnSessionState(item.queryObject)"
+										></img>
+									</div>
 								</div>
 								<div class="query-btn-holder" ng-controller="RunQueryCtrl_2">
-									<button ng-click = "runQueryInAnalysisBuilder(item)" class ="btn btn-sm query-button">
+									<button ng-click = "runQueryInAnalysisBuilder(item.queryObject)" class ="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
 										Run Query
 									</button>
@@ -91,8 +103,20 @@
 										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
 										Delete the query
 									</button>
-									<!--button ng-click = "openInQueryObjectEditor()" style = "width : 30%" class="btn btn-default"><span></span></button-->
-									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item)" type="button" class="btn btn-sm query-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
+<!--        							<div class= "btn-group" dropdown is-open= "status.isopen"> -->
+<!--        							<button type="button" class="btn btn-primary dropdown-toggle"> -->
+<!--        									 Open <span class="caret"></span> -->
+<!--       									</button> -->
+<!-- 									      <ul class="dropdown-menu" role="menu"> -->
+<!-- 									        <li><a href="#" ng-click = "hello()" >Action</a></li> -->
+<!-- 									        <li><a href="#">Another action</a></li> -->
+<!-- 									        <li><a href="#">Something else here</a></li> -->
+<!-- 									        <li class="divider"></li> -->
+<!-- 									        <li><a href="#">Separated link</a></li> -->
+<!-- 									      </ul> -->
+<!--        							</div> -->
+		
+									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item.queryObject)" type="button" class="btn btn-sm query-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
 									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
 										Open in editor
 									</button>

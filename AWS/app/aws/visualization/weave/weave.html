@@ -43,6 +43,7 @@
 			   if(setSession){
 				   setSessionHistory(setSession);
 			   }
+			   
 			}
 			
 			function workOnData(queryHandler, input)
@@ -54,7 +55,7 @@
 				if(client)
 				{
 						   //Todo parameterize keyColumnName ; here "fips"
-						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "");
+						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "fips");
 						   var toolName;
 						    //creating the visualizations
 							for (var i in queryHandler.visualizations) {
@@ -79,9 +80,16 @@
 			}
 			
 			function updateVisualizations(queryHandler){
-				
 				var toolName;
 				log("Updating visualizations...");
+				
+				//TODO find a better way to set the keytype;
+				//check for the keytype
+				if(queryHandler.queryObject.MapTool)
+					var kyType = queryHandler.queryObject.MapTool.selected.keyType;
+				//set the keyType of the csv datasource
+				client.setCSVDataSouceKeyType(kyType);
+				
 				for(var i in queryHandler.visualizations){
 					if (queryHandler.currentVisualizations.hasOwnProperty(queryHandler.visualizations[i].type)) {
 						queryHandler.visualizations[i].toolName = queryHandler.currentVisualizations[queryHandler.visualizations[i].type];
@@ -100,11 +108,17 @@
 				 }
 			}
 			
-			function clearWeave() {
-				if(client) {
-					client.clearWeave(); 
-				}
+			function clearSessionState(){
+				if(client)
+					client.clearWeave();
+				log("Session State cleared");
 			}
+			
+// 			function clearWeave() {
+// 				if(client) {
+// 					client.clearWeave(); 
+// 				}
+// 			}
 			
 			function resizeWeave( t )
 			{
@@ -147,6 +161,15 @@
 			    ");
 					
 				
+			}
+			
+			function getSessionState()
+			{
+				return weave.path().getValue("\
+				        var e = new 'mx.utils.Base64Encoder'();\
+				        e.encodeBytes( Class('weave.Weave').createWeaveFileContent(true) );\
+				        return e.drain();\
+				    ");
 			}
 			
 		</script>

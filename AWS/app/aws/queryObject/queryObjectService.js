@@ -195,78 +195,29 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     };
     
     
-    /**
-     * This function wraps the async aws deleteQueryObject function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.deleteQueryObject = function(projectName, queryObjectTitle) {
-          	
-    	var deferred = $q.defer();
-    	var params = {};
-    	params.projectName = projectName;
-    	params.queryObjectTitle = queryObjectTitle;
-
-    	aws.queryService(projectManagementURL, 'deleteQueryObjectFromProjectFromDatabase', [params], function(result){
-        	that.dataObject.deleteQueryObjectStatus = result;//returns a boolean which states if the query has been deleted(true)
-        	console.log("in the service",that.dataObject.deleteQueryObjectStatus );
-        	scope.$safeApply(function() {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
+    this.getSessionState = function(){
+    	if(!(newWeaveWindow.closed)){
+    		var base64SessionState = newWeaveWindow.getSessionState();
+    		this.writeSessionState(base64SessionState);
+    	}
     };
-    
-    /**
-     * This function wraps the async aws getQueryObjectsInProject function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.getListOfQueryObjectsInProject = function(projectName) {
-    	var deferred = $q.defer();
-
-    	var params = {};
-    	params.projectName = projectName;
-    	aws.queryService(projectManagementURL, 'getQueryObjectsFromDatabase', [params], function(AWSQueryObjectCollectionObject){
-    		var returnedQueryObjects = [];
-    		if(!(angular.isUndefined(AWSQueryObjectCollectionObject)))
-    			{
-    			
-	    			var countOfJsons = AWSQueryObjectCollectionObject.finalQueryObjects.length;
-	    			for(var i = 0; i < countOfJsons; i++)
-	    			{
-	    				returnedQueryObjects[i] = JSON.parse(AWSQueryObjectCollectionObject.finalQueryObjects[i]);
-	    			}
-
-	    			that.dataObject.listofQueryObjectsInProject = returnedQueryObjects;
-	    			that.dataObject.queryNames = AWSQueryObjectCollectionObject.queryObjectNames;
-	    			that.dataObject.projectDescription = AWSQueryObjectCollectionObject.projectDescription;
-
-    			}
-        	scope.$safeApply(function() {
-                deferred.resolve(AWSQueryObjectCollectionObject);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
-    };
-    
-    /**
-     * This function returns the visualizations belonging to query(ies)
-     */
-    
-    this.getListOfQueryObjectVisualizations = function(projectName){
-    	var params = {};
-    	params.projectName = projectName;
+   
+    this.writeSessionState = function(base64String){
     	
-    	aws.queryService(projectManagementURL, 'getListOfQueryObjectVisualizations', [params], function(result){
-    		this.dataObject.listofVisualizations = result;
+    	var params = {};
+    	params.queryObjectJsons = angular.toJson(this.queryObject);
+    	params.projectName = "Other";
+    	params.userName = "Awesome User";
+    	params.projectDescription = "These query objects do not belong to any project";
+    	params.resultVisualizations = base64String;
+    	params.queryObjectTitles = this.queryObject.title;
+    	
+    	
+    	console.log("got it", base64String);
+    	aws.queryService(projectManagementURL, 'writeSessionState', params, function(result){
+    		console.log("adding status", result);
+    		alert(params.queryObjectTitles + " has been added");
     	});
-    	
-    	
     };
     
     /**
