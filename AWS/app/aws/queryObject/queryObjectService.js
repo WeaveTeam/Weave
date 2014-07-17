@@ -315,7 +315,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 									return {
 										id : entity.id,
 										title : entity.publicMetadata.title,
-										columnType : metadata.columnType
+										columnType : metadata.columnType,
+										description : metadata.description || ""
 									};
 								}
 							}

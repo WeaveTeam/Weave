@@ -32,7 +32,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	};
     
 	$scope.generateTree = function(element) {
-		queryService.getDataTableList().then(function(dataTableList) {
+		queryService.getDataTableList(true).then(function(dataTableList) {
 			for (var i = 0; i < dataTableList.length; i++) {
 				dataTable = dataTableList[i];
 				treeNode = { title: dataTable.title, key : dataTable.id,
@@ -40,11 +40,11 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 				};
 
 				(function(treeNode, i, end) {
-					queryService.getDataColumnsEntitiesFromId(dataTable.id).then(function(dataColumns) {
+					queryService.getDataColumnsEntitiesFromId(dataTable.id, true).then(function(dataColumns) {
 						var children = [];
 						for(var j in dataColumns) {
 							dataColumn = dataColumns[j];
-							children.push({ title : dataColumn.publicMetadata.title, key : dataColumn.id });
+							children.push({ title : dataColumn.title, key : dataColumn.id });
 						}
 						treeNode.children = children;
 						treeData.push(treeNode);
@@ -127,15 +127,11 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	 };
 
 	 $scope.addNewRow = function () {
-		 console.log("username", $scope.user);
-		console.log("password", $scope.password);
 		 $scope.myData.push({property: 'Property Name', value: 'Value'});
 		 updateMetadata($scope.myData);
 	 };
 
 	 $scope.removeRow = function() {
-		 console.log("username", $scope.user);
-		console.log("password", $scope.password);
 		 var index = $scope.myData.indexOf($scope.gridOptions.selectedItems[0]);
 	     $scope.myData.splice(index, 1);
 	     updateMetadata($scope.myData);

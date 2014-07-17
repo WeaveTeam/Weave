@@ -40,6 +40,9 @@
 						<option value="{{indicator}}" ng-repeat="indicator in service.dataObject.columns | filter : { columnType : 'indicator' }">{{indicator.title}}</option>
 					</select>
 				</div>
+				
+				{{service.queryObject.Indicator.description}}
+				
 				<!--<div class="body">
 
 				</div>-->
