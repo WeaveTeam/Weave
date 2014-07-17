@@ -251,6 +251,7 @@ public class XMLUtils
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder = factory.newDocumentBuilder();
+		builder.setErrorHandler(new SimpleErrorHandler());
 		return builder.parse(new ByteArrayInputStream(str.getBytes()));
 	}
 	public static String getStringFromXML(Node node) throws TransformerException
