@@ -10,7 +10,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'aws.queryObjectEditor', // Shweta's module
                                  'aws.project',  // shweta's module
                                  'aws.outputView',
-                                 'aws.BioWeave-Ryan',
+                                 'aws.BioWeave',
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
