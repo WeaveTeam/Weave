@@ -75,8 +75,8 @@ public class PythonTest {
 		Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
 		Object[] array2 = {1,2,3,4,5,6,7,8,9,10,11,12,13};
 		Object[][]dataset = new Object[][]{array1, array2};
-		String scriptAbsPath = "testpython.py";
-		aps.entryFunction(dataset, scriptAbsPath);
+		//String scriptAbsPath = "testpython.py";
+		aps.checking(dataset);
 	}
 
 }
