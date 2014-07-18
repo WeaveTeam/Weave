@@ -6,7 +6,7 @@ public class AWSUtils {
 
 	public enum SCRIPT_TYPE
 	{
-		STATA, R, UNKNOWN
+		STATA, R, UNKNOWN, PYTHON
 	}
 
 	public enum OS_TYPE 
@@ -76,6 +76,10 @@ public class AWSUtils {
 		if(extension.equalsIgnoreCase("do"))
 		{
 			return SCRIPT_TYPE.STATA;
+		}
+		
+		if(extension.equalsIgnoreCase("PYTHON")){
+			return SCRIPT_TYPE.PYTHON;
 		}
 		else
 		{

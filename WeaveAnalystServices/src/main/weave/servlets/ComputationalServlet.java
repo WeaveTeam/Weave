@@ -15,6 +15,7 @@ import weave.utils.AWSUtils;
 import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 
 import weave.config.AwsContextParams;
+import weave.models.computations.AwsPythonService;
 import weave.models.computations.AwsRService;
 import weave.models.computations.AwsStataService;
 import weave.models.computations.ScriptResult;
@@ -24,13 +25,16 @@ public class ComputationalServlet extends WeaveServlet
 	public ComputationalServlet() throws Exception
 	{
 		rService = new AwsRService();
+		pyService = new AwsPythonService();
 	}
 	
 	private String programPath = "";
 	private String tempDirPath = "";
 	private String stataScriptsPath = "";
 	private String rScriptsPath = "";
+	private String pythonScriptPath = "";
 	private AwsRService rService = null;
+	private AwsPythonService pyService= null;
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
@@ -40,6 +44,8 @@ public class ComputationalServlet extends WeaveServlet
 		
 		stataScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath();
 		rScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath();
+		pythonScriptPath = AwsContextParams.getInstance(config.getServletContext()).getPythonScriptsPath();
+		
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -71,16 +77,22 @@ public class ComputationalServlet extends WeaveServlet
  
  		// Run and time the script
  		startTime = System.currentTimeMillis();
-// 		try {
-// 			AwsRService rService = new AwsRService();
  			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), columnData);
-// 		} catch (Exception e) {
-// 			// TODO Auto-generated catch block
-// 			e.printStackTrace();
-// 		}
  		endTime = System.currentTimeMillis();
  		time2 = endTime - startTime;
  
+ 	}
+ 	if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.PYTHON){
+ 		Object[][] columnData = (Object[][]) AWSUtils.transpose((Object) recordData);
+ 		endTime = System.currentTimeMillis(); // end timer for data request
+ 		recordData = null;
+ 		time1 = endTime - startTime;
+ 
+ 		// Run and time the script
+ 		startTime = System.currentTimeMillis();
+ 			resultData = pyService.runScript((FilenameUtils.concat(pythonScriptPath, scriptName)), columnData);
+ 		endTime = System.currentTimeMillis();
+ 		time2 = endTime - startTime;
  	}
  	else if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
  	{
