@@ -128,6 +128,13 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	queryService.getListOfScripts(true);
 
 
+	//  clear script options when script changes
+	$scope.$watch('service.queryObject.scriptSelected', function(newVal, oldVal) {
+		
+		if(newVal != oldVal) {
+			queryService.queryObject.scriptOptions = {};
+		}
+	});
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {
