@@ -47,7 +47,7 @@ public class ScriptManagementServlet extends WeaveServlet
 	
 	public String[] getListOfScripts() throws Exception{
 		
- 		File[] directories = {rDirectory, stataDirectory};
+ 		File[] directories = {rDirectory, stataDirectory, pythonDirectory};
  		return ScriptManagerService.getListOfScripts(directories);
 	}
 		 
