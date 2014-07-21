@@ -77,101 +77,67 @@ public class ComputationalServlet extends WeaveServlet
  		
  		// Start the timer for the data request
  		startTime = System.currentTimeMillis();
-		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R) 
-		{
 
-			ArrayList<String> inputNames = new ArrayList<String>();
-			ArrayList<Object> inputValues = new ArrayList<Object>();
+		ArrayList<String> inputNames = new ArrayList<String>();
+		ArrayList<Object> inputValues = new ArrayList<Object>();
+		
+		ArrayList<Integer> tempIds = new ArrayList<Integer>();
+		ArrayList<String> names = new ArrayList<String>();
+		
+		for(String key : scriptInputs.keySet()) {
 			
-			for(String key : scriptInputs.keySet()) {
+			inputNames.add(key);
+			
+			Object value = scriptInputs.get(key);
+			
+			if(value instanceof String) {
+				inputValues.add(value);
+			} else if (value instanceof Number) {
+				inputValues.add(value);
+			} else if (value instanceof Boolean) {
+				inputValues.add(value);;
+			} else if (value instanceof StringMap<?>){
+				tempIds.add((Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
+
+			} else if (value instanceof Object[]) {
 				
-				inputNames.add(key);
-				
-				Object value = scriptInputs.get(key);
-				
-				if(value instanceof String) {
-					inputValues.add(value);
-				} else if (value instanceof Number) {
-					inputValues.add(value);
-				} else if (value instanceof Boolean) {
-					inputValues.add(value);;
-				} else if (value instanceof StringMap<?>){
-					WeaveRecordList data = null;
-					data = DataService.getFilteredRows( new int[] {(Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue()}, filters, null);
-					Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-					inputValues.add(columnData[0]);
-				} else if (value instanceof Object[]) {
-					ArrayList<Integer> ids = new ArrayList<Integer>();
-					Object[] values = (Object[]) value;
-					for(int i = 0; i < values.length; i++)
-					{	
-						StringMap<Object> strMap = (StringMap<Object>) values[i];
-						ids.add((Integer) ((Double) strMap.get("id")).intValue());
-					}
-					
-					WeaveRecordList data = null;
-					data = DataService.getFilteredRows(Ints.toArray(ids), filters, null);
-					inputValues.add(AWSUtils.transpose(data.recordData));
+				ArrayList<Integer> ids = new ArrayList<Integer>();
+				Object[] values = (Object[]) value;
+				for(int i = 0; i < values.length; i++)
+				{	
+					StringMap<Object> strMap = (StringMap<Object>) values[i];
+					ids.add((Integer) ((Double) strMap.get("id")).intValue());
 				}
-			}
-			
-	 		endTime = System.currentTimeMillis();
-	 		time1 = endTime - startTime;
-	 		
-	 		startTime = System.currentTimeMillis();
-	 		try {
-				AwsRService rService = new AwsRService();
-				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), (String[]) inputNames.toArray(new String[inputNames.size()]), inputValues.toArray(new Object[inputValues.size()]));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	 		endTime = System.currentTimeMillis();
-	 		time2 = endTime - startTime;
-		} else if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
-		{
-			// create JSON data
-			StringMap<Object> inputData = new StringMap<Object>();
-			
-			Gson gson = new Gson();
-			
-			for(String key : scriptInputs.keySet()) {
 				
-				Object value = scriptInputs.get(key);
-				
-				if(value instanceof String) {
-					inputData.put(key, value);
-				} else if (value instanceof Number) {
-					inputData.put(key, value);
-				} else if (value instanceof Boolean) {
-					inputData.put(key, value);
-				} else if (value instanceof StringMap<?>){
-					WeaveRecordList data = null;
-					data = DataService.getFilteredRows( new int[] {(Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue()}, filters, null);
-					Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-					inputData.put(key, columnData[0]);
-				} else if (value instanceof Object[]) {
-					ArrayList<Integer> ids = new ArrayList<Integer>();
-					Object[] values = (Object[]) value;
-					for(int i = 0; i < values.length; i++)
-					{	
-						StringMap<Object> strMap = (StringMap<Object>) values[i];
-						ids.add((Integer) ((Double) strMap.get("id")).intValue());
-					}
-					
-					WeaveRecordList data = null;
-					data = DataService.getFilteredRows(Ints.toArray(ids), filters, null);
-					inputData.put(key, AWSUtils.transpose(data.recordData));
-				}
+				WeaveRecordList data = null;
+				data = DataService.getFilteredRows(Ints.toArray(ids), filters, null);
+				inputValues.add(AWSUtils.transpose(data.recordData));
 			}
 			
-			String json = gson.toJson(inputData);
-			resultData = AwsStataService.runScript(scriptName, json, programPath, tempDirPath, stataScriptsPath);
+			WeaveRecordList data = null;
+			data = DataService.getFilteredRows( new int[] {(Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue()}, filters, null);
+			Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 			
-			json = json;
 		}
 		
+		endTime = System.currentTimeMillis();
 		
+		time1 = endTime - startTime;
+		
+		startTime = System.currentTimeMillis();
+		
+		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R) 
+		{
+			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), (String[]) inputNames.toArray(new String[inputNames.size()]), inputValues.toArray(new Object[inputValues.size()]));
+		} else {
+			inputValues.add(0, inputNames);
+			resultData = AwsStataService.runScript(scriptName, 
+					inputValues.toArray(new Object[inputValues.size()]),
+					 programPath, tempDirPath, stataScriptsPath);
+
+		}
+		
+ 		time2 = endTime - startTime;
 		result.data = resultData;
 	 	result.times[0] = time1;
 	 	result.times[1] = time2;

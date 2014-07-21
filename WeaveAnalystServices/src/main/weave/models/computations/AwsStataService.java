@@ -19,14 +19,15 @@ import weave.models.computations.IScriptEngine;
 
 public class AwsStataService implements IScriptEngine {
 
-	public static Object runScript(String scriptName, String json, String programPath, String tempDirPath, String scriptPath) throws Exception {
+	public static Object runScript(String scriptName, Object dataSet, String programPath, String tempDirPath, String scriptPath) throws Exception {
 
-		
 		int exitValue = -1;
 		CSVParser parser = new CSVParser();
+		//Gson jsonParser = new Gson();
 		String tempScript = "";
 		String[][] resultData;
 		String[] args = null;
+		File dataSetCSV = null;
 		File tempScriptFile = null;
 		File tempDirectory = new File(tempDirPath);
 		if(!tempDirectory.exists() || !tempDirectory.isDirectory())
@@ -34,31 +35,29 @@ public class AwsStataService implements IScriptEngine {
 			tempDirectory.mkdir();
 		} 
 
-		if(new File(tempDirectory.getAbsolutePath(), "result.csv").exists())
+		try 
 		{
-			if(!new File(tempDirectory.getAbsolutePath(), "result.csv").delete()) {
-				throw new RemoteException("Cannot delete result.csv");
-			}
-		}
+			dataSetCSV = new File(FilenameUtils.concat(tempDirectory.getCanonicalPath(), "data.csv"));
+			BufferedWriter out = new BufferedWriter(new FileWriter(dataSetCSV));
+			parser.createCSV(dataSet, true, out, true);
+			//jsonParser.toJson(dataSet, out);
+			out.close();
+		} 
 
-		try {
-			//write converted json data to a file named "file.json"
-			FileWriter writer = new FileWriter(FilenameUtils.concat(tempDirPath, "data.json"));
-			writer.write(json);
-			writer.close();
-	 
-		} catch (IOException e) {
+		catch( IOException e)
+		{
 			e.printStackTrace();
 			throw new RemoteException("Error while trying to write dataset to file");
 		}
 
 		try 
 		{
-			tempScript += "insheetjson using " + FilenameUtils.concat(tempDirPath, "data.json") + ", clear" + "\n" +
-					"global path=\"" + tempDirPath + "\"\n" +
-					"cd \"$path/\" \n" +
-					"noisily do " + new File(FilenameUtils.concat(scriptPath, scriptName)).getAbsolutePath() + "\n";
-
+			tempScript += "insheet using " + dataSetCSV.getAbsolutePath() + ", clear" + "\n" +
+			 	"global path=\"" + tempDirPath + "\"\n" +
+			 	"cd \"$path/\" \n" +
+			 	"noisily do " + new File(FilenameUtils.concat(scriptPath, scriptName)).getAbsolutePath() + "\n" +
+			 	"capture erase tempScript.log\n";
+			 	// "capture erase " +  tempDirPath + "tempScript.log";
 			tempScriptFile = new File(FilenameUtils.concat(tempDirectory.getAbsolutePath(), "tempScript.do"));
 			BufferedWriter out = new BufferedWriter(new FileWriter(tempScriptFile));
 			out.write(tempScript);
@@ -106,16 +105,15 @@ public class AwsStataService implements IScriptEngine {
 		// for now we assume result is always in result.csv
 		File scriptResult = new File(tempDirectory.getAbsolutePath(), "result.csv");
 
-		if(scriptResult.exists()) {
+		if(logFile.exists()) {
 			// parse log file for ouput only
-			resultData = parser.parseCSV(scriptResult, true);
-			scriptResult.delete();
+			String error = getErrorsFromStataLog(logFile);
+			throw new RemoteException("Error while running Stata script: " + error);
 		} else {
-			if(logFile.exists()) {
-				String error = getErrorsFromStataLog(logFile);
-				throw new RemoteException("Error while running Stata script: " + error);
+			if(scriptResult.exists()) {
+				resultData = parser.parseCSV(scriptResult, true);
 			} else {
-				throw new RemoteException("Script did not produce result.csv and no log file found.");
+				throw new RemoteException("Could not find result.csv");
 			}
 		}
 		return resultData;

@@ -127,6 +127,13 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	queryService.getDataTableList(true);
 	queryService.getListOfScripts(true);
 
+	$scope.$watch(function() {
+		return queryService.queryObject.scriptSelected;
+	}, function () {
+		console.log(queryService.queryObject.scriptOptions);
+		queryService.queryObject.scriptOptions = {};
+		console.log(queryService.queryObject.scriptOptions);
+	});
 
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
