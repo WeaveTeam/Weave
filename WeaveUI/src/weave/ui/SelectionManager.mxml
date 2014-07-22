@@ -31,17 +31,9 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.managers.PopUpManager;
-			
 			import weave.Weave;
-			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
-			import weave.api.detectLinkableObjectChange;
 			import weave.api.newDisposableChild;
-			import weave.core.LinkableHashMap;
-			import weave.data.KeySets.KeySet;
-			import weave.menus.WeaveMenuItem;
-			import weave.ui.controlBars.WeaveMenuBar;
+			import weave.menus.SelectionsMenu;
 			
 			override protected function childrenCreated():void
 			{
@@ -50,110 +42,10 @@
 				targets = [Weave.savedSelectionKeySets];
 				controller.view = editor;
 				controller.hashMap = Weave.savedSelectionKeySets;
-				controller.labelFunction = getRecordsText;
+				controller.labelFunction = SelectionsMenu.getRecordsText;
 			}
 			
 			private const controller:VariableListController = newDisposableChild(this, VariableListController);
-			
-			public static function getItemLabel(item:Object):String
-			{
-				var keySet:KeySet = item as KeySet || (item as WeaveMenuItem).data as KeySet;
-				return lang("{0} ({1})", _hashMap.getName(keySet), getRecordsText(keySet));
-			}
-			public static function copyItemState(item:Object):void
-			{
-				var keySet:KeySet = item as KeySet || (item as WeaveMenuItem).data as KeySet;
-				copySessionState(keySet, _globalSelection);
-			}
-			
-			public static function getRecordsText(item:Object):String
-			{
-				var keySet:KeySet = item as KeySet || (item as WeaveMenuItem).data as KeySet;
-				return lang("{0} records", keySet.keys.length);
-			}
-			
-			public static function selectionActive():Boolean
-			{
-				return _globalSelection.keys.length > 0;
-			}
-			
-			private static const _hashMap:LinkableHashMap = Weave.savedSelectionKeySets;
-			private static const _globalSelection:KeySet = Weave.defaultSelectionKeySet;
-			
-			private static var _popupManager:SelectionManager = null;
-			
-			/**
-			 * Create the menu items used for the WeaveMenuItem associated with this class
-			 **/
-			public static function createMenu():WeaveMenuItem
-			{
-				var cachedItems:Array;
-				return new WeaveMenuItem({
-					shown: Weave.properties.enableSelectionsMenu,
-					label: lang("Selections"),
-					children: function(menu:WeaveMenuItem):Array {
-						if (detectLinkableObjectChange(menu, Weave.savedSelectionKeySets))
-							cachedItems = WeaveMenuItem.createItems(
-								{
-									shown: Weave.properties.enableSaveCurrentSelection,
-									label: lang("Save current selection..."),
-									click: saveSelection,
-									enabled: selectionActive
-								},{
-									shown: Weave.properties.enableClearCurrentSelection,
-									label: lang("Clear current selection"),
-									click: _globalSelection.clearKeys,
-									enabled: selectionActive
-								},
-								WeaveMenuItem.TYPE_SEPARATOR,
-								{
-									shown: Weave.properties.enableManageSavedSelections,
-									label: lang("Manage saved selections..."),
-									click: function():void {
-										// create the SelectionManager as a modal PopUp
-										_popupManager = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, SelectionManager) as SelectionManager;
-										// this will disable dragging of this popup
-										_popupManager.isPopUp = false;
-										PopUpManager.centerPopUp(_popupManager);
-									},
-									enabled: function():Boolean { return _hashMap.getNames().length > 0; }
-								},{
-									shown: [{not: Weave.properties.dashboardMode}, Weave.properties.enableSelectionSelectorBox],
-									label: lang("Selection Selector Tool"),
-									click: function():void {
-										Weave.root.requestObject("SelectionSelector", SelectionSelector, false);
-									}
-								},
-								WeaveMenuItem.TYPE_SEPARATOR,
-								_hashMap.getObjects().map(function(selection:Object, ..._):* {
-									return {label: getItemLabel, click: copyItemState, data: selection};
-								})
-							);
-						
-						return cachedItems;
-					}
-				});
-			}
-			
-			/**
-			 * Save the current selection
-			 */
-			public static function saveSelection():void
-			{
-				// create a text-input alert box for the user to enter the new name for the selection
-				var alertBox:AlertTextBox = AlertTextBox.show(lang("Selection Name"), lang("Please enter a name for the selection: "));
-				
-				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
-					// if the user clicked cancel, do nothing
-					if( !e.confirm )
-						return;
-					var name:String = e.textInput;
-					_hashMap.requestObjectCopy(name, _globalSelection);
-					var _selectionSelector:SelectionSelector = Weave.root.getObject("SelectionSelector") as SelectionSelector;
-					if( _selectionSelector )
-						_selectionSelector.selectItem(name);
-				});
-			}
 		]]>
 	</mx:Script>
 </ControlPanel>
