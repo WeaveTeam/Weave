@@ -252,8 +252,7 @@ package weave.visualization.layers
 		
 		private function asyncStart():void
 		{
-			asyncInit();
-			if (shouldBeRendered())
+			if (asyncInit())
 			{
 				if (debug)
 					trace(this, 'begin async rendering');
@@ -269,19 +268,23 @@ package weave.visualization.layers
 			}
 		}
 		
-		private function asyncInit():void
+		/**
+		 * @return true if shouldBeRendered() returns true.
+		 */
+		private function asyncInit():Boolean
 		{
+			var shouldRender:Boolean = shouldBeRendered();
 			if (_delayInit)
 			{
 				_pendingInit = true;
-				return;
+				return shouldRender;
 			}
 			_pendingInit = false;
 			
 			_progress = 0;
 			_iteration = 0;
 			_iPendingKey = 0;
-			if (shouldBeRendered())
+			if (shouldRender)
 			{
 				_pendingKeys = _plotter.filteredKeySet.keys;
 				_recordKeys = [];
@@ -313,6 +316,7 @@ package weave.visualization.layers
 				_pendingKeys = null;
 				_recordKeys = null;
 			}
+			return shouldRender;
 		}
 		
 		private function asyncIterate(stopTime:int):Number
@@ -342,10 +346,8 @@ package weave.visualization.layers
 			{
 				_prevBusyGroupTriggerCounter = _dependencies.triggerCounter;
 				
-				asyncInit();
-				
 				// stop immediately if we shouldn't be rendering
-				if (!shouldBeRendered())
+				if (!asyncInit())
 					return 1;
 				
 				// stop immediately if the bitmap is invalid
@@ -421,8 +423,7 @@ package weave.visualization.layers
 				{
 					// if we get here it means the plotter draw function triggered callbacks
 					// and we need to restart the async task.
-					asyncInit();
-					if (shouldBeRendered())
+					if (asyncInit())
 						return asyncIterate(stopTime);
 					else
 						return 1;
