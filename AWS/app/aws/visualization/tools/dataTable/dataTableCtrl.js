@@ -1,4 +1,4 @@
-analysis_mod.controller("DataTableCtrl", function($scope, queryService) {
+AnalysisModule.controller("DataTableCtrl", function($scope, queryService) {
 
 	$scope.service = queryService;
 	

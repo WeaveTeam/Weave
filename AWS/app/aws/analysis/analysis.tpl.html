@@ -1,6 +1,7 @@
-<div style="height: 100%" ng-controller="AnalysisMainCtrl">
-	<div style="height: 100%" class=".container-fluid" style="padding: 5px;" ng-controller="ScriptsBarController">
+<div style="height: 100%" ng-controller="AnalysisCtrl">
+	<div style="height: 100%" class=".container-fluid" style="padding: 5px;">
 		<div class=".row " style="height: 100%; margin-top: 10px;">
+			
 			<!--Indicator and datatable-->
 			<div class="databox" style="width: 15%">
 				<!-- <div class="databox" style="width: 200px;"> -->
@@ -9,48 +10,29 @@
 				</div>
 				<div  class="input-group-btn dtatable-dropdown">
 					<button style="min-width: 100%; width: 100%; border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
-					ng-model="service.queryObject.dataTable" 
+					ng-model="queryService.queryObject.dataTable" 
 					data-html="1"  
-					ng-options="dt.title for dt in service.dataObject.dataTableList track by dt.id" 
+					ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id" 
 					placeholder="Select Datatable" 
 					bs-select
-					ng-change="service.getDataColumnsEntitiesFromId(service.queryObject.dataTable.id, true)">
+					ng-change="queryService.getDataColumnsEntitiesFromId(service.queryObject.dataTable.id, true)">
 						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
 					</button>
 				</div>
 				
-				<!-- <div style="width: 100%; margin-top: 10px;" ng-controller="ScriptsBarController">
-					<select style="width: 100%;" ui-select2 ng-model="dataTable" data-placeholder="Choose Datatble" ng-change = 'populateScriptsBar()'>
-						<option></option>
-						<option value="{{dt.title}}" ng-repeat="dt in dataTableList">{{dt.title}}</option>
-					</select>
-				</div> -->
-				
-				
-				
-				<!--<div style="width: 100%; margin-bottom: 3px;" ng-controller="ScriptsBarController">
-				<select style="width: 100%" ui-select2 ng-model="dataTable" data-placeholder="Choose Datatable"  ng-change = 'populateScriptsBar()'>
-				<option></option>
-				<option value="{{dt.title}}" ng-repeat="dt in dataTableList"  data-title="{{dt.title}}" data-placement="tip">{{dt.title}}</option>
-				</select>
-				</div>-->
 				<div style="width: 100%; margin-top: 10px;">
-					<select style="width: 100%;" ui-select2 ng-model="service.queryObject.Indicator" data-placeholder="Choose Indicator">
+					<select style="width: 100%;" ui-select2 ng-model="queryService.queryObject.Indicator" data-placeholder="Choose Indicator">
 						<option></option>
-						<option value="{{indicator}}" ng-repeat="indicator in service.dataObject.columns | filter : { columnType : 'indicator' }">{{indicator.title}}</option>
+						<option value="{{indicator}}" ng-repeat="indicator in queryService.dataObject.columns | filter : { columnType : 'indicator' }">{{indicator.title}}</option>
 					</select>
 				</div>
 				
 				{{service.queryObject.Indicator.description}}
 				
-				<!--<div class="body">
-
-				</div>-->
-
 			</div>
 
 			<!--Geography filter -->
-			<div class="databox" style="width: 15%;" ng-model="service.content_tools">
+			<div class="databox" style="width: 15%;">
 				<!-- <div class="databox" style="width: 160px;"> -->
 
 				<div class="header panel-heading">
@@ -59,14 +41,14 @@
 
 				<div class="body">
 
-					<div style="height:100%" ng-include="service.content_tools[1].template_url"></div>
+					<div style="height:100%" ng-include="AnalysisService.content_tools[1].template_url"></div>
 
 				</div>
 
 			</div>
 
 			<!--Timeperiod filter -->
-			<div class="databox" style="width: 12%" ng-model= "service.content_tools">
+			<div class="databox" style="width: 12%">
 				<!-- <div class="databox" style="width: 130px;"> -->
 
 				<div class="header panel-heading">
@@ -74,13 +56,13 @@
 				</div>
 
 				<div class="body">
-					<div style="height:100%" ng-include="service.content_tools[2].template_url"></div>
+					<div style="height:100%" ng-include="AnalysisService.content_tools[2].template_url"></div>
 				</div>
 
 			</div>
 
 			<!--Byvariable filter -->
-			<div class="databox" style="width: 15%" ng-model= "service.content_tools">
+			<div class="databox" style="width: 15%">
 				<!-- <div class="databox" style="width: 160px;"> -->
 
 				<div class="header panel-heading">
@@ -88,7 +70,7 @@
 				</div>
 
 				<div class="body">
-					<div style="height:100%" ng-include="service.content_tools[3].template_url"></div>
+					<div style="height:100%" ng-include="AnalysisService.content_tools[3].template_url"></div>
 				</div>
 
 			</div>

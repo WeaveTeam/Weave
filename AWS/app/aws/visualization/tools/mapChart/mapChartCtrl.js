@@ -1,4 +1,4 @@
-analysis_mod.controller("MapCtrl", function($scope, queryService){
+AnalysisModule.controller("MapCtrl", function($scope, queryService){
 	
 	$scope.service = queryService;
 	

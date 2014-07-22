@@ -1,4 +1,4 @@
-analysis_mod.controller('GeographyCtrl', function($scope, queryService){
+AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 	
 	var geoTreeData;
 	

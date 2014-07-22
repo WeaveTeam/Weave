@@ -1,5 +1,6 @@
-analysis_mod.controller("ScatterPlotCtrl", function($scope, queryService) {
+AnalysisModule.controller("ScatterPlotCtrl", function($scope, queryService) {
 
+	console.log(queryService);
 	$scope.service = queryService;
 	
 });

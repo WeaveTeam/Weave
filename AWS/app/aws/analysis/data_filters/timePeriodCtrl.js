@@ -1,4 +1,4 @@
-analysis_mod.controller('timePeriodCtrl', function($scope, queryService){
+AnalysisModule.controller('timePeriodCtrl', function($scope, queryService){
 	
 	$scope.service = queryService;
 	

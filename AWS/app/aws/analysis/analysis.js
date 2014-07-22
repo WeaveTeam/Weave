@@ -3,29 +3,82 @@
  */
 'use strict';
 
-var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
+var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
 
-analysis_mod.controller('AnalysisFiltersControllers', function($scope, queryService) {
+AnalysisModule.service('AnalysisService', function() {
+	
+	var AnalysisService = {
+			constent_tools : [{
+				id : 'Indicator',
+				title : 'Indicator',
+				template_url : 'aws/analysis/indicator/indicator.tpl.html',
+				description : 'Choose an Indicator for the Analysis',
+				category : 'indicatorfilter'
+			},
+			{
+				id : 'GeographyFilter',
+				title : 'Geography Filter',
+				template_url : 'aws/analysis/data_filters/geography.tpl.html',
+				description : 'Filter data by States and Counties',
+				category : 'datafilter'
 
-	$scope.service = queryService;
+			},
+			{
+				id : 'TimePeriodFilter',
+				title : 'Time Period Filter',
+				template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+				description : 'Filter data by Time Period',
+				category : 'datafilter'
+			},
+			{
+				id : 'ByVariableFilter',
+				title : 'By Variable Filter',
+				template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+				description : 'Filter data by Variables',
+				category : 'datafilter',
+			}],
+			
+			tool_list : [
+			         	{
+			        		id : 'BarChartTool',
+			        		title : 'Bar Chart Tool',
+			        		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
+			        		description : 'Display Bar Chart in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+
+			        	}, {
+			        		id : 'MapTool',
+			        		title : 'Map Tool',
+			        		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
+			        		description : 'Display Map in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+			        	}, {
+			        		id : 'DataTableTool',
+			        		title : 'Data Table Tool',
+			        		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
+			        		description : 'Display a Data Table in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+			        	}, {
+			        		id : 'ScatterPlotTool',
+			        		title : 'Scatter Plot Tool',
+			        		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+			        		description : 'Display a Scatter Plot in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+			        	}]
+	};
+	
+	return AnalysisService;
 	
 });
 
-analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorScroll){
-  $scope.scrollTo = function(id) {
-    $location.hash(id);
-    $anchorScroll();
-  };
-});
+AnalysisModule.controller('AnalysisCtrl', ['$scope', 'queryService', function($scope, queryService, AnalysisService) {
 
-analysis_mod.controller('SaveVisualizationCtrl', function($scope, $filter, dasboard_widget_service) {
-	
-});
-
-
-analysis_mod.controller('WidgetsController', function($scope, queryService) {
-
-	$scope.service = queryService;
+	$scope.queryService = queryService;
+	$scope.AnalysisService = AnalysisService;
 	
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;
@@ -103,7 +156,7 @@ analysis_mod.controller('WidgetsController', function($scope, queryService) {
 		}
 	});
 	
-});
+}]);
 
 
 analysis_mod.config(function($selectProvider) {
@@ -112,14 +165,7 @@ analysis_mod.config(function($selectProvider) {
 	});
 });
 
-/*
- *
- * Clean up
- * TODO: Seperate the dtatable from scripts bar
- *
- */
-
-analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
+analysis_mod.controller("ScriptsSettingsCtrl", function($scope, queryService) {
 
 	// This sets the service variable to the queryService 
 	$scope.service = queryService;

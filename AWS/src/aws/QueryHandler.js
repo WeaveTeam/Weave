@@ -1,9 +1,3 @@
-goog.provide('aws.QueryHandler');
-
-goog.require('aws');
-//goog.require('aws.RClient');
-//goog.require('aws.StataClient');
-//goog.require('aws.WeaveClient');
 var tryParseJSON = function(jsonString){
     try {
         var o = JSON.parse(jsonString);

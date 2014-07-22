@@ -1,4 +1,4 @@
-analysis_mod.controller('byVariableCtrl', function($scope, queryService){
+AnalysisModule.controller('byVariableCtrl', function($scope, queryService){
 	
 	$scope.service = queryService;
 	

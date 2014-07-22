@@ -1,6 +1,7 @@
-angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
-        .controller("ScriptManagerCtrl", function($scope, scriptManagerService) {
+angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, scriptManagerService) {
 
+          $scope.service = scriptManagerService;
+          
           $scope.listOfScripts = [];
           $scope.uploadScript = false;
           $scope.textScript = false;
@@ -63,10 +64,8 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
             }
           };
           $scope.deleteInput = function(index) {
-            $scope.selectedMetadata.inputs.splice(index, 1);
           };
           $scope.deleteOutput = function(index) {
-            $scope.selectedMetadata.outputs.splice(index, 1);
           };
           $scope.$watch('fileUpload', function(n, o) {
             if ($scope.fileUpload && $scope.fileUpload.then) {
@@ -110,16 +109,11 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
             //console.log("scriptcontent", $scope.scriptContent);
           });
 
-          $scope.gridOptions = {data: 'listOfScripts',
-            columnDefs: [{field: 'name', displayName: 'Name'}],
+          $scope.scriptListOptions = {data: 'service.getListOfScripts()',
+            columnDefs: [{field: 'Scripts', displayName: 'Scripts'}],
             selectedItems: $scope.selectedScript,
             multiSelect: false,
-            afterSelectionChange: function(item) {
-              //console.log("selectionchange", $scope.selectedScript);
-              if ($scope.selectedScript.length >= 1) {
-                scriptManagerService.refreshScriptInfo($scope.selectedScript[0].name);
-              }
-            }
+	        enableRowSelection: true,
           };
-
+          
         });
