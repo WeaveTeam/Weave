@@ -51,6 +51,8 @@ package weave.menus
 		}
 		private static function _mapItems(item:Object, i:int, a:Array):WeaveMenuItem
 		{
+			if (item is Class)
+				return new item();
 			return item as WeaveMenuItem || new WeaveMenuItem(item);
 		}
 		private static function _filterItems(item:WeaveMenuItem, index:int, array:Array):Boolean

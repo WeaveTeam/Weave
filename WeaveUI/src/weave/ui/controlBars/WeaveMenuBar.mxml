@@ -125,15 +125,15 @@
 				});
 			}
 			
-			public static const defaultMenus:Array = [
-				new SessionMenu(),
-				new DataMenu(),
-				new ToolsMenu(),
+			public static const defaultMenus:Array = WeaveMenuItem.createItems(
+				SessionMenu,
+				DataMenu,
+				ToolsMenu,
 				SelectionManager.createMenu(),
 				SubsetManager.createMenu(),
-				new WindowMenu(),
-				new HelpMenu()
-			];
+				WindowMenu,
+				HelpMenu
+			);
 			
 			public var maxLabelLength:int = 75;
 			private function trimLabel(item:WeaveMenuItem):String
