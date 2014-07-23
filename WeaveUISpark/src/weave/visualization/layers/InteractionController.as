@@ -65,9 +65,10 @@ package weave.visualization.layers
 		public static const SELECTION_MODE_RECTANGLE:String = "rectangle";
 		public static const SELECTION_MODE_CIRCLE:String = "circle";
 		public static const SELECTION_MODE_LASSO:String = "lasso";
+		//public static const SELECTION_MODE_POINT:String = "point";
 		public static function enumSelectionMode():Array
 		{
-			return [SELECTION_MODE_RECTANGLE, SELECTION_MODE_CIRCLE, SELECTION_MODE_LASSO];
+			return [SELECTION_MODE_RECTANGLE, SELECTION_MODE_CIRCLE, SELECTION_MODE_LASSO/*, SELECTION_MODE_POINT*/];
 		}
 		
 		/**

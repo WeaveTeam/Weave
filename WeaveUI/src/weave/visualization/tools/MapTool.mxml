@@ -293,8 +293,8 @@
 				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP], [
 					menuItem(InteractionController.SELECTION_MODE_RECTANGLE, "Rectangular Selection"),
 					menuItem(InteractionController.SELECTION_MODE_CIRCLE, "Circular Selection"),
-					menuItem(InteractionController.SELECTION_MODE_LASSO, "Lasso Selection"),
-					menuItem(InteractionController.SELECTION_MODE_POINT, "Point Selection")
+					menuItem(InteractionController.SELECTION_MODE_LASSO, "Lasso Selection")/*,
+					menuItem(InteractionController.SELECTION_MODE_POINT, "Point Selection")*/
 				]);
 				function menuItem(mode:String, label:String):Object {
 					return {
