@@ -9,7 +9,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
 	var that = this;
 	this.data= {};
 	this.projectBundle = {};
-	this.data.projectSelectorUI;//for state preservation between tabs
+	//this.data.projectSelectorUI;//for state preservation between tabs
 	
 	//for project addition
 	this.projectBundle.userName;

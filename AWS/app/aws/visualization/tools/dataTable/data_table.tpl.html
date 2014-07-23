@@ -10,7 +10,7 @@
 			ng-model="selected"
 			bs-duallistbox>
 			</select>-->
-			<select id="duallistboxid" dual-list-box multiple ng-model="service.queryObject.dataTable.columns" data-placeholder="Choose Columns"
+			<select id="duallistboxid" dual-list-box multiple ng-model="service.queryObject.dataTableTool.columns" data-placeholder="Choose Columns"
 			ng-options="output as output.param for output in service.dataObject.scriptMetadata.outputs">
 			</select>
 

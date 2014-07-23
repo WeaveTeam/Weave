@@ -11,7 +11,8 @@ analysis_mod.controller('AnalysisFiltersControllers', function($scope, queryServ
 	
 });
 
-analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorScroll){
+analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorScroll, queryService){
+	$scope.service= queryService;
   $scope.scrollTo = function(id) {
     $location.hash(id);
     $anchorScroll();

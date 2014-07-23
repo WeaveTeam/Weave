@@ -268,7 +268,7 @@ aws.QueryHandler = function(queryObject)
 		if(queryObject.DataTableTool.enabled == true) {
 			var colNames= [];
 			for(i in queryObject.dataTable.columns){
-				colNames[i] = queryObject.dataTable.columns[i].param;
+				colNames[i] = queryObject.dataTableTool.columns[i].param;
 			}
 			
 			this.visualizations.push(
