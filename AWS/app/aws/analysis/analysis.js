@@ -117,10 +117,6 @@ analysis_mod.config(function($selectProvider) {
 analysis_mod.controller("ColorColumnCtrl", function($scope, queryService) {
 
 	$scope.service = queryService;
-	//using ng-change instead of $watch
-	$scope.setColorColumn = function(){
-		queryService.queryObject.ColorColumn = $scope.colorColumn;
-	};
 
 });
 
