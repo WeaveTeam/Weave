@@ -57,6 +57,7 @@
 				visualization.enableProbeLine(false, true);
 				
 				xAxisPlotter.forceTickCount.value = true;
+				yAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.enableProbeLine(true, true);
