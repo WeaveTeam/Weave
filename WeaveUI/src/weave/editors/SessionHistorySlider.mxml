@@ -132,6 +132,40 @@
 					
 					squashActive.value = true;
 				}
+				showSquashTicks();
+			}
+			private function showSquashTicks():void
+			{
+				if (_squashItem)
+				{
+					var pos:int = _stateLog.undoHistory.length;
+					var i:int = _stateLog.undoHistory.indexOf(_squashItem);
+					if (i < 0)
+					{
+						i = _stateLog.redoHistory.indexOf(_squashItem)
+						if (i >= 0)
+							i += pos;
+					}
+					
+					if (i < 0)
+					{
+						slider.tickValues = [];
+					}
+					else
+					{
+						var min:int = Math.min(i + 1, pos);
+						var max:int = Math.max(i + 1, pos);
+						var values:Array = new Array(max - min + 1);
+						i = values.length;
+						while (i--)
+							values[i] = min + i;
+						slider.tickValues = values;
+					}
+				}
+				else if (slider.tickValues.length > 0)
+				{
+					slider.tickValues = [];
+				}
 			}
 			
 			private var _playMenu:SubMenu;
@@ -210,6 +244,8 @@
 					_stateLog.undo(-delta);
 				else
 					_stateLog.redo(delta);
+				
+				showSquashTicks();
 				
 				// hack so slider doesn't disappear
 				handleAnyClick();
