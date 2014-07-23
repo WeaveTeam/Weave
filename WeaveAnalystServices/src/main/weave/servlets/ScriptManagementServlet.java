@@ -47,7 +47,7 @@ public class ScriptManagementServlet extends WeaveServlet
 	
 	public String[] getListOfScripts() throws Exception{
 		
- 		File[] directories = {rDirectory, stataDirectory};
+ 		File[] directories = {rDirectory, stataDirectory, pythonDirectory};
  		return ScriptManagerService.getListOfScripts(directories);
 	}
 		 
@@ -60,7 +60,10 @@ public class ScriptManagementServlet extends WeaveServlet
  		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
  		{
  			return ScriptManagerService.getScriptMetadata(stataDirectory, scriptName);
- 		} else {
+ 		} else if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.PYTHON){
+ 			return ScriptManagerService.getScriptMetadata(pythonDirectory, scriptName);
+ 		}
+ 		else {
  			throw new RemoteException("Unknown Script Type");
   		}
 		

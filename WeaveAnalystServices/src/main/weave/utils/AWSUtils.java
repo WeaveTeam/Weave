@@ -78,7 +78,7 @@ public class AWSUtils {
 			return SCRIPT_TYPE.STATA;
 		}
 		
-		if(extension.equalsIgnoreCase("PYTHON")){
+		if(extension.equalsIgnoreCase("PY")){
 			return SCRIPT_TYPE.PYTHON;
 		}
 		else
