@@ -26,12 +26,6 @@ analysis_mod.controller("RunQueryCtrl", function($scope, queryService) {
 	};
 });
 
-analysis_mod.controller("ColorColumnCtrl", function($scope, queryService) {
-
-	$scope.service = queryService;
-
-});
-
 analysis_mod.controller("QueryImportExportCtrl", function($scope, queryService) {
 
 	$scope.exportQueryObject = function() {

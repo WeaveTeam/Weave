@@ -18,11 +18,6 @@ analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorS
   };
 });
 
-analysis_mod.controller('SaveVisualizationCtrl', function($scope, $filter, dasboard_widget_service) {
-	
-});
-
-
 analysis_mod.controller('WidgetsController', function($scope, queryService) {
 
 	$scope.service = queryService;
@@ -119,6 +114,17 @@ analysis_mod.config(function($selectProvider) {
  *
  */
 
+analysis_mod.controller("ColorColumnCtrl", function($scope, queryService) {
+
+	$scope.service = queryService;
+	//using ng-change instead of $watch
+	$scope.setColorColumn = function(){
+		queryService.queryObject.ColorColumn = $scope.colorColumn;
+	};
+
+});
+
+
 analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 
 	// This sets the service variable to the queryService 
@@ -189,7 +195,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
 			var scriptSelected = newVal[1];
-			var scriptMetadata = newVal[3];
+			var scriptMetadata = newVal[2];
 			
 			if(indicator && scriptSelected) {
 				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;

@@ -29,7 +29,6 @@ var tryParseJSON = function(jsonString){
  *
  **/
 var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
-
 aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
@@ -212,7 +211,7 @@ aws.QueryHandler = function(queryObject)
 	console.log(angular.toJson(this.rRequestObject));
 	
 	this.keyType = "";
-	this.ColorColumn = "";
+	this.ColorColumn = queryObject.ColorColumn;
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
 		if(queryObject.ColorColumn.enabled) {
