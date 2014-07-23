@@ -46,36 +46,39 @@
 			   
 			}
 			
+			var check;
 			function workOnData(queryHandler, input)
 			{
-
+				check = queryHandler;
 				//testing
 				responseResults = input || responseResults;
-				console.log(responseResults);
 				if(client)
 				{
-						   //Todo parameterize keyColumnName ; here "fips"
-						   dataSourceName = client.addCSVDataSource(responseResults,"", queryHandler.keyType, "fips");
-						   var toolName;
-						    //creating the visualizations
-							for (var i in queryHandler.visualizations) {
-								toolName = client.newVisualization(queryHandler.visualizations[i], dataSourceName);
-								if(queryHandler.visualizations[i].hasOwnProperty("enableTitle")) {
-									client.setVisualizationTitle(toolName, queryHandler.visualizations[i].enableTitle,  queryHandler.visualizations[i].title);
-								}
-								queryHandler.currentVisualizations[queryHandler.visualizations[i].type] = toolName;
-								//console.log(queryHandler.visualizations[i]);
-								//aws.timeLogString = aws.reportTime(queryHandler.visualizations[i].type + ' added');
-								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+					if(queryHandler.queryObject.MapTool)
+						var kyTypeJson = JSON.parse(queryHandler.queryObject.MapTool.geometryLayer);
+					
+					   //Todo parameterize keyColumnName ; here "fips"
+					   dataSourceName = client.addCSVDataSource(responseResults,"", kyTypeJson.keyType, "fips");
+					   var toolName;
+					    //creating the visualizations
+						for (var i in queryHandler.visualizations) {
+							toolName = client.newVisualization(queryHandler.visualizations[i], dataSourceName);
+							if(queryHandler.visualizations[i].hasOwnProperty("enableTitle")) {
+								client.setVisualizationTitle(toolName, queryHandler.visualizations[i].enableTitle,  queryHandler.visualizations[i].title);
 							}
-								    
-						   // var colColumn = aws.QueryHandler.prototype.returnColorcolumn();
-						    if (queryHandler.ColorColumn) {
-						    	colorColumn = queryHandler.ColorColumn;
-								client.setColorAttribute(queryHandler.ColorColumn, dataSourceName);
-								//aws.timeLogString = aws.reportTime('color column added');
-								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
-							}	
+							queryHandler.currentVisualizations[queryHandler.visualizations[i].type] = toolName;
+							//console.log(queryHandler.visualizations[i]);
+							//aws.timeLogString = aws.reportTime(queryHandler.visualizations[i].type + ' added');
+							//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+						}
+							    
+					   // var colColumn = aws.QueryHandler.prototype.returnColorcolumn();
+					    if (queryHandler.ColorColumn) {
+					    	colorColumn = queryHandler.ColorColumn;
+							client.setColorAttribute(queryHandler.ColorColumn, dataSourceName);
+							//aws.timeLogString = aws.reportTime('color column added');
+							//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
+						}	
 				}
 			}
 			
@@ -83,10 +86,12 @@
 				var toolName;
 				log("Updating visualizations...");
 				
+				console.log("queryHandler.queryObject", queryHandler.queryObject);
+				
 				//TODO find a better way to set the keytype;
 				//check for the keytype
 				if(queryHandler.queryObject.MapTool)
-					var kyType = queryHandler.queryObject.MapTool.selected.keyType;
+					var kyType = queryHandler.queryObject.MapTool.geomteryLayer.keyType;
 				//set the keyType of the csv datasource
 				client.setCSVDataSouceKeyType(kyType);
 				
