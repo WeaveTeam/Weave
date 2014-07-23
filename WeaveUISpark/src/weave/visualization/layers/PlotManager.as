@@ -421,6 +421,11 @@ package weave.visualization.layers
 			else
 				tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
 			zoomBounds.setDataBounds(tempDataBounds);
+
+			// ----------------- hack --------------------
+			for each (var callback:Function in hack_updateZoom_callbacks)
+				callback();
+			// -------------------------------------------
 			
 			cc.resumeCallbacks();
 		}
