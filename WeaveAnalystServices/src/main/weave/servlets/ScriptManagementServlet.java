@@ -6,6 +6,8 @@ import java.rmi.RemoteException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import org.apache.commons.io.FilenameUtils;
+
 import weave.config.AwsContextParams;
 import weave.models.ScriptManagerService;
 import weave.utils.AWSUtils;
@@ -23,12 +25,13 @@ public class ScriptManagementServlet extends WeaveServlet
 	private File rDirectory;
 	private File stataDirectory;
 	private File pythonDirectory;
+	private File algorithmDirectory;
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		rDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath());
 		stataDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath());
 		pythonDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getPythonScriptsPath());
-		
+		algorithmDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getAlgorithmsDirectoryPath());
 	}
 	
 	public String getScript(String scriptName) throws Exception {
@@ -124,5 +127,14 @@ public class ScriptManagementServlet extends WeaveServlet
  		} else {
  			throw new RemoteException("Unknown Script Type");
  		}
+ 	}
+ 	
+ 	public Object getAlgorithmMetadata(String algoFileName) throws Exception{
+ 		Object algorithmObject = null;
+ 		if(FilenameUtils.getExtension(algoFileName).matches("json")){
+ 			algorithmObject = ScriptManagerService.getScriptMetadata(algorithmDirectory, algoFileName);//returns an algorithm Object
+ 		}
+ 		
+ 		return algorithmObject;
  	}
 }

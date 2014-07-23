@@ -14,6 +14,7 @@ public class AwsContextParams
 	private static String rScriptsPath = "";
 	private static String stataScriptsPath = "";
 	private static String pythonScriptPath = "";
+	private static String algorithmsDirectoryPath = "";
 	
 	public static AwsContextParams getInstance(ServletContext context)throws ServletException{
 		if (_instance == null)
@@ -37,6 +38,7 @@ public class AwsContextParams
 		rScriptsPath= FilenameUtils.concat(awsConfigPath, "RScripts");
 		stataScriptsPath = FilenameUtils.concat(awsConfigPath, "StataScripts");
 		pythonScriptPath = FilenameUtils.concat(awsConfigPath, "PythonScripts");
+		algorithmsDirectoryPath = FilenameUtils.concat(awsConfigPath, "Algorithms");
 	}
 	
 	
@@ -75,4 +77,9 @@ public class AwsContextParams
 	 public String getPythonScriptsPath(){
 		 return pythonScriptPath;
 	 }
+	 
+	 public String getAlgorithmsDirectoryPath(){
+		 return algorithmsDirectoryPath;
+	 }
+	 
 }
