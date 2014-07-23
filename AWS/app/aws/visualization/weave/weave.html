@@ -54,11 +54,17 @@
 				responseResults = input || responseResults;
 				if(client)
 				{
-					if(queryHandler.queryObject.MapTool)
-						var kyTypeJson = JSON.parse(queryHandler.queryObject.MapTool.geometryLayer);
+					var keyType = "";
+					if(queryHandler.queryObject.MapTool.enabled){
+						var geometryJson = JSON.parse(queryHandler.queryObject.MapTool.geometryLayer);
+						console.log("geometry", geometryJson);
+						keyType = geometryJson.keyType;
+					}
+					
+					console.log("else");
 					
 					   //Todo parameterize keyColumnName ; here "fips"
-					   dataSourceName = client.addCSVDataSource(responseResults,"", kyTypeJson.keyType, "fips");
+					   dataSourceName = client.addCSVDataSource(responseResults,"", keyType, "fips");
 					   var toolName;
 					    //creating the visualizations
 						for (var i in queryHandler.visualizations) {
@@ -87,13 +93,17 @@
 				log("Updating visualizations...");
 				
 				console.log("queryHandler.queryObject", queryHandler.queryObject);
-				
+				var keyType = "";
 				//TODO find a better way to set the keytype;
 				//check for the keytype
-				if(queryHandler.queryObject.MapTool)
-					var kyType = queryHandler.queryObject.MapTool.geomteryLayer.keyType;
+				if(queryHandler.queryObject.MapTool.enabled){
+					
+					var geometryJson = JSON.parse(queryHandler.queryObject.MapTool.geometryLayer);
+					keyType = geometryJson.keyType;
+				}
+					
 				//set the keyType of the csv datasource
-				client.setCSVDataSouceKeyType(kyType);
+				client.setCSVDataSouceKeyType(keyType);
 				
 				for(var i in queryHandler.visualizations){
 					if (queryHandler.currentVisualizations.hasOwnProperty(queryHandler.visualizations[i].type)) {
