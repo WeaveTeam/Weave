@@ -558,7 +558,7 @@ package weave
 				return;
 			try
 			{
-				JavaScript.exec({"this": "weave"}, new WeaveStartup());
+				WeaveAPI.initializeJavaScript(WeaveStartup);
 				_startupComplete = true;
 			}
 			catch (e:Error)

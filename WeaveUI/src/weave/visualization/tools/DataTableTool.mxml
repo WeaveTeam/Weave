@@ -357,7 +357,7 @@
 			
 			override public function get defaultPanelTitle():String
 			{
-				return "Data Table";
+				return lang("Data Table");
 			}
 			
 			

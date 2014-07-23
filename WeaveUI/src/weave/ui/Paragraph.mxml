@@ -68,7 +68,6 @@
 				}
 			}
 			
-			[Exclude]
 			public function set content(value:*):void
 			{
 				text = value as String;

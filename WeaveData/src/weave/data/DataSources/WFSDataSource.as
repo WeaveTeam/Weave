@@ -73,7 +73,7 @@ package weave.data.DataSources
 				url.value = '/geoserver/wfs';
 			disposeObject(wfsDataService);
 			
-			//TODO: dispose of all old columns, too
+			//TODO: dispose all old columns, too
 			
 			wfsDataService = registerLinkableChild(this, new WFSServlet(url.value, useURLsInGetCapabilities.value));
 		}

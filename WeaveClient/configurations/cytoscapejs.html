@@ -108,7 +108,7 @@
 
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
 
-        function colorIntToColorString(colorInt) {return (typeof colorInt == "number") ? "#" + colorInt.toString(16) : undefined;}
+        function colorIntToColorString(colorInt) {return (typeof colorInt == "number") ? "#" + colorInt.toString(16) : colorInt;}
 
         function modifyRecords(records, field, func)
         {
@@ -345,21 +345,27 @@
             .text(value).attr("value",key));
     });
 
-    $('#cy').cytoscape( { style: cytoscape_style, ready: function () { 
-        window.cy = this
-        toolPath = opener.WeaveExternalTools[window.name].path;
+    function newProperty(name, type, callback)
+    {
+        toolPath.initProperty({name: name, type: type, callback: callback, label: name});
+    }
 
-        toolPath.newProperty(LAYOUT_NAME, 'LinkableString', layout_changed)
-                .request(LAYOUT_PARAMS, 'LinkableVariable')
-                .newProperty(NODE_LABEL, 'DynamicColumn', data_updated)
-                .newProperty(NODE_COLOR, 'DynamicColumn', data_updated)
-                .newProperty(NODE_SIZE, 'DynamicColumn', data_updated) // TODO
-                .newProperty(NODE_PARENT, 'DynamicColumn', data_updated)
-                .newProperty(EDGE_SOURCE, 'DynamicColumn', data_updated)
-                .newProperty(EDGE_TARGET, 'DynamicColumn', data_updated)
-                .newProperty(EDGE_LABEL, 'DynamicColumn', data_updated) // TODO
-                .newProperty(POSITIONS, 'LinkableVariable', positions_changed)
-                .newProperty(VIEWPORT, 'LinkableVariable', viewport_changed);
+    $('#cy').cytoscape( { style: cytoscape_style, ready: function () { 
+        window.cy = this;
+        opener.weave.WeavePath.prototype.newProperty = function(name, type, callback){this.push(name).request(type).addCallback(callback, true);return this;};
+        toolPath = opener.WeaveExternalTools[window.name].path;
+        
+        newProperty(LAYOUT_NAME, 'LinkableString', layout_changed);
+        newProperty(LAYOUT_PARAMS, 'LinkableVariable', null);
+        newProperty(NODE_LABEL, 'DynamicColumn', data_updated);
+        newProperty(NODE_COLOR, 'DynamicColumn', data_updated);
+        newProperty(NODE_SIZE, 'DynamicColumn', data_updated);
+        newProperty(NODE_PARENT, 'DynamicColumn', data_updated);
+        newProperty(EDGE_SOURCE, 'DynamicColumn', data_updated);
+        newProperty(EDGE_TARGET, 'DynamicColumn', data_updated);
+        newProperty(EDGE_LABEL, 'DynamicColumn', data_updated);
+        newProperty(POSITIONS, 'LinkableVariable', positions_changed);
+        newProperty(VIEWPORT, 'LinkableVariable', viewport_changed);
 
         nodeColumns['name'] = toolPath.push(NODE_LABEL).label("Node Label");
         nodeColumns['color'] = toolPath.push(NODE_COLOR).label("Node Color");

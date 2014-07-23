@@ -57,6 +57,7 @@
 				visualization.enableProbeLine(false, true);
 				
 				xAxisPlotter.forceTickCount.value = true;
+				yAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.enableProbeLine(true, true);
@@ -203,7 +204,7 @@
 			<ui:DynamicColumnComponent id="yColumnComponent" label="{lang('Y Column')}"/>
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+				<ui:CheckBoxList id="probeChecklist" translate="true" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox label="{lang('Binning Controls')}">

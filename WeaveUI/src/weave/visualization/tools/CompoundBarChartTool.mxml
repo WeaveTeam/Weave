@@ -138,7 +138,7 @@
 				_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
 				
-				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
+				linkBindableProperty(attributesToIncludeInProbe, probeChecklist, "selection");
 			}
 			
 			public function get heightColumns():ILinkableHashMap { return _plotter.heightColumns; }
@@ -343,7 +343,7 @@
 			{
 				var _heightColumns:Array = _plotter.heightColumns.getObjects();
 				if (_plotter.getActualGroupingMode() == CompoundBarChartPlotter.PERCENT_STACK && _heightColumns.length > 1)
-					return StandardLib.roundSignificant(value) + '%';
+					return lang("{0}%", StandardLib.roundSignificant(value));
 				else if (_heightColumns.length > 0)
 					return ColumnUtils.deriveStringFromNumber(_heightColumns[0], value); // always use the first column to format the axis labels
 				return null;
@@ -442,9 +442,9 @@
 				if (showValueLabelsCheckBox.selected)
 				{
 					if ((stackedRadioButton.enabled && stackedRadioButton.selected)|| (percentStackedRadioButton.enabled && percentStackedRadioButton.selected))
-						_plotter.valueLabelHorizontalAlign.value = lang("center");
+						_plotter.valueLabelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_CENTER;
 					else
-						_plotter.valueLabelHorizontalAlign.value = lang("left");
+						_plotter.valueLabelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				}
 			}
 			
@@ -575,7 +575,7 @@
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 										  change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+				<ui:CheckBoxList id="probeChecklist" translate="true" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>

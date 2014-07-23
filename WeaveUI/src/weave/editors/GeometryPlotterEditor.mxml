@@ -48,7 +48,7 @@
 								  creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')">
 		<mx:HBox id="fillColorColumnControls" width="100%" verticalAlign="middle">
 			<ui:DynamicColumnComponent id="fillColorColumn" label="{lang('Color')}" showLinkControl="false" columnWrapper="{_plotter.fill.color}"/>
-			<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+			<mx:Button label="{lang('Edit Bins...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
 		</mx:HBox>
 		<mx:HBox horizontalGap="{hgap}">
 			<ui:Indent grouped="false" label="{lang('Alpha')}">

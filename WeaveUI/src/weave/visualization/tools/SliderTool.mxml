@@ -495,7 +495,7 @@
 			<mx:VBox width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
 				<ui:CustomCheckBox label="{lang('Link global columns')}" creationComplete="linkBindableProperty(linkGlobalColumns, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Allow linking to Line Charts')}" creationComplete="linkBindableProperty(linkLineCharts, event.target, 'selected')"/>
-				<mx:Label text="Linked visualization tools"/>
+				<mx:Label text="{lang('Linked visualization tools')}"/>
 				<ui:Indent>
 					<ui:CheckBoxList id="toolCheckboxList" defaultSelectedState="true">
 						<ui:creationComplete>

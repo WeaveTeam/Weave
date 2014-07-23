@@ -65,7 +65,7 @@ weave.ExternalDownloader_request = function (id, method, url, requestHeaders, ba
 	request.send(data);
 };
 
-weave.b64_to_ArrayBuffer = function(base64)
+weave.b64_to_ArrayBuffer = function(base64data)
 {
 	var byteCharacters = atob(base64data);
 	var myArray = new ArrayBuffer(byteCharacters.length);

@@ -42,7 +42,6 @@ package weave.visualization.tools
 	import weave.primitives.Bounds2D;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
-	import weave.ui.SubMenuItem;
 	import weave.utils.GraphicsBuffer;
 	import weave.utils.PlotterUtils;
 	import weave.utils.TextGraphics;
@@ -98,10 +97,15 @@ package weave.visualization.tools
 			canvas.rawChildren.addChild(bitmap);
 
 			enableSubMenu.value = true;
-			subMenu.menuItems.push(
-				new SubMenuItem("Edit session state", toggleControlPanel),
-				new SubMenuItem("Select attributes", selectAttributes)
-			);
+			subMenu.dataProvider = [
+				{
+					label: lang("Edit session state"),
+					click: toggleControlPanel
+				},{
+					label: lang("Select attributes"),
+					click: selectAttributes
+				}
+			];
 			
 			vars.childListCallbacks.addImmediateCallback(this, handleVarList);
 		}

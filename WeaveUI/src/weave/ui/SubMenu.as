@@ -24,11 +24,13 @@ package weave.ui
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.controls.Menu;
 	import mx.core.UIComponent;
 	import mx.events.MenuEvent;
 	
+	import weave.menus.WeaveMenuItem;
 	import weave.primitives.Bounds2D;
 	
 	/**
@@ -45,9 +47,9 @@ package weave.ui
 		 * @param uiParentComponent The UIComponent to add the submenu to.
 		 * @param openMenuEventTypes A list of event types which will toggle the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
 		 * @param closeMenuEventTypes A list of event types which will close the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
-		 * @param menuItems An Array of SubMenuItem objects.
+		 * @param dataProvider Either a single WeaveMenuItem or an Array of WeaveMenuItems (or params to pass to the WeaveMenuItem constructor).
 		 */
-		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null, menuItems:Array = null)
+		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null, dataProvider:Object = null)
 		{
 			if (uiParent == null)
 				throw new Error("uiParent cannot be null");
@@ -79,21 +81,16 @@ package weave.ui
 			showRoot = false; //test this
 			
 			addEventListener(MenuEvent.ITEM_CLICK, handleSubMenuItemClick);
-			if (menuItems)
-				this.menuItems = menuItems;
+			this.dataProvider = dataProvider;
 		}
-		
-		/**
-		 * An Array of SubMenuItem objects to display in the menu.
-		 */
-		public var menuItems:Array = [];
 		
 		private var _uiParent:UIComponent = null;
 		
 		private function handleSubMenuItemClick(event:MenuEvent):void
 		{
-			var item:SubMenuItem = event.item as SubMenuItem;
-			item.listener.apply(null, item.params);
+			var item:WeaveMenuItem = event.item as WeaveMenuItem;
+			if (item)
+				item.runClickFunction();
 		}
 		
 		private function toggleSubMenu(event:Event = null):void
@@ -121,9 +118,21 @@ package weave.ui
 			hide();
 		}
 		
+		private var rootItem:WeaveMenuItem;
+		
+		override public function set dataProvider(value:Object):void
+		{
+			if (getQualifiedClassName(value) == 'Object')
+				value = new WeaveMenuItem(value);
+			if (value is Array)
+				value = new WeaveMenuItem({children: value});
+			rootItem = value as WeaveMenuItem;
+			super.dataProvider = value;
+		}
+		
 		public function showSubMenu():void
 		{
-			if (!menuItems)
+			if (!dataProvider)
 				return;
 			
 			var menuLocation:Point = _uiParent.localToGlobal(new Point(0, _uiParent.height));
@@ -137,7 +146,7 @@ package weave.ui
 			var yMax:Number = tempBounds.getYNumericMax();
 			
 			setStyle("openDuration", 0);
-			popUpMenu(this, _uiParent, menuItems.filter(SubMenuItem.isItemShown));
+			popUpMenu(this, _uiParent, rootItem || dataProvider);
 			show(menuLocation.x, menuLocation.y);
 			
 			if (menuLocation.x < xMin)

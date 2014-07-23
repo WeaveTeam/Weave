@@ -22,7 +22,7 @@ package weave.menus
 	import weave.core.LinkableBoolean;
 	
 	/**
-	 * Dynamic menu item for use with a MenuBar.
+	 * Dynamic menu item for use with Flex Menus.
 	 * 
 	 * Flex's DefaultDataDescriptor checks the following properties:
 	 *     label, children, enabled, toggled, type, groupName
@@ -51,6 +51,8 @@ package weave.menus
 		}
 		private static function _mapItems(item:Object, i:int, a:Array):WeaveMenuItem
 		{
+			if (item is Class)
+				return new item();
 			return item as WeaveMenuItem || new WeaveMenuItem(item);
 		}
 		private static function _filterItems(item:WeaveMenuItem, index:int, array:Array):Boolean
@@ -287,9 +289,5 @@ package weave.menus
 			if (lb)
 				lb.value = !lb.value;
 		}
-		
-		// support for alternate spellings
-		[Exclude(kind="property")] public function set enable(value:*):void { _enabled = value; }
-		[Exclude(kind="property")] public function set show(value:*):void { _shown = value; }
 	}
 }

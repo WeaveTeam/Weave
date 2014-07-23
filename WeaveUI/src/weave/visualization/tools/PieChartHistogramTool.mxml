@@ -140,7 +140,7 @@
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+				<ui:CheckBoxList id="probeChecklist" translate="true" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox id="attributesPanel" label="{lang('Display')}">

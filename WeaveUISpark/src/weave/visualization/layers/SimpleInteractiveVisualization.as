@@ -66,7 +66,7 @@ package weave.visualization.layers
 			
 			// hacks
 			plotManager.hack_adjustFullDataBounds = this.hack_adjustFullDataBounds;
-			plotManager.hack_updateZoom = this.hack_updateZoom;
+			plotManager.hack_onUpdateZoom(this.hack_updateZoom);
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomXToNiceNumbers);
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomYToNiceNumbers);
 			getCallbackCollection(plotManager.zoomBounds).addGroupedCallback(this, hack_defineZoomIfUndefined, true);

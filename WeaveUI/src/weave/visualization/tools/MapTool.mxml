@@ -55,9 +55,10 @@
 			import weave.editors.SimpleAxisEditor;
 			import weave.editors.WindowSettingsEditor;
 			import weave.editors.managers.CustomLayerWindow;
+			import weave.menus.WeaveMenuItem;
 			import weave.primitives.Bounds2D;
+			import weave.ui.AttributeMenuTool;
 			import weave.ui.SubMenu;
-			import weave.ui.SubMenuItem;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
@@ -80,9 +81,9 @@
 			override protected function constructor():void
 			{
 				super.constructor();
+				
+				AttributeMenuTool.hack_skipToolTargets[this] = true;
 			}
-			
-			private var selectionSubMenu:SubMenu;
 			
 			/**
 			 * This function moves the overview window in front of the visualization
@@ -139,13 +140,14 @@
 			}
 			private function handlePlottersChange():void
 			{
+				var ourSRS:String = projectionSRS.value || null;
 				_projComboBoxData.length = 0;
 				// TEMPORARY: set the selected item in the combo box because changing the data provider 
 				// will reset the text field
-				if (WeaveAPI.ProjectionManager.projectionExists(projectionSRS.value))
+				if (WeaveAPI.ProjectionManager.projectionExists(ourSRS))
 				{
-					_projComboBoxData.push(projectionSRS.value);
-					projComboBox.selectedItem = projectionSRS.value; 
+					_projComboBoxData.push(ourSRS);
+					projComboBox.selectedItem = ourSRS; 
 				}
 				
 				var projString:String;
@@ -165,8 +167,7 @@
 				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
 				{
 					linkProjection(wmsPlotter.srs);
-					var service:IWMSService = wmsPlotter.service.internalObject as IWMSService;
-					projString = service ? service.getProjectionSRS() : null;
+					projString = wmsPlotter.sourceSRS;
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);
 				}
@@ -182,6 +183,26 @@
 				}
 				
 				updateProbeColumns();
+				
+				if (zoomToBaseMap.value)
+				{
+					_baseMapZoomAuthority = null;
+					wmsPlotters = visualization.plotManager.plotters.getObjects(WMSPlotter);
+					for each (wmsPlotter in wmsPlotters)
+					{
+						if (ourSRS && wmsPlotter.sourceSRS != ourSRS)
+							continue; // doesn't match projection
+						
+						var layerName:String = visualization.plotManager.plotters.getName(wmsPlotter);
+						if (!visualization.plotManager.layerShouldBeRendered(layerName))
+							continue; // not visible
+						
+						// the first visible wmsPlotter we find that matches the current projection is treated as the authority
+						_baseMapZoomAuthority = wmsPlotter;
+						break;
+					}
+					updateZoom();
+				}
 			}
 			private function updateProbeColumns():void
 			{
@@ -202,7 +223,9 @@
 			{
 				// hack
 				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(Weave.defaultColorColumn);
-				return "Map " + (dc.getInternalColumn() == null ? '' : "of " + ColumnUtils.getTitle(dc));
+				if (dc.getInternalColumn())
+					return lang("Map of {0}", ColumnUtils.getTitle(dc));
+				return lang("Map");
 			}
 			
 			override protected function createChildren():void
@@ -247,6 +270,7 @@
 				Weave.defaultColorDataColumn.addGroupedCallback(this, handlePanelTitleChange);
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
+				visualization.plotManager.hack_onUpdateZoom(updateZoom);
 				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
 				visualization.plotManager.plotters.addGroupedCallback(this,handleLayerSettingsChange,true);
 				Weave.defaultColorDataColumn.addGroupedCallback(this,updateProbeColumns, true);
@@ -257,23 +281,38 @@
 				
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 				
-				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP], [
-					new SubMenuItem(lang("Rectangular Selection"), function():void {
-						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;
-					}),
-					new SubMenuItem(lang("Circular Selection"), function():void {
-						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;
-					}),
-					new SubMenuItem(lang("Lasso Selection"), function():void {
-						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;
-					})
-				]);
+				initSelectionSubMenu();
 				
 				visibleScaleController.view = visibleScaleRangesList;
 				visibleScaleController.hashMap = visualization.plotManager.layerSettings
+			}
+			
+			private var selectionSubMenu:SubMenu;
+			private function initSelectionSubMenu():void
+			{
+				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP], [
+					menuItem(InteractionController.SELECTION_MODE_RECTANGLE, "Rectangular Selection"),
+					menuItem(InteractionController.SELECTION_MODE_CIRCLE, "Circular Selection"),
+					menuItem(InteractionController.SELECTION_MODE_LASSO, "Lasso Selection"),
+					menuItem(InteractionController.SELECTION_MODE_POINT, "Point Selection")
+				]);
+				function menuItem(mode:String, label:String):Object {
+					return {
+						data: mode,
+						label: lang(label),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					};
+				}
+				function onClick(item:WeaveMenuItem):void {
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
+					Weave.properties.selectionMode.value = item.data as String;
+				}
+				function isToggled(item:WeaveMenuItem):Boolean {
+					return Weave.properties.toolInteractions.defaultDragMode.value == InteractionController.SELECT
+						&& Weave.properties.selectionMode.value == item.data;
+				}
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void
@@ -689,6 +728,20 @@
 			
 			public const zoomSliderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 			
+			public const zoomToBaseMap:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), handlePlottersChange, true);
+			private var _baseMapZoomAuthority:WMSPlotter;
+			private function updateZoom():void
+			{
+				if (!zoomToBaseMap.value || WeaveAPI.SessionManager.objectWasDisposed(_baseMapZoomAuthority))
+				{
+					_baseMapZoomAuthority = null;
+				}
+				else if (_baseMapZoomAuthority)
+				{
+					_baseMapZoomAuthority.adjustZoomBounds(visualization.plotManager.zoomBounds);
+				}
+			}
+			
 			// BACKWARDS COMPATIBILITY
 			[Deprecated(replacement="zoomSliderHeight")] public function set sizeFactorOfMapControls(value:Number):void { zoomSliderHeight.value *= value; }
 			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.plotManager.zoomToSelection; }
@@ -906,6 +959,15 @@
 						Used for zoom +/- buttons, mouse wheel, and double-click.
 					</ui:HelpComponent>
 				</ui:Indent>
+				<mx:HBox>
+					<ui:CustomCheckBox label="{lang('Snap zoom level to base map')}" creationComplete="linkBindableProperty(zoomToBaseMap, event.target, 'selected')"/>
+					<ui:HelpComponent>
+						This option will make sure the zoom level matches the base map so the map image looks crisp as intended.
+						Disabling this option allows more freedom in zooming while sacrificing image quality.
+						
+						This option has no effect when no base map is in use or when the selected projection does not match the projection of the base map.
+					</ui:HelpComponent>
+				</mx:HBox>
 			</ui:CheckBoxWithNestedOptions>
 
 			<mx:CheckBox label="{lang('Show map overview')}" id="overviewCheckBox"

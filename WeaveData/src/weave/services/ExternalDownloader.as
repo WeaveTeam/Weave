@@ -54,7 +54,7 @@ package weave.services
 			
 			try
 			{
-				JavaScript.exec({"this": "weave"}, new JS_ExternalDownloader());
+				WeaveAPI.initializeJavaScript(JS_ExternalDownloader);
 				JavaScript.registerMethod("ExternalDownloader_callback", callback);
 				
 				_initialized = true;

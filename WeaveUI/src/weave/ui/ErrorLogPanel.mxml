@@ -74,41 +74,42 @@
 					Weave.properties.enableSessionHistoryControls
 				];
 				enableSubMenu.value = true;
-				subMenu.menuItems.push(
-					new SubMenuItem(
-						function():String {
+				subMenu.dataProvider = [
+					{
+						label: function():String {
 							return Identify.enabled
-								? "Stop identifying UI components"
-								: "Identify UI components";
+								? lang("Stop identifying UI components")
+								: lang("Identify UI components");
 						},
-						Identify.identify
-					),
-					new SubMenuItem(
-						"Print display list",
-						function():void {
+						click: Identify.identify
+					},{
+						label: lang("Print display list"),
+						click: function():void {
 							weaveTrace(DebugUtils.debugDisplayList(stage));
 						}
-					),
-					new SubMenuItem(
-						"Show all menus and controls",
-						function():void {
+					},{
+						label: lang("Show all menus and controls"),
+						click: function():void {
 							for each (var lb:LinkableBoolean in allMenuToggles)
 								lb.value = true;
 							for each (var dp:DraggablePanel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
 								for each (lb in [dp.enableBorders, dp.enableMoveResize, dp.enableZOrder, dp.minimizable, dp.maximizable, dp.closeable])
 									lb.value = true;
 						},
-						null,
-						function():Boolean {
+						shown: function():Boolean {
 							for each (var lb:LinkableBoolean in allMenuToggles)
 								if (!lb.value)
 									return true;
 							return false;
 						}
-					),
-					new SubMenuItem("Clear log", console.consoleClear),
-					new SubMenuItem("Console help", function():void { help.showHelp(); })
-				);
+					},{
+						label: lang("Clear log"),
+						click: console.consoleClear
+					},{
+						label: lang("Console help"),
+						click: help.showHelp
+					}
+				];
 			}
 			
 			override protected function childrenCreated():void

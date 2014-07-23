@@ -36,10 +36,7 @@ package weave.data.DataSources
 	
 	/**
 	 * This is a base class to make it easier to develope a new class that implements IDataSource_old.
-	 * To extend this class, the minimum functions to override are:
-	 *         initialize(), requestHierarchyFromSource(), requestColumnFromSource().
-	 * Optionally, initializationComplete() can also be overridden to control how long column requests are delayed.
-	 * generateHierarchyNode() should be overridden if the data source does not use XMLEntityNode to build its hierarchy.
+	 * getHierarchyRoot() and generateHierarchyNode() should be overridden if the data source does not use XMLEntityNode to build its hierarchy.
 	 * 
 	 * @author adufilie
 	 */

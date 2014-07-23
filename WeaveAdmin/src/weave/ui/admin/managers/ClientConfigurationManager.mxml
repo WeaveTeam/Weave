@@ -26,8 +26,8 @@
 				verticalAlign="middle"
 				label="Visualizations"
 				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*">
-	<mx:TabNavigator height="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
-		<mx:VBox label="My files">
+	<mx:TabNavigator id="tabNav" height="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
+		<mx:VBox label="My files" id="userView">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(userFolderTreeWithSearch)" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
 				<mx:Button label="Delete selected file" click="removeClientConfigFile()" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
@@ -41,7 +41,7 @@
 				<mx:Button label="Refresh" click="Admin.service.getWeaveFileNames(false)"/>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox label="All files">
+		<mx:VBox label="All files" id="sharedView">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>
 			</mx:HBox>
@@ -79,13 +79,16 @@
 			
 			private function handleCreationComplete():void
 			{
+				BindingUtils.bindSetter(function(i:int):void {
+					previewSelectedFile([userFolderTreeWithSearch, sharedTreeWithSearch][i]);
+				}, tabNav, 'selectedIndex');
 				BindingUtils.bindSetter(function(files:Array):void {
 					sharedTreeWithSearch.generateFlatTreeFromLabels(files);
-					previewSelectedFile(sharedTreeWithSearch);
+					previewSelectedFile(sharedTreeWithSearch, tabNav.selectedChild == sharedView);
 				}, Admin.instance, "weaveFileNames");
 				BindingUtils.bindSetter(function(files:Array):void {
 					userFolderTreeWithSearch.generateFlatTreeFromLabels(files);
-					previewSelectedFile(userFolderTreeWithSearch);
+					previewSelectedFile(userFolderTreeWithSearch, tabNav.selectedChild == userView);
 				}, Admin.instance, "privateWeaveFileNames");
 				
 				userFolderTreeWithSearch.tree.addEventListener(Event.CHANGE, handleListChange);
@@ -114,12 +117,12 @@
 					Admin.instance.openWeavePopup(item.label);
 			}
 			
-			private function previewSelectedFile(component:TreeWithSearch):void
+			private function previewSelectedFile(component:TreeWithSearch, clearIfNoSelection:Boolean = true):void
 			{
 				var item:Object = component.tree.selectedItem;
 				if (item)
 					weaveFileInfo.updatePreview(item.label);
-				else
+				else if (clearIfNoSelection)
 					weaveFileInfo.clearPreview();
 			}
 			

@@ -70,8 +70,8 @@ weave.WeavePath.Keys._flushKeys = function (pathArray)
     key_buffers.add = {};
     key_buffers.remove = {};
 
-    weave.evaluateExpression(pathArray, 'this.addKeys(keys)', {keys: add_keys});
-    weave.evaluateExpression(pathArray, 'this.removeKeys(keys)', {keys: remove_keys});
+    weave.evaluateExpression(pathArray, 'this.addKeys(keys)', {keys: add_keys}, null, "");
+    weave.evaluateExpression(pathArray, 'this.removeKeys(keys)', {keys: remove_keys}, null, "");
 
     key_buffers.timeout_id = null;
 }.bind(weave.WeavePath.Keys);
@@ -260,7 +260,7 @@ weave.WeavePath.prototype.setKeys = function(/* [relpath], keyStringArray */)
         var keyStringArray = args.pop();
         var keyObjectArray = keyStringArray.map(this.stringToQKey);
         var path = this._path.concat(args);
-        this.weave.evaluateExpression(path, 'this.replaceKeys(keys)', {keys: keyObjectArray});
+        this.weave.evaluateExpression(path, 'this.replaceKeys(keys)', {keys: keyObjectArray}, null, "");
 
         return this;
     };
@@ -366,7 +366,7 @@ weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
 	{
 		var label = args.pop();
 		var path = this._path.concat(args);
-		this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label});
+		this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label}, null, "");
 	}
 	return this;
 }

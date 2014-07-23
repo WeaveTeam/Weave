@@ -103,13 +103,13 @@
 			import weave.Weave;
 			import weave.menus.DataMenu;
 			import weave.menus.HelpMenu;
+			import weave.menus.SelectionsMenu;
 			import weave.menus.SessionMenu;
+			import weave.menus.SubsetsMenu;
 			import weave.menus.ToolsMenu;
 			import weave.menus.WeaveMenuItem;
 			import weave.menus.WindowMenu;
 			import weave.ui.OICLogoPane;
-			import weave.ui.SelectionManager;
-			import weave.ui.SubsetManager;
 			
 			use namespace mx_internal;
 			
@@ -125,15 +125,15 @@
 				});
 			}
 			
-			public static const defaultMenus:Array = [
-				new SessionMenu(),
-				new DataMenu(),
-				new ToolsMenu(),
-				SelectionManager.createMenu(),
-				SubsetManager.createMenu(),
-				new WindowMenu(),
-				new HelpMenu()
-			];
+			public static const defaultMenus:Array = WeaveMenuItem.createItems(
+				SessionMenu,
+				DataMenu,
+				ToolsMenu,
+				SelectionsMenu,
+				SubsetsMenu,
+				WindowMenu,
+				HelpMenu
+			);
 			
 			public var maxLabelLength:int = 75;
 			private function trimLabel(item:WeaveMenuItem):String
