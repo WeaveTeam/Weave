@@ -16,6 +16,8 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import com.google.gson.internal.StringMap;
+
 import weave.utils.ListUtils;
 
 public class AwsRService implements IScriptEngine
@@ -37,11 +39,14 @@ public class AwsRService implements IScriptEngine
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public Object runScript(String scriptAbsPath, String[] inputNames, Object[] inputValues) throws Exception
+	public Object runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception
 	{
 
 		rConnection.assign("scriptPath", scriptAbsPath);
-		assignNamesToVector(rConnection, inputNames, inputValues);
+		
+		for(String key : scriptInputs.keySet()) {
+			rConnection.assign(key, getREXP(scriptInputs.get(key)));
+		}
 		
 		Object results = null;
 		Vector<String> names = null;

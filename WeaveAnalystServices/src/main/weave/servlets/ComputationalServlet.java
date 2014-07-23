@@ -78,27 +78,23 @@ public class ComputationalServlet extends WeaveServlet
  		// Start the timer for the data request
  		startTime = System.currentTimeMillis();
 
-		ArrayList<String> inputNames = new ArrayList<String>();
-		ArrayList<Object> inputValues = new ArrayList<Object>();
-		
-		ArrayList<Integer> tempIds = new ArrayList<Integer>();
-		ArrayList<String> names = new ArrayList<String>();
+ 		StringMap<Object> input = new StringMap<Object>();
 		
 		for(String key : scriptInputs.keySet()) {
-			
-			inputNames.add(key);
 			
 			Object value = scriptInputs.get(key);
 			
 			if(value instanceof String) {
-				inputValues.add(value);
+				input.put(key, value);
 			} else if (value instanceof Number) {
-				inputValues.add(value);
+				input.put(key, value);
 			} else if (value instanceof Boolean) {
-				inputValues.add(value);;
+				input.put(key, value);
 			} else if (value instanceof StringMap<?>){
-				tempIds.add((Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
-
+				WeaveRecordList data = null;
+				data = DataService.getFilteredRows( new int[] {(Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue()}, filters, null);
+				Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
+				input.put(key, columnData[0]);
 			} else if (value instanceof Object[]) {
 				
 				ArrayList<Integer> ids = new ArrayList<Integer>();
@@ -111,13 +107,8 @@ public class ComputationalServlet extends WeaveServlet
 				
 				WeaveRecordList data = null;
 				data = DataService.getFilteredRows(Ints.toArray(ids), filters, null);
-				inputValues.add(AWSUtils.transpose(data.recordData));
+				input.put(key, data);
 			}
-			
-			WeaveRecordList data = null;
-			data = DataService.getFilteredRows( new int[] {(Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue()}, filters, null);
-			Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-			
 		}
 		
 		endTime = System.currentTimeMillis();
@@ -128,11 +119,9 @@ public class ComputationalServlet extends WeaveServlet
 		
 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R) 
 		{
-			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), (String[]) inputNames.toArray(new String[inputNames.size()]), inputValues.toArray(new Object[inputValues.size()]));
+			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), input);
 		} else {
-			inputValues.add(0, inputNames);
-			resultData = AwsStataService.runScript(scriptName, 
-					inputValues.toArray(new Object[inputValues.size()]),
+			resultData = AwsStataService.runScript(scriptName, input,
 					 programPath, tempDirPath, stataScriptsPath);
 
 		}

@@ -7,8 +7,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.commons.io.FilenameUtils;
+import org.json.simple.JSONObject;
+import com.google.gson.internal.StringMap;
 
 import weave.utils.CSVParser;
 import weave.utils.CommandUtils;
@@ -19,9 +24,19 @@ import weave.models.computations.IScriptEngine;
 
 public class AwsStataService implements IScriptEngine {
 
-	public static Object runScript(String scriptName, Object dataSet, String programPath, String tempDirPath, String scriptPath) throws Exception {
+	public static Object runScript(String scriptName, StringMap<Object> scriptInputs, String programPath, String tempDirPath, String scriptPath) throws Exception {
 
 		int exitValue = -1;
+		
+		ArrayList<Object> data = new ArrayList<Object>();
+		Object[][] dataSet;
+		for(String key : scriptInputs.keySet()) {
+			data.add(key);
+			data.addAll(Arrays.asList(AWSUtils.transpose(scriptInputs.get(key))));
+		}
+		
+		dataSet = (Object[][]) data.toArray(new Object[data.size()]);
+		
 		CSVParser parser = new CSVParser();
 		//Gson jsonParser = new Gson();
 		String tempScript = "";
