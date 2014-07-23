@@ -6,14 +6,16 @@
 	</div>
 	<br>
 	<div>
-	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.geometryLayer" data-placeholder="Choose Geometry Layer">
+	Select Geomtery
+	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.geometryLayer" data-placeholder="Choose Layer">
 			<option></option>
 			<option value="{{gt}}"  ng-repeat="gt in service.dataObject.geometryColumns">{{gt.title}}</option>
 		</select>
 	</div>
 	<br>
 	<div>
-	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Label Layer">
+	Select Label
+	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Layer">
 			<option></option>
 			<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs"> {{output.param}} </option>
 		</select>
