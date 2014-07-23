@@ -76,7 +76,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 		title : 'By Variable Filter',
 		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
 		description : 'Filter data by Variables',
-		category : 'datafilter',
+		category : 'datafilter'
 	}];
 	
 	
@@ -126,74 +126,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	}
     };
 
-    /**
-     * This function wraps the async aws getListOfProjects function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.getListOfProjectsfromDatabase = function() {
-		var deferred = $q.defer();
-
-		aws.queryService(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
-    	that.dataObject.listOfProjectsFromDatabase = result;
-    	
-    	scope.$safeApply(function() {
-            deferred.resolve(result);
-        });
-    	
-    });
-        
-        return deferred.promise;
-        
-    };
-    
-    
-    this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
-      	
-    	var deferred = $q.defer();
-    	var params = {};
-    	params.userName = userName;
-    	params.projectName = projectName;
-    	params.projectDescription = projectDescription;
-    	params.queryObjectTitle = queryObjectTitle;
-    	params.queryObjectContent = queryObjectContent;
-
-    	aws.queryService(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
-        	console.log("insertQueryObjectStatus", result);
-        	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
-        	scope.$safeApply(function() {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
-    };
-    
-    /**
-     * This function wraps the async aws deleteproject function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.deleteProject = function(projectName) {
-          	
-    	var deferred = $q.defer();
-    	var params = {};
-    	params.projectName = projectName;
-
-    	aws.queryService(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
-        	console.log("deleteProjectStatus", result);
-            
-        	that.dataObject.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
-        	scope.$safeApply(function() {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
-    };
-    
     
     this.getSessionState = function(){
     	if(!(newWeaveWindow.closed)){
@@ -203,18 +135,15 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     };
    
     this.writeSessionState = function(base64String){
-    	
-    	var params = {};
-    	params.queryObjectJsons = angular.toJson(this.queryObject);
-    	params.projectName = "Other";
-    	params.userName = "Awesome User";
-    	params.projectDescription = "These query objects do not belong to any project";
-    	params.resultVisualizations = base64String;
-    	params.queryObjectTitles = this.queryObject.title;
-    	
-    	
+    	var userName = "Awesome User";
+    	var projectName = "Other";
+    	var queryObjectJsons = angular.toJson(this.queryObject);
+    	var projectDescription = "These query objects do not belong to any project";
+    	var queryObjectTitles = this.queryObject.title;
+    	var resultVisualizations = base64String;
+
     	console.log("got it", base64String);
-    	aws.queryService(projectManagementURL, 'writeSessionState', params, function(result){
+    	aws.queryService(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
     		console.log("adding status", result);
     		alert(params.queryObjectTitles + " has been added");
     	});
