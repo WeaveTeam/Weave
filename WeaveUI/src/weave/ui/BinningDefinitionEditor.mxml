@@ -115,7 +115,13 @@
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
-			<mx:DataGrid id="binNameEditor" draggableColumns="false" sortableColumns="false" width="100%" height="100%" minWidth="0" selectable="{overrideNamesCheckBox.selected}" editable="{overrideNamesCheckBox.selected}" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}">
+			<mx:DataGrid id="binNameEditor"
+						 width="100%" height="100%" minWidth="0"
+						 draggableColumns="false" sortableColumns="false"
+						 selectable="{overrideNamesCheckBox.selected}"
+						 editable="{overrideNamesCheckBox.selected}"
+						 itemEditEnd="handleItemEdited(event)"
+						 dataProvider="{gridSource}">
 				<mx:columns>
 					<mx:DataGridColumn headerText="{lang('Bin Names')}"/>
 				</mx:columns>
@@ -274,14 +280,8 @@
 				}
 				
 				var source:Array = gridSource.source;
-				var names:Array = WeaveAPI.CSVParser.parseCSV(overrideBinNames.value);
-				if (names && names.length)
-					names = names[0];
-				else
-					names = new Array(source.length);
-				
+				var names:Array = WeaveAPI.CSVParser.parseCSVRow(overrideBinNames.value) || new Array(source.length);
 				names[event.rowIndex] = input.text;
-				
 				overrideBinNames.value = WeaveAPI.CSVParser.createCSVRow(names);
 			}
 		]]>
