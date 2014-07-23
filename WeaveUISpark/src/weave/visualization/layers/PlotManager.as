@@ -120,7 +120,7 @@ package weave.visualization.layers
 		
 		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
 		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateZoom, true);
+		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(18), updateZoom, true);
 		public const enableFixedAspectRatio:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
 		public const enableAutoZoomToSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
