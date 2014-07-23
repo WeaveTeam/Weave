@@ -63,7 +63,7 @@ aws.QueryHandler = function(queryObject)
 	
 	for(var key in queryObject.scriptOptions) {
 		var input = queryObject.scriptOptions[key];
-		console.log(typeof input);
+		//console.log(typeof input);
 		switch(typeof input) {
 			case 'array': // array of columns
 				scriptInputs[key] = $.map(input, function(inputVal) {
@@ -208,8 +208,6 @@ aws.QueryHandler = function(queryObject)
 		this.rRequestObject.filters = nestedFilterRequest;
 	}
 	
-	console.log(angular.toJson(this.rRequestObject));
-	
 	this.keyType = "";
 	this.ColorColumn = queryObject.ColorColumn;
 	
@@ -268,10 +266,15 @@ aws.QueryHandler = function(queryObject)
 	
 	if (queryObject.hasOwnProperty("DataTableTool")) {
 		if(queryObject.DataTableTool.enabled == true) {
+			var colNames= [];
+			for(i in queryObject.dataTable.columns){
+				colNames[i] = queryObject.dataTable.columns[i].param;
+			}
+			
 			this.visualizations.push(
 					{
 						type : "DataTable",
-						parameters : queryObject.DataTableTool.selected
+						parameters : colNames
 					}
 			);
 		}
@@ -279,11 +282,6 @@ aws.QueryHandler = function(queryObject)
 	
 	this.currentVisualizations = {};
 	console.log("query", angular.toJson(this.queryObject));
-	this.ComputationEngine = null;
-	//TODO decide this according to script selected or UI selection of computation engine
-	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {
-		
-	}
 	this.resultDataSet = "";
 };
 
