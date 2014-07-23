@@ -40,6 +40,17 @@ automatically be updated to correspond to changes in dataProvider item order.
 			private var _prevData:Array = [];
 			
 			/**
+			 * Setting this to true will set labelFunction = lang.
+			 */
+			public function set translate(value:Boolean):void
+			{
+				if (value)
+					labelFunction = lang;
+				else if (labelFunction == lang)
+					labelFunction = null;
+			}
+			
+			/**
 			 * This value will be used for each new CheckBox's "selected" state as they are
 			 * created when new items are added to the dataProvider.
 			 */

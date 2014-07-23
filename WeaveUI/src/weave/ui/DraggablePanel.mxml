@@ -362,7 +362,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function get defaultPanelTitle():String
 			{
-				return getQualifiedClassName(this).split(':').pop();
+				return lang(getQualifiedClassName(this).split(':').pop());
 			}
 			
 			// workaround to fix text layout performance problem

@@ -113,15 +113,11 @@
 	</ControlPanel>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
 			
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
-			import weave.api.core.ILinkableVariable;
 			import weave.api.core.ISessionManager;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
@@ -139,7 +135,6 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
-			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.LinkableWatcher;
@@ -353,12 +348,16 @@
 					if (mainPlotter && indexOfMainPlotter >= 0)
 						all[indexOfMainPlotter] = this; // skip the main plotter
 					
-					// TEMPORARY SOLUTION so we don't have redundant entries for MapTool 
-					if (getQualifiedClassName(that) == "weave.visualization.tools::MapTool")
+					if (hack_skipToolTargets[that])
 						return false;
 				}
 				return true;
 			}
+			
+			/**
+			 * Temporary solution for excluding objects from the tool selector combo.
+			 */
+			public static const hack_skipToolTargets:Dictionary = new Dictionary(true);
 			
 			private var _stringToPath:Object = {};
 			private function pathToString(path:Array, i:int = 0, a:Array = null):String
