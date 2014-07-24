@@ -93,10 +93,14 @@ package weave.visualization.plotters.styles
 
 		/**
 		 * This function sets the line style on a Graphics object using the saved border properties.
-		 * @param graphics
-		 *     The Graphics object to initialize.
+		 * @param graphics The Graphics object to initialize.
 		 */
 		public function beginLineStyle(recordKey:IQualifiedKey, target:Graphics):void
+		{
+			target.lineStyle.apply(target, getLineStyleParams(recordKey));
+		}
+		
+		public function getLineStyleParams(recordKey:IQualifiedKey):Array
 		{
 			if (_triggerCounter != _callbackCollection.triggerCounter)
 			{
@@ -125,7 +129,7 @@ package weave.visualization.plotters.styles
 			var lineEnabled:Boolean = _enabled !== undefined ? _enabled : StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			if (!lineEnabled)
 			{
-				target.lineStyle(0, 0, 0);
+				return [0, 0, 0];
 			}
 			else
 			{
@@ -135,24 +139,23 @@ package weave.visualization.plotters.styles
 				{
 					if (lineWeight == 0) // treat lineWeight 0 as no line
 					{
-						target.lineStyle(0, 0, 0);
+						return [0, 0, 0];
 					}
 					else
 					{
-						var         lineAlpha:Number = _alpha !== undefined ? _alpha               :      alpha.getValueFromKey(recordKey, Number);
-						var linePixelHinting:Boolean = _pixelHinting !== undefined ? _pixelHinting : ColumnUtils.getBoolean(pixelHinting, recordKey);
-						var     lineScaleMode:String = _scaleMode !== undefined ? _scaleMode       :  scaleMode.getValueFromKey(recordKey, String) as String;
-						var          lineCaps:String = _caps !== undefined ? _caps                 :       caps.getValueFromKey(recordKey, String) as String;
-						var        lineJoints:String = _joints !== undefined ? _joints             :     joints.getValueFromKey(recordKey, String) as String;
-						var    lineMiterLimit:Number = _miterLimit !== undefined ? _miterLimit     : miterLimit.getValueFromKey(recordKey, Number);
+						var lineAlpha:Number         = _alpha        !== undefined ? _alpha        :      alpha.getValueFromKey(recordKey, Number);
+						var linePixelHinting:Boolean = _pixelHinting !== undefined ? _pixelHinting : StandardLib.asBoolean(pixelHinting.getValueFromKey(recordKey));
+						var lineScaleMode:String     = _scaleMode    !== undefined ? _scaleMode    :  scaleMode.getValueFromKey(recordKey, String) as String;
+						var lineCaps:String          = _caps         !== undefined ? _caps         :       caps.getValueFromKey(recordKey, String) as String || null;
+						var lineJoints:String        = _joints       !== undefined ? _joints       :     joints.getValueFromKey(recordKey, String) as String || null;
+						var lineMiterLimit:Number    = _miterLimit   !== undefined ? _miterLimit   : miterLimit.getValueFromKey(recordKey, Number);
 
-						target.lineStyle(lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit);
-						//trace("target.lineStyle(",lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit,");");
+						return [lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit];
 					}
 				}
 				else
 				{
-					target.lineStyle(0, 0, 0);
+					return [0, 0, 0];
 				}
 			}
 		}

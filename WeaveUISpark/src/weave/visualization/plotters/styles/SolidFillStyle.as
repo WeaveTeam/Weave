@@ -57,24 +57,27 @@ package weave.visualization.plotters.styles
 		 */
 		public function beginFillStyle(recordKey:IQualifiedKey, target:Graphics):Boolean
 		{
-			var fillEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
-			var fillColor:Number = color.getValueFromKey(recordKey, Number);
-			if (!fillEnabled)
-			{
-				target.endFill();
-				return false;
-			}
-			else if (isFinite(fillColor)) // if color is defined, use basic Graphics.beginFill() function
-			{
-				var fillAlpha:Number = alpha.getValueFromKey(recordKey, Number);
-				target.beginFill(fillColor, fillAlpha);
-				return true;
-			}
+			var params:Array = getBeginFillParams(recordKey);
+			if (params)
+				target.beginFill(params[0], params[1]);
 			else
-			{
 				target.endFill();
-				return false;
+			return params != null;
+		}
+		
+		public function getBeginFillParams(recordKey:IQualifiedKey):Array
+		{
+			var fillEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
+			if (fillEnabled)
+			{
+				var fillColor:Number = color.getValueFromKey(recordKey, Number);
+				if (isFinite(fillColor))
+				{
+					var fillAlpha:Number = alpha.getValueFromKey(recordKey, Number);
+					return [fillColor, fillAlpha];
+				}
 			}
+			return null;
 		}
 	}
 }
