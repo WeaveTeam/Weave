@@ -1121,7 +1121,7 @@ package weave.compiler
 		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
 		{
 			indent = indent is Number ? StandardLib.lpad('', indent as Number, ' ') : indent as String || ''
-			return _stringify("", value, replacer, indent ? '\n' : ' ', indent, json_values_only);
+			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
 		}
 		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
 		{
@@ -1173,7 +1173,7 @@ package weave.compiler
 			
 			return (value is Array ? "[" : "{")
 				+ lineBreakIndent
-				+ output.join("," + lineBreakIndent)
+				+ output.join(indent ? ',' + lineBreakIndent : ', ')
 				+ lineBreak
 				+ (value is Array ? "]" : "}");
 		}
