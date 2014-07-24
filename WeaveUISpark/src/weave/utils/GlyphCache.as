@@ -29,7 +29,7 @@ package weave.utils
 	import weave.api.core.IDisposableObject;
 	import weave.compiler.Compiler;
 
-	public dynamic class GlyphCache implements IDisposableObject
+	public class GlyphCache implements IDisposableObject
 	{
 		/**
 		 * The name of the property of a cache entry which contains the BitmapData.
