@@ -45,7 +45,7 @@
 			</mx:HBox>
 			<mx:VBox width="100%" height="100%" enabled="{activeEquationCombo.selectedItem != null}">
 				<mx:HBox width="100%" verticalAlign="middle">
-					<mx:Label text="Title"/>
+					<mx:Label text="{lang('Title')}"/>
 					<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
 				</mx:HBox>
 				<mx:VDividedBox width="100%" height="100%">
@@ -66,7 +66,7 @@
 							<EquationUIComponent id="baseEquationUIComp"/>
 						</mx:Canvas>
 						<mx:Canvas label="{lang('Help')}" width="100%" height="100%" verticalScrollPolicy="on">
-							<Paragraph selectable="true">
+							<Paragraph selectable="true" translate="true">
 								The Weave data framework requires that all columns provide a mapping from keys to data values.
 								The Equation Column allows you to input a script that generates derived data for each record key.
 								The script you enter in the Code view will be evaluated for each record with Weave's built-in

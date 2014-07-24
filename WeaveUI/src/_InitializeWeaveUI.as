@@ -193,9 +193,15 @@ package
 			 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 			 */
 			WeaveXMLDecoder.includePackages(
+				"weave.application",
 				"weave.editors",
+				"weave.editors.managers",
+				"weave.menus",
 				"weave.ui",
 				"weave.ui.annotation",
+				"weave.ui.collaboration",
+				"weave.ui.controlBars",
+				"weave.ui.CustomDataGrid",
 				"weave.utils",
 				"weave.visualization",
 				"weave.visualization.tools",

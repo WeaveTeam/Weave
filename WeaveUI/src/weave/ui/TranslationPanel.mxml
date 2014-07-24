@@ -77,10 +77,15 @@
 			{
 				super.constructor();
 				enableSubMenu.value = true;
-				subMenu.menuItems.push(
-					new SubMenuItem(lang("Switch to developer testing mode"), switchToDeveloperMode),
-					new SubMenuItem(lang("Erase all translation data..."), resetAll)
-				);
+				subMenu.dataProvider = [
+					{
+						label: lang("Switch to developer testing mode"),
+						click: switchToDeveloperMode
+					},{
+						label: lang("Erase all translation data..."),
+						click: resetAll
+					}
+				];
 			}
 			
 			override protected function childrenCreated():void

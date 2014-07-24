@@ -45,6 +45,8 @@
 		<![CDATA[
 			import avmplus.DescribeType;
 			
+			import flash.utils.getDefinitionByName;
+			
 			import mx.containers.VBox;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
@@ -60,6 +62,8 @@
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
+			import weave.core.ClassUtils;
+			import weave.core.WeaveXMLDecoder;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
 			import weave.utils.MethodChainProxy;
@@ -140,7 +144,7 @@
 				return log.text = '';
 			}
 			
-			private const symbolTable:Object = {
+			private const symbolTable:Object = [{
 				'exec': JavaScript.exec,
 				'call': function(...args):*
 				{
@@ -173,8 +177,18 @@
 				'chain': methodChainer,
 				'display': debugDisplayList,
 				'identify': Identify.identify,
+				'debugCompiler': function(script:String):String { return ObjectUtil.toString(new Compiler().compileToObject(script), null, 'evaluatedMethod,evaluatedHost,evaluatedMethodName,evaluatedParams,evalIndex,originalTokens'.split(',')); },
 				'_': {}
-			};
+			}, new ProxyObject(getClassDef, getClassDef, null)];
+			
+			private function getClassDef(className:String):Object
+			{
+				className = WeaveXMLDecoder.getClassName(className);
+				try {
+					return getDefinitionByName(className);
+				} catch (e:Error) { }
+				return null;
+			}
 			
 			private function styleProxy(component:UIComponent):ProxyObject
 			{
@@ -287,7 +301,14 @@
 				}
 				catch (e:*)
 				{
-					result = String(result)
+					try
+					{
+						result = String(result)
+					}
+					catch (ee:*)
+					{
+						result = debugId(result);
+					}
 				}
 				
 				// if the command runs successfully, clear the input area

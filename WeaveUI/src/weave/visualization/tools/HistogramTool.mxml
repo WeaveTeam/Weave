@@ -79,15 +79,6 @@
 				}, true);
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["Grouping values", "Height values (Optional)"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.fillStyle.color, plotter.columnToAggregate];
-			}
-			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
 
 			private function updateProbeColumns():void

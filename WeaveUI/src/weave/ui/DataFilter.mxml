@@ -38,6 +38,7 @@
 			import weave.core.LinkableWatcher;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
+			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
 			
 			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
@@ -76,10 +77,23 @@
 					return;
 				super.createChildren();
 				
-				subMenu.menuItems.push(
-					new SubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]),
-					new SubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter])
-				);
+				function onClick(item:WeaveMenuItem):void { setFilterType(item.data as Class); }
+				function isToggled(item:WeaveMenuItem):Boolean { return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is (item.data as Class); }
+				subMenu.dataProvider = [
+					{
+						data: StringDataFilter,
+						label: lang("String filter"),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					},{
+						data: NumberDataFilter,
+						label: lang("Number filter"),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					}
+				];
 				
 				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
 				if (!keyFilter)

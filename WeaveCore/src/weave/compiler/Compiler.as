@@ -1112,44 +1112,70 @@ package weave.compiler
 		}
 		
 		/**
-		 * Generates a deterministic JSON representation of an object, meaning object keys appear in sorted order.
-		 * @param object The object to stringify.
+		 * Generates a deterministic JSON-like representation of an object, meaning object keys appear in sorted order.
+		 * @param value The object to stringify.
+		 * @param replacer A function like function(key:String, value:*):*
+		 * @param indent Either a Number or a String to specify indentation of nested values
+		 * @param json_values_only If this is set to true, only JSON-compatible values will be used (NaN/Infinity/undefined -> null)
 		 */
-		public static function stringify(object:*):String
+		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
 		{
+			indent = indent is Number ? StandardLib.lpad('', indent as Number, ' ') : indent as String || ''
+			return _stringify("", value, replacer, indent ? '\n' : ' ', indent, json_values_only);
+		}
+		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
+		{
+			if (replacer != null)
+				value = replacer(key, value);
+			
 			var output:Array;
 			var item:*;
 			var key:String;
 			
-			if (object is String)
-				return encodeString(object as String);
-			if (object == null || typeof object != 'object')
-				return String(object) || String(null);
-			if (object is Array)
+			if (value is String)
+				return encodeString(value as String);
+			
+			// non-string primitives
+			if (value == null || typeof value != 'object')
 			{
-				output = [];
-				for each (item in object)
-					output.push(stringify(item));
-				return "[" + output.join(", ") + "]";
+				if (json_values_only && (value === undefined || !isFinite(value as Number)))
+					value = null;
+				return String(value) || String(null);
 			}
-			// loop over keys in Object
+			
+			// loop over keys in Array or Object
+			var lineBreakIndent:String = lineBreak + indent;
 			output = [];
-			if (object.constructor == Object)
+			if (value is Array)
 			{
-				for (key in object)
-					output.push(encodeString(key) + ": " + stringify(object[key]));
+				for (key in value)
+					output.push(_stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+			}
+			else if (value.constructor == Object)
+			{
+				for (key in value)
+					output.push(encodeString(key) + ": " + _stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+				// sort keys
+				StandardLib.sort(output);
 			}
 			else
 			{
-				for each (var list:Array in DescribeType.getInfo(object, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+				for each (var list:Array in DescribeType.getInfo(value, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
 					for each (item in list)
 						if (item.access != 'writeonly')
-							output.push(encodeString(item.name) + ": " + stringify(object[item.name]));
+							output.push(encodeString(item.name) + ": " + _stringify(item.name, value[item.name], replacer, lineBreakIndent, indent, json_values_only));
+				// sort keys
+				StandardLib.sort(output);
 			}
-			// sort keys
-			StandardLib.sort(output);
-			// output key:value pairs
-			return "{" + output.join(", ") + "}";
+			
+			if (output.length == 0)
+				return value is Array ? "[]" : "{}";
+			
+			return (value is Array ? "[" : "{")
+				+ lineBreakIndent
+				+ output.join("," + lineBreakIndent)
+				+ lineBreak
+				+ (value is Array ? "]" : "}");
 		}
 		
 		/**
@@ -1336,7 +1362,7 @@ package weave.compiler
 					var blockCall:CompiledFunctionCall = block as CompiledFunctionCall;
 					if (blockCall)
 					{
-						var blockItems:Array;
+						var blockItems:Array = null;
 						if (blockCall.evaluatedMethod == operators[';'] && blockCall.compiledParams.length == 0)
 							blockItems = [];
 						if (blockCall.evaluatedMethod == operators[','])

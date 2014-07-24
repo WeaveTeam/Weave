@@ -41,7 +41,7 @@ package weave.api.core
 
 		/**
 		 * This function creates a global object using the given Class definition if it doesn't already exist.
-		 * If the object gets disposed of later, this object will still be linked to the global name.
+		 * If the object gets disposed later, this object will still be linked to the global name.
 		 * If the existing object under the specified name is locked, this function will not modify it.
 		 * @param name The name of the global object to link to.
 		 * @param objectType The Class used to initialize the object.

@@ -211,6 +211,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, updateButtons, true);
+				getCallbackCollection(this).addGroupedCallback(this, updateButtonsIfSelectableAttributesChanged, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 			}
@@ -245,11 +246,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, TOOLTIP_MAXIMIZE);
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
-				zOrderSubMenu.menuItems.push(
-					new SubMenuItem(lang('Reset'), function():void { zOrder.value = 0; }, null, function():Boolean { return zOrder.value != 0; }),
-					new SubMenuItem(lang('Always above'), function():void { zOrder.value = 1; }, null, function():Boolean { return zOrder.value <= 0; }),
-					new SubMenuItem(lang('Always below'), function():void { zOrder.value = -1; }, null, function():Boolean { return zOrder.value >= 0; })
-				);
+				zOrderSubMenu.dataProvider = [
+					{
+						label: lang('Reset'),
+						click: function():void { zOrder.value = 0; },
+						shown: function():Boolean { return zOrder.value != 0; }
+					},{
+						label: lang('Always above'),
+						click: function():void { zOrder.value = 1; },
+						shown: function():Boolean { return zOrder.value <= 0; }
+					},{
+						label: lang('Always below'),
+						click: function():void { zOrder.value = -1; },
+						shown: function():Boolean { return zOrder.value >= 0; }
+					}
+				];
+				
+				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+				if (hashMap)
+					hashMap.childListCallbacks.addGroupedCallback(this, updatePanelZOrder);
 
 				/*
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
@@ -347,7 +362,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function get defaultPanelTitle():String
 			{
-				return getQualifiedClassName(this).split(':').pop();
+				return lang(getQualifiedClassName(this).split(':').pop());
 			}
 			
 			// workaround to fix text layout performance problem
@@ -1261,6 +1276,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return w;
 			}
 			
+			private var _prevShouldShowAttributeButton:Boolean = false;
+			private function updateButtonsIfSelectableAttributesChanged():void
+			{
+				if (_prevShouldShowAttributeButton != shouldShowAttributeButton)
+				{
+					_prevShouldShowAttributeButton = !_prevShouldShowAttributeButton;
+					updateButtons();
+				}
+			}
+			
+			private function get shouldShowAttributeButton():Boolean
+			{
+				return Weave.properties.enableToolControls.value
+					&& this is IObjectWithSelectableAttributes
+					&& (this as IObjectWithSelectableAttributes).getSelectableAttributes().length;
+			}
+			
 			private function updateButtons():void
 			{
 				// don't do anything if not added to a parent to avoid errors like the following:
@@ -1296,7 +1328,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				conditions = [
 					Weave.properties.enableToolControls.value && _controlPanel,
 					enableSubMenu.value,
-					Weave.properties.enableToolControls.value && this is IObjectWithSelectableAttributes && (this as IObjectWithSelectableAttributes).getSelectableAttributes().length
+					shouldShowAttributeButton
 				];
 				for (i = 0; i < buttons.length; i++)
 				{
@@ -1612,7 +1644,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public static function getTopPanel():DraggablePanel
 			{
-				return Weave.root.getObjects(DraggablePanel).pop();
+				var children:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
+				while (children.length)
+				{
+					var panel:DraggablePanel = children.pop() as DraggablePanel;
+					if (panel.visible)
+						return panel;
+				}
+				return null;
 			}
 			public static function getTopPanelName():String
 			{

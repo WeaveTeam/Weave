@@ -333,7 +333,7 @@ package weave.core
 			// make sure the callback variables signal that the object was removed
 			_childListCallbacks.runCallbacks(name, null, object);
 
-			// dispose of the object AFTER the callbacks know that the object was removed
+			// dispose the object AFTER the callbacks know that the object was removed
 			disposeObject(object);
 		}
 

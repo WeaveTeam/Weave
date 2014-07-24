@@ -167,7 +167,7 @@ package weave.core
 					// if we haven't reached the matching schedule yet, skip this callback
 					if (entry.schedule != schedule)
 						continue;
-					// Remove the entry if the context was disposed of by SessionManager.
+					// Remove the entry if the context was disposed by SessionManager.
 					var shouldRemoveEntry:Boolean;
 					if (entry.callback == null)
 						shouldRemoveEntry = true;
@@ -192,7 +192,7 @@ package weave.core
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
-						entry.callback();
+						entry.callback.apply();
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
@@ -351,7 +351,7 @@ internal class CallbackEntry
 	
 	/**
 	 * This is the context in which the callback function is relevant.
-	 * When the context is disposed of, the callback should not be called anymore.
+	 * When the context is disposed, the callback should not be called anymore.
 	 * 
 	 * Note that the context could be stored using a weak reference in an effort to make the garbage-
 	 * collector take care of removing the callback, but in most situations this would not work because
@@ -421,7 +421,10 @@ internal class GroupedCallbackEntry extends CallbackEntry
 		callbackCollection.removeCallback(groupedCallback);
 		
 		// add the trigger function as a callback
-		callbackCollection.addImmediateCallback(relevantContext, entry.trigger, triggerCallbackNow);
+		// The relevantContext parameter is set to null for entry.trigger so the same callback can be added multiple times to the same
+		// target using different contexts without having the side effect of losing the callback when one of those contexts is disposed.
+		// The entry.trigger function will be removed once all contexts are disposed.
+		callbackCollection.addImmediateCallback(null, entry.trigger, triggerCallbackNow);
 	}
 	
 	public static function removeGroupedCallback(callbackCollection:ICallbackCollection, groupedCallback:Function):void
@@ -556,7 +559,7 @@ internal class GroupedCallbackEntry extends CallbackEntry
 		
 		// first, make sure there is at least one relevant context for this callback.
 		var allContexts:Array = context as Array;
-		// remove the contexts that have been disposed of.
+		// remove the contexts that have been disposed.
 		for (var i:int = 0; i < allContexts.length; i++)
 			if (WeaveAPI.SessionManager.objectWasDisposed(allContexts[i]))
 				allContexts.splice(i--, 1);

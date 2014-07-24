@@ -32,7 +32,7 @@
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL')}">
-		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/WeaveService" width="100%"/>
+		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/DataService" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Root hierarchy ID')}">
 		<ui:TextInputWithPrompt id="rootId" prompt="Hierarchy ID" width="100%"/>

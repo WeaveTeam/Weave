@@ -56,7 +56,11 @@ package
 			"weave.data.BinningDefinitions",
 			"weave.data.DataSources",
 			"weave.data.KeySets",
+			"weave.data.Transforms",
 			"weave.primitives",
+			"weave.services",
+			"weave.services.beans",
+			"weave.services.collaboration",
 			"weave.services.wms"
 		);
 	}

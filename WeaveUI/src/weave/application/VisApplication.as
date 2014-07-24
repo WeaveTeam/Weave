@@ -20,15 +20,11 @@
 package weave.application
 {
 	import flash.display.LoaderInfo;
-	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
-	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
-	import flash.geom.Point;
-	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
@@ -41,21 +37,15 @@ package weave.application
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
-	import flash.utils.getTimer;
 	
-	import mx.collections.ArrayCollection;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
-	import mx.controls.Button;
 	import mx.controls.Image;
 	import mx.controls.Text;
-	import mx.core.IToolTip;
 	import mx.core.UIComponent;
 	import mx.effects.Fade;
 	import mx.events.EffectEvent;
-	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
-	import mx.managers.ToolTipManager;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.URLUtil;
@@ -64,9 +54,11 @@ package weave.application
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
-	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
@@ -75,55 +67,34 @@ package weave.application
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.ui.IObjectWithSelectableAttributes;
-	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableBoolean;
 	import weave.core.WeaveArchive;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
-	import weave.editors.WeavePropertiesEditor;
-	import weave.editors.managers.DataSourceManager;
-	import weave.services.GoogleDrive;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
-	import weave.ui.AddExternalTool;
-	import weave.ui.AlertTextBox;
-	import weave.ui.AlertTextBoxEvent;
-	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.CirclePlotterSettings;
-	import weave.ui.ColorController;
 	import weave.ui.CustomContextMenuManager;
-	import weave.ui.CustomToolTipBorder;
 	import weave.ui.DraggablePanel;
-	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
 	import weave.ui.NewUserWizard;
-	import weave.ui.OICLogoPane;
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
-	import weave.ui.ProbeToolTipEditor;
-	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.QuickMenuPanel;
-	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
-	import weave.ui.SubsetManager;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
-	import weave.ui.collaboration.CollaborationEditor;
 	import weave.ui.collaboration.CollaborationMenuBar;
-	import weave.ui.collaboration.CollaborationTool;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
-	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.VectorUtils;
 	import weave.utils.fixErrorMessage;
-	import weave.visualization.tools.WeaveAnalyst;
 
 	internal class VisApplication extends VBox implements ILinkableObject
 	{
@@ -200,14 +171,8 @@ package weave.application
 			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
 			
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, handleError, WeaveAPI.ErrorManager.errors.length > 0);
-			WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
-			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
-			
-			getCallbackCollection(Weave.savedSelectionKeySets).addGroupedCallback(this, setupSelectionsMenu);
-			getCallbackCollection(Weave.savedSubsetsKeyFilters).addGroupedCallback(this, setupSubsetsMenu);
-			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
+			getCallbackCollection(Weave.properties).addGroupedCallback(this, refreshMenu);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
 			if (JavaScript.available)
@@ -243,7 +208,7 @@ package weave.application
 						saveTimer.start();
 						
 						_this.enabled = true;
-						setupVisMenuItems(); // make sure 'save session state to server' is shown
+						refreshMenu(); // make sure 'save session state to server' is shown
 						downloadConfigFile();
 					},
 					function(event:FaultEvent = null, token:Object = null):void
@@ -251,7 +216,7 @@ package weave.application
 						Alert.show(lang("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server."), lang("Connection error"));
 						
 						_this.enabled = true;
-						setupVisMenuItems();
+						refreshMenu();
 						downloadConfigFile();
 					}
 				);
@@ -338,14 +303,8 @@ package weave.application
 				loadSessionState(event.result, fileName);
 			}
 			
-			if (getFlashVarEditable())
-			{
-				Weave.properties.enableMenuBar.value = true;
-				Weave.properties.enableSessionMenu.value = true;
-				Weave.properties.enableWindowMenu.value = true;
-				Weave.properties.enableUserPreferences.value = true;
-			}
-			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
+			// if "editable" was explicitly set to false, disable menu bar and enable dashboard mode.
+			if (getFlashVarEditable() === false) // explicit compare because it may also be undefined
 			{
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
@@ -527,8 +486,6 @@ package weave.application
 			}
 		}
 		
-		private var historySlider:UIComponent = null;
-		
 		override protected function createChildren():void
 		{
 			super.createChildren();
@@ -609,8 +566,9 @@ package weave.application
 			}
 		}
 		
-		private var adminService:LocalAsyncService = null;
-		
+		public function get adminMode():Boolean { return getFlashVarEditable() || adminService; }
+		public var adminService:LocalAsyncService = null;
+
 		private const saveTimer:Timer = new Timer( 10000 );
 		private static const RECOVER_SHARED_OBJECT:String = "WeaveAdminConsoleRecover";
 		private function saveRecoverPoint(event:Event = null):void
@@ -628,7 +586,7 @@ package weave.application
 			return cookie.data[RECOVER_SHARED_OBJECT] as ByteArray;
 		}
 		
-		private function saveSessionStateToServer():void
+		public function saveSessionStateToServer():void
 		{
 			if (adminService == null)
 			{
@@ -698,30 +656,27 @@ package weave.application
 			}
 		}
 
-		public function getMenuItems():ArrayCollection
-		{
-			return _weaveMenu.menubar.dataProvider as ArrayCollection;
-		}
+		private var menuBar:WeaveMenuBar = null;
+		private var historySlider:UIComponent = null;
 		
-		/**
-		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
-		 */
-		private var _oicLogoPane:OICLogoPane = new OICLogoPane();
-		
-		/**
-		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
-		 * view to add new tools, manage windows, do advanced tasks, etc.
-		 */
-		private var _weaveMenu:WeaveMenuBar = null;
-		
-		private function toggleMenuBar():void
+		private function refreshMenu():void
 		{
 			if (!enabled)
 			{
-				callLater(toggleMenuBar);
+				callLater(refreshMenu);
 				return;
 			}
 			
+			setupContextMenu();
+			
+			DraggablePanel.adminMode = adminMode;
+			
+			// create components if not already created
+			if (!menuBar)
+			{
+				menuBar = new WeaveMenuBar();
+				this.addChildAt(menuBar, 0);
+			}
 			if (!historySlider)
 			{
 				historySlider = WeaveAPI.EditorManager.getNewEditor(Weave.history) as UIComponent;
@@ -737,275 +692,26 @@ package weave.application
 					reportError("Unable to get editor for SessionStateLog");
 			}
 			
-			DraggablePanel.adminMode = adminService || getFlashVarEditable();
-			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
-			{
-				if (!_weaveMenu)
-				{
-					_weaveMenu = new WeaveMenuBar();
-
-					//trace("MENU BAR ADDED");
-					_weaveMenu.percentWidth = 100;
-					callLater(setupVisMenuItems);
-					
-					//PopUpManager.addPopUp(_weaveMenu, this);
-					this.addChildAt(_weaveMenu, 0);
-					
-					if (this == _oicLogoPane.parent)
-						this.removeChild(_oicLogoPane);
-				}
-				
-				// always show menu bar when admin service is present
-				if (historySlider)
-					historySlider.alpha = _weaveMenu.alpha = Weave.properties.enableMenuBar.value ? 1.0 : 0.3;
-			}
-			// otherwise there is no menu bar, (which normally includes the oiclogopane, so add one to replace it)
-			else
-			{
-				if (historySlider)
-					historySlider.visible = historySlider.includeInLayout = false;
-				try
-				{
-		   			if (_weaveMenu && this == _weaveMenu.parent)
-						removeChild(_weaveMenu);
-
-		   			_weaveMenu = null;
-					
-					if (Weave.properties.showCopyright.value)
-					{
-						addChild(_oicLogoPane);
-					}
-					else if (this == _oicLogoPane.parent)
-						removeChild(_oicLogoPane);
-				}
-				catch(error:Error)
-				{
-					reportError(error);
-				}
-			}
-		}
-		
-		private var _dataMenu:WeaveMenuItem  = null;
-		private var _exportMenu:WeaveMenuItem  = null;
-		private var _sessionMenu:WeaveMenuItem = null;
-		private var _toolsMenu:WeaveMenuItem   = null;
-		private var _windowMenu:WeaveMenuItem  = null;
-		private var _selectionsMenu:WeaveMenuItem = null;
-		private var _subsetsMenu:WeaveMenuItem = null;
-		private var _aboutMenu:WeaveMenuItem   = null;
-
-		private function setupVisMenuItems():void
-		{
-			setupContextMenu();
+			const alpha_full:Number = 1.0;
+			const alpha_partial:Number = 0.3;
 			
-			if (!_weaveMenu)
-				return;
+			// show/hide menuBar
+			var showMenu:Boolean = Weave.properties.enableMenuBar.value || adminMode;
+			menuBar.visible = menuBar.includeInLayout = showMenu;
+			menuBar.alpha = Weave.properties.enableMenuBar.value ? alpha_full : alpha_partial;
+			if (showMenu)
+				menuBar.refresh();
 			
-			_weaveMenu.validateNow();
-			
-			_weaveMenu.removeAllMenus();
-			
-			if (Weave.properties.enableDataMenu.value)
-			{
-				_dataMenu = _weaveMenu.addMenuToMenuBar(lang("Data"), false);
-				if (Weave.properties.enableLoadMyData.value)
-				{
-					_weaveMenu.addMenuItemToMenu(
-						_dataMenu,
-						new WeaveMenuItem(
-							lang("Load my data"),
-							function():void
-							{
-								WizardPanel.createWizard(_this, new NewUserWizard());
-							}
-						)
-					);
-				}
-				
-				if (Weave.properties.enableBrowseData.value)
-				{
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Browse Data"), AttributeSelectorPanel.open));
-				}
-				
-				if (Weave.properties.enableManageDataSources.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data"), DraggablePanel.openStaticInstance, [DataSourceManager]));
-				
-				if (Weave.properties.enableRefreshHierarchies.value)
-				{
-					_weaveMenu.addMenuItemToMenu(_dataMenu,
-						new WeaveMenuItem(lang("Refresh all data source hierarchies"),
-							function ():void {
-								var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
-								for each (var source:IDataSource in sources)
-									source.refreshHierarchy();
-							}
-						)
-					);
-				}
 
-				if (Weave.properties.enableExportCSV.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Export CSV from all visualizations"), exportCSV));
-			}
-			
-			
-			if (Weave.properties.enableDynamicTools.value)
-			{
-				_toolsMenu = _weaveMenu.addMenuToMenuBar(lang("Tools"), false);
-
-
-				createToolMenuItem(Weave.properties.showColorController, lang("Color Controller"), DraggablePanel.openStaticInstance, [ColorController]);
-				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Edit Mouseover Info"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showProbeWindow, lang("Mouseover Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
-				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Column Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
-				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
-				createToolMenuItem(Weave.properties.showAddExternalTools, lang("Add external tool..."), AddExternalTool.show);
-
-				var _this:VisApplication = this;
-
-				if (!Weave.properties.dashboardMode.value)
-				{
-					_weaveMenu.addSeparatorToMenu(_toolsMenu);
-					
-					for each (var impl:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
-					{
-						if (Weave.properties.getToolToggle(impl).value)
-						{
-							var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
-							_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(lang("Add {0}", displayName), createGlobalObject, [impl]));
-						}
-					}
-				}
-				
-
-				if (Weave.properties.enableWeaveAnalystMode.value)
-				{
-					var analystInstance:WeaveAnalyst = WeaveAnalyst.getInstance();
-					this.visDesktop.addChild(analystInstance);
-				}
-
-				
-				_weaveMenu.addSeparatorToMenu(_toolsMenu);
-				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
-					function():String { return lang((Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"); },
-					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
-
-				));
-				
-/*
-				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
-					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Disable" : "Enable") + " Weave Analyst"); },
-					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
-					
-				));
-*/
-			}
-			
-			if (Weave.properties.enableSelectionsMenu.value)
-			{	
-				_selectionsMenu = _weaveMenu.addMenuToMenuBar(lang("Selections"), true);
-				setupSelectionsMenu();
-			}
-			
-			if (Weave.properties.enableSubsetsMenu.value)
-			{	
-				_subsetsMenu = _weaveMenu.addMenuToMenuBar(lang("Subsets"), true);
-				setupSubsetsMenu();
-			}
-			
-			var showHistorySlider:Boolean = false;
-			if (Weave.properties.enableSessionMenu.value || adminService)
-			{
-				_sessionMenu = _weaveMenu.addMenuToMenuBar(lang("Session"), false);
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Edit session state"), SessionStateEditor.openDefaultEditor));
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Import session history"), handleImportSessionState));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history"), ExportSessionStateOptions.openExportPanel));
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
-					function():String { return lang( (Weave.properties.showSessionHistoryControls.value ? "Hide" : "Show") + " session history controls" ); },
-					function():void { Weave.properties.showSessionHistoryControls.value = !Weave.properties.showSessionHistoryControls.value; }
-				));
-				if (Weave.ALLOW_PLUGINS)
-				{
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Manage plugins"), managePlugins));
-				}
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				if (JavaScript.available)
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang('Restart Weave'), Weave.externalReload));
-				if (Weave.properties.showCollaborationMenuItem.value)
-				{
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(
-						_sessionMenu,
-						new WeaveMenuItem(
-							function():String
-							{
-								var collabTool:CollaborationTool = CollaborationTool.instance;
-								if (collabTool && collabTool.collabService.isConnected)
-									return lang("Open collaboration window");
-								else
-									return lang("Connect to collaboration server");
-							},
-							DraggablePanel.openStaticInstance,
-							[CollaborationTool]
-						)
-					);
-				}
-				if (adminService)
-				{
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
-						lang("Save session state to server"),
-						function():void { saveSessionStateToServer(); }
-					));
-				}
-				if (GoogleDrive.isAuthorized)
-				{
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
-						lang("Save session state to Google Drive"),
-						function():void { GoogleDrive.saveToDrive(); }
-					));
-				}
-				
-				showHistorySlider = Weave.properties.showSessionHistoryControls.value;
-			}
+			// show/hide historySlider
 			if (historySlider)
-				historySlider.visible = historySlider.includeInLayout = showHistorySlider;
-			
-			if (Weave.properties.enableWindowMenu.value || adminService)
 			{
-				_windowMenu = _weaveMenu.addMenuToMenuBar(lang("Window"), true);
-				setupWindowMenu();
-			}
-			
-			if (Weave.properties.enableAboutMenu.value)
-			{
-				_aboutMenu = _weaveMenu.addMenuToMenuBar(lang("Help"), false);
-				
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Report a problem"), function ():void {
-					navigateToURL(new URLRequest("http://info.oicweave.org/projects/weave/issues/new"), "_blank");
-				}));
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Visit {0}", "OICWeave.org"), function ():void {
-					navigateToURL(new URLRequest("http://www.oicweave.org"), "_blank");
-				}));
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Visit Weave Wiki"), function ():void {
-					navigateToURL(new URLRequest("http://info.oicweave.org/projects/weave/wiki"), "_blank");
-				}));
-				
-				_weaveMenu.addSeparatorToMenu(_aboutMenu);
-				
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Weave version: {0}", Weave.properties.version.value)));
+				var showHistory:Boolean = Weave.properties.enableSessionHistoryControls.value || adminMode;
+				historySlider.visible = historySlider.includeInLayout = showHistory;
+				historySlider.alpha = Weave.properties.enableSessionHistoryControls.value ? alpha_full : alpha_partial;
 			}
 		}
-		
-		private function createToolMenuItem(toggle:LinkableBoolean, title:String, callback:Function, params:Array = null):void
-		{
-			if (toggle.value)
-				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
-		}
-		
+
 		public function CSVWizardWithData(content:Object):void
 		{
 			var newUserWiz:NewUserWizard = new NewUserWizard();
@@ -1125,27 +831,12 @@ package weave.application
 					_screenshotTimer.start();
 				}
 			}
-			callLater(toggleMenuBar);
+			callLater(refreshMenu);
 			
 			if (!getAdminConnectionName())
 				enabled = true;
 			
 
-			/*if (_weaveMenu && _toolsMenu)
-			{
-				var first:Boolean = true;
-				//add reports to tools menu
-				for each (var report:WeaveReport in WeaveAPI.globalHashMap.getObjects(WeaveReport))
-				{
-					if (first)
-						_weaveMenu.addSeparatorToMenu(_toolsMenu);
-					first = false;
-					
-					var reportMenuItem:WeaveMenuItem = new WeaveMenuItem(WeaveAPI.globalHashMap.getName(report), WeaveReport.requestReport, [report]);
-					_weaveMenu.addMenuItemToMenu(_toolsMenu, reportMenuItem);
-				}
-			}*/
-			
 			// generate the context menu items
 			setupContextMenu();
 
@@ -1179,258 +870,6 @@ package weave.application
 			}
 		}
 		
-		private function createGlobalObject(classDef:Class, name:String = null):*
-		{
-			var className:String = getQualifiedClassName(classDef).split("::").pop();
-
-			if (name == null)
-				name = WeaveAPI.globalHashMap.generateUniqueName(className);
-			var object:* = WeaveAPI.globalHashMap.requestObject(name, classDef, false);
-			
-			// put panel in front
-			WeaveAPI.globalHashMap.setNameOrder([name]);
-			
-			// open control panel for new tool
-			var dp:DraggablePanel = object as DraggablePanel;
-			if (dp.controlPanel)
-				dp.callLater(handleDraggablePanelAdded, [dp]);
-		}
-		
-		public function handleDraggablePanelAdded(dp:DraggablePanel):void
-		{
-			if (objectWasDisposed(dp) || !dp.parent)
-				return;
-			
-			dp.validateNow();
-			var b:Button = dp.userControlButton;
-			var dpc:ICallbackCollection = getCallbackCollection(dp);
-			
-			var color:uint = 0x0C4785;//0x0b333c;
-			var timeout:int = getTimer() + 1000 * 5;
-			var tip:UIComponent = ToolTipManager.createToolTip(lang("Start here"), 0, 0, null, dp) as UIComponent;
-			Weave.properties.panelTitleTextFormat.copyToStyle(tip);
-			tip.setStyle('color', 0xFFFFFF);
-			tip.setStyle('fontWeight', 'bold');
-			tip.setStyle('borderStyle', "errorTipBelow");
-			tip.setStyle("backgroundColor", color);
-			tip.setStyle("borderColor", color);
-			tip.setStyle('borderSkin', CustomToolTipBorder);
-			var callback:Function = function():void {
-				var p:Point = b.localToGlobal(new Point(0, b.height + 5));
-				tip.move(int(p.x), int(p.y));
-				tip.visible = !!b.parent;
-				if (getTimer() > timeout)
-					removeTip();
-			};
-			var removeTip:Function = function(..._):void {
-				ToolTipManager.destroyToolTip(tip as IToolTip);
-				WeaveAPI.StageUtils.removeEventCallback(Event.ENTER_FRAME, callback);
-				dpc.removeCallback(removeTip);
-				b.removeEventListener(MouseEvent.ROLL_OVER, removeTip);
-			};
-			b.addEventListener(MouseEvent.ROLL_OVER, removeTip);
-			dpc.addDisposeCallback(null, removeTip);
-			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, dp, callback, true);
-			
-		
-			/*
-			dp.toggleControlPanel();
-			var coords:Point = dp.localToGlobal(new Point(64,64));
-			if (dp.controlPanel.parent)
-			{
-				coords = dp.controlPanel.parent.globalToLocal(coords);
-				dp.controlPanel.move(coords.x, coords.y);
-			}
-			*/
-			
-			/*
-			var mapTool:MapTool = dp as MapTool;
-			if (mapTool)
-			{
-				mapTool.toggleControlPanel();
-				var plotter:GeometryPlotter = mapTool.visualization.plotManager.plotters.requestObject('geometry', GeometryPlotter, false);
-				var geom:DynamicColumn = plotter.geometryColumn.internalDynamicColumn;
-				AttributeSelectorPanel.openDefaultSelector(geom, lang("Geometry"));
-			}
-			*/
-		}
-		
-		private function setupSelectionsMenu():void
-		{
-			if (_weaveMenu && _selectionsMenu)
-				SelectionManager.setupMenu(_weaveMenu, _selectionsMenu);
-		}
-		private function setupSubsetsMenu():void
-		{
-			if (_weaveMenu && _subsetsMenu)
-				SubsetManager.setupMenu(_weaveMenu, _subsetsMenu);
-		}
-
-		private function get topPanel():DraggablePanel
-		{
-			var children:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
-			while (children.length)
-			{
-				var panel:DraggablePanel = children.pop() as DraggablePanel;
-				if (panel.visible)
-					return panel;
-			}
-			
-			return null;
-		}
-		
-		private function setupWindowMenu():void
-		{
-			if (!(_weaveMenu && _windowMenu && Weave.properties.enableWindowMenu.value))
-				return;
-			
-			if (_windowMenu.children)
-				_windowMenu.children.removeAll();
-			
-			if (Weave.properties.enableUserPreferences.value || adminService)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Preferences"), DraggablePanel.openStaticInstance, [WeavePropertiesEditor]));
-			
-			_weaveMenu.addSeparatorToMenu(_windowMenu);
-
-			var label:*;
-			var click:Function;
-			var enable:*;
-
-			if (Weave.properties.enableFullScreen.value)
-			{
-				label = function():String {
-					if ( stage && stage.displayState == StageDisplayState.FULL_SCREEN) 
-						return lang('Exit Full-screen mode'); 
-					
-					return lang('Enter Full-screen mode');
-				};
-				click = function():void{
-					if (stage && stage.displayState == StageDisplayState.NORMAL )
-					{
-						try
-						{
-							// set full screen display
-							stage.displayState = StageDisplayState.FULL_SCREEN;
-						}
-						catch (e:Error)
-						{
-							Alert.show(lang("This website has not enabled full-screen mode, so this option will now be disabled."), lang("Full-screen mode not allowed"));
-							Weave.properties.enableFullScreen.value = false;
-						}
-					}
-					else if (stage)
-					{
-						// set normal display
-						stage.displayState = StageDisplayState.NORMAL;
-					}
-				};
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, Weave.properties.enableFullScreen.value));
-			}
-			
-			_weaveMenu.addSeparatorToMenu(_windowMenu);
-			
-			if (Weave.properties.enableTileAllWindows.value)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Tile all windows"), DraggablePanel.tileWindows));
-			if (Weave.properties.enableCascadeAllWindows.value)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Cascade all windows"), DraggablePanel.cascadeWindows));
-			
-			_weaveMenu.addSeparatorToMenu(_windowMenu);
-
-			if (Weave.properties.enableMinimizeAllWindows.value)
-			{
-				click = function():void {
-					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						if (panel.minimizable.value && !panel.minimized.value)
-							panel.minimizePanel();
-				};
-				enable = function():Boolean {
-					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						if (panel.minimizable.value && !panel.minimized.value)
-							return true;
-					return false;
-				};
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Minimize all windows"), click, null, enable));
-			}
-			
-			if (Weave.properties.enableRestoreAllMinimizedWindows.value)
-			{
-				click = function():void {
-					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						if (panel.minimized.value)
-							panel.restorePanel();
-				};
-				enable = function():Boolean {
-					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						if (panel.minimized.value)
-							return true;
-					return false;
-				};
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Restore all minimized windows"), click, null, enable));
-			}
-			
-			if (Weave.properties.enableCloseAllWindows.value)
-			{
-				click = function():void {
-					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						if (panel.closeable.value)
-							panel.removePanel();
-				};
-				enable = function():Boolean {
-					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						if (panel.closeable.value)
-							return true;
-					return false;
-				};
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Close all windows"), click, null, enable));
-			}
-			
-			_weaveMenu.addSeparatorToMenu(_windowMenu);
-			
-			var panels:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
-			for (var i:int = 0; i < panels.length; i++)
-			{	
-				var panel:DraggablePanel = panels[i] as DraggablePanel;
-				var newToolMenuItem:WeaveMenuItem = createWindowMenuItem(panel, _weaveMenu, _windowMenu);
-				if (_weaveMenu)
-					_weaveMenu.addMenuItemToMenu(_windowMenu, newToolMenuItem);
-			}
-		}
-		
-		private function createWindowMenuItem(panel:DraggablePanel, destinationMenuBar:WeaveMenuBar, destinationMenuItem:WeaveMenuItem):WeaveMenuItem
-		{
-			var label:Function = function():String
-			{
-				var menuLabel:String = '';
-				if (panel.title && panel.title.replace(" ", "").length > 0) 
-					menuLabel = panel.title;
-				else
-					menuLabel = lang("Untitled Window");
-				
-				
-				if (panel.minimized.value)
-				{
-					menuLabel = ">\t" + menuLabel;
-				}
-				
-				return menuLabel;
-			}
-			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, panel.restorePanel);
-			 
-			newToolMenuItem.type = WeaveMenuItem.TYPE_RADIO;
-			newToolMenuItem.groupName = "activeWindows";
-			newToolMenuItem.toggledFunction = function():Boolean {
-				return newToolMenuItem.relevantItemPointer == topPanel;
-			};
-			newToolMenuItem.relevantItemPointer = panel;
-			
-			addEventListener(FlexEvent.REMOVE, function(e:Event):void {
-				if(destinationMenuBar && destinationMenuItem)
-					destinationMenuBar.removeMenuItemFromMenu(newToolMenuItem, destinationMenuItem);
-			});
-										
-			return newToolMenuItem;
-		}
-
 		private var _printToolMenuItem:ContextMenuItem = null;
 		
 		/**
@@ -1441,10 +880,9 @@ package weave.application
 		 * 
 		 * @author abaumann 
 		 */
-		private function setupContextMenu():void
+		public function setupContextMenu():void
 		{ 
-			//if (contextMenu == null)
-				contextMenu = new ContextMenu();
+			contextMenu = new ContextMenu();
 			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 			
 			// Hide the default Flash menu
@@ -1524,6 +962,25 @@ package weave.application
 		private var _panelPrintContextMenuItem:ContextMenuItem = null;
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
 		private var exportCSVfileRef:FileReference = new FileReference();	// CSV download file references
+		public function getSelectableAttributes(tool:IObjectWithSelectableAttributes = null):Array
+		{
+			var attrs:Array = [];
+			if (tool)
+			{
+				VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
+			}
+			else
+			{
+				// get equation columns and color column
+				VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(IAttributeColumn), attrs);
+				// get probe columns
+				VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(ILinkableHashMap), attrs);
+				for each (var tool:IObjectWithSelectableAttributes in WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes))
+					VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
+			}
+			return attrs;
+		}
+			
 		public function exportCSV(tool:IObjectWithSelectableAttributes = null):void
 		{
 			try
@@ -1533,23 +990,8 @@ package weave.application
 					: "data-export";
 				fileName = "Weave-" + fileName + ".csv";
 				
-				var attrs:Array = [];
-				if (tool)
-				{
-					VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
-				}
-				else
-				{
-					// get equation columns and color column
-					VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(IAttributeColumn), attrs);
-					// get probe columns
-					VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(ILinkableHashMap), attrs);
-					for each (tool in WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes))
-						VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
-				}
-				
+				var attrs:Array = getSelectableAttributes(tool);
 				var csvString:String = ColumnUtils.generateTableCSV(attrs, Weave.defaultSubsetKeyFilter);
-				
 				if (!csvString)
 				{
 					reportError("No data to export");
@@ -1579,46 +1021,6 @@ package weave.application
 				// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it
 				_panelPrintContextMenuItem.caption = lang("Print/Export Image of {0}", _panelToExport ? _panelToExport.title : "...");
 				_panelPrintContextMenuItem.enabled = (_panelToExport != null);
-			}
-		}
-		
-		private var _weaveFileRef:FileReference = null;
-		private function handleImportSessionState():void
-		{
-			try
-			{
-				if (!_weaveFileRef)
-				{
-					_weaveFileRef = new FileReference();
-					_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
-					_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
-				}
-				_weaveFileRef.browse([new FileFilter(lang("Weave files"), "*.weave"),new FileFilter(lang("All files"), "*.*")]);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
-		}
-		
-		private function managePlugins():void
-		{
-			var popup:AlertTextBox;
-			popup = PopUpManager.createPopUp(this, AlertTextBox) as AlertTextBox;
-			popup.allowEmptyInput = true;
-			popup.textInput = WeaveAPI.CSVParser.createCSVRow(Weave.getPluginList());
-			popup.title = lang("Specify which plugins to load");
-			popup.message = lang("List plugin .SWC files, separated by commas. Weave will reload itself if plugins have to be unloaded.");
-			popup.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handlePluginsChange);
-			PopUpManager.centerPopUp(popup);
-		}
-		
-		private function handlePluginsChange(event:AlertTextBoxEvent):void
-		{
-			if (event.confirm)
-			{
-				var plugins:Array = WeaveAPI.CSVParser.parseCSVRow(event.textInput) || [];
-				Weave.setPluginList(plugins, null);
 			}
 		}
 		

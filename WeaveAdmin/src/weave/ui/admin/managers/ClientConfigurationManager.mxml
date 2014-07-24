@@ -26,8 +26,8 @@
 				verticalAlign="middle"
 				label="Visualizations"
 				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*">
-	<mx:TabNavigator height="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
-		<mx:VBox label="My files">
+	<mx:TabNavigator id="tabNav" height="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
+		<mx:VBox label="My files" id="userView">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(userFolderTreeWithSearch)" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
 				<mx:Button label="Delete selected file" click="removeClientConfigFile()" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
@@ -41,7 +41,7 @@
 				<mx:Button label="Refresh" click="Admin.service.getWeaveFileNames(false)"/>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox label="All files">
+		<mx:VBox label="All files" id="sharedView">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>
 			</mx:HBox>
@@ -79,31 +79,36 @@
 			
 			private function handleCreationComplete():void
 			{
+				BindingUtils.bindSetter(function(i:int):void {
+					previewSelectedFile([userFolderTreeWithSearch, sharedTreeWithSearch][i]);
+				}, tabNav, 'selectedIndex');
 				BindingUtils.bindSetter(function(files:Array):void {
 					sharedTreeWithSearch.generateFlatTreeFromLabels(files);
-					previewSelectedFile(sharedTreeWithSearch, false);
+					previewSelectedFile(sharedTreeWithSearch, tabNav.selectedChild == sharedView);
 				}, Admin.instance, "weaveFileNames");
 				BindingUtils.bindSetter(function(files:Array):void {
 					userFolderTreeWithSearch.generateFlatTreeFromLabels(files);
-					previewSelectedFile(userFolderTreeWithSearch, false);
+					previewSelectedFile(userFolderTreeWithSearch, tabNav.selectedChild == userView);
 				}, Admin.instance, "privateWeaveFileNames");
 				
-				var delay:int = 100;
-				var preview:Function = function(event:Event):void {
-						var tree:Tree = event.currentTarget as Tree;
-						if (tree.selectedItem)
-						{
-							if (tree == sharedTreeWithSearch.tree)
-								userFolderTreeWithSearch.tree.selectedItem = null;
-							else
-								sharedTreeWithSearch.tree.selectedItem = null;
-						}
-						previewSelectedFile(tree.owner as TreeWithSearch);
-					};
-				preview = EventUtils.generateDelayedCallback(this, preview, delay, true);
-				userFolderTreeWithSearch.tree.addEventListener(Event.CHANGE, preview);
-				sharedTreeWithSearch.tree.addEventListener(Event.CHANGE, preview);
+				userFolderTreeWithSearch.tree.addEventListener(Event.CHANGE, handleListChange);
+				sharedTreeWithSearch.tree.addEventListener(Event.CHANGE, handleListChange);
 			}
+			
+			private const handleListChange:Function = EventUtils.generateDelayedCallback(this, _handleListChange, 100, true);DEFAULT_MAX_HEIGHT;
+			
+			private function _handleListChange(event:Event):void
+			{
+				var tree:Tree = event.currentTarget as Tree;
+				if (tree.selectedItem)
+				{
+					if (tree == sharedTreeWithSearch.tree)
+						userFolderTreeWithSearch.tree.selectedItem = null;
+					else
+						sharedTreeWithSearch.tree.selectedItem = null;
+				}
+				previewSelectedFile(tree.owner as TreeWithSearch);
+			};
 			
 			private function openSelectedFile(component:TreeWithSearch):void
 			{

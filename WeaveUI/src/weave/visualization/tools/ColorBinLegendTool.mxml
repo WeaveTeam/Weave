@@ -119,15 +119,6 @@
 				}
 				return null;
 			}
-
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["Color data"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.dynamicColorColumn];
-			}
 			
 			private function handleMarginLabelClick():void
 			{

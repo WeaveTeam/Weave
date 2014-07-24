@@ -21,6 +21,7 @@ package weave.beans;
 import java.util.HashMap;
 import java.util.Map;
 
+import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PublicMetadata;
 
 /**
@@ -88,6 +89,9 @@ public class WeaveJsonDataSet
 		
 		int columnId = columnData.id;
 		columns.put(columnId, columnData.metadata);
+		
+		if (!columnData.metadata.containsKey(PublicMetadata.KEYTYPE))
+			columnData.metadata.put(PublicMetadata.KEYTYPE, DataType.STRING);
 		
 		String keyType = columnData.metadata.get(PublicMetadata.KEYTYPE);
 		KeyRecordMap krm = records.get(keyType);

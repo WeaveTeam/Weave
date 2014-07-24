@@ -33,7 +33,7 @@ package weave.api.core
 		
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
-		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
+		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = newLinkableChild(this, LinkableNumber, handleFooChange);
 		 * 
@@ -48,14 +48,14 @@ package weave.api.core
 		
 		/**
 		 * This function tells the SessionManager that the session state of the specified child should appear in the
-		 * session state of the specified parent, and the child should be disposed of when the parent is disposed.
+		 * session state of the specified parent, and the child should be disposed when the parent is disposed.
 		 * 
 		 * There is one other requirement for the child session state to appear in the parent session state -- the child
 		 * must be accessible through a public variable of the parent or through an accessor function of the parent.
 		 * 
 		 * This function will add callbacks to the sessioned children that cause the parent callbacks to run.
 		 * 
-		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
+		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = registerLinkableChild(this, someLinkableNumber, handleFooChange);
 		 * 
@@ -70,7 +70,7 @@ package weave.api.core
 
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
-		 * Use this function when a child object can be disposed of but you do not want to link the callbacks.
+		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
@@ -84,7 +84,7 @@ package weave.api.core
 		
 		/**
 		 * This will register a child of a parent and cause the child to be disposed when the parent is disposed.
-		 * Use this function when a child object can be disposed of but you do not want to link the callbacks.
+		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
@@ -235,7 +235,7 @@ package weave.api.core
 		function disposeObject(object:Object):void;
 
 		/**
-		 * This function checks if an object has been disposed of by the ISessionManager.
+		 * This function checks if an object has been disposed by the ISessionManager.
 		 * @param object An object to check.
 		 * @return A value of true if disposeObject() was called for the specified object.
 		 * @see #disposeObject()

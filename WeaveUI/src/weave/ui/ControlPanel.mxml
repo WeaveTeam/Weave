@@ -119,22 +119,25 @@
 				minimizable.value = false;
 				maximizable.value = false;
 				enableSubMenu.value = true;
-				subMenu.menuItems.push(
-					new SubMenuItem(
-						lang('Edit session state'),
-						function():void {
+				subMenu.dataProvider = [
+					{
+						label: lang('Edit session state'),
+						click: function():void {
 							SessionStateEditor.openDefaultEditor((
 								sessionEditorTarget is Function
 									? sessionEditorTarget()
 									: sessionEditorTarget
 							) as ILinkableObject);
 						},
-						null,
-						function():Boolean { return sessionEditorTarget != null; }
-					),
-					new SubMenuItem(lang('Create save point'), save),
-					new SubMenuItem(lang('Revert to save point'), revert)
-				);
+						shown: function():Boolean { return sessionEditorTarget != null; }
+					},{
+						label: lang('Create save point'),
+						click: save
+					},{
+						label: lang('Revert to save point'),
+						click: revert
+					}
+				];
 				
 				// title is set here instead of in the mxml because otherwise it would
 				// overwrite any other value set in mxml components based on this class.
@@ -405,8 +408,7 @@
 					
 					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
 					
-					controlPanel.tabNavigator.addChild(editor as DisplayObject);
-					
+					controlPanel.children = [editor];
 					controlPanel.title = getControlPanelTitle(linkableObject);
 					controlPanel.sessionEditorTarget = linkableObject;
 				}

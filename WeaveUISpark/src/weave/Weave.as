@@ -19,7 +19,6 @@
 
 package weave
 {
-	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.events.NetStatusEvent;
 	import flash.external.ExternalInterface;
@@ -28,8 +27,6 @@ package weave
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.core.UIComponent;
-	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.Base64Encoder;
@@ -53,7 +50,6 @@ package weave
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
-	import weave.utils.BitmapUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -381,6 +377,12 @@ package weave
 				}
 				
 				var archive:WeaveArchive = content as WeaveArchive;
+				if (!archive)
+				{
+					reportError("Invalid session history: " + debugId(content), null, content);
+					return;
+				}
+				
 				var _history:Object = archive.objects[WeaveArchive.ARCHIVE_HISTORY_AMF];
 				if (!_history)
 					throw new Error("Weave session history not found.");
@@ -412,9 +414,12 @@ package weave
 		
 		/**
 		 * This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
+		 * @param weaveContent Either a WeaveArchive or an XML
 		 */
 		public static function externalReload(weaveContent:Object = null):void
 		{
+			weaveContent = weaveContent as WeaveArchive || weaveContent as XML;
+			
 			if (!JavaScript.available)
 			{
 				//TODO: is it possible to restart an Adobe AIR application from within?
@@ -553,7 +558,7 @@ package weave
 				return;
 			try
 			{
-				JavaScript.exec({"this": "weave"}, new WeaveStartup());
+				WeaveAPI.initializeJavaScript(WeaveStartup);
 				_startupComplete = true;
 			}
 			catch (e:Error)

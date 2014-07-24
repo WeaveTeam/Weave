@@ -34,6 +34,7 @@ package weave.visualization.tools
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ILinkableContainer;
@@ -173,7 +174,14 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributeNames():Array
 		{
-			return [];
+			var obj:IObjectWithSelectableAttributes = mainPlotter as IObjectWithSelectableAttributes;
+			if (!obj)
+			{
+				var descendants:Array = getLinkableDescendants(this, IObjectWithSelectableAttributes);
+				if (descendants.length == 1)
+					obj = descendants[0];
+			}
+			return obj ? obj.getSelectableAttributeNames() : [];
 		}
 
 		/**
@@ -182,7 +190,14 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributes():Array
 		{
-			return [];
+			var obj:IObjectWithSelectableAttributes = mainPlotter as IObjectWithSelectableAttributes;
+			if (!obj)
+			{
+				var descendants:Array = getLinkableDescendants(this, IObjectWithSelectableAttributes);
+				if (descendants.length == 1)
+					obj = descendants[0];
+			}
+			return obj ? obj.getSelectableAttributes() : [];
 		}
 
 		private function updateToolWindowSettings():void

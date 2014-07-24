@@ -23,6 +23,47 @@
 //"use strict";
 
 // browser backwards compatibility
+if (!Object.keys) {
+  Object.keys = (function () {
+    'use strict';
+    var hasOwnProperty = Object.prototype.hasOwnProperty,
+        hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+        dontEnums = [
+          'toString',
+          'toLocaleString',
+          'valueOf',
+          'hasOwnProperty',
+          'isPrototypeOf',
+          'propertyIsEnumerable',
+          'constructor'
+        ],
+        dontEnumsLength = dontEnums.length;
+
+    return function (obj) {
+      if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+        throw new TypeError('Object.keys called on non-object');
+      }
+
+      var result = [], prop, i;
+
+      for (prop in obj) {
+        if (hasOwnProperty.call(obj, prop)) {
+          result.push(prop);
+        }
+      }
+
+      if (hasDontEnumBug) {
+        for (i = 0; i < dontEnumsLength; i++) {
+          if (hasOwnProperty.call(obj, dontEnums[i])) {
+            result.push(dontEnums[i]);
+          }
+        }
+      }
+      return result;
+    };
+  }());
+}
+
 if (!Array.isArray)
 	Array.isArray = function(o) { return Object.prototype.toString.call(o) === '[object Array]'; };
 if (!Function.prototype.bind)
@@ -147,6 +188,26 @@ weave.WeavePath = function(/*...basePath*/)
  * @private
  */
 weave.WeavePath.prototype._vars = {};
+
+/**
+ * Remembers which JavaScript variables should be unset after the next call to exec() or getValue().
+ * @private
+ */
+weave.WeavePath.prototype._tempVars = {};
+
+/**
+ * Cleans up temporary variables.
+ * @private
+ */
+weave.WeavePath.prototype._deleteTempVars = function()
+{
+	var vars = weave.WeavePath.prototype._vars;
+	var tempVars = weave.WeavePath.prototype._tempVars;
+	for (var key in tempVars)
+		if (tempVars[key])
+			delete vars[key];
+	weave.WeavePath.prototype._tempVars = {};
+};
 
 /**
  * Private function for internal use.
@@ -338,12 +399,17 @@ weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
  * Specifies additional variables to be used in subsequent calls to exec() and getValue().
  * The variables will be made globally available for any WeavePath object created from the same Weave instance.
  * @param newVars An object mapping variable names to values.
+ * @param temporary Optional parameter. If set to true, these variables will be unset after the next call to exec() or getValue()
+ *                  no matter how either function is called, including from inside custom WeavePath functions.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.vars = function(newVars)
+weave.WeavePath.prototype.vars = function(newVars, temporary)
 {
 	for (var key in newVars)
+	{
+		this._tempVars[key] = !!temporary;
 		this._vars[key] = newVars[key];
+	}
 	return this;
 };
 
@@ -381,7 +447,8 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 	var callback = type == 'function' ? callback_or_variableName : null;
 	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
 	var variableName = type == 'string' ? callback_or_variableName : "";
-	var result = weave.evaluateExpression(this._path, script, this._vars, null, variableName);
+	var result = this.weave.evaluateExpression(this._path, script, this._vars, null, variableName);
+	this._deleteTempVars();
 	// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
 	if (variableName)
 		delete this._vars[variableName];
@@ -424,6 +491,18 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 		else
 			for (var key in items) visitorFunction.call(this, items[key], key, items);
 	}
+	return this;
+};
+
+/**
+ * Calls weaveTrace() in Weave to print to the log window.
+ * @param args A list of parameters to pass to weaveTrace().
+ * @return The current WeavePath object.
+ */
+weave.WeavePath.prototype.trace = function(/* ...args */)
+{
+	var args = this._A(arguments);
+	this.weave.evaluateExpression(this._path, "weaveTrace.apply(null, args)", {"args": args}, null, "");
 	return this;
 };
 
@@ -521,7 +600,9 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
  */
 weave.WeavePath.prototype.getValue = function(script_or_variableName)
 {
-	return this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);
+	var result = this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);
+	this._deleteTempVars();
+	return result;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

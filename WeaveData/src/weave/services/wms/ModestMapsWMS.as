@@ -113,10 +113,6 @@ package weave.services.wms
 		// the provider from the ModestMaps library used for  
 		private var _mapProvider:IMapProvider = null;
 		
-		// image dimensions
-		private var _imageWidth:int;
-		private var _imageHeight:int;
-		
 		// some parameters about the tiles
 		private const _worldBoundsMercator:IBounds2D = new Bounds2D();
 		private const _tileProjectionSRS:String = "EPSG:4326"; // constant for modestMaps
@@ -388,22 +384,6 @@ package weave.services.wms
 		override public function getAllowedBounds(output:IBounds2D):void
 		{
 			return output.copyFrom(_worldBoundsMercator);
-		}
-		
-		/**
-		 * The width of an image.
-		 */
-		public function get imageWidth():int
-		{
-			return _imageWidth;
-		}
-		
-		/**
-		 * The height of an image.
-		 */
-		public function get imageHeight():int
-		{
-			return _imageHeight;
 		}
 		
 		override public function getCreditInfo():String

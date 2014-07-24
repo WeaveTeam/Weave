@@ -57,7 +57,7 @@ package weave.data.Transforms
         public function getInputColumnTitle(name:String):String
         {
             var column:IAttributeColumn = inputColumns.getObject(name) as IAttributeColumn;
-            return column.getMetadata(ColumnMetadata.TITLE);
+            return column ? column.getMetadata(ColumnMetadata.TITLE) : '';
         }
 
         override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
@@ -84,12 +84,6 @@ package weave.data.Transforms
             if (!_rootNode)
                 _rootNode = new PartitionTransformNode(this);
             return _rootNode;
-        }
-
-        override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
-        {
-            // do nothing, as the hierarchy is known ahead of time.
-            return;
         }
 
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void

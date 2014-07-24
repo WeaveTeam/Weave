@@ -120,7 +120,7 @@ package weave.visualization.layers
 		
 		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
 		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateZoom, true);
+		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(18), updateZoom, true);
 		public const enableFixedAspectRatio:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
 		public const enableAutoZoomToSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
@@ -194,7 +194,11 @@ package weave.visualization.layers
 		/**
 		 * This can be set to a function that will be called whenever updateZoom is called.
 		 */
-		public var hack_updateZoom:Function = null;
+		private var hack_updateZoom_callbacks:Array = [];
+		public function hack_onUpdateZoom(callback:Function):void
+		{
+			hack_updateZoom_callbacks.push(callback);
+		}
 		
 		/**
 		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
@@ -278,8 +282,8 @@ package weave.visualization.layers
 				zoomToSelection();
 			
 			// ----------------- hack --------------------
-			if (hack_updateZoom != null)
-				hack_updateZoom();
+			for each (var callback:Function in hack_updateZoom_callbacks)
+				callback();
 			// -------------------------------------------
 			
 			getCallbackCollection(zoomBounds).resumeCallbacks();
@@ -417,6 +421,11 @@ package weave.visualization.layers
 			else
 				tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
 			zoomBounds.setDataBounds(tempDataBounds);
+
+			// ----------------- hack --------------------
+			for each (var callback:Function in hack_updateZoom_callbacks)
+				callback();
+			// -------------------------------------------
 			
 			cc.resumeCallbacks();
 		}

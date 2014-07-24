@@ -189,16 +189,6 @@
 				_probedAnchor.y.value = Math.sin(theta);			
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["Size", "Color", "Anchor Dimensions"];
-			}
-			
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.radiusColumn, _plotter.fillStyle.color, _plotter.columns];
-			}
-			
 			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects(IAttributeColumn);

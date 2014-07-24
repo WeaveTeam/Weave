@@ -275,17 +275,11 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				if (_plotter.enableGroupBy.value)
-					return ["X values", "Y values", "Group by", "Group color", "Group label"];
-				else
-					return ["Color", "Label", "Y Columns"];
+				return super.getSelectableAttributeNames().concat([_plotter.enableGroupBy.value ? 'Group label' : 'Label']);
 			}
 			override public function getSelectableAttributes():Array
 			{
-				if (_plotter.enableGroupBy.value)
-					return [_plotter.xData, _plotter.yData, _plotter.groupBy, _plotter.lineStyle.color, labelPlotter.text];
-				else
-					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns];
+				return super.getSelectableAttributes().concat([labelPlotter.text]);
 			}
 			
 			private function getColumnObjects():Array
@@ -451,7 +445,7 @@
 			private var _groupByErrorStrings:Dictionary = new Dictionary(true);
 			private function initDynamicColumnComponent(component:DynamicColumnComponent, helpContent:String):void
 			{
-				component.helpContent = helpContent; 
+				component.helpContent = helpContent;
 				component.errorStringFunction = function():String {
 					if (detectLinkableObjectChange(initDynamicColumnComponent, _plotter, labelPlotter))
 					{
@@ -482,6 +476,8 @@
 					return _groupByErrorStrings[component];
 				};
 			}
+			
+			private function langWrapper(str:String):String { return lang(str); }
 			
 			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
 			private static const HELP_DT_GROUP:String = HELP_KT_XYGB + " The values in the 'Group by' column are used as foreign keys. The dataType of the 'Group by' column specifies the foreign keyType used by the 'Group color' and 'Group label' columns.";
@@ -521,14 +517,14 @@
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist"/>
+				<ui:CheckBoxList id="probeChecklist" translate="true"/>
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
 			<mx:HBox verticalAlign="middle">
 				<mx:Label text="{lang('Shape:')}" color="0x000000" fontSize="{controlsFontSize}" 
 						  toolTip="{lang('This controls what shape is used to indicate the data points on the axes.')}"/>
-				<ui:CustomComboBox id="shapeCombo" dataProvider="{ParallelCoordinatesPlotter.shapesAvailable}"/>
+				<ui:CustomComboBox id="shapeCombo" labelFunction="{langWrapper}" dataProvider="{ParallelCoordinatesPlotter.shapesAvailable}"/>
 				<mx:HBox enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}" verticalAlign="middle">
 					<mx:Label text="{lang('Size:')}"
 							  color="0x000000" fontSize="{controlsFontSize}" 
@@ -556,7 +552,7 @@
 				
 				<mx:HBox width="100%" verticalAlign="middle"
 						enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}">
-					<mx:Label text="Thickness:" color="0x000000" fontSize="{controlsFontSize}" 
+					<mx:Label text="{lang('Thickness:')}" color="0x000000" fontSize="{controlsFontSize}" 
 							  toolTip="{lang('This controls the border size of the shapes indicating the data points on the axes.')}"/>
 					<mx:HSlider id="shapeBorderSizeSlider" 
 								width="100%" 
@@ -598,7 +594,7 @@
 			</mx:HBox>
 
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="{lang('Zoom to Subset')}" 
-						 toolTip="Enables automatic zooming to the subset of data currently displayed"
+						 toolTip="{lang('Enables automatic zooming to the subset of data currently displayed')}"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
 		</mx:VBox>
 	</ui:ControlPanel>
