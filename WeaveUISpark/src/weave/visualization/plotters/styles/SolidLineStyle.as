@@ -90,6 +90,11 @@ package weave.visualization.plotters.styles
 		public const caps:AlwaysDefinedColumn = createColumn(String, null);
 		public const joints:AlwaysDefinedColumn = createColumn(String, null);
 		public const miterLimit:AlwaysDefinedColumn = createColumn(Number, 3);
+		
+		/**
+		 * IQualifiedKey -> getLineStyleParams() result
+		 */
+		private var cache:Dictionary;
 
 		/**
 		 * This function sets the line style on a Graphics object using the saved border properties.
@@ -114,7 +119,12 @@ package weave.visualization.plotters.styles
 					else
 						_defaultValues[column] = EquationColumnLib.cast(column.defaultValue.value, _typesMap[column]);
 				}
+				cache = new Dictionary(true);
 			}
+			
+			var params:Array = cache[recordKey];
+			if (params)
+				return params;
 			
 			var _enabled:* = _defaultValues[enabled];
 			var _color:* = _defaultValues[color];
@@ -129,7 +139,7 @@ package weave.visualization.plotters.styles
 			var lineEnabled:Boolean = _enabled !== undefined ? _enabled : StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			if (!lineEnabled)
 			{
-				return [0, 0, 0];
+				params = [0, 0, 0];
 			}
 			else
 			{
@@ -139,7 +149,7 @@ package weave.visualization.plotters.styles
 				{
 					if (lineWeight == 0) // treat lineWeight 0 as no line
 					{
-						return [0, 0, 0];
+						params = [0, 0, 0];
 					}
 					else
 					{
@@ -150,14 +160,16 @@ package weave.visualization.plotters.styles
 						var lineJoints:String        = _joints       !== undefined ? _joints       :     joints.getValueFromKey(recordKey, String) as String || null;
 						var lineMiterLimit:Number    = _miterLimit   !== undefined ? _miterLimit   : miterLimit.getValueFromKey(recordKey, Number);
 
-						return [lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit];
+						params = [lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit];
 					}
 				}
 				else
 				{
-					return [0, 0, 0];
+					params = [0, 0, 0];
 				}
 			}
+			cache[recordKey] = params;
+			return params;
 		}
 	}
 }

@@ -24,20 +24,22 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.core.DynamicState;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 
@@ -54,8 +56,6 @@ package weave.visualization.plotters
 		public function RectanglePlotter()
 		{
 			// initialize default line & fill styles
-			lineStyle.requestLocalObject(SolidLineStyle, false);
-			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
 			setColumnKeySources(
@@ -112,11 +112,11 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle());
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		/**
 		 * This is the fill style used to fill the rectangle.
 		 */
-		public const fillStyle:DynamicFillStyle = registerLinkableChild(this, new DynamicFillStyle());
+		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		/**
 		 * If this is true, ellipses will be drawn instead of rectangles.
 		 */
@@ -187,8 +187,8 @@ package weave.visualization.plotters
 			tempBounds.setMaxPoint(tempPoint);
 			
 			// draw graphics
-			lineStyle.beginLineStyle(recordKey, graphics);
-			fillStyle.beginFillStyle(recordKey, graphics);
+			line.beginLineStyle(recordKey, graphics);
+			fill.beginFillStyle(recordKey, graphics);
 			if (drawEllipse.value)
 				graphics.drawEllipse(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage(), tempBounds.getYCoverage());
 			else
@@ -198,5 +198,28 @@ package weave.visualization.plotters
 		
 		private static const tempBounds:IBounds2D = new Bounds2D(); // reusable object
 		private static const tempPoint:Point = new Point(); // reusable object
+		
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
+		[Deprecated(replacement="fill")] public function set fillStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
 	}
 }

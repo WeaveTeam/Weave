@@ -46,7 +46,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -59,10 +58,7 @@ package weave.visualization.plotters
 		
 		public function ScatterPlotPlotter()
 		{
-			// initialize default line & fill styles
-			lineStyle.requestLocalObject(SolidLineStyle, false);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-			
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 		}
@@ -81,7 +77,7 @@ package weave.visualization.plotters
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
 		
-		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const colorBySize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
@@ -180,7 +176,7 @@ package weave.visualization.plotters
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
-			lineStyle.beginLineStyle(recordKey, graphics);
+			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
 			
 			var radius:Number;
@@ -265,6 +261,17 @@ package weave.visualization.plotters
 			try
 			{
 				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
+		[Deprecated] public function set lineStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
 			}
 			catch (e:Error)
 			{
