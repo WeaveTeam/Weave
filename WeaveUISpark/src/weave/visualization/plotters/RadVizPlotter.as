@@ -544,12 +544,12 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 			
-			graphics.lineStyle.apply(graphics, lineParams);
 			if (fillParams)
 				graphics.beginFill(fillParams[0], fillParams[1]);
 			else
 				graphics.endFill();
 			
+			graphics.lineStyle.apply(graphics, lineParams);
 			if (isFinite(radius))
 				graphics.drawCircle(0, 0, radius);
 			else // draw a square of fixed size for missing size values

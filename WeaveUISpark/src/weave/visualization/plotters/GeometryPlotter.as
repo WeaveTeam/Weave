@@ -25,12 +25,11 @@ package weave.visualization.plotters
 	import flash.display.LineScaleMode;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
-	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.core.IDisposableObject;
+	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -44,6 +43,7 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.compiler.Compiler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -53,7 +53,7 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
-	import weave.utils.PlotterUtils;
+	import weave.utils.CachedBitmap;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
@@ -62,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IDisposableObject, IObjectWithSelectableAttributes
+	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
 	{
 		WeaveAPI.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
 		
@@ -72,8 +72,6 @@ package weave.visualization.plotters
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
-			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
-			
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
 			setSingleKeySource(geometryColumn);
@@ -115,16 +113,16 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
-		public const line:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle, invalidateCachedBitmaps);
+		public const line:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		/**
 		 * This is the fill style used to fill the geometries.
 		 */
-		public const fill:ExtendedFillStyle = newLinkableChild(this, ExtendedFillStyle, invalidateCachedBitmaps);
+		public const fill:ExtendedFillStyle = newLinkableChild(this, ExtendedFillStyle);
 
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
 		 **/
-		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize), disposeCachedBitmaps);
+		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize));
 		private function validateIconSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
 
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
@@ -228,88 +226,28 @@ package weave.visualization.plotters
 			return dataBounds.getArea() / screenBounds.getArea();
 		}
 		
-		private var colorToBitmapMap:Dictionary = new Dictionary(); // color -> BitmapData
-		private var colorToBitmapValidFlagMap:Dictionary = new Dictionary(); // color -> valid flag
-
-		// this calls dispose() on all cached bitmaps and removes references to them.
-		private function disposeCachedBitmaps():void
+		/**
+		 * A memoized version of getCircleBitmap().
+		 */
+		private const getCircleBitmap:Function = Compiler.memoize(_getCircleBitmap);
+		/**
+		 * Use getCircleBitmap() instead.
+		 * @param radius iconSize.value / 2
+		 */
+		private function _getCircleBitmap(lineParams:Array, fillParamsExt:Array, radius:Number):CachedBitmap
 		{
-			var disposed:Boolean = false;
-			for each (var bitmapData:BitmapData in colorToBitmapMap)
-			{
-				bitmapData.dispose();
-				disposed = true;
-			}
-			if (disposed)
-				colorToBitmapMap = new Dictionary();
-			invalidateCachedBitmaps();
+			var graphics:Graphics = tempShape.graphics;
+			graphics.clear();
 			
-			var weight:Number = line.weight.getValueFromKey(null, Number);
-			pointOffset = (Math.ceil(iconSize.value) + weight) / 2;
-			circleBitmapSize = Math.ceil(pointOffset * 2 + 1);
-			circleBitmapDataRectangle.width = circleBitmapSize;
-			circleBitmapDataRectangle.height = circleBitmapSize;
-		}
-		// this invalidates all cached bitmap graphics
-		private function invalidateCachedBitmaps():void
-		{
-			for (var k:* in colorToBitmapValidFlagMap)
-			{
-				colorToBitmapValidFlagMap = new Dictionary();
-				return;
-			}
-		}
-		
-		private var circleBitmapSize:int = 0;
-		private var circleBitmapDataRectangle:Rectangle = new Rectangle(0,0,0,0);
-		
-		// this is the offset used to draw a circle onto a cached BitmapData
-		private var pointOffset:Number;
-		
-		// this function returns the BitmapData associated with the given key
-		private function drawCircle(destination:BitmapData, color:Number, x:Number, y:Number):void
-		{
-			var bitmapData:BitmapData = colorToBitmapMap[color] as BitmapData;
-			if (!bitmapData)
-			{
-				// create bitmap
-				try
-				{
-					bitmapData = new BitmapData(circleBitmapSize, circleBitmapSize);
-				}
-				catch (e:Error)
-				{
-					return; // do nothing if this fails
-				}
-				colorToBitmapMap[color] = bitmapData;
-			}
-			if (colorToBitmapValidFlagMap[color] == undefined)
-			{
-				// draw graphics on cached bitmap
-				var g:Graphics = tempShape.graphics;
-				g.clear();
-				if (isNaN(color))
-				{
-					if (fill.enableMissingDataGradient.value)
-						fill.beginFillStyle(null, g);
-				}
-				else if (fill.enabled.defaultValue.value)
-				{
-					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
-				}
-				line.beginLineStyle(null, g);
-				g.drawCircle(pointOffset, pointOffset, iconSize.value / 2);
-				g.endFill();
-				PlotterUtils.clearBitmapData(bitmapData);
-				bitmapData.draw(tempShape);
-				g.clear(); // clear tempShape now so these graphics don't get used anywhere else by mistake
-				
-				colorToBitmapValidFlagMap[color] = true;
-			}
-			// copy bitmap graphics
-			tempPoint.x = Math.round(x - pointOffset);
-			tempPoint.y = Math.round(y - pointOffset);
-			destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
+			fill.beginFillExt(graphics, fillParamsExt);
+			graphics.lineStyle.apply(graphics, lineParams);
+			graphics.drawCircle(0, 0, radius);
+			graphics.endFill();
+			var cb:CachedBitmap = new CachedBitmap(tempShape);
+			
+			graphics.clear(); // clear tempShape now so these graphics don't get used anywhere else by mistake
+			
+			return cb;
 		}
 		
 		public var debug:Boolean = false;
@@ -495,7 +433,8 @@ package weave.visualization.plotters
 					// round coordinates for faster & more consistent rendering
 					tempPoint.x = Math.round(tempPoint.x);
 					tempPoint.y = Math.round(tempPoint.y);
-					drawCircle(outputBitmapData, fill.color.getValueFromKey(key, Number), tempPoint.x, tempPoint.y);
+					var cachedBitmap:CachedBitmap = getCircleBitmap(line.getLineStyleParams(key), fill.getBeginFillParamsExt(key), iconSize.value / 2);
+					cachedBitmap.drawTo(outputBitmapData, tempPoint.x, tempPoint.y);
 				}
 				return;
 			}
@@ -567,23 +506,18 @@ package weave.visualization.plotters
 			tempMatrix.translate(Math.round(tempPoint.x - w / 2), Math.round(tempPoint.y - h / 2));
 			outputBitmapData.draw(bitmapData, tempMatrix, null, null, null, true);
 		}
-		
-		public function dispose():void
-		{
-			disposeCachedBitmaps();
-		}
 
 		// backwards compatibility 0.9.6
 		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
 		{
 			try {
-				setSessionState(line, value[0].sessionState);
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
 			} catch (e:Error) { }
 		}
 		[Deprecated(replacement="fill")] public function set fillStyle(value:Object):void
 		{
 			try {
-				setSessionState(fill, value[0].sessionState);
+				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
 			} catch (e:Error) { }
 		}
 		[Deprecated(replacement="geometryColumn")] public function set geometry(value:Object):void

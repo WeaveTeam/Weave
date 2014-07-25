@@ -24,7 +24,7 @@ package weave.visualization.plotters.styles
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IFillStyle;
-	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 
 	/**
@@ -37,11 +37,11 @@ package weave.visualization.plotters.styles
 		public function SolidFillStyle()
 		{
 		}
-
+		
 		/**
 		 * Used to enable or disable fill patterns.
 		 */
-		public const enabled:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(true));
+		public const enable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
 		 * These properties are used with a basic Graphics.setFill() function call.
@@ -59,16 +59,20 @@ package weave.visualization.plotters.styles
 		{
 			var params:Array = getBeginFillParams(recordKey);
 			if (params)
+			{
 				target.beginFill(params[0], params[1]);
-			else
-				target.endFill();
-			return params != null;
+				return true;
+			}
+			target.endFill();
+			return false;
 		}
 		
+		/**
+		 * @return [color, alpha] or null if there is no fill
+		 */
 		public function getBeginFillParams(recordKey:IQualifiedKey):Array
 		{
-			var fillEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
-			if (fillEnabled)
+			if (enable.getSessionState())
 			{
 				var fillColor:Number = color.getValueFromKey(recordKey, Number);
 				if (isFinite(fillColor))
@@ -78,6 +82,14 @@ package weave.visualization.plotters.styles
 				}
 			}
 			return null;
+		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="enable")] public function set enabled(value:Object):void
+		{
+			try {
+				enable.setSessionState(value['defaultValue']);
+			} catch (e:Error) { }
 		}
 	}
 }

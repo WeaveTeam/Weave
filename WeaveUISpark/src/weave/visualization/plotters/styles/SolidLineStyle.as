@@ -24,14 +24,14 @@ package weave.visualization.plotters.styles
 	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.ILineStyle;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.NormalizedColumn;
-	import weave.utils.ColumnUtils;
 	import weave.utils.EquationColumnLib;
 
 	/**
@@ -73,7 +73,7 @@ package weave.visualization.plotters.styles
 		/**
 		 * Used to enable or disable line drawing.
 		 */
-		public const enabled:AlwaysDefinedColumn = createColumn(Boolean, true);
+		public const enable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
 		 * These properties are used with a basic Graphics.lineStyle() function call.
@@ -126,7 +126,6 @@ package weave.visualization.plotters.styles
 			if (params)
 				return params;
 			
-			var _enabled:* = _defaultValues[enabled];
 			var _color:* = _defaultValues[color];
 			var _weight:* = _defaultValues[weight];
 			var _alpha:* = _defaultValues[alpha];
@@ -136,12 +135,7 @@ package weave.visualization.plotters.styles
 			var _joints:* = _defaultValues[joints];
 			var _miterLimit:* = _defaultValues[miterLimit];
 			
-			var lineEnabled:Boolean = _enabled !== undefined ? _enabled : StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
-			if (!lineEnabled)
-			{
-				params = [0, 0, 0];
-			}
-			else
+			if (enable.getSessionState())
 			{
 				var lineWeight:Number = _weight !== undefined ? _weight : weight.getValueFromKey(recordKey, Number);
 				var lineColor:Number = _color !== undefined ? _color : color.getValueFromKey(recordKey, Number);
@@ -168,8 +162,20 @@ package weave.visualization.plotters.styles
 					params = [0, 0, 0];
 				}
 			}
+			else
+			{
+				params = [0, 0, 0];
+			}
 			cache[recordKey] = params;
 			return params;
+		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="enable")] public function set enabled(value:Object):void
+		{
+			try {
+				enable.setSessionState(value['defaultValue']);
+			} catch (e:Error) { }
 		}
 	}
 }
