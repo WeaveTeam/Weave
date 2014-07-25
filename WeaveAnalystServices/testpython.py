@@ -1,5 +1,5 @@
 def addition(myinput):
-		output = input + 10
+		output = myinput[0]
 		return output
 
-result = shweta(input)				
+result = addition(dataset)				
