@@ -143,6 +143,10 @@ package weave.visualization.plotters.styles
 			
 			var _url:String = imageURL.getValueFromKey(recordKey, String);
 			var _enableMissingDataGradient:Boolean = enableMissingDataGradient.getSessionState();
+			// if the image is not available now, do not provide the url
+			// this makes it so beginFillExt() is deterministic with respect to the params list.
+			if (!_imageColumn.getImageFromUrl(_url))
+				_url = null;
 			if (_url || _enableMissingDataGradient)
 				return [NaN, NaN, _url, _enableMissingDataGradient];
 			

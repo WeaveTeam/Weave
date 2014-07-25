@@ -227,7 +227,7 @@ package weave.visualization.plotters
 		}
 		
 		/**
-		 * A memoized version of getCircleBitmap().
+		 * A memoized version of _getCircleBitmap().
 		 */
 		private const getCircleBitmap:Function = Compiler.memoize(_getCircleBitmap);
 		/**
