@@ -9,7 +9,7 @@
 	
 	<ui:DynamicColumnComponent id="imageURL" label="{lang('Image URL Column')}" />
 	<ui:Indent>
-		<ui:IndentTextInput id="defaultURL" label="{lang('Default URL')}" creationComplete="linkBindableProperty(plotter.imageURL.defaultValue, event.target, 'text', 500)"/>
+		<ui:IndentTextInput id="defaultURL" label="{lang('Default URL')}" creationComplete="linkBindableProperty(target.imageURL.defaultValue, event.target, 'text', 500)"/>
 		<mx:Button label="{lang('Open file')}" click="fileAttacher.browseAndAttachFile()"/>
 	</ui:Indent>
 	
@@ -19,10 +19,10 @@
 			<ui:change>
 				<![CDATA[
 					if (enableDefaultSize.selected)
-						plotter.imageSize.defaultValue.value = defaultSize.value;
-					linkPlotterImageSize();
+						target.imageSize.defaultValue.value = defaultSize.value;
+					linktargetImageSize();
 					if (!enableDefaultSize.selected)
-						plotter.imageSize.defaultValue.value = undefined;
+						target.imageSize.defaultValue.value = undefined;
 				]]>
 			</ui:change>
 		</ui:CustomCheckBox>
@@ -35,10 +35,10 @@
 			<mx:HBox>
 				<mx:Label text="{lang('Offset')}"/>
 				<mx:NumericStepper id="rotationStepper" width="64" maximum="360" minimum="-360" stepSize="90"
-								   creationComplete="linkBindableProperty(plotter.rotationOffset, event.target, 'value', 500)" />
+								   creationComplete="linkBindableProperty(target.rotationOffset, event.target, 'value', 500)" />
 			</mx:HBox>
 			<ui:CustomCheckBox id="rotationCheckbox" label="{lang('Data in Degrees')}"
-							   creationComplete="linkBindableProperty(plotter.dataInDegrees, event.target, 'selected')">
+							   creationComplete="linkBindableProperty(target.dataInDegrees, event.target, 'selected')">
 				<ui:change>
 					<![CDATA[
 						rotationStepper.value = 0;
@@ -50,15 +50,45 @@
 				</ui:change>
 			</ui:CustomCheckBox>
 			<ui:CustomCheckBox label="{lang('Reverse')}"
-							   creationComplete="linkBindableProperty(plotter.reverseRotation, event.target, 'selected')"/>
+							   creationComplete="linkBindableProperty(target.reverseRotation, event.target, 'selected')"/>
 		</mx:HBox>
 	</ui:Indent>
+	<ui:CheckBoxWithNestedOptions id="enableReprojection" label="{lang('Geographic reprojection')}">
+		<ui:change>
+			<![CDATA[
+			if (UIUtils.hasFocus(enableReprojection))
+			{
+				if (enableReprojection.selected)
+				{
+					// recall previously saved values
+					sourceProjection.text = sourceProjection.data as String;
+					destinationProjection.text = destinationProjection.data as String;
+				}
+				else
+				{
+					// save values for later
+					sourceProjection.data = sourceProjection.text;
+					destinationProjection.data = destinationProjection.text;
+					sourceProjection.text = destinationProjection.text = '';
+				}
+			}
+			]]>
+		</ui:change>
+		<ui:Indent label="from" translate="true">
+			<ui:TextInputWithPrompt id="sourceProjection" width="100%" prompt="{lang('Source projection')}"/>
+			<mx:Button label="{lang('Lat/Long')}" click="sourceProjection.text = 'EPSG:4326';"/>
+		</ui:Indent>
+		<ui:Indent label="to" translate="true">
+			<ui:TextInputWithPrompt id="destinationProjection" width="100%" prompt="{lang('Destination projection')}"/>
+		</ui:Indent>
+	</ui:CheckBoxWithNestedOptions>
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
+			import weave.core.UIUtils;
 			import weave.services.FileAttacher;
 			import weave.visualization.plotters.ImageGlyphPlotter;
 			
@@ -66,7 +96,38 @@
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				plotter = object as ImageGlyphPlotter;
+				if (target)
+				{
+					unlinkBindableProperty(target.sourceProjection, sourceProjection, 'text');
+					unlinkBindableProperty(target.destinationProjection, destinationProjection, 'text');
+					target.sourceProjection.removeCallback(handleProjections);
+					target.destinationProjection.removeCallback(handleProjections);
+					target.imageSize.defaultValue.removeCallback(handletargetImageSize);
+					xCol.dynamicObject = null;
+					yCol.dynamicObject = null;
+					imageURL.dynamicObject = null;
+					imageSize.dynamicObject = null;
+					rotationCol.dynamicObject = null;
+				}
+				
+				target = object as ImageGlyphPlotter;
+				
+				if (target)
+				{
+					// make sure components are not null
+					if (!initialized)
+						initialize();
+					linkBindableProperty(target.sourceProjection, sourceProjection, 'text');
+					linkBindableProperty(target.destinationProjection, destinationProjection, 'text');
+					target.sourceProjection.addGroupedCallback(this, handleProjections, true);
+					target.destinationProjection.addGroupedCallback(this, handleProjections, true);
+					target.imageSize.defaultValue.addGroupedCallback(this, handletargetImageSize, true);
+					xCol.dynamicObject = target.dataX;
+					yCol.dynamicObject = target.dataY;
+					imageURL.dynamicObject = target.imageURL.internalDynamicColumn;
+					imageSize.dynamicObject = target.imageSize.internalDynamicColumn;
+					rotationCol.dynamicObject = target.rotation;
+				}
 			}
 			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }
@@ -75,33 +136,34 @@
 			{
 				super.childrenCreated();
 				
-				xCol.dynamicObject = plotter.dataX;
-				yCol.dynamicObject = plotter.dataY;
-				imageURL.dynamicObject = plotter.imageURL.internalDynamicColumn;
-				imageSize.dynamicObject = plotter.imageSize.internalDynamicColumn;
-				rotationCol.dynamicObject = plotter.rotation;
-				plotter.imageSize.defaultValue.addGroupedCallback(this, handlePlotterImageSize, true);
 			}
 			
-			private var plotter:ImageGlyphPlotter = null;
+			private var target:ImageGlyphPlotter = null;
 			
-			private function handlePlotterImageSize():void
+			private function handletargetImageSize():void
 			{
-				enableDefaultSize.selected = StandardLib.isDefined(plotter.imageSize.defaultValue.value);
-				linkPlotterImageSize();
+				enableDefaultSize.selected = StandardLib.isDefined(target.imageSize.defaultValue.value);
+				linktargetImageSize();
 			}
-			private function linkPlotterImageSize():void
+			private function linktargetImageSize():void
 			{
 				if (enableDefaultSize.selected)
-					linkBindableProperty(plotter.imageSize.defaultValue, defaultSize, 'value', 250);
+					linkBindableProperty(target.imageSize.defaultValue, defaultSize, 'value', 250);
 				else
-					unlinkBindableProperty(plotter.imageSize.defaultValue, defaultSize, 'value');
+					unlinkBindableProperty(target.imageSize.defaultValue, defaultSize, 'value');
 			}
 			
 			private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter('Image', '*.png;*.jpg;*.bmp'), new FileFilter('All files', "*")], handleURL);
 			private function handleURL(url:String):void
 			{
 				defaultURL.text = url;
+			}
+			
+			private function handleProjections():void
+			{
+				// show or hide controls depending on whether or not a projection is specified
+				if (!UIUtils.hasFocus(sourceProjection) && !UIUtils.hasFocus(destinationProjection))
+					enableReprojection.selected = !!(target.sourceProjection.value || target.destinationProjection.value);
 			}
 		]]>
 	</mx:Script>

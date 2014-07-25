@@ -489,9 +489,9 @@
 				if (grp)
 					return grp.geometryColumn.internalDynamicColumn;
 				
-				var spp:ScatterPlotPlotter = p as ScatterPlotPlotter;
-				if (spp)
-					return spp.dataX;
+				var agp:AbstractGlyphPlotter = p as AbstractGlyphPlotter;
+				if (agp)
+					return agp.dataX;
 				
 				return null;
 			}
