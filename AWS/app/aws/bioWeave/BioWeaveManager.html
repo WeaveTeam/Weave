@@ -15,5 +15,30 @@
 
 		</div>
 	</div>
+	
+		<!--Algorithm Objects -->
+			<div class="databox" style="width: 20%">
+				<div class="header panel-heading">
+					<h2>Algorithms</h2>
+				</div>
+				<div ng-controller="ScriptsBarController">
+					<div style="margin-bottom: 3px;">
+						<select style="width: 100%;" ui-select2 ng-model="scriptSelected" ng-change="script_selected_set()" data-placeholder="Select Script">
+							<option></option>
+							<option value="{{scr}}" ng-repeat="scr in scriptList">{{scr}}</option>
+						</select>
+					</div>
+
+					<!--<div id="loading" ng-show="show_load" class="ng-hide">
+					<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
+					</div>-->
+					<a href="javascript:"  title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" placement="bottom" bs-popover>Settings</a>
+				</div>
+
+				<!--<div class="body" ng-model="content-tools">
+				<div style="height:100%" ng-include="content_tools[4].template_url"></div>
+				</div>-->
+
+			</div>
 </div>
 

@@ -24,6 +24,7 @@ public class AwsPythonService {
 		pythonI.execfile(scriptAbspath);
 		
 		pyResult = pythonI.get("result");//TODO hardcoded for now as a result all scripts will return contents as 'result'
+		
 		/* we do the next step to convert the PyArray Object into a json string which can then be used to generate a java Object
 		 * Java object is converted by GSON in the Weave Servlet into a json string 
 		 * Python Object .........> Json string ........> JavaObject ...........> Json string*/
