@@ -1,7 +1,7 @@
-bin/build/
+bin/
+build/
 .settings/
 .tern-project
 .externalToolBuilders/
 nbproject/
-/bin
-/build
+lib/cachedir/

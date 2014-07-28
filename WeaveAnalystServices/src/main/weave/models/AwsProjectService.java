@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.simple.parser.ParseException;
 
 import weave.config.WeaveConfig;
 import weave.utils.FileUtils;
@@ -256,7 +255,7 @@ public class AwsProjectService
 	   * @returns a base64 string representing the session state
 	   * @throws Exception
 	   */
-	public String getSessionState(String queryObject) throws SQLException, RemoteException, ParseException
+	public String getSessionState(String queryObject) throws SQLException, RemoteException
 	{
 		String sessionStateString = null;
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
