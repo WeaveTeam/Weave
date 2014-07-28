@@ -1,5 +1,9 @@
 package weave.utils;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.io.FilenameUtils;
 
 public class AWSUtils {
@@ -85,6 +89,21 @@ public class AWSUtils {
 		{
 			return SCRIPT_TYPE.UNKNOWN;
 		}
+	}
+	
+	public static String[] getAlgoObjectList(File directories){
+		List<String> listOfAlgoObjects = new ArrayList<String>();
+		
+	 		String[] files = directories.list();
+	 		if(files != null)
+	 			{
+	 				for (int j = 0; j < files.length; j++) 
+	 				{
+	 						listOfAlgoObjects.add(files[j]);
+	 				}
+	 			}
+	 	
+	 	return listOfAlgoObjects.toArray(new String[listOfAlgoObjects.size()]);
 	}
 
 }
