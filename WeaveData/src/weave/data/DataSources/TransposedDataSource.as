@@ -39,7 +39,7 @@ package weave.data.DataSources
 	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
 	
-	public class TransposedDataSource extends AbstractDataSource
+	public class TransposedDataSource extends AbstractDataSource_old
 	{
 		WeaveAPI.registerImplementation(IDataSource, TransposedDataSource, "Transposed data");
 		

@@ -65,7 +65,6 @@ package weave.data.DataSources
 		
 		public function DBFDataSource()
 		{
-			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, _attributeHierarchy);
 		}
 		
 		override protected function get initializationComplete():Boolean
@@ -149,26 +148,14 @@ package weave.data.DataSources
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
-		{
-			// do nothing
-		}
-
 		/**
 		 * Gets the root node of the attribute hierarchy.
 		 */
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			if (_attributeHierarchy.value === null)
-			{
-				if (!(_rootNode is DBFColumnNode))
-					_rootNode = new DBFColumnNode(this);
-				return _rootNode;
-			}
-			else
-			{
-				return super.getHierarchyRoot();
-			}
+			if (!(_rootNode is DBFColumnNode))
+				_rootNode = new DBFColumnNode(this);
+			return _rootNode;
 		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
@@ -195,7 +182,7 @@ package weave.data.DataSources
 			if (objectWasDisposed(this) || url != shpUrl.value)
 				return;
 			
-			debug('shp download complete',shpUrl.value);
+			//debugTrace(this, 'shp download complete', shpUrl.value);
 			
 			if (shpfile)
 			{

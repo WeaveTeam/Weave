@@ -118,11 +118,6 @@ package weave.data.DataSources
             reportError(event);
         }
 
-        override protected function requestHierarchyFromSource(subtreeNode:XML = null):void 
-        {
-            // do nothing, as the hierarchy is known ahead of time much like CSVDataSource
-            return;
-        }
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void 
         {
             var metadata:Object = proxyColumn.getProxyMetadata();

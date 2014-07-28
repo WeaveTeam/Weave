@@ -29,7 +29,6 @@ package weave.data.Transforms
 
         public function PartitionDataTransform()
         {
-
         }
 
         public function inputColumnsChanged():void

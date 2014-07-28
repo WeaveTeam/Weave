@@ -52,7 +52,7 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufilie
 	 */
-	public class WFSDataSource extends AbstractDataSource
+	public class WFSDataSource extends AbstractDataSource_old
 	{
 		WeaveAPI.registerImplementation(IDataSource, WFSDataSource, "WFS server");
 		

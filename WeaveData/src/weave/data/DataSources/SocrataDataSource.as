@@ -39,18 +39,12 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.services.JsonCache;
 	
-	/**
-	 * 
-	 * @author adufilie
-	 */
 	public class SocrataDataSource extends AbstractDataSource
 	{
 		WeaveAPI.registerImplementation(IDataSource, SocrataDataSource, "Socrata Open Data Portal");
 		
 		public function SocrataDataSource()
 		{
-			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _attributeHierarchy);
-			
 			// trigger pending columns when cache updates (new child data sources may be available)
 			getCallbackCollection(jsonCache).addImmediateCallback(jsonCache, pendingColumn.triggerCallbacks, false, true);
 		}

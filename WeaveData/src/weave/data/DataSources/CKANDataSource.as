@@ -34,17 +34,12 @@ package weave.data.DataSources
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
 	
-	/**
-	 * 
-	 * @author adufilie
-	 */
 	public class CKANDataSource extends AbstractDataSource
 	{
 		WeaveAPI.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
 		
 		public function CKANDataSource()
 		{
-			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _attributeHierarchy);
 		}
 
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString());
