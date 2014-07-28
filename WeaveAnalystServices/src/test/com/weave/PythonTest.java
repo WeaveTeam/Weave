@@ -72,11 +72,13 @@ public class PythonTest {
 	
 	public static void main(String a[]) throws Exception{
 		AwsPythonService aps = new AwsPythonService();
+		//PyInteger dataset = new PyInteger(1098);
 		Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
 		Object[] array2 = {1,2,3,4,5,6,7,8,9,10,11,12,13};
 		Object[][]dataset = new Object[][]{array1, array2};
-		//String scriptAbsPath = "testpython.py";
-		aps.runScript("testpython.py",dataset);
+		String scriptAbsPath = "testpython.py";
+		//aps.checking(dataset);
+		Object d = aps.runScript(scriptAbsPath, dataset);
 	}
-	
+
 }

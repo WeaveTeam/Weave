@@ -1,5 +1,4 @@
 def addition(myinput):
-		output = myinput[0]
-		return output
+		return myinput
 
 result = addition(dataset)				
