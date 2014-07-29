@@ -25,7 +25,11 @@ public class ComputationalServlet extends WeaveServlet
 {	
 	public ComputationalServlet() throws Exception
 	{
-		rService = new AwsRService();
+		try {
+			rService = new AwsRService();
+		} catch (Exception e) {
+			throw new Exception("Cannot Start RService. Make sure Rserve is running.");
+		}
 	}
 	
 	private String programPath = "";
@@ -111,12 +115,18 @@ public class ComputationalServlet extends WeaveServlet
 		
 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R) 
 		{
-			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), input);
+			try {
+				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), input);
+			} catch(Exception e) 
+			{
+				
+			}
 		} else {
 			resultData = AwsStataService.runScript(scriptName, input,
 					 programPath, tempDirPath, stataScriptsPath);
 
 		}
+		endTime = System.currentTimeMillis();
 		
  		time2 = endTime - startTime;
 		result.data = resultData;
