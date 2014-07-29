@@ -1,21 +1,26 @@
 <div class="panel-body" ng-controller="ScatterPlotCtrl">
 	<ul class="input-controls">
 	
-	<input type="text" placeholder="Default" value="service.queryObject.ScatterPlotTool.title">
+	<div>
+		<p><b> ScatterPlotTool  Title</b></p>
+		<input  style = "width : 100%" type="text" placeholder="Default" ng-model='service.queryObject.ScatterPlotTool.title'>
+	</div>
 	
-	<br>X Column<br>
+	<div>
+		X Column
+		<select style = "width : 100%" ui-select2 ng-model="service.queryObject.ScatterPlotTool.X" data-placeholder="Choose X Column">
+			<option></option>
+			<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+		</select>
+	</div>
 	
-	<select ui-select2 ng-model="service.queryObject.ScatterPlotTool.X" data-placeholder="Choose X Column">
-		<option></option>
-		<option value="{{output.param}}" ng-repeat="opt in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
-	</select>
-	
-	<br>Y Column<br>
-	
-	<select ui-select2 ng-model="service.queryObject.ScatterPlotTool.Y" data-placeholder="Choose Y Column">
+	<div>
+		Y Column
+		<select style = "width : 100%" ui-select2 ng-model="service.queryObject.ScatterPlotTool.Y" data-placeholder="Choose Y Column">
 		<option></option>
 		<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
-	</select>	
+	</select>
+	</div>
 	</ul>
 
 </div>

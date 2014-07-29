@@ -1,20 +1,24 @@
 <div class="panel-body" ng-controller="MapCtrl">
 	<ul class="input-controls">
-
-		<input type="text" placeholder="Default" ng-model='service.queryObject.MapTool.title'>
-		<br>
-		<select ui-select2 ng-model="service.queryObject.MapTool.geometryLayer" data-placeholder="Choose Geometry Layer">
+	<div>
+		<p><b> MapTool Title</b></p>
+		<input style = "width : 100%" type="text" placeholder="Default" ng-model='service.queryObject.MapTool.title'>
+	</div>
+	<br>
+	<div>
+	Select Geomtery
+	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.geometryLayer" data-placeholder="Choose Layer">
 			<option></option>
 			<option value="{{gt}}"  ng-repeat="gt in service.dataObject.geometryColumns">{{gt.title}}</option>
 		</select>
-		<select ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Label Layer">
+	</div>
+	<br>
+	<div>
+	Select Label
+	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Layer">
 			<option></option>
-			<option value="output.param" ng-repeat="output in service.dataObject.scriptMetadata.outputs"> {{output.param}} </option>
+			<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs"> {{output.param}} </option>
 		</select>
-		<br>
-		<select class="widget-ui-control" ui-select2 ng-model="label" data-placeholder="Choose Label Column">
-			<option></option>
-			<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
-		</select>
+	</div>		
 	</ul>
 </div>

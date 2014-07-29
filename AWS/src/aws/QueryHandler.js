@@ -29,7 +29,6 @@ var tryParseJSON = function(jsonString){
  *
  **/
 var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
-
 aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
@@ -64,7 +63,7 @@ aws.QueryHandler = function(queryObject)
 	
 	for(var key in queryObject.scriptOptions) {
 		var input = queryObject.scriptOptions[key];
-		console.log(typeof input);
+		//console.log(typeof input);
 		switch(typeof input) {
 			case 'array': // array of columns
 				scriptInputs[key] = $.map(input, function(inputVal) {
@@ -209,10 +208,8 @@ aws.QueryHandler = function(queryObject)
 		this.rRequestObject.filters = nestedFilterRequest;
 	}
 	
-	console.log(angular.toJson(this.rRequestObject));
-	
 	this.keyType = "";
-	this.ColorColumn = "";
+	this.ColorColumn = queryObject.ColorColumn;
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
 		if(queryObject.ColorColumn.enabled) {
@@ -224,7 +221,7 @@ aws.QueryHandler = function(queryObject)
 	
 	if (queryObject.hasOwnProperty("MapTool")) {
 		if(queryObject.MapTool.enabled) {
-			this.keyType = queryObject.MapTool.selected.keyType;
+			this.keyType = queryObject.MapTool.geometryLayer.keyType;
 			this.visualizations.push(
 					{
 						type : "MapTool",
@@ -269,10 +266,15 @@ aws.QueryHandler = function(queryObject)
 	
 	if (queryObject.hasOwnProperty("DataTableTool")) {
 		if(queryObject.DataTableTool.enabled == true) {
+			var colNames= [];
+			for(i in queryObject.dataTable.columns){
+				colNames[i] = queryObject.dataTableTool.columns[i].param;
+			}
+			
 			this.visualizations.push(
 					{
 						type : "DataTable",
-						parameters : queryObject.DataTableTool.selected
+						parameters : colNames
 					}
 			);
 		}
@@ -280,11 +282,6 @@ aws.QueryHandler = function(queryObject)
 	
 	this.currentVisualizations = {};
 	console.log("query", angular.toJson(this.queryObject));
-	this.ComputationEngine = null;
-	//TODO decide this according to script selected or UI selection of computation engine
-	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {
-		
-	}
 	this.resultDataSet = "";
 };
 

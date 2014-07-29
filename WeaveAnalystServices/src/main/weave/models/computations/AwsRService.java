@@ -16,9 +16,9 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
-import com.google.gson.internal.StringMap;
-
 import weave.utils.ListUtils;
+
+import com.google.gson.internal.StringMap;
 
 public class AwsRService implements IScriptEngine
 {

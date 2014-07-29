@@ -11,17 +11,13 @@ analysis_mod.controller('AnalysisFiltersControllers', function($scope, queryServ
 	
 });
 
-analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorScroll){
+analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorScroll, queryService){
+	$scope.service= queryService;
   $scope.scrollTo = function(id) {
     $location.hash(id);
     $anchorScroll();
   };
 });
-
-analysis_mod.controller('SaveVisualizationCtrl', function($scope, $filter, dasboard_widget_service) {
-	
-});
-
 
 analysis_mod.controller('WidgetsController', function($scope, queryService) {
 
@@ -119,6 +115,13 @@ analysis_mod.config(function($selectProvider) {
  *
  */
 
+analysis_mod.controller("ColorColumnCtrl", function($scope, queryService) {
+
+	$scope.service = queryService;
+
+});
+
+
 analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 
 	// This sets the service variable to the queryService 
@@ -135,6 +138,13 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 		console.log(queryService.queryObject.scriptOptions);
 	});
 
+	//  clear script options when script changes
+	$scope.$watch('service.queryObject.scriptSelected', function(newVal, oldVal) {
+		
+		if(newVal != oldVal) {
+			queryService.queryObject.scriptOptions = {};
+		}
+	});
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {
@@ -189,7 +199,7 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
 			var scriptSelected = newVal[1];
-			var scriptMetadata = newVal[3];
+			var scriptMetadata = newVal[2];
 			
 			if(indicator && scriptSelected) {
 				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;

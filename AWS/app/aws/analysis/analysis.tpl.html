@@ -1,5 +1,5 @@
 <div style="height: 100%" ng-controller="AnalysisMainCtrl">
-	<div style="height: 100%" class=".container-fluid" style="padding: 5px;" ng-controller="ScriptsBarController">
+	<div style="height: 100%" class=".container-fluid" style="padding: 5px;">
 		<div class=".row " style="height: 100%; margin-top: 10px;">
 			<!--Indicator and datatable-->
 			<div class="databox" style="width: 15%">
@@ -152,7 +152,7 @@
 						</div>
 						<!-- <span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span> -->
 						<div style="width: 100%" class="master-select2-container">
-							<select style="width: 100%" ui-select2 ng-controller="ColorColumnCtrl" ng-model="queryService.queryObject.ColorColumn.column" data-placeholder="Choose Color Column">
+							<select style="width: 100%" ui-select2 ng-controller="ColorColumnCtrl" ng-model="service.queryObject.ColorColumn.column" data-placeholder="Choose Color Column">
 								<option></option>
 								<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
 							</select>

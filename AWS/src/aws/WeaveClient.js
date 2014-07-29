@@ -187,7 +187,6 @@ aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyTyp
  * 		  
  */
 aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, dataSourceName) {
-	
 	/** @type {string} */
 	var toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
 	
@@ -239,7 +238,6 @@ aws.WeaveClient.prototype.updateScatterPlot = function(toolName, xColumnName, yC
  * @return The name of the created data table.
  */
 aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
-	
 	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
 	//this.weave.requestObject([toolName], 'DataTableTool');
 	this.weave.path(toolName).request('DataTableTool');
