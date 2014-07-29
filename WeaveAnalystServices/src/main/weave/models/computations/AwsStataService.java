@@ -8,11 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 import org.apache.commons.io.FilenameUtils;
-import org.json.simple.JSONObject;
 import com.google.gson.internal.StringMap;
 
 import weave.utils.CSVParser;
@@ -28,14 +25,23 @@ public class AwsStataService implements IScriptEngine {
 
 		int exitValue = -1;
 		
-		ArrayList<Object> data = new ArrayList<Object>();
+		ArrayList<Object[]> data = new ArrayList<Object[]>();
 		Object[][] dataSet;
 		for(String key : scriptInputs.keySet()) {
-			data.add(key);
-			data.addAll(Arrays.asList(AWSUtils.transpose(scriptInputs.get(key))));
+			ArrayList<Object> arrl = new ArrayList<Object>();
+			arrl.add(key);
+			if(scriptInputs.get(key) instanceof Object[]) {
+				Object[] temp = (Object[]) scriptInputs.get(key);
+				for(int i = 0; i < temp.length; i++) {
+					arrl.add(temp[i]);
+				}
+			} else {
+				arrl.add(scriptInputs.get(key));
+			}
+			data.add(arrl.toArray(new Object[arrl.size()]));
 		}
 		
-		dataSet = (Object[][]) data.toArray(new Object[data.size()]);
+		dataSet = (Object[][]) AWSUtils.transpose(data.toArray(new Object[data.size()][]));
 		
 		CSVParser parser = new CSVParser();
 		//Gson jsonParser = new Gson();

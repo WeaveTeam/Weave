@@ -79,7 +79,9 @@ public class ComputationalServlet extends WeaveServlet
  		startTime = System.currentTimeMillis();
 
  		StringMap<Object> input = new StringMap<Object>();
-		
+ 		ArrayList<Integer> colIds = new ArrayList<Integer>();
+ 		ArrayList<String> colNames = new ArrayList<String>();
+ 		
 		for(String key : scriptInputs.keySet()) {
 			
 			Object value = scriptInputs.get(key);
@@ -91,10 +93,9 @@ public class ComputationalServlet extends WeaveServlet
 			} else if (value instanceof Boolean) {
 				input.put(key, value);
 			} else if (value instanceof StringMap<?>){
-				WeaveRecordList data = null;
-				data = DataService.getFilteredRows( new int[] {(Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue()}, filters, null);
-				Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-				input.put(key, columnData[0]);
+				// collect the names and id for single query below
+				colNames.add(key);
+				colIds.add((Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
 			} else if (value instanceof Object[]) {
 				
 				ArrayList<Integer> ids = new ArrayList<Integer>();
@@ -109,6 +110,17 @@ public class ComputationalServlet extends WeaveServlet
 				data = DataService.getFilteredRows(Ints.toArray(ids), filters, null);
 				input.put(key, data);
 			}
+		}
+		
+		// use the collection of ids from above to retrieve the data.
+		WeaveRecordList data = DataService.getFilteredRows(Ints.toArray(colIds), filters, null);
+	
+		// transpose the data to obtain the column form
+		Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
+
+		// assign each columns to proper column name
+		for(int i =  0; i < colNames.size(); i++) {
+			input.put(colNames.get(i), columnData[i]);
 		}
 		
 		endTime = System.currentTimeMillis();
@@ -132,60 +144,4 @@ public class ComputationalServlet extends WeaveServlet
 	 	result.times[1] = time2;
 		return result;
 	}
-//	public ScriptResult runScript(String scriptName, int[] ids, NestedColumnFilters filters) throws Exception
-// 	{
-// 		Object resultData = null;
-// 		ScriptResult result = new ScriptResult();
-// 
-// 		long startTime = 0; 
-// 		long endTime = 0;
-// 		long time1 = 0;
-// 		long time2 = 0;
-// 		
-// 		// Start the timer for the data request
-// 		startTime = System.currentTimeMillis();
-// 		Object[][] recordData = DataService.getFilteredRows(ids, filters, null).recordData;
-// 		if(recordData.length == 0){
-// 			throw new RemoteException("Query produced no rows...");
-// 		}
-// 		
-// 	if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
-// 	{
-// 		// R requires the data as column data
-// 		Object[][] columnData = (Object[][]) AWSUtils.transpose((Object) recordData);
-// 		endTime = System.currentTimeMillis(); // end timer for data request
-// 		recordData = null;
-// 		time1 = endTime - startTime;
-// 
-// 		// Run and time the script
-// 		startTime = System.currentTimeMillis();
-//// 		try {
-//// 			AwsRService rService = new AwsRService();
-// 			resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), columnData);
-//// 		} catch (Exception e) {
-//// 			// TODO Auto-generated catch block
-//// 			e.printStackTrace();
-//// 		}
-// 		endTime = System.currentTimeMillis();
-// 		time2 = endTime - startTime;
-// 
-// 	}
-// 	else if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
-// 	{
-// 		endTime = System.currentTimeMillis(); // end timer for data request
-// 		time1 = endTime - startTime;
-// 		// Run and time the script
-// 		startTime = System.currentTimeMillis();
-// 		resultData = AwsStataService.runScript(scriptName, recordData, programPath, tempDirPath, stataScriptsPath);
-// 		endTime = System.currentTimeMillis();
-// 		time2 = endTime - startTime;
-// 		
-// 	}
-// 
-// 	result.data = resultData;
-// 	result.times[0] = time1;
-// 	result.times[1] = time2;
-// 	
-// 	return result;
-// 	}
 }

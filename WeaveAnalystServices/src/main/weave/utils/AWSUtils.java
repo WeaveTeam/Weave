@@ -1,5 +1,9 @@
 package weave.utils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.io.FilenameUtils;
 
 public class AWSUtils {
@@ -14,21 +18,21 @@ public class AWSUtils {
 		LINUX, OSX, WINDOWS, UNKNOWN
 	}
 	public static Object transpose(Object array) {
-
-		  if (array instanceof Object[][])
+		
+		 if (array instanceof Object[][])
 		  {
-			  Object[][] array2 = (Object[][]) array;
-			  array = null;
-			  if (array2 == null || array2.length == 0)//empty or unset array, nothing do to here
-				  return array2;
-			 
-			  int width = array2.length;
-			  
-			  int height = array2[0].length;
-			  
-			  Object[][] array_new = new Object[height][width];
-			  
+			 Object[][] array2 = (Object[][]) array;
+			 int width = array2.length;
+			 int max = 0;
+	         for (Object[] row : array2) {
+		        if(max < row.length) {
+		          	max = row.length;
+		        }
+		    }
+	         
+	        Object[][] array_new = new Object[max][width];
 			  for (int x = 0; x < width; x++) {
+				  int height = array2[x].length;
 				  for (int y = 0; y < height; y++) {
 					  array_new[y][x] = array2[x][y];
 				  }
