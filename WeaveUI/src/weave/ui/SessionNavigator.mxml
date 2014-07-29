@@ -142,6 +142,19 @@
 				return null;
 			}
 			
+			private var _overrideSelectedItem:Object;
+			
+			[Bindable("change")]
+			[Bindable("valueCommit")]
+			override public function get selectedItem():Object
+			{
+				return _overrideSelectedItem || super.selectedItem;
+			}
+			override public function set selectedItem(data:Object):void
+			{
+				super.selectedItem = data;
+			}
+			
 			public function refresh(selectedObject:ILinkableObject = null):void
 			{
 				var vsp:int = verticalScrollPosition;
@@ -151,6 +164,7 @@
 				var prevExpandedItems:Array = openItems.concat();
 				
 				var rootItem:Object = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(rootObject, _linkableObjectName, _sessionObjectTypeFilter);
+				_overrideSelectedItem = findCorrespondingNode(rootItem, selectedObject, true);
 				this.dataProvider = rootItem;
 				this.dataProvider.refresh();
 				validateNow();
@@ -159,7 +173,8 @@
 				for each (var item:Object in prevExpandedItems)
 					findCorrespondingNode(rootItem, item.object, true);
 				// select previously-selected item
-				selectedItem = findCorrespondingNode(rootItem, selectedObject, true);
+				selectedItem = _overrideSelectedItem;
+				_overrideSelectedItem = null;
 				if (selectedIndex >= 0)
 					scrollToIndex(selectedIndex);
 				expandItem(rootItem, true);

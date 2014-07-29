@@ -45,8 +45,6 @@
 		<![CDATA[
 			import avmplus.DescribeType;
 			
-			import flash.utils.getDefinitionByName;
-			
 			import mx.containers.VBox;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
@@ -62,7 +60,6 @@
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
-			import weave.core.ClassUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
@@ -75,11 +72,7 @@
 			/**
 			 * This is the context in which expressions will be evaluated (The "this" argument passed to Function.apply).
 			 */
-			public function set context(value:Object):void
-			{
-				_context = value;
-			}
-			private var _context:Object = null;
+			public var context:Object;
 
 			override protected function childrenCreated():void
 			{
@@ -269,7 +262,7 @@
 					var obj:ICompiledObject = compiler.compileToObject(input.text);
 					//decompiled = compiler.decompileObject(obj);
 					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
-					result = func.apply(_context);
+					result = func.apply(context);
 					if (shouldReportError)
 						result = String(shouldReportError);
 				}

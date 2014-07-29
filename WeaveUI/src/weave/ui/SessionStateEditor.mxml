@@ -129,6 +129,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.core.ILinkableObject;
 			import weave.api.core.ILinkableVariable;
 			import weave.api.data.IColumnWrapper;
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
@@ -155,7 +156,6 @@ A text editor to change the Session State on the fly.
 			private var _currentSelectedObject:ILinkableObject = null;
 			private var _currentSessionStateXML:XML = null;
 			private var _currentSessionStateDataProvider:ArrayCollection = null; 
-			private var _prevSelectedObject:ILinkableObject = null;
 			
 			private var _textStartSearchIndex:int = 0;
 			private var _gridStartSearchIndex:int = 0; 
@@ -188,6 +188,8 @@ A text editor to change the Session State on the fly.
 				refreshTimer.addEventListener(TimerEvent.TIMER, handleRefreshTimer);
 				refreshTimer.start();
 				
+				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, sessionNav.refresh);
+
 				//handle keyboard event CTRL +F to Search Box
 				this.addEventListener(KeyboardEvent.KEY_DOWN, handleCtrlFPressEvent)
 
@@ -243,16 +245,12 @@ A text editor to change the Session State on the fly.
 				
 				if (visible && parent)
 				{
-					if (autoRefresh && _needRefresh && !_textModified) 
+					if (autoRefresh && !_textModified && detectLinkableObjectChange(handleRefreshTimer, _currentSelectedObject)) 
 					{
 						sessionNav.refresh();
 						loadSelectedSessionObjectInView();
 					}
 				}
-		    }
-		    private function handleSelectedObjectGroupCallback():void
-		    {
-		    	_needRefresh = true;
 		    }
 			
 			private function handleEditorFocusIn():void
@@ -397,7 +395,11 @@ A text editor to change the Session State on the fly.
 			{
 				var vsp:Number = gridEditor.verticalScrollPosition;
 				if (selectedItem)
+				{
+					if (console.context == selectedItem.object)
+						return; // no change
 					console.context = selectedItem.object;
+				}
 				
 				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
 				if (dynamicObject)
@@ -567,20 +569,7 @@ A text editor to change the Session State on the fly.
 			
 			private function loadSessionStateInView():void
 			{
-				var vsp:Number;
-				var hsp:Number;
 				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
-				if (_prevSelectedObject != _currentSelectedObject)
-				{
-					if (_prevSelectedObject)
-						getCallbackCollection(_prevSelectedObject).removeCallback(handleSelectedObjectGroupCallback);
-					_prevSelectedObject = _currentSelectedObject;
-					if (_currentSelectedObject)
-						getCallbackCollection(_currentSelectedObject).addGroupedCallback(this, handleSelectedObjectGroupCallback);
-					hsp = 0;
-					vsp = 0;
-				}
-
 				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
 					changeView(TEXT_EDITOR);
 				else
@@ -588,8 +577,8 @@ A text editor to change the Session State on the fly.
 				
 				if (_editor == TEXT_EDITOR)
 				{
-					vsp = textEditor.verticalScrollPosition;
-					hsp = textEditor.horizontalScrollPosition;
+					var vsp:Number = textEditor.verticalScrollPosition;
+					var hsp:Number = textEditor.horizontalScrollPosition;
 
 					if (_currentSelectedObject is LinkableString)
 					{
@@ -637,7 +626,7 @@ A text editor to change the Session State on the fly.
 						}
 					}
 
-					vsp = gridEditor.verticalScrollPosition;
+					var grid_vsp:Number = gridEditor.verticalScrollPosition;
 					_currentSessionStateDataProvider = dataGridProvider;
 					gridEditor.columns = [ _nameColumn, _valueColumn ];
 					gridEditor.dataProvider = dataGridProvider;
@@ -645,7 +634,7 @@ A text editor to change the Session State on the fly.
 					gridEditor.variableRowHeight = false;
 					gridEditor.wordWrap = false;
 					gridEditor.validateNow();
-					gridEditor.verticalScrollPosition = vsp;
+					gridEditor.verticalScrollPosition = grid_vsp;
 				}
 			}
 			
