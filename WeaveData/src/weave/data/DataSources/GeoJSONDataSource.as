@@ -23,6 +23,7 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
 	import flash.utils.getDefinitionByName;
+	import flash.utils.getTimer;
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -30,6 +31,7 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
@@ -70,9 +72,28 @@ package weave.data.DataSources
 		
 		private var rootChildren:Array = null;
 		
-		private function getProjection():String
+		/**
+		 * Gets the projection metadata used in the geometry column.
+		 */
+		public function getProjection():String
 		{
-			return projection.value || (jsonData ? jsonData.projection : null);
+			return projection.value
+				|| (jsonData ? jsonData.projection : null)
+				|| "EPSG:4326";
+		}
+		/**
+		 * Gets the keyType metadata used in the columns.
+		 */
+		public function getKeyType():String
+		{
+			var kt:String = keyType.value;
+			if (!kt)
+			{
+				kt = url.value;
+				if (keyProperty.value)
+					kt += "#" + keyProperty.value;
+			}
+			return kt;
 		}
 		
 		override protected function get initializationComplete():Boolean
@@ -95,7 +116,7 @@ package weave.data.DataSources
 			if (detectLinkableObjectChange(initialize, keyType, keyProperty))
 			{
 				if (jsonData)
-					jsonData.resetQKeys(keyType.value, keyProperty.value);
+					jsonData.resetQKeys(getKeyType(), keyProperty.value);
 			}
 			
 			// recalculate all columns previously requested because data may have changed.
@@ -133,15 +154,15 @@ package weave.data.DataSources
 					throw new Error("Invalid GeoJSON file: " + url);
 				
 				// parse data
-				jsonData = new GeoJSONData(obj, keyType.value, keyProperty.value);
+				jsonData = new GeoJSONData(obj, getKeyType(), keyProperty.value);
 				
 				// set up hierarchy
-				rootChildren = jsonData.propertyNames.map(function(n:String, i:*, a:*):*{
-					var m:Object = {"title": n, "dataType": jsonData.propertyTypes[n]};
-					m[GEOJSON_PROPERTY_NAME] = n;
-					return new DataSourceNode(this, m);
-				}, this);
-				rootChildren.unshift(new DataSourceNode(this, {"title": "the_geom", "dataType": DataTypes.GEOMETRY}));
+				
+				rootChildren = jsonData.propertyNames
+					.map(function(n:String, i:*, a:*):*{ return getMetadataForProperty(n); })
+					.filter(function(m:Object, ..._):Boolean{ return m != null; })
+					.map(function(m:Object, ..._):*{ return new DataSourceNode(this, m); }, this);
+				rootChildren.unshift(new DataSourceNode(this, getMetadataForProperty(null)));
 				_rootNode = null;
 				
 				getCallbackCollection(this).triggerCallbacks();
@@ -201,13 +222,31 @@ package weave.data.DataSources
 			
 			if (dataType == DataTypes.GEOMETRY)
 			{
-				//TODO - make this async
-				for (var i:int = 0; i < jsonData.qkeys.length; i++)
-					jsonData.convertToGeneralizedGeometry(i);
-				
-				var gc:GeometryColumn = new GeometryColumn(metadata);
-				gc.setGeometries(jsonData.qkeys, Vector.<GeneralizedGeometry>(jsonData.geometries));
-				proxyColumn.setInternalColumn(gc);
+				var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+				var geoms:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
+				var i:int = 0;
+				function initGeoms(stopTime:int):Number
+				{
+					for (; i < jsonData.qkeys.length; i++)
+					{
+						if (getTimer() > stopTime)
+							return i / jsonData.qkeys.length;
+						
+						for each (var geom:GeneralizedGeometry in jsonData.convertToGeneralizedGeometries(i))
+						{
+							keys.push(jsonData.qkeys[i]);
+							geoms.push(geom);
+						}
+					}
+					return 1;
+				}
+				function setGeoms():void
+				{
+					var gc:GeometryColumn = new GeometryColumn(metadata);
+					gc.setGeometries(keys, geoms);
+					proxyColumn.setInternalColumn(gc);
+				}
+				WeaveAPI.StageUtils.startTask(proxyColumn, initGeoms, WeaveAPI.TASK_PRIORITY_2_BUILDING, setGeoms);
 			}
 			else
 			{
@@ -228,6 +267,35 @@ package weave.data.DataSources
 			}
 		}
 		
+		private function getMetadataForProperty(propertyName:String):Object
+		{
+			if (!jsonData)
+				return null;
+			
+			var meta:Object;
+			if (!propertyName)
+			{
+				meta = {};
+				meta[GEOJSON_PROPERTY_NAME] = propertyName || '';
+				meta[ColumnMetadata.TITLE] = propertyName;
+				meta[ColumnMetadata.KEY_TYPE] = getKeyType();
+				meta[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
+				meta[ColumnMetadata.PROJECTION] = getProjection();
+			}
+			else if (jsonData.propertyNames.indexOf(propertyName) >= 0)
+			{
+				meta = {};
+				meta[GEOJSON_PROPERTY_NAME] = propertyName;
+				meta[ColumnMetadata.TITLE] = propertyName;
+				meta[ColumnMetadata.KEY_TYPE] = getKeyType();
+				
+				if (propertyName == keyProperty.value)
+					meta[ColumnMetadata.DATA_TYPE] = getKeyType();
+				else
+					meta[ColumnMetadata.DATA_TYPE] = jsonData.propertyTypes[propertyName];
+			}
+			return meta;
+		}
 		private static const GEOJSON_PROPERTY_NAME:String = 'geoJsonPropertyName';
 	}
 }
@@ -265,7 +333,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 		var that:DataSourceNode = other as DataSourceNode;
 		return that
 			&& this.source == that.source
-			&& StandardLib.compareDynamicObjects(this.metadata, that.metadata);
+			&& StandardLib.compareDynamicObjects(this.metadata, that.metadata) == 0;
 	}
 	public function getLabel():String
 	{
@@ -392,48 +460,47 @@ internal class GeoJSONData
 	}
 	
 	/**
-	 * Derives a GeneralizedGeometry from the GeoJSON data and overwrites the existing GeoJSON Geometry object.
+	 * Derives GeneralizedGeometry objects from the GeoJSON data and overwrites the existing GeoJSON Geometry object.
 	 * @param index Index in the geometries Array.
+	 * @return An Array of GeneralizedGeometry objects
 	 */
-	public function convertToGeneralizedGeometry(index:int):void
+	public function convertToGeneralizedGeometries(index:int):Array
 	{
 		var obj:Object = geometries[index];
-		if (obj is GeneralizedGeometry)
-			return;
-		
 		var type:String = obj[GeoJSON.P_TYPE];
 		var coords:Array = obj[GeoJSON.G_P_COORDINATES];
 		
-		// convert coords to Multi format
+		// convert coords to MultiPolygon format: multi[ poly[ line[ point[] ] ] ]
 		if (type == GeoJSON.T_POINT)
-			type = GeoJSON.T_MULTI_POINT, coords = [coords];
+			type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/[/*point*/coords]]];
+		else if (type == GeoJSON.T_MULTI_POINT)
+			type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/coords]];
 		else if (type == GeoJSON.T_LINE_STRING)
-			type = GeoJSON.T_MULTI_LINE_STRING, coords = [coords];
-		else if (type == GeoJSON.T_POLYGON)
-			type = GeoJSON.T_MULTI_POLYGON, coords = [coords];
-		
-		// use GeometryType constants
-		if (type == GeoJSON.T_MULTI_POINT)
-			type = GeometryType.POINT;
+			type = GeometryType.LINE, coords = /*multi*/[/*poly*/[/*line*/coords]];
 		else if (type == GeoJSON.T_MULTI_LINE_STRING)
-			type = GeometryType.LINE;
+			type = GeometryType.LINE, coords = /*multi*/[/*poly line*/coords];
+		else if (type == GeoJSON.T_POLYGON)
+			type = GeometryType.POLYGON, coords = /*multi*/[/*poly*/coords];
 		else if (type == GeoJSON.T_MULTI_POLYGON)
 			type = GeometryType.POLYGON;
 		
-		var geom:GeneralizedGeometry = new GeneralizedGeometry(type);
-		var xyCoords:Array = [];
-		for each (var part:Array in coords)
+		var result:Array = [];
+		for each (var poly:Array in coords)
 		{
-			// add part marker if this is not the first part
-			if (xyCoords.length == 0)
-				xyCoords.push(NaN, NaN);
-			// push x,y coords
-			for each (var coord:Array in part)
-			xyCoords.push(coord[0], coord[1]);
+			var geom:GeneralizedGeometry = new GeneralizedGeometry(type);
+			var xyCoords:Array = [];
+			for each (var part:Array in poly)
+			{
+				// add part marker if this is not the first part
+				if (xyCoords.length == 0)
+					xyCoords.push(NaN, NaN);
+				// push x,y coords
+				for each (var point:Array in part)
+					xyCoords.push(point[0], point[1]);
+			}
+			geom.setCoordinates(xyCoords, BLGTreeUtils.METHOD_SAMPLE);
+			result.push(geom);
 		}
-		geom.setCoordinates(xyCoords, BLGTreeUtils.METHOD_SAMPLE);
-		
-		// overwrite the GeoJSON Geometry object
-		geometries[index] = geom;
+		return result;
 	}
 }
