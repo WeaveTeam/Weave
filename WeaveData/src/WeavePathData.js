@@ -116,16 +116,18 @@ weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(we
 
 
 /**
- * Creates a new property of the specified type, and binds the appropriate callback.
- * @param name The name of the new property or previously existing property to access.
- * @param type The session state object type of the new property.
- * @param callback A callback taking no arguments to be called when the newly created property changes.
+ * Creates a new property based on configuraiton stored in a property descriptor object. 
+ * See initProperties for documentation of the property_descriptor object.
+ * @param callback_pass If false, create object, verify type, and set default value; if true, add callback;
+ * @param property_descriptor An object containing, minimally, a 'name' property defining the name of the session state element to be created.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.initProperty = function(property_descriptor)
+weave.WeavePath.prototype._initProperty = function(callback_pass, property_descriptor)
 {
     var name = property_descriptor["name"] || this._failMessage('initProperty', 'A "name" is required');
-    var type = property_descriptor["type"] || "LinkableVariable";
+    var children = Array.isArray(property_descriptor["children"]) ? property_descriptor["children"] : undefined;
+    var type = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
+    
     var callback = property_descriptor["callback"];
     var triggerCallbackNow = property_descriptor["triggerNow"] !== undefined ? property_descriptor["triggerNow"] : true;
     var immediate = property_descriptor["immediate"] !== undefined ? property_descriptor["immediate"] : false;
@@ -136,43 +138,69 @@ weave.WeavePath.prototype.initProperty = function(property_descriptor)
 
     var oldType = new_prop.getType();
 
-    new_prop.request(type);
-
-    if (label)
+    if (!callback_pass)
     {
-        new_prop.label(label);
+        new_prop.request(type);
+        
+
+        if (!callback_pass && label)
+        {
+            new_prop.label(label);
+        }
+
+        if (!callback_pass && oldType != type && property_descriptor.hasOwnProperty("default"))
+        {
+            new_prop.state(property_descriptor["default"]);
+        }
     }
 
-    if (oldType != type && property_descriptor.hasOwnProperty("default"))
-    {
-        new_prop.state(property_descriptor["default"]);
-    }
-
-    if (callback)
+    if (callback_pass && callback)
     {
         new_prop.addCallback(callback, triggerCallbackNow, immediate);
     }
 
+    if (children)
+    {
+        children.forEach(this._initProperty.bind(new_prop, callback_pass));
+    }
+
     return this;
 };
-
+/**
+ * Creates a set of properties for a tool from an array of property descriptor objects. Each property descriptor can contain the follow properties:
+ * 'name': Required, specifies the name for the session state item.
+ * 'children': Optionally, another array of property descriptors to create as children of this property.
+ * 'label': A human-readable display name for the session state item.
+ * 'type': A Weave session variable type; defaults to "LinkableVariable," or "LinkableHashMap" if children is defined.
+ * 'callback': A function to be called when this session state item (or a child of it) changes.
+ * 'triggerCallbackNow': Specify whether to execute the callback immediately after being added; defaults to 'true.'
+ * 'immediate': Specify whether to execute the callback in immediate (once per change) or grouped (once per frame) mode.
+ * @param property_descriptor_array An array of property descriptor objects, each minimally containing a 'name' property.
+ * @return The current WeavePath object.
+ */
 weave.WeavePath.prototype.initProperties = function(property_descriptor_array)
 {
     if (this.getType() == null) 
         this.request("ExternalTool");
 
-    var results = {};
+    /* Creation and default-setting pass */
+    property_descriptor_array.forEach(this._initProperty.bind(this, false));
+    /* Attaching callback pass */
+    property_descriptor_array.forEach(this._initProperty.bind(this, true));
 
-    for (var idx = 0; idx < property_descriptor_array.length; idx++)
+    return this;
+};
+
+weave.WeavePath.prototype.getProperties = function(/* [relpath] */)
+{
+    var names = this.getNames.apply(this, arguments);
+    var result = {};
+    for (var idx = 0; idx < names.length; idx++)
     {
-        var property_descriptor = property_descriptor_array[idx];
-        var name = property_descriptor["name"];
-        
-        this.initProperty(property_descriptor);
-        results[name] = this.push(name);
+        name = names[idx];
+        result[name] = this.push(name);
     }
-
-    return results;
+    return result;
 };
 
 weave.WeavePath.prototype.getKeys = function(/* [relpath] */)
