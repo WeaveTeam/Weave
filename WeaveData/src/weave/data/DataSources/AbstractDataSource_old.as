@@ -77,13 +77,13 @@ package weave.data.DataSources
 					{
 						if (valueConverter != null) // if there's a converter
 						{
-							node['@' + oldName] = valueConverter(value); // convert the old value
+							node.@[oldName] = valueConverter(value); // convert the old value
 						}
 						else if (!String(node.attribute(newName))) // if there's no value under the newName
 						{
 							// rename the attribute from oldName to newName
-							delete node['@' + oldName];
-							node['@' + newName] = value;
+							delete node.@[oldName];
+							node.@[newName] = value;
 						}
 					}
 				}

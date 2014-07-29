@@ -151,6 +151,8 @@ package weave.data.DataSources
 		 */
 		private function handleGetCapabilities(event:ResultEvent, token:Object = null):void
 		{
+			// default xml namespace = new Namespace("http://www.example.com/");
+			
 			var owsNS:String = 'http://www.opengis.net/ows';
 			var wfsNS:String = 'http://www.opengis.net/wfs';
 			var xml:XML;

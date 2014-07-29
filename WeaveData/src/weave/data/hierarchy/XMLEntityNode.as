@@ -53,7 +53,7 @@ package weave.data.hierarchy
 		
 		private function getMetadataProperty(property:String):String
 		{
-			return String(_xml['@' + property]);
+			return String(_xml.@[property]);
 		}
 		
 		public function equals(other:IWeaveTreeNode):Boolean
