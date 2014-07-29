@@ -294,6 +294,21 @@ package weave.data
 			
 			output.setBounds(minWorldLon, minWorldLat, maxWorldLon, maxWorldLat);
 		}
+		
+		public static function getProjectionFromURN(ogc_crs_urn:String):String
+		{
+			var array:Array = ogc_crs_urn.split(':');
+			var prevToken:String = '';
+			while (array.length > 2)
+				prevToken = array.shift();
+			var proj:String = array.join(':');
+			var altProj:String = prevToken;
+			if (array.length > 1)
+				altProj += ':' + array[1];
+			if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
+				proj = altProj;
+			return proj;
+		}
 	}
 }
 

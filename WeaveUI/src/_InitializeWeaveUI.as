@@ -26,6 +26,7 @@ package
 	import weave.data.DataSources.CKANDataSource;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
+	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
@@ -134,6 +135,7 @@ package
 			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
+			GeoJSONDataSource;
 			
 			em.registerEditor(StringDataFilter, StringDataFilterEditor);
 			em.registerEditor(NumberDataFilter, NumberDataFilterEditor);
