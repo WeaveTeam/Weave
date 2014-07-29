@@ -34,7 +34,6 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -50,7 +49,7 @@ package weave.data.DataSources
 	
 	public class GeoJSONDataSource extends AbstractDataSource
 	{
-		//WeaveAPI.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
+		WeaveAPI.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
  		
 		public function GeoJSONDataSource()
 		{
@@ -69,8 +68,6 @@ package weave.data.DataSources
 		 * The GeoJSON data.
 		 */
 		private var jsonData:GeoJSONData = null;
-		
-		private var rootChildren:Array = null;
 		
 		/**
 		 * Gets the projection metadata used in the geometry column.
@@ -106,6 +103,8 @@ package weave.data.DataSources
 		 */		
 		override protected function initialize():void
 		{
+			_rootNode = null;
+			
 			if (detectLinkableObjectChange(initialize, url))
 			{
 				jsonData = null;
@@ -156,16 +155,7 @@ package weave.data.DataSources
 				// parse data
 				jsonData = new GeoJSONData(obj, getKeyType(), keyProperty.value);
 				
-				// set up hierarchy
-				
-				rootChildren = jsonData.propertyNames
-					.map(function(n:String, i:*, a:*):*{ return getMetadataForProperty(n); })
-					.filter(function(m:Object, ..._):Boolean{ return m != null; })
-					.map(function(m:Object, ..._):*{ return new DataSourceNode(this, m); }, this);
-				rootChildren.unshift(new DataSourceNode(this, getMetadataForProperty(null)));
-				_rootNode = null;
-				
-				getCallbackCollection(this).triggerCallbacks();
+				refreshHierarchy(); // this triggers callbacks
 			}
 			catch (e:Error)
 			{
@@ -188,38 +178,59 @@ package weave.data.DataSources
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!(_rootNode is DataSourceNode))
-				_rootNode = new DataSourceNode(this, {"title": WeaveAPI.globalHashMap.getName(this)}, rootChildren);
+			{
+				var meta:Object = {};
+				meta[ColumnMetadata.TITLE] = WeaveAPI.globalHashMap.getName(this);
+				
+				var rootChildren:Array = null;
+				if (jsonData)
+				{
+					// include empty string for the geometry column
+					rootChildren = [''].concat(jsonData.propertyNames)
+						.map(function(n:String, i:*, a:*):*{ return generateHierarchyNode(n); })
+						.filter(function(n:Object, ..._):Boolean{ return n != null; });
+				}
+				
+				_rootNode = new DataSourceNode(this, meta, rootChildren);
+			}
 			return _rootNode;
 		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
-			if (!metadata || !jsonData)
+			if (metadata == null || !jsonData)
 				return null;
 			
-			var propertyName:String = metadata[GEOJSON_PROPERTY_NAME];
+			if (metadata is String)
+			{
+				var str:String = metadata as String;
+				metadata = {};
+				metadata[GEOJSON_PROPERTY_NAME] = str;
+			}
+			if (metadata && metadata.hasOwnProperty(GEOJSON_PROPERTY_NAME))
+			{
+				metadata = getMetadataForProperty(metadata[GEOJSON_PROPERTY_NAME]);
+				return new DataSourceNode(this, metadata, null, [GEOJSON_PROPERTY_NAME]);
+			}
 			
-			if (propertyName && jsonData.propertyNames.indexOf(propertyName) < 0)
-				return null;
-			
-			return new DataSourceNode(this, metadata);
+			return null;
 		}
-
 
 		/**
 		 * @inheritDoc
 		 */
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var metadata:Object = proxyColumn.getProxyMetadata();
-			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			var propertyName:String = metadata[GEOJSON_PROPERTY_NAME];
-			if (!jsonData || (propertyName && jsonData.propertyNames.indexOf(propertyName) < 0))
+			var propertyName:String = proxyColumn.getMetadata(GEOJSON_PROPERTY_NAME);
+			var metadata:Object = getMetadataForProperty(propertyName);
+			if (!metadata || !jsonData || (propertyName && jsonData.propertyNames.indexOf(propertyName) < 0))
 			{
 				proxyColumn.setInternalColumn(null);
 				return;
 			}
+			proxyColumn.setMetadata(metadata);
 			
+			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
 			if (dataType == DataTypes.GEOMETRY)
 			{
 				var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
@@ -272,12 +283,12 @@ package weave.data.DataSources
 			if (!jsonData)
 				return null;
 			
-			var meta:Object;
+			var meta:Object = null;
 			if (!propertyName)
 			{
 				meta = {};
-				meta[GEOJSON_PROPERTY_NAME] = propertyName || '';
-				meta[ColumnMetadata.TITLE] = propertyName;
+				meta[GEOJSON_PROPERTY_NAME] = '';
+				meta[ColumnMetadata.TITLE] = GEOM_COLUMN_TITLE;
 				meta[ColumnMetadata.KEY_TYPE] = getKeyType();
 				meta[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
 				meta[ColumnMetadata.PROJECTION] = getProjection();
@@ -297,6 +308,7 @@ package weave.data.DataSources
 			return meta;
 		}
 		private static const GEOJSON_PROPERTY_NAME:String = 'geoJsonPropertyName';
+		private static const GEOM_COLUMN_TITLE:String = 'the_geom';
 	}
 }
 
@@ -318,22 +330,35 @@ import weave.utils.VectorUtils;
 
 internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 {
+	private var idFields:Array;
 	private var source:IDataSource;
 	private var metadata:Object;
 	private var children:Array;
 	
-	public function DataSourceNode(source:IDataSource, metadata:Object, children:Array = null)
+	public function DataSourceNode(source:IDataSource, metadata:Object, children:Array = null, idFields:Array = null)
 	{
 		this.source = source;
-		this.metadata = metadata;
+		this.metadata = metadata || {};
 		this.children = children;
+		this.idFields = idFields;
 	}
 	public function equals(other:IWeaveTreeNode):Boolean
 	{
 		var that:DataSourceNode = other as DataSourceNode;
-		return that
-			&& this.source == that.source
-			&& StandardLib.compareDynamicObjects(this.metadata, that.metadata) == 0;
+		if (that && this.source == that.source && StandardLib.arrayCompare(this.idFields, that.idFields) == 0)
+		{
+			if (idFields && idFields.length)
+			{
+				// check only specified fields
+				for each (var field:String in idFields)
+					if (this.metadata[field] != that.metadata[field])
+						return false;
+				return true;
+			}
+			// check all fields
+			return StandardLib.compareDynamicObjects(this.metadata, that.metadata) == 0;
+		}
+		return false;
 	}
 	public function getLabel():String
 	{
@@ -380,6 +405,10 @@ internal class GeoJSONData
 		geometries = VectorUtils.pluck(features, GeoJSON.F_P_GEOMETRY);
 		properties = VectorUtils.pluck(features, GeoJSON.F_P_PROPERTIES);
 		
+		// if there are no ids, use index values
+		if (ids.every(function(item:*, i:*, a:*):Boolean { return item === undefined; }))
+			ids = features.map(function(o:*, i:*, a:*):* { return i; });
+		
 		// get property names
 		propertyNames = [];
 		propertyTypes = {};
@@ -389,7 +418,7 @@ internal class GeoJSONData
 				var value:Object = props[key];
 				var oldType:String = propertyTypes[key];
 				var newType:String = value == null ? oldType : typeof value; // don't let null affect type
-				if (!oldType)
+				if (!propertyTypes.hasOwnProperty(key))
 				{
 					propertyTypes[key] = newType;
 					propertyNames.push(key);
@@ -450,11 +479,9 @@ internal class GeoJSONData
 	 */
 	public function resetQKeys(keyType:String, propertyName:String):void
 	{
-		var values:Array;
+		var values:Array = ids;
 		if (propertyName && propertyNames.indexOf(propertyName) >= 0)
 			values = VectorUtils.pluck(properties, propertyName);
-		else
-			values = properties.map(function(o:*, i:*, a:*):* { return i; }); // index values
 		
 		qkeys = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(keyType, values));
 	}
