@@ -105,7 +105,7 @@ package weave.core
 			// and the child should be disposed when the parent is disposed.
 			// registerDisposableChild() also initializes the required Dictionaries.
 			registerDisposableChild(linkableParent, linkableChild);
-
+			
 			// only continue if the child is not already registered with the parent
 			if (childToParentDictionaryMap[linkableChild][linkableParent] === undefined)
 			{
@@ -118,7 +118,9 @@ package weave.core
 				// set alwaysCallLast=true for triggering parent callbacks, so parent will be triggered after all the other child callbacks
 				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, false, true); // parent-child relationship
 			}
-
+			
+			_treeCallbacks.triggerCallbacks();
+			
 			return linkableChild;
 		}
 		
@@ -166,6 +168,8 @@ package weave.core
 			if (parentToChildDictionaryMap[parent])
 				delete parentToChildDictionaryMap[parent][child];
 			getCallbackCollection(child).removeCallback(getCallbackCollection(parent).triggerCallbacks);
+			
+			_treeCallbacks.triggerCallbacks();
 		}
 		
 		/**
@@ -297,6 +301,19 @@ package weave.core
 				return null;
 			return result;
 		}
+		
+		/**
+		 * Adds a grouped callback that will be triggered when the session state tree changes.
+		 */
+		public function addTreeCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
+		{
+			_treeCallbacks.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
+		}
+		public function removeTreeCallback(groupedCallback:Function):void
+		{
+			_treeCallbacks.removeCallback(groupedCallback);
+		}
+		private const _treeCallbacks:CallbackCollection = new CallbackCollection();
 
 		/**
 		 * @inheritDoc
@@ -1077,6 +1094,8 @@ package weave.core
 					if (displayObject is UIComponent)
 						(displayObject as UIComponent).mx_internal::cancelAllCallLaters();
 				}
+				
+				_treeCallbacks.triggerCallbacks();
 			}
 		}
 		
