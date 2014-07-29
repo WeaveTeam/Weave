@@ -4,7 +4,6 @@
 <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="//code.highcharts.com/highcharts.js"></script>
 <script src="//code.highcharts.com/modules/exporting.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
 <!-- script src="http://code.highcharts.com/modules/no-data-to-display.js"></script -->
 </head>
 <body>
@@ -22,11 +21,16 @@
     {
         chart = this;
         toolPath = opener.WeaveExternalTools[window.name].path;
+        
+        columns[X_COLUMN] = toolPath.push(X_COLUMN);
+        columns[Y_COLUMN] = toolPath.push(Y_COLUMN);
+        columns[COLOR_COLUMN] = toolPath.push(COLOR_COLUMN);
 
-        columns = toolPath.initProperties([
+        toolPath.initProperties([
             {name: X_COLUMN, type: "DynamicColumn", label: "X", callback: set_local_data},
             {name: Y_COLUMN, type: "DynamicColumn", label: "Y", callback: set_local_data},
             {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: set_local_data, default: 'defaultColorColumn'}]);
+        
         toolPath.subset_filter.addCallback(set_local_data, true);
         toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
         toolPath.probe_keyset.addCallback(set_local_probe, true);
