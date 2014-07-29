@@ -132,6 +132,7 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import mx.core.Container;
 				import weave.api.data.IColumnReference;
 				import weave.api.data.IWeaveTreeNode;
 				import weave.utils.EventUtils;
@@ -269,6 +270,8 @@
 						if (!editor)
 							return;
 						container.addChildAt(editor as DisplayObject, 0);
+						if (editor is Container)
+							(editor as Container).label = lang('Edit {0}', WeaveAPI.getRegisteredImplementationDisplayName(Object(dataSource).constructor as Class));
 						editor.percentWidth = 100;
 						editor.percentHeight = 100;
 					}

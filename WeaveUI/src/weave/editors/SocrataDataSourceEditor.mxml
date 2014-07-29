@@ -27,7 +27,7 @@
 	creationPolicy="all"
 	implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (target ? 'Edit' : 'Add') + ' Socrata Data Source' )}"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
 	<ui:Indent label="{lang('Source Name *')}">
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>

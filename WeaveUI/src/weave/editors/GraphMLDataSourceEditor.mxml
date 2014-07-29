@@ -27,7 +27,7 @@
     creationPolicy="all"
     implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
     >
-    <mx:Label id="editorTitle" fontWeight="bold" text="{lang((_graphmlDataSource ? 'Edit' : 'Add') + ' GraphML Data Source')}"/>
+    <mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
     <ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
         <mx:TextInput id="sourceName" focusOut=
             "nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Nodes');
@@ -44,7 +44,7 @@
                 <ui:KeyTypesMenu id="nodeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
-                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.nodeKeyPropertyValid)}"/ -->
+                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(target == null || !target.nodeKeyPropertyValid)}"/ -->
             </ui:Indent>
         </mx:VBox>
     </ui:Indent>
@@ -55,7 +55,7 @@
                 <ui:KeyTypesMenu id="edgeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
-                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(_graphmlDataSource == null || !_graphmlDataSource.edgeKeyPropertyValid)}"/ -->
+                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(target == null || !target.edgeKeyPropertyValid)}"/ -->
             </ui:Indent>
         </mx:VBox>
     </ui:Indent>
@@ -81,7 +81,7 @@
             
             private var busyIndicator:BusyIndicator = new BusyIndicator();
        
-            [Bindable] public var _graphmlDataSource:GraphMLDataSource = null;
+            [Bindable] public var target:GraphMLDataSource = null;
             
             override protected function createChildren():void
             {
@@ -99,7 +99,7 @@
             
             public function setTarget(object:ILinkableObject):void
             {
-                _graphmlDataSource = object as GraphMLDataSource
+                target = object as GraphMLDataSource
                 
                 if (!parent)
                 {
@@ -107,45 +107,45 @@
                     return;
                 }
                 
-                if (_graphmlDataSource)
+                if (target)
                 {
-                    if (WeaveAPI.globalHashMap.getName(_graphmlDataSource))
+                    if (WeaveAPI.globalHashMap.getName(target))
                     {
-                        sourceName.text = WeaveAPI.globalHashMap.getName(_graphmlDataSource);
+                        sourceName.text = WeaveAPI.globalHashMap.getName(target);
                         sourceName.editable = false;
                         sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
                     }
                     
-                    sourceUrl.text = _graphmlDataSource.sourceUrl.value;
+                    sourceUrl.text = target.sourceUrl.value;
 
-                    var nodePropertyChoices:Array = [""].concat(_graphmlDataSource.nodeProperties || []); /* Make copies so we don't edit them accidentally. */
-                    var edgePropertyChoices:Array = [""].concat(_graphmlDataSource.edgeProperties || []);
+                    var nodePropertyChoices:Array = [""].concat(target.nodeProperties || []); /* Make copies so we don't edit them accidentally. */
+                    var edgePropertyChoices:Array = [""].concat(target.edgeProperties || []);
 
                     nodeKeyPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
-                    nodeKeyPropertyInput.selectedLabel = _graphmlDataSource.nodeKeyPropertyName.value;              
+                    nodeKeyPropertyInput.selectedLabel = target.nodeKeyPropertyName.value;              
                     
-                    if (_graphmlDataSource.nodeKeyType.value)
+                    if (target.nodeKeyType.value)
                     {
-                        nodeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.nodeKeyType.value);
-                        nodeKeyTypeSelector.selectedKeyType = _graphmlDataSource.nodeKeyType.value;
+                        nodeKeyTypeSelector.addKeyTypeToMenu(target.nodeKeyType.value);
+                        nodeKeyTypeSelector.selectedKeyType = target.nodeKeyType.value;
                     }
                     else
                     {
-                        _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
+                        target.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
                     }
                     
 
                     edgeKeyPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
-                    edgeKeyPropertyInput.selectedLabel = _graphmlDataSource.edgeKeyPropertyName.value;
+                    edgeKeyPropertyInput.selectedLabel = target.edgeKeyPropertyName.value;
 
-                    if (_graphmlDataSource.edgeKeyType.value)
+                    if (target.edgeKeyType.value)
                     {
-                        edgeKeyTypeSelector.addKeyTypeToMenu(_graphmlDataSource.edgeKeyType.value);
-                        edgeKeyTypeSelector.selectedKeyType = _graphmlDataSource.edgeKeyType.value;
+                        edgeKeyTypeSelector.addKeyTypeToMenu(target.edgeKeyType.value);
+                        edgeKeyTypeSelector.selectedKeyType = target.edgeKeyType.value;
                     }
                     else
                     {
-                        _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
+                        target.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
                     }
 
                     handleURLTextChange();
@@ -154,24 +154,24 @@
             
             public function hasPendingChanges():Boolean
             {  
-                return StandardLib.asString(_graphmlDataSource.sourceUrl.value) != StandardLib.asString(sourceUrl.text) ||
+                return StandardLib.asString(target.sourceUrl.value) != StandardLib.asString(sourceUrl.text) ||
                        
-                       StandardLib.asString(_graphmlDataSource.nodeKeyType.value) != StandardLib.asString(nodeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(_graphmlDataSource.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.text) ||
+                       StandardLib.asString(target.nodeKeyType.value) != StandardLib.asString(nodeKeyTypeSelector.selectedKeyType) ||
+                       StandardLib.asString(target.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.text) ||
 
-                       StandardLib.asString(_graphmlDataSource.edgeKeyType.value) != StandardLib.asString(edgeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(_graphmlDataSource.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.text);
+                       StandardLib.asString(target.edgeKeyType.value) != StandardLib.asString(edgeKeyTypeSelector.selectedKeyType) ||
+                       StandardLib.asString(target.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.text);
             }
 
             public function applyChanges():void
             {
-                _graphmlDataSource.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
-                _graphmlDataSource.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
+                target.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
+                target.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
 
-                _graphmlDataSource.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
-                _graphmlDataSource.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
+                target.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
+                target.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
 
-                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+                target.sourceUrl.value = sourceUrl.text;
             }
             
             public function createDataSource():IDataSource
@@ -187,9 +187,9 @@
                     return null;
                 }
 
-                _graphmlDataSource = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, _graphmlDataSource) as GraphMLDataSource;
+                target = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, target) as GraphMLDataSource;
 
-                if (!_graphmlDataSource)
+                if (!target)
                 {
                     Alert.show(lang("Unexpected problem. Unable to add the data source."));
                     return null;
@@ -197,7 +197,7 @@
 
                 applyChanges();
 
-                return _graphmlDataSource;
+                return target;
             }
             
             private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter("GraphML", "*.graphml")], graphmlFileUrlHandler);
@@ -218,14 +218,14 @@
                 
                 uploadMessage.visible = true;
 
-                if (!_graphmlDataSource)
+                if (!target)
                 {
-                    _graphmlDataSource = newDisposableChild(this, GraphMLDataSource);
+                    target = newDisposableChild(this, GraphMLDataSource);
                 }
 
-                _graphmlDataSource.onFinish = function():void {setTarget(_graphmlDataSource);};
+                target.onFinish = function():void {setTarget(target);};
                 
-                _graphmlDataSource.sourceUrl.value = sourceUrl.text;
+                target.sourceUrl.value = sourceUrl.text;
                 
             }
         ]]>

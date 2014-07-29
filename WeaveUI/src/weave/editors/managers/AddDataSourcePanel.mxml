@@ -46,6 +46,8 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.core.Container;
+			
 			import weave.api.data.IDataSource;
 			import weave.api.disposeObject;
 			import weave.api.newDisposableChild;
@@ -89,6 +91,8 @@
 				}
 				_editor = newDisposableChild(this, Editor);
 				container.addChild(_editor as DisplayObject);
+				if (_editor is Container)
+					(_editor as Container).label = lang('Add {0}', WeaveAPI.getRegisteredImplementationDisplayName(options.selectedItem as Class));
 				_editor.percentWidth = 100;
 				_editor.percentHeight = 100;
 			}
