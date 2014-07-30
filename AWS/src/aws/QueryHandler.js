@@ -28,6 +28,7 @@ var tryParseJSON = function(jsonString){
  * @param {aws.queryObject} queryObject. The query object obtained from the UI, or alternatively, from a file.
  *
  **/
+var columns;
 var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 aws.QueryHandler = function(queryObject)
 {
@@ -267,8 +268,10 @@ aws.QueryHandler = function(queryObject)
 	if (queryObject.hasOwnProperty("DataTableTool")) {
 		if(queryObject.DataTableTool.enabled == true) {
 			var colNames= [];
+			console.log("queryObject.dataTable.columns", queryObject.dataTable.columns);
 			for(i in queryObject.dataTable.columns){
 				colNames[i] = queryObject.dataTableTool.columns[i].param;
+				console.log("columns", colNames[i]);
 			}
 			
 			this.visualizations.push(
@@ -277,6 +280,7 @@ aws.QueryHandler = function(queryObject)
 						parameters : colNames
 					}
 			);
+			console.log("columnNames", columns);
 		}
 	}
 	

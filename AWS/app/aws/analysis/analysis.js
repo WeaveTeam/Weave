@@ -3,7 +3,7 @@
  */
 'use strict';
 
-var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
+var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider','ui.bootstrap']);
 
 analysis_mod.controller('AnalysisFiltersControllers', function($scope, queryService) {
 
@@ -121,6 +121,9 @@ analysis_mod.controller("ColorColumnCtrl", function($scope, queryService) {
 
 });
 
+//analysis_mod.controller('myModalCtrl', function($scope, $location, $anchorScroll, queryService){
+//	console.log("reached the modal controller");
+//});
 
 analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 

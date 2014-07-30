@@ -20,11 +20,45 @@ analysis_mod.controller("RunQueryCtrl", function($scope, queryService) {
 		}
 	};
 	
-	$scope.saveVisualization = function(){
-		queryService.getSessionState();
-	};
+//	$scope.saveVisualization = function(){
+//		queryService.getSessionState();
+//	};
 });
-
+analysis_mod.controller('ModalDemoCtrl', [ '$scope', '$modal', '$log', function ($scope, $modal, $log) {
+    $scope.items = ['item1', 'item2', 'item3'];
+    console.log("reached the modal controller", $modal);
+    $scope.open = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'aws/analysis/myModalContent.html',
+        controller: 'ModalInstanceCtrl',
+        resolve: {
+          items: function () {
+            return $scope.items;
+          }
+        }
+      });
+    
+//      modalInstance.result.then(function (selectedItem) {
+//        $scope.selected = selectedItem;
+//      }, function () {
+//        $log.info('Modal dismissed at: ' + new Date());
+//      });
+    };
+  }])
+  .controller('ModalInstanceCtrl', [ '$scope', '$modalInstance', 'items', function ($scope, $modalInstance, items) {
+    $scope.items = items;
+    $scope.selected = {
+      item: $scope.items[0]
+    };
+  
+    $scope.ok = function () {
+      $modalInstance.close($scope.selected.item);
+    };
+  
+    $scope.cancel = function () {
+      $modalInstance.dismiss('cancel');
+    };
+  }]);
 analysis_mod.controller("QueryImportExportCtrl", function($scope, queryService) {
 
 	$scope.exportQueryObject = function() {
