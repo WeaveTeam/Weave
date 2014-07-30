@@ -114,9 +114,9 @@
 				visualization.plotManager.marginRight.value  = "10";
 			}
 			
-			override public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array = null):void
+			override public function initSelectableAttributes(input:Array):void
 			{
-				super.initSelectableAttributes(columns, [_plotter.dataX, _plotter.dataY, colorColumn]);
+				ColumnUtils.initSelectableAttributes([_plotter.dataX, _plotter.dataY, colorColumn], input);
 			}
 			
 			override public function getSelectableAttributeNames():Array

@@ -102,9 +102,9 @@
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
-			override public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array = null):void
+			override public function initSelectableAttributes(input:Array):void
 			{
-				super.initSelectableAttributes(columns, [plotter.dataX, plotter.dataY, plotter.fill.color]);
+				ColumnUtils.initSelectableAttributes([plotter.dataX, plotter.dataY, plotter.fill.color], input);
 			}
 			
 			private function handleChildrenChildList():void

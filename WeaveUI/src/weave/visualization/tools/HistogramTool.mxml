@@ -68,9 +68,9 @@
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.bottomMarginColumn); });
 			}
 			
-			override public function initSelectableAttributes(columns:Array, specificSelectableAttirbutes:Array = null):void
+			override public function initSelectableAttributes(input:Array):void
 			{
-				super.initSelectableAttributes(columns, [plotter.fillStyle.color]);
+				ColumnUtils.initSelectableAttributes([plotter.fillStyle.color], input);
 			}
 			
 			override protected function childrenCreated():void

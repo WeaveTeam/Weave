@@ -102,18 +102,18 @@
 				return false;
 			}
 			
-			override public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array=null):void
+			override public function initSelectableAttributes(input:Array):void
 			{
-				var geomColumns:Array = columns.filter(isGeomColumnOrRef);
-				var nonGeomColumns:Array = columns.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
+				var geomColumns:Array = input.filter(isGeomColumnOrRef);
+				var nonGeomColumns:Array = input.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
 				for each (var geomColumn:Object in geomColumns)
 				{
 					var gp:GeometryPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryPlotter, false);
 					if (gp)
 					{
-						initSelectableAttribute(gp.geometryColumn, geomColumn);
+						ColumnUtils.initSelectableAttribute(gp.geometryColumn, geomColumn);
 						if (!Weave.defaultColorDataColumn.getInternalColumn())
-							initSelectableAttribute(Weave.defaultColorDataColumn, nonGeomColumns[0]);
+							ColumnUtils.initSelectableAttribute(Weave.defaultColorDataColumn, nonGeomColumns[0]);
 					}
 				}
 			}

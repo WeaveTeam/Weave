@@ -123,13 +123,11 @@
 				_plotter.enableGroupBy.addGroupedCallback(this, function():void { probeChecklist.dataProvider = getSelectableAttributeNames(); }, true);
 			}
 
-			override public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array = null):void
+			override public function initSelectableAttributes(input:Array):void
 			{
-				var columnsToInit:Array = [];
-				for (var i:int = 0; i < columns.length; i++)
-					columnsToInit.push(_plotter.columns.requestObject(null, DynamicColumn, false));
-				
-				super.initSelectableAttributes(columns, columnsToInit);
+				input.forEach(function(item:Object, i:int, a:Array):void {
+					ColumnUtils.initSelectableAttribute(_plotter.columns, item, i == 0);
+				});
 			}
 			
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);

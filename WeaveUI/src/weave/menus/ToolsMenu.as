@@ -52,7 +52,7 @@ package weave.menus
 		{
 			DraggablePanel.openStaticInstance(item.data as Class);
 		}
-		private static function createGlobalObject(item:WeaveMenuItem):void
+		public static function createGlobalObject(item:WeaveMenuItem):ILinkableObject
 		{
 			var classDef:Class = item.data is Array ? item.data[0] : item.data as Class;
 			var name:String = item.data is Array ? item.data[1] : null;
@@ -70,6 +70,8 @@ package weave.menus
 			var dp:DraggablePanel = object as DraggablePanel;
 			if (dp && dp.controlPanel)
 				dp.callLater(handleDraggablePanelAdded, [dp]);
+			
+			return object;
 		}
 		private static function handleDraggablePanelAdded(dp:DraggablePanel):void
 		{

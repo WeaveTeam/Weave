@@ -294,64 +294,13 @@ package weave.visualization.tools
 		/**
 		 * This will initialize the selectable attributes using a list of columns and/or column references.
 		 * Tools can override this function for different behavior.
-		 * @param columns An Array of IAttributeColumn and/or IColumnReference objects
-		 * @param specificSelectableAttributes A specific list of selectable attributes to initialize.
+		 * @param input An Array of IAttributeColumn and/or IColumnReference objects
 		 */
-		public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array = null):void
+		public function initSelectableAttributes(input:Array):void
 		{
-			var selectables:Array = specificSelectableAttributes || getSelectableAttributes();
-			for (var i:int = 0; i < selectables.length; i++)
-				initSelectableAttribute(selectables[i], columns[i % columns.length]);
+			ColumnUtils.initSelectableAttributes(getSelectableAttributes(), input);
 		}
 		
-		/**
-		 * This will initialize one selectable attribute using a column or column reference. 
-		 * @param selectableAttribute A selectable attribute (Either an IColumnWrapper or an ILinkableHashMap)
-		 * @param column_or_columnReference Either an IAttributeColumn or an ILinkableHashMap
-		 * @param clearHashMap If the selectableAttribute is an ILinkableHashMap, all objects will be removed from it prior to adding a column.
-		 */
-		public static function initSelectableAttribute(selectableAttribute:Object, column_or_columnReference:Object, clearHashMap:Boolean = true):void
-		{
-			var inputCol:IAttributeColumn = column_or_columnReference as IAttributeColumn;
-			var inputRef:IColumnReference = column_or_columnReference as IColumnReference;
-			
-			var outputCol:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
-			if (outputCol)
-			{
-				if (inputCol)
-				{
-					if (inputCol is DynamicColumn)
-						copySessionState(inputCol, outputCol);
-					else
-						outputCol.requestLocalObjectCopy(inputCol);
-				}
-				else if (inputRef)
-					ReferencedColumn(
-						outputCol.requestLocalObject(ReferencedColumn, false)
-					).setColumnReference(
-						inputRef.getDataSource(),
-						inputRef.getColumnMetadata()
-					);
-				else
-					outputCol.removeObject();
-			}
-			
-			var outputHash:ILinkableHashMap = selectableAttribute as ILinkableHashMap;
-			if (outputHash)
-			{
-				if (clearHashMap)
-					outputHash.removeAllObjects()
-				if (inputCol)
-					outputHash.requestObjectCopy(null, inputCol);
-				else if (inputRef)
-					ReferencedColumn(
-						outputHash.requestObject(null, ReferencedColumn, false)
-					).setColumnReference(
-						inputRef.getDataSource(),
-						inputRef.getColumnMetadata()
-					);
-			}
-		}
 		
 		/**
 		 * This function will return an array of IQualifiedKey objects which overlap

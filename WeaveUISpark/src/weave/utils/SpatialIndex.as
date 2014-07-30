@@ -108,14 +108,6 @@ package weave.utils
 		}
 		
 		/**
-		 * The number of records in the index
-		 */
-		public function get recordCount():int
-		{
-			return _kdTree.nodeCount;
-		}
-		
-		/**
 		 * This function fills the spatial index with the data bounds of each record in a plotter.
 		 * 
 		 * @param plotter An IPlotter object to index.

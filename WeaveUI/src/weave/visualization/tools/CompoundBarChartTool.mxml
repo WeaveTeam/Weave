@@ -116,9 +116,9 @@
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
-			override public function initSelectableAttributes(columns:Array, specificSelectableAttirbutes:Array = null):void
+			override public function initSelectableAttributes(input:Array):void
 			{
-				super.initSelectableAttributes(columns, [_plotter.sortColumn, _plotter.heightColumns]);
+				ColumnUtils.initSelectableAttributes([_plotter.sortColumn, _plotter.heightColumns], input);
 			}
 
 			override protected function childrenCreated():void
