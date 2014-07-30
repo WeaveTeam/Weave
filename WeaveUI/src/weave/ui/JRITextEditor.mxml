@@ -176,8 +176,8 @@ JRITextEditor
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			WeaveAPI.registerImplementation(IVisTool, JRITextEditor, "JRI Script Editor");
 			
@@ -200,8 +200,8 @@ JRITextEditor
 			
 			override protected function constructor():void
 			{
-				super.constructor();				
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				super.constructor();
+				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 			}

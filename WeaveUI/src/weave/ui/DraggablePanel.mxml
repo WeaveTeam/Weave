@@ -187,6 +187,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_constructorCalled = true;
 					reposition();
 					constructor();
+					afterConstructor();
 				}
 			}
 			
@@ -214,6 +215,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(this).addGroupedCallback(this, updateButtonsIfSelectableAttributesChanged, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
+			}
+			
+			/**
+			 * This is called after the constructor.
+			 */
+			protected function afterConstructor():void
+			{
 			}
 			
 			/**

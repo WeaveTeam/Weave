@@ -66,8 +66,11 @@
 				
 				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.leftMarginColumn); });
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.bottomMarginColumn); });
-				
-				initColumnDefaults(ColumnUtils.hack_findInternalDynamicColumn(plotter.fillStyle.color));
+			}
+			
+			override public function initSelectableAttributes(columns:Array, specificSelectableAttirbutes:Array = null):void
+			{
+				super.initSelectableAttributes(columns, [plotter.fillStyle.color]);
 			}
 			
 			override protected function childrenCreated():void

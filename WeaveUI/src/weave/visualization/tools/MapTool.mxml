@@ -35,6 +35,7 @@
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnReference;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -83,6 +84,38 @@
 				super.constructor();
 				
 				AttributeMenuTool.hack_skipToolTargets[this] = true;
+			}
+			
+			private function isGeomColumnOrRef(obj:Object, i:*, a:*):Boolean
+			{
+				var col:IAttributeColumn = obj as IAttributeColumn;
+				if (col)
+					return col.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY;
+				
+				var ref:IColumnReference = obj as IColumnReference;
+				if (ref)
+				{
+					var meta:Object = ref.getColumnMetadata();
+					return meta[ColumnMetadata.DATA_TYPE] == DataTypes.GEOMETRY;
+				}
+				
+				return false;
+			}
+			
+			override public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array=null):void
+			{
+				var geomColumns:Array = columns.filter(isGeomColumnOrRef);
+				var nonGeomColumns:Array = columns.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
+				for each (var geomColumn:Object in geomColumns)
+				{
+					var gp:GeometryPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryPlotter, false);
+					if (gp)
+					{
+						initSelectableAttribute(gp.geometryColumn, geomColumn);
+						if (!Weave.defaultColorDataColumn.getInternalColumn())
+							initSelectableAttribute(Weave.defaultColorDataColumn, nonGeomColumns[0]);
+					}
+				}
 			}
 			
 			/**

@@ -42,7 +42,6 @@
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
-			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DynamicColumnComponent;
@@ -113,16 +112,13 @@
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(true); });
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(false); });
 				
-				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
-				var columnsToInit:Array = [_plotter.sortColumn];
-				for (var i:int = 0; i < count; i++)
-				{
-					columnsToInit.push(_plotter.heightColumns.requestObject(null, DynamicColumn, false));
-				}
-				if (columnsToInit.length > 0)
-					(initColumnDefaults as Function).apply(null, columnsToInit);
 				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+			}
+			
+			override public function initSelectableAttributes(columns:Array, specificSelectableAttirbutes:Array = null):void
+			{
+				super.initSelectableAttributes(columns, [_plotter.sortColumn, _plotter.heightColumns]);
 			}
 
 			override protected function childrenCreated():void

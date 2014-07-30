@@ -69,16 +69,6 @@
 				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
-				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
-				var columnsToInit:Array = [];
-				for (var i:int = 0; i < count; i++)
-				{
-					columnsToInit.push(_plotter.columns.requestObject(null, DynamicColumn, false));
-				}
-				
-				if(columnsToInit.length > 0)
-					(initColumnDefaults as Function).apply(null, columnsToInit);
-				
 				_plotter.setAnchorLocations();
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true);
 				visualization.plotManager.getLayerSettings(ANCHOR_LAYER).selectable.value = false;
@@ -90,6 +80,15 @@
 				
 				visualization.plotManager.marginTop.value =	visualization.plotManager.marginBottom.value = "20";
 				visualization.plotManager.marginLeft.value = visualization.plotManager.marginRight.value = "20";				
+			}
+			
+			override public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array = null):void
+			{
+				var columnsToInit:Array = [];
+				for (var i:int = 0; i < columns.length; i++)
+					columnsToInit.push(_plotter.columns.requestObject(null, DynamicColumn, false));
+				
+				super.initSelectableAttributes(columns, columnsToInit);
 			}
 			
 			override protected function childrenCreated():void

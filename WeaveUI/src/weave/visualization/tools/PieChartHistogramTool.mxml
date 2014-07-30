@@ -55,7 +55,6 @@
 				invalidateAxes();
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 				
-				initColumnDefaults(_plotter.unfilteredData);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,true);
 				
 				visualization.plotManager.marginTop.value = "65";

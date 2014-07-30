@@ -34,7 +34,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.ThermometerPlotter;
-		
+			
 			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, "Thermometer Tool");
 			
 			private function get plotter():ThermometerPlotter { return mainPlotter as ThermometerPlotter; }
@@ -69,9 +69,6 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
-				
-				initColumnDefaults(plotter.meterColumn);
-				
 			}
 			
 			private function invalidateAxes():void

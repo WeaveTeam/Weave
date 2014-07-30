@@ -54,7 +54,6 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(_plotter.data);
 				// see if there is a matching column in probe headers
 				var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 				for (var i:int = 0; i < headers.length; i++)
@@ -73,6 +72,11 @@
 				visualization.plotManager.marginBottom.value = "65";
 				visualization.plotManager.marginLeft.value = "85";
 				visualization.plotManager.marginRight.value = "85";
+			}
+			
+			override public function initSelectableAttributes(columns:Array, specificSelectableAttributes:Array = null):void
+			{
+				super.initSelectableAttributes(columns, [_plotter.data]);
 			}
 			
 			override protected function childrenCreated():void

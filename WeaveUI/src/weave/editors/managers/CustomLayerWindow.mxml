@@ -106,7 +106,7 @@
 			/**
 			 * @return The newly created IPlotter, or null if it could not be created.
 			 */
-			public static function addPlotterAndEdit(visualization:Visualization, plotterType:Class):*
+			public static function addPlotterAndEdit(visualization:Visualization, plotterType:Class, openEditor:Boolean = true):*
 			{
 				var hm:ILinkableHashMap = visualization.plotManager.plotters;
 				var state:Object = getSessionState(visualization);
@@ -115,7 +115,8 @@
 				if (!plotter)
 					return null;
 				
-				ControlPanel.openEditor(plotter, [visualization], [state]);
+				if (openEditor)
+					ControlPanel.openEditor(plotter, [visualization], [state]);
 				return plotter;
 			}
 			

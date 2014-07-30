@@ -67,7 +67,6 @@
 				getCallbackCollection(plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(plotter.meterColumn);
 				plotter.meterColumn.addGroupedCallback(this, updateMarginLabel, true);
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
 				
