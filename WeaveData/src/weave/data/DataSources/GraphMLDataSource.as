@@ -133,7 +133,7 @@ package weave.data.DataSources
             var data_remap_src:Object = null;
             var key_remap_src:Object = null;
             var keyType:String;
-            var filter_value:String = null;
+            var columnName:String = metadata[COLUMNNAME_META];
             
             if (metadata[GROUP_META] == GraphMLConverter.NODE)
             {
@@ -141,14 +141,20 @@ package weave.data.DataSources
 
                 key_remap_src = nodeIdToKey;
 
+                if (nodeSchema[columnName] === undefined)
+                    columnName = nodeReverseSchema[columnName];
+
                 keyType = nodeKeyType.value;
             }
             else if (metadata[GROUP_META] == GraphMLConverter.EDGE)
             {
                 raw_rows = edgeColumnData;
 
-                data_remap_src = (metadata[COLUMNNAME_META] == GraphMLConverter.SOURCE ||
-                                 metadata[COLUMNNAME_META] == GraphMLConverter.TARGET) ? nodeIdToKey : null;
+                if (edgeSchema[columnName] === undefined)
+                    columnName = edgeReverseSchema[columnName];
+
+                data_remap_src = (columnName == GraphMLConverter.SOURCE ||
+                                 columnName == GraphMLConverter.TARGET) ? nodeIdToKey : null;
 
                 if (data_remap_src)
                     metadata[ColumnMetadata.DATA_TYPE] = nodeKeyType.value;
@@ -160,7 +166,7 @@ package weave.data.DataSources
 
             if (!raw_rows) return;
 
-            var data_column:Array = getPropertyArray(raw_rows, metadata[COLUMNNAME_META], data_remap_src);
+            var data_column:Array = getPropertyArray(raw_rows, columnName, data_remap_src);
             var key_column:Array = getPropertyArray(raw_rows, GraphMLConverter.ID, key_remap_src);
             
             if (!metadata[ColumnMetadata.KEY_TYPE])
@@ -170,7 +176,7 @@ package weave.data.DataSources
 
             if (!metadata[ColumnMetadata.TITLE])
             {
-                metadata[ColumnMetadata.TITLE] = metadata[COLUMNNAME_META];    
+                metadata[ColumnMetadata.TITLE] = columnName;   
             }
             
             /* TODO: Add type autodetection and proper handling of numeric types. */
@@ -197,18 +203,10 @@ package weave.data.DataSources
 
         private static function getPropertyArray(objects:Array, property:String, mapping:Object):Array
         {
-            var output:Array = new Array(objects.length);
-            for (var idx:int = objects.length - 1; idx >= 0; idx--)
-            {
-                if (mapping)
-                {
-                    output[idx] = mapping[objects[idx][property]];
-                }
-                else
-                {
-                    output[idx] = objects[idx][property];
-                }
-            }
+            var output:Array = VectorUtils.pluck(objects, property);
+
+            if (mapping) output = output.map(function(d,i,a){return mapping[d];});
+
             return output;
         }
         
