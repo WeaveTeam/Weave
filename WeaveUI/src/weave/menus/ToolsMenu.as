@@ -107,11 +107,6 @@ package weave.menus
 			dpc.addDisposeCallback(null, removeTip);
 			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, dp, callback, true);
 		}
-		private static function getToolItemLabel(item:WeaveMenuItem):String
-		{
-			var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(item.data as Class);
-			return lang("Add {0}", displayName);
-		}
 		
 		public static const staticItems:Array = createItems(
 			{
@@ -146,8 +141,15 @@ package weave.menus
 			}
 		);
 		
-		public static function get dynamicItems():Array
+		public static function getDynamicItems(labelFormat:String = null):Array
 		{
+			function getToolItemLabel(item:WeaveMenuItem):String
+			{
+				var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(item.data as Class);
+				if (labelFormat)
+					return lang(labelFormat, displayName);
+				return displayName;
+			}
 			return createItems(
 				WeaveAPI.getRegisteredImplementations(IVisTool).map(function(impl:Class, ..._):* {
 					return {
@@ -180,7 +182,7 @@ package weave.menus
 						cachedItems = createItems(
 							staticItems,
 							TYPE_SEPARATOR,
-							dynamicItems,
+							getDynamicItems("Add {0}"),
 							TYPE_SEPARATOR,
 							dashboardItem
 						);

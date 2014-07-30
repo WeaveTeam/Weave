@@ -40,13 +40,19 @@
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:Canvas horizontalScrollPolicy="off">
+							<mx:Label id="lbl"/>
+							<ui:BusyIndicator id="busy" diameterRatio=".75"/>
 							<mx:Script>
 								<![CDATA[
 									import weave.api.core.ILinkableObject;
+									override public function set data(value:Object):void
+									{
+										super.data = value;
+										lbl.text = WeaveAPI.globalHashMap.getName(value as ILinkableObject);
+										busy.targets = [value];
+									}
 								]]>
 							</mx:Script>
-							<mx:Label text="{(function(data:*):*{return WeaveAPI.globalHashMap.getName(data as ILinkableObject);}(data))}"/>
-							<ui:BusyIndicator targets="{[data]}" diameterRatio=".75"/>
 						</mx:Canvas>
 					</mx:Component>
 				</mx:itemRenderer>
@@ -69,6 +75,7 @@
 									 verticalScrollPolicy="on">
 							<CustomDataGrid:creationComplete>
 								<![CDATA[
+									browser.explorer.fileVBox.addChild(columnDisplay);
 									var column:IAttributeColumn = browser.referencedColumn;
 									var dgc1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
 									var dgc2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
@@ -132,52 +139,32 @@
 		
 		<mx:Script>
 			<![CDATA[
-				import mx.core.Container;
-				import weave.api.data.IColumnReference;
-				import weave.api.data.IWeaveTreeNode;
-				import weave.utils.EventUtils;
-				import weave.api.data.IAttributeColumn;
-				import weave.api.linkableObjectIsBusy;
-				import weave.compiler.StandardLib;
-				import mx.controls.dataGridClasses.DataGridColumn;
-				import weave.data.AttributeColumns.ProxyColumn;
 				import mx.binding.utils.BindingUtils;
-				import weave.api.data.ColumnMetadata;
-				import weave.api.newDisposableChild;
-				import weave.data.AttributeColumns.KeyColumn;
-				import weave.ui.CustomDataGrid.CustomDataGridColumn;
-				import weave.api.setSessionState;
-				import weave.api.disposeObject;
-				import weave.api.registerDisposableChild;
-				import weave.utils.PopUpUtils;
-				import weave.api.reportError;
-				import mx.managers.PopUpManager;
+				import mx.controls.dataGridClasses.DataGridColumn;
+				import mx.core.Container;
 				
-				import weave.api.core.ILinkableObject;
+				import weave.api.data.ColumnMetadata;
+				import weave.api.data.IAttributeColumn;
+				import weave.api.data.IColumnReference;
 				import weave.api.data.IDataSource;
+				import weave.api.data.IWeaveTreeNode;
+				import weave.api.disposeObject;
+				import weave.api.linkableObjectIsBusy;
+				import weave.api.newDisposableChild;
+				import weave.api.registerDisposableChild;
+				import weave.api.reportError;
 				import weave.api.ui.ILinkableObjectEditor;
+				import weave.compiler.StandardLib;
 				import weave.core.UIUtils;
+				import weave.data.AttributeColumns.KeyColumn;
+				import weave.data.AttributeColumns.ProxyColumn;
+				import weave.ui.CustomDataGrid.CustomDataGridColumn;
+				import weave.utils.PopUpUtils;
 				
 				private static const padding:int = 8;
 				
-				override protected function constructor():void
-				{
-					super.constructor();
-				}
-				
-				override public function reposition():void
-				{
-					panelWidth.value = "700";
-					panelHeight.value = "500";
-				}
-				
-				override protected function createChildren():void
-				{
-					if (createdChildren)
-						return;
-					super.createChildren();
-					browser.explorer.fileVBox.addChild(columnDisplay);
-				}
+				private const keyColumn:KeyColumn = newDisposableChild(this, KeyColumn);
+				private const dataColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 				
 				override protected function childrenCreated():void
 				{
@@ -188,8 +175,11 @@
 					tabNav.addEventListener(Event.CHANGE, handleTabIndexChange);
 				}
 				
-				private const keyColumn:KeyColumn = newDisposableChild(this, KeyColumn);
-				private const dataColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
+				override public function reposition():void
+				{
+					panelWidth.value = "700";
+					panelHeight.value = "500";
+				}
 				
 				private function handleTabIndexChange(event:Event):void
 				{
