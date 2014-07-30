@@ -90,12 +90,44 @@
                 busyIndicator.visible = false;
                 sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GraphMLDataSource");
 
+                nodeKeyPropertyInput.labelFunction = nodeKeyLabelFunction;
+                edgeKeyPropertyInput.labelFunction = edgeKeyLabelFunction;
+
                 nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Nodes');
                 nodeKeyTypeSelector.selectedKeyType = sourceName.text+'Nodes';
                 edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');
                 edgeKeyTypeSelector.selectedKeyType = sourceName.text+'Edges';
             }
             
+            private function nodeKeyLabelFunction(item:Object):String
+            {
+                var key:String = item as String;
+                
+                if (target)
+                {
+                    var label:String = target.nodeSchema[key];
+                    if (label)
+                        return label + " (" + key +")";
+                    else
+                        return key;
+                }
+                return "";
+            }
+
+            private function edgeKeyLabelFunction(item:Object):String
+            {
+                var key:String = item as String;
+                
+                if (target)
+                {
+                    var label:String = target.edgeSchema[key];
+                    if (label)
+                        return label + " (" + key +")";
+                    else
+                        return key;
+                }
+                return "";
+            }
             
             public function setTarget(object:ILinkableObject):void
             {
@@ -118,11 +150,8 @@
                     
                     sourceUrl.text = target.sourceUrl.value;
 
-                    var nodePropertyChoices:Array = [""].concat(target.nodeProperties || []); /* Make copies so we don't edit them accidentally. */
-                    var edgePropertyChoices:Array = [""].concat(target.edgeProperties || []);
-
-                    nodeKeyPropertyInput.dataProvider = new ArrayCollection(nodePropertyChoices);
-                    nodeKeyPropertyInput.selectedLabel = target.nodeKeyPropertyName.value;              
+                    nodeKeyPropertyInput.dataProvider = new ArrayCollection(target.nodeProperties || []);
+                    nodeKeyPropertyInput.selectedItem = target.nodeKeyPropertyName.value;
                     
                     if (target.nodeKeyType.value)
                     {
@@ -135,8 +164,8 @@
                     }
                     
 
-                    edgeKeyPropertyInput.dataProvider = new ArrayCollection(edgePropertyChoices);
-                    edgeKeyPropertyInput.selectedLabel = target.edgeKeyPropertyName.value;
+                    edgeKeyPropertyInput.dataProvider = new ArrayCollection(target.edgeProperties || []);
+                    edgeKeyPropertyInput.selectedItem = target.edgeKeyPropertyName.value;
 
                     if (target.edgeKeyType.value)
                     {
@@ -157,19 +186,19 @@
                 return StandardLib.asString(target.sourceUrl.value) != StandardLib.asString(sourceUrl.text) ||
                        
                        StandardLib.asString(target.nodeKeyType.value) != StandardLib.asString(nodeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(target.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.text) ||
+                       StandardLib.asString(target.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.selectedItem as String) ||
 
                        StandardLib.asString(target.edgeKeyType.value) != StandardLib.asString(edgeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(target.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.text);
+                       StandardLib.asString(target.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.selectedItem as String);
             }
 
             public function applyChanges():void
             {
                 target.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
-                target.nodeKeyPropertyName.value = nodeKeyPropertyInput.text;
+                target.nodeKeyPropertyName.value = nodeKeyPropertyInput.selectedItem as String;
 
                 target.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
-                target.edgeKeyPropertyName.value = edgeKeyPropertyInput.text;
+                target.edgeKeyPropertyName.value = edgeKeyPropertyInput.selectedItem as String;
 
                 target.sourceUrl.value = sourceUrl.text;
             }

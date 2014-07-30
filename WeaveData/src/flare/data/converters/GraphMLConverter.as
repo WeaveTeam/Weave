@@ -50,12 +50,9 @@ package flare.data.converters
         
         public static function read(str:String):Object
         {
-            var idx:int = str.indexOf(GRAPHML);
-            if (idx > 0) {
-                str = str.substr(0, idx+GRAPHML.length) + 
-                    str.substring(str.indexOf(">", idx));
-            }
-            return parse(XML(str));
+          var xmlnsPattern:RegExp = new RegExp("xmlns=[^\"]*\"[^\"]*\"", "gi");
+
+          return parse(XML(str.replace(xmlnsPattern, "")));
         }
         
         /**
@@ -89,6 +86,13 @@ package flare.data.converters
             edgeSchema[SOURCE] = SOURCE;
             edgeSchema[TARGET] = TARGET;
             edgeSchema[DIRECTED] = DIRECTED;
+
+            nodeKeys.push(ID);
+
+            edgeKeys.push(ID);
+            edgeKeys.push(SOURCE);
+            edgeKeys.push(TARGET);
+            edgeKeys.push(DIRECTED);
             
             // parse data schema
             for each (var key:XML in graphml..key) {
@@ -102,7 +106,7 @@ package flare.data.converters
                 schema = (group==EDGE ? edgeSchema : nodeSchema);
                 keys = (group==EDGE ? edgeKeys : nodeKeys);
                 schema[id] = attrName;
-                keys.push(attrName);
+                keys.push(id);
             }
             
             // parse nodes
@@ -128,15 +132,12 @@ package flare.data.converters
             }
             var result:Object = {};
 
-            nodeKeys.push(ID);
-
-            edgeKeys.push(ID);
-            edgeKeys.push(SOURCE);
-            edgeKeys.push(TARGET);
-            edgeKeys.push(DIRECTED);
+            result.nodeSchema = nodeSchema;
+            result.edgeSchema = edgeSchema;
 
             result.nodeKeys = nodeKeys;
             result.edgeKeys = edgeKeys;
+
             result.nodes = nodes;
             result.edges = edges;
 
@@ -153,9 +154,9 @@ package flare.data.converters
                 n[name] = attr[0].toString();
             }
             
-            // get data values in XML
+            // get data values in XML; do not convert using schema.
             for each (var data:XML in node.data) {
-                name = schema[data.@[KEY].toString()];
+                name = data.@[KEY].toString();
                 n[name] = data[0].toString();
             }
             
@@ -169,13 +170,6 @@ package flare.data.converters
         }
         
         // -- constants -------------------------------------------------------
-        
-        private static const GRAPHML_HEADER:String = "<graphml/>";
-        //  "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\"" 
-        //    +" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
-        //    +" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns"
-        //    +" http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">"
-        //    +"</graphml>";
         
         public static const GRAPHML:String    = "graphml";
         public static const ID:String         = "id";

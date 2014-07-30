@@ -4,6 +4,7 @@ package weave.data.DataSources
     
     import flash.net.URLLoaderDataFormat;
     import flash.net.URLRequest;
+    import flash.utils.Dictionary;
     
     import mx.rpc.events.FaultEvent;
     import mx.rpc.events.ResultEvent;
@@ -20,15 +21,14 @@ package weave.data.DataSources
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.AttributeColumns.StringColumn;
     import weave.data.QKeyManager;
+    import weave.utils.VectorUtils;
 
     public class GraphMLDataSource extends AbstractDataSource
     {
         WeaveAPI.registerImplementation(IDataSource, GraphMLDataSource, "GraphML file");
 
         
-        public static const COLUMNNAME_META:String = "__GraphElementProperty__";
-        public static const FILTERVALUE_META:String = "__GraphFilterValue__";
-        public static const FILTERCOLUMN_META:String = "__GraphFilterColumn__";
+        public static const COLUMNNAME_META:String = "__GraphElementProperty__";        
         public static const GROUP_META:String = "__GraphGroup__";
 
         public const sourceUrl:LinkableString = newLinkableChild(this, LinkableString, handleURLChange);
@@ -36,8 +36,15 @@ package weave.data.DataSources
         private var nodeColumnData:Array = null;
         private var edgeColumnData:Array = null;
 
+        public var nodeSchema:Object = null;
+        public var nodeReverseSchema:Dictionary = null;
         public var nodeProperties:Array = null;
+
+        public var edgeSchema:Object = null;
+        public var edgeReverseSchema:Dictionary = null;
         public var edgeProperties:Array = null;
+
+        
 
         public const nodeKeyType:LinkableString = newLinkableChild(this, LinkableString);
         public const edgeKeyType:LinkableString = newLinkableChild(this, LinkableString);
@@ -56,11 +63,6 @@ package weave.data.DataSources
         public function GraphMLDataSource()
         {
         }
-
-
-
-
-
 
         /* Overrides from AbstractDataSource */
 
@@ -95,11 +97,17 @@ package weave.data.DataSources
         {
             var result:Object = GraphMLConverter.read(String(event.result));
             
+            nodeSchema = result.nodeSchema;
+            nodeReverseSchema = VectorUtils.createLookup(nodeSchema);
             nodeProperties = result.nodeKeys;
+
             nodeColumnData = result.nodes;
             handleNodeKeyPropertyChange();
 
+            edgeSchema = result.edgeSchema;
+            edgeReverseSchema = VectorUtils.createLookup(edgeSchema);
             edgeProperties = result.edgeKeys;
+
             edgeColumnData = result.edges;
             handleEdgeKeyPropertyChange();
 
@@ -229,6 +237,10 @@ package weave.data.DataSources
                 nodeKeyPropertyValid = true;
                 return;
             }
+
+            /* For back-compat */
+            if (nodeSchema[propertyName] === undefined && nodeReverseSchema[propertyName])
+                propertyName = nodeReverseSchema[propertyName]
             
             if (!handleKeyPropertyChange(nodeColumnData, propertyName, nodeIdToKey))
             {
@@ -252,6 +264,11 @@ package weave.data.DataSources
                 edgeKeyPropertyValid = true;
                 return;
             }
+
+            /* For back-compat */
+            if (edgeSchema[propertyName] === undefined && edgeReverseSchema[propertyName])
+                propertyName = edgeReverseSchema[propertyName];
+
             
             if (!handleKeyPropertyChange(edgeColumnData, propertyName, edgeIdToKey))
             {
@@ -344,6 +361,11 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
     private var _graph:GraphMLGraphNode;
     private var _group:String;
     private var children:Array = null;
+
+    public function get columnSchema():Object
+    {
+        return isNodeGroup() ? graph.source.nodeSchema : graph.source.edgeSchema;
+    }
     
     public function get group():String
     {
@@ -440,7 +462,10 @@ internal class GraphMLColumnNode implements IWeaveTreeNode, IColumnReference {
 
     public function getLabel():String
     {
-        return columnName;
+        if (columnName == GraphMLConverter.ID)
+            return columnName;
+        else
+            return parent.columnSchema[columnName] + " (" + columnName + ")";
     }
 
     public function getDataSource():IDataSource 
@@ -455,7 +480,6 @@ internal class GraphMLColumnNode implements IWeaveTreeNode, IColumnReference {
         metadata[GraphMLDataSource.COLUMNNAME_META] = columnName;
         metadata[GraphMLDataSource.GROUP_META] = group.group;
         
-
         return metadata;
     }
 }
