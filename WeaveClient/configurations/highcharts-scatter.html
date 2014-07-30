@@ -29,7 +29,8 @@
         toolPath.initProperties([
             {name: X_COLUMN, type: "DynamicColumn", label: "X", callback: set_local_data},
             {name: Y_COLUMN, type: "DynamicColumn", label: "Y", callback: set_local_data},
-            {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: set_local_data, default: 'defaultColorColumn'}]);
+            {name: COLOR_COLUMN, type: "DynamicColumn", label: "Color", callback: set_local_data, default: 'defaultColorColumn'}
+        ]);
         
         toolPath.subset_filter.addCallback(set_local_data, true);
         toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
@@ -69,7 +70,7 @@
     function set_local_probe(event)
     {
         var keys = toolPath.probe_keyset.getKeys();
-        var point 
+        var point;
 
         if (keys.length == 0 && chart.hoverPoint) 
         { 
@@ -77,7 +78,8 @@
             chart.tooltip.hide();
         }
 
-        if (keys[0] && (point = chart.get(keys[0]))) point.onMouseOver();
+        if (keys[0] && (point = chart.get(keys[0])))
+            point.onMouseOver();
     }
 
     function set_local_data()

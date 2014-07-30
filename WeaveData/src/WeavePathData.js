@@ -15,7 +15,7 @@ weave.WeavePath.Keys._keyIdPrefix = "WeaveQKey";
 
 weave.WeavePath.Keys.qkeyToIndex = function(key)
 {
-    var local_map = (this._qkeys_to_numeric[key.keyType] = this._qkeys_to_numeric[key.keyType] || {});
+    var local_map = this._qkeys_to_numeric[key.keyType] || (this._qkeys_to_numeric[key.keyType] = {});
 
     if (local_map[key.localName] === undefined)
     {
@@ -48,8 +48,8 @@ weave.WeavePath.Keys._getKeyBuffers = function (pathArray)
 {
     var path_key = JSON.stringify(pathArray);
 
-    var key_buffers_dict = (this._key_buffers = this._key_buffers || {});
-    var key_buffers = (key_buffers_dict[path_key] = key_buffers_dict[path_key] || {});
+    var key_buffers_dict = this._key_buffers || (this._key_buffers = {});
+    var key_buffers = key_buffers_dict[path_key] || (key_buffers_dict[path_key] = {});
 
     if (key_buffers.add === undefined) key_buffers.add = {};
     if (key_buffers.remove === undefined) key_buffers.remove = {};
@@ -64,7 +64,7 @@ weave.WeavePath.Keys._flushKeys = function (pathArray)
     var add_keys = Object.keys(key_buffers.add);
     var remove_keys = Object.keys(key_buffers.remove);
 
-    add_keys = add_keys.map(this.stringToQKey, this)
+    add_keys = add_keys.map(this.stringToQKey, this);
     remove_keys = remove_keys.map(this.stringToQKey, this);
 
     key_buffers.add = {};
@@ -91,7 +91,7 @@ weave.WeavePath.Keys._addKeys = function(pathArray, keyStringArray)
     {
         key_buffers.add[key] = true;
         delete key_buffers.remove[key];
-    })
+    });
 
     this._flushKeysLater(pathArray);
 };
@@ -104,7 +104,7 @@ weave.WeavePath.Keys._removeKeys = function(pathArray, keyStringArray)
     {
         key_buffers.remove[key] = true;
         delete key_buffers.add[key];
-    })
+    });
 
     this._flushKeysLater(pathArray);
 };
@@ -116,7 +116,7 @@ weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(we
 
 
 /**
- * Creates a new property based on configuraiton stored in a property descriptor object. 
+ * Creates a new property based on configuration stored in a property descriptor object. 
  * See initProperties for documentation of the property_descriptor object.
  * @param callback_pass If false, create object, verify type, and set default value; if true, add callback;
  * @param property_descriptor An object containing, minimally, a 'name' property defining the name of the session state element to be created.
@@ -125,40 +125,40 @@ weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(we
 weave.WeavePath.prototype._initProperty = function(callback_pass, property_descriptor)
 {
     var name = property_descriptor["name"] || this._failMessage('initProperty', 'A "name" is required');
-    var children = Array.isArray(property_descriptor["children"]) ? property_descriptor["children"] : undefined;
-    var type = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
-    
-    var callback = property_descriptor["callback"];
-    var triggerCallbackNow = property_descriptor["triggerNow"] !== undefined ? property_descriptor["triggerNow"] : true;
-    var immediate = property_descriptor["immediate"] !== undefined ? property_descriptor["immediate"] : false;
-
-    var label = property_descriptor["label"];
-    
     var new_prop = this.push(name);
 
-    var oldType = new_prop.getType();
-
-    if (!callback_pass)
+    if (callback_pass)
     {
-        new_prop.request(type);
+        var callback = property_descriptor["callback"];
+        var triggerNow = property_descriptor["triggerNow"];
+        var immediate = property_descriptor["immediate"];
+        if (callback)
+            new_prop.addCallback(
+            	callback,
+            	triggerNow !== undefined ? triggerNow : true,
+            	immediate !== undefined ? immediate : false
+            );
+    }
+    else
+    {
+        var oldType = new_prop.getType();
         
+        var type = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
+        new_prop.request(type);
 
-        if (!callback_pass && label)
+        var label = property_descriptor["label"];
+        if (label)
         {
             new_prop.label(label);
         }
 
-        if (!callback_pass && oldType != type && property_descriptor.hasOwnProperty("default"))
+        if (oldType != type && property_descriptor.hasOwnProperty("default"))
         {
             new_prop.state(property_descriptor["default"]);
         }
     }
 
-    if (callback_pass && callback)
-    {
-        new_prop.addCallback(callback, triggerCallbackNow, immediate);
-    }
-
+    var children = Array.isArray(property_descriptor["children"]) ? property_descriptor["children"] : undefined;
     if (children)
     {
         children.forEach(this._initProperty.bind(new_prop, callback_pass));
@@ -166,14 +166,16 @@ weave.WeavePath.prototype._initProperty = function(callback_pass, property_descr
 
     return this;
 };
+
 /**
- * Creates a set of properties for a tool from an array of property descriptor objects. Each property descriptor can contain the follow properties:
+ * Creates a set of properties for a tool from an array of property descriptor objects.
+ * Each property descriptor can contain the follow properties:
  * 'name': Required, specifies the name for the session state item.
  * 'children': Optionally, another array of property descriptors to create as children of this property.
  * 'label': A human-readable display name for the session state item.
  * 'type': A Weave session variable type; defaults to "LinkableVariable," or "LinkableHashMap" if children is defined.
  * 'callback': A function to be called when this session state item (or a child of it) changes.
- * 'triggerCallbackNow': Specify whether to execute the callback immediately after being added; defaults to 'true.'
+ * 'triggerNow': Specify whether to trigger the callback after it is added; defaults to 'true.'
  * 'immediate': Specify whether to execute the callback in immediate (once per change) or grouped (once per frame) mode.
  * @param property_descriptor_array An array of property descriptor objects, each minimally containing a 'name' property.
  * @return The current WeavePath object.
@@ -191,7 +193,7 @@ weave.WeavePath.prototype.initProperties = function(property_descriptor_array)
     return this;
 };
 
-weave.WeavePath.prototype.getProperties = function(/* [relpath] */)
+weave.WeavePath.prototype.getProperties = function(/*...relativePath*/)
 {
     var names = this.getNames.apply(this, arguments);
     var result = {};
@@ -203,7 +205,7 @@ weave.WeavePath.prototype.getProperties = function(/* [relpath] */)
     return result;
 };
 
-weave.WeavePath.prototype.getKeys = function(/* [relpath] */)
+weave.WeavePath.prototype.getKeys = function(/*...relativePath*/)
 {
 	var args = this._A(arguments, 1);
 	var path = this._path.concat(args);
@@ -211,9 +213,7 @@ weave.WeavePath.prototype.getKeys = function(/* [relpath] */)
     return raw_keys.map(this.qkeyToString);
 };
 
-
-
-weave.WeavePath.prototype.flushKeys = function (/* [relpath] */)
+weave.WeavePath.prototype.flushKeys = function (/*...relativePath*/)
 {
     var args = this._A(arguments, 1);
     if (this._assertParams('flushKeys', args))
@@ -225,7 +225,7 @@ weave.WeavePath.prototype.flushKeys = function (/* [relpath] */)
     return this;
 };
 
-weave.WeavePath.prototype.addKeys = function (/* [relpath], keyStringArray */)
+weave.WeavePath.prototype.addKeys = function (/*...relativePath, keyStringArray*/)
 {
     var args = this._A(arguments, 2);
 
@@ -239,7 +239,7 @@ weave.WeavePath.prototype.addKeys = function (/* [relpath], keyStringArray */)
     return this;
 };
 
-weave.WeavePath.prototype.removeKeys = function (/* [relpath], keyStringArray */)
+weave.WeavePath.prototype.removeKeys = function (/*...relativePath, keyStringArray*/)
 {
     var args = this._A(arguments, 2);
 
@@ -280,7 +280,7 @@ weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbac
     return this;
 };
 
-weave.WeavePath.prototype.setKeys = function(/* [relpath], keyStringArray */)
+weave.WeavePath.prototype.setKeys = function(/*...relativePath, keyStringArray*/)
 {
     var args = this._A(arguments, 2);
     if (this._assertParams('setKeys', args))
@@ -295,7 +295,7 @@ weave.WeavePath.prototype.setKeys = function(/* [relpath], keyStringArray */)
     return this;
 };
 
-weave.WeavePath.prototype.filterKeys = function (/* [relpath], keyStringArray */)
+weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArray*/)
 {
     var args = this._A(arguments, 2);
     if (this._assertParams('filterKeys', args))
@@ -315,7 +315,7 @@ weave.WeavePath.prototype.filterKeys = function (/* [relpath], keyStringArray */
 /**
  * This only works on an ILinkableHashMap.
  */
-weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArray */)
+weave.WeavePath.prototype.retrieveColumns = function(/*...relativePath, columnNameArray*/)
 {
     var args = this._A(arguments, 2);
     if (this._assertParams('retrieveColumns', args))
@@ -334,7 +334,7 @@ weave.WeavePath.prototype.retrieveColumns = function(/* [relpath], columnNameArr
     }
 };
 
-/** 
+/**
  * Retrieve a table of columns defined by a mapping of property names to column paths. 
  * @param pathMapping An object containing a mapping of desired property names to column paths. "id" is a reserved name.
  * @param keySetPath A path object pointing to an IKeySet (columns are also IKeySets.)
@@ -386,6 +386,7 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
  * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
  *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
  * @param The human-readable label for an ILinkableObject.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
 {
@@ -409,5 +410,5 @@ weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
 {
 	var args = this._A(arguments, 1);
 	var path = this._path.concat(args);
-	return this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.getLabel(this)")
+	return this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.getLabel(this)");
 };
