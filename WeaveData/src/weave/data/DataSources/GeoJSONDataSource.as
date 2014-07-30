@@ -150,7 +150,7 @@ package weave.data.DataSources
 				
 				// make sure it's valid GeoJSON
 				if (!GeoJSON.isGeoJSONObject(obj))
-					throw new Error("Invalid GeoJSON file: " + url);
+					throw new Error("Invalid GeoJSON file: " + url.value);
 				
 				// parse data
 				jsonData = new GeoJSONData(obj, getKeyType(), keyProperty.value);
