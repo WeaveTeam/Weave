@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.simple.parser.ParseException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import weave.config.WeaveConfig;
+import weave.servlets.WeaveServlet;
 import weave.utils.FileUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
@@ -199,7 +201,7 @@ public class AwsProjectService
 				
 				Object[] singleRow = rows[i];
 				singleObject.queryObjectName= singleRow[0].toString();
-				singleObject.finalQueryObject = singleRow[1].toString();
+				singleObject.finalQueryObject = singleRow[1];
 				singleObject.projectDescription = singleRow[2].toString();
 				
 				if(singleRow[3] != null){//when the queryobject does not contain an associated weave session state
@@ -256,7 +258,7 @@ public class AwsProjectService
 	   * @returns a base64 string representing the session state
 	   * @throws Exception
 	   */
-	public String getSessionState(String queryObject) throws SQLException, RemoteException, ParseException
+	public String getSessionState(String queryObject) throws SQLException, RemoteException
 	{
 		String sessionStateString = null;
 		Connection con = WeaveConfig.getConnectionConfig().getAdminConnection();
@@ -343,7 +345,7 @@ public class AwsProjectService
 	 */
 	public static class AWSQueryObjectCollection
 	{
-		String finalQueryObject;
+		Object finalQueryObject;
 		String queryObjectName;
 		String projectDescription;
 		String thumbnail;
