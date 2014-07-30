@@ -519,7 +519,7 @@ internal class GeoJSONData
 			for each (var part:Array in poly)
 			{
 				// add part marker if this is not the first part
-				if (xyCoords.length == 0)
+				if (xyCoords.length > 0)
 					xyCoords.push(NaN, NaN);
 				// push x,y coords
 				for each (var point:Array in part)
