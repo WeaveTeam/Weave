@@ -91,7 +91,7 @@ public class AWSUtils {
 		}
 	}
 	
-	public static String[] getAlgoObjectList(File directories){
+	public static String[] getAlgoObjectList(File directories) throws Exception{
 		List<String> listOfAlgoObjects = new ArrayList<String>();
 		
 	 		String[] files = directories.list();
@@ -99,7 +99,13 @@ public class AWSUtils {
 	 			{
 	 				for (int j = 0; j < files.length; j++) 
 	 				{
-	 						listOfAlgoObjects.add(files[j]);
+	 					String extension = FilenameUtils.getExtension(files[j]);
+	 					if(extension.equalsIgnoreCase("json")){
+	 						String filename = FilenameUtils.getBaseName(files[j]);
+	 						listOfAlgoObjects.add(filename);
+	 					}
+	 					else
+	 						throw new Exception("Algorithm Object needs to be a json file");
 	 				}
 	 			}
 	 	

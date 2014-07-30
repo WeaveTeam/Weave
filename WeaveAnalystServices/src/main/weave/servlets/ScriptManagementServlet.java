@@ -138,7 +138,7 @@ public class ScriptManagementServlet extends WeaveServlet
  		return algorithmObject;
  	}
  	
- 	public String[] getListOfAlgoObjects(){
+ 	public String[] getListOfAlgoObjects() throws Exception{
  		return AWSUtils.getAlgoObjectList(algorithmDirectory);
  	}
  	
