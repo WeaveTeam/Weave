@@ -18,12 +18,18 @@ import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.utils.ListUtils;
 
+import com.google.gson.internal.StringMap;
+
 public class AwsRService implements IScriptEngine
 {
 	
-	public AwsRService() throws RserveException
+	public AwsRService() throws Exception
 	{
-		rConnection = new RConnection();
+		try{
+			rConnection = new RConnection();
+		} catch (Exception e) {
+			throw new Exception("Cannot get connection to Rserve. Make sure Rserve is running.");
+		}
 	}
 	
 	public void destroy()
@@ -37,37 +43,44 @@ public class AwsRService implements IScriptEngine
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public Object runScript(String scriptAbsPath, String[] inputNames, Object[] inputValues) throws Exception
+	public Object runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception
 	{
 
-		rConnection.assign("scriptPath", scriptAbsPath);
-		assignNamesToVector(rConnection, inputNames, inputValues);
-		
-		Object results = null;
-		Vector<String> names = null;
-		String [] columnNames;
-		String script = "scriptFromFile <- source(scriptPath)\n" +
-					         "scriptFromFile$value"; 
-
-		try
-		{
-			REXP evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
-			names = evalValue.asList().names;
-			columnNames = new String[names.size()];
-			names.toArray(columnNames);
-			results = rexp2javaObj(evalValue);
-			// clear R Objects
-			rConnection.eval("rm(list=ls())");
+		if(rConnection != null) {
+			rConnection.assign("scriptPath", scriptAbsPath);
+			
+			for(String key : scriptInputs.keySet()) {
+				rConnection.assign(key, getREXP(scriptInputs.get(key)));
+			}
+			
+			Object results = null;
+			Vector<String> names = null;
+			String [] columnNames;
+			String script = "scriptFromFile <- source(scriptPath)\n" +
+					"scriptFromFile$value"; 
+			
+			try
+			{
+				REXP evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+				names = evalValue.asList().names;
+				columnNames = new String[names.size()];
+				names.toArray(columnNames);
+				results = rexp2javaObj(evalValue);
+				// clear R Objects
+				rConnection.eval("rm(list=ls())");
+			}
+			catch (Exception e)	{
+				e.printStackTrace();
+				// System.out.println("printing error");
+				// System.out.println(e.getMessage());
+				throw new RemoteException("Unable to run script", e);
+			}
+			
+			results = convertToRowResults(results, columnNames);
+			return results;
+		} else {
+			return new Object();
 		}
-		catch (Exception e)	{
-			e.printStackTrace();
-			// System.out.println("printing error");
-			// System.out.println(e.getMessage());
-			throw new RemoteException("Unable to run script", e);
-		}
-		
-		results = convertToRowResults(results, columnNames);
-		return results;
 	}
 
 	/**

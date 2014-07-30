@@ -41,7 +41,7 @@
   <!-- This is the path of Stata.  Example value: C:/Program Files/Stata/Stata.exe -->
   <context-param>
   	<param-name>StataPath</param-name>
-  	<param-value>stata-se</param-value>
+  	<param-value>stata-mp</param-value>
   </context-param>
   
   <servlet>
