@@ -52,7 +52,7 @@
 					<mx:TabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
 						<mx:VBox label="{lang('Code')}" verticalGap="0">
 							<CodeEditor id="textEditor"/>
-							<Paragraph id="errorDisplay" text="{textEditor.errorString}" color="#D00000" fontWeight="bold"/>
+							<Paragraph id="errorDisplay" condenseWhite="false" text="{textEditor.errorString}" color="#D00000" fontWeight="bold"/>
 						</mx:VBox>
 						<mx:Canvas label="{lang('Help')}" width="100%" height="100%" verticalScrollPolicy="on">
 							<Paragraph selectable="true" translate="true">
