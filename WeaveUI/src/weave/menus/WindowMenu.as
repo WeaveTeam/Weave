@@ -75,6 +75,8 @@ package weave.menus
 				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); }
 			},
 			TYPE_SEPARATOR,
+			ToolsMenu.dashboardItem,
+			TYPE_SEPARATOR,
 			{
 				shown: Weave.properties.enableFullScreen,
 				label: function():String
