@@ -623,13 +623,15 @@ weave.WeavePath.prototype._assertParams = function(methodName, args, minLength)
 
 weave.WeavePath.prototype._failPath = function(methodName, path)
 {
-	var msg = 'command failed (path: ' + path + ')';
+	var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
+	var msg = 'command failed (path: ' + pathStr + ')';
 	this._failMessage(methodName, msg);
 };
 
 weave.WeavePath.prototype._failObject = function(methodName, path)
 {
-	var msg = 'object does not exist (path: ' + path + ')';
+	var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
+	var msg = 'object does not exist (path: ' + pathStr + ')';
 	this._failMessage(methodName, msg);
 };
 
