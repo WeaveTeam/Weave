@@ -71,6 +71,7 @@ package weave.visualization.plotters
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			line.color.defaultValue.value = 0x000000;
 
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
