@@ -131,9 +131,7 @@ public class ScriptManagementServlet extends WeaveServlet
  	
  	public Object getAlgorithmMetadata(String algoFileName) throws Exception{
  		Object algorithmObject = null;
- 		if(FilenameUtils.getExtension(algoFileName).matches("json")){
  			algorithmObject = ScriptManagerService.getScriptMetadata(algorithmDirectory, algoFileName);//returns an algorithm Object
- 		}
  		
  		return algorithmObject;
  	}

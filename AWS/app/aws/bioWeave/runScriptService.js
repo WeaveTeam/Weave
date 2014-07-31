@@ -26,7 +26,23 @@ angular.module('aws.bioWeave')
 				});
 			
 			});
-		};
+	};
+	
+	this.getAlgorithmMetadata = function(algoName){
+		console.log("getting metadata for", algoName);
+		var deferred = $q.defer();
+		aws.queryService(scriptManagementURL, 'getAlgorithmMetadata', [algoName], function(result){
+			that.data.algorithmMetadataObjects = result;
+			
+			console.log("got algoobject list", that.data.listOfAlgoObjects);
+			
+			scope.$safeApply(function() {
+				deferred.resolve(result);
+			});
+			
+		});
+		
+	};
 	
 	/**
 	 * This function adds algorithms to the algorithm cart

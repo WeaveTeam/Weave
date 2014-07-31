@@ -46,16 +46,14 @@
 		</div>	
 		
 		<div class="tool-bar">
-							<ul class="tool-list" ng-model = "runScriptService.data.chosenAlgorithms">
+							<ul ng-model = "runScriptService.data.chosenAlgorithms">
 								<li>
 									<h6 class='tool-category'>Algorithms to be Executed</h6>
 								</li>
 								<li ng-repeat= "algo in runScriptService.data.chosenAlgorithms">
 								{{algo}}
-<!-- 								<span> -->
-<!-- 									<a href='javascript: void()'> {{algo}}</a> -->
-<!-- 								</span> -->
 									<button class="btn btn-sm new-project-button" ng-click ="runScriptService.remove_algorithmObject(algo)">Remove</button>
+									<button class= "btn btn-primary" ng-click = "runScriptService.getAlgorithmMetadata(algo)"> Set Parameters</button>
 								</li>
 							</ul>
 		</div>

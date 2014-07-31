@@ -138,8 +138,15 @@ public class ScriptManagerService{
  	public static Object getScriptMetadata(File directory, String scriptName) throws Exception {
 	// this object will get the metadata from the json file
  		Object scriptMetadata;
+ 		String jsonFileName;
  		Gson gson = new Gson();
- 		String jsonFileName = FilenameUtils.removeExtension(scriptName).concat(".json");
+ 		String extension = FilenameUtils.getExtension(scriptName);
+ 		if(extension.isEmpty())//if it isnt a json(could be a .R, .do etc) add the json extension to it
+ 		{
+ 			jsonFileName = scriptName.concat(".json");
+ 		}
+ 		else
+ 			jsonFileName = FilenameUtils.removeExtension(scriptName).concat(".json");
  		File metadataFile = new File(directory, jsonFileName);
  		if(metadataFile.exists())
  		{
