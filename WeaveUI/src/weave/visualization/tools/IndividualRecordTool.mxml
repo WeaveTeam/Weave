@@ -392,6 +392,12 @@
 		<mx:VBox id="axisSettings" label="{lang('Plotter Axis Settings')}">
 			<mx:CheckBox label="{lang('Show all axis labels')}"
 						 creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
+			<mx:HBox >
+				<ui:DynamicColumnComponent label="{lang('Sort')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
+				<ui:HelpComponent >
+					This column should span the entire time series of the data.
+				</ui:HelpComponent>
+			</mx:HBox>
 			<ui:ColumnListComponent label="{lang('Attributes')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 		</mx:VBox>
 	</ui:ControlPanel>
