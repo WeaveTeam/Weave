@@ -83,7 +83,7 @@
 				</mx:itemRenderer>
 			</mx:List>
 		</mx:VBox>
-		<mx:TabNavigator id="tabNav" initialize="UIUtils.pad(event, padding, 100, 100)">
+		<mx:TabNavigator id="tabNav" initialize="UIUtils.pad(event, padding, 100, 100)" change="callLater(handleSourceSelect)">
 			<mx:ViewStack id="browseTab" label="{lang('Browse')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
 				<mx:Canvas width="100%" height="100%">
 					<ui:Paragraph translate="true" id="browseMessage"/>
@@ -155,7 +155,7 @@
 						<ui:CustomCheckBox id="refreshCheck" label="{lang('Refresh hierarchy after apply')}" selected="true"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Apply changes')}" click="save()"/>
-						<mx:Button label="{lang('Cancel')}" click="selectDataSource(dataSource); tabNav.selectedChild = browseTab;"/>
+						<mx:Button label="{lang('Cancel')}" click="removeEditor(); tabNav.selectedChild = browseTab;"/>
 					</mx:HBox>
 				</mx:VBox>
 			</mx:ViewStack>
@@ -213,7 +213,6 @@
 					
 					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
 					selectDataSource(null);
-					tabNav.addEventListener(Event.CHANGE, handleTabIndexChange);
 				}
 				
 				private function initCreateDataSource():void
@@ -280,25 +279,6 @@
 					panelHeight.value = "500";
 				}
 				
-				private function handleTabIndexChange(event:Event):void
-				{
-					if (event)
-					{
-						// if we try to change the selectedChild immediately, the tab nav gets out of sync
-						callLater(handleTabIndexChange, [null]);
-						return;
-					}
-					if (tabNav.selectedChild != editTab && hasPendingChanges())
-					{
-						var newTabIndex:int = tabNav.selectedIndex;
-						tabNav.selectedChild = editTab;
-						confirmDiscard(function():void {
-							selectDataSource(dataSource); // resets changes
-							tabNav.selectedIndex = newTabIndex;
-						});
-					}
-				}
-				
 				private function hasPendingChanges():Boolean
 				{
 					return editor && editor.parent && editor.hasPendingChanges();
@@ -332,28 +312,31 @@
 				private function handleSourceSelect(confirmed:Boolean = false):void
 				{
 					var newDataSource:IDataSource = sourceList.selectedItem as IDataSource;
-					if (!confirmed && dataSource == newDataSource)
+					
+					// don't reset editor if unnecessary
+					if (dataSource == newDataSource && tabNav.selectedChild == editTab && hasPendingChanges())
 						return;
 					
 					if (!confirmed && hasPendingChanges())
 					{
 						// switch back until user confirms
 						sourceList.selectedItem = dataSource;
-						tabNav.selectedIndex = 1;
+						tabNav.selectedChild = editTab;
 						confirmDiscard(function():void { selectDataSource(newDataSource); });
 						return;
 					}
 					
-					// clear any existing selection
-					browser.referencedColumn.setColumnReference(null, null);
+					if (confirmed && dataSource == newDataSource)
+					{
+						// clear any existing selection
+						browser.referencedColumn.setColumnReference(null, null);
+					}
 					
-					if (editor && editor.parent == container)
-						container.removeChild(editor as DisplayObject);
-					disposeObject(editor);
-					editor = null;
+					removeEditor();
 					
 					dataSource = newDataSource
-					if (dataSource)
+					
+					if (dataSource && tabNav.selectedChild == editTab)
 					{
 						editor = registerDisposableChild(this, WeaveAPI.EditorManager.getNewEditor(dataSource));
 						if (!editor)
@@ -364,7 +347,8 @@
 						editor.percentWidth = 100;
 						editor.percentHeight = 100;
 					}
-					else
+					
+					if (!dataSource)
 					{
 						if (WeaveAPI.globalHashMap.getObjects(IDataSource).length)
 							browseMessage.text = configureMessage.text = "Please select a data source.";
@@ -380,6 +364,7 @@
 						if (editor != null)
 						{
 							editor.applyChanges();
+							removeEditor();
 							if (refreshCheck.selected)
 								dataSource.refreshHierarchy();
 							tabNav.selectedChild = browseTab;
@@ -389,6 +374,14 @@
 					{
 						reportError(e);
 					}
+				}
+				
+				private function removeEditor():void
+				{
+					if (editor && editor.parent == container)
+						container.removeChild(editor as DisplayObject);
+					disposeObject(editor);
+					editor = null;
 				}
 				
 				override public function removePanel():void
