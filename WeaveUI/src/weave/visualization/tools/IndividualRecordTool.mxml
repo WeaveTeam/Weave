@@ -120,9 +120,9 @@
 			{
 				var heightColumns:Array = _plotter.heightColumns.getObjects();
 				
-				var sortAxisTitle:String = "Testing";
+				var sortAxisTitle:String = "Year";
 				var sortAxisToolTipColumn:IAttributeColumn = _plotter.sortColumn;
-				var heightAxisTitle:String = 'Year';
+				var heightAxisTitle:String = "Parameters";
 				var heightAxisToolTipColumn:IAttributeColumn = null;
 				
 				var sortAxis:SimpleAxisPlotter;
@@ -131,12 +131,12 @@
 				var xAxisTitle:String; // title for x axis
 				var yAxisTitle:String; // title for y axis 
 				
-				yAxisTitle = sortAxisTitle;
-				sortAxis = yAxisPlotter;
+				yAxisTitle = heightAxisTitle;
+				heightAxis = yAxisPlotter;
 				visualization.leftMarginColumn = sortAxisToolTipColumn;
 				
-				heightAxis = xAxisPlotter;
-				xAxisTitle = heightAxisTitle;
+				sortAxis = xAxisPlotter;
+				xAxisTitle = sortAxisTitle;
 				visualization.bottomMarginColumn = heightAxisToolTipColumn;
 				
 				visualization.enableProbeLine(false, false);
