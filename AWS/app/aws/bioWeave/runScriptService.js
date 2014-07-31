@@ -8,6 +8,9 @@ angular.module('aws.bioWeave')
 	var that = this;
 	this.data = {};
 	this.data.chosenAlgorithms = [];//represents the list of algorithms in the algorithm cart, Algorithms which will be executed
+	//will serve as a temp cache to store metadata objects before executing the algorithms, so that we dont have to make a server call everytime
+	this.data.algorithmMetadataObjects= [];
+	
 	
 	/**
      * This function wraps the async aws getListOfAlgoObjects function into an angular defer/promise
@@ -18,9 +21,7 @@ angular.module('aws.bioWeave')
 		var deferred = $q.defer();
 		aws.queryService(scriptManagementURL, 'getListOfAlgoObjects', null, function(result){
 			that.data.listOfAlgoObjects = result;
-			
-			console.log("got algoobject list", that.data.listOfAlgoObjects);
-	        
+			//console.log("got algoobject list", that.data.listOfAlgoObjects);
 				scope.$safeApply(function() {
 					deferred.resolve(result);
 				});
@@ -28,21 +29,53 @@ angular.module('aws.bioWeave')
 			});
 	};
 	
+	
+	/**
+     * This function wraps the async aws getAlgorithmMetadata function into an angular defer/promise
+     * the metadata object helps in dynamic building of the UI for entering every algorithm's parameters
+     */
 	this.getAlgorithmMetadata = function(algoName){
 		console.log("getting metadata for", algoName);
+		
+		//check if the object is already present, if not then retrieve the metadata thru a server call
+		if(this.data.algorithmMetadataObjects.length > 0)
+		{
+			for(var j in this.data.algorithmMetadataObjects){
+				var checkString = this.data.algorithmMetadataObjects[j].title;
+				if(checkString.match(algoName)){
+					//uiconstructionfunction(that.data.algoMetadataObjects[j])
+					console.log("checked locally", this.data.algorithmMetadataObjects[j]);
+					break;
+				}
+			}
+		}
+		
+		
 		var deferred = $q.defer();
 		aws.queryService(scriptManagementURL, 'getAlgorithmMetadata', [algoName], function(result){
-			that.data.algorithmMetadataObjects = result;
+			//that.data.algorithmMetadataObjects = result;
 			
-			console.log("got algoobject list", that.data.listOfAlgoObjects);
+			var algoMetadataObject = {};
+			algoMetadataObject.algoName = result.algoName;
+			algoMetadataObject.title = result.title;
+			algoMetadataObject.comp_engine = result.ComputationEngine;
+			algoMetadataObject.inputParams = result.inputParams;
+			algoMetadataObject.outputs = result.outputs;
 			
+			//adding it to the list
+			that.data.algorithmMetadataObjects.push(algoMetadataObject);
+			console.log("current list of metadata objects", that.data.algorithmMetadataObjects);
+			console.log("received from server", algoMetadataObject);
+			//uiContsurctionfunction(alMetadataObject);
 			scope.$safeApply(function() {
 				deferred.resolve(result);
 			});
 			
 		});
+			
 		
 	};
+	
 	
 	/**
 	 * This function adds algorithms to the algorithm cart
@@ -58,6 +91,8 @@ angular.module('aws.bioWeave')
 		console.log("chosen", this.data.chosenAlgorithms);
 	};
 		
+	
+	
 	/**
 	 * This function removes algorithms from the algorithm cart
      */
@@ -66,15 +101,4 @@ angular.module('aws.bioWeave')
 		console.log("updated", this.data.chosenAlgorithms);
 	};
 		
-//	this.runScript = function(){
-//		aws.queryService(pythonURL, 'runScript', null, function(result){
-//			that.data.check = result;
-//        
-//			scope.$safeApply(function() {
-//				deferred.resolve(result);
-//			});
-//		
-//		});
-//	};
-	
 }]);
