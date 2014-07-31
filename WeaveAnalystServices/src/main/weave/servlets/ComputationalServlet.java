@@ -80,31 +80,32 @@ public class ComputationalServlet extends WeaveServlet
 				// collect the names and id for single query below
 				colNames.add(key);
 				colIds.add((Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
-			} else if (value instanceof Object[]) {
+			} else if (value instanceof ArrayList) {
 				
 				ArrayList<Integer> ids = new ArrayList<Integer>();
-				Object[] values = (Object[]) value;
-				for(int i = 0; i < values.length; i++)
+				ArrayList<Object> values = (ArrayList<Object>) value;
+				for(int i = 0; i < values.size(); i++)
 				{	
-					StringMap<Object> strMap = (StringMap<Object>) values[i];
+					StringMap<Object> strMap = (StringMap<Object>) values.get(i);
 					ids.add((Integer) ((Double) strMap.get("id")).intValue());
 				}
 				
-				WeaveRecordList data = null;
-				data = DataService.getFilteredRows(Ints.toArray(ids), filters, null);
+				Object[][] data = (Object[][]) AWSUtils.transpose(DataService.getFilteredRows(Ints.toArray(ids), filters, null).recordData);
 				input.put(key, data);
 			}
 		}
 		
-		// use the collection of ids from above to retrieve the data.
-		WeaveRecordList data = DataService.getFilteredRows(Ints.toArray(colIds), filters, null);
-	
-		// transpose the data to obtain the column form
-		Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-
-		// assign each columns to proper column name
-		for(int i =  0; i < colNames.size(); i++) {
-			input.put(colNames.get(i), columnData[i]);
+		if(colIds.size() > 0) {
+			// use the collection of ids from above to retrieve the data.
+			WeaveRecordList data = DataService.getFilteredRows(Ints.toArray(colIds), filters, null);
+			
+			// transpose the data to obtain the column form
+			Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
+			
+			// assign each columns to proper column name
+			for(int i =  0; i < colNames.size(); i++) {
+				input.put(colNames.get(i), columnData[i]);
+			}
 		}
 		
 		endTime = System.currentTimeMillis();
