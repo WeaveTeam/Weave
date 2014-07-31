@@ -31,17 +31,27 @@
 	<ui:Indent label="{lang('Source Name *')}">
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('GeoJSON URL')}">
+	<ui:Indent label="{lang('GeoJSON URL *')}">
 		<ui:TextInputWithPrompt id="url" width="100%" prompt="http://www.example.com/example.geojson"/>
 		<mx:Button label="{lang('Open file')}" click="openFile(url, new FileFilter('GeoJSON', '*.geojson;*.json'), new FileFilter('All', '*.*'));"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Projection')}">
+		<ui:helpContent>
+			Specifies the geographic projection in which the geometry data is provided.
+			
+			Weave will try to read the projection information from the GeoJSON file, but it only supports legacy identifiers such as "EPSG:4326".
+			Use this setting if Weave fails to determine the correct legacy identifier for the projection.
+			Changing this setting does not alter the geometry coordinates.
+		</ui:helpContent>
 		<ui:TextInputWithPrompt id="projection" width="100%" prompt="Example: EPSG:4326"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Property')}">
-		<mx:TextInput id="keyProperty" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each feature in the data set')}"/>
+		<ui:helpContent>
+			Enter the name of the property that uniquely identifies each feature in the data set.
+		</ui:helpContent>
+		<mx:TextInput id="keyProperty" width="100%"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Key Type')}">
+	<ui:Indent label="{lang('Key Type')}" helpContent="{KeyTypesMenu.helpContent}">
 		<ui:KeyTypesMenu id="keyTypeSelector" text="{sourceName.text}" creationComplete="{if (target)
 						 {
 						 	(event.target as KeyTypesMenu).addKeyTypeToMenu(target.getKeyType());
@@ -87,7 +97,7 @@
 				{
 					sourceName.text = WeaveAPI.globalHashMap.getName(target);
 					url.text = target.url.value;
-					projection.text = target.projection.value;
+					projection.text = target.getProjection();
 					keyProperty.text = target.keyProperty.value;
 					keyTypeSelector.addKeyTypeToMenu(target.getKeyType());
 					keyTypeSelector.selectedKeyType = target.keyType.value;
@@ -96,18 +106,24 @@
 				}
 			}
 			
+			private function eq(s1:String, s2:String):Boolean { return (s1||'')==(s2||''); }
+			
 			public function hasPendingChanges():Boolean
 			{
-				return StandardLib.asString(target.url.value) != StandardLib.asString(url.text)
-					|| StandardLib.asString(target.projection.value) != StandardLib.asString(projection.text)
-					|| StandardLib.asString(target.keyProperty.value) != StandardLib.asString(keyProperty.text)
-					|| StandardLib.asString(target.keyType.value) != StandardLib.asString(keyTypeSelector.selectedKeyType);
+				return !eq(target.url.value, url.text)
+					|| (
+						!eq(target.getProjection(), projection.text) &&
+						!eq(target.projection.value, projection.text)
+					)
+					|| !eq(target.keyProperty.value, keyProperty.text)
+					|| !eq(target.keyType.value, keyTypeSelector.selectedKeyType);
 			}
 
 			public function applyChanges():void
 			{
 				target.url.value = url.text;
-				target.projection.value = projection.text;
+				if (!eq(target.getProjection(), projection.text))
+					target.projection.value = projection.text;
 				target.keyProperty.value = keyProperty.text;
 				target.keyType.value = keyTypeSelector.selectedKeyType;
 			}
