@@ -35,7 +35,6 @@ package weave.ui
 	
 	/**
 	 * This class adds a submenu to any UI Compnent.
-	 * Add menu items to the menuItems Array.
 	 * 
 	 * @author skolman
 	 * @author adufilie
@@ -43,37 +42,20 @@ package weave.ui
 	public class SubMenu extends Menu
 	{
 		/**
-		 * Adds a submenu to any UI Compnent.
+		 * Adds a submenu to any UI Component.
 		 * @param uiParentComponent The UIComponent to add the submenu to.
-		 * @param openMenuEventTypes A list of event types which will toggle the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
-		 * @param closeMenuEventTypes A list of event types which will close the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
-		 * @param dataProvider Either a single WeaveMenuItem or an Array of WeaveMenuItems (or params to pass to the WeaveMenuItem constructor).
+		 * @param dataProvider Either a single WeaveMenuItem
+		 *                     or an Array of WeaveMenuItems (or params to pass to the WeaveMenuItem constructor)
+		 *                     or a Function returning such an Array.
 		 */
-		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null, dataProvider:Object = null)
+		public function SubMenu(uiParent:UIComponent, dataProvider:Object = null)
 		{
 			if (uiParent == null)
 				throw new Error("uiParent cannot be null");
 			
 			_uiParent = uiParent;
 			
-			if (!openMenuEventTypes)
-				openMenuEventTypes = [MouseEvent.MOUSE_DOWN];
-			if (!closeMenuEventTypes)
-				closeMenuEventTypes = [MouseEvent.MOUSE_DOWN];
-			
-			var type:String;
-			for each (type in openMenuEventTypes)
-			{
-				if (closeMenuEventTypes && closeMenuEventTypes.indexOf(type) >= 0)
-					_uiParent.addEventListener(type, toggleSubMenu);
-				else
-					_uiParent.addEventListener(type, openSubMenu);
-			}
-			for each (type in closeMenuEventTypes)
-			{
-				if (openMenuEventTypes && openMenuEventTypes.indexOf(type) < 0)
-					_uiParent.addEventListener(type, closeSubMenu);
-			}
+			setSubMenuEvents([MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_DOWN, Event.REMOVED_FROM_STAGE]);
 			
 			includeInLayout = false;
 			tabEnabled = false;
@@ -82,6 +64,51 @@ package weave.ui
 			
 			addEventListener(MenuEvent.ITEM_CLICK, handleSubMenuItemClick);
 			this.dataProvider = dataProvider;
+		}
+		
+		private var _eventListeners:Object = {};
+		
+		/**
+		 * Sets up event listeners that show and hide the SubMenu.
+		 * @param openEvents A list of event types which will toggle the submenu.
+		 *                   Default is [MouseEvent.MOUSE_DOWN].
+		 *                   Supply an empty Array for no events.
+		 * @param closeEvents A list of event types which will close the submenu.
+		 *                    Default is [MouseEvent.MOUSE_DOWN, Event.REMOVED_FROM_STAGE].
+		 *                    Supply an empty Array for no events.
+		 */
+		public function setSubMenuEvents(openEvents:Array, closeEvents:Array):void
+		{
+			var type:String;
+			var func:Function;
+			
+			// remove previous event listeners
+			for (type in _eventListeners)
+				for each (func in _eventListeners[type])
+					_uiParent.removeEventListener(type, func);
+			
+			// reset event listener mapping
+			_eventListeners = {};
+			var array:Array;
+			for each (type in openEvents)
+			{
+				array = _eventListeners[type] || (_eventListeners[type] = []);
+				if (closeEvents && closeEvents.indexOf(type) >= 0)
+					array.push(toggleSubMenu);
+				else
+					array.push(openSubMenu);
+			}
+			for each (type in closeEvents)
+			{
+				array = _eventListeners[type] || (_eventListeners[type] = []);
+				if (openEvents && openEvents.indexOf(type) < 0)
+					array.push(closeSubMenu);
+			}
+			
+			// add new event listeners
+			for (type in _eventListeners)
+				for each (func in _eventListeners[type])
+					_uiParent.addEventListener(type, func);
 		}
 		
 		private var _uiParent:UIComponent = null;
@@ -124,7 +151,7 @@ package weave.ui
 		{
 			if (getQualifiedClassName(value) == 'Object')
 				value = new WeaveMenuItem(value);
-			if (value is Array)
+			if (value is Array || value is Function)
 				value = new WeaveMenuItem({children: value});
 			rootItem = value as WeaveMenuItem;
 			super.dataProvider = value;

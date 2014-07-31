@@ -29,7 +29,7 @@
 	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*">
 	<mx:HDividedBox initialize="UIUtils.pad(event, padding, 100, 100)">
 		<mx:VBox height="100%">
-			<mx:Button label="{lang('New data source...')}" click="addSource()" width="100%"/>
+			<mx:Button id="createDataSource" label="{lang('New data source...')}" width="100%"/>
 			<ui:Paragraph translate="true">
 				Select a data source:
 			</ui:Paragraph>
@@ -39,25 +39,49 @@
 					 height="100%" width="100%">
 				<mx:itemRenderer>
 					<mx:Component>
-						<mx:Canvas horizontalScrollPolicy="off">
-							<mx:Label id="lbl"/>
+						<mx:HBox horizontalScrollPolicy="off" verticalAlign="middle">
+							<mx:Label id="lbl" width="100%"/>
+							<mx:Button id="menu" toolTip="{lang('Menu')}"
+									   icon="@Embed(source='/weave/resources/images/menu_9x7.png')"
+									   width="20" height="20"/>
 							<ui:BusyIndicator id="busy" diameterRatio=".75"/>
 							<mx:Script>
 								<![CDATA[
+									import weave.api.core.ILinkableHashMap;
 									import weave.api.core.ILinkableObject;
+									import weave.api.getLinkableOwner;
+									import weave.core.UIUtils;
+									import weave.menus.WeaveMenuItem;
+									import weave.ui.SubMenu;
+									
+									private var _subMenu:SubMenu;
+									
+									override protected function childrenCreated():void
+									{
+										UIUtils.pad(this, 2);
+										_subMenu = new SubMenu(menu, WeaveMenuItem.createItems({
+											label: lang('Remove'),
+											click: remove
+										}));
+									}
+
 									override public function set data(value:Object):void
 									{
 										super.data = value;
 										lbl.text = WeaveAPI.globalHashMap.getName(value as ILinkableObject);
 										busy.targets = [value];
 									}
+									
+									private function remove():void
+									{
+										WeaveAPI.globalHashMap.removeObject(WeaveAPI.globalHashMap.getName(data as ILinkableObject));
+									}
 								]]>
 							</mx:Script>
-						</mx:Canvas>
+						</mx:HBox>
 					</mx:Component>
 				</mx:itemRenderer>
 			</mx:List>
-			<mx:Button label="{lang('Remove selected')}" click="removeSelected()" width="100%"/>
 		</mx:VBox>
 		<mx:TabNavigator id="tabNav" initialize="UIUtils.pad(event, padding, 100, 100)">
 			<mx:ViewStack id="browseTab" label="{lang('Browse')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
@@ -66,7 +90,7 @@
 				</mx:Canvas>
 				<mx:HBox width="100%" height="100%">
 					<editors:DynamicColumnEditor id="browser" dataSource="{dataSource}"/>
-					<mx:Button id="createVis" label="{lang('Create a visualization')}"/>
+					<mx:Button id="createVis" label="{lang('Create a visualization...')}"/>
 					<mx:VBox width="100%" height="100%" id="columnDisplay">
 						<mx:Label id="columnDisplayLabel"/>
 						<CustomDataGrid:CustomDataGrid id="columnDisplayGrid"
@@ -178,54 +202,76 @@
 				private const dataColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 				
 				private var createVisSubMenu:SubMenu;
+				private var createDataSourceSubMenu:SubMenu;
 				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
 					
 					initCreateVis();
+					initCreateDataSource();
 					
 					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
 					selectDataSource(null);
 					tabNav.addEventListener(Event.CHANGE, handleTabIndexChange);
 				}
 				
+				private function initCreateDataSource():void
+				{
+					function getLabel(item:WeaveMenuItem):String
+					{
+						return WeaveAPI.getRegisteredImplementationDisplayName(item.data as Class);
+					}
+					function onClick(item:WeaveMenuItem):void
+					{
+						var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
+						adsp.dataSourceType = item.data as Class;
+					}
+					createDataSourceSubMenu = new SubMenu(createDataSource, function():Array {
+						return WeaveAPI.getRegisteredImplementations(IDataSource).map(
+							function(impl:Class, ..._):* {
+								return {"data": impl, "label": getLabel, "click": onClick};
+							}
+						);
+					});
+				}
+				
 				private function initCreateVis():void
 				{
 					browser.explorer.fileVBox.addChildAt(createVis, 0);
-					createVisSubMenu = new SubMenu(createVis, null, null, new WeaveMenuItem({
-						children: function():Array {
-							return ToolsMenu.getDynamicItems()
-								.filter(function(item:WeaveMenuItem, ..._):Boolean {
-									var qname:String = getQualifiedClassName(item.data);
-									return ClassUtils.classImplements(qname, getQualifiedClassName(IObjectWithSelectableAttributes));
-								})
-								.map(function(item:WeaveMenuItem, ..._):WeaveMenuItem {
-									item.click = function(item:WeaveMenuItem):void {
-										var input:Array = [].concat(browser.explorer.selectedFolder.getChildren());
-										const max_input:int = 10;
-										if (input.length > max_input)
-											input.length = max_input;
-										var obj:IObjectWithSelectableAttributes = ToolsMenu.createGlobalObject(item);
-										if (obj is SimpleVisTool)
-										{
-											(obj as SimpleVisTool).initSelectableAttributes(input);
-										}
-										else
-										{
-											var selectables:Array = obj.getSelectableAttributes();
-											if (selectables.length == 1 && selectables[0] is ILinkableHashMap)
-												input.forEach(function(item:Object, i:int, a:Array):void {
-													ColumnUtils.initSelectableAttribute(selectables[0], item, i == 0);
-												});
-											else
-												ColumnUtils.initSelectableAttributes(selectables, input);
-										}
-									}
-									return item;
-								});
+					
+					function onClick(item:WeaveMenuItem):void
+					{
+						var input:Array = [].concat(browser.explorer.selectedFolder.getChildren());
+						const max_input:int = 10;
+						if (input.length > max_input)
+							input.length = max_input;
+						var obj:IObjectWithSelectableAttributes = ToolsMenu.createGlobalObject(item) as IObjectWithSelectableAttributes;
+						if (obj is SimpleVisTool)
+						{
+							(obj as SimpleVisTool).initSelectableAttributes(input);
 						}
-					}));
+						else
+						{
+							var selectables:Array = obj.getSelectableAttributes();
+							if (selectables.length == 1 && selectables[0] is ILinkableHashMap)
+								input.forEach(function(item:Object, i:int, a:Array):void {
+									ColumnUtils.initSelectableAttribute(selectables[0], item, i == 0);
+								});
+							else
+								ColumnUtils.initSelectableAttributes(selectables, input);
+						}
+					}
+					createVisSubMenu = new SubMenu(createVis, function():Array {
+						return ToolsMenu.getDynamicItems().filter(
+							function(item:WeaveMenuItem, ..._):Boolean {
+								item.click = onClick;
+								var qname:String = getQualifiedClassName(item.data);
+								var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
+								return ClassUtils.classImplements(qname, qname_iowsa);
+							}
+						);
+					});
 				}
 				
 				override public function reposition():void
@@ -325,14 +371,6 @@
 						else
 							browseMessage.text = configureMessage.text = "Please create a data source first.";
 					}
-				}
-				private function addSource():void
-				{
-					DraggablePanel.openStaticInstance(AddDataSourcePanel);
-				}
-				private function removeSelected():void
-				{
-					WeaveAPI.globalHashMap.removeObject(WeaveAPI.globalHashMap.getName(dataSource));
 				}
 				
 				private function save():void

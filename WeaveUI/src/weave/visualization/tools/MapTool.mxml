@@ -323,12 +323,13 @@
 			private var selectionSubMenu:SubMenu;
 			private function initSelectionSubMenu():void
 			{
-				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP], [
+				selectionSubMenu = new SubMenu(selectModeButton, [
 					menuItem(InteractionController.SELECTION_MODE_RECTANGLE, "Rectangular Selection"),
 					menuItem(InteractionController.SELECTION_MODE_CIRCLE, "Circular Selection"),
 					menuItem(InteractionController.SELECTION_MODE_LASSO, "Lasso Selection")/*,
 					menuItem(InteractionController.SELECTION_MODE_POINT, "Point Selection")*/
 				]);
+				selectionSubMenu.setSubMenuEvents([MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				function menuItem(mode:String, label:String):Object {
 					return {
 						data: mode,
