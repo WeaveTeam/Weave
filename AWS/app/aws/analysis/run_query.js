@@ -24,41 +24,34 @@ analysis_mod.controller("RunQueryCtrl", function($scope, queryService) {
 //		queryService.getSessionState();
 //	};
 });
-analysis_mod.controller('ModalDemoCtrl', [ '$scope', '$modal', '$log', function ($scope, $modal, $log) {
-    $scope.items = ['item1', 'item2', 'item3'];
-    console.log("reached the modal controller", $modal);
-    $scope.open = function () {
-      var modalInstance = $modal.open({
-        templateUrl: 'aws/analysis/myModalContent.html',
-        controller: 'ModalInstanceCtrl',
-        resolve: {
-          items: function () {
-            return $scope.items;
-          }
-        }
+analysis_mod.controller('DialogController', function ($scope, $dialog) {
+	$scope.opts = {
+		 backdrop: false,
+          backdropClick: true,
+          dialogFade: true,
+          keyboard: true,
+          templateUrl: 'aws/analysis/myModalContent.html',
+          controller: 'DialogInstanceCtrl',
+          resolve:{projectEntered :function() {return angular.copy(projectEntered);}}
+	};
+	
+    $scope.saveVisualizations = function (projectEntered) {
+      var d = $dialog.dialog($scope.opts);
+      d.open().then(function(projectEntered){
+    	  if(projectEntered){
+    		  console.log("finally got project as ", projectEntered);
+    	  }
       });
-    
-//      modalInstance.result.then(function (selectedItem) {
-//        $scope.selected = selectedItem;
-//      }, function () {
-//        $log.info('Modal dismissed at: ' + new Date());
-//      });
+      
+      
     };
-  }])
-  .controller('ModalInstanceCtrl', [ '$scope', '$modalInstance', 'items', function ($scope, $modalInstance, items) {
-    $scope.items = items;
-    $scope.selected = {
-      item: $scope.items[0]
+  })
+  .controller('DialogInstanceCtrl', function ($scope, dialog, projectEntered) {
+	  $scope.close = function (projectEntered) {
+      dialog.close(projectEntered);
     };
-  
-    $scope.ok = function () {
-      $modalInstance.close($scope.selected.item);
-    };
-  
-    $scope.cancel = function () {
-      $modalInstance.dismiss('cancel');
-    };
-  }]);
+  });
+
 analysis_mod.controller("QueryImportExportCtrl", function($scope, queryService) {
 
 	$scope.exportQueryObject = function() {

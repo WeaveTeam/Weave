@@ -1,21 +1,21 @@
 <div class= "modal-dialog">
 	<div class="modal-content">
 			<div class="modal-header">
-            	<h3>I'm a modal!</h3>
+            	<h4>Saving the visualizations to the Query Object</h4>
 			</div>
 			
 			<div class="modal-body">
-	            <ul>
-	                <li ng-repeat="item in items">
-	                    <a ng-click="selected.item = item">{{ item }}</a>
-	                </li>
-	            </ul>
-            	Selected: <b>{{ selected.item }}</b>
+	           <p>
+				    Enter the project name to store the <code>query object</code>
+				    <input ng-model="projectEntered">
+				    <br> <br>
+				    Enter the title of the <code>query object</code>
+				    <input ng-model="queryTitleEntered">
+				  </p>
 			</div>
 			
 			<div class="modal-footer">
-	            <button class="btn btn-primary" ng-click="ok()">OK</button>
-	            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+  				<button ng-click="close(projectEntered)" class="btn btn-primary" >Close</button>
 			</div>
 	</div>
 </div>
