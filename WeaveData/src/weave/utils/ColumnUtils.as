@@ -616,7 +616,7 @@ package weave.utils
 			var inputRef:IColumnReference = column_or_columnReference as IColumnReference;
 			
 			var outputCol:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
-			if (outputCol)
+			if (outputCol && outputCol.getInternalColumn() == null)
 			{
 				if (inputCol)
 				{
