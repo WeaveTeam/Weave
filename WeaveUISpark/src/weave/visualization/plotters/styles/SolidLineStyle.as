@@ -25,7 +25,9 @@ package weave.visualization.plotters.styles
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ILineStyle;
 	import weave.compiler.StandardLib;
@@ -171,11 +173,15 @@ package weave.visualization.plotters.styles
 		}
 		
 		// backwards compatibility
-		[Deprecated(replacement="enable")] public function set enabled(value:Object):void
+		[Deprecated(replacement="enable")] public function get enabled():AlwaysDefinedColumn
 		{
-			try {
-				enable.setSessionState(value['defaultValue']);
-			} catch (e:Error) { }
+			if (!_adc)
+			{
+				_adc = newDisposableChild(this, AlwaysDefinedColumn);
+				_adc.defaultValue.addImmediateCallback(this, function():void { enable.value = _adc.defaultValue.value; });
+			}
+			return _adc;
 		}
+		private var _adc:AlwaysDefinedColumn
 	}
 }
