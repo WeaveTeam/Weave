@@ -392,7 +392,7 @@ package weave.utils
 				var values:Array = [];
 				for (var kIndex:int = 0; kIndex < keys.length; kIndex++)
 				{
-					var value:* = column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType);
+					var value:* = column ? column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType) : undefined;
 					var isUndef:Boolean = StandardLib.isUndefined(value);
 					if (!allowMissingData && isUndef)
 					{
