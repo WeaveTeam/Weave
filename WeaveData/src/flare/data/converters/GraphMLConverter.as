@@ -81,11 +81,13 @@ package flare.data.converters
             var keys:Array;
             
             // set schema defaults
-            nodeSchema[ID] = ID;
-            edgeSchema[ID] = ID;
-            edgeSchema[SOURCE] = SOURCE;
-            edgeSchema[TARGET] = TARGET;
-            edgeSchema[DIRECTED] = DIRECTED;
+
+            nodeSchema[ID] = {name: ID, type: ATTRTYPE_STRING};
+
+            edgeSchema[ID] = {name: ID, type: ATTRTYPE_STRING};
+            edgeSchema[SOURCE] = {name: SOURCE, type: ATTRTYPE_STRING};
+            edgeSchema[TARGET] = {name: TARGET, type: ATTRTYPE_STRING};
+            edgeSchema[DIRECTED] = {name: DIRECTED, type: ATTRTYPE_BOOLEAN, def: isDirected};
 
             nodeKeys.push(ID);
 
@@ -99,20 +101,22 @@ package flare.data.converters
                 id       = key.@[ID].toString();
                 group    = key.@[FOR].toString();
                 attrName = key.@[ATTRNAME].toString();
+                attrType = key.@[ATTRTYPE].toString();
                 def = key[DEFAULT].toString();
                 def = def != null && def.length > 0
                     ? def : null;
-                
+
                 schema = (group==EDGE ? edgeSchema : nodeSchema);
                 keys = (group==EDGE ? edgeKeys : nodeKeys);
-                schema[id] = attrName;
+
+                schema[id] = {name: attrName, type: attrType, def: def};
                 keys.push(id);
             }
             
             // parse nodes
             for each (var node:XML in graphml..node) {
                 id = node.@[ID].toString();
-                lookup[id] = (n = parseData(node, nodeSchema));
+                lookup[id] = (n = parseData(node));
                 nodes.push(n);
             }
             
@@ -128,7 +132,7 @@ package flare.data.converters
                 if (!lookup.hasOwnProperty(tid))
                     error("Edge "+id+" references unknown node: "+tid);
                                 
-                edges.push(e = parseData(edge, edgeSchema));
+                edges.push(e = parseData(edge));
             }
             var result:Object = {};
 
@@ -144,7 +148,7 @@ package flare.data.converters
             return result;
         }
         
-        private static function parseData(node:XML, schema:Object):Object {
+        private static function parseData(node:XML):Object {
             var n:Object = {};
             var name:String, value:Object;
             
@@ -183,6 +187,14 @@ package flare.data.converters
         public static const ALL:String        = "all";
         public static const ATTRNAME:String   = "attr.name";
         public static const ATTRTYPE:String   = "attr.type";
+
+        public static const ATTRTYPE_BOOLEAN:String  = "boolean";
+        public static const ATTRTYPE_INT:String      = "int";
+        public static const ATTRTYPE_LONG:String     = "long";
+        public static const ATTRTYPE_FLOAT:String    = "float";
+        public static const ATTRTYPE_DOUBLE:String   = "double";
+        public static const ATTRTYPE_STRING:String   = "string";
+
         public static const DEFAULT:String    = "default";
         
         public static const NODE:String   = "node";

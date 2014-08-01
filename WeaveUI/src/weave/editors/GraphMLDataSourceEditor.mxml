@@ -105,7 +105,7 @@
                 
                 if (target)
                 {
-                    var label:String = target.nodeSchema[key];
+                    var label:String = target.nodeSchema[key].name;
                     if (label)
                         return label + " (" + key +")";
                     else
@@ -120,7 +120,7 @@
                 
                 if (target)
                 {
-                    var label:String = target.edgeSchema[key];
+                    var label:String = target.edgeSchema[key].name;
                     if (label)
                         return label + " (" + key +")";
                     else
