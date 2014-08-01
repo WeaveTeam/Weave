@@ -58,8 +58,8 @@
 			public const _recordKeySubset:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;	
-			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), sizeAxisTickCountRequestedChanged, true);
-			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxes, true);
+			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), sizeAxisTickCountRequestedChanged, true);
+			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateAxes, true);
 			
 			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
 			
@@ -75,7 +75,6 @@
 				_plotter = initializePlotters(IndividualRecordToolPlotter, true);
 				
 				visualization.plotManager.enableAutoZoomToExtent.value = true;
-				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				_recordKeySubset.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
@@ -85,6 +84,7 @@
 				_recordKeySubset.addGroupedCallback(this, handleSubsetChange);
 				_probe.addGroupedCallback(this, handleSubsetChange);
 				_selection.addGroupedCallback(this, handleSubsetChange);
+				_plotter.heightColumns.addImmediateCallback(this, adjustHeightTickMarks);
 			}
 			
 			override protected function childrenCreated():void
@@ -144,15 +144,16 @@
 				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction, _plotter.sortColumn);
 				heightAxis.setLabelFunction(heightAxisLabelFunction, heightColumns[0]);
 				
-				// height axis uses automatic min,max based on data
-				heightAxis.tickMinValue.value = NaN;
-				heightAxis.tickMaxValue.value = NaN;
-				heightAxis.forceTickCount.value = false;
+				//Using arbitrary values here, shouldn't matter.
+				heightAxis.tickMinValue.value = 0;
+				heightAxis.tickMaxValue.value = 10;
+				heightAxis.forceTickCount.value = true;
 				if( sizeAxisTickChange )
 					heightAxis.tickCountRequested.value = sizeAxisTickCountRequested.value;
 				else
 					sizeAxisTickCountRequested.value = heightAxis.tickCountRequested.value;
-				heightAxis.showLabels.value = true;
+				//Not showing labels, we just want the lines to separate cells.
+				heightAxis.showLabels.value = false;
 				
 				sizeAxisTickChange = false;
 				
@@ -356,6 +357,16 @@
 					lockButton.label = lang("Unlock Record");
 				else
 					lockButton.label = lang("Lock Record");
+			}
+			
+			private function adjustHeightTickMarks():void
+			{
+				var heightColumns:Array = _plotter.heightColumns.getObjects();
+				if( heightColumns.length == 0 )
+					//If there is no columns set up the display as if there was only one column so it looks normal.
+					sizeAxisTickCountRequested.value = 2;
+				else
+					sizeAxisTickCountRequested.value = heightColumns.length + 1;
 			}
 			
 		]]>
