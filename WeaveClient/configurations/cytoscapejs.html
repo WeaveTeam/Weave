@@ -331,7 +331,7 @@
     $('select[name="layout_dropdown"]').change(function ()
     {
         var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
-        toolPath.push(LAYOUT_NAME).state(new_value);
+        toolPath.push(LAYOUT).state(new_value);
     });
 
     $(function() {
