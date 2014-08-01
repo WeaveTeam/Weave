@@ -122,7 +122,7 @@ weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(we
  * @param property_descriptor An object containing, minimally, a 'name' property defining the name of the session state element to be created.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype._initProperty = function(callback_pass, property_descriptor)
+weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, property_descriptor)
 {
     var name = property_descriptor["name"] || this._failMessage('initProperty', 'A "name" is required');
     var label = property_descriptor["label"];
@@ -158,11 +158,14 @@ weave.WeavePath.prototype._initProperty = function(callback_pass, property_descr
         {
             new_prop.state(property_descriptor["default"]);
         }
+
+        manifest[name] = new_prop;
     }
 
     if (children)
     {
-        children.forEach(this._initProperty.bind(new_prop, callback_pass));
+        if (!callback_pass) manifest[name] = {};
+        children.forEach(this._initProperty.bind(new_prop, manifest[name], callback_pass));
     }
 
     return this;
@@ -179,19 +182,22 @@ weave.WeavePath.prototype._initProperty = function(callback_pass, property_descr
  * 'triggerNow': Specify whether to trigger the callback after it is added; defaults to 'true.'
  * 'immediate': Specify whether to execute the callback in immediate (once per change) or grouped (once per frame) mode.
  * @param property_descriptor_array An array of property descriptor objects, each minimally containing a 'name' property.
+ * @param manifest An object to populate with name->path relationships for convenience.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.initProperties = function(property_descriptor_array)
+weave.WeavePath.prototype.initProperties = function(property_descriptor_array, manifest)
 {
     if (this.getType() == null) 
         this.request("ExternalTool");
 
-    /* Creation and default-setting pass */
-    property_descriptor_array.forEach(this._initProperty.bind(this, false));
-    /* Attaching callback pass */
-    property_descriptor_array.forEach(this._initProperty.bind(this, true));
+    if (!manifest) manifest = {};
 
-    return this;
+    /* Creation and default-setting pass */
+    property_descriptor_array.forEach(this._initProperty.bind(this, manifest, false));
+    /* Attaching callback pass */
+    property_descriptor_array.forEach(this._initProperty.bind(this, manifest, true));
+
+    return manifest;
 };
 
 weave.WeavePath.prototype.getProperties = function(/*...relativePath*/)
