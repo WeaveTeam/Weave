@@ -28,7 +28,7 @@ package weave.data.hierarchy
 
 	/**
 	 * The following properties are used for equality comparison:<br>
-	 * <code>source, data, columnMetadata, idFields</code><br>
+	 * <code>source, data, idFields, columnMetadata</code><br>
 	 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
 	 * <code>label, children, isBranch, hasChildBranches</code><br>
 	 */
@@ -36,7 +36,7 @@ package weave.data.hierarchy
 	{
 		/**
 		 * The following properties are used for equality comparison:<br>
-		 * <code>source, data, columnMetadata, idFields</code><br>
+		 * <code>source, data, idFields, columnMetadata</code><br>
 		 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
 		 * <code>label, children, isBranch, hasChildBranches</code><br>
 		 */
@@ -83,7 +83,7 @@ package weave.data.hierarchy
 		
 		/**
 		 * Set this to true if this node is a branch, or false if it is not.
-		 * Otherwise, hasChildBranches() will check getChildren() and isBranch() on each child.
+		 * Otherwise, hasChildBranches() will check isBranch() on each child returned by getChildren().
 		 */
 		public var _hasChildBranches:* = null;
 
@@ -126,7 +126,7 @@ package weave.data.hierarchy
 		}
 		
 		/**
-		 * Compares source, isColumn, data, and columnMetadata.
+		 * Compares source, data, idFields, and columnMetadata.
 		 * @inheritDoc
 		 */
 		public function equals(other:IWeaveTreeNode):Boolean
