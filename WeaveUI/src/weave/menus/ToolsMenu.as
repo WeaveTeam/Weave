@@ -47,7 +47,6 @@ package weave.menus
 
 	public class ToolsMenu extends WeaveMenuItem
 	{
-		private static const notDash:Object = {not: Weave.properties.dashboardMode};
 		private static function openStaticInstance(item:WeaveMenuItem):void
 		{
 			DraggablePanel.openStaticInstance(item.data as Class);
@@ -109,6 +108,8 @@ package weave.menus
 			dpc.addDisposeCallback(null, removeTip);
 			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, dp, callback, true);
 		}
+		
+		private static const notDash:Object = {not: Weave.properties.dashboardMode};
 		
 		public static const staticItems:Array = createItems(
 			{

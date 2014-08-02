@@ -18,8 +18,6 @@
 */
 package weave.menus
 {
-	import weave.api.core.ILinkableVariable;
-	import weave.api.reportError;
 	import weave.core.LinkableBoolean;
 	import weave.primitives.WeaveTreeItem;
 	
@@ -129,7 +127,7 @@ package weave.menus
 		 * When this property is accessed, refresh() will be called except if refresh() is already being called.
 		 * This property is checked by Flex's default data descriptor.
 		 */
-		override public function get children():*
+		override public function get children():Array
 		{
 			var items:Array = super.children as Array;
 			if (!items)
