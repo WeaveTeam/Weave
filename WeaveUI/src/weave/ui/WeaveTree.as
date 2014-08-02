@@ -94,7 +94,7 @@ package weave.ui
 		
 		private function compareNodes(a:IWeaveTreeNode, b:IWeaveTreeNode):Boolean
 		{
-			return a == b || a.equals(b);
+			return !a == !b && (a == b || a.equals(b));
 		}
 		
 		private function getNodeLabel(node:IWeaveTreeNode):String
