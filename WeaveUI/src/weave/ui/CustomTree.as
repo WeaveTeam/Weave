@@ -125,7 +125,8 @@ package weave.ui
 			if (maxHSP <= 0)
 			{
 				maxHSP = 0;
-				horizontalScrollPosition = 0;
+				if (horizontalScrollPosition != 0)
+					horizontalScrollPosition = 0;
 				
 				// horizontal scroll is kept on except when there is no vertical scroll
 				// this avoids an infinite hide/show loop where hiding/showing the h-scroll bar affects the max h-scroll value
