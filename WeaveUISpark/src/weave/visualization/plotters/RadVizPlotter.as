@@ -28,7 +28,6 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import mx.controls.Alert;
 	import mx.core.UITextField;
 	import mx.graphics.ImageSnapshot;
 	
@@ -964,13 +963,13 @@ package weave.visualization.plotters
 				} 
 				else
 				{
-					Alert.show(lang("No data found."))
+					trace(this, "No data found.");
 					return;
 				}
 				if (originalArray.length < sampleSizeRows.value)
 				{
 					sampledArray = originalArray; // sample size is bigger than the data set.
-					Alert.show(lang("Data sampled successfully."))
+					trace(this, "Data sampled successfully.");
 				}
 				else // sampling begins here
 				{
@@ -1027,7 +1026,7 @@ package weave.visualization.plotters
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
 					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;
-					Alert.show(lang("Data sampled successfully"));
+					trace(this, "Data sampled successfully");
 					sampleTitle.value = "";
 				} 
 			}
