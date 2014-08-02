@@ -98,21 +98,51 @@ package weave.primitives
 			{
 				_recursion[recursionName] = true;
 				
-				if (param is Object && param.constructor == Object && param.hasOwnProperty('not'))
+				if (isSimpleObject(param, 'not'))
 					param = !getBoolean(param['not'], "not_" + recursionName);
+				if (isSimpleObject(param, 'or'))
+					param = getBoolean(param['or'], "or_" + recursionName);
 				if (param is Function)
 					param = param.apply(this, param.length ? [this] : null);
 				if (param is ILinkableVariable)
 					param = (param as ILinkableVariable).getSessionState();
 				if (param is Array)
+				{
+					var breakValue:Boolean = recursionName.indexOf("or_") == 0;
 					for each (param in param)
-						if (!(param = getBoolean(param, recursionName + "_item")))
+					{
+						param = getBoolean(param, recursionName + "_item");
+						if (param ? breakValue : !breakValue)
 							break;
+					}
+				}
 				param = param ? true : false;
 				
 				_recursion[recursionName] = false;
 			}
 			return param;
+		}
+		
+		/**
+		 * Checks if an object has a single specified property.
+		 */
+		protected function isSimpleObject(object:*, singlePropertyName:String):Boolean
+		{
+			if (!(object is Object) || object.constructor != Object)
+				return false;
+			
+			var found:Boolean = false;
+			for (var key:* in object)
+			{
+				if (found)
+					return false; // two or more properties
+				
+				if (key !== singlePropertyName)
+					return false; // not the desired property
+				
+				found = true; // found the desired property
+			}
+			return found;
 		}
 		
 		/**
@@ -165,10 +195,14 @@ package weave.primitives
 		/**
 		 * This can be set to either a String or a Function.
 		 * This property is checked by Flex's default data descriptor.
+		 * If this property is not set, the <code>data</code> property will be used as the label.
 		 */
 		public function get label():String
 		{
-			return getString(_label, 'label');
+			var str:String = getString(_label, 'label');
+			if (!str && data != null)
+				str = String(data);
+			return str;
 		}
 		public function set label(value:*):void
 		{
@@ -180,7 +214,7 @@ package weave.primitives
 		 * When this property is accessed, refresh() will be called except if refresh() is already being called.
 		 * This property is checked by Flex's default data descriptor.
 		 */
-		public function get children():*
+		public function get children():Array
 		{
 			var items:Array = getObject(_children, 'children') as Array;
 			if (!items)
