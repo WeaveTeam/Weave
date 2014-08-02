@@ -125,7 +125,7 @@ package weave.data.DataSources
             reportError(event);
         }
 
-        public function getColumnMetadata(group:String, id:String)
+        public function getColumnMetadata(group:String, id:String):Object
         {
             var metadata:Object = {};
             var is_node:Boolean = group == GraphMLConverter.NODE;
