@@ -28,20 +28,10 @@ package weave.primitives
 		/**
 		 * Initializes an Array of WeaveTreeItems using an Array of objects to pass to the constructor.
 		 * Any Arrays passed in will be flattened.
-		 * @param params Item descriptors.
-		 */
-		public static function createItems(...params):Array
-		{
-			return _createItems(WeaveTreeItem, params);
-		}
-		
-		/**
-		 * Initializes an Array of WeaveTreeItems using an Array of objects to pass to the constructor.
-		 * Any Arrays passed in will be flattened.
 		 * @param WeaveTreeItem_implementation The implementation of WeaveTreeItem to use.
 		 * @param items Item descriptors.
 		 */
-		protected static const _createItems:Function = function(WeaveTreeItem_implementation:Class, items:Array):Array
+		public static const createItems:Function = function(WeaveTreeItem_implementation:Class, items:Array):Array
 		{
 			// flatten
 			var n:int = 0;
@@ -51,20 +41,37 @@ package weave.primitives
 				items = [].concat.apply(null, items);
 			}
 			
-			return items.map(_mapItems, WeaveTreeItem_implementation);
+			return items.map(_mapItems, WeaveTreeItem_implementation).filter(_filterItems);
 		};
 		
 		/**
 		 * Used for mapping an Array of params objects to an Array of WeaveTreeItem objects.
 		 * The "this" argument is used to specify a particular WeaveTreeItem implementation.
 		 */
-		protected static const _mapItems:Function = function(item:Object, i:int, a:Array):WeaveTreeItem
+		protected static const _mapItems:Function = function(item:Object, i:int, a:Array):Object
 		{
-			var ItemClass:Class = this as Class || WeaveTreeItem;
+			// If the item is a Class definition, create an instance of that Class.
 			if (item is Class)
 				return new item();
-			return item as WeaveTreeItem || new ItemClass(item) as WeaveTreeItem;
+			
+			// If the item is a String or an Object, we can pass it to the constructor.
+			if (item is String || Object(item).constructor == Object)
+			{
+				var ItemClass:Class = this as Class || WeaveTreeItem;
+				return new ItemClass(item);
+			}
+			
+			// If the item is any other type, return the original item.
+			return item;
 		};
+		
+		/**
+		 * Filters out null items.
+		 */
+		private static function _filterItems(item:Object, i:*, a:*):Boolean
+		{
+			return item != null;
+		}
 		
 		/**
 		 * Constructs a new WeaveTreeItem.

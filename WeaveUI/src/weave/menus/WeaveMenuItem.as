@@ -36,7 +36,7 @@ package weave.menus
 		 */
 		public static function createItems(...params):Array
 		{
-			return _createItems(WeaveMenuItem, params);
+			return WeaveTreeItem.createItems(WeaveMenuItem, params);
 		}
 
 		public static const TYPE_SEPARATOR:String = "separator";
