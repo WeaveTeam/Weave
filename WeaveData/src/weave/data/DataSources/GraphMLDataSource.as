@@ -436,7 +436,6 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
 
     public function getChildren():Array 
     {
-        var idx:int;
         if (children == null)
         {
             children = [];
@@ -444,11 +443,9 @@ internal class GraphMLGroupNode implements IWeaveTreeNode
             var columns:Array = isNodeGroup() ? 
                     graph.source.nodeProperties :
                     graph.source.edgeProperties;
-
-            for (idx = columns.length - 1; idx >= 0; idx--)
-            {
-                children.push(new GraphMLColumnNode(this, columns[idx]));
-            }
+			
+			for each (var id:String in columns)
+                children.push(new GraphMLColumnNode(this, id));
         }
         return children;
     }
