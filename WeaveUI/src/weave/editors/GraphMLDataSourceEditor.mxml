@@ -215,8 +215,11 @@
                     Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
                     return null;
                 }
-
-                target = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, target) as GraphMLDataSource;
+				
+				if (target)
+	                target = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, target) as GraphMLDataSource;
+				else
+					target = WeaveAPI.globalHashMap.requestObject(sourceName.text, GraphMLDataSource, false);
 
                 if (!target)
                 {
