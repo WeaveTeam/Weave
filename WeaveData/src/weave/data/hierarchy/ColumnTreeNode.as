@@ -18,6 +18,7 @@
 */
 package weave.data.hierarchy
 {
+    import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
@@ -27,7 +28,7 @@ package weave.data.hierarchy
     import weave.primitives.WeaveTreeItem;
 
 	/**
-	 * The following properties are used for equality comparison:<br>
+	 * The following properties are used for equality comparison, in addition to node class definitions:<br>
 	 * <code>source, data, idFields, columnMetadata</code><br>
 	 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
 	 * <code>label, children, isBranch, hasChildBranches</code><br>
@@ -35,7 +36,7 @@ package weave.data.hierarchy
 	[RemoteClass] public class ColumnTreeNode extends WeaveTreeItem implements IWeaveTreeNode, IColumnReference
 	{
 		/**
-		 * The following properties are used for equality comparison:<br>
+		 * The following properties are used for equality comparison, in addition to node class definitions:<br>
 		 * <code>source, data, idFields, columnMetadata</code><br>
 		 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
 		 * <code>label, children, isBranch, hasChildBranches</code><br>
@@ -61,9 +62,9 @@ package weave.data.hierarchy
 		}
 		
 		/**
-		 * A pointer to the IDataSource that created this node.
+		 * A pointer to the ILinkableObject that created this node.  This is most often an IDataSource.
 		 */
-		public var source:IDataSource = null;
+		public var source:ILinkableObject = null;
 		
 		/**
 		 * Column metadata for this node.
@@ -102,7 +103,7 @@ package weave.data.hierarchy
 		 */
 		private function isCached(id:String):Boolean
 		{
-			return _counter[id] == getCallbackCollection(source).triggerCounter;
+			return source && _counter[id] == getCallbackCollection(source).triggerCounter;
 		}
 		
 		/**
@@ -110,8 +111,12 @@ package weave.data.hierarchy
 		 */
 		private function cache(id:String, value:Object):*
 		{
-			_counter[id] = getCallbackCollection(source).triggerCounter;
-			return _cache[id] = value;
+			if (source)
+			{
+				_counter[id] = getCallbackCollection(source).triggerCounter;
+				_cache[id] = value;
+			}
+			return value;
 		}
 		
 		/**
@@ -134,6 +139,10 @@ package weave.data.hierarchy
 			var that:ColumnTreeNode = other as ColumnTreeNode;
 			if (!that)
 				return other.equals(this);
+			
+			// compare constructor
+			if (Object(this).constructor != Object(that).constructor)
+				return false; // constructors differ
 			
 			// compare source
 			if (this.source != that.source)
@@ -226,7 +235,7 @@ package weave.data.hierarchy
 		 */
 		public function getDataSource():IDataSource
 		{
-			return source;
+			return source as IDataSource;
 		}
 		
 		/**
