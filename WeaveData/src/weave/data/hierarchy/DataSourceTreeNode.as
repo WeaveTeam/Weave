@@ -24,13 +24,12 @@ package weave.data.hierarchy
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IDataSource;
     import weave.api.registerLinkableChild;
+    import weave.data.AttributeColumnCache;
     import weave.data.AttributeColumns.CSVColumn;
     import weave.data.AttributeColumns.EquationColumn;
 
     public class DataSourceTreeNode extends ColumnTreeNode implements ILinkableObject
     {
-		public static const GLOBAL_COLUMN_METADATA_NAME:String = 'name';
-		
 		public function DataSourceTreeNode()
 		{
 			var rootNode:DataSourceTreeNode = this;
@@ -59,7 +58,7 @@ package weave.data.hierarchy
 								function(column:IAttributeColumn, ..._):* {
 									registerLinkableChild(rootNode, column);
 									var meta:Object = {};
-									meta[GLOBAL_COLUMN_METADATA_NAME] = root.getName(column);
+									meta[AttributeColumnCache.GLOBAL_COLUMN_METADATA_NAME] = root.getName(column);
 									return {
 										source: column,
 										label: function():String {

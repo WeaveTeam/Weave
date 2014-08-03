@@ -32,6 +32,11 @@ package weave.data
 	public class AttributeColumnCache implements IAttributeColumnCache
 	{
 		/**
+		 * The metadata property name used to identify a column appearing in WeaveAPI.globalHashMap.
+		 */
+		public static const GLOBAL_COLUMN_METADATA_NAME:String = 'name';
+
+		/**
 		 * @inheritDoc
 		 */
 		public function getColumn(dataSource:IDataSource, metadata:Object):IAttributeColumn
@@ -47,7 +52,7 @@ package weave.data
 					return null;
 				var name:String;
 				if (typeof metadata == 'object')
-					name = metadata['name'];
+					name = metadata[GLOBAL_COLUMN_METADATA_NAME];
 				else
 					name = String(metadata);
 				return WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
