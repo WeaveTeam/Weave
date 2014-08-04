@@ -605,6 +605,15 @@ weave.WeavePath.prototype.getValue = function(script_or_variableName)
 	return result;
 };
 
+/**
+ * Provides a human-readable string containing the path.
+ */
+weave.WeavePath.prototype.toString = function()
+{
+	var pathStr = JSON && JSON.stringify ? JSON.stringify(this._path) : this._path.toString();
+	return "WeavePath(" + pathStr + ")";
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // helper functions
