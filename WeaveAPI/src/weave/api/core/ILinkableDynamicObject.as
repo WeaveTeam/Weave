@@ -71,6 +71,12 @@ package weave.api.core
 		function lock():void;
 
 		/**
+		 * This is set to true when lock() is called.
+		 * Subsequent calls to setSessionState() will have no effect.
+		 */
+		function get locked():Boolean;
+		
+		/**
 		 * If the internal object is local, this will remove the object (unless it is locked).
 		 * If the internal object is global, this will remove the link to it.
 		 */

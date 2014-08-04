@@ -420,6 +420,14 @@ package weave.core
 		{
 			_locked = true;
 		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get locked():Boolean
+		{
+			return _locked;
+		}
 
 		/**
 		 * @inheritDoc
