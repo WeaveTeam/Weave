@@ -349,14 +349,14 @@
 				<ui:CustomComboBox id="targetCombo" prompt="{lang('Select a visualization tool...')}" change="if (UIUtils.hasFocus(targetCombo)) handleTargetComboChange()"/>
 			</ui:Indent>
 			
-			<mx:Label text="{lang('Controls to show:')}"/>
+			<mx:Label text="{lang('Show these controls:')}"/>
 			<mx:VBox paddingLeft="20">
 				<ui:CustomCheckBox label="{lang('Visibility toggle')}" creationComplete="linkBindableProperty(showVisibleCheck, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Alpha slider')}" creationComplete="linkBindableProperty(showAlphaSlider, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Selectability toggle')}" creationComplete="linkBindableProperty(showSelectableCheck, event.target, 'selected')"/>
 			</mx:VBox>
 			
-			<mx:Label text="{lang('Layers to show:')}"/>
+			<mx:Label text="{lang('Show controls for these layers:')}"/>
 			<mx:VBox paddingLeft="20">
 				<ui:CheckBoxList id="shownCheckBoxList" defaultSelectedState="true"/>
 			</mx:VBox>
