@@ -169,6 +169,8 @@ package weave.compiler
 		 */
 		public static function substitute(format:String, ...args):String
 		{
+			if (args.length == 1 && args[0] is Array)
+				args = args[0] as Array;
 			var split:Array = format.split('{')
 			var output:String = split[0];
 			for (var i:int = 1; i < split.length; i++)
