@@ -268,8 +268,8 @@ aws.QueryHandler = function(queryObject)
 	if (queryObject.hasOwnProperty("DataTableTool")) {
 		if(queryObject.DataTableTool.enabled == true) {
 			var colNames= [];
-			console.log("queryObject.dataTable.columns", queryObject.dataTable.columns);
-			for(i in queryObject.dataTable.columns){
+			console.log("queryObject.dataTable.columns", queryObject.dataTableTool.columns);
+			for(i in queryObject.dataTableTool.columns){
 				colNames[i] = queryObject.dataTableTool.columns[i].param;
 				console.log("columns", colNames[i]);
 			}
