@@ -349,6 +349,15 @@ weave.WeavePath.prototype.retrieveColumns = function(/*...relativePath, columnNa
  */
 weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 {
+	/*
+	 * TODO: support the following modes:
+	 * 
+	 * path.retrieveRecords() // returns all data for all child columns at current path (assumes it's an ILinkableHashMap)
+	 * path.retrieveRecords(['x','y','z']) // returns data for child columns named 'x', 'y', and 'z'
+	 * path.retrieveRecords(nestedPathMapping) // return nested record structures
+	 */
+	
+	
     var columnNames = Object.keys(pathMapping);
     var columnPaths = columnNames.map(function (name) { return pathMapping[name].getPath(); });
 
