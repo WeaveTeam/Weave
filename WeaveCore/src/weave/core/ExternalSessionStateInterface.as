@@ -59,7 +59,7 @@ package weave.core
 				return state;
 			}
 			
-			externalWarning("No ILinkableObject from which to get session state at path " + Compiler.stringify(objectPath));
+			externalWarning("No ILinkableObject from which to get session state at path {0}", Compiler.stringify(objectPath));
 			return null;
 		}
 		
@@ -91,7 +91,7 @@ package weave.core
 				return true;
 			}
 			
-			externalError("No ILinkableObject for which to set session state at path " + Compiler.stringify(objectPath));
+			externalError("No ILinkableObject for which to set session state at path {0}", Compiler.stringify(objectPath));
 			return false;
 		}
 		
@@ -123,7 +123,7 @@ package weave.core
 				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 			}
 			
-			externalWarning("No ILinkableObject for which to get child names at path " + Compiler.stringify(objectPath));
+			externalWarning("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
 			return null;
 		}
 		
@@ -141,7 +141,7 @@ package weave.core
 				return true;
 			}
 			
-			externalError("No ILinkableHashMap for which to reorder children at path " + Compiler.stringify(hashMapPath));
+			externalError("No ILinkableHashMap for which to reorder children at path {0}", Compiler.stringify(hashMapPath));
 			return false;
 		}
 		
@@ -155,11 +155,11 @@ package weave.core
 			var classDef:Class = ClassUtils.getClassDefinition(classQName);
 			if (classDef == null)
 			{
-				externalError("No class definition for " + Compiler.stringify(classQName));
+				externalError("No class definition for {0}", Compiler.stringify(classQName));
 				return false;
 			}
 			if (ClassUtils.isClassDeprecated(classQName))
-				externalWarning(objectType + " is deprecated.");
+				externalWarning("{0} is deprecated.", objectType);
 			
 			// stop if there is no path specified
 			if (!objectPath || !objectPath.length)
@@ -195,7 +195,7 @@ package weave.core
 			if (child && child.constructor == classDef)
 				return true;
 			
-			externalError(StandardLib.substitute("Request for {0} failed at path {1}", objectType, Compiler.stringify(objectPath)));
+			externalError("Request for {0} failed at path {1}", objectType, Compiler.stringify(objectPath));
 			return false;
 		}
 
@@ -204,28 +204,49 @@ package weave.core
 		 */
 		public function removeObject(objectPath:Array):Boolean
 		{
-			if (objectPath && objectPath.length)
+			if (!objectPath || !objectPath.length)
 			{
-				objectPath = objectPath.concat();
-				var childName:Object = objectPath.pop();
-				var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-				var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
-				var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
-				if (hashMap)
-				{
-					if (childName is Number)
-						childName = hashMap.getNames()[childName];
-					hashMap.removeObject(childName as String);
-					return true;
-				}
-				else if (dynamicObject)
-				{
-					dynamicObject.removeObject();
-					return true;
-				}
+				externalError("Cannot remove root object");
+				return false;
 			}
 			
-			externalWarning("No suitable parent from which to remove a child at path " + Compiler.stringify(objectPath));
+			var parentPath:Array = objectPath.concat();
+			var childName:Object = parentPath.pop();
+			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
+			
+			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+			if (hashMap)
+			{
+				if (childName is Number)
+					childName = hashMap.getNames()[childName];
+				
+				if (hashMap.objectIsLocked(childName as String))
+				{
+					externalError("Object is locked and cannot be removed (path: {0})", Compiler.stringify(objectPath));
+					return false;
+				}
+				
+				hashMap.removeObject(childName as String);
+				return true;
+			}
+			
+			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+			if (dynamicObject)
+			{
+				if (dynamicObject.locked)
+				{
+					externalError("Object is locked and cannot be removed (path: {0})", Compiler.stringify(objectPath));
+					return false;
+				}
+				
+				dynamicObject.removeObject();
+				return true;
+			}
+			
+			if (parent)
+				externalError("Parent object does not support dynamic children, so cannot remove child at path {0}", Compiler.stringify(objectPath));
+			else
+				externalError("No parent from which to remove a child at path {0}", Compiler.stringify(objectPath));
 			return false;
 		}
 		
@@ -393,7 +414,7 @@ package weave.core
 				}
 				if (object == null)
 				{
-					externalError("No ILinkableObject to which to add a callback at path or variable " + Compiler.stringify(scopeObjectPathOrVariableName));
+					externalError("No ILinkableObject to which to add a callback at path or variable {0}", Compiler.stringify(scopeObjectPathOrVariableName));
 					return false;
 				}
 				
@@ -442,7 +463,7 @@ package weave.core
 				}
 				if (object == null)
 				{
-					externalWarning("No ILinkableObject from which to remove a callback at path or variable " + Compiler.stringify(objectPathOrVariableName));
+					externalWarning("No ILinkableObject from which to remove a callback at path or variable {0}", Compiler.stringify(objectPathOrVariableName));
 					return false;
 				}
 				
@@ -470,14 +491,14 @@ package weave.core
 			_d2d_callbackStr_target = new Dictionary2D(true, true);
 		}
 		
-		private static function externalError(message:String):void
+		private static function externalError(format:String, ...args):void
 		{
-			WeaveAPI.externalError("Error: " + message);
+			WeaveAPI.externalError(StandardLib.substitute("Error: " + format, args));
 		}
 		
-		private static function externalWarning(message:String):void
+		private static function externalWarning(format:String, ...args):void
 		{
-			WeaveAPI.externalError("Warning: " + message);
+			WeaveAPI.externalError(StandardLib.substitute("Warning: " + format, args));
 		}
 	}
 }
