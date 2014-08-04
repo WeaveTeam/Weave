@@ -32,23 +32,32 @@ analysis_mod.controller('DialogController', function ($scope, $dialog) {
           keyboard: true,
           templateUrl: 'aws/analysis/myModalContent.html',
           controller: 'DialogInstanceCtrl',
-          resolve:{projectEntered :function() {return angular.copy(projectEntered);}}
+          resolve:
+          {
+                      projectEntered: function() {return angular.copy(projectEntered);},
+                      queryTitleEntered : function(){return angular.copy(queryTitleEntered);}
+          }
 	};
 	
-    $scope.saveVisualizations = function (projectEntered) {
+    $scope.saveVisualizations = function (projectEntered, queryTitleEntered) {
       var d = $dialog.dialog($scope.opts);
-      d.open().then(function(projectEntered){
-    	  if(projectEntered){
-    		  console.log("finally got project as ", projectEntered);
+      d.open().then(function(params){//the then funcion takes only single object as param
+    	  if(params){
+    		  console.log("finally got project as ", params.projectEntered);
+    		  console.log("qo", params.queryTitleEntered);
     	  }
       });
       
       
     };
   })
-  .controller('DialogInstanceCtrl', function ($scope, dialog, projectEntered) {
-	  $scope.close = function (projectEntered) {
-      dialog.close(projectEntered);
+  .controller('DialogInstanceCtrl', function ($scope, dialog, projectEntered, queryTitleEntered) {
+	  $scope.close = function (projectEntered, queryTitleEntered) {
+		  var params = {
+				  projectEntered : projectEntered,
+				  queryTitleEntered : queryTitleEntered
+		  };
+      dialog.close(params);
     };
   });
 
