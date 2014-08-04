@@ -50,6 +50,11 @@ package weave.visualization.layers
 		public const visible:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
+		 * Alpha value (opacity) for rendering the layer.
+		 */
+		public const alpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
+		
+		/**
 		 * When this is false, selection and probing are disabled.
 		 */		
 		public const selectable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));

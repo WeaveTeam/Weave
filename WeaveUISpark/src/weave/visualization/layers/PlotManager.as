@@ -740,10 +740,12 @@ package weave.visualization.layers
 					{
 						if (debug)
 							debugTrace('render',name,getPlotter(name));
+						var settings:LayerSettings = layerSettings.getObject(name) as LayerSettings;
 						for each (var task:PlotTask in _name_to_PlotTask_Array[name])
 						{
 							var busy:Boolean = linkableObjectIsBusy(task);
 							var completedReady:Boolean = !task.completedDataBounds.isUndefined();
+							var alpha:Number = settings.alpha.value;
 							
 							if (completedReady)
 							{
@@ -753,7 +755,7 @@ package weave.visualization.layers
 								copyScaledPlotGraphics(
 									task.completedBitmap, task.completedDataBounds, task.completedScreenBounds,
 									bitmap.bitmapData, tempDataBounds, tempScreenBounds,
-									fade && busy ? 1 - task.progress : 1
+									alpha * (fade && busy ? 1 - task.progress : 1)
 								);
 							}
 							else if (debug)
@@ -769,10 +771,11 @@ package weave.visualization.layers
 									debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
 								
 								shouldRender = true;
+								
 								copyScaledPlotGraphics(
 									task.bufferBitmap, task.dataBounds, task.screenBounds,
 									bitmap.bitmapData, tempDataBounds, tempScreenBounds,
-									completedReady || task.progress == 0 ? .25 + .75 * task.progress : 1
+									alpha * (completedReady || task.progress == 0 ? .25 + .75 * task.progress : 1)
 								);
 							}
 							
