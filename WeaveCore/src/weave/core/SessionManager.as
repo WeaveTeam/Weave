@@ -650,14 +650,9 @@ package weave.core
 		 */
 		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
 		{
-			if (root == null)
-			{
-				reportError("SessionManager.getLinkableDescendants(): root cannot be null.");
-				return [];
-			}
-			
 			var result:Array = [];
-			internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
+			if (root)
+				internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
 			// don't include root object
 			if (result.length > 0 && result[0] == root)
 				result.shift();
