@@ -49,6 +49,7 @@
 								<![CDATA[
 									import weave.api.core.ILinkableHashMap;
 									import weave.api.core.ILinkableObject;
+									import weave.api.data.IDataSource;
 									import weave.api.getLinkableOwner;
 									import weave.core.UIUtils;
 									import weave.menus.WeaveMenuItem;
@@ -59,22 +60,30 @@
 									override protected function childrenCreated():void
 									{
 										UIUtils.pad(this, 2);
-										_subMenu = new SubMenu(menu, WeaveMenuItem.createItems({
-											label: lang('Remove'),
-											click: remove
-										}));
+										_subMenu = new SubMenu(menu, [
+											{
+												label: lang("Refresh hierarchy"),
+												click: function():void {
+													if (data is IDataSource)
+														(data as IDataSource).refreshHierarchy();
+												}
+											},
+											//WeaveMenuItem.TYPE_SEPARATOR,
+											{
+												label: lang('Delete'),
+												click: function():void {
+													var name:String = WeaveAPI.globalHashMap.getName(data as ILinkableObject);
+													WeaveAPI.globalHashMap.removeObject(name);
+												}
+											}
+										]);
 									}
 
 									override public function set data(value:Object):void
 									{
-										super.data = value;
+										super.data = value as IDataSource;
 										lbl.text = WeaveAPI.globalHashMap.getName(value as ILinkableObject);
 										busy.targets = [value];
-									}
-									
-									private function remove():void
-									{
-										WeaveAPI.globalHashMap.removeObject(WeaveAPI.globalHashMap.getName(data as ILinkableObject));
 									}
 								]]>
 							</mx:Script>
@@ -164,6 +173,7 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import weave.menus.DataMenu;
 				import weave.api.core.ILinkableHashMap;
 				import weave.utils.ColumnUtils;
 				import weave.api.ui.IObjectWithSelectableAttributes;
@@ -201,38 +211,15 @@
 				private const keyColumn:KeyColumn = newDisposableChild(this, KeyColumn);
 				private const dataColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 				
-				private var createVisSubMenu:SubMenu;
-				private var createDataSourceSubMenu:SubMenu;
-				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
 					
 					initCreateVis();
-					initCreateDataSource();
+					createDataSource.data = new SubMenu(createDataSource, DataMenu.getDynamicItems());
 					
 					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
 					selectDataSource(null);
-				}
-				
-				private function initCreateDataSource():void
-				{
-					function getLabel(item:WeaveMenuItem):String
-					{
-						return WeaveAPI.getRegisteredImplementationDisplayName(item.data as Class);
-					}
-					function onClick(item:WeaveMenuItem):void
-					{
-						var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
-						adsp.dataSourceType = item.data as Class;
-					}
-					createDataSourceSubMenu = new SubMenu(createDataSource, function():Array {
-						return WeaveAPI.getRegisteredImplementations(IDataSource).map(
-							function(impl:Class, ..._):* {
-								return {"data": impl, "label": getLabel, "click": onClick};
-							}
-						);
-					});
 				}
 				
 				private function initCreateVis():void
@@ -261,7 +248,7 @@
 								ColumnUtils.initSelectableAttributes(selectables, input);
 						}
 					}
-					createVisSubMenu = new SubMenu(createVis, function():Array {
+					createVis.data = new SubMenu(createVis, function():Array {
 						return ToolsMenu.getDynamicItems().filter(
 							function(item:WeaveMenuItem, ..._):Boolean {
 								item.click = onClick;
@@ -302,6 +289,18 @@
 				
 				[Bindable] private var dataSource:IDataSource;
 				private var editor:ILinkableObjectEditor = null;
+				
+				/**
+				 * Displays the Browse tab for a specific data source.
+				 */
+				public function browse(target:IDataSource, discardChanges:Boolean = false):void
+				{
+					if (discardChanges || !hasPendingChanges())
+					{
+						selectDataSource(target);
+						tabNav.selectedChild = browseTab;
+					}
+				}
 				
 				private function selectDataSource(value:IDataSource):void
 				{

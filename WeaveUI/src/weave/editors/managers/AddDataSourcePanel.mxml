@@ -91,8 +91,16 @@
 			
 			private function addSource():void
 			{
-				if (_editor && _editor.createDataSource())
+				if (!_editor)
+					return;
+				
+				var ds:IDataSource = _editor.createDataSource();
+				if (ds)
+				{
+					var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager);
+					dsm.browse(ds);
 					removePanel();
+				}
 			}
 			
 			override public function removePanel():void
