@@ -93,6 +93,7 @@ package
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
 	import weave.visualization.tools.KeyMappingTool;
+	import weave.visualization.tools.LayerSettingsTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
@@ -189,7 +190,8 @@ package
 				DataStatisticsTool,
 				RInterfaceTool,
 				TreeTool,
-				KeyMappingTool
+				KeyMappingTool,
+				LayerSettingsTool
 			]);
 			
 			/**
