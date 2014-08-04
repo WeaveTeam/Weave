@@ -26,7 +26,7 @@
 	xmlns:settings="weave.ui.settings.*"
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 	verticalScrollPolicy="off"
-	title="{lang('Slider Tool')"
+	title="{lang('Slider Tool')}"
 	implements="weave.api.ui.IVisTool" xmlns:editors="weave.editors.*"
 	>
 	<mx:ViewStack id="viewStack" width="100%" height="100%" selectedIndex="{layoutCombo.selectedIndex}" minHeight="0">
