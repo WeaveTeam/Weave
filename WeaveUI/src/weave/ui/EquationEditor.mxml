@@ -163,7 +163,7 @@
 						listVBox.label = listVBox.label.substring(lastIndex+1,listVBox.label.length);
 					var functionList:List = new List();
 					functionList.dataProvider = functions; 
-					functionList.labelFunction= getLabel;
+					functionList.labelFunction= getFunctionLabel;
 					functionList.minHeight = 0;
 					functionList.percentWidth = 100;
 					functionList.doubleClickEnabled = true;
@@ -178,7 +178,7 @@
 				
 				var constantsList:List = new List();
 				constantsList.dataProvider = constants; 
-				constantsList.labelFunction = getLabel;
+				constantsList.labelFunction = getFunctionLabel;
 				constantsList.minHeight = 0;
 				constantsList.percentWidth = 100;
 				constantsList.rowCount = constantsList.dataProvider.length;
@@ -262,7 +262,7 @@
 					save();
 			}
 			
-			private function getLabel(item:Object):String
+			private function getFunctionLabel(item:Object):String
 			{
 				if (item.access == 'readonly')
 					return item.name;
