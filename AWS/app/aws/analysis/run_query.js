@@ -24,7 +24,7 @@ analysis_mod.controller("RunQueryCtrl", function($scope, queryService) {
 //		queryService.getSessionState();
 //	};
 });
-analysis_mod.controller('DialogController', function ($scope, $dialog) {
+analysis_mod.controller('DialogController', function ($scope, $dialog, queryService) {
 	$scope.opts = {
 		 backdrop: false,
           backdropClick: true,
@@ -45,9 +45,14 @@ analysis_mod.controller('DialogController', function ($scope, $dialog) {
     	  if(params){
     		  console.log("finally got project as ", params.projectEntered);
     		  console.log("qo", params.queryTitleEntered);
+    		  //save the session state
+    		  queryService.getSessionState(params);
     	  }
       });
       
+    
+      //saving the session state
+     // queryService.getSessionState(params);
       
     };
   })

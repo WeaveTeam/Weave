@@ -127,16 +127,32 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     };
 
     
-    this.getSessionState = function(){
+    this.getSessionState = function(params){
     	if(!(newWeaveWindow.closed)){
     		var base64SessionState = newWeaveWindow.getSessionState();
-    		this.writeSessionState(base64SessionState);
+    		this.writeSessionState(base64SessionState, params);
     	}
     };
    
-    this.writeSessionState = function(base64String){
+    this.writeSessionState = function(base64String, savingParams){
     	var userName = "Awesome User";
-    	var projectName = "Other";
+    	var projectName = "";
+    	var projectDescription = "";
+    	if(savingParams.projectEntered != ""){
+    		projectName = savingParams.projectEntered;
+    		projectDescription = "These query objects belong to " + projectName;
+    	}
+    	else{
+    		projectName = "Other";
+    		projectDescription = "These query objects do not belong to any specified project";
+    	}
+    	if(savingParams.queryTitleEntered != ""){
+    		this.queryObject.title = savingParams.queryTitleEntered;
+    		queryObjectTitles = savingParams.queryTitleEntered;
+    	}
+    	else
+    		var queryObjectTitles = this.queryObject.title;
+    	
     	var qo =this.queryObject;
     	for(var key in qo.scriptOptions) {
     		var input = qo.scriptOptions[key];
@@ -166,10 +182,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	}
     	var queryObjectJsons = angular.toJson(qo);
     	console.log("got it", queryObjectJsons);
-    	var projectDescription = "These query objects do not belong to any project";
-    	var queryObjectTitles = this.queryObject.title;
+    	
     	var resultVisualizations = base64String;
-
     	
     	aws.queryService(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
     		console.log("adding status", result);

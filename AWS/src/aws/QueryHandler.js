@@ -280,7 +280,6 @@ aws.QueryHandler = function(queryObject)
 						parameters : colNames
 					}
 			);
-			console.log("columnNames", columns);
 		}
 	}
 	
