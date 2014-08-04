@@ -37,9 +37,9 @@
 		</mx:HBox>
 	</ui:Indent>
 	<mx:VBox borderStyle="solid" initialize="UIUtils.pad(event, 5, 100, 100)">
-		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Background layers appear at the beginning of this list.')}">
+		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Foreground layers appear at the beginning of this list.')}">
 			<mx:HRule width="100%"/>
-			<mx:Label text="{lang('Background')}" alpha="0.5"/>
+			<mx:Label text="{lang('Foreground')}" alpha="0.5"/>
 			<mx:HRule width="100%"/>
 		</mx:HBox>
 		<mx:List id="list" variableRowHeight="true" initialize="UIUtils.pad(event, 2, 100, 100)" borderStyle="none">
@@ -143,8 +143,8 @@
 								
 							]]>
 						</mx:Script>
-						<ui:CustomCheckBox id="visibleCheckbox" label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
-						<ui:CustomCheckBox id="selectedCheckbox" label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
+						<ui:CustomCheckBox label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+						<ui:CustomCheckBox label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
 						<ui:Paragraph id="lbl" textAlign="center"/>
 						<mx:Button id="rename" label="{lang('Rename')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
 						<mx:Button label="{lang('Edit properties')}" click="openSettingsPanel(data as IPlotter)"/>
@@ -159,9 +159,9 @@
 				  text="{lang('Start by adding a new layer.')}"
 				  creationComplete="list.addChild(listOverlay);"
 				  visible="{isEmpty(list.dataProvider)}"/>
-		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Foreground layers appear at the end of this list.')}">
+		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Background layers appear at the end of this list.')}">
 			<mx:HRule width="100%"/>
-			<mx:Label text="{lang('Foreground')}" alpha="0.5"/>
+			<mx:Label text="{lang('Background')}" alpha="0.5"/>
 			<mx:HRule width="100%"/>
 		</mx:HBox>
 	</mx:VBox>
@@ -241,6 +241,7 @@
 					linkBindableProperty(_visualization.plotManager.overrideYMax, overrideYMax, 'text');
 				}
 				
+				controller.reverse = true;
 				controller.view = list;
 			}
 			
