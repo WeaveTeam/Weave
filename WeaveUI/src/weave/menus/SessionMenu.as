@@ -58,11 +58,6 @@ package weave.menus
 		}
 		//-----------
 		
-		public static function fn_adminMode_or_(lb:LinkableBoolean):Function
-		{
-			return function():Boolean { return fn_adminMode() || lb.value; }
-		}
-		
 		private var _weaveFileRef:FileReference;
 		private function importSessionHistory():void
 		{
@@ -112,7 +107,7 @@ package weave.menus
 		public function SessionMenu()
 		{
 			super({
-				shown: fn_adminMode_or_(Weave.properties.enableSessionMenu),
+				shown: {or: [fn_adminMode, Weave.properties.enableSessionMenu]},
 				label: lang("Session"),
 				children: [
 					{

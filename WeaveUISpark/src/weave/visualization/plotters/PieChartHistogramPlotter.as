@@ -84,7 +84,7 @@ package weave.visualization.plotters
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [_filteredData.internalDynamicColumn];
+			return [unfilteredData];
 		}
 		
 		public var _beginRadians:EquationColumn;

@@ -201,6 +201,9 @@ package weave.data.AttributeColumns
 				var key:IQualifiedKey = _keys[_i1];
 				var value:String = _stringData[_i1];
 				
+				// skip missing values
+				if (!value)
+					continue;
 				// keep track of unique keys
 				if (_keyToStringMap[key] === undefined)
 				{

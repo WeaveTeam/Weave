@@ -22,14 +22,15 @@ package weave.visualization.plotters
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
-	import flash.geom.Point;
 	import flash.net.URLRequest;
 	
+	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
@@ -80,6 +81,11 @@ package weave.visualization.plotters
 				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
 				
 				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
+				
+				// stop if there is no url
+				if  (!_imageURL)
+					return task.iteration / task.recordKeys.length;
+				
 				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
 				if (!image) // if there is no image yet...
 				{
@@ -87,7 +93,7 @@ package weave.visualization.plotters
 					_urlToImageMap[_imageURL] = image = _missingImage;
 					
 					// download the image - this triggers callbacks when download completes or fails
-					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, null, _imageURL);
+					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, handleImageFault, _imageURL);
 				}
 				
 				// center the image at 0,0
@@ -144,6 +150,11 @@ package weave.visualization.plotters
 			_urlToImageMap[url] = bitmap.bitmapData;
 			if (debug)
 				trace(debugId(this), 'received', url, debugId(bitmap.bitmapData));
+		}
+		private function handleImageFault(event:FaultEvent, url:String):void
+		{
+			event.fault.content = url;
+			reportError(event);
 		}
 		
 		[Deprecated] public function set xColumn(value:Object):void

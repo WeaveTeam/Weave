@@ -158,7 +158,7 @@
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
-			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IFilterComponent));
 			public const enableProbing:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
 			private const dataGridColumns:Dictionary = new Dictionary();

@@ -90,6 +90,7 @@ package weave.data.KeySets
 			delayCallbacks();
 			_currentlyUpdating = true;
 			replaceKeys(newKeys);
+			keyCallbacks.flushKeys();
 			_currentlyUpdating = false;
 			resumeCallbacks();
 		}

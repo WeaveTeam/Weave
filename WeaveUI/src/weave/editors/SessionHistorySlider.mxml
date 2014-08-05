@@ -35,7 +35,7 @@
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" minWidth="0" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
-	<mx:Button width="24" id="menuButton" icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
+	<mx:Button width="24" id="menuButton" toolTip="{lang('Menu')}" icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
@@ -47,7 +47,6 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableWatcher;
 			import weave.core.SessionStateLog;
-			import weave.menus.WeaveMenuItem;
 			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
 			
@@ -60,7 +59,7 @@
 			{
 				super.childrenCreated();
 				
-				_editMenu = new SubMenu(menuButton, null, null, [
+				_editMenu = new SubMenu(menuButton, [
 					{label: lang("Clear all history"), click: _stateLog.clearHistory},
 					{label: lang("Clear undo history"), click: function():void { _stateLog.clearHistory(-1); }},
 					{label: lang("Clear redo history"), click: function():void { _stateLog.clearHistory(1); }},
@@ -69,12 +68,11 @@
 				
 				_playMenu = new SubMenu(
 					playButton,
-					[MouseEvent.MOUSE_DOWN],
-					[MouseEvent.MOUSE_UP],
 					[1,2,4,8,16].map(function(speed:int, i:int, a:Array):Object {
 						return {label: speed + 'x', click: function():void { play(speed); }};
 					})
 				);
+				_playMenu.setSubMenuEvents([MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
 			
@@ -131,6 +129,40 @@
 					_squashItem = _stateLog.undoHistory[undoLength - 1];
 					
 					squashActive.value = true;
+				}
+				showSquashTicks();
+			}
+			private function showSquashTicks():void
+			{
+				if (_squashItem)
+				{
+					var pos:int = _stateLog.undoHistory.length;
+					var i:int = _stateLog.undoHistory.indexOf(_squashItem);
+					if (i < 0)
+					{
+						i = _stateLog.redoHistory.indexOf(_squashItem)
+						if (i >= 0)
+							i += pos;
+					}
+					
+					if (i < 0)
+					{
+						slider.tickValues = [];
+					}
+					else
+					{
+						var min:int = Math.min(i + 1, pos);
+						var max:int = Math.max(i + 1, pos);
+						var values:Array = new Array(max - min + 1);
+						i = values.length;
+						while (i--)
+							values[i] = min + i;
+						slider.tickValues = values;
+					}
+				}
+				else if (slider.tickValues.length > 0)
+				{
+					slider.tickValues = [];
 				}
 			}
 			
@@ -210,6 +242,8 @@
 					_stateLog.undo(-delta);
 				else
 					_stateLog.redo(delta);
+				
+				showSquashTicks();
 				
 				// hack so slider doesn't disappear
 				handleAnyClick();

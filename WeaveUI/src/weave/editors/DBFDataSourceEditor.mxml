@@ -27,7 +27,7 @@
 	implements="weave.api.ui.IDataSourceEditor"
 	creationPolicy="all" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{target ? 'Edit' : 'Add'} DBF Data Source"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
 	<ui:Indent label="{lang('Source Name *')}">
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>

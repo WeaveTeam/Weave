@@ -43,7 +43,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				titleStyleName="weave-panel-title-style"
 				styleName="weave-panel-style"
 				
-				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject"
+				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject, weave.api.ui.IObjectWithLabel"
 				>
 	<mx:Script>
 		<![CDATA[
@@ -74,6 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.compiler.StandardLib;
+			import weave.core.CallbackCollection;
 			import weave.core.ClassUtils;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
@@ -187,6 +188,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_constructorCalled = true;
 					reposition();
 					constructor();
+					afterConstructor();
 				}
 			}
 			
@@ -214,6 +216,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(this).addGroupedCallback(this, updateButtonsIfSelectableAttributesChanged, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
+			}
+			
+			/**
+			 * This is called after the constructor.
+			 */
+			protected function afterConstructor():void
+			{
 			}
 			
 			/**
@@ -302,7 +311,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (_controlPanel)
 				{
-					_controlPanel.title = ControlPanel.getControlPanelTitle(this);
+					_controlPanel.title = _controlPanel._defaultTitle = ControlPanel.getControlPanelTitle(this);
 					_controlPanel.enableSubMenu.value = true;
 					_controlPanel.sessionEditorTarget = this;
 				}
@@ -339,6 +348,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				panelNeedsUpdate();
+				
+				if (panelTitle.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					panelTitle.triggerCallbacks(); // force defaultPanelTitle to be used
 			}
 			
 			private function handleCreationComplete():void
@@ -355,6 +367,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			public function getLabel():String
+			{
+				return title;
+			}
+			
 			/**
 			 * Override this function to provide a default panel title when the panelTitle session state is undefined.
 			 * The panel title will be set when handlePanelTitleChange() is called.
@@ -362,14 +379,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function get defaultPanelTitle():String
 			{
-				return lang(getQualifiedClassName(this).split(':').pop());
+				return _defaultTitle || lang(getQualifiedClassName(this).split(':').pop());
 			}
 			
 			// workaround to fix text layout performance problem
 			override public function set title(value:String):void
 			{
+				if (panelTitle.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					_defaultTitle = value;
 				super.title = value && value.substr(0, 256);
 			}
+			internal var _defaultTitle:String;
 			
 			/**
 			 * This gets called when the panelTitle session state changes.

@@ -77,9 +77,6 @@
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
-				
-				initColumnDefaults(plotter.xColumn, plotter.yColumn);
-				
 			}
 			
 			override protected function childrenCreated():void

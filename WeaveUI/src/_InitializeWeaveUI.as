@@ -26,6 +26,7 @@ package
 	import weave.data.DataSources.CKANDataSource;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
+	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
@@ -40,6 +41,7 @@ package
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
 	import weave.editors.DynamicColumnEditor;
+	import weave.editors.GeoJSONDataSourceEditor;
 	import weave.editors.GeometryLabelPlotterEditor;
 	import weave.editors.GeometryPlotterEditor;
 	import weave.editors.GeometryRelationPlotterEditor;
@@ -91,6 +93,7 @@ package
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
 	import weave.visualization.tools.KeyMappingTool;
+	import weave.visualization.tools.LayerSettingsTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
@@ -134,6 +137,7 @@ package
 			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
+			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
 			
 			em.registerEditor(StringDataFilter, StringDataFilterEditor);
 			em.registerEditor(NumberDataFilter, NumberDataFilterEditor);
@@ -186,7 +190,8 @@ package
 				DataStatisticsTool,
 				RInterfaceTool,
 				TreeTool,
-				KeyMappingTool
+				KeyMappingTool,
+				LayerSettingsTool
 			]);
 			
 			/**

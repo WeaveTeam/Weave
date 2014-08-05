@@ -40,11 +40,13 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
+	import weave.data.ProjectionManager;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
 	import weave.services.WFSServlet;
 	import weave.services.addAsyncResponder;
 	import weave.utils.BLGTreeUtils;
+	import weave.utils.GeoJSON;
 	import weave.utils.HierarchyUtils;
 	
 	/**
@@ -52,7 +54,7 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufilie
 	 */
-	public class WFSDataSource extends AbstractDataSource
+	public class WFSDataSource extends AbstractDataSource_old
 	{
 		WeaveAPI.registerImplementation(IDataSource, WFSDataSource, "WFS server");
 		
@@ -149,6 +151,8 @@ package weave.data.DataSources
 		 */
 		private function handleGetCapabilities(event:ResultEvent, token:Object = null):void
 		{
+			// default xml namespace = new Namespace("http://www.example.com/");
+			
 			var owsNS:String = 'http://www.opengis.net/ows';
 			var wfsNS:String = 'http://www.opengis.net/wfs';
 			var xml:XML;
@@ -255,18 +259,7 @@ package weave.data.DataSources
 					/>;
 				if (dataType == DataTypes.GEOMETRY)
 				{
-					var defaultSRS:String = node.@defaultSRS;
-					var array:Array = defaultSRS.split(':');
-					var prevToken:String = '';
-					while (array.length > 2)
-						prevToken = array.shift();
-					var proj:String = array.join(':');
-					var altProj:String = prevToken;
-					if (array.length > 1)
-						altProj += ':' + array[1];
-					if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
-						proj = altProj;
-					attrNode['@'+ColumnMetadata.PROJECTION] = proj;
+					attrNode['@'+ColumnMetadata.PROJECTION] = ProjectionManager.getProjectionFromURN(node.@defaultSRS);
 				}
 				node.appendChild(attrNode);
 			}

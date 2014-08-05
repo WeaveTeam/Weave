@@ -69,7 +69,7 @@ package weave.data.DataSources
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveDataSource extends AbstractDataSource implements IDataRowSource
+	public class WeaveDataSource extends AbstractDataSource_old implements IDataRowSource
 	{
 		WeaveAPI.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 		

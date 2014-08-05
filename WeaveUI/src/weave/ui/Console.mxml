@@ -146,23 +146,9 @@
 			
 			private const symbolTable:Object = [{
 				'exec': JavaScript.exec,
-				'call': function(...args):*
-				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					var result:*;
-					try
-					{
-						ExternalInterface.marshallExceptions = true;
-						result = ExternalInterface.call.apply(this, args);
-					}
-					catch (e:Error)
-					{
-						ExternalInterface.marshallExceptions = prev;
-						throw e;
-					}
-					// we can't put this in a finally{} block because it prevents catch() from happening if set to false.
-					ExternalInterface.marshallExceptions = prev;
-					return result;
+				'call': function(...args):* {
+					ExternalInterface.marshallExceptions = true;
+					return ExternalInterface.call.apply(ExternalInterface, args);
 				},
 				'application': WeaveAPI.topLevelApplication,
 				'visApp': getVisApp(),

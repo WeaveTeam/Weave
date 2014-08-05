@@ -51,7 +51,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				keyword.setFocus();
 				keyword.addEventListener(KeyboardEvent.KEY_DOWN,handleUpDown);
 				
-				autosuggest = new SubMenu(keyword, [], []);
+				autosuggest = new SubMenu(keyword);
+				autosuggest.setSubMenuEvents([], []);
 				autosuggest.addEventListener(MenuEvent.ITEM_CLICK,close);
 			}
 			

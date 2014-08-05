@@ -28,41 +28,38 @@ package weave.utils
 	public class OrderedHashMap extends Proxy
 	{
 		protected var names:Array = [];
-		protected var values:Array = [];
+		protected var values:Object = {};
 		
 		override flash_proxy function callProperty(name:*, ...parameters):*
 		{
-			var i:int = names.indexOf(String(name));
-			var value:Function = values[i];
-			return value.apply(this, parameters);
+			return values[name].apply(this, parameters);
 		}
 		override flash_proxy function hasProperty(name:*):Boolean
 		{
-			return names.indexOf(String(name)) >= 0;
+			return values.hasOwnProperty(name);
 		}
 		override flash_proxy function getProperty(name:*):*
 		{
-			var i:int = names.indexOf(String(name));
-			if (i >= 0)
-				return values[i];
-			return null;
+			return values[name];
 		}
 		override flash_proxy function setProperty(name:*, value:*):void
 		{
-			deleteProperty(name);
+			var nameStr:String = name;
+			var i:int = names.indexOf(nameStr);
+			if (i >= 0)
+				names.splice(i, 1);
 			
-			names.push(String(name));
-			values.push(value);
+			values[nameStr] = value;
+			names.push(nameStr);
 		}
 		override flash_proxy function deleteProperty(name:*):Boolean
 		{
-			var i:int = names.indexOf(String(name));
+			var nameStr:String = name;
+			var i:int = names.indexOf(nameStr);
 			if (i >= 0)
-			{
 				names.splice(i, 1);
-				values.splice(i, 1);
-			}
-			return i >= 0;
+			
+			return delete values[nameStr];
 		}
 		override flash_proxy function nextNameIndex(index:int):int
 		{

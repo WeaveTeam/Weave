@@ -301,16 +301,7 @@ package
 		{
 			// register each external interface function
 			for each (var methodInfo:Object in classInfo.traits.methods)
-			{
-				var methodName:String = methodInfo.name;
-				var method:Function = host[methodName];
-				// find the number of required parameters
-				var paramCount:int = 0;
-				while (paramCount < method.length && !methodInfo.parameters[paramCount].optional)
-					paramCount++;
-				
-				JavaScript.registerMethod(methodName, method, paramCount);
-			}
+				JavaScript.registerMethod(methodInfo.name, host[methodInfo.name]);
 		}
 		
 		private static function handleExternalError(e:Error):void
@@ -489,13 +480,24 @@ package
 		private static const _singletonDictionary:Dictionary = new Dictionary();
 		
 		/**
-		 * Outputs to external console.log
+		 * Outputs to external console.log()
 		 */
 		public static function externalTrace(...params):void
 		{
 			JavaScript.exec(
 				{"params": params},
 				"console.log.apply(console, params)"
+			);
+		}
+		
+		/**
+		 * Outputs to external console.error()
+		 */
+		public static function externalError(...params):void
+		{
+			JavaScript.exec(
+				{"params": params},
+				"console.error.apply(console, params)"
 			);
 		}
 	}

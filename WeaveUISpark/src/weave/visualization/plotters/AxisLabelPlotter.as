@@ -172,5 +172,6 @@ package weave.visualization.plotters
 		
 		// backwards compatibility
 		[Deprecated] public function set start(value:Number):void { begin.value = offset.value = value; }
+		[Deprecated] public function set horizontal(value:Boolean):void { alongXAxis.value = value; }
 	}
 }

@@ -25,6 +25,7 @@ package weave.core
 	import weave.api.newDisposableChild;
 	import weave.api.ui.IEditorManager;
 	import weave.api.ui.ILinkableObjectEditor;
+	import weave.api.ui.IObjectWithLabel;
 
 	/**
 	 * Manages implementations of ILinkableObjectEditor.
@@ -95,7 +96,11 @@ package weave.core
 		 */
 		public function getLabel(object:ILinkableObject):String
 		{
-			return labels[object];
+			if (labels[object])
+				return labels[object];
+			if (object is IObjectWithLabel)
+				return (object as IObjectWithLabel).getLabel();
+			return null;
 		}
 	}
 }

@@ -18,8 +18,8 @@
 */
 package weave.menus
 {
-	import weave.api.core.ILinkableVariable;
 	import weave.core.LinkableBoolean;
+	import weave.primitives.WeaveTreeItem;
 	
 	/**
 	 * Dynamic menu item for use with Flex Menus.
@@ -27,127 +27,39 @@ package weave.menus
 	 * Flex's DefaultDataDescriptor checks the following properties:
 	 *     label, children, enabled, toggled, type, groupName
 	 */
-	public class WeaveMenuItem
+	public class WeaveMenuItem extends WeaveTreeItem
 	{
+		/**
+		 * Initializes an Array of WeaveMenuItems using an Array of objects to pass to the constructor.
+		 * Any Arrays passed in will be flattened.
+		 * @param params Item descriptors.
+		 */
+		public static function createItems(...params):Array
+		{
+			return WeaveTreeItem.createItems(WeaveMenuItem, params);
+		}
+
 		public static const TYPE_SEPARATOR:String = "separator";
 		public static const TYPE_CHECK:String = "check";
 		public static const TYPE_RADIO:String = "radio";
 		
 		/**
-		 * Initializes an Array of WeaveMenuItems using an Array of objects to pass to the constructor.
-		 * Any Arrays passed in will be flattened.
-		 */
-		public static function createItems(...params):Array
-		{
-			// flatten
-			var n:int = 0;
-			while (n != params.length)
-			{
-				n = params.length;
-				params = [].concat.apply(null, params);
-			}
-			
-			return params.map(_mapItems);
-		}
-		private static function _mapItems(item:Object, i:int, a:Array):WeaveMenuItem
-		{
-			if (item is Class)
-				return new item();
-			return item as WeaveMenuItem || new WeaveMenuItem(item);
-		}
-		private static function _filterItems(item:WeaveMenuItem, index:int, array:Array):Boolean
-		{
-			return item.shown;
-		}
-		
-		/**
 		 * Constructs a new WeaveMenuItem.
 		 * @param params An Object containing property values to set on the WeaveMenuItem.
-		 *               If this is a String equal to TYPE_SEPARATOR, a new separator will be created.
+		 *               If this is a String equal to "separator" (TYPE_SEPARATOR), a new separator will be created.
 		 */
 		public function WeaveMenuItem(params:Object)
 		{
+			childItemClass = WeaveMenuItem;
+			
 			if (params == TYPE_SEPARATOR)
+			{
 				type = TYPE_SEPARATOR;
-			else if (params is String)
-				this.label = params;
-			else
-				for (var key:String in params)
-					this[key] = params[key];
-		}
-		
-		/**
-		 * Computes a Boolean value from various structures
-		 * @param param Either a Boolean, and Object like {not: param}, a Function, an ILinkableVariable, or an Array of those objects.
-		 * @param recursionName A name used to keep track of recursion.
-		 * @return A Boolean value derived from the param, or the param itself if called recursively.
-		 */
-		private function getBoolean(param:*, recursionName:String):*
-		{
-			if (!_recursion[recursionName])
-			{
-				_recursion[recursionName] = true;
-				
-				if (param is Object && param.constructor == Object && param.hasOwnProperty('not'))
-					param = !getBoolean(param['not'], "not_" + recursionName);
-				if (param is Function)
-					param = param.apply(this, param.length ? [this] : null);
-				if (param is ILinkableVariable)
-					param = (param as ILinkableVariable).getSessionState();
-				if (param is Array)
-					for each (param in param)
-						if (!(param = getBoolean(param, recursionName + "_item")))
-							break;
-				param = param ? true : false;
-				
-				_recursion[recursionName] = false;
+				params = null;
 			}
-			return param;
+			
+			super(params);
 		}
-		
-		/**
-		 * Gets a String value from a String or Function.
-		 * @param param Either a String or a Function.
-		 * @param recursionName A name used to keep track of recursion.
-		 * @return A String value derived from the param, or the param itself if called recursively.
-		 */
-		private function getString(param:*, recursionName:String):*
-		{
-			if (!_recursion[recursionName])
-			{
-				_recursion[recursionName] = true;
-				
-				if (param is Function)
-					param = param.apply(this, param.length ? [this] : null);
-				else
-					param = param || '';
-				
-				_recursion[recursionName] = false;
-			}
-			return param;
-		}
-		
-		/**
-		 * Gets an Array value from an Array or Function.
-		 * @param param Either an Array or a Function.
-		 * @param recursionName A name used to keep track of recursion.
-		 * @return An Array derived from the param, or the param itself if called recursively.
-		 */
-		private function getArray(param:*, recursionName:String):*
-		{
-			if (!_recursion[recursionName])
-			{
-				_recursion[recursionName] = true;
-				
-				if (param is Function)
-					param = param.apply(this, param.length ? [this] : null);
-				
-				_recursion[recursionName] = false;
-			}
-			return param;
-		}
-		
-		private var _recursion:Object = {}; // recursionName -> Boolean
 		
 		/**
 		 * This can be either a Function or a LinkableBoolean.
@@ -166,29 +78,10 @@ package weave.menus
 		 */
 		public var groupName:String = null;
 		
-		/**
-		 * This can be any data associated with the menu item
-		 */
-		public var data:Object = null;
-		
-		private var _label:* = "";
 		private var _enabled:* = true;
 		private var _shown:* = true;
 		private var _toggled:* = false;
 		private var _children:* = null;
-		
-		/**
-		 * This can be set to either a String or a Function.
-		 * This property is checked by Flex's default data descriptor.
-		 */
-		public function get label():String
-		{
-			return getString(_label, 'label');
-		}
-		public function set label(value:*):void
-		{
-			_label = value;
-		}
 		
 		/**
 		 * This property is checked by Flex's default data descriptor.
@@ -234,14 +127,14 @@ package weave.menus
 		 * When this property is accessed, refresh() will be called except if refresh() is already being called.
 		 * This property is checked by Flex's default data descriptor.
 		 */
-		public function get children():*
+		override public function get children():Array
 		{
-			var items:Array = getArray(_children, 'children') as Array;
+			var items:Array = super.children as Array;
 			if (!items)
 				return null;
 			
 			// filter children based on "shown" status
-			items = items.map(_mapItems).filter(_filterItems);
+			items = items.filter(_filterShown);
 			// remove leading separators
 			while (items.length && WeaveMenuItem(items[0]).type == TYPE_SEPARATOR)
 				items.shift();
@@ -256,14 +149,9 @@ package weave.menus
 			return items;
 		}
 		
-		/**
-		 * This can be set to either an Array or a Function that returns an Array.
-		 * The function can be like function():void or function(item:WeaveMenuItem):void.
-		 * The Array can contain either WeaveMenuItems or Objects, each of which will be passed to the WeaveMenuItem constructor.
-		 */
-		public function set children(value:*):void
+		private function _filterShown(item:WeaveMenuItem, index:int, array:Array):Boolean
 		{
-			_children = value;
+			return item.shown;
 		}
 		
 		/**

@@ -52,7 +52,6 @@
 			import weave.api.newDisposableChild;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableWatcher;
-			import weave.core.UIUtils;
 			import weave.ui.AlertTextBox;
 			import weave.ui.AlertTextBoxEvent;
 			import weave.ui.VariableListController;

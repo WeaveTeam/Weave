@@ -233,7 +233,10 @@ package
 				throw new Error("No such method: " + methodName);
 			
 			var params:Array = json.parse(paramsJson, _jsonReviver);
+			
+			ExternalInterface.marshallExceptions = true; // let the external code handle errors
 			var result:* = method.apply(null, params);
+			
 			var resultJson:String = json.stringify(result, _jsonReplacer);
 			
 			// work around unescaped backslash bug
@@ -279,9 +282,8 @@ package
 		 * Exposes a method to JavaScript.
 		 * @param methodName The name to be used in JavaScript.
 		 * @param method The method.
-		 * @param requiredParamCount The number of required (non-optional) parameters.
 		 */
-		public static function registerMethod(methodName:String, method:Function, requiredParamCount:int = -1):void
+		public static function registerMethod(methodName:String, method:Function):void
 		{
 			if (!initialized)
 				initialize();
@@ -293,21 +295,15 @@ package
 				return;
 			}
 			
-			if (requiredParamCount < 0)
-				requiredParamCount = method.length;
-			
 			exec(
 				{
 					"JSON_CALL": JSON_CALL,
 					"JSON_REPLACER": JSON_REPLACER,
 					"JSON_REVIVER": JSON_REVIVER,
-					"methodName": methodName,
-					"requiredParamCount": requiredParamCount
+					"methodName": methodName
 				},
 				"this[methodName] = function(){",
-				"    var params = new Array(requiredParamCount);",
-				"    for (var i in arguments)",
-				"        params[i] = arguments[i];",
+				"    var params = Array.prototype.slice.call(arguments);",
 				"    var paramsJson = JSON.stringify(params, this[JSON_REPLACER]);",
 				"    //console.log('input:', methodName, paramsJson);",
 				"    var resultJson = this[JSON_CALL](methodName, paramsJson);",

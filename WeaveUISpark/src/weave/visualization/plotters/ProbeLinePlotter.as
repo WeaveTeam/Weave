@@ -24,10 +24,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
-	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
 	 * ProbeLinePlotter
@@ -38,12 +35,7 @@ package weave.visualization.plotters
 	{
 		public function ProbeLinePlotter()
 		{
-			// initialize default line & fill styles
-			lineStyle.requestLocalObject(SolidLineStyle, false);
-			
 		}
-		
-		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
 		
 		private var drawLine:Boolean = false;
 		private const yAxis:Point = new Point();//reusable object
@@ -115,6 +107,5 @@ package weave.visualization.plotters
 				destination.draw(tempShape); 
 			}
 		}
-		
 	}
 }

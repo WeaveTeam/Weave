@@ -363,6 +363,28 @@ package weave.compiler
 		}
 		
 		/**
+		 * Creates a memoized version of a Function.
+		 * The parameters passed to the memoized version of the Function must be JSON-serializable.
+		 * @param func The function to memoize.
+		 * @param bindThis Optional thisArg parameter to pass to func.apply().
+		 * @param bindArgs Optional arguments to bind that should appear before any additional arguments passed to the memoized function.
+		 * @return A memoized version of the function.
+		 * @see #bind
+		 */
+		public static function memoize(func:Function, bindThis:* = null, ...bindArgs):Function
+		{
+			var cache:Object = {};
+			return function(...args):* {
+				var str:String = stringify(args);
+				if (cache.hasOwnProperty(str))
+					return cache[str];
+				if (bindArgs.length)
+					return cache[str] = func.apply(bindThis, bindArgs.concat(args));
+				return cache[str] = func.apply(bindThis, args);
+			};
+		}
+		
+		/**
 		 * This function will initialize the operators and constants.
 		 */
 		private function initialize():void
@@ -1121,7 +1143,7 @@ package weave.compiler
 		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
 		{
 			indent = indent is Number ? StandardLib.lpad('', indent as Number, ' ') : indent as String || ''
-			return _stringify("", value, replacer, indent ? '\n' : ' ', indent, json_values_only);
+			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
 		}
 		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
 		{
@@ -1173,7 +1195,7 @@ package weave.compiler
 			
 			return (value is Array ? "[" : "{")
 				+ lineBreakIndent
-				+ output.join("," + lineBreakIndent)
+				+ output.join(indent ? ',' + lineBreakIndent : ', ')
 				+ lineBreak
 				+ (value is Array ? "]" : "}");
 		}

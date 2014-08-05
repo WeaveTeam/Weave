@@ -27,9 +27,9 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
+	import weave.compiler.StandardLib;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -52,11 +52,15 @@ package weave.core
 		public function getSessionState(objectPath:Array):Object
 		{
 			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-			if (object == null)
-				return null;
-			var state:Object = WeaveAPI.SessionManager.getSessionState(object);
-			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
-			return state;
+			if (object)
+			{
+				var state:Object = WeaveAPI.SessionManager.getSessionState(object);
+				convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
+				return state;
+			}
+			
+			externalWarning("No ILinkableObject from which to get session state at path {0}", Compiler.stringify(objectPath));
+			return null;
 		}
 		
 		/**
@@ -81,10 +85,14 @@ package weave.core
 		public function setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean
 		{
 			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-			if (object == null)
-				return false;
-			WeaveAPI.SessionManager.setSessionState(object, newState, removeMissingObjects);
-			return true;
+			if (object)
+			{
+				WeaveAPI.SessionManager.setSessionState(object, newState, removeMissingObjects);
+				return true;
+			}
+			
+			externalError("No ILinkableObject for which to set session state at path {0}", Compiler.stringify(objectPath));
+			return false;
 		}
 		
 		/**
@@ -93,9 +101,11 @@ package weave.core
 		public function getObjectType(objectPath:Array):String
 		{
 			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-			if (object == null)
-				return null;
-			return getQualifiedClassName(object);
+			if (object)
+				return getQualifiedClassName(object);
+			
+			// no warning since getObjectType() may be used to check whether or not an object exists.
+			return null;
 		}
 		
 		/**
@@ -104,13 +114,17 @@ package weave.core
 		public function getChildNames(objectPath:Array):Array
 		{
 			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-			if (object == null)
-				return null;
-			if (object is ILinkableHashMap)
-				return (object as ILinkableHashMap).getNames();
-			if (object is ILinkableDynamicObject)
-				return [(object as ILinkableDynamicObject).globalName];
-			return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
+			if (object)
+			{
+				if (object is ILinkableHashMap)
+					return (object as ILinkableHashMap).getNames();
+				if (object is ILinkableDynamicObject)
+					return [(object as ILinkableDynamicObject).globalName];
+				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
+			}
+			
+			externalWarning("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
+			return null;
 		}
 		
 		/**
@@ -119,10 +133,16 @@ package weave.core
 		public function setChildNameOrder(hashMapPath:Array, orderedChildNames:Array):Boolean
 		{
 			var hashMap:ILinkableHashMap = WeaveAPI.SessionManager.getObject(_rootObject, hashMapPath) as ILinkableHashMap;
-			if (!hashMap || !orderedChildNames)
-				return false;
-			hashMap.setNameOrder(orderedChildNames);
-			return true;
+			if (hashMap)
+			{
+				// it's ok if there are no names specified, because that wouldn't accomplish anything anyway
+				if (orderedChildNames)
+					hashMap.setNameOrder(orderedChildNames);
+				return true;
+			}
+			
+			externalError("No ILinkableHashMap for which to reorder children at path {0}", Compiler.stringify(hashMapPath));
+			return false;
 		}
 		
 		/**
@@ -130,22 +150,32 @@ package weave.core
 		 */
 		public function requestObject(objectPath:Array, objectType:String):Boolean
 		{
-			if (!objectPath || !objectPath.length)
+			// get class definition
+			var classQName:String = WeaveXMLDecoder.getClassName(objectType);
+			var classDef:Class = ClassUtils.getClassDefinition(classQName);
+			if (classDef == null)
+			{
+				externalError("No class definition for {0}", Compiler.stringify(classQName));
 				return false;
+			}
+			if (ClassUtils.isClassDeprecated(classQName))
+				externalWarning("{0} is deprecated.", objectType);
+			
+			// stop if there is no path specified
+			if (!objectPath || !objectPath.length)
+			{
+				if (Object(_rootObject).constructor == classDef)
+					return true;
+				
+				externalError("Cannot request an object at the root path");
+				return false;
+			}
 			
 			// Get parent object first in case there is some backwards compatibility code that gets
 			// executed when it is accessed (registering deprecated class definitions, for example).
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();
 			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
-			
-			// get class definition
-			var classQName:String = WeaveXMLDecoder.getClassName(objectType);
-			var classDef:Class = ClassUtils.getClassDefinition(classQName);
-			if (classDef == null)
-				return false;
-			if (ClassUtils.isClassDeprecated(classQName))
-				WeaveAPI.externalTrace("Warning: " + objectType + " is deprecated.");
 			
 			// request the child object
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -161,7 +191,12 @@ package weave.core
 				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
 			else
 				child = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-			return child && child.constructor == classDef;
+			
+			if (child && child.constructor == classDef)
+				return true;
+			
+			externalError("Request for {0} failed at path {1}", objectType, Compiler.stringify(objectPath));
+			return false;
 		}
 
 		/**
@@ -170,23 +205,49 @@ package weave.core
 		public function removeObject(objectPath:Array):Boolean
 		{
 			if (!objectPath || !objectPath.length)
+			{
+				externalError("Cannot remove root object");
 				return false;
-			objectPath = objectPath.concat();
-			var childName:Object = objectPath.pop();
-			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
-			var hashMap:ILinkableHashMap = object as ILinkableHashMap;
-			var dynamicObject:ILinkableDynamicObject = object as ILinkableDynamicObject;
+			}
+			
+			var parentPath:Array = objectPath.concat();
+			var childName:Object = parentPath.pop();
+			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
+			
+			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			if (hashMap)
 			{
 				if (childName is Number)
 					childName = hashMap.getNames()[childName];
+				
+				if (hashMap.objectIsLocked(childName as String))
+				{
+					externalError("Object is locked and cannot be removed (path: {0})", Compiler.stringify(objectPath));
+					return false;
+				}
+				
 				hashMap.removeObject(childName as String);
+				return true;
 			}
-			else if (dynamicObject)
+			
+			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+			if (dynamicObject)
+			{
+				if (dynamicObject.locked)
+				{
+					externalError("Object is locked and cannot be removed (path: {0})", Compiler.stringify(objectPath));
+					return false;
+				}
+				
 				dynamicObject.removeObject();
+				return true;
+			}
+			
+			if (parent)
+				externalError("Parent object does not support dynamic children, so cannot remove child at path {0}", Compiler.stringify(objectPath));
 			else
-				return false;
-			return true;
+				externalError("No parent from which to remove a child at path {0}", Compiler.stringify(objectPath));
+			return false;
 		}
 		
 		/**
@@ -214,22 +275,41 @@ package weave.core
 		 */		
 		private const _variables:Object = {};
 		
+		/**
+		 * Gets an object from a path or a variable name and sets getObjectFromPathOrVariableName_error.
+		 * If the path was invalid or the variable uninitialized, getObjectFromPathOrVariableName_error will be set with an appropriate error message.
+		 * @param objectPathOrVariableName Either an Array for a path or a String for a variable name.
+		 * @return The object at the specified path, the value of the specified variable, or null if the parameter was null.
+		 */
 		private function getObjectFromPathOrVariableName(objectPathOrVariableName:Object):*
 		{
-			if (objectPathOrVariableName is Array)
-				return WeaveAPI.SessionManager.getObject(_rootObject, objectPathOrVariableName as Array);
+			getObjectFromPathOrVariableName_error = null;
 			
-			var variableName:String = objectPathOrVariableName as String;
+			if (objectPathOrVariableName == null)
+				return null;
+			
+			if (objectPathOrVariableName is Array)
+			{
+				var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPathOrVariableName as Array);
+				if (object)
+					return object;
+				
+				getObjectFromPathOrVariableName_error = "No ILinkableObject at path " + Compiler.stringify(objectPathOrVariableName);
+			}
+			
+			var variableName:String = String(objectPathOrVariableName);
 			if (variableName)
 			{
 				if (_variables.hasOwnProperty(variableName))
 					return _variables[variableName];
 				
-				reportError('Undefined variable "' + variableName + '"');
+				getObjectFromPathOrVariableName_error = "Undefined variable " + Compiler.stringify(variableName);
 			}
 			
 			return null;
 		}
+		
+		private var getObjectFromPathOrVariableName_error:String = null;
 		
 		private const _compiler:Compiler = new Compiler();
 		
@@ -248,10 +328,17 @@ package weave.core
 					throw new Error("Invalid variable name: " + Compiler.encodeString(assignVariableName));
 				
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
+				if (getObjectFromPathOrVariableName_error)
+					throw new Error(getObjectFromPathOrVariableName_error);
 				var compiledObject:ICompiledObject = _compiler.compileToObject(expression);
 				var isFuncDef:Boolean = _compiler.compiledObjectIsFunctionDefinition(compiledObject);
 				// passed-in variables take precedence over stored ActionScript _variables
-				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [variables, _variables], reportError, thisObject != null);
+				var compiledMethod:Function = _compiler.compileObjectToFunction(
+					compiledObject,
+					[variables, _variables],
+					WeaveAPI.ErrorManager.reportError,
+					thisObject != null
+				);
 				var result:*;
 				if (isAssignment && isFuncDef)
 				{
@@ -270,7 +357,7 @@ package weave.core
 			}
 			catch (e:*)
 			{
-				reportError(e);
+				externalError(e);
 			}
 			return undefined;
 		}
@@ -298,7 +385,7 @@ package weave.core
 					}
 					catch (e:*)
 					{
-						reportError(e);
+						externalError(e);
 					}
 					ExternalInterface.marshallExceptions = prev;
 				}
@@ -311,15 +398,39 @@ package weave.core
 		 */
 		public function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
 		{
-			var object:ILinkableObject = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName) as ILinkableObject;
-			if (object == null)
-				return false;
-			_d2d_callbackStr_target.set(callback, object, true);
-			if (immediateMode)
-				getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
-			else
-				getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
-			return true;
+			try
+			{
+				if (scopeObjectPathOrVariableName == null)
+				{
+					externalError("addCallback(): No path or variable name given");
+					return false;
+				}
+				
+				var object:ILinkableObject = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName) as ILinkableObject;
+				if (getObjectFromPathOrVariableName_error)
+				{
+					externalError(getObjectFromPathOrVariableName_error);
+					return false;
+				}
+				if (object == null)
+				{
+					externalError("No ILinkableObject to which to add a callback at path or variable {0}", Compiler.stringify(scopeObjectPathOrVariableName));
+					return false;
+				}
+				
+				_d2d_callbackStr_target.set(callback, object, true);
+				if (immediateMode)
+					getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+				else
+					getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+				return true;
+			}
+			catch (e:Error)
+			{
+				// unexpected error reported in Weave interface
+				WeaveAPI.ErrorManager.reportError(e);
+			}
+			return false;
 		}
 		
 		/**
@@ -336,12 +447,36 @@ package weave.core
 				return true;
 			}
 			
-			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
-			if (object == null)
-				return false;
-			_d2d_callbackStr_target.remove(callback, object);
-			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
-			return true;
+			try
+			{
+				if (objectPathOrVariableName == null)
+				{
+					externalWarning("removeCallback(): No path or variable name given");
+					return false;
+				}
+
+				var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
+				if (getObjectFromPathOrVariableName_error)
+				{
+					externalError(getObjectFromPathOrVariableName_error);
+					return false;
+				}
+				if (object == null)
+				{
+					externalWarning("No ILinkableObject from which to remove a callback at path or variable {0}", Compiler.stringify(objectPathOrVariableName));
+					return false;
+				}
+				
+				_d2d_callbackStr_target.remove(callback, object);
+				getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
+				return true;
+			}
+			catch (e:Error)
+			{
+				// unexpected error reported in Weave interface
+				WeaveAPI.ErrorManager.reportError(e);
+			}
+			return false;
 		}
 		
 		/**
@@ -354,6 +489,16 @@ package weave.core
 					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callbackStr] as Function);
 			_callbackFunctionCache = {};
 			_d2d_callbackStr_target = new Dictionary2D(true, true);
+		}
+		
+		private static function externalError(format:String, ...args):void
+		{
+			WeaveAPI.externalError(StandardLib.substitute("Error: " + format, args));
+		}
+		
+		private static function externalWarning(format:String, ...args):void
+		{
+			WeaveAPI.externalError(StandardLib.substitute("Warning: " + format, args));
 		}
 	}
 }

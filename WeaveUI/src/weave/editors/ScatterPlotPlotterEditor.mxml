@@ -49,6 +49,7 @@
 				
 				if (target)
 				{
+					// make sure components are not null
 					if (!initialized)
 						initialize();
 					linkBindableProperty(target.fill.alpha.defaultValue, alphaSlider, "value");

@@ -63,7 +63,7 @@ package weave.data.DataSources
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource
+	public class CSVDataSource extends AbstractDataSource_old
 	{
 		WeaveAPI.registerImplementation(IDataSource, CSVDataSource, "CSV file");
 
@@ -451,7 +451,7 @@ package weave.data.DataSources
 		 */
 		private function handleCSVDownload(event:ResultEvent, token:Object = null):void
 		{
-			debug("handleCSVDownload", url.value);
+			//debugTrace(this, "handleCSVDownload", url.value);
 			// Only handle this download if it is for current url.
 			if (token == url.value)
 			{
@@ -585,7 +585,7 @@ package weave.data.DataSources
 				}
 				proxyColumn.setInternalColumn(newColumn);
 				
-				debug("initialized column",proxyColumn);
+				//debugTrace(this, "initialized column", proxyColumn);
 			}
 			
 			proxyColumn.setMetadata(metadata);

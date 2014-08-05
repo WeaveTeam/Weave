@@ -409,7 +409,7 @@
 					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
 					
 					controlPanel.children = [editor];
-					controlPanel.title = getControlPanelTitle(linkableObject);
+					controlPanel.title = controlPanel._defaultTitle = getControlPanelTitle(linkableObject);
 					controlPanel.sessionEditorTarget = linkableObject;
 				}
 				

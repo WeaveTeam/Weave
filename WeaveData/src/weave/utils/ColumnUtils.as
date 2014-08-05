@@ -24,10 +24,12 @@ package weave.utils
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.copySessionState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IKeyFilter;
@@ -390,7 +392,7 @@ package weave.utils
 				var values:Array = [];
 				for (var kIndex:int = 0; kIndex < keys.length; kIndex++)
 				{
-					var value:* = column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType);
+					var value:* = column ? column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType) : undefined;
 					var isUndef:Boolean = StandardLib.isUndefined(value);
 					if (!allowMissingData && isUndef)
 					{
@@ -589,6 +591,66 @@ package weave.utils
 		public static function sortMetadataPropertyNames(names:Array):void
 		{
 			AsyncSort.sortImmediately(names, _compareMetadataPropertyNames);
+		}
+		
+		/**
+		 * This will initialize selectable attributes using a list of columns and/or column references.
+		 * @param selectableAttributes An Array of IColumnWrapper and/or ILinkableHashMaps to initialize.
+		 * @param columns An Array of IAttributeColumn and/or IColumnReference objects
+		 */
+		public static function initSelectableAttributes(selectableAttributes:Array, input:Array):void
+		{
+			for (var i:int = 0; i < selectableAttributes.length; i++)
+				initSelectableAttribute(selectableAttributes[i], input[i % input.length]);
+		}
+		
+		/**
+		 * This will initialize one selectable attribute using a column or column reference. 
+		 * @param selectableAttribute A selectable attribute (Either an IColumnWrapper or an ILinkableHashMap)
+		 * @param column_or_columnReference Either an IAttributeColumn or an ILinkableHashMap
+		 * @param clearHashMap If the selectableAttribute is an ILinkableHashMap, all objects will be removed from it prior to adding a column.
+		 */
+		public static function initSelectableAttribute(selectableAttribute:Object, column_or_columnReference:Object, clearHashMap:Boolean = true):void
+		{
+			var inputCol:IAttributeColumn = column_or_columnReference as IAttributeColumn;
+			var inputRef:IColumnReference = column_or_columnReference as IColumnReference;
+			
+			var outputCol:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
+			if (outputCol && outputCol.getInternalColumn() == null)
+			{
+				if (inputCol)
+				{
+					if (inputCol is DynamicColumn)
+						copySessionState(inputCol, outputCol);
+					else
+						outputCol.requestLocalObjectCopy(inputCol);
+				}
+				else if (inputRef)
+					ReferencedColumn(
+						outputCol.requestLocalObject(ReferencedColumn, false)
+					).setColumnReference(
+						inputRef.getDataSource(),
+						inputRef.getColumnMetadata()
+					);
+				else
+					outputCol.removeObject();
+			}
+			
+			var outputHash:ILinkableHashMap = selectableAttribute as ILinkableHashMap;
+			if (outputHash)
+			{
+				if (clearHashMap)
+					outputHash.removeAllObjects()
+				if (inputCol)
+					outputHash.requestObjectCopy(null, inputCol);
+				else if (inputRef)
+					ReferencedColumn(
+						outputHash.requestObject(null, ReferencedColumn, false)
+					).setColumnReference(
+						inputRef.getDataSource(),
+						inputRef.getColumnMetadata()
+					);
+			}
 		}
 		
 		//todo: (cached) get sorted index from a key and a column

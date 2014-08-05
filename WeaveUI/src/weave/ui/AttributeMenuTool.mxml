@@ -68,7 +68,6 @@
 				<HelpComponent>
 					Select the visualization tool that you want the attribute menu to be linked to.
 				</HelpComponent>
-				<mx:Button label="{lang('Refresh')}" click="handleGlobalListChange()"/>
 			</Indent>
 			<Indent label="{lang('Visualization attribute')}">
 				<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
@@ -138,6 +137,7 @@
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.LinkableWatcher;
+			import weave.core.SessionManager;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -268,7 +268,7 @@
 				
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
-				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
+				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleGlobalListChange, true);
 				targetToolPath.addGroupedCallback(this, validateToolWatcherTarget, true);
 				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addGroupedCallback(this, handleChoicesChange, true);

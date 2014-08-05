@@ -86,8 +86,6 @@
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
-				initColumnDefaults(plotter.dataX, plotter.dataY, ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
-				
 				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
 				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
 				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
@@ -102,6 +100,11 @@
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([plotter.dataX, plotter.dataY, plotter.fill.color], input);
 			}
 			
 			private function handleChildrenChildList():void
