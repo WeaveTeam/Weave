@@ -1,18 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="aws.WeaveModule">
 	<head>
 		<meta charset="UTF-8" />
-		<script src="/aws/lib/jquery/jquery.js"></script>
-		<script src="/aws/aws.js"></script>
 		<script src="/aws/lib/swfobject.js"></script>
-	</head>
-	<body>
-	<table border="0">
-		  <tr>
-		    <td><textarea id="resultTextArea" width="100%" cols="100" rows="1"></textarea></td>
-		  </tr>
-	</table>
+		<script src="lib/jquery/jquery 2_1_0.js"></script>
+		<script src='lib/jquery-ui/jquery-ui.js'></script>
+		<script src="lib/angular/1.2/angular.min.js"></script>
 		
+		<script src="aws/visualization/weave/WeaveModule.js"></script>
+		
+	</head>
+	<body ng-controller="WeaveCtrl">
 		<script>
 			var timer = null;
 			var base_url = document.location.protocol + "//" + document.location.host + "/";
@@ -24,28 +22,14 @@
 		    var checkstring;
 		    var logvar;
 		    var setSession;
-		    
+			var isWeaveReady = false;
+			
 			function weaveReady(weave)
 			{
-				log("Running Query...");
-				
-			    client = new aws.WeaveClient(weave);
-			   
-			   if(responseResults) {
-				   console.log("Calling from weave ready", responseResults);
-				   workOnData(responseResults);
-			   }
-			   
-			   if(logvar){
-				   log(logvar)
-			   }
-			   
-			   if(setSession){
-				   setSessionHistory(setSession);
-			   }
-			   
+				isWeaveReady = true;
+				console.log(isWeaveReady);
 			}
-			
+
 			var check;
 			function workOnData(queryHandler, input)
 			{
@@ -60,9 +44,9 @@
 						console.log("geometry", geometryJson);
 						keyType = geometryJson.keyType;
 					}
-					
+
 					console.log("else");
-					
+
 					   //Todo parameterize keyColumnName ; here "fips"
 					   dataSourceName = client.addCSVDataSource(responseResults,"", keyType, "fips");
 					   var toolName;
@@ -77,7 +61,7 @@
 							//aws.timeLogString = aws.reportTime(queryHandler.visualizations[i].type + ' added');
 							//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 						}
-							    
+
 					   // var colColumn = aws.QueryHandler.prototype.returnColorcolumn();
 					    if (queryHandler.ColorColumn) {
 					    	colorColumn = queryHandler.ColorColumn;
@@ -87,54 +71,54 @@
 						}	
 				}
 			}
-			
+
 			function updateVisualizations(queryHandler){
 				var toolName;
 				log("Updating visualizations...");
-				
+
 				console.log("queryHandler.queryObject", queryHandler.queryObject);
 				var keyType = "";
 				//TODO find a better way to set the keytype;
 				//check for the keytype
 				if(queryHandler.queryObject.MapTool.enabled){
-					
+
 					var geometryJson = JSON.parse(queryHandler.queryObject.MapTool.geometryLayer);
 					keyType = geometryJson.keyType;
 				}
-					
+
 				//set the keyType of the csv datasource
 				client.setCSVDataSouceKeyType(keyType);
-				
+
 				for(var i in queryHandler.visualizations){
 					if (queryHandler.currentVisualizations.hasOwnProperty(queryHandler.visualizations[i].type)) {
 						queryHandler.visualizations[i].toolName = queryHandler.currentVisualizations[queryHandler.visualizations[i].type];
 					}
-					
+
 					toolName = client.updateVisualization(queryHandler.visualizations[i], dataSourceName);
 					if(queryHandler.visualizations[i].hasOwnProperty("enableTitle")) {
 						client.setVisualizationTitle(toolName, queryHandler.visualizations[i].enableTitle,  queryHandler.visualizations[i].title);
 					}
 					queryHandler.currentVisualizations[queryHandler.visualizations[i].type] = toolName;
 				}
-				
+
 				 if (queryHandler.ColorColumn) {
 				    	colorColumn = queryHandler.ColorColumn;
 						client.setColorAttribute(queryHandler.ColorColumn, dataSourceName);
 				 }
 			}
-			
+
 			function clearSessionState(){
 				if(client)
 					client.clearWeave();
 				log("Session State cleared");
 			}
-			
+
 // 			function clearWeave() {
 // 				if(client) {
 // 					client.clearWeave(); 
 // 				}
 // 			}
-			
+
 			function resizeWeave( t )
 			{
 				if( typeof t == 'undefined' ) t = 3;
@@ -143,12 +127,12 @@
 					clearTimeout(timer);
 					timer = null;
 				}
-	
+
 				var dh = $(window).height() - 10;
 				var wh = $("#weaveBox").position().top;
 				var h =  dh - wh;
 				$("#weaveBox").height( h );
-				
+
 				timer = setTimeout(
 					function() {
 						resizeWeave(t - 1);
@@ -156,13 +140,7 @@
 					300
 				);
 			}
-			
-			function log (string)
-			{
-				console.log("logging ", string);
-				resultTextArea.value = string;
-			}
-			
+
 			function setSessionHistory(base64encodedstring)
 			{
 				console.log("base64encodedstring", base64encodedstring);
@@ -174,10 +152,10 @@
 					var decodeBytes =  d.toByteArray();\
 			      Class('weave.Weave').loadWeaveFileContent(decodeBytes);\
 			    ");
-					
-				
+
+
 			}
-			
+
 			function getSessionState()
 			{
 				return weave.path().getValue("\
@@ -186,21 +164,22 @@
 				        return e.drain();\
 				    ");
 			}
-			
+
 		</script>
-	
+
 		<script>
 			var obj;
 			var qh;
 			$(window).ready(function() {
 				resizeWeave();
 			});
+			
 			$(window).resize(function() {
 				resizeWeave();
 			});
-			
+
 		</script>
-		
+
 		<script type="text/javascript">
 			// For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection. 
 			var swfVersionStr = "10.2.0";
@@ -227,7 +206,7 @@
 			// JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
 			swfobject.createCSS("#flashContent", "display:block;text-align:left;width:100%;height:100%;");
 		</script>
-	
+
 		<div id="weaveBox" style="width:100%; height:50%; overflow: hidden; margin: 0 auto;">
 			<div id="flashContent">
 				<p>
@@ -243,4 +222,3 @@
 		</div>
 	</body>
 </html>
-

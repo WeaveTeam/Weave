@@ -1,17 +1,30 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
 
 
-weave_mod.service("WeaveService", function() {
+weave_mod.service("WeaveService", function($rootScope, $window) {
 	
-	
-	
+	this.weave;
+	this.resultData;
+	console.log($rootScope);
+	console.log($window);
 	
 });
 
-weave_mod.controller('WeaveModuleCtrl', function($scope, queryService, QueryHandlerService, WeaveService) {
+weave_mod.controller('WeaveCtrl', function($scope, WeaveService) {
+
 
 	console.log("this controller is also reached");
 	$scope.service = queryService;
+	
+	$scope.$watch(function() {
+		return isWeaveReady;
+	}, function() {
+		if(isWeaveReady) {
+			WeaveService.weave = $('#weave');
+			console.log(WeaveService.weave);
+		}
+	});
+	
 	
 });
 

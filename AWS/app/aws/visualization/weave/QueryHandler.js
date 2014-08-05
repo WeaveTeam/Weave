@@ -6,11 +6,9 @@ var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 
-qh_module.service('QueryHandlerService', function() {
+qh_module.service('QueryHandlerService',  ['$q', '$rootScope', function($q, scope) {
 	
-	var that = this;
-	
-	this.resultDataSet = [];
+	this.weaveWindow;
 	
 	/**
      * This function wraps the async aws runScript function into an angular defer/promise
@@ -22,32 +20,30 @@ qh_module.service('QueryHandlerService', function() {
 
     	
     	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
-    		that.resultDataSet = result;
     		scope.$safeApply(function() {
-				deferred.resolve(that.resultDataSet);
+				deferred.resolve(result);
 			});
 		});
     	
         return deferred.promise;
     };
 	
-	
-});
+}]);
 
-qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService) {
+qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService, WeaveService, $window) {
 	
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
-	
+	var queryObject = queryService.queryObject;
 	var nestedFilterRequest = {and : []};
 	
 	$scope.service = queryService;
 	
 	$scope.run = function() {
 		
-		for(var key in queryService.queryObject.scriptOptions) {
-			var input = queryService.queryObject.scriptOptions[key];
+		for(var key in queryObject.scriptOptions) {
+			var input = queryObject.scriptOptions[key];
 			switch(typeof input) {
 				case 'array': // array of columns
 					scriptInputs[key] = $.map(input, function(inputVal) {
@@ -185,10 +181,19 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 		
 		if(nestedFilterRequest.and.length) {
 			filters = nestedFilterRequest;
+		} else {
+			filters = null;
 		}
 		
-		scriptName = queryService.queryObject.scriptSelected;
+		scriptName = queryObject.scriptSelected;
 		
-		QueryHandlerService.runScript(scriptName, scriptInputs, filters);
+		QueryHandlerService.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
+			if(!QueryHandlerService.weaveWindow || QueryHandlerService.weaveWindow.closed) {
+				QueryHandlerService.weaveWindow = $window.open("aws/visualization/weave/weave.html",
+						"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+			}
+			
+			WeaveService.resultData = resultData;
+		});
 	};
 });

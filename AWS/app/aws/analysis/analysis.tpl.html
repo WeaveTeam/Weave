@@ -15,7 +15,7 @@
 					ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id" 
 					placeholder="Select Datatable" 
 					bs-select
-					ng-change="queryService.getDataColumnsEntitiesFromId(service.queryObject.dataTable.id, true)">
+					ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
 						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
 					</button>
 				</div>
@@ -27,7 +27,7 @@
 					</select>
 				</div>
 				
-				{{service.queryObject.Indicator.description}}
+				{{queryService.queryObject.Indicator.description}}
 				
 			</div>
 
@@ -93,11 +93,16 @@
 						<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
 					</select>
 					</div>
-
+					
 					<!--<div id="loading" ng-show="show_load" class="ng-hide">
 					<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
 					</div>-->
 					<a href="javascript:"  title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" placement="bottom" bs-popover>Settings</a>
+					<table border="0">
+					  <tr>
+		 			   <td><textarea id="resultTextArea" width="100%" cols="100" rows="1"></textarea></td>
+		  			  </tr>
+					</table>
 				</div>
 
 				<!--<div class="body" ng-model="content-tools">
@@ -141,7 +146,7 @@
 						</div>
 						<!-- Contains the buttons pertaining to a query and its visualizations -->
 						<div ng-controller="QueryHandlerCtrl">
-							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="runQuery()"> <span style="vertical-align: middle">Run</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
+							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="run()"> <span style="vertical-align: middle">Run</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
 						
 						
 						<div ng-controller = DialogController>
@@ -159,7 +164,7 @@
 			</div>
 			<br><br>		
 			<div style="height:100%; margin-top: 100px; width: 100%;" class="col-md-8 widget-container">
-					<div style="width: 270px; float : left; margin-right : 20px" ng-repeat="tool in service.tool_list | filter : { enabled : 'true' }" class="panel panel-default">
+					<div style="width: 270px; float : left; margin-right : 20px" ng-repeat="tool in AnalysisService.tool_list | filter : { enabled : 'true' }" class="panel panel-default">
 							<div class="panel-heading">
 								<h2>{{tool.title}}</h2>
 								<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="disable_widget(tool)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>

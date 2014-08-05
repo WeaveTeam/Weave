@@ -12,7 +12,6 @@ AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 	
 	$scope.service = queryService;
 	
-	console.log(queryService);
 	$scope.$watch(function() {
 		return queryService.queryObject.GeographyFilter.metadataTable;
 	}, function(newValue, oldValue) {

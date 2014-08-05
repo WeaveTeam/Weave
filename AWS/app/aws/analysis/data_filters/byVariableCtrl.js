@@ -34,14 +34,13 @@ AnalysisModule.controller('byVariableCtrl', function($scope, queryService){
 		if(columnStr) {
 			column = angular.fromJson(columnStr);
 			if(column.hasOwnProperty("id")) {
-				aws.DataClient.getDataColumnEntities([column.id], function(entities) {
+				queryService.getEntitiesById([column.id], true).then(function(entities) {
 					entity = entities[0];
 					if(entity.publicMetadata.hasOwnProperty('aws_metadata')) {
 						aws_metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
 						if(aws_metadata.hasOwnProperty("varType")) {
 							if(aws_metadata.varType == "continuous") {
 								queryService.dataObject.filterType[index] = aws_metadata.varType;
-								console.log(aws_metadata.varRange[1]);
 								queryService.dataObject.filterOptions[index] = { 
 																				range : true, 
 																				min : aws_metadata.varRange[0], 
@@ -52,7 +51,6 @@ AnalysisModule.controller('byVariableCtrl', function($scope, queryService){
 								queryService.dataObject.filterOptions[index] = aws_metadata.varValues;
 							}
 						}
-						$scope.$apply();
 					}
 				});
 			}

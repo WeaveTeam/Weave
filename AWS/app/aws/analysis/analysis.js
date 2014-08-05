@@ -187,17 +187,8 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 	queryService.getDataTableList(true);
 	queryService.getListOfScripts(true);
 
-	$scope.$watch(function() {
-		return queryService.queryObject.scriptSelected;
-	}, function () {
-		console.log(queryService.queryObject.scriptOptions);
-		queryService.queryObject.scriptOptions = {};
-		console.log(queryService.queryObject.scriptOptions);
-	});
-
 	//  clear script options when script changes
 	$scope.$watch('service.queryObject.scriptSelected', function(newVal, oldVal) {
-		
 		if(newVal != oldVal) {
 			queryService.queryObject.scriptOptions = {};
 		}
