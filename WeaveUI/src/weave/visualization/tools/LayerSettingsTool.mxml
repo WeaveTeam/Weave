@@ -202,8 +202,6 @@
 				list.dragMoveEnabled = false;
 				list.dropEnabled = false;
 				
-				getCallbackCollection(watcher).addImmediateCallback(this, handleWatcher, true);
-				getCallbackCollection(watcher).addGroupedCallback(this, handlePanelTitleChange, true);
 				getCallbackCollection(controller).addGroupedCallback(this, updateShownCheckboxList, true);
 				
 				targetCombo.labelFunction = getTargetLabel;
@@ -221,7 +219,7 @@
 				watcher.targetPath = targetPath.getSessionState() as Array;
 			}
 			
-			private const watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher());
+			private const watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, handleWatcher, handlePanelTitleChange));
 			private function handleWatcher():void
 			{
 				var pm:PlotManager = watcher.target as PlotManager || getLinkableDescendants(watcher.target, PlotManager)[0] as PlotManager;
