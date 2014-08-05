@@ -320,30 +320,6 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
 };
 
 /**
- * This only works on an ILinkableHashMap.
- */
-weave.WeavePath.prototype.retrieveColumns = function(/*...relativePath, columnNameArray*/)
-{
-    var args = this._A(arguments, 2);
-    if (this._assertParams('retrieveColumns', args))
-    {
-        var columnNameArray = args.pop();
-        var path = this._path.concat(args);
-        var results = this.weave.evaluateExpression(
-        	path,
-        	'ColumnUtils.joinColumns(names.map(name => this.getObject(name), this), null, true)',
-        	{names: columnNameArray},
-        	['weave.utils.ColumnUtils']
-        );
-        /* Convert the keys to strings */
-        results[0] = results[0].map(this.qkeyToString, this);
-        return results;
-    }
-};
-
-
-
-/**
  * Retrieve a table of columns defined by a mapping of property names to column paths.
  * pathMapping can be one of three different forms:
  * An array of column names corresponding to children of the LinkableHashmap WeavePath this method is called from, i.e, hashmap.retrieveRecords(["x", "y"]);
