@@ -137,15 +137,43 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     this.writeSessionState = function(base64String){
     	var userName = "Awesome User";
     	var projectName = "Other";
-    	var queryObjectJsons = angular.toJson(this.queryObject);
+    	var qo =this.queryObject;
+    	for(var key in qo.scriptOptions) {
+    		var input = qo.scriptOptions[key];
+    		//console.log(typeof input);
+    		switch(typeof input) {
+    			
+    			case 'string' :
+    				var inputVal = tryParseJSON(input);
+    				if(inputVal) {  // column input
+    					qo.scriptOptions[key] = inputVal;
+    				} else { // regular string
+    					qo.scriptOptions[key] = input;
+    				}
+    				break;
+    			
+    			default:
+    				console.log("unknown script input type");
+    		}
+    	}
+    	if (typeof(qo.Indicator) == 'string'){
+    		var inputVal = tryParseJSON(qo.Indicator);
+			if(inputVal) {  // column input
+				qo.Indicator = inputVal;
+			} else { // regular string
+				qo.Indicator = input;
+			}
+    	}
+    	var queryObjectJsons = angular.toJson(qo);
+    	console.log("got it", queryObjectJsons);
     	var projectDescription = "These query objects do not belong to any project";
     	var queryObjectTitles = this.queryObject.title;
     	var resultVisualizations = base64String;
 
-    	console.log("got it", base64String);
+    	
     	aws.queryService(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
     		console.log("adding status", result);
-    		alert(params.queryObjectTitles + " has been added");
+    		alert(queryObjectTitles + " has been added");
     	});
     };
     

@@ -93,5 +93,10 @@ angular.module('aws.project', [])
 		projectService.returnSessionState(queryObject);
 	};
 	
+	$scope.loadInAnalysis = function(queryObject){
+		console.log("setting queryObject");
+		queryService.queryObject = queryObject;
+	};
+	
 });
 

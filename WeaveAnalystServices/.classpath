@@ -14,5 +14,5 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/WeaveServices"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/WeaveServletUtils"/>
 	<classpathentry exported="true" kind="lib" path="lib/jython.jar"/>
-	<classpathentry kind="output" path="build/classes"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
