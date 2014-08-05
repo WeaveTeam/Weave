@@ -341,27 +341,77 @@ weave.WeavePath.prototype.retrieveColumns = function(/*...relativePath, columnNa
     }
 };
 
+
+
 /**
- * Retrieve a table of columns defined by a mapping of property names to column paths. 
- * @param pathMapping An object containing a mapping of desired property names to column paths. "id" is a reserved name.
+ * Retrieve a table of columns defined by a mapping of property names to column paths.
+ * pathMapping can be one of three different forms:
+ * An array of column names corresponding to children of the LinkableHashmap WeavePath this method is called from, i.e, hashmap.retrieveRecords(["x", "y"]);
+ * the column names will also be used as the corresponding property names in the resultant records.
+ * An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, ie:
+ * hashmap.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
+ * If it is omitted, all children of the LinkableHashmap WeavePath will be retrieved. This is equivalent to: hashmap.retrieveRecords(hashmap.getNames());
+ * @param pathMapping An object containing a mapping of desired property names to column paths. "id" is a reserved name. It can also contain an array of child column names.
  * @param keySetPath A path object pointing to an IKeySet (columns are also IKeySets.)
  * @return An array of record objects.
  */
-weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
-{
-	/*
-	 * TODO: support the following modes:
-	 * 
-	 * path.retrieveRecords() // returns all data for all child columns at current path (assumes it's an ILinkableHashMap)
-	 * path.retrieveRecords(['x','y','z']) // returns data for child columns named 'x', 'y', and 'z'
-	 * path.retrieveRecords(nestedPathMapping) // return nested record structures
-	 */
-	
-	
-    var columnNames = Object.keys(pathMapping);
-    var columnPaths = columnNames.map(function (name) { return pathMapping[name].getPath(); });
 
-    var keySetPath = keySetPath ? keySetPath.getPath() : null;
+weave.WeavePath.prototype.retrieveRecords = function()
+{
+    var path_spec = null;
+    var filter_keyset = null;
+    if (arguments.length == 0)
+        path_spec = this.getNames();
+
+    if (arguments.length == 1)
+    {
+        if (arguments[0] instanceof weave.WeavePath)
+        {
+            path_spec = this.getNames();
+            filter_keyset = arguments[0];
+        }
+        else
+            path_spec = arguments[0];
+    }
+    
+    if (arguments.length == 2)
+    {
+        path_spec = arguments[0];
+        filter_keyset = arguments[1];
+    }
+
+    return this._retrieveRecords(path_spec, filter_keyset);
+}
+
+weave.WeavePath.prototype._retrieveRecords = function(path_spec, filter_keyset)
+{
+    var full_path_spec;
+    var idx;
+    if (Array.isArray(path_spec))
+    {
+        final_spec = {};
+        for (idx = 0; idx < path_spec.length; idx++)
+        {
+            final_spec[path_spec[idx]] = this.push(path_spec[idx]);
+        }
+        return this.__retrieveRecords(final_spec, filter_keyset);
+    }
+    else
+    {
+        return this.__retrieveRecords(path_spec, filter_keyset);
+    }
+}
+
+weave.WeavePath.prototype.__retrieveRecords = function(path_spec, keyset_path)
+{
+    var flat_path_spec = this._listChains(path_spec);
+
+    var raw_chains = flat_path_spec.map(function(d) {return d.chain;});
+
+    var raw_paths = flat_path_spec.map(function(d) {return d.path;});
+
+    var keyset_path = keyset_path ? keyset_path.getPath() : null;
+
     var results = this.weave.evaluateExpression(
     	this._path,
         '\
@@ -372,8 +422,8 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
         	return ColumnUtils.joinColumns(columns, null, true, keySet);\
     	',
     	{
-    		paths: columnPaths,
-    		keySetPath: keySetPath
+    		paths: raw_paths,
+    		keySetPath: keyset_path
     	},
     	['weave.utils.ColumnUtils']
     );
@@ -387,9 +437,9 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 
         new_record.id = results[0][record_idx];
 
-        for (var column_idx = 0; column_idx < columnNames.length; column_idx++)
+        for (var column_idx = 0; column_idx < raw_chains.length; column_idx++)
         {
-            new_record[columnNames[column_idx]] = results[column_idx+1][record_idx];
+            this._setChain(new_record, raw_chains[column_idx], results[column_idx+1][record_idx]);
         }
 
         records[record_idx] = new_record;
@@ -428,3 +478,54 @@ weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
 	var path = this._path.concat(args);
 	return this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.getLabel(this)");
 };
+
+/* Functions used by retrieveRecords */
+
+weave.WeavePath.prototype._setChain = function(root, property_chain, value)
+{
+    property_chain = [].concat(property_chain);
+    last_property = property_chain.pop();
+    last_node = this._getChain(root, property_chain);
+    last_node[last_property] = value;
+    return value;
+}
+
+weave.WeavePath.prototype._getChain = function(root, property_chain)
+{
+    var node = root;
+    var idx;
+
+    for (idx = 0; idx < property_chain.length; idx++)
+    {
+        if (node[property_chain[idx]] === undefined) node[property_chain[idx]] = {};
+        node = node[property_chain[idx]];
+    }
+
+    return node;
+}
+
+weave.WeavePath.prototype._listChains = function(obj, prefix)
+{
+    var chains = [];
+    var idx = 0;
+
+    if (prefix == undefined)
+        prefix = [];
+
+    var keys = Object.keys(obj);
+
+    for (idx = 0; idx < keys.length; idx++)
+    {
+        var item = obj[keys[idx]];
+        if (item instanceof weave.WeavePath)
+        {
+            if (this.weave.evaluateExpression(item.getPath(), "this is IAttributeColumn", null, ['weave.api.data.IAttributeColumn']))
+                chains.push({chain: prefix.concat([keys[idx]]), path: item.getPath()});
+        }
+        else
+        {
+            chains = chains.concat(this._listChains(item, prefix.concat([keys[idx]])));
+        }
+    }
+    return chains;
+}
