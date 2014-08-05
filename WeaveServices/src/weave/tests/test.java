@@ -32,7 +32,7 @@ import weave.servlets.RService;
 public class test
 {
 
-	static RService ws = null;
+	static RService ws = new RService();
 	static AWSRService aws= null;
 	
 	public static Map<String, String> connectionObject = new HashMap<String, String>();
@@ -71,57 +71,28 @@ public class test
 
 	public static void main(String[] args) throws Exception
 	{
-		
-//		HashMap<String, Object> algorithmObject = new HashMap<String, Object>();
-//		algorithmObject.put("startClusterNumber", 4);
-//		algorithmObject.put("stopClusterNumber", 10);
-//		algorithmObject.put("ClusterInterval", 2);
-//		algorithmObject.put("startIterationsNumber", 1000);
-//		algorithmObject.put("stopIterationsNumber", 10000);
-//		algorithmObject.put("iterationsInterval", 500);
-//		
-		
-		
-		ArrayList<String> columns = new ArrayList<String>();
-		columns.add("X_STATE");
-		columns.add("X_PSU");
-		columns.add("X_FINALWT");
-		columns.add("X_STSTR");
-		columns.add("DIABETE2");
-		
-//		columns.add("PercentObese2002");
-//		columns.add("PercentObese2003");
-//		columns.add("PercentObese2004");
-//		columns.add("PercentObese2005");
-//		columns.add("PercentObese2006");
-		
-		connectionObject.put("connectionType", "RODBC");
-		connectionObject.put("user", "root");
-		connectionObject.put("password", "shweta");
-		connectionObject.put("schema", "data");
-		connectionObject.put("host", "localhost");
-		connectionObject.put("dsn", "myCDC");
-		
-		requestObject.put("scriptName", "TestingAWS_RODBC.R");
-		requestObject.put("scriptPath", "C:\\RScripts\\");
-		requestObject.put("columnsToBeRetrieved",columns);
-		requestObject.put("dataset", "sdoh2010q");
-		
-		//Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
-		//Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
-		//Object[] myMatrix = new Object[]{array1, array2};
+
+		Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
+		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+		Object[] myMatrix = new Object[]{array1, array2};
+		String[] columnNames = {"column1", "column2"};
+		String script = "data <- data.frame(inputs)\n" +
+				"z <- colMeans(data)\n" +
+				"names(z) <- columnNames\n" +
+				"z\n";
+		//String script = "answer <- columnNames[1]\n";
 		//String scriptPath = "C:\\RScripts\\TestingAWS_RODBC.R";
-		//String [] inputNames = {"cannedScriptPath", "params"};
+		String [] inputNames = {"inputs", "columnNames"};
 		//Object[] inputValues = new Object[0];
-		//Object[] inputValues = {scriptPath, columns };
+		Object[] inputValues = {myMatrix, columnNames };
 		
 		//String script = "scriptFromFile <- source(cannedScriptPath)\n" +
 		 //"returnedColumns <- scriptFromFile$value(dataMatrix)\n";
-		//String[] resultNames = {};
+		String[] resultNames = {};
 		
 		
 		
-		//call(null, inputNames, inputValues, resultNames, script, "", false, false, false);
+		call(null, inputNames, inputValues, resultNames, script, "", false, false, false);
 		
 		
 		

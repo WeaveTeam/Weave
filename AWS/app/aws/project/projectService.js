@@ -1,15 +1,13 @@
 /**
  * contains all the functions required for project management 
  */
-
 var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
-
 angular.module('aws.project').service('projectService', ['$q', '$rootScope', function($q, scope){
 	
 	var that = this;
 	this.data= {};
 	this.projectBundle = {};
-	this.data.projectSelectorUI;//for state preservation between tabs
+	//this.data.projectSelectorUI;//for state preservation between tabs
 	
 	//for project addition
 	this.projectBundle.userName;
@@ -65,7 +63,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         				
         				
         				that.data.columnstring = "";
-        				var columns = singleObject.queryObject.ScriptColumnRequest;
+        				var columns = singleObject.queryObject.scriptOptions;
         				for(var j in columns){
         					var title = columns[j].title;
         					that.data.columnstring= that.data.columnstring.concat(title) + " , ";

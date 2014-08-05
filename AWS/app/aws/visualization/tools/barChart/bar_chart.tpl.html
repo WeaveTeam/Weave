@@ -1,30 +1,59 @@
 <div class="panel-body" ng-controller="BarChartCtrl">
 	<ul class="input-controls">
 		
-		<input type="text" placeholder="Default" ng-model="service.queryObject.BarChartTool.title">
+		<div>
+			<p><b> BarChartTool Title</b></p>
+			<input  style = "width : 100%" type="text" placeholder="Default" ng-model="service.queryObject.BarChartTool.title"/>
+		</div>
 		
-		<li class="tool-list-control-element">
-			<span class="tool-label">Height Column(s)</span>
-			<select class="widget-ui-control" ui-select2 multiple ng-model="service.queryObject.BarChartTool.heights" data-placeholder="Choose Height Column(s)">
-				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
-			</select>
-		</li>
-		
-		<li class="tool-list-control-element">
-			<span>Sort Column</span>
-			<select class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.sort" data-placeholder="Choose Sort Column">
-				<option></option>
-				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
-			</select>
-		</li>
-		<li class="tool-list-control-element">
-			<span>Label Column</span>
-			<select class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column">
-				<option></option>
-				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
-			</select>
-		</li>
-	</ul>
+		<div>
+		<ul class="input-controls">
+<!-- 			<li class="tool-list-control-element"> -->
+<!-- 			<span class="tool-label">Height Column(s)</span> -->
 
+			Height Columns
+			<div >
+			<select style = "width : 100%" class="widget-ui-control" ui-select2  ng-model="service.queryObject.BarChartTool.heights" multiple  data-placeholder="Choose Height Column(s)">
+				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+			</select>
+			</div>
+			<br>
+			
+<!-- 			</li> -->
+			
+<!-- 			<li class="tool-list-control-element"> -->
+<!-- 			<span>Sort Column</span> -->
+
+			Sort Column
+			<div>
+				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.sort" data-placeholder="Choose Sort Column">
+					<option></option>
+					<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+				</select>
+			</div>
+			
+			<br>
+			
+			Label Column
+			<div>
+				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column"> -->
+				<option></option>
+				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+			</select>
+			</div>
+			
+<!-- 			</li> -->
+			
+<!-- 			<li class="tool-list-control-element"> -->
+<!-- 			<span>Label Column</span> -->
+<!-- 			<select class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column"> -->
+<!-- 				<option></option> -->
+<!-- 				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option> -->
+<!-- 			</select> -->
+<!-- 			</li> -->
+		</ul>
+			
+		</div>
+		
 </div>
 

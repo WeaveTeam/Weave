@@ -15,9 +15,9 @@ var tryParseJSON = function(jsonString){
         }
     }
     catch (e) { }
-
     return false;
 };
+
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
 
 AnalysisModule.service('AnalysisService', function() {
@@ -36,7 +36,6 @@ AnalysisModule.service('AnalysisService', function() {
 				template_url : 'aws/analysis/data_filters/geography.tpl.html',
 				description : 'Filter data by States and Counties',
 				category : 'datafilter'
-
 			},
 			{
 				id : 'TimePeriodFilter',
@@ -94,6 +93,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
+
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;
 	};
@@ -187,7 +187,21 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 	queryService.getDataTableList(true);
 	queryService.getListOfScripts(true);
 
+	$scope.$watch(function() {
+		return queryService.queryObject.scriptSelected;
+	}, function () {
+		console.log(queryService.queryObject.scriptOptions);
+		queryService.queryObject.scriptOptions = {};
+		console.log(queryService.queryObject.scriptOptions);
+	});
 
+	//  clear script options when script changes
+	$scope.$watch('service.queryObject.scriptSelected', function(newVal, oldVal) {
+		
+		if(newVal != oldVal) {
+			queryService.queryObject.scriptOptions = {};
+		}
+	});
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {
@@ -242,7 +256,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
 			var scriptSelected = newVal[1];
-			var scriptMetadata = newVal[3];
+			var scriptMetadata = newVal[2];
 			
 			if(indicator && scriptSelected) {
 				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;

@@ -10,10 +10,9 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
-	<classpathentry exported="true" kind="lib" path="/WeaveServices/lib/json-simple-1.1.1.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/WeaveServices"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/WeaveServletUtils"/>
 	<classpathentry exported="true" kind="lib" path="lib/jython.jar"/>
-	<classpathentry kind="output" path="build/classes"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

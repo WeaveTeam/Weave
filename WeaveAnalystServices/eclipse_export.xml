@@ -21,7 +21,7 @@ Whenever you build WeaveServices, this will automatically export the WAR file.
 			<fileset dir="../WeaveServices/bin/classes" />
 			<fileset dir="../WeaveServletUtils/bin/classes" />
 		</copy>
-		<war destfile="${TOMCAT_HOME}/webapps/WeaveAnalystServices.war" webxml="WebContent/WEB-INF/web.xml" duplicate="preserve">
+		<war destfile="/Library/Tomcat/webapps/WeaveAnalystServices.war" webxml="WebContent/WEB-INF/web.xml" duplicate="preserve">
 			<lib dir="lib/" />
 			<lib dir="../WeaveServices/lib" />
 			<lib dir="../WeaveServletUtils/lib" />
