@@ -64,12 +64,17 @@ aws.QueryHandler = function(queryObject)
 	
 	for(var key in queryObject.scriptOptions) {
 		var input = queryObject.scriptOptions[key];
+		console.log(typeof input);
 		//console.log(typeof input);
 		switch(typeof input) {
-			case 'array': // array of columns
-				scriptInputs[key] = $.map(input, function(inputVal) {
-					return { id : JSON.parse(inputVal).id };
-				});
+			case 'object': // array of columns
+				if($.isArray(input)) {
+					scriptInputs[key] = $.map(input, function(inputVal) {
+						return { id : JSON.parse(inputVal).id };
+					});
+				} else {
+					console.log("unknown script input type");
+				}
 				break;
 			case 'string' :
 				var inputVal = tryParseJSON(input);
@@ -78,6 +83,7 @@ aws.QueryHandler = function(queryObject)
 				} else { // regular string
 					scriptInputs[key] = input;
 				}
+				console.log(inputVal);
 				break;
 			case 'number' : // regular number
 				scriptInputs[key] = input;
