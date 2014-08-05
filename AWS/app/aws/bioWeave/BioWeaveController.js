@@ -21,8 +21,10 @@ bioWeave_mod.controller('InputParamsController', function($scope, runScriptServi
 	
 	$scope.runScriptService = runScriptService;
 	
-	//console.log("metadataobjects", runScriptService.data.algorithmMetadataObjects);
-	//console.log("metadataobjects local", $scope.runScriptService.data.algorithmMetadataObjects);
+});
+
+bioWeave_mod.controller('ResultsViewController', function($scope, runScriptService){
+	$scope.resultViewHTMLTpl = {url: 'aws/bioWeave/resultViewPanel.html'};
 	
-	
+	$scope.runScriptService = runScriptService;
 });
