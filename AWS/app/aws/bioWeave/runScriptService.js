@@ -89,7 +89,7 @@ angular.module('aws.bioWeave')
 	this.add_algorithmObject = function(id) {
 		if($.inArray(id, this.data.chosenAlgorithms) == -1)//add only if not added previously
 		{
-			this.data.chosenAlgorithms.push(id);
+			this.data.chosenAlgorithms.splice(0,0,id);//so that the latest one is added at the top of the list
 	
 		}
 		else
@@ -104,7 +104,7 @@ angular.module('aws.bioWeave')
      */
 	this.remove_algorithmObject = function(id){
 		this.data.chosenAlgorithms.splice($.inArray(id, this.data.chosenAlgorithms), 1);//TODO find faster way of doing this (see slight lag)
-		console.log("updated", this.data.chosenAlgorithms);
+		this.data.currentMetObj = {};//cleans the input panel
 	};
 		
 }]);
