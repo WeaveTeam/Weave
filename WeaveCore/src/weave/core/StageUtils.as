@@ -35,7 +35,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IStageUtils;
-	import weave.api.newDisposableChild;
+	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
@@ -82,7 +82,7 @@ package weave.core
 		private var _callbackCollectionsInitialized:Boolean = false; // This is true after the callback collections have been created.
 		private var _listenersInitialized:Boolean = false; // This is true after the mouse listeners have been added.
 		private const _initializeTimer:Timer = new Timer(0, 1); // only used if initialize() is attempted before stage is accessible
-		private const _callbackCollections:Object = {}; // mapping from event type to the ICallbackCollection associated with it
+		private const _callbackCollections:Object = {}; // mapping from event type to the EventCallbackCollection associated with it
 		private var _stage:Stage = null; // pointer to the Stage, null until initialize() succeeds
 		private const _lastMouseDownPoint:Point = new Point(NaN, NaN); // stage coords of last mouseDown event
 		private const _lastThrottledMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for last throttled mouseMove event
@@ -648,7 +648,7 @@ package weave.core
 			{
 				// create a new callback collection for each type of event
 				for each (type in _eventTypes)
-					_callbackCollections[type] = newDisposableChild(WeaveAPI.globalHashMap, CallbackCollection);
+					_callbackCollections[type] = registerDisposableChild(WeaveAPI.globalHashMap, new EventCallbackCollection(_setEvent));
 				
 				// set this flag so callback collections won't be initialized again
 				_callbackCollectionsInitialized = true;
@@ -682,6 +682,15 @@ package weave.core
 				_initializeTimer.start();
 			}
 		}
+		
+		/**
+		 * Sets _event.
+		 */
+		private function _setEvent(event:Event):void
+		{
+			_event = event;
+		}
+		
 		/**
 		 * This is for internal use only.
 		 * These inline functions are generated inside this function to avoid re-use of local variables.
@@ -690,7 +699,7 @@ package weave.core
 		 */
 		private function generateListeners(eventType:String):void
 		{
-			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
+			var ecc:EventCallbackCollection = _callbackCollections[eventType] as EventCallbackCollection;
 			var isEnterFrameEvent:Boolean = eventType == Event.ENTER_FRAME;
 			var isActivateEvent:Boolean = eventType == Event.ACTIVATE;
 			var isDeactivateEvent:Boolean = eventType == Event.DEACTIVATE;
@@ -698,8 +707,11 @@ package weave.core
 			var isMouseUpEvent:Boolean = eventType == MouseEvent.MOUSE_UP;
 			var isClickEvent:Boolean = eventType == MouseEvent.CLICK;
 			var isMouseMoveEvent:Boolean = eventType == MouseEvent.MOUSE_MOVE;
-			var tmmc:ICallbackCollection = _callbackCollections[THROTTLED_MOUSE_MOVE_EVENT] as ICallbackCollection;
-			var pcc:ICallbackCollection = _callbackCollections[POINT_CLICK_EVENT] as ICallbackCollection;
+			var tmm_ecc:EventCallbackCollection = _callbackCollections[THROTTLED_MOUSE_MOVE_EVENT] as EventCallbackCollection;
+			var pc_ecc:EventCallbackCollection = _callbackCollections[POINT_CLICK_EVENT] as EventCallbackCollection;
+			
+			if (!ecc || !tmm_ecc || !pc_ecc)
+				throw new Error("generateListeners() called before _callbackCollections were initialized");
 
 			// this function is responsible for setting all event-related static variables and determining when to trigger meta events
 			var captureListener:Function = function (event:Event):void
@@ -726,7 +738,6 @@ package weave.core
 						event.type,
 						_event.type
 					));
-				_event = event;
 				_eventTime = getTimer();
 				
 				var stageX:Number = _stage.mouseX;
@@ -799,14 +810,14 @@ package weave.core
 
 				// handle mouse move events before triggering throttled mouse move callbacks
 				if (isMouseMoveEvent)
-					cc.triggerCallbacks();
+					ecc.handleEvent(event);
 				
 				// Handle throttled mouse move after regular mouse move, before other non-move mouse events.
 				// Don't trigger throttled mouse move callbacks if the mouse hasn't moved.
 				if (handleThrottledMouseMove && (stageX != _lastThrottledMousePoint.x || stageY != _lastThrottledMousePoint.y))
 				{
 					_triggeredThrottledMouseThisFrame = true;
-					tmmc.triggerCallbacks();
+					tmm_ecc.handleEvent(event);
 					_lastThrottledMousePoint.x = stageX;
 					_lastThrottledMousePoint.y = stageY;
 					_nextThrottledMouseMoveTime = _eventTime + maxComputationTimePerFrame;
@@ -814,14 +825,11 @@ package weave.core
 				
 				// handle point click meta event
 				if (isClickEvent && _pointClicked)
-					pcc.triggerCallbacks();
+					pc_ecc.handleEvent(event);
 				
 				// finally, trigger callbacks for non-mouse-move events
 				if (!isMouseMoveEvent)
-					cc.triggerCallbacks();
-				
-				// clear _event variable
-				_event = null;
+					ecc.handleEvent(event);
 			};
 			
 			var stageListener:Function = function(event:Event):void
@@ -840,7 +848,7 @@ package weave.core
 			_stage.addEventListener(eventType, stageListener, false, 0, true); // do not use capture phase
 			
 			// when callbacks are disposed, remove the listeners
-			cc.addDisposeCallback(null, function():void {
+			ecc.addDisposeCallback(null, function():void {
 				_stage.removeEventListener(eventType, captureListener, true);
 				_stage.removeEventListener(eventType, stageListener, false);
 			});
@@ -867,9 +875,35 @@ package weave.core
 		 */
 		public function removeEventCallback(eventType:String, callback:Function):void
 		{
-			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
+			var cc:EventCallbackCollection = _callbackCollections[eventType] as EventCallbackCollection;
 			if (cc != null)
 				cc.removeCallback(callback);
 		}
+	}
+}
+
+import flash.events.Event;
+
+import weave.core.CallbackCollection;
+
+/**
+ * Helper class for event callbacks.
+ * @see #handleEvent()
+ */
+internal class EventCallbackCollection extends CallbackCollection
+{
+	public function EventCallbackCollection(eventSetter:Function)
+	{
+		super(eventSetter);
+	}
+	
+	/**
+	 * This function will run callbacks immediately, calling eventSetter before each one.
+	 * @param event The event.
+	 */	
+	public function handleEvent(event:Event):void
+	{
+		_runCallbacksImmediately(event);
+		_preCallback(null); // unset the event variable after running callbacks
 	}
 }

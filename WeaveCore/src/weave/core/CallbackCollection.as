@@ -63,7 +63,7 @@ package weave.core
 		/**
 		 * This is the function that gets called immediately before every callback.
 		 */
-		private var _preCallback:Function = null;
+		protected var _preCallback:Function = null;
 
 		/**
 		 * This is the number of times delayCallbacks() has been called without a matching call to resumeCallbacks().
