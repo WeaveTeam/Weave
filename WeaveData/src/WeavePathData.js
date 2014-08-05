@@ -320,22 +320,27 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
 };
 
 /**
- * Retrieve a table of columns defined by a mapping of property names to column paths.
+ * Retrieve a list of records defined by a mapping of property names to column paths or by an array of column names.
+ 
+ * @param pathMapping An object containing a mapping of desired property names to column paths or an array of child names.
  * pathMapping can be one of three different forms:
- * An array of column names corresponding to children of the LinkableHashmap WeavePath this method is called from, i.e, hashmap.retrieveRecords(["x", "y"]);
+ * An array of column names corresponding to children of the WeavePath this method is called from, e.g., path.retrieveRecords(["x", "y"]);
  * the column names will also be used as the corresponding property names in the resultant records.
- * An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, ie:
- * hashmap.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
- * If it is omitted, all children of the LinkableHashmap WeavePath will be retrieved. This is equivalent to: hashmap.retrieveRecords(hashmap.getNames());
- * @param pathMapping An object containing a mapping of desired property names to column paths. "id" is a reserved name. It can also contain an array of child column names.
+ * An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, e.g.,
+ * path.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
+ * If it is omitted, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
+ * The alphanumeric QualifiedKey for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
  * @param keySetPath A path object pointing to an IKeySet (columns are also IKeySets.)
  * @return An array of record objects.
  */
 
 weave.WeavePath.prototype.retrieveRecords = function()
 {
+    /* top-level retrieveRecords handles checking the types and length of the arguments before calling _retrieveRecords */
+
     var path_spec = null;
     var filter_keyset = null;
+
     if (arguments.length == 0)
         path_spec = this.getNames();
 
@@ -359,8 +364,12 @@ weave.WeavePath.prototype.retrieveRecords = function()
     return this._retrieveRecords(path_spec, filter_keyset);
 }
 
+
+
 weave.WeavePath.prototype._retrieveRecords = function(path_spec, filter_keyset)
 {
+    /* _retrieveRecords converts array arguments to path_spec arguments before calling __retrieveRecords */
+
     var full_path_spec;
     var idx;
     if (Array.isArray(path_spec))
@@ -380,6 +389,7 @@ weave.WeavePath.prototype._retrieveRecords = function(path_spec, filter_keyset)
 
 weave.WeavePath.prototype.__retrieveRecords = function(path_spec, keyset_path)
 {
+    /* Performs the actual retrieval of records */
     var flat_path_spec = this._listChains(path_spec);
 
     var raw_chains = flat_path_spec.map(function(d) {return d.chain;});
@@ -457,14 +467,29 @@ weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
 
 /* Functions used by retrieveRecords */
 
+/**
+ * @private
+ * Walk down a property chain of a given object and set the value of the final node.
+ * @param root The object to navigate through.
+ * @param property_chain An array of property names defining a path.
+ * @param value The value to which to set the final node.
+ * @return The value that was set.
+ */
 weave.WeavePath.prototype._setChain = function(root, property_chain, value)
 {
-    property_chain = [].concat(property_chain);
+    property_chain = property_chain.concat([]); /* Make a copy so we don't modify it */
     last_property = property_chain.pop();
     last_node = this._getChain(root, property_chain);
     last_node[last_property] = value;
     return value;
 }
+/**
+ * @private
+ * Walk down a property chain of a given object and return the final node.
+ * @param root The object to navigate through.
+ * @param property_chain An array of property names defining a path.
+ * @return The value of the final property in the chain.
+ */
 
 weave.WeavePath.prototype._getChain = function(root, property_chain)
 {
@@ -479,6 +504,15 @@ weave.WeavePath.prototype._getChain = function(root, property_chain)
 
     return node;
 }
+
+
+/**
+ * @private
+ * Recursively builds a mapping of property chains to WeavePath objects from a path specification as used in retrieveRecords
+ * @param obj A path spec object
+ * @param prefix A property chain prefix
+ * @return A list of objects of the format {chain: ..., path: ...}
+ */
 
 weave.WeavePath.prototype._listChains = function(obj, prefix)
 {
