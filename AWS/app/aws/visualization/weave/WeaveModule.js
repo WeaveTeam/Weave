@@ -5,25 +5,16 @@ weave_mod.service("WeaveService", function($rootScope, $window) {
 	
 	this.weave;
 	this.resultData;
-	console.log($rootScope);
-	console.log($window);
 	
 });
 
-weave_mod.controller('WeaveCtrl', function($scope, WeaveService) {
+weave_mod.controller('WeaveCtrl', function($scope, WeaveService, $window) {
 
-
-	console.log("this controller is also reached");
-	$scope.service = queryService;
-	
 	$scope.$watch(function() {
-		return isWeaveReady;
+		return $window.isWeaveReady;
 	}, function() {
-		if(isWeaveReady) {
-			WeaveService.weave = $('#weave');
-			console.log(WeaveService.weave);
-		}
-	});
+		console.log($window.isWeaveReady);
+	}, true);
 	
 	
 });

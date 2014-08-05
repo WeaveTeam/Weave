@@ -3,11 +3,11 @@
 	<head>
 		<meta charset="UTF-8" />
 		<script src="/aws/lib/swfobject.js"></script>
-		<script src="lib/jquery/jquery 2_1_0.js"></script>
-		<script src='lib/jquery-ui/jquery-ui.js'></script>
-		<script src="lib/angular/1.2/angular.min.js"></script>
+		<script src="/aws/lib/jquery/jquery 2_1_0.js"></script>
+		<script src='/aws/lib/jquery-ui/jquery-ui.js'></script>
+		<script src="/aws/lib/angular/1.2/angular.min.js"></script>
 		
-		<script src="aws/visualization/weave/WeaveModule.js"></script>
+		<script src="/aws/aws/visualization/weave/WeaveModule.js"></script>
 		
 	</head>
 	<body ng-controller="WeaveCtrl">
@@ -22,12 +22,11 @@
 		    var checkstring;
 		    var logvar;
 		    var setSession;
-			var isWeaveReady = false;
+			var isWeaveReady;
 			
 			function weaveReady(weave)
 			{
 				isWeaveReady = true;
-				console.log(isWeaveReady);
 			}
 
 			var check;
