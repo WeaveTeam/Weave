@@ -3,7 +3,22 @@
 			<h2>Enter parameters for {{runScriptService.data.currentMetObj.algoName}}</h2>
 		</div>
 
-		<div >
-		{{runScriptService.data.currentMetObj.algoName}}
+<!-- 		<div > -->
+<!-- 		{{runScriptService.data.currentMetObj.algoName}} -->
+<!-- 		</div> -->
+		<div>
+		
+		<div style="width: 100%" class="portlet-content">
+		 	<tr ng-model = "runScriptService.data.currentMetObj">
+			<td>
+				<div class="label-p">{{runScriptService.data.currentMetObj.algoName}}:</div>
+			</td>
+			
+			<div ng-repeat="input in runScriptService.data.currentMetObj.inputParams">
+			{{input.param_name}}
+			</div>
+
+			
+		</tr>
 		</div>
 </div>
