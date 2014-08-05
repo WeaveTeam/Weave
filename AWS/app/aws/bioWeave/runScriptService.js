@@ -35,7 +35,7 @@ angular.module('aws.bioWeave')
      * the metadata object helps in dynamic building of the UI for entering every algorithm's parameters
      */
 	this.getAlgorithmMetadata = function(algoName){
-		console.log("getting metadata for", algoName);
+		this.data.currentMetObj= {};//refresh it everytime
 		
 		//check if the object is already present, if not then retrieve the metadata thru a server call
 		if(this.data.algorithmMetadataObjects.length > 0)
@@ -43,8 +43,10 @@ angular.module('aws.bioWeave')
 			for(var j in this.data.algorithmMetadataObjects){
 				var checkString = this.data.algorithmMetadataObjects[j].title;
 				if(checkString.match(algoName)){
-					//uiconstructionfunction(that.data.algoMetadataObjects[j])
-					console.log("checked locally", this.data.algorithmMetadataObjects[j]);
+					//this object will be used to build the dynamic UI for parameter input
+					this.data.currentMetObj = this.data.algorithmMetadataObjects[j];
+					
+					//console.log("checked locally", this.data.algorithmMetadataObjects[j]);
 					break;
 				}
 			}
@@ -64,9 +66,13 @@ angular.module('aws.bioWeave')
 			
 			//adding it to the list
 			that.data.algorithmMetadataObjects.push(algoMetadataObject);
-			console.log("current list of metadata objects", that.data.algorithmMetadataObjects);
-			console.log("received from server", algoMetadataObject);
-			//uiContsurctionfunction(alMetadataObject);
+			
+			//console.log("current list of metadata objects", that.data.algorithmMetadataObjects);
+			//console.log("received from server", algoMetadataObject);
+			
+			//this object will be used to build the dynamic UI for parameter input
+			that.data.currentMetObj = algoMetadataObject;
+			
 			scope.$safeApply(function() {
 				deferred.resolve(result);
 			});

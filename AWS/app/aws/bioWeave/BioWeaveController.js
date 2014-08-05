@@ -14,3 +14,15 @@ bioWeave_mod.controller('AlgoObjectListController', function($scope,runScriptSer
 	runScriptService.getListOfAlgoObjects();
 	
 });
+
+bioWeave_mod.controller('InputParamsController', function($scope, runScriptService){
+	//pulls in the external template for use in ng-include in the main BioWeaveManager.html
+	$scope.inputParamsHTMLTpl = {url: 'aws/bioWeave/parameterInputPanel.html'};
+	
+	$scope.runScriptService = runScriptService;
+	
+	//console.log("metadataobjects", runScriptService.data.algorithmMetadataObjects);
+	//console.log("metadataobjects local", $scope.runScriptService.data.algorithmMetadataObjects);
+	
+	
+});
