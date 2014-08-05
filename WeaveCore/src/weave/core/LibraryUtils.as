@@ -312,7 +312,7 @@ internal class Library implements IDisposableObject
 					var classDef:Class = ClassUtils.getClassDefinition(classQName);
 					if (!classDef)
 					{
-						trace(StandardLib.substitute('When loading library "{0}", unable to get class definition "{1}"', _url, classQName));
+						WeaveAPI.ErrorManager.reportError(StandardLib.substitute('While loading library "{0}", unable to get class definition "{1}"', _url, classQName));
 						continue;
 					}
 					
