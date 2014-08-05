@@ -2,13 +2,28 @@
  * Handle all Analysis Tab related work - Controllers to handle Analysis Tab
  */
 'use strict';
+var tryParseJSON = function(jsonString){
+    try {
+        var o = JSON.parse(jsonString);
 
+        // Handle non-exception-throwing cases:
+        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+        // but... JSON.parse(null) returns 'null', and typeof null === "object", 
+        // so we must check for that, too.
+        if (o && typeof o === "object" && o !== null) {
+            return o;
+        }
+    }
+    catch (e) { }
+
+    return false;
+};
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
 
 AnalysisModule.service('AnalysisService', function() {
 	
 	var AnalysisService = {
-			constent_tools : [{
+			content_tools : [{
 				id : 'Indicator',
 				title : 'Indicator',
 				template_url : 'aws/analysis/indicator/indicator.tpl.html',
@@ -75,11 +90,10 @@ AnalysisModule.service('AnalysisService', function() {
 	
 });
 
-AnalysisModule.controller('AnalysisCtrl', ['$scope', 'queryService', function($scope, queryService, AnalysisService) {
+AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService) {
 
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
-	
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;
 	};
@@ -156,16 +170,16 @@ AnalysisModule.controller('AnalysisCtrl', ['$scope', 'queryService', function($s
 		}
 	});
 	
-}]);
+});
 
 
-analysis_mod.config(function($selectProvider) {
+AnalysisModule.config(function($selectProvider) {
 	angular.extend($selectProvider.defaults, {
 		caretHTML : '&nbsp'
 	});
 });
 
-analysis_mod.controller("ScriptsSettingsCtrl", function($scope, queryService) {
+AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) {
 
 	// This sets the service variable to the queryService 
 	$scope.service = queryService;

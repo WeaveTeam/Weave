@@ -13,7 +13,75 @@ var adminServiceURL = '/WeaveServices/AdminService';
 var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
 
 var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
-//angular.module("aws.queryObject", [])
+
+var aws = {};
+
+/**
+ * This function is a wrapper for making a request to a JSON RPC servlet
+ * 
+ * @param {string} url
+ * @param {string} method The method name to be passed to the servlet
+ * @param {?Array|Object} params An array of object to be passed as parameters to the method 
+ * @param {Function} resultHandler A callback function that handles the servlet result
+ * @param {string|number=}queryId
+ * @see aws.addBusyListener
+ */
+aws.queryService = function(url, method, params, resultHandler, queryId)
+{
+    var request = {
+        jsonrpc: "2.0",
+        id: queryId || "no_id",
+        method: method,
+        params: params
+    };
+    
+    $.post(url, JSON.stringify(request), handleResponse, "text");
+
+    function handleResponse(response)
+    {
+    	// parse result for target window to use correct Array implementation
+    	response = JSON.parse(response);
+    	
+        if (response.error)
+        {
+        	console.log(JSON.stringify(response, null, 3));
+        }
+        else if (resultHandler){
+            return resultHandler(response.result, queryId);
+        }
+    }
+};
+
+/**
+ * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
+ * @param {string} url The URL of the service.
+ * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
+ * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
+ * @param {function(Array|Object)} resultsHandler Receives a mapping from queryId to RPC result.
+ */
+aws.bulkQueryService = function(url, method, queryIdToParams, resultsHandler)
+{
+	var batch = [];
+	for (var queryId in queryIdToParams)
+		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
+	$.post(url, JSON.stringify(batch), handleBatch, "json");
+	function handleBatch(batchResponse)
+	{
+		var results = Array.isArray(queryIdToParams) ? [] : {};
+		for (var i in batchResponse)
+		{
+			var response = batchResponse[i];
+			if (response.error)
+				console.log(JSON.stringify(response, null, 3));
+			else
+				results[response.id] = response.result;
+		}
+		if (resultsHandler)
+			resultsHandler(results);
+	}
+};
+
+
 QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     
 	var SaveState =  function () {
