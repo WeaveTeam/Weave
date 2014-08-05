@@ -3,8 +3,7 @@
 			<h2>Enter parameters for {{runScriptService.data.currentMetObj.algoName}}</h2>
 		</div>
 
-		
-		<div style="width: 100%; display: table" class="portlet-content">
+		<div style="width: 100%; display: table; padding-top:10px" class="portlet-content">
 		 	<tr ng-model = "runScriptService.data.currentMetObj">
 				
 				<div style="width: 60%; display: table-cell">
@@ -13,7 +12,7 @@
 						<div ng-repeat="input in runScriptService.data.currentMetObj.inputParams">
 						
 							<div class = form-group ng-if="input.param_type == 'number'" >
-								{{input.param_name}}
+								{{input.label}}
 								<input class= "form-control"type= "text" placeholder="{{input.default}}">
 								</input>
 							</div>
@@ -21,7 +20,7 @@
 							
 						<!-- This input will be added if the input type is an array, choose an option -->
 							<div ng-if="input.param_type == 'array'">
-								{{input.param_name}}
+								{{input.label}}
 								
 								<!--TODO try to get ng-options working <select ng-model = "input.param_options" class="form-control" ng-options = "option for option in input.param_options"> -->
 								<!-- 								</select> -->
