@@ -98,8 +98,9 @@ package weave
 		{
 			var xml:XML = WeaveXMLEncoder.encode(root.getSessionState(), "Weave");
 			
-			if (ALLOW_PLUGINS)
-				xml.@plugins = WeaveAPI.CSVParser.createCSVRow(getPluginList());
+			var plugins:Array = getPluginList();
+			if (_pluginList.length)
+				xml.@plugins = WeaveAPI.CSVParser.createCSVRow(plugins);
 			
 			WeaveArchive.updateLocalThumbnailAndScreenshot(false);
 			
