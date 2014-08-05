@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+ <display-name>GoogleServices</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+   <context-param>
+	<!--
+		This is the base URL where you want the Admin Console to look for Weave client configuration XMLs.
+
+		A value of "../ROOT" is suitable for a typical Tomcat installation.
+
+		A value of "../../../docroot" is suitable for a typical Glassfish installation, where the webapp was
+		extracted to a folder such as "C:\Sun\SDK\domains\domain1\applications\j2ee-modules\MyWebApp" and the
+		docroot folder is like "C:\Sun\SDK\domains\domain1\docroot".
+	-->
+    <param-name>docrootPath</param-name>
+    <param-value>../ROOT|../../docroot|../../../docroot</param-value>
+  </context-param>
+ <servlet>
+    <servlet-name>OauthService</servlet-name>
+    <servlet-class>weave.servlets.OauthService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OauthService</servlet-name>
+    <url-pattern>/OauthService</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>DriveService</servlet-name>
+    <servlet-class>weave.servlets.DriveService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DriveService</servlet-name>
+    <url-pattern>/DriveService</url-pattern>
+  </servlet-mapping>
+</web-app>

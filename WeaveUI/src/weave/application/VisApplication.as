@@ -54,9 +54,6 @@ package weave.application
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerDisposableChild;
@@ -73,6 +70,7 @@ package weave.application
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
+	import weave.services.GoogleDrive;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
@@ -188,7 +186,8 @@ package weave.application
 			// disable application until it's ready
 			enabled = false;
 			if(GoogleDrive.openedFromDrive(_flashVars)){
-				GoogleDrive.authorize();
+				var stateObj:Object = JavaScript.exec({obj:_flashVars.state},"return JSON.parse(obj);")
+				GoogleDrive.authorize(stateObj.ids[0]);
 				enabled = true;
 			}
 			else if (getAdminConnectionName())
