@@ -3,21 +3,39 @@
 			<h2>Enter parameters for {{runScriptService.data.currentMetObj.algoName}}</h2>
 		</div>
 
-<!-- 		<div > -->
-<!-- 		{{runScriptService.data.currentMetObj.algoName}} -->
-<!-- 		</div> -->
-		<div>
 		
-		<div style="width: 100%" class="portlet-content">
+		<div style="width: 100%; display: table" class="portlet-content">
 		 	<tr ng-model = "runScriptService.data.currentMetObj">
-			<td>
-				<div class="label-p">{{runScriptService.data.currentMetObj.algoName}}:</div>
-			</td>
-			
-			<div ng-repeat="input in runScriptService.data.currentMetObj.inputParams">
-			{{input.param_name}}
-			</div>
-
+				
+				<div style="width: 60%; display: table-cell">
+				
+						<!-- This input type will be added if the input type is numberical -->
+						<div ng-repeat="input in runScriptService.data.currentMetObj.inputParams">
+						
+							<div class = form-group ng-if="input.param_type == 'number'" >
+								{{input.param_name}}
+								<input class= "form-control"type= "text" placeholder="{{input.default}}">
+								</input>
+							</div>
+							
+							
+						<!-- This input will be added if the input type is an array, choose an option -->
+							<div ng-if="input.param_type == 'array'">
+								{{input.param_name}}
+								
+								<!--TODO try to get ng-options working <select ng-model = "input.param_options" class="form-control" ng-options = "option for option in input.param_options"> -->
+								<!-- 								</select> -->
+								<select class="form-control" data-placeholder="{{input.default}}">
+									<option value="{{option}}" ng-repeat="option in input.param_options">{{option}}</option>
+								</select>
+							</div>
+							
+						</div>
+				</div>
+				
+				<div style="display: table-cell; padding-left: 100px">
+					Image will go here
+				</div>
 			
 		</tr>
 		</div>

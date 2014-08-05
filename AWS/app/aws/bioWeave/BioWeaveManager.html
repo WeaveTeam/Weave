@@ -61,7 +61,13 @@
 <br/>
 <br/>
 
-<!-- Parameter Input Panel -->
-<div ng-controller = "InputParamsController" ng-include="inputParamsHTMLTpl.url">
+<div style="display:table; width:100%">
+	<!-- Parameter Input Panel -->
+	<div style ="width : 45%; display:table-cell" ng-controller = "InputParamsController" ng-include="inputParamsHTMLTpl.url">
+	</div>
+	<!-- Results Panel -->
+	<div style ="display:table-cell; padding-left:50px" ng-controller = "ResultsViewController" ng-include="resultViewHTMLTpl.url">
+	</div>
 </div>
+
 			
