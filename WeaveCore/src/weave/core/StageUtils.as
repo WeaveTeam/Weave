@@ -295,6 +295,11 @@ package weave.core
 		private function handleCallLater():void
 		{
 			var maxComputationTime:uint = _deactivatedFrameRate ? _deactivatedMaxComputationTimePerFrame : maxComputationTimePerFrame;
+			if (!_event)
+			{
+				reportError("StageUtils.handleCallLater(): _event is null. This should never happen.");
+				return;
+			}
 			if (_event.type == Event.ENTER_FRAME)
 			{
 				resetDebugTime();
@@ -321,7 +326,8 @@ package weave.core
 			// The variables countdown and lastPriority are used to avoid running newly-added tasks immediately.
 			// This avoids wasting time on async tasks that do nothing and return early, adding themselves back to the queue.
 
-			var args:Array, args2:Array;
+			var args:Array;
+			var args2:Array; // this is set to args[2]
 			var stackTrace:String;
 			var now:int;
 			var allStop:int = _currentFrameStartTime + maxComputationTime;
@@ -450,6 +456,12 @@ package weave.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
 		{
+			if (method == null)
+			{
+				reportError('StageUtils.callLater(): received null "method" parameter');
+				return;
+			}
+			
 //			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
 			if (priority >= _priorityCallLaterQueues.length)
@@ -706,6 +718,14 @@ package weave.core
 				}
 				
 				// set event variables
+				if (_event != null)
+					reportError(StandardLib.substitute(
+						'StageUtils: Upon handling an event, the _event variable was non-null.'
+						+ ' (event.type == "{0}", _event.type == "{1}").'
+						+ ' This should not happen unless the previous event callback threw an error.',
+						event.type,
+						_event.type
+					));
 				_event = event;
 				_eventTime = getTimer();
 				
