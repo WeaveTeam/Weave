@@ -67,7 +67,7 @@ A text editor to change the Session State on the fly.
 						<ui:TextInputWithPrompt id="search" prompt="{lang('Enter search text')}" enter="highlightSearchText(false)" change="searchTermChanged()" width="100%" minWidth="100"/>
 						<mx:Button label="{lang('Search')}" click="highlightSearchText(true)" repeatDelay="1"/>
 					</mx:HBox>
-					<mx:ViewStack id="editors" width="100%" height="100%">
+					<ui:CustomViewStack id="editors" width="100%" height="100%">
 						<mx:VBox width="100%" height="100%">
 							<mx:HBox width="100%" verticalAlign="middle">
 								<mx:Label id="firstLine" fontFamily="_typewriter"/>
@@ -87,7 +87,7 @@ A text editor to change the Session State on the fly.
 										 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
 										 horizontalScrollPolicy="auto" variableRowHeight="false" rowHeight="24"/> 
 						</mx:VBox>
-					</mx:ViewStack>
+					</ui:CustomViewStack>
 					<mx:HBox width="100%">
 						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer grid view')}"
 									 click="handlePreferDGChange()"
