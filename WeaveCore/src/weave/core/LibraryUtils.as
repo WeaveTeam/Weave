@@ -134,6 +134,7 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
 import weave.api.core.IDisposableObject;
+import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
 import weave.utils.AsyncSort;
 
@@ -309,6 +310,11 @@ internal class Library implements IDisposableObject
 				{
 					// initialize the class
 					var classDef:Class = ClassUtils.getClassDefinition(classQName);
+					if (!classDef)
+					{
+						trace(StandardLib.substitute('When loading library "{0}", unable to get class definition "{1}"', _url, classQName));
+						continue;
+					}
 					
 					// register this class as an implementation of every interface it implements.
 					var classInfo:Object = DescribeType.getInfo(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
