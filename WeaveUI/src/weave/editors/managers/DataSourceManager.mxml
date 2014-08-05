@@ -92,8 +92,8 @@
 				</mx:itemRenderer>
 			</mx:List>
 		</mx:VBox>
-		<mx:TabNavigator id="tabNav" initialize="UIUtils.pad(event, padding, 100, 100)" change="callLater(handleSourceSelect)">
-			<mx:ViewStack id="browseTab" label="{lang('Browse')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
+		<ui:CustomTabNavigator id="tabNav" initialize="UIUtils.pad(event, padding, 100, 100)" change="callLater(handleSourceSelect)">
+			<ui:CustomViewStack id="browseTab" label="{lang('Browse')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
 				<mx:Canvas width="100%" height="100%">
 					<ui:Paragraph translate="true" id="browseMessage"/>
 				</mx:Canvas>
@@ -153,8 +153,8 @@
 						</CustomDataGrid:CustomDataGrid>
 					</mx:VBox>
 				</mx:HBox>
-			</mx:ViewStack>
-			<mx:ViewStack id="editTab" label="{lang('Configure')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
+			</ui:CustomViewStack>
+			<ui:CustomViewStack id="editTab" label="{lang('Configure')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
 				<mx:Canvas width="100%" height="100%">
 					<ui:Paragraph translate="true" id="configureMessage"/>
 				</mx:Canvas>
@@ -167,8 +167,8 @@
 						<mx:Button label="{lang('Cancel')}" click="removeEditor(); tabNav.selectedChild = browseTab;"/>
 					</mx:HBox>
 				</mx:VBox>
-			</mx:ViewStack>
-		</mx:TabNavigator>
+			</ui:CustomViewStack>
+		</ui:CustomTabNavigator>
 	</mx:HDividedBox>
 		
 		<mx:Script>
