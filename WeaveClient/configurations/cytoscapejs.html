@@ -322,6 +322,7 @@
     {
         var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
         tool[LAYOUT].state(new_value);
+        run_layout();
     });
 
     $(function() {
