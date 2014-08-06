@@ -310,11 +310,10 @@ internal class Library implements IDisposableObject
 				{
 					// initialize the class
 					var classDef:Class = ClassUtils.getClassDefinition(classQName);
+					
+					// We can't get definitions of internal classes, so classDef may be null.
 					if (!classDef)
-					{
-						WeaveAPI.ErrorManager.reportError(StandardLib.substitute('While loading library "{0}", unable to get class definition "{1}"', _url, classQName));
 						continue;
-					}
 					
 					// register this class as an implementation of every interface it implements.
 					var classInfo:Object = DescribeType.getInfo(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
