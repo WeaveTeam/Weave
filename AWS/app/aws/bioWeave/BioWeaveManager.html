@@ -28,9 +28,9 @@
 								<li>
 									<h6 class='tool-category'>Add algorithms to the cart</h6>
 								</li>
-								<li ng-repeat= "algo in runScriptService.data.listOfAlgoObjects">
+								<li ng-repeat= "algo in algorithmObjectService.data.listOfAlgoObjects">
 									{{algo}}
-									<button class="btn btn-sm new-project-button" ng-click ="runScriptService.add_algorithmObject(algo)">Add</button>
+									<button class="btn btn-sm new-project-button" ng-click ="algorithmObjectService.add_algorithmObject(algo)">Add</button>
 <!-- 									<span > -->
 <!-- 									<a href='javascript: void()'> {{algo}}</a> -->
 <!-- 									</span> -->
@@ -46,14 +46,14 @@
 		</div>	
 		
 		<div class="tool-bar">
-							<ul ng-model = "runScriptService.data.chosenAlgorithms">
+							<ul ng-model = "algorithmObjectService.data.chosenAlgorithms">
 								<li>
 									<h6 class='tool-category'>Algorithms to be Executed</h6>
 								</li>
-								<li ng-repeat= "algo in runScriptService.data.chosenAlgorithms">
+								<li ng-repeat= "algo in algorithmObjectService.data.chosenAlgorithms">
 								{{algo}}
-									<button class="btn btn-sm new-project-button" ng-click ="runScriptService.remove_algorithmObject(algo)">Remove</button>
-									<button class= "btn btn-primary" ng-click = "runScriptService.getAlgorithmMetadata(algo)"> Set Parameters</button>
+									<button class="btn btn-sm new-project-button" ng-click ="algorithmObjectService.remove_algorithmObject(algo)">Remove</button>
+									<button class= "btn btn-primary" ng-click = "algorithmObjectService.getAlgorithmMetadata(algo)"> Set Parameters</button>
 								</li>
 							</ul>
 		</div>

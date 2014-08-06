@@ -1,15 +1,15 @@
 <div>
-		<div class="header panel-heading" ng-model= "runScriptService.data.currentMetObj">
-			<h2>Enter parameters for {{runScriptService.data.currentMetObj.algoName}}</h2>
+		<div class="header panel-heading" ng-model= "algorithmObjectService.data.currentMetObj">
+			<h2>Enter parameters for {{algorithmObjectService.data.currentMetObj.algoName}}</h2>
 		</div>
 
 		<div style="width: 100%; display: table; padding-top:10px" class="portlet-content">
-		 	<tr ng-model = "runScriptService.data.currentMetObj">
+		 	<tr ng-model = "algorithmObjectService.data.currentMetObj">
 				
 				<div style="width: 60%; display: table-cell">
 				
 						<!-- This input type will be added if the input type is numberical -->
-						<div ng-repeat="input in runScriptService.data.currentMetObj.inputParams">
+						<div ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
 						
 							<div class = form-group ng-if="input.param_type == 'number'" >
 								{{input.label}}
