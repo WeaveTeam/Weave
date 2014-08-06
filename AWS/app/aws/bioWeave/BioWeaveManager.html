@@ -65,13 +65,11 @@
 <br/>
 <br/>
 
-<div style="display:table; width:100%">
+<div ng-controller = "InputParamsController" ng-include="inputParamsHTMLTpl.url">
 	<!-- Parameter Input Panel -->
-	<div style ="width : 45%; height: 300px; display:table-cell; overflow-y:scroll" ng-controller = "InputParamsController" ng-include="inputParamsHTMLTpl.url">
-	</div>
-	<div style="dislay: table-cell">
-		<button class= "btn btn-primary">RUN</button>
-	</div>
+<!-- 	<div > -->
+<!-- 	</div> -->
+	
 </div>
 <br/>
 <!-- Results Panel -->

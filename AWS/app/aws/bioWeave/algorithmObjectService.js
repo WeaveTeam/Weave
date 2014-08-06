@@ -35,7 +35,7 @@ angular.module('aws.bioWeave')
      * the metadata object helps in dynamic building of the UI for entering every algorithm's parameters
      */
 	this.getAlgorithmMetadata = function(algoName){
-		this.data.currentMetObj= {};//refresh it everytime
+		//this.data.currentMetObj= {};//refresh it everytime
 		
 		//check if the object is already present, if not then retrieve the metadata thru a server call
 		if(this.data.algorithmMetadataObjects.length > 0)
@@ -46,13 +46,24 @@ angular.module('aws.bioWeave')
 					//this object will be used to build the dynamic UI for parameter input
 					this.data.currentMetObj = this.data.algorithmMetadataObjects[j];
 					
-					//console.log("checked locally", this.data.algorithmMetadataObjects[j]);
+					console.log("checked locally", this.data.algorithmMetadataObjects[j].title);
 					break;
 				}
 			}
+			this.getAlgorithmMetadataFromServer(algoName);
 		}
 		
 		
+		else
+			{
+				this.getAlgorithmMetadataFromServer(algoName);
+			}
+			
+		
+	};
+	
+	
+	this.getAlgorithmMetadataFromServer = function(algoName){
 		var deferred = $q.defer();
 		aws.queryService(scriptManagementURL, 'getAlgorithmMetadata', [algoName], function(result){
 			//that.data.algorithmMetadataObjects = result;
@@ -68,7 +79,7 @@ angular.module('aws.bioWeave')
 			that.data.algorithmMetadataObjects.push(algoMetadataObject);
 			
 			//console.log("current list of metadata objects", that.data.algorithmMetadataObjects);
-			//console.log("received from server", algoMetadataObject);
+			console.log("received from server", algoMetadataObject.title);
 			
 			//this object will be used to build the dynamic UI for parameter input
 			that.data.currentMetObj = algoMetadataObject;
@@ -78,10 +89,7 @@ angular.module('aws.bioWeave')
 			});
 			
 		});
-			
-		
 	};
-	
 	
 	/**
 	 * This function adds algorithms to the algorithm cart
@@ -94,7 +102,6 @@ angular.module('aws.bioWeave')
 		}
 		else
 			alert(id + " has already been added");
-		console.log("chosen", this.data.chosenAlgorithms);
 	};
 		
 	

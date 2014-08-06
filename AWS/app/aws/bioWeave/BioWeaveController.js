@@ -15,11 +15,17 @@ bioWeave_mod.controller('AlgoObjectListController', function($scope,algorithmObj
 	
 });
 
-bioWeave_mod.controller('InputParamsController', function($scope, algorithmObjectService){
+bioWeave_mod.controller('InputParamsController', function($scope, algorithmObjectService, runScriptService){
 	//pulls in the external template for use in ng-include in the main BioWeaveManager.html
 	$scope.inputParamsHTMLTpl = {url: 'aws/bioWeave/parameterInputPanel.html'};
 	
 	$scope.algorithmObjectService = algorithmObjectService;
+	
+	$scope.collectAlgoObjects = function(){
+		console.log(algorithmObjectService.data.algorithmMetadataObjects);
+		//runScriptService.check(algorithmObjectService.data.algorithmMetadataObjects);
+		//runScriptService.runScript(algorithmObjectService.data.currentMetObj);
+	};
 	
 });
 
