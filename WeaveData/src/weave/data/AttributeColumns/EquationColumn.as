@@ -56,7 +56,6 @@ package weave.data.AttributeColumns
 		
 		public static const compiler:Compiler = new Compiler();
 		compiler.includeLibraries(
-			WeaveAPI,
 			WeaveAPI.CSVParser,
 			WeaveAPI.StatisticsCache,
 			WeaveAPI.AttributeColumnCache,
