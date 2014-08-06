@@ -60,7 +60,7 @@ angular.module('aws.bioWeave')
 			var algoMetadataObject = {};
 			algoMetadataObject.algoName = result.algoName;
 			algoMetadataObject.title = result.title;
-			algoMetadataObject.comp_engine = result.ComputationEngine;
+			algoMetadataObject.ComputationEngine = result.ComputationEngine;
 			algoMetadataObject.inputParams = result.inputParams;
 			algoMetadataObject.outputs = result.outputs;
 			
