@@ -30,6 +30,13 @@
 			}
 
 			var check;
+			
+			var workOnData = function(resultData) {
+				console.log(resultData);
+				data = resultData;
+				console.log(angular.element(document).scope());
+				angular.element(document).scope().$apply();
+			};
 			function workOnData(queryHandler, input)
 			{
 				check = queryHandler;

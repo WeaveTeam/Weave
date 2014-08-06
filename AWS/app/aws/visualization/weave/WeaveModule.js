@@ -1,6 +1,5 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
 
-
 weave_mod.service("WeaveService", function($rootScope, $window) {
 	
 	this.weave;
@@ -11,15 +10,26 @@ weave_mod.service("WeaveService", function($rootScope, $window) {
 weave_mod.controller('WeaveCtrl', function($scope, WeaveService, $window) {
 
 	$scope.$watch(function() {
-		return $window.isWeaveReady;
+		return data;
 	}, function() {
-		console.log($window.isWeaveReady);
-	}, true);
-	
-	
+		console.log(data);
+	});
 });
 
-
+weave_mod.run(['$rootScope', function($rootScope){
+	$rootScope.$safeApply = function(fn, $scope) {
+			if($scope == undefined){
+				$scope = $rootScope;
+			}
+			fn = fn || function() {};
+			if ( !$scope.$$phase ) {
+        	$scope.$apply( fn );
+    	}
+    	else {
+        	fn();
+    	}
+	};
+}]);
 //goog.require('aws');
 //goog.provide('aws.WeaveClient');
 //	

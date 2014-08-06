@@ -5,6 +5,7 @@
 var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 
 var qh_module = angular.module('aws.QueryHandlerModule', []);
+var weavewindow;
 
 qh_module.service('QueryHandlerService',  ['$q', '$rootScope', function($q, scope) {
 	
@@ -192,8 +193,8 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 				QueryHandlerService.weaveWindow = $window.open("aws/visualization/weave/weave.html",
 						"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 			}
-			
-			WeaveService.resultData = resultData;
+
+			QueryHandlerService.weaveWindow.addEventListener('load', QueryHandlerService.weaveWindow.workOnData(resultData), true);
 		});
 	};
 });

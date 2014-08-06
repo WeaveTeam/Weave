@@ -18,7 +18,7 @@ var tryParseJSON = function(jsonString){
     return false;
 };
 
-var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider']);
+var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
 AnalysisModule.service('AnalysisService', function() {
 	
