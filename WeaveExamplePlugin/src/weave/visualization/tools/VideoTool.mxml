@@ -107,6 +107,7 @@
 					{
 						//Setup the initial connection.
 						vidConnection = new NetStream(netConnect);
+						vidConnection.checkPolicyFile = true;
 						vidConnection.addEventListener(NetStatusEvent.NET_STATUS, lastKeyFrameDetector);
 						//This is a hack for a metadata error that was occuring.
 						vidConnection.client={onMetaData:function(obj:Object):void{} }
