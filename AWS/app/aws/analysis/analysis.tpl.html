@@ -27,7 +27,8 @@
 					</select>
 				</div>
 				
-				{{queryService.queryObject.Indicator.description}}
+				{{IndicDescription}}
+				
 				
 			</div>
 
@@ -145,9 +146,6 @@
 							</select>
 						</div>
 						<!-- Contains the buttons pertaining to a query and its visualizations -->
-						<div ng-controller="QueryHandlerCtrl">
-							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="run()"> <span style="vertical-align: middle">Run</span> <!--<i class="glyphicon glyphicon-play-circle play-button"></i>--> </a>
-						
 						
 						<div ng-controller = DialogController>
 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a>

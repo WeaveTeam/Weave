@@ -93,7 +93,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
-
+	$scope.IndicDescription = "";
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;
 	};
@@ -102,6 +102,12 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		tool.enabled = false;
 		queryService.queryObject[tool.id].enabled = false;
 	};
+	
+	$scope.$watch('queryService.queryObject.Indicator', function() {
+		if(queryService.queryObject.Indicator) {
+			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
+		}
+	});
 	
 	$scope.$watch(function() {
 		return queryService.tool_list;

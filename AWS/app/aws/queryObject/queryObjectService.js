@@ -421,7 +421,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 
         	var deferred = $q.defer();
             
-            aws.AdminClient.updateEntity(user, password, entityId, diff, function(){
+        	aws.queryService(adminServiceURL, 'updateEntity', [user, password, entityId, diff], function(){
                 
             	scope.$safeApply(function(){
                     deferred.resolve();
@@ -434,7 +434,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 
         	var deferred = $q.defer();
             
-            aws.AdminClient.authenticate(user, password, function(result){
+        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
                 
             	scope.$apply(function(){
                     deferred.resolve(result);

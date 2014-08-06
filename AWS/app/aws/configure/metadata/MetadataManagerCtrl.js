@@ -78,7 +78,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	};
 
 	var getColumnMetadata = function (id) {
-		aws.DataClient.getDataColumnEntities(id, function(result) {
+		aws.queryService('/WeaveServices/DataService', "getEntitiesById", [id], function (result){
 			var metadata = result[0];
 			if(metadata.hasOwnProperty("publicMetadata")) {
 				if(metadata.publicMetadata.hasOwnProperty("aws_metadata")) {
