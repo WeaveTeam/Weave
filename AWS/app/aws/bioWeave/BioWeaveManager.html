@@ -17,9 +17,9 @@
 	</div>
 </div>
 
-<!--Algorithm Objects -->
-<div ng-controller = "AlgoObjectListController">
-	<div>
+
+<div style="display:table" ng-controller = "AlgoObjectListController">
+	<div style= "display:table-cell;width:50%"><!--Algorithm Objects -->
 				<div class="header panel-heading">
 					<h2>Algorithms</h2>
 				</div>
@@ -37,10 +37,12 @@
 								</li>
 							</ul>
 				</div>
-			</div>
+	</div>
 			<br/>
 			<br/>
-		<!-- Algorithm Cart -->
+			
+	<div style= "display:table-cell; width:50%"><!-- Algorithm Cart -->
+		
 		<div class="header panel-heading">
 					<h2>Algorithm Cart</h2>
 		</div>	
@@ -57,17 +59,23 @@
 								</li>
 							</ul>
 		</div>
+	</div>		
+		
 </div>
 <br/>
 <br/>
 
 <div style="display:table; width:100%">
 	<!-- Parameter Input Panel -->
-	<div style ="width : 45%; display:table-cell" ng-controller = "InputParamsController" ng-include="inputParamsHTMLTpl.url">
+	<div style ="width : 45%; height: 300px; display:table-cell; overflow-y:scroll" ng-controller = "InputParamsController" ng-include="inputParamsHTMLTpl.url">
 	</div>
-	<!-- Results Panel -->
-	<div style ="display:table-cell; padding-left:50px" ng-controller = "ResultsViewController" ng-include="resultViewHTMLTpl.url">
+	<div style="dislay: table-cell">
+		<button class= "btn btn-primary">RUN</button>
 	</div>
 </div>
+<br/>
+<!-- Results Panel -->
+	<div  ng-controller = "ResultsViewController" ng-include="resultViewHTMLTpl.url">
+	</div>
 
 			
