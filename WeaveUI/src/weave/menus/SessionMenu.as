@@ -133,7 +133,7 @@ package weave.menus
 					},
 					TYPE_SEPARATOR,
 					{
-						shown: Weave.ALLOW_PLUGINS,
+						shown: Weave.properties.enableManagePlugins,
 						label: lang("Manage plugins"),
 						click: managePlugins
 					},

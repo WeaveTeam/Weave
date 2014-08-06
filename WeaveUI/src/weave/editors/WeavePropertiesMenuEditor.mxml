@@ -66,11 +66,13 @@
 		<mx:VBox label="{lang('Session')}" verticalGap="{verticalGap}">	 	
 			<ui:CustomCheckBox label="{lang('Session Menu')}"
 						 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
+			<ui:CustomCheckBox label="{lang('Manage plugins')}"
+						 creationComplete="linkBindableProperty(Weave.properties.enableManagePlugins, event.target, 'selected')"/>
 			<ui:CustomCheckBox id="collabPanel"
 						 label="{lang('Connect to Collaboration Server')}"
 						 creationComplete="linkBindableProperty(Weave.properties.showCollaborationMenuItem, event.target, 'selected');"
 						 />
-		</mx:VBox>	
+		</mx:VBox>
 		
 		<mx:VBox  label="{lang('Data')}" verticalGap="{verticalGap}">
 			<ui:CustomCheckBox id="dataMenu"
