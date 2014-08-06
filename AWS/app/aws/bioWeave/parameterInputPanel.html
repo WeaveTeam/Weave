@@ -1,12 +1,15 @@
 <div>
 		<div class="header panel-heading" ng-model= "algorithmObjectService.data.currentMetObj">
 			<h2>Enter parameters for {{algorithmObjectService.data.currentMetObj.algoName}}</h2>
+			
 		</div>
+		
+		
 
-		<div style="width: 100%; display: table; padding-top:10px" class="portlet-content">
+		<div style="width: 100%; padding-top:10px" class="portlet-content">
 		 	<tr ng-model = "algorithmObjectService.data.currentMetObj">
 				
-				<div style="width: 60%; display: table-cell">
+				<div style="width: 60%; display: table">
 				
 						<!-- This input type will be added if the input type is numberical -->
 						<div ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
@@ -28,13 +31,33 @@
 									<option value="{{option}}" ng-repeat="option in input.param_options">{{option}}</option>
 								</select>
 							</div>
+								<!-- The following code inserts R, stata, python thumbnails in BioWeave -->
+
+						</div>
+						
+						<div ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
 							
+								<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
+								
+									<img width = "50" height = "50" ng-src= "{{'../aws/css/img/Rlogo.png'}}" ></img>
+								</div>
+
+								<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'python'">
+									
+								
+									<img width = "50" height = "50" ng-src= "{{'../aws/css/img/pythonlogo.png'}}"></img>
+								</div>
+
+								<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'stata'">
+									
+								
+									<img width = "75" height = "50" ng-src= "{{'../aws/css/img/statalogo.png'}}"></img>
+								</div>
 						</div>
 				</div>
 				
-				<div style="display: table-cell; padding-left: 100px">
-					Image will go here
-				</div>
+			
+		</div>
 			
 		</tr>
 		</div>
