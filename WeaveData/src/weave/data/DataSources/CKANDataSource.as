@@ -22,7 +22,7 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
@@ -191,11 +191,11 @@ package weave.data.DataSources
 							result['fields'].map(function(field:Object, i:*, a:*):Object {
 								var type:String = field['type'];
 								if (type == 'numeric' || type == 'int4' || type == 'int' || type == 'float' || type == 'double')
-									type = DataTypes.NUMBER;
+									type = DataType.NUMBER;
 								if (type == 'text')
-									type = DataTypes.STRING;
+									type = DataType.STRING;
 								if (type == 'timestamp')
-									type = DataTypes.DATE;
+									type = DataType.DATE;
 								var meta:Object = {};
 								meta[ColumnMetadata.DATA_TYPE] = type;
 								meta[ColumnMetadata.TITLE] = field['id'];

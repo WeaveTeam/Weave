@@ -20,7 +20,7 @@ package weave.api.data
 	 * 
 	 * @author adufilie
 	 */
-	public class DataTypes
+	public class DataType
 	{
 		//public static const BOOLEAN:String = "boolean";
 		public static const NUMBER:String = "number";

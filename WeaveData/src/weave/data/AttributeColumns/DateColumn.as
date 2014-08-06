@@ -24,7 +24,7 @@ package weave.data.AttributeColumns
 	import flash.utils.getTimer;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.reportError;
@@ -62,7 +62,7 @@ package weave.data.AttributeColumns
 		override public function getMetadata(propertyName:String):String
 		{
 			if (propertyName == ColumnMetadata.DATA_TYPE)
-				return DataTypes.DATE;
+				return DataType.DATE;
 			return super.getMetadata(propertyName);
 		}
 
@@ -264,7 +264,7 @@ package weave.data.AttributeColumns
 			date = _keyToDate[key];
 			
 			if (dataType)
-				return date as DataTypes;
+				return date as DataType;
 			
 			return date;
 		}

@@ -113,7 +113,7 @@
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
-			import weave.api.data.DataTypes;
+			import weave.api.data.DataType;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.compiler.StandardLib;
@@ -151,7 +151,7 @@
 			
 			private function getGeometryErrorString():String
 			{
-				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataTypes.GEOMETRY)
+				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataType.GEOMETRY)
 					return lang('Please select a geometry column.');
 				return '';
 			}

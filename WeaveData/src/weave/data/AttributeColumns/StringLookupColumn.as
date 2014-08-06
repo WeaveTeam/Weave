@@ -24,7 +24,7 @@ package weave.data.AttributeColumns
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.data.QKeyManager;
@@ -67,11 +67,11 @@ package weave.data.AttributeColumns
 			{
 				_keyType = getInternalColumn().getMetadata(ColumnMetadata.DATA_TYPE);
 				if (!_keyType)
-					_keyType = DataTypes.STRING;
+					_keyType = DataType.STRING;
 			}
 		}
 		
-		private var _keyType:String = DataTypes.STRING;
+		private var _keyType:String = DataType.STRING;
 		
 		/**
 		 * This object maps a String value from the internal column to an Array of keys that map to that value.

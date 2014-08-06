@@ -21,7 +21,7 @@ package weave.data.DataSources
 {
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IFilteredKeySet;
@@ -80,7 +80,7 @@ package weave.data.DataSources
 			if (internalData.transposedKeyType == null)
 			{
 				var owner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
-				internalData.transposedKeyType = owner ? owner.getName(this) : DataTypes.STRING;
+				internalData.transposedKeyType = owner ? owner.getName(this) : DataType.STRING;
 			}
 		}
 		
@@ -256,7 +256,7 @@ import weave.api.registerDisposableChild;
 import weave.data.DataSources.TransposedDataSource;
 import weave.utils.ColumnUtils;
 import weave.utils.EquationColumnLib;
-import weave.api.data.DataTypes;
+import weave.api.data.DataType;
 import weave.compiler.ProxyObject;
 import weave.api.data.IPrimitiveColumn;
 import weave.compiler.StandardLib;
@@ -335,7 +335,7 @@ internal class TransposedRecord implements IAttributeColumn, IDisposableObject, 
 			if (propertyName == ColumnMetadata.TITLE)
 				return sourceMetadataName;
 			if (propertyName == ColumnMetadata.DATA_TYPE)
-				return DataTypes.STRING;
+				return DataType.STRING;
 			return null;
 		}
 		

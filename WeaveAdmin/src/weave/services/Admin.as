@@ -26,7 +26,7 @@ package weave.services
 	import mx.utils.URLUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.EntityType;
 	import weave.api.linkBindableProperty;
 	import weave.api.services.beans.Entity;
@@ -321,7 +321,7 @@ package weave.services
 					{
 						keyTypes = event.result as Array || [];
 						dataTypes = keyTypes.concat();
-						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.DATE, DataTypes.GEOMETRY);
+						dataTypes.unshift(DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY);
 					}
 				}
 			);

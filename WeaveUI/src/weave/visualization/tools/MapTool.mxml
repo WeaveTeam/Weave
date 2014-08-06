@@ -33,7 +33,7 @@
 			import weave.Weave;
 			import weave.api.copySessionState;
 			import weave.api.data.ColumnMetadata;
-			import weave.api.data.DataTypes;
+			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnReference;
 			import weave.api.getCallbackCollection;
@@ -90,13 +90,13 @@
 			{
 				var col:IAttributeColumn = obj as IAttributeColumn;
 				if (col)
-					return col.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY;
+					return col.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY;
 				
 				var ref:IColumnReference = obj as IColumnReference;
 				if (ref)
 				{
 					var meta:Object = ref.getColumnMetadata();
-					return meta && meta[ColumnMetadata.DATA_TYPE] == DataTypes.GEOMETRY;
+					return meta && meta[ColumnMetadata.DATA_TYPE] == DataType.GEOMETRY;
 				}
 				
 				return false;
@@ -245,7 +245,7 @@
 					// get all ReferencedColumn objects, excluding geometry columns
 					var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization, ReferencedColumn);
 					for each (var col:IAttributeColumn in refCols)
-						if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) != 0) // non-geometry
+						if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataType.GEOMETRY, true) != 0) // non-geometry
 							visualization.additionalProbeColumns.push(col);
 				}
 				else

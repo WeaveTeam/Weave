@@ -15,7 +15,7 @@ package weave.data.DataSources
     import weave.api.data.IDataSource;
     import weave.api.data.IQualifiedKey;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.data.DataTypes;
+    import weave.api.data.DataType;
     import weave.api.newLinkableChild;
     import weave.api.reportError;
     import weave.core.LinkableString;
@@ -148,11 +148,11 @@ package weave.data.DataSources
                     data_type == GraphMLConverter.ATTRTYPE_FLOAT || 
                     data_type == GraphMLConverter.ATTRTYPE_LONG)
                 {
-                    data_type = DataTypes.NUMBER;
+                    data_type = DataType.NUMBER;
                 }
                 else
                 {
-                    data_type = DataTypes.STRING;
+                    data_type = DataType.STRING;
                 }
             }
 
@@ -240,7 +240,7 @@ package weave.data.DataSources
 
             var setRecords:Function = setRecordsString;
 
-            if (data_type == DataTypes.NUMBER) setRecords = setRecordsNumber;
+            if (data_type == DataType.NUMBER) setRecords = setRecordsNumber;
 
             (WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(key_type, key_column, proxyColumn, setRecords, key_vector);
         }

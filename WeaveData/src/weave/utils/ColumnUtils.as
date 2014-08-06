@@ -27,7 +27,7 @@ package weave.utils
 	import weave.api.copySessionState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
@@ -89,9 +89,9 @@ package weave.utils
 			var projection:String = column.getMetadata(ColumnMetadata.PROJECTION);
 			var dateFormat:String = column.getMetadata(ColumnMetadata.DATE_FORMAT);
 			
-			if (dataType == DataTypes.DATE && dateFormat)
+			if (dataType == DataType.DATE && dateFormat)
 				dataType = dataType + '; ' + dateFormat;
-			if (dataType == DataTypes.GEOMETRY && projection)
+			if (dataType == DataType.GEOMETRY && projection)
 				dataType = dataType + '; ' + projection;
 			
 			if (dataType && keyType)
