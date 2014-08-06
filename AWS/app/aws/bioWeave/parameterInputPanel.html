@@ -1,43 +1,43 @@
-<div>
-		<div class="header panel-heading" ng-model= "algorithmObjectService.data.currentMetObj">
+<div style="width:100%; display:table">
+ <!-- Heading, content -->
+	<div style= "width:45%; height :300px; display:table-cell" ng-model= "algorithmObjectService.data.currentMetObj">
+		<!-- the heading  -->
+		<div class="header panel-heading" >
 			<h2>Enter parameters for {{algorithmObjectService.data.currentMetObj.algoName}}</h2>
-
+			
 		</div>
+		
+		<!-- the content -->
+		<div style="padding-top:10px; width :100% ;display: table" class="portlet-content">
+			<!-- the input UI -->
+			<div style="width: 60%; display: table-cell">
+					
+							<!-- This input type will be added if the input type is numberical -->
+							<div ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
 
-
-
-		<div style="width: 100%; padding-top:10px" class="portlet-content">
-		 	<tr ng-model = "algorithmObjectService.data.currentMetObj">
-
-				<div style="width: 60%; display: table">
-
-						<!-- This input type will be added if the input type is numberical -->
-						<div ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
-
-							<div class = form-group ng-if="input.param_type == 'number'" >
-								{{input.label}}
-								<input class= "form-control"type= "text" placeholder="{{input.default}}">
-								</input>
+								<div class = form-group ng-if="input.param_type == 'number'" >
+									{{input.label}}
+									<input ng-model = "input.param_user_value" class= "form-control"type= "text" placeholder="{{input.default}}">
+									</input>
+								</div>
+								
+								
+							<!-- This input will be added if the input type is an array, choose an option -->
+								<div ng-if="input.param_type == 'array'">
+									{{input.label}}
+									
+									<!--TODO try to get ng-options working <select ng-model = "input.param_options" class="form-control" ng-options = "option for option in input.param_options"> -->
+									<!-- 								</select> -->
+									<select ng-model = "input.param_user_value" class="form-control" data-placeholder="{{input.default}}">
+										<option value="{{option}}" ng-repeat="option in input.param_options">{{option}}</option>
+									</select>
+								</div>
+								
 							</div>
-
-
-						<!-- This input will be added if the input type is an array, choose an option -->
-							<div ng-if="input.param_type == 'array'">
-								{{input.label}}
-
-								<!--TODO try to get ng-options working <select ng-model = "input.param_options" class="form-control" ng-options = "option for option in input.param_options"> -->
-								<!-- 								</select> -->
-								<select class="form-control" data-placeholder="{{input.default}}">
-									<option value="{{option}}" ng-repeat="option in input.param_options">{{option}}</option>
-								</select>
-							</div>
-								<!-- The following code inserts R, stata, python thumbnails in BioWeave -->
-
-						</div>
-
-						<div ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
-
-								<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
+					</div>
+			<!-- the image -->
+			<div style="display: table-cell; padding-left: 100px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
+						<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
 
 									<img width = "50" height = "50" ng-src= "{{'../aws/css/img/Rlogo.png'}}" ></img>
 								</div>
@@ -53,12 +53,12 @@
 
 									<img width = "75" height = "50" ng-src= "{{'../aws/css/img/statalogo.png'}}"></img>
 								</div>
-						</div>
-				</div>
-
-
+			</div>
 		</div>
+	</div>
+<!-- Button and the rest -->	
+	<div style="display:table-cell">
+		<button class= "btn btn-primary" ng-click="collectAlgoObjects()">RUN</button>
+	</div>
 
-		</tr>
-		</div>
 </div>
