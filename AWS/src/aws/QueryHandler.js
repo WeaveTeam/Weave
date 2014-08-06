@@ -20,6 +20,19 @@ var tryParseJSON = function(jsonString){
 
     return false;
 };
+
+
+function waitForWeave(popup, callback)
+{
+    function checkWeaveReady() {
+        var weave = popup.document.getElementById('weave');
+        if (weave && weave.path)
+            callback(weave);
+        else
+            setTimeout(checkWeaveReady, 50);
+    }
+    checkWeaveReady();
+}
 /**
  * This class is designed to receive a query object and interpret its content.
  * 
@@ -288,15 +301,14 @@ aws.QueryHandler = function(queryObject)
 			);
 		}
 	}
-	
+	this.client;
+	this.dataSourceName;
 	this.currentVisualizations = {};
 	console.log("query", angular.toJson(this.queryObject));
 	this.resultDataSet = "";
 };
 
-//testing
 var newWeaveWindow;
-
 /**
  * This function is the golden evaluator of the query.
  * 1- run the scripts against the data
@@ -307,97 +319,175 @@ aws.QueryHandler.prototype.runQuery = function() {
 
 	// step 1
 	var that = this;
-	$("#LogBox").html('');
 	//testing new Weave Window
+	
 	if(!newWeaveWindow || newWeaveWindow.closed) {
-		newWeaveWindow = window.open("aws/visualization/weave/weave.html",
+		newWeaveWindow = window.open("/weave.html",
 			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 	}
 	
-	if(newWeaveWindow.log) {
-		newWeaveWindow.log("Running Query...");
-	};
+	
+	
+	console.log("running query...");
+//	if(newWeaveWindow.log) {
+//		newWeaveWindow.log("Running Query...");
+//	};
 
 	aws.queryService(computationServiceURL, 'runScript', [this.rRequestObject.scriptName, this.rRequestObject.inputs, this.rRequestObject.filters], function(result){	
-
-		newWeaveWindow.log("Load Time : " + result.times[0]/1000 + " secs,  Analysis Time: " + result.times[1]/1000 + " secs");
-		newWeaveWindow.workOnData(that, result.data);
+		that.resultDataSet = result.data;
+		console.log("result", that.resultDataSet);
+		console.log("Load Time : " + result.times[0]/1000 + " secs,  Analysis Time: " + result.times[1]/1000 + " secs");
+		
+		//newWeaveWindow.log("Load Time : " + result.times[0]/1000 + " secs,  Analysis Time: " + result.times[1]/1000 + " secs");
+		waitForWeave(newWeaveWindow, function(weave){
+			that.client = new aws.WeaveClient(weave);
+			that.setVisualizations();
+		});
+		//newWeaveWindow.workOnData(that, result.data);
 
 	});
 };
 
 aws.QueryHandler.prototype.clearSessionState = function () {
-	//$("#LogBox").html('');
-	if(newWeaveWindow) {
-		//newWeaveWindow.clearWeave(this);
-		console.log("reached query handler");
-		newWeaveWindow.clearSessionState();
-	}
+	if(newWeaveWindow || !(newWeaveWindow.closed))
+		{
+			waitForWeave(newWeaveWindow, function(weave){
+				if(this.client)
+					this.client.clearWeave();
+				console.log("Session State cleared");
+			}.bind(this));
+		}
+	
 };
 
-aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
-	this.visualizations = [];
+
+aws.QueryHandler.prototype.setVisualizations = function(){
+	var keyType = "";
+	var client = this.client;
+	console.log(this.client);
+	if(this.queryObject.MapTool.enabled){
+		var geometryJson = JSON.parse(this.queryObject.MapTool.geometryLayer);
+		console.log("geometry", geometryJson);
+		keyType = geometryJson.keyType;
+	}
 	
-	if(queryObject.hasOwnProperty("ColorColumn")) {
-		if(queryObject.ColorColumn.enabled == true) {
-			this.ColorColumn = queryObject.ColorColumn.selected;
+	
+	   //Todo parameterize keyColumnName ; here "fips"
+	   this.dataSourceName = client.addCSVDataSource(this.resultDataSet,"", keyType, "fips");
+	   var toolName;
+	    //creating the visualizations
+		for (var i in this.visualizations) {
+			toolName = client.newVisualization(this.visualizations[i], this.dataSourceName);
+			if(this.visualizations[i].hasOwnProperty("enableTitle")) {
+				client.setVisualizationTitle(toolName, this.visualizations[i].enableTitle,  this.visualizations[i].title);
+			}
+			this.currentVisualizations[this.visualizations[i].type] = toolName;
+			//console.log(this.visualizations[i]);
+			//aws.timeLogString = aws.reportTime(this.visualizations[i].type + ' added');
+			//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+		}
+			    
+	   // var colColumn = aws.this.prototype.returnColorcolumn();
+	    if (this.ColorColumn) {
+			client.setColorAttribute(this.ColorColumn, this.dataSourceName);
+			//aws.timeLogString = aws.reportTime('color column added');
+			//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
+		}	
+};
+
+aws.QueryHandler.prototype.updateVisualizations = function() {
+	this.visualizations = [];
+	var client = this.client;
+	if(this.queryObject.hasOwnProperty("ColorColumn")) {
+		if(this.queryObject.ColorColumn.enabled == true) {
+			this.ColorColumn = this.queryObject.ColorColumn.selected;
 		}
 	}
 
-	if (queryObject.hasOwnProperty("MapTool")) {
-		if(queryObject.MapTool.enabled == true) {
-			this.keyType = queryObject.MapTool.keyType;
+	if (this.queryObject.hasOwnProperty("MapTool")) {
+		if(this.queryObject.MapTool.enabled == true) {
+			this.keyType = this.queryObject.MapTool.keyType;
 			this.visualizations.push(
 					{
 						type : "MapTool",
-						parameters : queryObject.MapTool.selected,
-						title : queryObject.MapTool.title,
-						enableTitle : queryObject.MapTool.enableTitle,
-						labelLayer : queryObject.MapTool.labelLayer
+						parameters : this.queryObject.MapTool.selected,
+						title : this.queryObject.MapTool.title,
+						enableTitle : this.queryObject.MapTool.enableTitle,
+						labelLayer : this.queryObject.MapTool.labelLayer
 					}
 			);
 		}
 	}	
 	
-	if (queryObject.hasOwnProperty("ScatterPlotTool")) {
-		if(queryObject.ScatterPlotTool.enabled == true) {
+	if (this.queryObject.hasOwnProperty("ScatterPlotTool")) {
+		if(this.queryObject.ScatterPlotTool.enabled == true) {
 			this.visualizations.push(
 					{
 						type : "ScatterPlotTool",
-						parameters : { X : queryObject.ScatterPlotTool.X, Y : queryObject.ScatterPlotTool.Y },
-						title : queryObject.ScatterPlotTool.title,
-						enableTitle : queryObject.ScatterPlotTool.enableTitle
+						parameters : { X : this.queryObject.ScatterPlotTool.X, Y : this.queryObject.ScatterPlotTool.Y },
+						title : this.queryObject.ScatterPlotTool.title,
+						enableTitle : this.queryObject.ScatterPlotTool.enableTitle
 					}
 			);
 		}
 	}	
 	
-	if (queryObject.hasOwnProperty("BarChartTool")) {
-		if(queryObject.BarChartTool.enabled == true) {
+	if (this.queryObject.hasOwnProperty("BarChartTool")) {
+		if(this.queryObject.BarChartTool.enabled == true) {
 			this.visualizations.push(
 					{
 						type : "BarChartTool",
 						parameters : { 
-									   heights : queryObject.BarChartTool.heights, 
-									   sort : queryObject.BarChartTool.sort, 
-									   label : queryObject.BarChartTool.label 
+									   heights : this.queryObject.BarChartTool.heights, 
+									   sort : this.queryObject.BarChartTool.sort, 
+									   label : this.queryObject.BarChartTool.label 
 									  },
-						title : queryObject.BarChartTool.title,
-						enableTitle : queryObject.ScatterPlotTool.enableTitle
+						title : this.queryObject.BarChartTool.title,
+						enableTitle : this.queryObject.ScatterPlotTool.enableTitle
 					}
 			);
 		}
 	}	
 	
-	if (queryObject.hasOwnProperty("DataTableTool")) {
-		if(queryObject.DataTableTool.enabled == true) {
+	if (this.queryObject.hasOwnProperty("DataTableTool")) {
+		if(this.queryObject.DataTableTool.enabled == true) {
 			this.visualizations.push(
 					{
 						type : "DataTable",
-						parameters : queryObject.DataTableTool.selected
+						parameters : this.queryObject.DataTableTool.selected
 					}
 			);
 		}
 	}
-	newWeaveWindow.updateVisualizations(this);
+	
+	var toolName;
+	console.log("Updating visualizations...");
+	
+	var keyType = "";
+	//TODO find a better way to set the keytype;
+	//check for the keytype
+	if(this.queryObject.MapTool.enabled){
+		
+		var geometryJson = JSON.parse(this.queryObject.MapTool.geometryLayer);
+		keyType = geometryJson.keyType;
+	}
+		
+	//set the keyType of the csv datasource
+	client.setCSVDataSouceKeyType(keyType);
+	
+	for(var i in this.visualizations){
+		if (this.currentVisualizations.hasOwnProperty(this.visualizations[i].type)) {
+			this.visualizations[i].toolName = this.currentVisualizations[this.visualizations[i].type];
+		}
+		
+		toolName = client.updateVisualization(this.visualizations[i], this.dataSourceName);
+		if(this.visualizations[i].hasOwnProperty("enableTitle")) {
+			client.setVisualizationTitle(toolName, this.visualizations[i].enableTitle,  this.visualizations[i].title);
+		}
+		this.currentVisualizations[this.visualizations[i].type] = toolName;
+	}
+	
+	 if (this.ColorColumn) {
+			client.setColorAttribute(this.ColorColumn, this.dataSourceName);
+	 }
 };

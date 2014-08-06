@@ -24,7 +24,7 @@
 		    var checkstring;
 		    var logvar;
 		    var setSession;
-		    
+		    var qh;
 			function weaveReady(weave)
 			{
 				log("Running Query...");
@@ -33,7 +33,7 @@
 			   
 			   if(responseResults) {
 				   console.log("Calling from weave ready", responseResults);
-				   workOnData(responseResults);
+				   workOnData(qh, responseResults);
 			   }
 			   
 			   if(logvar){
@@ -46,10 +46,12 @@
 			   
 			}
 			
+			
+			
 			var check;
 			function workOnData(queryHandler, input)
 			{
-				check = queryHandler;
+				qh = queryHandler;
 				//testing
 				responseResults = input || responseResults;
 				if(client)
