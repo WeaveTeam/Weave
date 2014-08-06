@@ -1,18 +1,43 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
 
-weave_mod.service("WeaveService", function($rootScope, $window) {
+weave_mod.service("WeaveService", function($rootScope) {
 	
 	this.weave;
-	this.resultData;
+	this.dataSourceName;
+	
+	this.addCSVData = function(csvData) {
+		console.log("adding data source, weave is: ", this.weave);
+		this.dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+	
+		this.weave.path(this.dataSourceName)
+			.request('CSVDataSource')
+			.vars({rows: csvData})
+			.exec('setCSVData(rows)');
+			this.weave.path(this.dataSourceName).state({keyType : "",
+												   keyColName : ""});
+	};
+	
+	this.BarChart = {
+		barChart : "",
+		
+		setTitle : function (title) {
+			if(barChart) {
+				
+			}
+		},
+		heights : "",
+		sort : "",
+		label : ""
+	};
 	
 });
 
-weave_mod.controller('WeaveCtrl', function($scope, WeaveService, $window) {
+weave_mod.controller('WeaveCtrl', function($scope, WeaveService) {
 
 	$scope.$watch(function() {
-		return data;
+		return WeaveService.weave;
 	}, function() {
-		console.log(data);
+		console.log(WeaveService.weave);
 	});
 });
 

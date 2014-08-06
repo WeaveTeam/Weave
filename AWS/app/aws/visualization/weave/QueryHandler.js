@@ -7,6 +7,18 @@ var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 var weavewindow;
 
+function waitForWeave(popup, callback)
+{
+    function checkWeaveReady() {
+        var weave = popup.document.getElementById('weave');
+        if (weave && weave.path)
+            callback(weave);
+        else
+            setTimeout(checkWeaveReady, 50);
+    }
+    checkWeaveReady();
+}
+
 qh_module.service('QueryHandlerService',  ['$q', '$rootScope', function($q, scope) {
 	
 	this.weaveWindow;
@@ -190,11 +202,17 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 		
 		QueryHandlerService.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
 			if(!QueryHandlerService.weaveWindow || QueryHandlerService.weaveWindow.closed) {
-				QueryHandlerService.weaveWindow = $window.open("aws/visualization/weave/weave.html",
+				QueryHandlerService.weaveWindow = $window.open("/weave.html",
 						"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 			}
-
-			QueryHandlerService.weaveWindow.addEventListener('load', QueryHandlerService.weaveWindow.workOnData(resultData), true);
+			
+			waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
+				WeaveService.weave = weave;
+				console.log(resultData);
+				console.log(weave);
+				WeaveService.addCSVData(resultData.data);
+			});
+			
 		});
 	};
 });
