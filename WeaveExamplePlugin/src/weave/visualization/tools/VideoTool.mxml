@@ -13,6 +13,7 @@
 			
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -101,24 +102,31 @@
 			
 			private function loadVideo():void
 			{
-				if( connected )
+				try
 				{
-					if( vidConnection == null )
+					if( connected )
 					{
-						//Setup the initial connection.
-						vidConnection = new NetStream(netConnect);
-						vidConnection.checkPolicyFile = true;
-						vidConnection.addEventListener(NetStatusEvent.NET_STATUS, lastKeyFrameDetector);
-						//This is a hack for a metadata error that was occuring.
-						vidConnection.client={onMetaData:function(obj:Object):void{} }
-						theVideo.attachNetStream(vidConnection);
+						if( vidConnection == null )
+						{
+							//Setup the initial connection.
+							vidConnection = new NetStream(netConnect);
+							vidConnection.checkPolicyFile = true;
+							vidConnection.addEventListener(NetStatusEvent.NET_STATUS, lastKeyFrameDetector);
+							//This is a hack for a metadata error that was occuring.
+							vidConnection.client={onMetaData:function(obj:Object):void{} }
+							theVideo.attachNetStream(vidConnection);
+						}
+						
+						videoURLInput.text = videoURL.value;
+						vidConnection.close();
+						theVideo.clear();
+						vidConnection.play(videoURL.value);
+						tracker = new ChromaTracker(theVideo, trackingColor.value,trackingTolerance.value);
 					}
-					
-					videoURLInput.text = videoURL.value;
-					vidConnection.close();
-					theVideo.clear();
-					vidConnection.play(videoURL.value);
-					tracker = new ChromaTracker(theVideo, trackingColor.value,trackingTolerance.value);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
 				}
 			}
 			
