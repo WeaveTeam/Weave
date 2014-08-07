@@ -38,7 +38,7 @@
 	<ui:CustomCheckBox label="{lang('Enable tool control panels and attribute selection')}"
 					   creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
 
-	<mx:TabNavigator resizeToContent="true" width="100%" height="100%" paddingLeft="10" paddingRight="10">
+	<ui:CustomTabNavigator resizeToContent="true" width="100%" height="100%" paddingLeft="10" paddingRight="10">
 		<mx:VBox label="{lang('Right-click')}" verticalGap="{verticalGap}">
 			<ui:CustomCheckBox label="{lang('Right-click Menu')}" id="rightClick"
 						 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
@@ -185,7 +185,7 @@
 					 width="120" 
 					 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
 		</mx:VBox>
-	</mx:TabNavigator>
+	</ui:CustomTabNavigator>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;

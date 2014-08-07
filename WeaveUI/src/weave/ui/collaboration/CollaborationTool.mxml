@@ -172,7 +172,7 @@
 		]]>
 	</mx:Script>
 
-	<mx:TabNavigator width="100%" height="100%" id="tabs">
+	<ui:CustomTabNavigator width="100%" height="100%" id="tabs">
 		<mx:VBox label="Chat" width="100%" height="100%"
 				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
 				 id="chat">
@@ -214,6 +214,6 @@
 				<mx:Button id="disconnectButton" label="{lang('Disconnect')}" enabled="false" click="collabService.disconnect();"/>
 			</mx:HBox>
 		</mx:VBox>
-	</mx:TabNavigator>
+	</ui:CustomTabNavigator>
 	
 </ui:DraggablePanel>

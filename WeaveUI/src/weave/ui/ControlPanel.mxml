@@ -100,7 +100,7 @@
 			 */
 			protected var controlPanelControls:ControlPanelControls = new ControlPanelControls();
 			
-			public function get tabNavigator():TabNavigator
+			public function get tabNavigator():CustomTabNavigator
 			{
 				return controlPanelControls ? controlPanelControls.tabNavigator : null;
 			}

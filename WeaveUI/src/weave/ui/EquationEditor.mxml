@@ -49,7 +49,7 @@
 					<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
 				</mx:HBox>
 				<mx:VDividedBox width="100%" height="100%">
-					<mx:TabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
+					<CustomTabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
 						<mx:VBox label="{lang('Code')}" verticalGap="0">
 							<CodeEditor id="textEditor"/>
 							<Paragraph id="errorDisplay" condenseWhite="false" text="{textEditor.errorString}" color="#D00000" fontWeight="bold"/>
@@ -70,7 +70,7 @@
 								you could use the following script:  return getNumber(a) + getNumber(b);
 							</Paragraph>
 						</mx:Canvas>
-					</mx:TabNavigator>
+					</CustomTabNavigator>
 					<ColumnListComponent label="{lang('Variables')}" showVariableNames="true" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 				</mx:VDividedBox>
 			</mx:VBox>

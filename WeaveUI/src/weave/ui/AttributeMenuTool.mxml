@@ -23,7 +23,7 @@
 				implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
-	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
+	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
 		<mx:Canvas label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
@@ -57,7 +57,7 @@
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 			</mx:HBox>
 		</mx:Canvas>
-	</mx:ViewStack>
+	</CustomViewStack>
 	
 	<ControlPanel>
 		<mx:VBox width="100%" label="{lang('Settings')}">
