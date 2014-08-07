@@ -35,29 +35,38 @@ angular.module('aws.bioWeave')
      * the metadata object helps in dynamic building of the UI for entering every algorithm's parameters
      */
 	this.getAlgorithmMetadata = function(algoName){
-		//this.data.currentMetObj= {};//refresh it everytime
-		
-		//check if the object is already present, if not then retrieve the metadata thru a server call
-		if(this.data.algorithmMetadataObjects.length > 0)
-		{
-			for(var j in this.data.algorithmMetadataObjects){
-				var checkString = this.data.algorithmMetadataObjects[j].title;
-				if(checkString.match(algoName)){
-					//this object will be used to build the dynamic UI for parameter input
-					this.data.currentMetObj = this.data.algorithmMetadataObjects[j];
-					
-					console.log("checked locally", this.data.algorithmMetadataObjects[j].title);
-					break;
-				}
-			}
-			this.getAlgorithmMetadataFromServer(algoName);
-		}
-		
-		
-		else
+		var match = false;
+		var matchedObject = {};
+		if(this.data.algorithmMetadataObjects.length == 0)
 			{
 				this.getAlgorithmMetadataFromServer(algoName);
-			}
+				console.log("set from server 1");
+			}//first time cache is empty 
+			
+		if(this.data.algorithmMetadataObjects.length > 0)//checking in the cache
+		{	
+			for(var i in this.data.algorithmMetadataObjects)//loop over the titles and check for match
+				{
+					if(algoName.match(this.data.algorithmMetadataObjects[i].title))
+						{
+							match = true;
+							matchedObject = this.data.algorithmMetadataObjects[i];
+							break;
+						}
+				}
+			
+			if(match == true)
+				{
+					this.data.currentMetObj = matchedObject;
+					console.log("set locally");
+				}
+			else
+				{
+					this.getAlgorithmMetadataFromServer(algoName);
+					console.log("set from server 2");
+				}
+			
+		}
 			
 		
 	};
@@ -79,7 +88,7 @@ angular.module('aws.bioWeave')
 			that.data.algorithmMetadataObjects.push(algoMetadataObject);
 			
 			//console.log("current list of metadata objects", that.data.algorithmMetadataObjects);
-			console.log("received from server", algoMetadataObject.title);
+			//console.log("received from server", algoMetadataObject.title);
 			
 			//this object will be used to build the dynamic UI for parameter input
 			that.data.currentMetObj = algoMetadataObject;
