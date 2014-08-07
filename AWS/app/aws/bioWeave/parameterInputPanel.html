@@ -26,11 +26,11 @@
 								<div ng-if="input.param_type == 'array'">
 									{{input.label}}
 									
-									<!--TODO try to get ng-options working <select ng-model = "input.param_options" class="form-control" ng-options = "option for option in input.param_options"> -->
-									<!-- 								</select> -->
-									<select ng-model = "input.param_user_value" class="form-control" data-placeholder="{{input.default}}">
-										<option value="{{option}}" ng-repeat="option in input.param_options">{{option}}</option>
-									</select>
+								 <select ng-model = "input.param_user_value" class="form-control" ng-options = "option for option in input.param_options">
+																	</select>
+<!-- 									<select ng-model = "input.param_user_value" class="form-control" data-placeholder="{{input.default}}"> -->
+<!-- 										<option value="{{option}}" ng-repeat="option in input.param_options">{{option}}</option> -->
+<!-- 									</select> -->
 								</div>
 								
 							</div>
