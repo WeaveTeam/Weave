@@ -56,7 +56,7 @@ package weave.core
 		public const singletonImplementations:Dictionary = new Dictionary();
 		
 		/**
-		 * interface Class -&gt; Array<implementation Class>
+		 * interface Class -&gt; Array&lt;implementation Class&gt;
 		 */
 		public const implementations:Dictionary = new Dictionary();
 		
