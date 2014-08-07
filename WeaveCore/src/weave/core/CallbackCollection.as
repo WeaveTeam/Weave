@@ -42,13 +42,13 @@ package weave.core
 		private var _oldEntries:Array;
 
 		/**
-		 * If specified, the preCallback function will be called immediately before running each callback.
-		 * This means if there are five callbacks added, preCallback() gets called five times whenever
-		 * _runCallbacksImmediately() is called.  An example usage of this is to make sure a relevant
-		 * variable is set to the appropriate value while each callback is running.  If preCallback()
-		 * takes any parameters, they must be made optional.  The preCallback function will not be called
-		 * before grouped callbacks.
 		 * @param preCallback An optional function to call before each immediate callback.
+		 *     If specified, the preCallback function will be called immediately before running each
+		 *     callback using the parameters passed to _runCallbacksImmediately(). This means if there
+		 *     are five callbacks added, preCallback() gets called five times whenever
+		 *     _runCallbacksImmediately() is called.  An example usage of this is to make sure a relevant
+		 *     variable is set to the appropriate value while each callback is running.  The preCallback
+		 *     function will not be called before grouped callbacks.
 		 */
 		public function CallbackCollection(preCallback:Function = null)
 		{
@@ -370,6 +370,7 @@ internal class CallbackEntry
 	/**
 	 * This is the current recursion depth.
 	 * If this is greater than zero, it means the function is currently running.
+	 * Note that it IS possible for this to go above 1 if an external JavaScript popup interrupts our code.
 	 */
 	public var recursionCount:uint = 0;
 	/**
