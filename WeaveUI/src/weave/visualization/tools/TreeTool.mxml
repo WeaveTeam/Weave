@@ -46,7 +46,7 @@ private const _columnUnion:KeySetUnion = new KeySetUnion();
 
 private var dataDescriptor:ParentColumnTreeDescriptor;
 
-WeaveAPI.registerImplementation(IVisTool, TreeTool, "Tree Tool");
+WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TreeTool, "Tree Tool");
 
 override protected function constructor():void
 {

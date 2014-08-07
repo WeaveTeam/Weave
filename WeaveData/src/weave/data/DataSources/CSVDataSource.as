@@ -65,7 +65,7 @@ package weave.data.DataSources
 	 */
 	public class CSVDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.registerImplementation(IDataSource, CSVDataSource, "CSV file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
 
 		public function CSVDataSource()
 		{

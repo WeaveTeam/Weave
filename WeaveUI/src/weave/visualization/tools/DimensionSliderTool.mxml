@@ -37,7 +37,7 @@
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.utils.ColumnUtils;
 
-			WeaveAPI.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
 			
 	override protected function constructor():void
 	{

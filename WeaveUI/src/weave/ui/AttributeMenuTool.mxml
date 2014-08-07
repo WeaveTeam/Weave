@@ -145,7 +145,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
-			WeaveAPI.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			

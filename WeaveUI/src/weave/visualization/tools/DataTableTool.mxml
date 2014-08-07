@@ -153,7 +153,7 @@
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
-			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));

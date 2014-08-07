@@ -129,7 +129,7 @@ SchafersMissingDataImputation
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.DataTableTool;
 			
-			WeaveAPI.registerImplementation(IVisTool, SchafersMissingDataTool, "Schafers Missing Data Imputation Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SchafersMissingDataTool, "Schafers Missing Data Imputation Tool");
 			
 			
 			private const padding:int = 5;

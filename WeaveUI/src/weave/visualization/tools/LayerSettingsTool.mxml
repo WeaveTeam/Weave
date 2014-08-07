@@ -185,7 +185,7 @@
 			import weave.core.UIUtils;
 			import weave.api.ui.IVisTool;
 
-			WeaveAPI.registerImplementation(IVisTool, LayerSettingsTool, "Layer Settings Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, LayerSettingsTool, "Layer Settings Tool");
 			
 			override protected function constructor():void
 			{

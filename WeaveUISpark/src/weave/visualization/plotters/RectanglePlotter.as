@@ -51,7 +51,7 @@ package weave.visualization.plotters
 	 */
 	public class RectanglePlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
 		
 		public function RectanglePlotter()
 		{

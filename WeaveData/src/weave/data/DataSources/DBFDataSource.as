@@ -61,7 +61,7 @@ package weave.data.DataSources
 	 */
 	public class DBFDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
 		
 		public function DBFDataSource()
 		{

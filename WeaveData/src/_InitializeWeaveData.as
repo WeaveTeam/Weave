@@ -38,12 +38,12 @@ package
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */
-		WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-		WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-		WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IProjectionManager, ProjectionManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
 		[Embed(source="WeavePathData.js", mimeType="application/octet-stream")]
 		public static const WeavePathData:Class;
 		/**

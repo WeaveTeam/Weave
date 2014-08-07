@@ -43,7 +43,7 @@ package weave.visualization.plotters
 	 */
 	public class AxisLabelPlotter extends AbstractPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, AxisLabelPlotter, "Axis labels");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, AxisLabelPlotter, "Axis labels");
 		
 		public function AxisLabelPlotter()
 		{

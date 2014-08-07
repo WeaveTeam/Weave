@@ -33,7 +33,7 @@
 			private var colorDetectionMap:BitmapData = new BitmapData(600,600);
 			private var tracker:ChromaTracker;
 			
-			WeaveAPI.registerImplementation(IVisTool, VideoTool, "Video Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, VideoTool, "Video Tool");
 			
 			override protected function childrenCreated():void
 			{

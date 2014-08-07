@@ -71,7 +71,7 @@ package weave.data.DataSources
 	 */
 	public class WeaveDataSource extends AbstractDataSource_old implements IDataRowSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 		
 		public function WeaveDataSource()
 		{

@@ -39,7 +39,7 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.utils.VectorUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
 			
 			override protected function constructor():void
 			{

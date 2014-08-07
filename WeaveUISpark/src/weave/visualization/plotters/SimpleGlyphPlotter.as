@@ -41,7 +41,7 @@ package weave.visualization.plotters
 	 */
 	public class SimpleGlyphPlotter extends AbstractGlyphPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, SimpleGlyphPlotter, "Simple glyphs");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, SimpleGlyphPlotter, "Simple glyphs");
 		
 		public function SimpleGlyphPlotter()
 		{

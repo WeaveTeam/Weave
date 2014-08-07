@@ -50,7 +50,7 @@
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 			import weave.visualization.plotters.SimpleAxisPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
 
 			/**
 			 * When this is set to true, labels for all bars will be shown.

@@ -59,7 +59,7 @@
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;				
 
-			WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, "Cytoscape-Web Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CytoscapeWebTool, "Cytoscape-Web Tool");
 			private var _toolName:String;
 
 			// Scratchspace for prepping the data to be sent to CytoscapeWeb

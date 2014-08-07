@@ -27,7 +27,7 @@ package weave.data.DataSources
 
     public class GraphMLDataSource extends AbstractDataSource
     {
-        WeaveAPI.registerImplementation(IDataSource, GraphMLDataSource, "GraphML file");
+        WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GraphMLDataSource, "GraphML file");
 
         
         public static const GRAPH_ID_META:String = "__GraphElementProperty__";        

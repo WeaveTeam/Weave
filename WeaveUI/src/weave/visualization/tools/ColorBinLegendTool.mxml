@@ -41,7 +41,7 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
 			
 			private var _plotter:ColorBinLegendPlotter = null;
 			

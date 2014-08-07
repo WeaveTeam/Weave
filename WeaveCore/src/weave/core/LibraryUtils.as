@@ -321,7 +321,7 @@ internal class Library implements IDisposableObject
 					{
 						var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
 						if (interfaceDef)
-							WeaveAPI.registerImplementation(interfaceDef, classDef);
+							WeaveAPI.ClassRegistry.registerImplementation(interfaceDef, classDef);
 					}
 				}
 				catch (e:Error)

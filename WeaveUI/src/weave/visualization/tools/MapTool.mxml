@@ -73,7 +73,7 @@
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, MapTool, "Map");
 			
 			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);

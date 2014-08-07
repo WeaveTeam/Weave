@@ -49,7 +49,7 @@ package weave.data.DataSources
 	
 	public class GeoJSONDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
  		
 		public function GeoJSONDataSource()
 		{

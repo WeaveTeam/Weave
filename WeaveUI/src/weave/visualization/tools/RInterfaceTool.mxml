@@ -336,7 +336,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 
-			//WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
+			//WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
 			
 			[Bindable]
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();

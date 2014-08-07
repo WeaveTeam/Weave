@@ -36,7 +36,7 @@ package weave.data.DataSources
 	
 	public class CKANDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
 		
 		public function CKANDataSource()
 		{

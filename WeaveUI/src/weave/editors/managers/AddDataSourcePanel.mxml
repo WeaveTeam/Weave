@@ -84,7 +84,7 @@
 				_editor = newDisposableChild(this, Editor);
 				container.addChild(_editor as DisplayObject);
 				if (_editor is Container)
-					(_editor as Container).label = lang('Add {0}', WeaveAPI.getRegisteredImplementationDisplayName(_dataSourceType));
+					(_editor as Container).label = lang('Add {0}', WeaveAPI.ClassRegistry.getDisplayName(_dataSourceType));
 				_editor.percentWidth = 100;
 				_editor.percentHeight = 100;
 			}

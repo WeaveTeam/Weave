@@ -73,7 +73,7 @@
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
 			
 			
 			public var _variables:ILinkableHashMap = null;

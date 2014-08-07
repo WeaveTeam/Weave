@@ -41,7 +41,7 @@ package weave.data.DataSources
 	
 	public class SocrataDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, SocrataDataSource, "Socrata Open Data Portal");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, SocrataDataSource, "Socrata Open Data Portal");
 		
 		public function SocrataDataSource()
 		{

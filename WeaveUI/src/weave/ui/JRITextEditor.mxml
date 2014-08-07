@@ -179,7 +179,7 @@ JRITextEditor
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, JRITextEditor, "JRI Script Editor");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, JRITextEditor, "JRI Script Editor");
 			
 			private const padding:int = 5;
 			

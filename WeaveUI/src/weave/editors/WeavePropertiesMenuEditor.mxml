@@ -204,10 +204,10 @@
 				
 				var cbArray:Array = [];
 				var cb:CustomCheckBox;
-				for each (var _class:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
+				for each (var _class:Class in WeaveAPI.ClassRegistry.getImplementations(IVisTool))
 				{
 					cb = new CustomCheckBox();
-					cb.label = WeaveAPI.getRegisteredImplementationDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
+					cb.label = WeaveAPI.ClassRegistry.getDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
 					linkBindableProperty(Weave.properties.getToolToggle(_class), cb, 'selected');
 					cbArray.push(cb);
 				}

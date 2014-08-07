@@ -36,7 +36,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.PieChartPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartTool, "Pie Chart");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, PieChartTool, "Pie Chart");
 			
 			public var _plotter:PieChartPlotter = null;
 			

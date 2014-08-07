@@ -39,7 +39,7 @@ package weave.data.Transforms
 
 	public class PartitionDataTransform extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned Table");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned Table");
 
 		public static const PARTITION_VALUE_META:String = "__PartitionValue__";
 		public static const PARTITION_COLUMNNAME_META:String = "__PartitionColumnName__";
