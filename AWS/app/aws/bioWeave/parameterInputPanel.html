@@ -37,22 +37,29 @@
 					</div>
 			<!-- the image -->
 			<div style="display: table-cell; padding-left: 100px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
-						<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
+					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
 
-									<img width = "50" height = "50" ng-src= "{{'../aws/css/img/Rlogo.png'}}" ></img>
-								</div>
+							<img width = "50" height = "50" ng-src= "{{'../aws/css/img/Rlogo.png'}}" 
+								title = "The R Project for Statistical Computing"
+							></img>
+									
+					</div>
 
-								<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'python'">
+					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'python'">
 
+							<img width = "50" height = "70" ng-src= "{{'../aws/css/img/pythonlogo.png'}}"
+								title = "Python Programming Language"
+							></img>
+							
+					</div>
 
-									<img width = "50" height = "50" ng-src= "{{'../aws/css/img/pythonlogo.png'}}"></img>
-								</div>
+					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'stata'">
 
-								<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'stata'">
-
-
-									<img width = "75" height = "50" ng-src= "{{'../aws/css/img/statalogo.png'}}"></img>
-								</div>
+							<img width = "100" height = "50" ng-src= "{{'../aws/css/img/statalogo.png'}}"
+								title = "Stata Data Analysis and Statistical Software"
+							></img>
+							
+					</div>
 			</div>
 		</div>
 	</div>
