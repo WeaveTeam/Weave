@@ -12,7 +12,6 @@ import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
-import weave.servlets.WeaveServlet;
 import weave.utils.AWSUtils;
 
 import com.google.gson.Gson;

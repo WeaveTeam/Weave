@@ -104,12 +104,45 @@ public class AWSUtils {
 	 						String filename = FilenameUtils.getBaseName(files[j]);
 	 						listOfAlgoObjects.add(filename);
 	 					}
-	 					else
-	 						throw new Exception("Algorithm Object needs to be a json file");
+	 					//else
+	 						//throw new Exception("Algorithm Object needs to be a json file");
 	 				}
 	 			}
 	 	
 	 	return listOfAlgoObjects.toArray(new String[listOfAlgoObjects.size()]);
+	}
+	
+	/**
+	 * 
+	 * @param directory the algorithm directory that contains the algorithm objects and the scripts
+	 * @param algoNames titles of the algorithm Objects to retrieve corresponding scripts for 
+	 * @return names of the scripts matching the algorithm Objects
+	 * @throws Exception
+	 */
+	public static String[] getScriptFiles(File directory, String[] algoNames) throws Exception{
+		String[] scriptNames = new String[algoNames.length];
+		List<String> allScriptNames = new ArrayList<String>();
+		String[] allowedExtensions = new String[]{"R", "r", "py", "P"};//since engines supported are python, R , STATA etc
+		String[] files = directory.list();
+		
+		//retrieving all script files i.e. non-json files
+		for(int i = 0; i < files.length; i++){
+			if(FilenameUtils.isExtension(files[i], allowedExtensions))
+				allScriptNames.add(files[i]);
+		}
+		
+		//collects the matching corresponding scripts[kMEans.json --> kMEans.R]
+		for(int j = 0; j < algoNames.length; j++){
+			String tempAlgo = algoNames[j];
+			
+			for(int d = 0; d < allScriptNames.size(); d++){
+				String tempScript = FilenameUtils.getBaseName(allScriptNames.get(d));
+				if(tempScript.matches(tempAlgo))
+					scriptNames[j] = tempScript;
+			}
+		}
+		
+		return scriptNames;
 	}
 
 }

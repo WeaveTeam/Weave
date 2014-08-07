@@ -3,7 +3,7 @@
  */
 var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
 angular.module('aws.bioWeave')
-.service("algorithmObjectService",  ['$q', '$rootScope', function($q, scope){
+.service("algorithmObjectService",  ['$q', '$rootScope', 'runScriptService', function($q, scope, runScriptService){
 	
 	var that = this;
 	this.data = {};
@@ -40,7 +40,6 @@ angular.module('aws.bioWeave')
 		if(this.data.algorithmMetadataObjects.length == 0)
 			{
 				this.getAlgorithmMetadataFromServer(algoName);
-				console.log("set from server 1");
 			}//first time cache is empty 
 			
 		if(this.data.algorithmMetadataObjects.length > 0)//checking in the cache
@@ -58,12 +57,10 @@ angular.module('aws.bioWeave')
 			if(match == true)
 				{
 					this.data.currentMetObj = matchedObject;
-					console.log("set locally");
 				}
 			else
 				{
 					this.getAlgorithmMetadataFromServer(algoName);
-					console.log("set from server 2");
 				}
 			
 		}
@@ -98,6 +95,27 @@ angular.module('aws.bioWeave')
 			});
 			
 		});
+	};
+	
+	/**
+	 * this function collects the corresponding scripts depending on the algorithm Object
+	 * for eg for algoX collect algoX.R or algoX.py
+	 */
+	this.getScripts= function(algoNames){
+		console.log("inputoBjects", algoNames);
+		
+		var deferred = $q.defer();
+		aws.queryService(scriptManagementURL, 'getScriptFiles', [algoNames], function(result){
+			
+			console.log("got scripts", result);
+			
+			runScriptService.runScript(that.data.algorithmMetadataObjects ,result);
+			
+			scope.$safeApply(function() {
+				deferred.resolve(result);
+			});
+		});
+			
 	};
 	
 	/**

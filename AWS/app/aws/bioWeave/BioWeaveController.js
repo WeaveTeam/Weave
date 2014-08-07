@@ -22,8 +22,12 @@ bioWeave_mod.controller('InputParamsController', function($scope, algorithmObjec
 	$scope.algorithmObjectService = algorithmObjectService;
 	
 	$scope.collectAlgoObjects = function(){
-		console.log(algorithmObjectService.data.algorithmMetadataObjects);
-		//runScriptService.check(algorithmObjectService.data.algorithmMetadataObjects);
+		var titles = [];
+		
+		for(var f in algorithmObjectService.data.algorithmMetadataObjects){
+			titles[f] = algorithmObjectService.data.algorithmMetadataObjects[f].title;
+		}
+		algorithmObjectService.getScripts(titles);
 		//runScriptService.runScript(algorithmObjectService.data.currentMetObj);
 	};
 	
