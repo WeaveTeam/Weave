@@ -883,11 +883,11 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
-			// STATIC CODE
-			public static var initialize:* = (function():* {
+			public static function initializeShortcuts():void
+			{
 				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
 				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
-			}());
+			}
 		]]>
 	</mx:Script>
 </ui:DraggablePanel>

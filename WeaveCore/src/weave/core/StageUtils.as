@@ -77,13 +77,13 @@ package weave.core
 		 * This is a special pseudo-event type supported by StageUtils.
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
-		public static const POINT_CLICK_EVENT:String = EventCallbackCollection.POINT_CLICK_EVENT;
+		public static function get POINT_CLICK_EVENT():String { return EventCallbackCollection.POINT_CLICK_EVENT; }
 		
 		/**
 		 * This is a special pseudo-event type supported by StageUtils.
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
-		public static const THROTTLED_MOUSE_MOVE_EVENT:String = EventCallbackCollection.THROTTLED_MOUSE_MOVE_EVENT;
+		public static function get THROTTLED_MOUSE_MOVE_EVENT():String { return EventCallbackCollection.THROTTLED_MOUSE_MOVE_EVENT; }
 		
 		/**
 		 * This is an Array of "callLater queues", each being an Array of function invocations to be done later.

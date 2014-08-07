@@ -66,6 +66,7 @@ package
 	import weave.ui.DataFilter;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
+	import weave.ui.SessionStateEditor;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
@@ -117,6 +118,8 @@ package
 	{
 		private static var _:* = function():void
 		{
+			SessionStateEditor.initializeShortcuts();
+			
 			var em:IEditorManager = WeaveAPI.EditorManager;
 			
 			/**

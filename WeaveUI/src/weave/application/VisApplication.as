@@ -79,7 +79,6 @@ package weave.application
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
-	import weave.ui.SessionStateEditor;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
@@ -95,8 +94,6 @@ package weave.application
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
-		SessionStateEditor.initialize; // adds keyboard shortcut & upper-left click shortcut
-
 		/**
 		 * Constructor.
 		 */
