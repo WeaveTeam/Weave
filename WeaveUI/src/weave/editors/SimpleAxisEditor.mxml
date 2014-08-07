@@ -47,10 +47,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</ui:HelpComponent>
 	</mx:HBox>
 	
-	<mx:TabNavigator id="axisSettings" initialize="UIUtils.pad(event, 8, 100, 100)">
+	<ui:CustomTabNavigator id="axisSettings" initialize="UIUtils.pad(event, 8, 100, 100)">
 		<SimpleAxisPlotterLabelEditor id="yAxisLabelEditor" label="{lang('Y-Axis properties')}"/>
 		<SimpleAxisPlotterLabelEditor id="xAxisLabelEditor" label="{lang('X-Axis properties')}"/>
-	</mx:TabNavigator>
+	</ui:CustomTabNavigator>
 	
 	<mx:Script>
 		<![CDATA[

@@ -24,7 +24,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author spurushe
 @author fkamayou
 -->
-<mx:TabNavigator xmlns="weave.visualization.tools.*" 
+<ui:CustomTabNavigator xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
@@ -588,4 +588,4 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:VBox>
 		
 	
-</mx:TabNavigator>
+</ui:CustomTabNavigator>
