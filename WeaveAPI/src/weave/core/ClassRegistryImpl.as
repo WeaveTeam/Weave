@@ -46,22 +46,22 @@ package weave.core
 		private var MX_Singleton:Object;
 		
 		/**
-		 * interface Class -> singleton implementation instance.
+		 * interface Class -&gt; singleton implementation instance.
 		 */
 		public const singletonInstances:Dictionary = new Dictionary();
 		
 		/**
-		 * interface Class -> implementation Class
+		 * interface Class -&gt; implementation Class
 		 */
 		public const singletonImplementations:Dictionary = new Dictionary();
 		
 		/**
-		 * interface Class -> Array<implementation Class>
+		 * interface Class -&gt; Array<implementation Class>
 		 */
 		public const implementations:Dictionary = new Dictionary();
 		
 		/**
-		 * implementation Class -> String
+		 * implementation Class -&gt; String
 		 */
 		public const displayNames:Dictionary = new Dictionary();
 		
