@@ -136,11 +136,11 @@ weave.callbackToString = function(callback, thisObj)
 	
 	// build a script for a function that invokes the callback
 	var idStr = JSON && JSON.stringify ? JSON.stringify(this.id) : '"' + this.id + '"';
-	var string = 'function(){' +
+	var string = '(function(){' +
 			'var weave = document.getElementById(' + idStr + ');' +
 			'var obj = weave.callbackToString.list[' + list.length + '];' +
 			'obj["callback"].apply(obj["this"]);' +
-		'}';
+		'})';
 	list.push({
 		"callback": callback,
 		"string": string,
