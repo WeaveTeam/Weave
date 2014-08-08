@@ -17,9 +17,18 @@
 	</div>
 </div>
 
+<div style= "display:table; width: 100%">
+	<div style = "display:table-cell; width : 20%" ng-controller = "BioWeaveController">
+		<div class="header panel-heading">
+						<h2>Select a datatable</h2>
+		</div>
+		<select ng-model = "algorithmObjectService.data.dataTableSelected" class="form-control" 
+		ng-options = "option.title as option.title for option in algorithmObjectService.data.dataTableList">
+		</select>
+	</div>
 
-<div style="display:table" ng-controller = "AlgoObjectListController">
-	<div style= "display:table-cell;width:50%"><!--Algorithm Objects -->
+	<br/>
+	<div style= "display:table-cell; width:40%" ng-controller = AlgoObjectListController><!--Algorithm Objects -->
 				<div class="header panel-heading">
 					<h2>Algorithms</h2>
 				</div>
@@ -41,7 +50,7 @@
 			<br/>
 			<br/>
 			
-	<div style= "display:table-cell; width:50%"><!-- Algorithm Cart -->
+	<div style= "display:table-cell" ng-controller = AlgoObjectListController><!-- Algorithm Cart -->
 		
 		<div class="header panel-heading">
 					<h2>Algorithm Cart</h2>
@@ -60,7 +69,7 @@
 							</ul>
 		</div>
 	</div>		
-		
+
 </div>
 <br/>
 <br/>

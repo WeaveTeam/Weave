@@ -3,13 +3,14 @@
  */
 var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
 angular.module('aws.bioWeave')
-.service("algorithmObjectService",  ['$q', '$rootScope', 'runScriptService', function($q, scope, runScriptService){
+.service("algorithmObjectService",  ['$q', '$rootScope', 'runScriptService','queryService', function($q, scope, runScriptService, queryService){
 	
 	var that = this;
 	this.data = {};
 	this.data.chosenAlgorithms = [];//represents the list of algorithms in the algorithm cart, Algorithms which will be executed
 	//will serve as a temp cache to store metadata objects before executing the algorithms, so that we dont have to make a server call everytime
 	this.data.algorithmMetadataObjects= [];
+	this.data.dataTableSelected;
 	
 	
 	/**
@@ -29,6 +30,11 @@ angular.module('aws.bioWeave')
 			});
 	};
 	
+	this.getDataTableList = function(){
+		queryService.getDataTableList().then(function(){
+			that.data.dataTableList = queryService.dataObject.dataTableList;
+		});
+	};
 	
 	/**
      * This function wraps the async aws getAlgorithmMetadata function into an angular defer/promise

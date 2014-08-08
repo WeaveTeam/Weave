@@ -5,6 +5,9 @@ var bioWeave_mod = angular.module('aws.bioWeave', []);
 
 bioWeave_mod.controller("BioWeaveController", function($scope,algorithmObjectService){
 
+	$scope.algorithmObjectService = algorithmObjectService;
+	algorithmObjectService.getDataTableList();//we do this again, because we dont want to depend on the Analysis tab for loading the datatables
+	
 });
 
 bioWeave_mod.controller('AlgoObjectListController', function($scope,algorithmObjectService ){
