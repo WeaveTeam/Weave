@@ -155,9 +155,10 @@ package weave.utils
 		 * This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
 		 * @param column An attribute column
 		 * @param keyValue The value to look up
+		 * @param ignoreKeyType If true, ignores the dataType of the column (the column's foreign keyType) and the keyType of the keyValue
 		 * @return An array of record keys with the given value under the given column
 		 */
-		public static function getAssociatedKeys(column:IAttributeColumn, keyValue:IQualifiedKey):Array
+		public static function getAssociatedKeys(column:IAttributeColumn, keyValue:IQualifiedKey, ignoreKeyType:Boolean = false):Array
 		{
 			var lookup:Dictionary = _reverseKeyLookupCache[column] as Dictionary;
 			if (lookup == null || column.triggerCounter != _reverseKeyLookupTriggerCounter[column]) // if cache is invalid, validate it now
@@ -169,13 +170,11 @@ package weave.utils
 					var value:IQualifiedKey = column.getValueFromKey(recordKey, IQualifiedKey) as IQualifiedKey;
 					if (value == null)
 						continue;
-					var keys:Array = lookup[value] as Array;
-					if (keys == null)
-						lookup[value] = keys = [];
-					keys.push(recordKey);
+					(lookup[value] as Array || (lookup[value] = []) as Array).push(recordKey);
+					(lookup[value.localName] as Array || (lookup[value.localName] = []) as Array).push(recordKey);
 				}
 			}
-			return lookup[keyValue] as Array;
+			return lookup[ignoreKeyType ? keyValue.localName : keyValue] as Array;
 		}
 		
 		/**
