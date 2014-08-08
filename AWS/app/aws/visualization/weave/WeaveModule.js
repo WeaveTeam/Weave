@@ -2,43 +2,65 @@ var weave_mod = angular.module('aws.WeaveModule', []);
 
 weave_mod.service("WeaveService", function($rootScope) {
 	
+	var that = this;
 	this.weave;
 	this.dataSourceName;
 	
-	this.addCSVData = function(csvData) {
-		console.log("adding data source, weave is: ", this.weave);
-		this.dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+	this.toggleTool = function(tool, status) {
+		this[tool].toggle(status);
+	};
 	
-		this.weave.path(this.dataSourceName)
+	this.addCSVData = function(csvData) {
+		console.log("adding data source, weave is: ", that.weave);
+		this.dataSourceName = that.weave.path().getValue('generateUniqueName("CSVDataSource")');
+	
+		that.weave.path(this.dataSourceName)
 			.request('CSVDataSource')
 			.vars({rows: csvData})
 			.exec('setCSVData(rows)');
-			this.weave.path(this.dataSourceName).state({keyType : "",
-												   keyColName : ""});
 	};
 	
-	this.BarChart = {
-		barChart : "",
+	this.BarChartTool = {
+		toolName : "",
+		
+		toggle : function (status) {
+			
+			if(status) {
+				this.toolName = that.weave.path().getValue('generateUniqueName("BarChartTool")');
+				that.weave.path(this.toolName).request('CompoundBarChartTool');
+				that.weave.path(this.toolName).push('panelX').state("0%").pop().push('panelY').state("50%");
+			} else {
+				that.weave.path(this.toolName).remove();
+				this.toolName = "";
+			}
+		},
 		
 		setTitle : function (title) {
-			if(barChart) {
+			that.weave.path("BarChartTool", 'enableTitle').state(enableTitle);
+			that.weave.path("BarChartTool", 'panelTitle').state(title);
+		},
+		setHeightColumns : function (columns) {
+			if (this.toolName) {
 				
 			}
 		},
-		heights : "",
-		sort : "",
-		label : ""
+		setSortColumns : function (column) {
+			if (this.toolName) {
+				
+			}
+			
+		},
+		setLabel : function (column) {
+			if (this.toolName) {
+				
+			}
+		},
 	};
 	
 });
 
 weave_mod.controller('WeaveCtrl', function($scope, WeaveService) {
 
-	$scope.$watch(function() {
-		return WeaveService.weave;
-	}, function() {
-		console.log(WeaveService.weave);
-	});
 });
 
 weave_mod.run(['$rootScope', function($rootScope){
@@ -69,7 +91,7 @@ weave_mod.run(['$rootScope', function($rootScope){
 //
 //	// the weave client only has this weave property.
 //	/** @type {Weave} */
-//	this.weave = weave;
+//	that.weave = weave;
 //	
 //};
 //
@@ -141,11 +163,11 @@ weave_mod.run(['$rootScope', function($rootScope){
 //
 //aws.WeaveClient.prototype.newMap = function (entityId, title, keyType, labelLayer, dataSourceName){
 //
-//	var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+//	var toolName = that.weave.path().getValue('generateUniqueName("MapTool")');
 //  
-//	this.weave.path(toolName).request('MapTool');
+//	that.weave.path(toolName).request('MapTool');
 //  
-//	 this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
+//	 that.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
 //	  .push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
 //	  .push('line', 'color', 'defaultValue').state('0').pop()
 //	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
@@ -193,11 +215,11 @@ weave_mod.run(['$rootScope', function($rootScope){
 //aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyType, labelLayer, dataSourceName){
 //	
 //	if(toolName == undefined)
-//		 toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+//		 toolName = that.weave.path().getValue('generateUniqueName("MapTool")');
 //	
-//	this.weave.path(toolName).request('MapTool');
+//	that.weave.path(toolName).request('MapTool');
 //	
-//	this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
+//	that.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters'])
 //	  .push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
 //	  .push('line', 'color', 'defaultValue').state('0').pop()
 //	  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
@@ -246,12 +268,12 @@ weave_mod.run(['$rootScope', function($rootScope){
 //aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, dataSourceName) {
 //	
 //	/** @type {string} */
-//	var toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
+//	var toolName = that.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
 //	
-//	this.weave.path(toolName).request('ScatterPlotTool');
+//	that.weave.path(toolName).request('ScatterPlotTool');
 //	
-//	var columnPathX = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
-//	var columnPathY = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataY').getPath();
+//	var columnPathX = that.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
+//	var columnPathY = that.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataY').getPath();
 //	
 //	this.setCSVColumn(dataSourceName,columnPathX, xColumnName );//setting the X column
 //	this.setCSVColumn(dataSourceName, columnPathY, yColumnName );//setting the Y column
@@ -273,12 +295,12 @@ weave_mod.run(['$rootScope', function($rootScope){
 //aws.WeaveClient.prototype.updateScatterPlot = function(toolName, xColumnName, yColumnName, dataSourceName){
 //	/** @type {string} */
 //	if(toolName == undefined)
-//		toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
+//		toolName = that.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
 //
-//	this.weave.path(toolName).request('ScatterPlotTool');
+//	that.weave.path(toolName).request('ScatterPlotTool');
 //	
-//	var columnPathX = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
-//	var columnPathY = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataY').getPath();
+//	var columnPathX = that.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
+//	var columnPathY = that.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataY').getPath();
 //	
 //	this.setCSVColumn(dataSourceName,columnPathX, xColumnName );//setting the X column
 //	this.setCSVColumn(dataSourceName, columnPathY, yColumnName );//setting the Y column
@@ -297,14 +319,14 @@ weave_mod.run(['$rootScope', function($rootScope){
 // */
 //aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 //	
-//	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
-//	//this.weave.requestObject([toolName], 'DataTableTool');
-//	this.weave.path(toolName).request('DataTableTool');
+//	var toolName = that.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
+//	//that.weave.requestObject([toolName], 'DataTableTool');
+//	that.weave.path(toolName).request('DataTableTool');
 //	
 //	//loop through the columns requested
 //	for (var i in columnNames)
 //		{
-//			var columnPath = this.weave.path(toolName, 'columns', columnNames[i] ).getPath();
+//			var columnPath = that.weave.path(toolName, 'columns', columnNames[i] ).getPath();
 //			this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
 //		}
 //	
@@ -325,17 +347,17 @@ weave_mod.run(['$rootScope', function($rootScope){
 //
 //	/** @type {string} */
 //	if(toolName == undefined)
-//		toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
+//		toolName = that.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
 //	
-//	//this.weave.requestObject([toolName], 'DataTableTool');
-//	this.weave.path(toolName).request('DataTableTool');
+//	//that.weave.requestObject([toolName], 'DataTableTool');
+//	that.weave.path(toolName).request('DataTableTool');
 //	
-//    this.weave.path(toolName, 'columns').state(null);
+//    that.weave.path(toolName, 'columns').state(null);
 //
 //	//loop through the columns requested
 //	for (var i in columnNames)
 //		{
-//			var columnPath = this.weave.path(toolName, 'columns', columnNames[i] ).getPath();
+//			var columnPath = that.weave.path(toolName, 'columns', columnNames[i] ).getPath();
 //			this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
 //			//this.setCSVColumn(dataSourceName, [toolName,'columns',columnNames[i]], columnNames[i]);
 //			
@@ -354,13 +376,13 @@ weave_mod.run(['$rootScope', function($rootScope){
 // */
 //
 //aws.WeaveClient.prototype.newRadviz = function(columnNames, dataSourceName){
-//	var toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
-//	//this.weave.requestObject([toolName], 'RadVizTool');
-//	this.weave.path(toolName).request('RadVizTool');
+//	var toolName = that.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
+//	//that.weave.requestObject([toolName], 'RadVizTool');
+//	that.weave.path(toolName).request('RadVizTool');
 //	
 //	//populating the Dimensional Anchors
 //	for(var i in columnNames){
-//		var columnPath = this.weave.path(toolName,toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i] ).getPath();
+//		var columnPath = that.weave.path(toolName,toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i] ).getPath();
 //		this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
 //	}
 //};
@@ -379,13 +401,13 @@ weave_mod.run(['$rootScope', function($rootScope){
 //	
 //	/** @type {string} */
 //	if(toolName == undefined)
-//		toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
+//		toolName = that.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
 //
-//	this.weave.path(toolName).request('RadVizTool');
+//	that.weave.path(toolName).request('RadVizTool');
 //	
 //	//populating the Dimensional Anchors
 //	for(var i in columnNames){
-//		var columnPath = this.weave.path(toolName,toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i] ).getPath();
+//		var columnPath = that.weave.path(toolName,toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i] ).getPath();
 //		this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
 //	}
 //};
@@ -402,23 +424,23 @@ weave_mod.run(['$rootScope', function($rootScope){
 // * 		   
 // */
 //aws.WeaveClient.prototype.newBarChart = function (sort, label, heights, dataSourceName) {
-//	var toolName = this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
+//	var toolName = that.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
 //	
-//	this.weave.path(toolName).request('CompoundBarChartTool');
+//	that.weave.path(toolName).request('CompoundBarChartTool');
 //
-//	var labelPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
-//	var sortColumnPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
+//	var labelPath = that.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
+//	var sortColumnPath = that.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
 //
 //	//var heightColumns = heights;
 //	
 //   	this.setCSVColumn(dataSourceName,labelPath, label);
 //    this.setCSVColumn(dataSourceName, sortColumnPath, sort);
 //
-//    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state('null');
+//    that.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state('null');
 //    
 //    for (var i in heights)
 //	{
-//		var heightColumnPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
+//		var heightColumnPath = that.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
 //		this.setCSVColumn(dataSourceName, heightColumnPath, heights[i]);
 //	}
 //    
@@ -440,21 +462,21 @@ weave_mod.run(['$rootScope', function($rootScope){
 //	
 //	/** @type {string} */
 //	if(toolName == undefined)
-//		toolName = this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
-//		this.weave.path(toolName).request('CompoundBarChartTool');
+//		toolName = that.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
+//		that.weave.path(toolName).request('CompoundBarChartTool');
 //
-//	var labelPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
-//	var sortColumnPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
+//	var labelPath = that.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
+//	var sortColumnPath = that.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
 //
 //	
 //   	this.setCSVColumn(dataSourceName,labelPath, label);
 //    this.setCSVColumn(dataSourceName, sortColumnPath, sort);
 //    
-//    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state('null');
+//    that.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state('null');
 //
 //    for (var i in heights)
 //	{
-//		var heightColumnPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
+//		var heightColumnPath = that.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
 //		this.setCSVColumn(dataSourceName, heightColumnPath, heights[i]);
 //	}
 //    
@@ -474,8 +496,8 @@ weave_mod.run(['$rootScope', function($rootScope){
 // */
 //aws.WeaveClient.prototype.setPosition = function (toolName, posX, posY) {
 //	
-//	//this.weave.path([toolName]).push('panelX').state(posX).pop().push('panelY').state(posY);
-//	this.weave.path(toolName).push('panelX').state(posX).pop().push('panelY').state(posY);
+//	//that.weave.path([toolName]).push('panelX').state(posX).pop().push('panelY').state(posY);
+//	that.weave.path(toolName).push('panelX').state(posX).pop().push('panelY').state(posY);
 //};
 //
 //
@@ -493,14 +515,14 @@ weave_mod.run(['$rootScope', function($rootScope){
 //aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, dataSourceName, keyType, keyColName) {
 //	
 //	if (dataSourceName == "") {
-//		 dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+//		 dataSourceName = that.weave.path().getValue('generateUniqueName("CSVDataSource")');
 //	}
 //
-//	this.weave.path(dataSourceName)
+//	that.weave.path(dataSourceName)
 //		.request('CSVDataSource')
 //		.vars({data: csvDataString})
 //		.exec('setCSVDataString(data)');
-//		this.weave.path(dataSourceName).state({keyType : keyType,
+//		that.weave.path(dataSourceName).state({keyType : keyType,
 //											  keyColName : keyColName});
 //	
 //	return dataSourceName;
@@ -520,14 +542,14 @@ weave_mod.run(['$rootScope', function($rootScope){
 //aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceName, keyType, keyColName)
 //{
 //	if(dataSourceName == ""){
-//		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+//		dataSourceName = that.weave.path().getValue('generateUniqueName("CSVDataSource")');
 //	}
 //
-//	this.weave.path(dataSourceName)
+//	that.weave.path(dataSourceName)
 //		.request('CSVDataSource')
 //		.vars({rows: csvDataMatrix})
 //		.exec('setCSVData(rows)');
-//		this.weave.path(dataSourceName).state({keyType : keyType,
+//		that.weave.path(dataSourceName).state({keyType : keyType,
 //											   keyColName : keyColName});
 //	return dataSourceName;
 //	
@@ -540,7 +562,7 @@ weave_mod.run(['$rootScope', function($rootScope){
 // * @return setStatus
 // */
 //aws.WeaveClient.prototype.setCSVDataSouceKeyType = function(keyType){
-//	this.weave.path('CSVDataSource').push('keyType').state(keyType);
+//	that.weave.path('CSVDataSource').push('keyType').state(keyType);
 //};
 //
 ///**
@@ -551,11 +573,11 @@ weave_mod.run(['$rootScope', function($rootScope){
 // * @return void
 // */
 //aws.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, columnPath, columnName){
-////	this.weave.path([csvDataSourceName])
+////	that.weave.path([csvDataSourceName])
 ////			  .vars({i:columnName, p:columnPath})
 ////			  .exec('putColumn(i,p)');
 //	
-//	this.weave.path(csvDataSourceName)
+//	that.weave.path(csvDataSourceName)
 //			  .vars({i:columnName, p:columnPath})
 //			  .exec('putColumn(i,p)');
 //};
@@ -571,7 +593,7 @@ weave_mod.run(['$rootScope', function($rootScope){
 //aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataSource) {
 //	
 //	//this.setCSVColumn(csvDataSource,['defaultColorDataColumn', 'internalDynamicColumn'], colorColumnName);
-//	var colorPath = this.weave.path('defaultColorDataColumn', 'internalDynamicColumn').getPath();
+//	var colorPath = that.weave.path('defaultColorDataColumn', 'internalDynamicColumn').getPath();
 //	this.setCSVColumn(csvDataSource, colorPath, colorColumnName);
 //	};
 //
@@ -586,8 +608,8 @@ weave_mod.run(['$rootScope', function($rootScope){
 // */
 //aws.WeaveClient.prototype.setVisualizationTitle = function(toolName, enableTitle, title) {
 //	
-//	this.weave.path(toolName, 'enableTitle').state(enableTitle);
-//	this.weave.path(toolName, 'panelTitle').state(title);
+//	that.weave.path(toolName, 'enableTitle').state(enableTitle);
+//	that.weave.path(toolName, 'panelTitle').state(title);
 //	
 //};
 //
@@ -599,7 +621,7 @@ weave_mod.run(['$rootScope', function($rootScope){
 // */
 //aws.WeaveClient.prototype.clearWeave = function(){
 //	
-//	this.weave.path().state(['WeaveDataSource']);
+//	that.weave.path().state(['WeaveDataSource']);
 //};
 //
 //
@@ -612,7 +634,7 @@ weave_mod.run(['$rootScope', function($rootScope){
 //	
 //	var time = aws.reportTime();
 //	
-//	this.weave.evaluateExpression([], "WeaveAPI.ProgressIndictor.getNormalizedProgress()", {},['weave.api.WeaveAPI']); 
+//	that.weave.evaluateExpression([], "WeaveAPI.ProgressIndictor.getNormalizedProgress()", {},['weave.api.WeaveAPI']); 
 //	
 //	console.log(time);
 //	try{

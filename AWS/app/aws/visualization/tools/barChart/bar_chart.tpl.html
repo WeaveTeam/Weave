@@ -3,7 +3,10 @@
 		
 		<div>
 			<p><b> BarChartTool Title</b></p>
-			<input  style = "width : 100%" type="text" placeholder="Default" ng-model="service.queryObject.BarChartTool.title"/>
+			<input  style = "width : 100%" type="text"
+					placeholder="Default" 
+					ng-model="service.queryObject.BarChartTool.title" 
+					ng-change="setTitle(service.queryObject.BarChartTool.title)"/>
 		</div>
 		
 		<div>

@@ -89,10 +89,12 @@ AnalysisModule.service('AnalysisService', function() {
 	
 });
 
-AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService) {
+AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService) {
 
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
+	$scope.WeaveService = WeaveService;
+	
 	$scope.IndicDescription = "";
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;

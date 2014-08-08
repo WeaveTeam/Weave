@@ -132,7 +132,7 @@
 								</li>
 								<li ng-repeat= "tool in AnalysisService.tool_list">
 									<span class="checkbox">
-										<input type="checkbox"  ng-model="tool.enabled" ng-change="toggle_widget(tool)">
+										<input type="checkbox"  ng-model="tool.enabled" ng-change="WeaveService.toggleTool(tool.id, tool.enabled)">
 									</span>
 									<a href='javascript: void()'> {{tool.title}}</a>
 								</li>
