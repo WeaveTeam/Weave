@@ -26,7 +26,7 @@
     </div>
 
 <script>
-    cytoscape_style = 
+    cytoscape_style =
         cytoscape.stylesheet()
             .selector('node')
                 .css({
@@ -38,9 +38,7 @@
                         'line-width': 1,
                         'border-width': 1,
                         'text-outline-color': '#888',
-                        'background-color': 'data(color)',
-                        'height': 30,
-                        'width': 30
+                        'background-color': 'data(color)'
                         })
             .selector('edge')
                 .css({
@@ -69,15 +67,21 @@
                         })
             .selector('node.probed')
                 .css({
-                        'border-width': 7,
-                        'height': 28,
-                        'width':28
+                        'border-width': 7
                 })
             .selector('edge.probed')
                 .css({
                         'line-color': 'red',
                         'line-width': 3
                 })
+            .selector('$node > node')
+                .css({ 
+                        'padding-top': '5px',
+                        'padding-left': '5px',
+                        'padding-bottom': '5px',
+                        'padding-right': '5px',
+                        'text-valign': 'top'
+                    });
 
     var node_data;
     var edge_data;
@@ -120,6 +124,7 @@
 
         modifyRecords(edge_data, 'source', localNameToKeyString);
         modifyRecords(edge_data, 'target', localNameToKeyString);
+        modifyRecords(node_data, 'parent', localNameToKeyString);
 
         var node_ids = _.zipObject(_.pluck(node_data, 'id'));
 
@@ -159,9 +164,11 @@
         }
     };
 
+    var last_probed;
     function probe_handler(evt)
     {
         var ele = evt.cyTarget;
+        last_probed = ele;
         ele.toggleClass("probed", true);
         toolPath.probe_keyset.setKeys([ele.id()]);
     };
@@ -224,7 +231,7 @@
         
         if (positions == null)
         {
-            
+            positions = {};
         }
 
         cy.nodes().positions(function (i, ele) { return positions[ele.id()]; });
@@ -345,7 +352,7 @@
             .text(value).attr("value",key));
     });
 
-    $('#cy').cytoscape( { style: cytoscape_style, ready: function () { 
+    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: 'cose', padding: 5}, ready: function () { 
         window.cy = this;
 
         toolPath = opener.WeaveExternalTools[window.name].path;
