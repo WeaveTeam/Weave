@@ -192,6 +192,10 @@ package weave.compiler
 		 */
 		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 		
+		private static const maxUnicodeEscapeValue:uint = 0x10FFFF;
+		private static const maxUnicodeEscapeChars:uint = 8; // {10FFFF}
+		private static const unicodeRegex:RegExp = /^(\{[0-9A-Fa-f]+\}|[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/;
+		
 		private const JUMP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
 		private const LOOP_LOOKUP:Dictionary = new Dictionary(); // Function -> true or ST_BREAK or ST_CONTINUE
 		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function -> Boolean, for short-circuiting
@@ -1262,10 +1266,21 @@ package weave.compiler
 					}
 					else if (c == 'u')
 					{
-						// \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
-						var unicode:String = input.substr(escapeIndex + 2, 4);
-						c = String.fromCharCode(parseInt(unicode, 16));
-						searchIndex = escapeIndex + 6; // skip over escape sequence
+						var unicodeDigits:String;
+						var unicodeValue:int;
+						var foundUnicode:Object = unicodeRegex.exec(input.substr(escapeIndex + 2, maxUnicodeEscapeChars))
+						if (foundUnicode)
+						{
+							unicodeDigits = foundUnicode[0];
+							if (unicodeDigits.charAt(0) == '{') // \u{10FFFF}
+								unicodeValue = parseInt(unicodeDigits.substr(1, unicodeDigits.length - 2), 16);
+							else // \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
+								unicodeValue = parseInt(unicodeDigits, 16);
+						}
+						if (!foundUnicode || unicodeValue > maxUnicodeEscapeValue)
+							throw new Error("Malformed Unicode character escape sequence: " + input);
+						c = StandardLib.ucs2encode(unicodeValue);
+						searchIndex = escapeIndex + 2 + unicodeDigits.length; // skip over escape sequence
 					}
 					else
 					{

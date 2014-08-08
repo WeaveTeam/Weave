@@ -842,5 +842,20 @@ package weave.compiler
 			decoder.decode(ascii);
 			return decoder.drain();
 		}
+		
+		/**
+		 * @see https://github.com/bestiejs/punycode.js
+		 */
+		internal static function ucs2encode(value:uint):String
+		{
+			var output:String = '';
+			if (value > 0xFFFF)
+			{
+				value -= 0x10000;
+				output += String.fromCharCode(value >>> 10 & 0x3FF | 0xD800);
+				value = 0xDC00 | value & 0x3FF;
+			}
+			return output + String.fromCharCode(value);
+		}
 	}
 }
