@@ -110,6 +110,7 @@
 				if (!target)
 					setTarget(newDisposableChild(this, GraphMLDataSource));
 				
+				// Note: because we're modifying the session state here, [Cancel] button does not work properly in DataSourceManager.
 				target.sourceUrl.value = sourceUrl.text;
 			}
             
@@ -193,7 +194,7 @@
 			private function eq(a:String, b:String):Boolean { return StandardLib.asString(a) == StandardLib.asString(b); }
             
             public function hasPendingChanges():Boolean
-            {  
+            {
                 return !eq(target.sourceUrl.value, sourceUrl.text)
                 	|| !eq(target.nodeKeyType.value, nodeKeyTypeSelector.selectedKeyType)
                     || !eq(target.nodeKeyPropertyName.value, nodeKeyPropertyInput.selectedItem as String)
