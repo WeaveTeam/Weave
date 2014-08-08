@@ -35,7 +35,23 @@
 								
 							</div>
 					</div>
-			<!-- the image -->
+			<!-- This code needs some fixing, this is for the help icon/link to documentation		
+			<div style="display: table-cell; ng-model = "algorithmObjectService.data.currentMetObj.algoName">
+
+				<img width = "25" height = "25" ng-src= "{{'../aws/ccs/img/Help_Icon.png'}}"
+
+					   <div ng-if="algorithmObjectService.data.currentMetObj.algoName == 'K Means Clustering'">
+
+						<a href="http://stat.ethz.ch/R-manual/R-devel/library/stats/html/kmeans.html"
+							title="Link to Algorithm Documentation">
+
+						</a>
+					</div> 
+			
+				></img>
+			</div>		-->
+					
+			<!-- the Computation Engine image -->
 			<div style="display: table-cell; padding-left: 100px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
 					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
 
@@ -55,12 +71,14 @@
 
 					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'stata'">
 
-							<img width = "100" height = "50" ng-src= "{{'../aws/css/img/statalogo.png'}}"
+							<img width = "90" height = "45" ng-src= "{{'../aws/css/img/statalogo.png'}}"
 								title = "Stata Data Analysis and Statistical Software"
 							></img>
 							
 					</div>
 			</div>
+			
+			
 		</div>
 	</div>
 <!-- Button and the rest -->	
