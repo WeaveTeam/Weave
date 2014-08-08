@@ -364,13 +364,14 @@ package weave.core
 		/**
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
 		 */		
-		private var _callbackFunctionCache:Object = {};
-		private var _d2d_callbackStr_target:Dictionary2D = new Dictionary2D(true, true);
+		private static var _callbackFunctionCache:Object = {};
+		private static var _d2d_callbackStr_target:Dictionary2D = new Dictionary2D(true, true);
 		
 		/**
-		 * @private
+		 * Generates a function which will execute a JavaScript callback function, represented as a String.
+		 * @param callback The JavaScript callback function.
 		 */
-		private function getCachedCallbackFunction(callback:String):Function
+		public static function getCachedCallbackFunction(callback:String):Function
 		{
 			if (!_callbackFunctionCache[callback])
 				_callbackFunctionCache[callback] = function():void {

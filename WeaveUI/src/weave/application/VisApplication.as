@@ -63,6 +63,7 @@ package weave.application
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveArchive;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -257,9 +258,7 @@ package weave.application
 			}
 			
 			if (callback is String)
-				callback = function():void {
-					JavaScript.exec({"catch": false}, '(' + callback + ')(this)');
-				};
+				callback = ExternalSessionStateInterface.getCachedCallbackFunction(callback as String);
 			_loadFileCallback = callback as Function;
 			
 			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
