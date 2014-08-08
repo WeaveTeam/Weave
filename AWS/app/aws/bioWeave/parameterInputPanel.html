@@ -11,7 +11,13 @@
 		<div style="padding-top:10px; width :100% ;display: table" class="portlet-content">
 			<!-- the input UI -->
 			<div style="width: 60%; display: table-cell">
-					
+							
+							<div style="width: 200px;">
+							Select data
+								<select ui-select2 multiple ng-model="blah" data-placeholder="Choose Column(s) for algorithm">
+									<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.columns">{{opt}}</option>
+								</select>
+							</div>
 							<!-- This input type will be added if the input type is numberical -->
 							<div ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
 

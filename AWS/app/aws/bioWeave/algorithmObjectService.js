@@ -11,7 +11,7 @@ angular.module('aws.bioWeave')
 	//will serve as a temp cache to store metadata objects before executing the algorithms, so that we dont have to make a server call everytime
 	this.data.algorithmMetadataObjects= [];
 	this.data.dataTableSelected;
-	
+	this.data.columns = [];
 	
 	/**
      * This function wraps the async aws getListOfAlgoObjects function into an angular defer/promise
@@ -43,7 +43,7 @@ angular.module('aws.bioWeave')
 	this.getDataColumns = function(){
 		var dataTableId = null;
 		//retrieving the actual id because this.data.dataTableSelected is a string
-		if(this.data.dataTableSelectedt != "" && angular.isDefined(this.data.dataTableSelected)){
+		if(this.data.dataTableSelected != "" && angular.isDefined(this.data.dataTableSelected)){
 			
 			for(var v in this.data.dataTableList){
 				if(this.data.dataTableList[v].title.match(this.data.dataTableSelected))
@@ -54,7 +54,16 @@ angular.module('aws.bioWeave')
 		console.log("id", dataTableId);
 		
 		queryService.getDataColumnsEntitiesFromId(dataTableId, true).then(function(){
-			that.data.dataColumns = queryService.dataObject.columns;
+			that.data.dataColumnObjects = queryService.dataObject.columns;
+			
+			console.log("columns", that.data.dataColumnObjects);
+			for(var i in that.data.dataColumnObjects){
+				that.data.columns.push(
+					that.data.dataColumnObjects[i].publicMetadata.title
+				);
+			}
+			console.log("newcolumns", that.data.columns);
+			
 		});
 	};
 	
