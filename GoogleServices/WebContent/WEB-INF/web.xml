@@ -31,6 +31,15 @@
     <url-pattern>/OauthService</url-pattern>
   </servlet-mapping>
   
+   <servlet>
+    <servlet-name>Oauth2Callback</servlet-name>
+    <servlet-class>weave.servlets.Oauth2Callback</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Oauth2Callback</servlet-name>
+    <url-pattern>/Oauth2Callback</url-pattern>
+  </servlet-mapping>
+  
   <servlet>
     <servlet-name>DriveService</servlet-name>
     <servlet-class>weave.servlets.DriveService</servlet-class>

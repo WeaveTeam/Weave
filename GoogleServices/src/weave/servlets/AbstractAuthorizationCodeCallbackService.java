@@ -10,8 +10,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
+import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 
 public abstract class AbstractAuthorizationCodeCallbackService extends WeaveServlet {
 
@@ -27,8 +29,7 @@ public abstract class AbstractAuthorizationCodeCallbackService extends WeaveServ
 	private AuthorizationCodeFlow flow;
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
-		
+	{		
 		StringBuffer buf = request.getRequestURL();
 	    if (request.getQueryString() != null) {
 	      buf.append('?').append(request.getQueryString());
@@ -47,7 +48,10 @@ public abstract class AbstractAuthorizationCodeCallbackService extends WeaveServ
 	        if (flow == null) {
 	          flow = initializeFlow();
 	        }
-	        TokenResponse resp = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+	        AuthorizationCodeTokenRequest tokenRequest = flow.newTokenRequest(code).setRedirectUri(redirectUri);
+	        //resp is json object, which has 
+	        //access_token , expires_in ,id_token, refresh_token ,token_type
+	        TokenResponse resp = tokenRequest.execute();
 	        String userId = getUserId(request);
 	        Credential credential = flow.createAndStoreCredential(resp, userId);
 	        onSuccess(request, response, credential);

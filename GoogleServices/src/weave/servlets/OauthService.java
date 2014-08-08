@@ -16,6 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import weave.servlets.WeaveServlet;
+
 
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
