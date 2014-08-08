@@ -5,6 +5,9 @@ var bioWeave_mod = angular.module('aws.bioWeave', []);
 
 bioWeave_mod.controller("BioWeaveController", function($scope,algorithmObjectService){
 
+	$scope.algorithmObjectService = algorithmObjectService;
+	algorithmObjectService.getDataTableList();//we do this again, because we dont want to depend on the Analysis tab for loading the datatables
+	
 });
 
 bioWeave_mod.controller('AlgoObjectListController', function($scope,algorithmObjectService ){
@@ -22,8 +25,12 @@ bioWeave_mod.controller('InputParamsController', function($scope, algorithmObjec
 	$scope.algorithmObjectService = algorithmObjectService;
 	
 	$scope.collectAlgoObjects = function(){
-		console.log(algorithmObjectService.data.algorithmMetadataObjects);
-		//runScriptService.check(algorithmObjectService.data.algorithmMetadataObjects);
+		var titles = [];
+		
+		for(var f in algorithmObjectService.data.algorithmMetadataObjects){
+			titles[f] = algorithmObjectService.data.algorithmMetadataObjects[f].title;
+		}
+		algorithmObjectService.getScripts(titles);
 		//runScriptService.runScript(algorithmObjectService.data.currentMetObj);
 	};
 	

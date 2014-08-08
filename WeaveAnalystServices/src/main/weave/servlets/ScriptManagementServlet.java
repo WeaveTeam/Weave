@@ -6,8 +6,6 @@ import java.rmi.RemoteException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import org.apache.commons.io.FilenameUtils;
-
 import weave.config.AwsContextParams;
 import weave.models.ScriptManagerService;
 import weave.utils.AWSUtils;
@@ -138,6 +136,10 @@ public class ScriptManagementServlet extends WeaveServlet
  	
  	public String[] getListOfAlgoObjects() throws Exception{
  		return AWSUtils.getAlgoObjectList(algorithmDirectory);
+ 	}
+ 	
+ 	public String[] getScriptFiles(String[] algorithmObjects) throws Exception{
+ 		return AWSUtils.getScriptFiles(algorithmDirectory, algorithmObjects);
  	}
  	
 }

@@ -13,7 +13,10 @@ angular.module('aws.bioWeave')
 	 * this function takes a list of algorithm Objects and their respective scripts and runs them in their respective engines (R, Python, STATA etc)
 	 */
 	this.runScript = function(algorithmObjects, scriptNames){
-		
+		console.log("reached the runService", algorithmObjects, scriptNames);
 	};
+	
+	
+	
 	
 }]);
