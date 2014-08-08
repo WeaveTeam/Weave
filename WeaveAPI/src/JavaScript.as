@@ -421,7 +421,10 @@ package
 						appliedCode = appliedCode.split('\\').join('\\\\');
 					
 					// we need to use "eval" in order to receive syntax errors
-					result = ExternalInterface.call('eval', appliedCode);
+					var evalFunc:String = 'eval';
+					if (!marshallExceptions)
+						evalFunc = 'function(code){ try { return eval(code); } catch (e) { e.message += "\\n" + code; console.error(e); } }';
+					result = ExternalInterface.call(evalFunc, appliedCode);
 				}
 				else
 				{
