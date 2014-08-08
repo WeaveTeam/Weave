@@ -10,18 +10,18 @@ package weave.data.DataSources
     import mx.rpc.events.ResultEvent;
     
     import weave.api.data.ColumnMetadata;
+    import weave.api.data.DataType;
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IQualifiedKey;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.data.DataType;
     import weave.api.newLinkableChild;
     import weave.api.reportError;
     import weave.core.LinkableString;
+    import weave.data.AttributeColumns.NumberColumn;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.AttributeColumns.StringColumn;
-    import weave.data.AttributeColumns.NumberColumn;
     import weave.data.QKeyManager;
     import weave.utils.VectorUtils;
 
@@ -54,8 +54,6 @@ package weave.data.DataSources
 
         public var nodeIdToKey:Object = null;
         public var edgeIdToKey:Object = null;
-
-        public var onFinish:Function = null;
 
         [Bindable] public var nodeKeyPropertyValid:Boolean;
         [Bindable] public var edgeKeyPropertyValid:Boolean;
@@ -111,13 +109,7 @@ package weave.data.DataSources
             handleEdgeKeyPropertyChange();
 
             refreshAllProxyColumns();
-            refreshHierarchy();
-
-            if (onFinish != null) 
-            {
-                onFinish()
-                onFinish = null;
-            }
+            refreshHierarchy(); // this triggers callbacks
         }
 
         private function handleGraphMLDownloadError(event:FaultEvent, token:Object = null):void
@@ -127,13 +119,13 @@ package weave.data.DataSources
 
         public function getColumnMetadata(group:String, id:String):Object
         {
-            var metadata:Object = {};
             var is_node:Boolean = group == GraphMLConverter.NODE;
-
-            var data_type:String = is_node ? nodeSchema[id].type : edgeSchema[id].type;
-
-            var name:String = is_node ? nodeSchema[id].name : edgeSchema[id].name;
-
+			var schema:Object = is_node ? nodeSchema : edgeSchema;
+			if (!schema.hasOwnProperty(id))
+				return null;
+			
+            var name:String = schema[id].name;
+            var data_type:String = schema[id].type;
             var key_type:String = is_node ? nodeKeyType.value : edgeKeyType.value;
 
             /* If we're looking at an edge's source or target properties, we want the data_type to be set to the key_type of the nodes. */
@@ -156,12 +148,12 @@ package weave.data.DataSources
                 }
             }
 
+            var metadata:Object = {};
             metadata[GRAPH_GROUP_META] = group;
             metadata[GRAPH_ID_META] = id;
             metadata[ColumnMetadata.TITLE] = name;
             metadata[ColumnMetadata.DATA_TYPE] = data_type;
             metadata[ColumnMetadata.KEY_TYPE] = key_type;
-
             return metadata;
         }
 
@@ -171,6 +163,11 @@ package weave.data.DataSources
             var metadata:Object = proxyColumn.getProxyMetadata();
 
             metadata = getColumnMetadata(metadata[GRAPH_GROUP_META], metadata[GRAPH_ID_META]);
+			if (!metadata)
+			{
+				proxyColumn.setInternalColumn(null);
+				return;
+			}
 
             var raw_rows:Array;
             var data_remap_src:Object = null;
