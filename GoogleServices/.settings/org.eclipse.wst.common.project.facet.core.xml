@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faceted-project>
+  <runtime name="J2EE Preview"/>
+   <fixed facet="jst.java"/>
+  <fixed facet="jst.web"/>
+  <installed facet="java" version="1.6"/>
+  <installed facet="jst.web" version="2.5"/>
+</faceted-project>
