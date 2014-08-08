@@ -256,9 +256,11 @@ package weave.application
 				_requestedConfigFile = request.url;
 			}
 			
-			_loadFileCallback = callback as Function;
 			if (callback is String)
-				_loadFileCallback = function():void { JavaScript.exec(callback + "();"); };
+				callback = function():void {
+					JavaScript.exec({"catch": false}, '(' + callback + ')(this)');
+				};
+			_loadFileCallback = callback as Function;
 			
 			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
 		}
@@ -369,7 +371,7 @@ package weave.application
 			if (JavaScript.available)
 			{
 				var windowName:String = JavaScript.exec("return window.name;");
-				if (windowName.indexOf(ADMIN_SESSION_WINDOW_NAME_PREFIX) == 0)
+				if (windowName && windowName.indexOf(ADMIN_SESSION_WINDOW_NAME_PREFIX) == 0)
 					return windowName.substr(ADMIN_SESSION_WINDOW_NAME_PREFIX.length);
 			}
 			return null;
@@ -417,7 +419,7 @@ package weave.application
 			// check address bar for any variables not found in FlashVars
 			try
 			{
-				var paramsStr:String = JavaScript.exec("return window.location.search.substring(1);"); // text after '?'
+				var paramsStr:String = JavaScript.exec("return window.location.search.substring(1);") || ''; // text after '?'
 				var paramsObj:Object = URLUtil.stringToObject(paramsStr, '&');
 				for (var key:String in paramsObj)
 					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params

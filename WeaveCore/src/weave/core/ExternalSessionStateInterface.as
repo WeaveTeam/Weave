@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.external.ExternalInterface;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.core.IExternalSessionStateInterface;
@@ -374,22 +373,10 @@ package weave.core
 		private function getCachedCallbackFunction(callback:String):Function
 		{
 			if (!_callbackFunctionCache[callback])
-			{
-				_callbackFunctionCache[callback] = function():void
-				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					ExternalInterface.marshallExceptions = true;
-					try
-					{
-						ExternalInterface.call(callback);
-					}
-					catch (e:*)
-					{
-						externalError(e);
-					}
-					ExternalInterface.marshallExceptions = prev;
-				}
-			}
+				_callbackFunctionCache[callback] = function():void {
+					JavaScript.exec({"catch": false}, '(' + callback + ')()');
+				};
+			
 			return _callbackFunctionCache[callback];
 		}
 		
