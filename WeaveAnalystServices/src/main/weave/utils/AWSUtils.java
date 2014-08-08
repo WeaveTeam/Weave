@@ -138,7 +138,7 @@ public class AWSUtils {
 			for(int d = 0; d < allScriptNames.size(); d++){
 				String tempScript = FilenameUtils.getBaseName(allScriptNames.get(d));
 				if(tempScript.matches(tempAlgo))
-					scriptNames[j] = tempScript;
+					scriptNames[j] = allScriptNames.get(d);
 			}
 		}
 		
