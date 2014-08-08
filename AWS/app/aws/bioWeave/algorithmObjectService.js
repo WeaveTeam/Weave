@@ -30,9 +30,31 @@ angular.module('aws.bioWeave')
 			});
 	};
 	
+	/**
+	 * gets a list of tables from the database
+	 */
 	this.getDataTableList = function(){
 		queryService.getDataTableList().then(function(){
 			that.data.dataTableList = queryService.dataObject.dataTableList;
+		});
+	};
+	
+	//for a particular id(datatable), get the columns
+	this.getDataColumns = function(){
+		var dataTableId = null;
+		//retrieving the actual id because this.data.dataTableSelected is a string
+		if(this.data.dataTableSelectedt != "" && angular.isDefined(this.data.dataTableSelected)){
+			
+			for(var v in this.data.dataTableList){
+				if(this.data.dataTableList[v].title.match(this.data.dataTableSelected))
+					dataTableId = this.data.dataTableList[v].id;
+			}
+		}
+		
+		console.log("id", dataTableId);
+		
+		queryService.getDataColumnsEntitiesFromId(dataTableId, true).then(function(){
+			that.data.dataColumns = queryService.dataObject.columns;
 		});
 	};
 	

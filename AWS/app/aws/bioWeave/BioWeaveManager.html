@@ -23,7 +23,8 @@
 						<h2>Select a datatable</h2>
 		</div>
 		<select ng-model = "algorithmObjectService.data.dataTableSelected" class="form-control" 
-		ng-options = "option.title as option.title for option in algorithmObjectService.data.dataTableList">
+		ng-options = "option.title as option.title for option in algorithmObjectService.data.dataTableList"
+		ng-change = 'algorithmObjectService.getDataColumns()'>
 		</select>
 	</div>
 
