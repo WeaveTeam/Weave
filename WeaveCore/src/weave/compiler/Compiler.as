@@ -2397,9 +2397,10 @@ package weave.compiler
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @param flattenFunctionDefinition If set to true and the compiledObject represents a function definition, that function definition will be evaluated and returned.
+		 * @param bindThis If non-null, the <code>this</code> symbol will be bound to the given value. Otherwise, it will be dynamically determined by how the function is called.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true, bindThis:Object = null):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -2426,6 +2427,7 @@ package weave.compiler
 
 			const builtInSymbolTable:Object = {};
 			builtInSymbolTable['eval'] = undefined;
+			builtInSymbolTable['this'] = bindThis;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
 			const allSymbolTables:Array = [builtInSymbolTable]; // buit-in first
@@ -2474,7 +2476,8 @@ package weave.compiler
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
 				
-				builtInSymbolTable['this'] = this;
+				if (bindThis === null)
+					builtInSymbolTable['this'] = this;
 				builtInSymbolTable['arguments'] = arguments;
 				
 				// make function parameters available under the specified parameter names
@@ -2716,7 +2719,8 @@ package weave.compiler
 								cascadeThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES],
-								false
+								false,
+								method == operators['=>'] ? this : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
