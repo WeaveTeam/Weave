@@ -162,10 +162,10 @@ package weave.ui
 				return;
 			
 			var stage:Stage = WeaveAPI.StageUtils.stage;
-			var xMin:Number = Math.min(0, stage.stageWidth);
-			var yMin:Number = Math.min(0, stage.stageHeight);
-			var xMax:Number = Math.max(0, stage.stageWidth);
-			var yMax:Number = Math.max(0, stage.stageHeight);
+			var xMin:Number = 0;
+			var yMin:Number = 0;
+			var xMax:Number = stage.stageWidth;
+			var yMax:Number = stage.stageHeight;
 			
 			var parentGlobal:Point = _uiParent.localToGlobal(new Point(0, 0));
 			var parentHeight:Number = _uiParent.height;

@@ -30,11 +30,8 @@ package weave.ui
 	import flash.utils.Dictionary;
 	
 	import mx.controls.Menu;
-	import mx.controls.listClasses.IListItemRenderer;
-	import mx.controls.menuClasses.IMenuItemRenderer;
 	import mx.core.mx_internal;
 	import mx.events.MenuEvent;
-	import mx.managers.PopUpManager;
 	
 	import weave.compiler.StandardLib;
 	import weave.primitives.Bounds2D;
@@ -46,52 +43,9 @@ package weave.ui
 	 */
 	public class CustomMenu extends Menu
 	{
-		override public function show(xShow:Object=null, yShow:Object=null):void
+		public function CustomMenu()
 		{
-			this.scrollRect = null;
-			super.show(xShow, yShow);
-			this.callLater(initAutoScroll, [this]);
-		}
-		
-		/**
-		 * Code copied from Menu.as and modified to create instances of CustomMenu.
-		 */
-		override mx_internal function openSubMenu(row:IListItemRenderer):void
-		{
-			// check to see if the menu exists, if not create it
-			if (!IMenuItemRenderer(row).menu)
-			{
-				var r:Menu = getRootMenu();
-				var menu:Menu = new CustomMenu();
-				menu.parentMenu = this;
-				menu.owner = this;
-				menu.showRoot = showRoot;
-				menu.dataDescriptor = r.dataDescriptor;
-				menu.styleName = r;
-				menu.labelField = r.labelField;
-				menu.labelFunction = r.labelFunction;
-				menu.iconField = r.iconField;
-				menu.iconFunction = r.iconFunction;
-				menu.itemRenderer = r.itemRenderer;
-				menu.rowHeight = r.rowHeight;
-				menu.scaleY = r.scaleY;
-				menu.scaleX = r.scaleX;
-				
-				// if there's data and it has children then add the items
-				if (row.data && 
-					_dataDescriptor.isBranch(row.data) &&
-					_dataDescriptor.hasChildren(row.data))
-				{
-					menu.dataProvider = _dataDescriptor.getChildren(row.data);
-				}
-				menu.sourceMenuBar = sourceMenuBar;
-				menu.sourceMenuBarItem = sourceMenuBarItem;
-				
-				IMenuItemRenderer(row).menu = menu;
-				PopUpManager.addPopUp(menu, r, false);
-			}
-			
-			super.openSubMenu(row);
+			initAutoScroll(this);
 		}
 		
 		private static const shadowSprites:Dictionary = new Dictionary(true); // Menu -> Sprite
@@ -102,6 +56,10 @@ package weave.ui
 		private static const visibleBounds:Bounds2D = new Bounds2D();
 		private static const visibleRect:Rectangle = new Rectangle();
 		
+		/**
+		 * Initializes mouse-activated auto-scrolling functionality for a Menu and its sub-menus.
+		 * Also sets variableRowHeight = true so separators don't take up so much space.
+		 */
 		public static function initAutoScroll(menu:Menu):void
 		{
 			var shadowSprite:Sprite = shadowSprites[menu];
@@ -113,7 +71,7 @@ package weave.ui
 				
 				// init auto scroll
 				menu.addEventListener(MouseEvent.MOUSE_MOVE, autoScroll);
-				menu.addEventListener(MenuEvent.MENU_SHOW, function(event:MenuEvent):void { initAutoScroll(event.menu); });
+				menu.addEventListener(MenuEvent.MENU_SHOW, handleMenuShow);
 				
 				// add a sprite for a shadow to indicate when there are more menu items below or above
 				shadowSprites[menu] = shadowSprite = new Sprite();
@@ -122,6 +80,11 @@ package weave.ui
 			}
 			menu.scrollRect = null;
 			menu.callLater(autoScroll, [menu]);
+		}
+		
+		private static function handleMenuShow(event:MenuEvent):void
+		{
+			initAutoScroll(event.menu);
 		}
 		
 		/**
