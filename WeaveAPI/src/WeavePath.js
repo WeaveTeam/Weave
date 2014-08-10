@@ -22,6 +22,7 @@
 
 //"use strict";
 
+//------------------------------------------------------------
 // browser backwards compatibility
 if (!Object.keys) {
   Object.keys = (function () {
@@ -63,15 +64,36 @@ if (!Object.keys) {
     };
   }());
 }
+if(!Array.isArray) {
+  Array.isArray = function(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
+if (!Function.prototype.bind) {
+  Function.prototype.bind = function (oThis) {
+    if (typeof this !== "function") {
+      // closest thing possible to the ECMAScript 5
+      // internal IsCallable function
+      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+    }
 
-if (!Array.isArray)
-	Array.isArray = function(o) { return Object.prototype.toString.call(o) === '[object Array]'; };
-if (!Function.prototype.bind)
-	Function.prototype.bind = function(/* that, ...args */)
-	{
-		var args = Array.prototype.slice.call(arguments), that = args.shift();
-		return function(){ return this.apply(that, args.concat(Array.prototype.slice.call(arguments))); };
-	};
+    var aArgs = Array.prototype.slice.call(arguments, 1), 
+        fToBind = this, 
+        fNOP = function () {},
+        fBound = function () {
+          return fToBind.apply(this instanceof fNOP && oThis
+                 ? this
+                 : oThis,
+                 aArgs.concat(Array.prototype.slice.call(arguments)));
+        };
+
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
+
+    return fBound;
+  };
+}
+//------------------------------------------------------------
 
 // enhance weave.addCallback() to support function pointers
 var _addCallback = weave.addCallback;
@@ -649,7 +671,7 @@ weave.WeavePath.prototype._failMessage = function(methodName, message)
 	var str = 'WeavePath.' + methodName + '(): ' + message;
 	
 	//TODO - mode where error is logged instead of thrown?
-	//console.log(str);
+	//console.error(str);
 	
 	throw new Error(str);
 };
