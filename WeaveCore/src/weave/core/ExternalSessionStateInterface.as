@@ -362,29 +362,14 @@ package weave.core
 		}
 		
 		/**
-		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
-		 */		
-		private static var _callbackFunctionCache:Object = {};
-		private static var _d2d_callbackStr_target:Dictionary2D = new Dictionary2D(true, true);
-		
-		/**
-		 * Generates a function which will execute a JavaScript callback function, represented as a String.
-		 * @param callback The JavaScript callback function.
+		 * Stores information for removeCallback() and removeAllCallbacks()
 		 */
-		public static function getCachedCallbackFunction(callback:String):Function
-		{
-			if (!_callbackFunctionCache[callback])
-				_callbackFunctionCache[callback] = function():void {
-					JavaScript.exec({"catch": false}, '(' + callback + ')()');
-				};
-			
-			return _callbackFunctionCache[callback];
-		}
-		
+		private static var _d2d_callback_target:Dictionary2D = new Dictionary2D(true, true);
+
 		/**
 		 * @inheritDoc
 		 */
-		public function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
+		public function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
 		{
 			try
 			{
@@ -406,11 +391,11 @@ package weave.core
 					return false;
 				}
 				
-				_d2d_callbackStr_target.set(callback, object, true);
+				_d2d_callback_target.set(callback, object, true);
 				if (immediateMode)
-					getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+					getCallbackCollection(object).addImmediateCallback(null, callback, triggerCallbackNow);
 				else
-					getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+					getCallbackCollection(object).addGroupedCallback(null, callback, triggerCallbackNow);
 				return true;
 			}
 			catch (e:Error)
@@ -424,14 +409,13 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function removeCallback(objectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean
+		public function removeCallback(objectPathOrVariableName:Object, callback:Function, everywhere:Boolean = false):Boolean
 		{
 			if (everywhere)
 			{
-				for (var target:Object in _d2d_callbackStr_target.dictionary[callback])
-					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callback] as Function);
-				delete _callbackFunctionCache[callback];
-				delete _d2d_callbackStr_target.dictionary[callback];
+				for (var target:Object in _d2d_callback_target.dictionary[callback])
+					getCallbackCollection(target as ILinkableObject).removeCallback(callback);
+				delete _d2d_callback_target.dictionary[callback];
 				return true;
 			}
 			
@@ -455,8 +439,8 @@ package weave.core
 					return false;
 				}
 				
-				_d2d_callbackStr_target.remove(callback, object);
-				getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
+				_d2d_callback_target.remove(callback, object);
+				getCallbackCollection(object).removeCallback(callback);
 				return true;
 			}
 			catch (e:Error)
@@ -472,11 +456,10 @@ package weave.core
 		 */
 		public function removeAllCallbacks():void
 		{
-			for (var callbackStr:String in _d2d_callbackStr_target.dictionary)
-				for (var target:Object in _d2d_callbackStr_target.dictionary[callbackStr])
-					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callbackStr] as Function);
-			_callbackFunctionCache = {};
-			_d2d_callbackStr_target = new Dictionary2D(true, true);
+			for (var callback:* in _d2d_callback_target.dictionary)
+				for (var target:Object in _d2d_callback_target.dictionary[callback])
+					getCallbackCollection(target as ILinkableObject).removeCallback(callback as Function);
+			_d2d_callback_target = new Dictionary2D(true, true);
 		}
 		
 		private static function externalError(format:String, ...args):void

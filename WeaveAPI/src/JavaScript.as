@@ -17,6 +17,7 @@ package
 {
 	import flash.external.ExternalInterface;
 	import flash.system.Capabilities;
+	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 
 	/**
@@ -66,11 +67,6 @@ package
 		private static var json:Object;
 		
 		/**
-		 * Maps a method name to the corresponding Function.
-		 */
-		private static const registeredMethods:Object = {};
-		
-		/**
 		 * This is the name of the generic external interface function which uses JSON input and output.
 		 */
 		private static const JSON_CALL:String = "_jsonCall";
@@ -86,14 +82,32 @@ package
 		private static const JSON_REVIVER:String = "_jsonReviver";
 		
 		/**
-		 * A random String which is highly unlikely to appear in any String value.
+		 * The name of the property used to store a lookup from JSON IDs to values.
+		 */
+		private static const JSON_LOOKUP:String = "_jsonLookup";
+		
+		/**
+		 * A random String which is highly unlikely to appear in any String value.  Used as a suffix for <code>undefined, NaN, -Infinity, Infinity</code>.
 		 */
 		private static const JSON_SUFFIX:String = ';' + Math.random() + ';' + new Date();
 		
-		private static const NOT_A_NUMBER:String = NaN + JSON_SUFFIX;
-		private static const UNDEFINED:String = undefined + JSON_SUFFIX;
-		private static const INFINITY:String = Infinity + JSON_SUFFIX;
-		private static const NEGATIVE_INFINITY:String = -Infinity + JSON_SUFFIX;
+		/**
+		 * A random String which is highly unlikely to appear in any String value.  Used as a prefix for function identifiers in JSON.
+		 */
+		private static const JSON_FUNCTION_PREFIX:String = 'function' + JSON_SUFFIX + ';';
+		
+		/**
+		 * Maps an ID to its corresponding value for use with _jsonReviver/_jsonReplacer.
+		 * Also maps a Function to its corresponding ID.
+		 */
+		private static const _jsonLookup:Dictionary = new Dictionary();
+		
+		/**
+		 * Used for generating unique function IDs.
+		 * Use a positive increment for ActionScript functions.
+		 * The JavaScript equivalent uses a negative increment to avoid collisions.
+		 */
+		private static var _functionCounter:int = 0;
 		
 		/**
 		 * Alias for ExternalInterface.available
@@ -170,6 +184,11 @@ package
 		{
 			// one-time initialization attempt
 			initialized = true;
+			
+			for each (var symbol:* in [undefined, NaN, Infinity, -Infinity])
+				_jsonLookup[symbol + JSON_SUFFIX] = symbol;
+			
+			// determine if backslashes need to be escaped
 			var slashes:String = "\\\\";
 			backslashNeedsEscaping = (ExternalInterface.call('function(slashes){ return slashes; }', slashes) != slashes);
 			
@@ -184,36 +203,52 @@ package
 			
 			if (json)
 			{
-				ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
+				ExternalInterface.addCallback(JSON_CALL, _jsonCall);
 				exec(
 					{
+						"JSON_FUNCTION_PREFIX": JSON_FUNCTION_PREFIX,
 						"JSON_REPLACER": JSON_REPLACER,
 						"JSON_REVIVER": JSON_REVIVER,
-						"NOT_A_NUMBER": NOT_A_NUMBER,
-						"UNDEFINED": UNDEFINED,
-						"INFINITY": INFINITY,
-						"NEGATIVE_INFINITY": NEGATIVE_INFINITY
+						"JSON_SUFFIX": JSON_SUFFIX,
+						"JSON_LOOKUP": JSON_LOOKUP,
+						"JSON_CALL": JSON_CALL
 					},
-					"this[JSON_REPLACER] = function(key, value){",
-					"    if (value === undefined)",
-					"        return UNDEFINED;",
-					"    if (typeof value != 'number' || isFinite(value))",
-					"        return Array.isArray(value) ? [].concat(value) : value;",
-					"    if (value == Infinity)",
-					"        return INFINITY;",
-					"    if (value == -Infinity)",
-					"        return NEGATIVE_INFINITY;",
-					"    return NOT_A_NUMBER;",
+					"var flash = this;",
+					"var functionCounter = 0;",
+					"var lookup = flash[JSON_LOOKUP] = {};",
+					"var symbols = [undefined, NaN, Infinity, -Infinity];",
+					"for (var i in symbols)",
+					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
+
+					"flash[JSON_REPLACER] = function(key, value) {",
+					"    if (typeof value === 'function') {",
+					"        if (!value[JSON_FUNCTION_PREFIX]) {",
+					"            var id = JSON_FUNCTION_PREFIX + (--functionCounter);",
+					"            value[JSON_FUNCTION_PREFIX] = id;",
+					"            lookup[id] = value;",
+					"        }",
+					"        return value[JSON_FUNCTION_PREFIX];",
+					"    }",
+					"    if (value === undefined || (typeof value === 'number' && !isFinite(value)))",
+					"        return value + JSON_SUFFIX;",
+					"    return Array.isArray(value) ? [].concat(value) : value;",
 					"};",
-					"this[JSON_REVIVER] = function(key, value){",
-					"    if (value === NOT_A_NUMBER)",
-					"        return NaN;",
-					"    if (value === UNDEFINED)",
-					"        return undefined;",
-					"    if (value === INFINITY)",
-					"        return Infinity;",
-					"    if (value === NEGATIVE_INFINITY)",
-					"        return -Infinity;",
+					
+					"flash[JSON_REVIVER] = function(key, value) {",
+					"    if (typeof value === 'string') {",
+					"        if (lookup.hasOwnProperty(value))",
+					"            return lookup[value];",
+					"        if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX) {",
+					"            lookup[value] = function() {",
+					"                var params = Array.prototype.slice.call(arguments);",
+					"                var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
+					"                var resultJson = flash[JSON_CALL](value, paramsJson);",
+					"                return JSON.parse(resultJson, flash[JSON_REVIVER]);",
+					"            };",
+					"            lookup[value][JSON_FUNCTION_PREFIX] = value;",
+					"            return lookup[value];",
+					"        }",
+					"    }",
 					"    return value;",
 					"};"
 				);
@@ -222,15 +257,15 @@ package
 		
 		/**
 		 * Handles a JavaScript request.
-		 * @param methodName The name of the method to call.
+		 * @param methodId The ID of the method to call.
 		 * @param paramsJson An Array of parameters to pass to the method, stringified with JSON.
 		 * @return The result of calling the method, stringified with JSON.
 		 */
-		private static function handleJsonCall(methodName:String, paramsJson:String):String
+		private static function _jsonCall(methodId:String, paramsJson:String):String
 		{
-			var method:Function = registeredMethods[methodName] as Function;
+			var method:Function = _jsonReviver('', methodId) as Function;
 			if (method == null)
-				throw new Error("No such method: " + methodName);
+				throw new Error('No method with id="' + methodId + '"');
 			
 			var params:Array = json.parse(paramsJson, _jsonReviver);
 			
@@ -238,7 +273,7 @@ package
 			var result:* = method.apply(null, params);
 			ExternalInterface.marshallExceptions = false; // any other errors should be handled by flash
 			
-			var resultJson:String = json.stringify(result, _jsonReplacer) || 'null';
+			var resultJson:String = json.stringify(result, _jsonReplacer) || 'undefined';
 			
 			// work around unescaped backslash bug
 			if (backslashNeedsEscaping && resultJson.indexOf('\\') >= 0)
@@ -249,33 +284,56 @@ package
 		
 		/**
 		 * Preserves primitive values not supported by JSON: undefined, NaN, Infinity, -Infinity
+		 * Also looks up or generates an ID corresponding to a Function value.
 		 */
 		private static function _jsonReplacer(key:String, value:*):*
 		{
-			if (value === undefined)
-				return UNDEFINED;
-			if (typeof value != 'number' || isFinite(value))
-				return value;
-			if (value == Infinity)
-				return INFINITY;
-			if (value == -Infinity)
-				return NEGATIVE_INFINITY;
-			return NOT_A_NUMBER;
+			// Function -> ID
+			if (value is Function)
+			{
+				var id:String = _jsonLookup[value] as String;
+				if (!id)
+				{
+					id = JSON_FUNCTION_PREFIX + (++_functionCounter);
+					_jsonLookup[value] = id;
+					_jsonLookup[id] = value;
+				}
+				return id;
+			}
+			if (value === undefined || (typeof value === 'number' && !isFinite(value)))
+				return value + JSON_SUFFIX;
+			return value;
 		}
 		
 		/**
 		 * Preserves primitive values not supported by JSON: undefined, NaN, Infinity, -Infinity
+		 * Also looks up or generates a Function corresponding to its ID value.
 		 */
 		private static function _jsonReviver(key:String, value:*):*
 		{
-			if (value === NOT_A_NUMBER)
-				return NaN;
-			if (value === UNDEFINED)
-				return undefined;
-			if (value === INFINITY)
-				return Infinity;
-			if (value === NEGATIVE_INFINITY)
-				return -Infinity;
+			if (value is String)
+			{
+				if (_jsonLookup.hasOwnProperty(value))
+					return _jsonLookup[value];
+				// ID -> Function
+				if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
+				{
+					var func:Function = function():*{
+						return exec(
+							{
+								"JSON_REVIVER": JSON_REVIVER,
+								"id": value,
+								"args": arguments
+							},
+							"var func = this[JSON_REVIVER]('', id);",
+							"return func.apply(func['this'], args);"
+						);
+					} as Function;
+					_jsonLookup[func] = value;
+					_jsonLookup[value] = func;
+					return func as Function;
+				}
+			}
 			return value;
 		}
 		
@@ -298,22 +356,12 @@ package
 			
 			exec(
 				{
-					"JSON_CALL": JSON_CALL,
-					"JSON_REPLACER": JSON_REPLACER,
 					"JSON_REVIVER": JSON_REVIVER,
-					"methodName": methodName
+					"methodName": methodName,
+					"jsonId": _jsonReplacer('', method)
 				},
-				"this[methodName] = function(){",
-				"    var params = Array.prototype.slice.call(arguments);",
-				"    var paramsJson = JSON.stringify(params, this[JSON_REPLACER]);",
-				"    //console.log('input:', methodName, paramsJson);",
-				"    var resultJson = this[JSON_CALL](methodName, paramsJson);",
-				"    //console.log('output:', resultJson);",
-				"    return JSON.parse(resultJson, this[JSON_REVIVER]);",
-				"};"
+				"this[methodName] = this[JSON_REVIVER]('', jsonId);"
 			);
-			
-			registeredMethods[methodName] = method;
 		}
 		
 		/**
@@ -385,7 +433,17 @@ package
 						else if (json)
 						{
 							// put a variable declaration at the beginning of the code
-							code.unshift("var " + key + " = " + json.stringify(value) + ";");
+							var jsValue:String;
+							if (value === null || value === undefined || (value is Number && !isFinite(value)))
+								jsValue = String(value);
+							else if (typeof value === 'object')
+								jsValue = "JSON.parse(" + json.stringify(json.stringify(value, _jsonReplacer)) + ", this[" + json.stringify(JSON_REVIVER) + "])";
+							else if (value is Function)
+								jsValue = "this[" + json.stringify(JSON_REVIVER) + "]('', " + json.stringify(value, _jsonReplacer) + ")";
+							else
+								jsValue = json.stringify(value);
+							
+							code.unshift("var " + key + " = " + jsValue + ";");
 						}
 						else
 						{
@@ -417,15 +475,21 @@ package
 			{
 				if (json)
 				{
+					// stringify results
+					appliedCode = "JSON.stringify(" + appliedCode + ", " + JS_this + "[" + json.stringify(JSON_REPLACER) + "])";
+					
 					// work around unescaped backslash bug
 					if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
 						appliedCode = appliedCode.split('\\').join('\\\\');
 					
 					// we need to use "eval" in order to receive syntax errors
-					var evalFunc:String = 'eval';
+					var evalFunc:String = 'window.eval';
 					if (!marshallExceptions)
-						evalFunc = 'function(code){ try { return eval(code); } catch (e) { e.message += "\\n" + code; console.error(e); } }';
-					result = ExternalInterface.call(evalFunc, appliedCode);
+						evalFunc = 'function(code){ try { return window.eval(code); } catch (e) { e.message += "\\n" + code; console.error(e); } }';
+					var resultJson:String = ExternalInterface.call(evalFunc, appliedCode);
+					
+					// parse stringified results
+					result = json.parse(resultJson, _jsonReviver);
 				}
 				else
 				{
