@@ -2472,13 +2472,13 @@ package weave.compiler
 				var propertyHost:Object;
 				var propertyName:String;
 				
-				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
-				if (useThisScope)
-					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
-				
 				if (bindThis === null)
 					builtInSymbolTable['this'] = this;
 				builtInSymbolTable['arguments'] = arguments;
+				
+				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
+				if (useThisScope)
+					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = builtInSymbolTable['this'];
 				
 				// make function parameters available under the specified parameter names
 				if (paramNames)
@@ -2709,7 +2709,7 @@ package weave.compiler
 						{
 							var _symbolTables:Array = [localSymbolTable].concat(symbolTable); // works whether symbolTable is an Array or Object
 							if (useThisScope)
-								_symbolTables.push(this);
+								_symbolTables.push(builtInSymbolTable['this']);
 							
 							var funcParams:Object = call.evaluatedParams[0];
 							result = compileObjectToFunction(
@@ -2720,7 +2720,7 @@ package weave.compiler
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES],
 								false,
-								method == operators['=>'] ? this : null
+								method == operators['=>'] ? builtInSymbolTable['this'] : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
