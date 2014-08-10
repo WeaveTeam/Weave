@@ -234,10 +234,11 @@ package
 			
 			var params:Array = json.parse(paramsJson, _jsonReviver);
 			
-			ExternalInterface.marshallExceptions = true; // let the external code handle errors
+			ExternalInterface.marshallExceptions = true; // let the external code handle errors from the method
 			var result:* = method.apply(null, params);
+			ExternalInterface.marshallExceptions = false; // any other errors should be handled by flash
 			
-			var resultJson:String = json.stringify(result, _jsonReplacer);
+			var resultJson:String = json.stringify(result, _jsonReplacer) || 'null';
 			
 			// work around unescaped backslash bug
 			if (backslashNeedsEscaping && resultJson.indexOf('\\') >= 0)
