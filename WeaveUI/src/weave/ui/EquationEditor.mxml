@@ -45,28 +45,17 @@
 			</mx:HBox>
 			<mx:VBox width="100%" height="100%" enabled="{activeEquationCombo.selectedItem != null}">
 				<mx:HBox width="100%" verticalAlign="middle">
-					<mx:Label text="Title"/>
+					<mx:Label text="{lang('Title')}"/>
 					<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
 				</mx:HBox>
 				<mx:VDividedBox width="100%" height="100%">
-					<mx:TabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
-						<mx:Canvas label="{lang('Code')}">
-							<CodeEditor id="textEditor" errorString="{baseEquationUIComp.errorString}"/>
-						</mx:Canvas>
-						<mx:Canvas label="{lang('Tree')}"
-								   id="equationBox"
-								   width="100%"
-								   height="100%"
-								   verticalScrollPolicy="on"
-								   backgroundColor="#F2F2F2"
-								   borderThickness="1"
-								   borderStyle="solid"
-								   dragEnter="handleDragEnter(event)"
-								   dragDrop="handleDragDrop(event)">
-							<EquationUIComponent id="baseEquationUIComp"/>
-						</mx:Canvas>
+					<CustomTabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
+						<mx:VBox label="{lang('Code')}" verticalGap="0">
+							<CodeEditor id="textEditor"/>
+							<Paragraph id="errorDisplay" condenseWhite="false" text="{textEditor.errorString}" color="#D00000" fontWeight="bold"/>
+						</mx:VBox>
 						<mx:Canvas label="{lang('Help')}" width="100%" height="100%" verticalScrollPolicy="on">
-							<Paragraph selectable="true">
+							<Paragraph selectable="true" translate="true">
 								The Weave data framework requires that all columns provide a mapping from keys to data values.
 								The Equation Column allows you to input a script that generates derived data for each record key.
 								The script you enter in the Code view will be evaluated for each record with Weave's built-in
@@ -81,7 +70,7 @@
 								you could use the following script:  return getNumber(a) + getNumber(b);
 							</Paragraph>
 						</mx:Canvas>
-					</mx:TabNavigator>
+					</CustomTabNavigator>
 					<ColumnListComponent label="{lang('Variables')}" showVariableNames="true" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 				</mx:VDividedBox>
 			</mx:VBox>
@@ -100,20 +89,13 @@
 			
 			import mx.controls.List;
 			import mx.controls.TextInput;
-			import mx.controls.listClasses.ListBase;
-			import mx.core.IUIComponent;
-			import mx.events.DragEvent;
-			import mx.managers.DragManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
-			import weave.compiler.Compiler;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -181,14 +163,12 @@
 						listVBox.label = listVBox.label.substring(lastIndex+1,listVBox.label.length);
 					var functionList:List = new List();
 					functionList.dataProvider = functions; 
-					functionList.labelFunction= getLabel;
+					functionList.labelFunction= getFunctionLabel;
 					functionList.minHeight = 0;
 					functionList.percentWidth = 100;
-					functionList.dragEnabled = true;
 					functionList.doubleClickEnabled = true;
 					functionList.rowCount = functionList.dataProvider.length;
 					functionList.setStyle("borderStyle","none");
-					functionList.addEventListener(MouseEvent.DOUBLE_CLICK,handleListItemDoubleClick);
 					listVBox.addChild(functionList);
 					
 					functionLists.addChild(listVBox);
@@ -198,22 +178,15 @@
 				
 				var constantsList:List = new List();
 				constantsList.dataProvider = constants; 
-				constantsList.labelFunction = getLabel;
+				constantsList.labelFunction = getFunctionLabel;
 				constantsList.minHeight = 0;
 				constantsList.percentWidth = 100;
-				constantsList.dragEnabled = true;
 				constantsList.rowCount = constantsList.dataProvider.length;
 				constantsList.setStyle("borderStyle", "none");
 				constantVBox.addChild(constantsList);
 				
 				functionLists.addChild(constantVBox);
 				functionLists.minHeight = 256;
-				
-				equationBox.addEventListener(DragEvent.DRAG_DROP, captureDragDrop, true);
-
-				linkSessionState(equationColumn.equation, baseEquationUIComp.equation);
-//				linkBindableProperty(equationColumn.equation, textEditor, "text");
-//				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
 				
 				titleInput.text = equationColumn.getMetadata(ColumnMetadata.TITLE);
 				EventUtils.addDelayedEventCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
@@ -289,44 +262,7 @@
 					save();
 			}
 			
-			private function handleListItemDoubleClick(event:MouseEvent):void
-			{
-				baseEquationUIComp.replaceEquation((event.currentTarget as ListBase).selectedItem);
-					
-			}
-			private function handleDragEnter(event:DragEvent):void
-			{
-				var dropTarget:IUIComponent = event.currentTarget as IUIComponent
-				DragManager.acceptDragDrop(dropTarget);
-			}
-			
-			private function handleDragDrop(event:DragEvent):void
-			{
-				baseEquationUIComp.replaceEquation((event.dragInitiator as ListBase).selectedItem);
-			}
-			
-			private function captureDragDrop(event:DragEvent):void
-			{
-				var items:Array = event.dragSource.dataForFormat("items") as Array;
-				if (items[0] is ILinkableObject)
-				{
-					var eqName:String = equationColumn.variables.getName(items[0] as ILinkableObject);
-					if (!eqName)
-					{
-						try {
-							var i:int = (event.dragInitiator as ListBase).selectedIndex;
-							eqName = equationColumn.variables.getNames()[i];
-						} catch (e:Error) { }
-					}
-					
-					if (!EquationColumn.compiler.isValidSymbolName(eqName))
-						eqName = "get(" + Compiler.encodeString(eqName) + ")";
-					
-					event.draggedItem = eqName;
-				}
-			}
-			
-			private function getLabel(item:Object):String
+			private function getFunctionLabel(item:Object):String
 			{
 				if (item.access == 'readonly')
 					return item.name;
@@ -361,6 +297,7 @@
 			private function handleEquationSessionStateChange():void
 			{
 				textEditor.text = equationColumn.equation.value;
+				errorDisplay.text = equationColumn.validateEquation();
 			}
 		]]>
 	</mx:Script>

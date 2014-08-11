@@ -43,12 +43,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				titleStyleName="weave-panel-title-style"
 				styleName="weave-panel-style"
 				
-				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject"
+				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject, weave.api.ui.IObjectWithLabel"
 				>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -64,18 +62,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
+			import weave.api.objectWasDisposed;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.compiler.StandardLib;
+			import weave.core.CallbackCollection;
 			import weave.core.ClassUtils;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
@@ -85,7 +84,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.UIUtils;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
-			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
 			
 			public var debug:Boolean = false;
@@ -115,7 +113,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
 			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
-			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
+			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
 			
 			private function verifyMinimized(value:Boolean):Boolean { return !minimizable || minimizable.value || !value; }
@@ -190,6 +188,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_constructorCalled = true;
 					reposition();
 					constructor();
+					afterConstructor();
 				}
 			}
 			
@@ -214,8 +213,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, updateButtons, true);
+				getCallbackCollection(this).addGroupedCallback(this, updateButtonsIfSelectableAttributesChanged, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
+			}
+			
+			/**
+			 * This is called after the constructor.
+			 */
+			protected function afterConstructor():void
+			{
 			}
 			
 			/**
@@ -248,11 +255,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, TOOLTIP_MAXIMIZE);
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
-				zOrderSubMenu.menuItems.push(
-					new SubMenuItem(lang('Reset'), function():void { zOrder.value = 0; }, null, function():Boolean { return zOrder.value != 0; }),
-					new SubMenuItem(lang('Always above'), function():void { zOrder.value = 1; }, null, function():Boolean { return zOrder.value <= 0; }),
-					new SubMenuItem(lang('Always below'), function():void { zOrder.value = -1; }, null, function():Boolean { return zOrder.value >= 0; })
-				);
+				zOrderSubMenu.dataProvider = [
+					{
+						label: lang('Reset'),
+						click: function():void { zOrder.value = 0; },
+						shown: function():Boolean { return zOrder.value != 0; }
+					},{
+						label: lang('Always above'),
+						click: function():void { zOrder.value = 1; },
+						shown: function():Boolean { return zOrder.value <= 0; }
+					},{
+						label: lang('Always below'),
+						click: function():void { zOrder.value = -1; },
+						shown: function():Boolean { return zOrder.value >= 0; }
+					}
+				];
+				
+				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+				if (hashMap)
+					hashMap.childListCallbacks.addGroupedCallback(this, updatePanelZOrder);
 
 				/*
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
@@ -279,10 +300,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 				
-				if (!_controlPanel && EditorManager.getEditorClass(this))
+				if (!_controlPanel && WeaveAPI.EditorManager.getEditorClass(this))
 				{
 					_controlPanel = newDisposableChild(this, ControlPanel);
-					var editor:UIComponent = EditorManager.getNewEditor(this) as UIComponent;
+					var editor:UIComponent = WeaveAPI.EditorManager.getNewEditor(this) as UIComponent;
 					addChild(_controlPanel);
 					removeChild(_controlPanel);
 					_controlPanel.tabNavigator.addChild(editor);
@@ -290,7 +311,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (_controlPanel)
 				{
-					_controlPanel.title = ControlPanel.getControlPanelTitle(this);
+					_controlPanel.title = _controlPanel._defaultTitle = ControlPanel.getControlPanelTitle(this);
 					_controlPanel.enableSubMenu.value = true;
 					_controlPanel.sessionEditorTarget = this;
 				}
@@ -327,6 +348,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				panelNeedsUpdate();
+				
+				if (panelTitle.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					panelTitle.triggerCallbacks(); // force defaultPanelTitle to be used
 			}
 			
 			private function handleCreationComplete():void
@@ -343,6 +367,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			public function getLabel():String
+			{
+				return title;
+			}
+			
 			/**
 			 * Override this function to provide a default panel title when the panelTitle session state is undefined.
 			 * The panel title will be set when handlePanelTitleChange() is called.
@@ -350,14 +379,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function get defaultPanelTitle():String
 			{
-				return getQualifiedClassName(this).split(':').pop();
+				return _defaultTitle || lang(getQualifiedClassName(this).split(':').pop());
 			}
 			
 			// workaround to fix text layout performance problem
 			override public function set title(value:String):void
 			{
+				if (panelTitle.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					_defaultTitle = value;
 				super.title = value && value.substr(0, 256);
 			}
+			internal var _defaultTitle:String;
 			
 			/**
 			 * This gets called when the panelTitle session state changes.
@@ -693,6 +725,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function get borderIsVisible():Boolean
 			{
+				if (objectWasDisposed(this))
+					return false;
 				return enableBorders.value && (parent is ISystemManager || !Weave.properties.dashboardMode.value);
 			}
 			
@@ -733,25 +767,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else
 					value = super.getStyle(styleProp);
 				
-				var cornerRadius:int = _overriddenStyles["cornerRadius"] != undefined ? 
-					_overriddenStyles["cornerRadius"] :
-					super.getStyle("cornerRadius");
-				
-				var roundedBottomCorners:Boolean = _overriddenStyles["roundedBottomCorners"] != undefined ? 
-					_overriddenStyles["roundedBottomCorners"] : 
-					super.getStyle("roundedBottomCorners");
-				
-				// if the bottom corners are rounded, we want to adjust the bottomThicknessBottom to be at least the size
-				// of the cornerRadius, otherwise you get an odd looking panel
-				
-				// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
-				/*if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
-				return Math.max( cornerRadius, value );*/
-				
-				// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
-				// outside the panel
+				// make sure the headerHeight is at least the size of the cornerRadius,
+				// otherwise the stuff inside the panel sticks outside the panel
 				if (styleProp == "headerHeight")
-					return Math.max( cornerRadius, value );
+					return Math.max(getStyle("cornerRadius"), value );
 				
 				return value;
 			}
@@ -834,7 +853,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function removePanel():void
 			{
 				var owner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
-				if (owner)
+				if (owner && owner.getName(this))
 				{
 					owner.removeObject(owner.getName(this));
 					return;
@@ -1277,6 +1296,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return w;
 			}
 			
+			private var _prevShouldShowAttributeButton:Boolean = false;
+			private function updateButtonsIfSelectableAttributesChanged():void
+			{
+				if (_prevShouldShowAttributeButton != shouldShowAttributeButton)
+				{
+					_prevShouldShowAttributeButton = !_prevShouldShowAttributeButton;
+					updateButtons();
+				}
+			}
+			
+			private function get shouldShowAttributeButton():Boolean
+			{
+				return Weave.properties.enableToolControls.value
+					&& this is IObjectWithSelectableAttributes
+					&& (this as IObjectWithSelectableAttributes).getSelectableAttributes().length;
+			}
+			
 			private function updateButtons():void
 			{
 				// don't do anything if not added to a parent to avoid errors like the following:
@@ -1312,7 +1348,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				conditions = [
 					Weave.properties.enableToolControls.value && _controlPanel,
 					enableSubMenu.value,
-					Weave.properties.enableToolControls.value && this is IVisToolWithSelectableAttributes && (this as IVisToolWithSelectableAttributes).getSelectableAttributes().length
+					shouldShowAttributeButton
 				];
 				for (i = 0; i < buttons.length; i++)
 				{
@@ -1419,7 +1455,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function openAttributeSelector(attrIndex:int = 0):AttributeSelectorPanel
 			{
-				var tool:IVisToolWithSelectableAttributes = this as IVisToolWithSelectableAttributes;
+				var tool:IObjectWithSelectableAttributes = this as IObjectWithSelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();
@@ -1628,7 +1664,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public static function getTopPanel():DraggablePanel
 			{
-				return Weave.root.getObjects(DraggablePanel).pop();
+				var children:Array = WeaveAPI.globalHashMap.getObjects(DraggablePanel);
+				while (children.length)
+				{
+					var panel:DraggablePanel = children.pop() as DraggablePanel;
+					if (panel.visible)
+						return panel;
+				}
+				return null;
 			}
 			public static function getTopPanelName():String
 			{

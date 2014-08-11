@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -45,7 +46,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class PieChartPlotter extends AbstractPlotter
+	public class PieChartPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		public function PieChartPlotter()
 		{
@@ -63,6 +64,15 @@ package weave.visualization.plotters
 			
 			registerSpatialProperty(data);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Wedge Size","Wedge Color","Label"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [data, fill.color, label];
 		}
 
 		private var _beginRadians:EquationColumn;

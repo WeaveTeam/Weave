@@ -152,11 +152,11 @@ package weave.utils
 		 */
 		public static function randomSort(vector:*):void
 		{
-			var length:int = vector.length;
-			for (var i:int = length; i--;)
+			var i:int = vector.length;
+			while (i)
 			{
 				// randomly choose index j
-				var j:int = Math.floor(Math.random() * length);
+				var j:int = Math.floor(Math.random() * i--);
 				// swap elements i and j
 				var temp:* = vector[i];
 				vector[i] = vector[j];
@@ -401,6 +401,21 @@ package weave.utils
 		}
 		
 		/**
+		 * Creates an object from arrays of keys and values.
+		 * @param keys Keys corresponding to the values.
+		 * @param values Values corresponding to the keys.
+		 * @return A new Object.
+		 */
+		public static function zipObject(keys:Array, values:Array):Object
+		{
+			var n:int = Math.min(keys.length, values.length);
+			var o:Object = {};
+			for (var i:int = 0; i < n; i++)
+				o[keys[i]] = values[i];
+			return o;
+		}
+		
+		/**
 		 * This will get a subset of properties/items/attributes from an Object/Array/XML.
 		 * @param object An Object/Array/XML containing properties/items/attributes to retrieve.
 		 * @param keys A list of property names, index values, or attribute names.
@@ -411,14 +426,53 @@ package weave.utils
 		{
 			if (!output)
 				output = object is Array ? [] : {};
-			for each (var key:* in keys)
+			if (!object)
+				return output;
+			for (var keyIndex:* in keys)
 			{
+				var keyValue:* = keys[keyIndex];
+				
+				var item:*;
 				if (object is XML_Class)
-					output[key] = String((object as XML_Class).attribute(key));
+					item = String((object as XML_Class).attribute(keyValue));
 				else
-					output[key] = object[key];
+					item = object[keyValue];
+				
+				if (output is Array)
+					output[keyIndex] = item;
+				else
+					output[keyValue] = item;
 			}
 			return output;
+		}
+		
+		/**
+		 * Gets a list of values of a property from a list of objects.
+		 * @param array An Array or Vector of Objects.
+		 * @param property The property name to get from each object
+		 * @return A list of the values of the specified property for each object in the original list.
+		 */
+		public static function pluck(array:*, property:String):*
+		{
+			return array.map(function(item:Object, i:int, a:*):* { return item[property]; });
+		}
+		
+		/**
+		 * Creates a lookup from item (or item property) to index. Does not consider duplicate items (or item property values).
+		 * @param propertyChain A property name or chain of property names to index on rather than the item itself.
+		 * @return A reverse lookup.
+		 */
+		public static function createLookup(array:*, ...propertyChain):Dictionary
+		{
+			var lookup:Dictionary = new Dictionary(true);
+			for (var key:* in array)
+			{
+				var value:* = array[key];
+				for each (var prop:String in propertyChain)
+					value = value[prop];
+				lookup[value] = key;
+			}
+			return lookup;
 		}
 	}
 }

@@ -23,7 +23,6 @@ package weave.services
 	
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.objectWasDisposed;

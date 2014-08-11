@@ -19,7 +19,6 @@
 
 package weave.data.AttributeColumns
 {
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -27,6 +26,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
 	import weave.core.ClassUtils;
@@ -109,6 +109,9 @@ package weave.data.AttributeColumns
 		{
 			if (_prevTriggerCounter != triggerCounter)
 			{
+				if (objectWasDisposed(_dataSource))
+					_dataSource = null;
+				
 				var col:IAttributeColumn = null;
 				if (dataSourceName.value && !_dataSource)
 				{

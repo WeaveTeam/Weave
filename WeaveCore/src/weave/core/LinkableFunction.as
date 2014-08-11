@@ -22,7 +22,6 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.registerLinkableChild;
@@ -210,15 +209,30 @@ package weave.core
 		/**
 		 * This is a list of libraries to include in the static compiler for macros.
 		 */
-		public static const macroLibraries:LinkableVariable = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableVariable(null, verifyLibraries, [getQualifiedClassName(WeaveAPI)]));
+		public static const macroLibraries:LinkableVariable = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableVariable(null, verifyLibraries));
 
 		private static function verifyLibraries(state:Object):Boolean
 		{
-			// hack to convert old session state String
-			if (state is String)
-				macroLibraries.setSessionState(WeaveAPI.CSVParser.parseCSVRow(state as String));
+			var array:Array = state as Array;
 			
-			return StandardLib.getArrayType(state as Array) == String;
+			// backwards compatibility for String
+			if (state is String)
+				array = WeaveAPI.CSVParser.parseCSVRow(state as String);
+			
+			// handle deprecated class replacements
+			if (array)
+				array = array.map(function(name:String, i:*, a:*):String {
+					var def:Class = Compiler.deprecatedClassReplacements[name] as Class;
+					return def ? getQualifiedClassName(def) : name;
+				});
+			
+			// if we don't have any changes, use the original array
+			if (StandardLib.arrayCompare(array, state as Array) == 0)
+				return true;
+			
+			// use the new array
+			macroLibraries.setSessionState(array);
+			return false;
 		}
 		
 		/**

@@ -18,91 +18,60 @@
 */
 package weave.data.hierarchy
 {
-    import flash.utils.Dictionary;
-    
-    import weave.api.WeaveAPI;
     import weave.api.core.ILinkableHashMap;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IDataSource;
-    import weave.api.data.IWeaveTreeNode;
-    import weave.api.detectLinkableObjectChange;
     import weave.api.registerLinkableChild;
+    import weave.data.AttributeColumnCache;
     import weave.data.AttributeColumns.CSVColumn;
     import weave.data.AttributeColumns.EquationColumn;
 
-	[RemoteClass]
-    public class DataSourceTreeNode implements IWeaveTreeNode, ILinkableObject
+    public class DataSourceTreeNode extends ColumnTreeNode implements ILinkableObject
     {
 		public function DataSourceTreeNode()
 		{
-			registerLinkableChild(this, WeaveAPI.globalHashMap.childListCallbacks);
-		}
-		
-		private var _dataSourceToNode:Dictionary = new Dictionary(true);
-		
-		// the node can re-use the same children array
-		private const _childNodes:Array = [];
-		
-		public function equals(other:IWeaveTreeNode):Boolean
-		{
-			return other is DataSourceTreeNode;
-		}
-		
-		public function getLabel():String
-		{
-			return lang("Data Sources");
-		}
-		
-		public function isBranch():Boolean
-		{
-			return true;
-		}
-		
-		public function hasChildBranches():Boolean
-		{
-			return true;
-		}
-		
-		public function getChildren():Array
-		{
-			// data sources
-			var dataSources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
-			for (var i:int = 0; i < dataSources.length; i++)
-			{
-				var ds:IDataSource = dataSources[i];
-				
-				if (!_dataSourceToNode[ds])
-					registerLinkableChild(this, ds);
-				
-				if (detectLinkableObjectChange(getChildren, ds))
-					_dataSourceToNode[ds] = ds.getHierarchyRoot();
-				
-				_childNodes[i] = _dataSourceToNode[ds];
-			}
-			_childNodes.length = dataSources.length;
-			
-			// global columns
-			var _root:ILinkableHashMap = WeaveAPI.globalHashMap;
-			var eqCols:Array = _root.getObjects(EquationColumn).concat(_root.getObjects(CSVColumn));
-			if (eqCols.length)
-			{
-				var eqCategory:XML = <category title={ lang("Equations") }/>;
-				for each (var col:IAttributeColumn in eqCols)
-					eqCategory.appendChild(<attribute name={ _root.getName(col) } title={ col.getMetadata(ColumnMetadata.TITLE) }/>);
-				_globalColumnNode.xml = eqCategory;
-				_childNodes.push(_globalColumnNode);
-			}
-			
-			return _childNodes;
-		}
-		
-		private var _globalColumnNode:XMLEntityNode = new XMLEntityNode();
-		
-		public function dispose():void
-		{
-			_childNodes.length = 0;
+			var rootNode:DataSourceTreeNode = this;
+			var root:ILinkableHashMap = WeaveAPI.globalHashMap;
+			registerLinkableChild(this, root.childListCallbacks);
+			super({
+				source: rootNode,
+				label: lang('Data Sources'),
+				isBranch: true,
+				hasChildBranches: true,
+				children: function():Array {
+					var nodes:Array = root.getObjects(IDataSource).map(
+						function(ds:IDataSource, ..._):* {
+							registerLinkableChild(rootNode, ds);
+							return ds.getHierarchyRoot();
+						}
+					);
+					var columns:Array = root.getObjects(EquationColumn).concat(root.getObjects(CSVColumn));
+					if (columns.length)
+						nodes.push({
+							source: root.childListCallbacks,
+							label: lang("Equations"),
+							isBranch: true,
+							hasChildBranches: false,
+							children: columns.map(
+								function(column:IAttributeColumn, ..._):* {
+									registerLinkableChild(rootNode, column);
+									var meta:Object = {};
+									meta[AttributeColumnCache.GLOBAL_COLUMN_METADATA_NAME] = root.getName(column);
+									return {
+										source: column,
+										label: function():String {
+											return column.getMetadata(ColumnMetadata.TITLE);
+										},
+										columnMetadata: meta
+									};
+								}
+							)
+						});
+					return nodes;
+				}
+			});
 		}
     }
 }

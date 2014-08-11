@@ -46,10 +46,6 @@
 	</mx:ControlBar>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.core.Container;
-			import mx.core.IFlexDisplayObject;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			

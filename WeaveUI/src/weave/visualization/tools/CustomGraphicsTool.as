@@ -26,7 +26,6 @@ package weave.visualization.tools
 	import mx.containers.Canvas;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.detectLinkableObjectChange;
@@ -35,22 +34,21 @@ package weave.visualization.tools
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IVisTool;
-	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
-	import weave.ui.SubMenuItem;
 	import weave.utils.GraphicsBuffer;
 	import weave.utils.PlotterUtils;
 	import weave.utils.TextGraphics;
 	
-	public class CustomGraphicsTool extends DraggablePanel implements IVisToolWithSelectableAttributes
+	public class CustomGraphicsTool extends DraggablePanel implements IVisTool, IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
+		WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
 		
 		override protected function constructor():void
 		{
@@ -99,10 +97,15 @@ package weave.visualization.tools
 			canvas.rawChildren.addChild(bitmap);
 
 			enableSubMenu.value = true;
-			subMenu.menuItems.push(
-				new SubMenuItem("Edit session state", toggleControlPanel),
-				new SubMenuItem("Select attributes", selectAttributes)
-			);
+			subMenu.dataProvider = [
+				{
+					label: lang("Edit session state"),
+					click: toggleControlPanel
+				},{
+					label: lang("Select attributes"),
+					click: selectAttributes
+				}
+			];
 			
 			vars.childListCallbacks.addImmediateCallback(this, handleVarList);
 		}

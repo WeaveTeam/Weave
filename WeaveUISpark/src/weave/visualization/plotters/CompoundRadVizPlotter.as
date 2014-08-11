@@ -26,7 +26,6 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -36,6 +35,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -62,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class CompoundRadVizPlotter extends AbstractPlotter
+	public class CompoundRadVizPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		public function CompoundRadVizPlotter()
 		{
@@ -87,6 +87,16 @@ package weave.visualization.plotters
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
 				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Size", "Color", "Anchor Dimensions"];
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [radiusColumn, fillStyle.color, columns];
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);

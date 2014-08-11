@@ -19,11 +19,18 @@
 
 package weave.ui.CustomDataGrid
 {
+	import flash.display.DisplayObject;
+	import flash.display.Graphics;
+	import flash.display.Sprite;
+	
 	import mx.collections.ArrayCollection;
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.controls.listClasses.IListItemRenderer;
+	import mx.controls.listClasses.ListBaseContentHolder;
 	import mx.core.EventPriority;
+	import mx.core.ILayoutDirectionElement;
+	import mx.core.SpriteAsset;
 	import mx.core.mx_internal;
 	import mx.events.DataGridEvent;
 	
@@ -104,6 +111,78 @@ package weave.ui.CustomDataGrid
 			var renderer:IListItemRenderer = itemToItemRenderer(item);
 			drawItem(renderer, selected, highlighted, caret, transition);
 		}
+		/**
+		 * @param items Array of items
+		 * @param selected function(item):Boolean
+		 */
+		public function highlightItemsForced(items:Array, selected:Function):void
+		{
+			_drawingItems = 0;
+			for each (var item:Object in items)
+			{
+				drawItemForced(item, selected(item), true);
+				_drawingItems++;
+			}
+			_drawingItems = 0;
+		}
+		private var _drawingItems:int = 0;
+		override protected function drawItem(item:IListItemRenderer, selected:Boolean=false, highlighted:Boolean=false, caret:Boolean=false, transition:Boolean=false):void
+		{
+			if (highlighted)
+				highlightUID = null;
+			
+			super.drawItem(item, selected, highlighted, caret, transition);
+		}
+		override protected function drawHighlightIndicator(indicator:Sprite, x:Number, y:Number, width:Number, height:Number, color:uint, itemRenderer:IListItemRenderer):void
+		{
+			$drawHighlightIndicator(indicator, x, y, unscaledWidth - viewMetrics.left - viewMetrics.right, height, color, itemRenderer);
+			if (lockedColumnCount)
+			{
+				var columnContents:ListBaseContentHolder;
+				if (itemRenderer.parent == listContent)
+					columnContents = lockedColumnContent;
+				else
+					columnContents = lockedColumnAndRowContent;
+				var selectionLayer:Sprite = columnContents.selectionLayer;
+				
+				if (!columnHighlightIndicator)
+				{
+					columnHighlightIndicator = new SpriteAsset();
+					columnContents.selectionLayer.addChild(DisplayObject(columnHighlightIndicator));
+				}
+				else
+				{
+					if (columnHighlightIndicator.parent != selectionLayer)
+						selectionLayer.addChild(columnHighlightIndicator);
+					else
+						selectionLayer.setChildIndex(DisplayObject(columnHighlightIndicator),
+							selectionLayer.numChildren - 1);
+				}
+				
+				// Let the columnHighlightIndicator inherit the layoutDirection
+				if (columnHighlightIndicator is ILayoutDirectionElement)
+					ILayoutDirectionElement(columnHighlightIndicator).layoutDirection = null;
+				
+				$drawHighlightIndicator(columnHighlightIndicator, x, y, columnContents.width, height, color, itemRenderer);
+			}
+		}
+		private function $drawHighlightIndicator(
+			indicator:Sprite, x:Number, y:Number,
+			width:Number, height:Number, color:uint,
+			itemRenderer:IListItemRenderer):void
+		{
+			var g:Graphics = Sprite(indicator).graphics;
+			if (_drawingItems == 0)
+				g.clear();
+			g.beginFill(color);
+			g.drawRect(x, y, width, height);
+			g.endFill();
+			
+			indicator.x = 0;
+			indicator.y = 0;
+		}
+		
+		
 		/**
 		 * There's a bug in Flex 3.6 SDK where the locked column content may not be updated
 		 * at the same time as the listItems for the DataGrid. This is an issue because they

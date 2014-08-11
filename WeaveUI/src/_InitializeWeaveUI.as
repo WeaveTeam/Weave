@@ -19,14 +19,15 @@
 
 package
 {
+	import weave.api.ui.IEditorManager;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CKANDataSource;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
+	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
-	import weave.data.Transforms.PartitionDataTransform;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
@@ -34,11 +35,13 @@ package
 	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.NumberDataFilter;
 	import weave.data.KeySets.StringDataFilter;
+	import weave.data.Transforms.PartitionDataTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
 	import weave.editors.DynamicColumnEditor;
+	import weave.editors.GeoJSONDataSourceEditor;
 	import weave.editors.GeometryLabelPlotterEditor;
 	import weave.editors.GeometryPlotterEditor;
 	import weave.editors.GeometryRelationPlotterEditor;
@@ -63,8 +66,8 @@ package
 	import weave.ui.DataFilter;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
+	import weave.ui.SessionStateEditor;
 	import weave.ui.userControls.SchafersMissingDataTool;
-	import weave.utils.EditorManager;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -90,6 +93,8 @@ package
 	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
+	import weave.visualization.tools.KeyMappingTool;
+	import weave.visualization.tools.LayerSettingsTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
@@ -103,7 +108,6 @@ package
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 	import weave.visualization.tools.TreeTool;
-	import weave.visualization.tools.KeyMappingTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -114,44 +118,48 @@ package
 	{
 		private static var _:* = function():void
 		{
+			SessionStateEditor.initializeShortcuts();
+			
+			var em:IEditorManager = WeaveAPI.EditorManager;
+			
 			/**
 			 * Register all ILinkableObjectEditor implementations.
 			 */
-			//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
+			//em.registerEditor(WeaveProperties, WeavePropertiesEditor);
 			
-			EditorManager.registerEditor(LinkableTextFormat, FontControl);
-			EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
+			em.registerEditor(LinkableTextFormat, FontControl);
+			em.registerEditor(DynamicColumn, DynamicColumnEditor);
 			
-			EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
-			EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
-			EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
-			EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
-			EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
-			EditorManager.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
-			EditorManager.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
-			EditorManager.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
-			EditorManager.registerEditor(CKANDataSource, CKANDataSourceEditor);
-			EditorManager.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
+			em.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
+			em.registerEditor(WFSDataSource, WFSDataSourceEditor);
+			em.registerEditor(XLSDataSource, XLSDataSourceEditor);
+			em.registerEditor(DBFDataSource, DBFDataSourceEditor);
+			em.registerEditor(CSVDataSource, CSVDataSourceEditor);
+			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
+			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
+			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
+			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
+			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
+			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
 			
-			EditorManager.registerEditor(StringDataFilter, StringDataFilterEditor);
-			EditorManager.registerEditor(NumberDataFilter, NumberDataFilterEditor);
+			em.registerEditor(StringDataFilter, StringDataFilterEditor);
+			em.registerEditor(NumberDataFilter, NumberDataFilterEditor);
 			
-			EditorManager.registerEditor(GeometryRelationPlotter, GeometryRelationPlotterEditor);
-			EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
-			EditorManager.registerEditor(GeometryPlotter, GeometryPlotterEditor);
-			EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
-			EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
-			EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
-			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
-			EditorManager.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
-			EditorManager.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
+			em.registerEditor(GeometryRelationPlotter, GeometryRelationPlotterEditor);
+			em.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
+			em.registerEditor(GeometryPlotter, GeometryPlotterEditor);
+			em.registerEditor(WMSPlotter, WMSPlotterEditor);
+			em.registerEditor(GridLinePlotter, GridLinePlotterEditor);
+			em.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
+			em.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
+			em.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
+			em.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
 			
-			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
-	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
-	        EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
-			EditorManager.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
+			em.registerEditor(ColorRamp, ColorRampEditor);
+	        em.registerEditor(RadVizTool, RadVizToolEditor);
+			em.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
 			
-			EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
+			em.registerEditor(SessionStateLog, SessionHistorySlider);
 			
 			// reference these tools so they will run their static initialization code
 			([
@@ -185,16 +193,23 @@ package
 				DataStatisticsTool,
 				RInterfaceTool,
 				TreeTool,
-				KeyMappingTool
+				KeyMappingTool,
+				LayerSettingsTool
 			]);
 			
 			/**
 			 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 			 */
 			WeaveXMLDecoder.includePackages(
+				"weave.application",
 				"weave.editors",
+				"weave.editors.managers",
+				"weave.menus",
 				"weave.ui",
 				"weave.ui.annotation",
+				"weave.ui.collaboration",
+				"weave.ui.controlBars",
+				"weave.ui.CustomDataGrid",
 				"weave.utils",
 				"weave.visualization",
 				"weave.visualization.tools",

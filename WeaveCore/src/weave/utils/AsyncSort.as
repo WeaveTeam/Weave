@@ -23,7 +23,6 @@ package weave.utils
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	
@@ -134,7 +133,7 @@ package weave.utils
 		{
 			// initialize
 			compare = compareFunction || defaultCompare;
-			original = arrayToSort;
+			original = arrayToSort || [];
 			source = original;
 			length = original.length;
 			

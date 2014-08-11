@@ -21,9 +21,8 @@ package weave.data.DataSources
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
@@ -35,17 +34,12 @@ package weave.data.DataSources
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
 	
-	/**
-	 * 
-	 * @author adufilie
-	 */
 	public class CKANDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
 		
 		public function CKANDataSource()
 		{
-			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _attributeHierarchy);
 		}
 
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString());
@@ -196,12 +190,12 @@ package weave.data.DataSources
 						datastore.metadata.setSessionState(
 							result['fields'].map(function(field:Object, i:*, a:*):Object {
 								var type:String = field['type'];
-								if (type == 'numeric' || type == 'int4')
-									type = DataTypes.NUMBER;
+								if (type == 'numeric' || type == 'int4' || type == 'int' || type == 'float' || type == 'double')
+									type = DataType.NUMBER;
 								if (type == 'text')
-									type = DataTypes.STRING;
+									type = DataType.STRING;
 								if (type == 'timestamp')
-									type = DataTypes.DATE;
+									type = DataType.DATE;
 								var meta:Object = {};
 								meta[ColumnMetadata.DATA_TYPE] = type;
 								meta[ColumnMetadata.TITLE] = field['id'];
@@ -242,7 +236,6 @@ import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
 import mx.utils.URLUtil;
 
-import weave.api.WeaveAPI;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
 import weave.api.data.IExternalLink;
@@ -264,6 +257,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	public static const PACKAGE_SHOW:String = 'package_show';
 	public static const GROUP_LIST:String = 'group_list';
 	public static const GROUP_SHOW:String = 'group_show';
+	public static const GROUP_PACKAGE_SHOW:String = 'group_package_show';
 	public static const TAG_LIST:String = 'tag_list';
 	public static const TAG_SHOW:String = 'tag_show';
 	public static const DATASTORE_SEARCH:String = 'datastore_search';
@@ -302,7 +296,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	{
 		if (detectLinkableObjectChange(this, source.url, source.apiVersion, source.useHttpPost))
 		{
-			if ([PACKAGE_LIST, PACKAGE_SHOW, GROUP_LIST, GROUP_SHOW, TAG_LIST, TAG_SHOW, DATASTORE_SEARCH].indexOf(action) >= 0)
+			if ([PACKAGE_LIST, PACKAGE_SHOW, GROUP_LIST, GROUP_SHOW, GROUP_PACKAGE_SHOW, TAG_LIST, TAG_SHOW, DATASTORE_SEARCH].indexOf(action) >= 0)
 			{
 				// make CKAN API request
 				_result = {};
@@ -395,9 +389,13 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		}
 		else
 		{
-			var error:Object = response.hasOwnProperty('error') ? response['error'] : response;
+			var error:Object = response && response.hasOwnProperty('error') ? response['error'] : response;
 			reportError("CKAN action failed: " + this.toString() + "; error=" + Compiler.stringify(error));
 		}
+		
+		// hack to support DKAN
+		if (action == PACKAGE_SHOW && _result is Array && _result.length == 1)
+			_result = _result[0];
 		
 		if (resultHandler != null)
 			resultHandler(_result);
@@ -460,14 +458,28 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (action == TAG_LIST)
 			return lang("Tags");
 		
-		if (action == PACKAGE_SHOW || action == GROUP_SHOW || action == TAG_SHOW)
-			return metadata['display_name'] || metadata['name'] || metadata['description'] || metadata['url']
-				|| (result is String ? result as String : (result['title'] || result['display_name'] || result['name']))
+		if (action == PACKAGE_SHOW || action == GROUP_SHOW || action == GROUP_PACKAGE_SHOW || action == TAG_SHOW)
+			return metadata['display_name']
+				|| metadata['name']
+				|| metadata['title']
+				|| metadata['description']
+				|| metadata['url']
+				|| (result is String
+					? result as String
+					: (result['title'] || result['display_name'] || result['name']))
 				|| params['id'];
 		
 		if (action == GET_DATASOURCE || action == DATASTORE_SEARCH)
 		{
-			var str:String = metadata['name'] || metadata['description'] || metadata['url'] || metadata['id'];
+			var str:String = metadata['name']
+				|| metadata['title']
+				|| metadata['description']
+				|| metadata['url']
+				|| metadata['id'];
+			
+			// hack to support DKAN
+			if (!metadata['format'] && metadata['mimetype'] == 'text/csv')
+				metadata['format'] = 'csv';
 			
 			// also display the format
 			if (metadata['format'])
@@ -496,7 +508,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (internalNode)
 			return internalNode.hasChildBranches();
 		
-		if (action == PACKAGE_SHOW)
+		if (action == PACKAGE_SHOW || action == GROUP_PACKAGE_SHOW)
 			return getChildren().length > 0;
 		if (action == GROUP_SHOW || action == TAG_SHOW)
 		{
@@ -571,7 +583,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				if (action == PACKAGE_LIST || action == TAG_SHOW)
 					node.action = PACKAGE_SHOW;
 				if (action == GROUP_LIST)
-					node.action = GROUP_SHOW;
+					node.action = GROUP_PACKAGE_SHOW;
 				if (action == TAG_LIST)
 					node.action = TAG_SHOW;
 				node.metadata = node.params = {"id": id};
@@ -580,15 +592,20 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		if (action == GROUP_LIST || action == TAG_LIST)
 			return updateChildren(result as Array, function(node:CKANAction, meta:Object):void {
 				if (action == GROUP_LIST)
-					node.action = GROUP_SHOW;
+					node.action = GROUP_PACKAGE_SHOW;
 				if (action == TAG_LIST)
 					node.action = TAG_SHOW;
 				node.metadata = meta;
+				
+				// hack to support DKAN
+				if (!meta['id'] && meta['uuid'])
+					meta['id'] = meta['uuid'];
+				
 				node.params = {"id": meta['id']};
 			});
 		
-		if ((action == GROUP_SHOW || action == TAG_SHOW) && result.hasOwnProperty('packages'))
-			return updateChildren(result['packages'], function(node:CKANAction, pkg:Object):void {
+		if (result && (action == GROUP_SHOW || action == GROUP_PACKAGE_SHOW || action == TAG_SHOW))
+			return updateChildren(result as Array || result['packages'], function(node:CKANAction, pkg:Object):void {
 				if (pkg is String)
 					pkg = {"id": pkg};
 				node.action = PACKAGE_SHOW;

@@ -25,7 +25,6 @@
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -42,7 +41,7 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
 			
 			private var _plotter:ColorBinLegendPlotter = null;
 			
@@ -119,15 +118,6 @@
 						return fc.internalDynamicColumn;
 				}
 				return null;
-			}
-
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Color data")];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.dynamicColorColumn];
 			}
 			
 			private function handleMarginLabelClick():void

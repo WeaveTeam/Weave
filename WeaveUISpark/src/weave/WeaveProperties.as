@@ -38,7 +38,6 @@ package weave
 	
 	import ru.etcs.utils.FontLoader;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
@@ -226,9 +225,7 @@ package weave
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
 		
-		// enable/disable advanced features
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);
-		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
 		// Collaboration
 		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar (bottom of screen)
@@ -240,10 +237,12 @@ package weave
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
+		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // tools menu
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
+		public const showAddExternalTools:LinkableBoolean = new LinkableBoolean(false); // Show Add External Tools dialog in tools menu.
 		
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
 		public function getToolToggle(classDef:Class):LinkableBoolean
@@ -272,7 +271,8 @@ package weave
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
 		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
-		public const showSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
+		public const enableManagePlugins:LinkableBoolean = new LinkableBoolean(false); // show "manage plugins" menu item
+		public const enableSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
 		
@@ -292,7 +292,7 @@ package weave
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
 		public const enableLoadMyData:LinkableBoolean = new LinkableBoolean(true); // enable/disable Load MyData option
 		public const enableBrowseData:LinkableBoolean = new LinkableBoolean(false); // enable/disable Browse Data option
-		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
+		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(false);
 		public const enableManageDataSources:LinkableBoolean = new LinkableBoolean(true); // enable/disable Edit Datasources option
 			
 		public const enableWindowMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Window Menu
@@ -303,7 +303,7 @@ package weave
 		public const enableCascadeAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Cascade All Windows
 		public const enableTileAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Tile All Windows
 		
-		public const enableSelectionsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Selections Menu
+		public const enableSelectionsMenu:LinkableBoolean = new LinkableBoolean(false);// enable/disable Selections Menu
 		public const enableSaveCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Save Current Selection option
 		public const enableClearCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Clear Current Selection option
 		public const enableManageSavedSelections:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage Saved Selections option
@@ -312,7 +312,7 @@ package weave
 		
 		private function verifySelectionMode(value:String):Boolean { return InteractionController.enumSelectionMode().indexOf(value) >= 0; }
 		
-		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subsets Menu
+		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(false);// enable/disable Subsets Menu
 		public const enableCreateSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Create subset from selected records option
 		public const enableRemoveSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Remove selected records from subset option
 		public const enableShowAllRecords:LinkableBoolean = new LinkableBoolean(true);// enable/disable Show All Records option
@@ -441,6 +441,8 @@ package weave
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
+
+		public const externalTools:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 		
 		private function handleRServiceURLChange():void
 		{
@@ -560,6 +562,7 @@ package weave
 		[Deprecated(replacement="visTextFormat.italic")] public function set axisFontFontItalic(value:Boolean):void { visTextFormat.italic.value = value; }
 		[Deprecated(replacement="visTextFormat.underline")] public function set axisFontFontUnderline(value:Boolean):void { visTextFormat.underline.value = value; }
 		
+		[Deprecated(replacement="enableSessionHistoryControls")] public function set showSessionHistoryControls(value:Boolean):void { enableSessionHistoryControls.value = enableSessionMenu.value && value; }
 		[Deprecated(replacement="enableLoadMyData")] public function set enableNewUserWizard(value:Boolean):void { enableLoadMyData.value = value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }

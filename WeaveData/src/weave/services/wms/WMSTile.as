@@ -20,15 +20,12 @@
 package weave.services.wms
 {
 	import flash.display.BitmapData;
-	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.services.IURLRequestToken;
-	import weave.api.services.IURLRequestUtils;
 	import weave.primitives.Bounds2D;
 
 	/**

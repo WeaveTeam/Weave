@@ -16,6 +16,7 @@
 package
 {
 	import flash.external.ExternalInterface;
+	import flash.system.Capabilities;
 	import flash.utils.getDefinitionByName;
 
 	/**
@@ -171,9 +172,18 @@ package
 			initialized = true;
 			var slashes:String = "\\\\";
 			backslashNeedsEscaping = (ExternalInterface.call('function(slashes){ return slashes; }', slashes) != slashes);
+			
 			try
 			{
 				json = getDefinitionByName("JSON");
+			}
+			catch (e:Error)
+			{
+				trace("Your version of Flash Player (" + Capabilities.version + ") does not have native JSON support.");
+			}
+			
+			if (json)
+			{
 				ExternalInterface.addCallback(JSON_CALL, handleJsonCall);
 				exec(
 					{
@@ -188,7 +198,7 @@ package
 					"    if (value === undefined)",
 					"        return UNDEFINED;",
 					"    if (typeof value != 'number' || isFinite(value))",
-					"        return value;",
+					"        return Array.isArray(value) ? [].concat(value) : value;",
 					"    if (value == Infinity)",
 					"        return INFINITY;",
 					"    if (value == -Infinity)",
@@ -208,10 +218,6 @@ package
 					"};"
 				);
 			}
-			catch (e:Error)
-			{
-				trace(e.getStackTrace() || "Your version of Flash Player does not have native JSON support.");
-			}
 		}
 		
 		/**
@@ -227,8 +233,12 @@ package
 				throw new Error("No such method: " + methodName);
 			
 			var params:Array = json.parse(paramsJson, _jsonReviver);
+			
+			ExternalInterface.marshallExceptions = true; // let the external code handle errors from the method
 			var result:* = method.apply(null, params);
-			var resultJson:String = json.stringify(result, _jsonReplacer);
+			ExternalInterface.marshallExceptions = false; // any other errors should be handled by flash
+			
+			var resultJson:String = json.stringify(result, _jsonReplacer) || 'null';
 			
 			// work around unescaped backslash bug
 			if (backslashNeedsEscaping && resultJson.indexOf('\\') >= 0)
@@ -273,9 +283,8 @@ package
 		 * Exposes a method to JavaScript.
 		 * @param methodName The name to be used in JavaScript.
 		 * @param method The method.
-		 * @param requiredParamCount The number of required (non-optional) parameters.
 		 */
-		public static function registerMethod(methodName:String, method:Function, requiredParamCount:int = -1):void
+		public static function registerMethod(methodName:String, method:Function):void
 		{
 			if (!initialized)
 				initialize();
@@ -287,21 +296,15 @@ package
 				return;
 			}
 			
-			if (requiredParamCount < 0)
-				requiredParamCount = method.length;
-			
 			exec(
 				{
 					"JSON_CALL": JSON_CALL,
 					"JSON_REPLACER": JSON_REPLACER,
 					"JSON_REVIVER": JSON_REVIVER,
-					"methodName": methodName,
-					"requiredParamCount": requiredParamCount
+					"methodName": methodName
 				},
 				"this[methodName] = function(){",
-				"    var params = new Array(requiredParamCount);",
-				"    for (var i in arguments)",
-				"        params[i] = arguments[i];",
+				"    var params = Array.prototype.slice.call(arguments);",
 				"    var paramsJson = JSON.stringify(params, this[JSON_REPLACER]);",
 				"    //console.log('input:', methodName, paramsJson);",
 				"    var resultJson = this[JSON_CALL](methodName, paramsJson);",
@@ -367,25 +370,22 @@ package
 					for (var key:String in item)
 					{
 						var value:* = item[key];
-						if (json)
+						if (key == 'this')
 						{
-							if (key == 'this')
-							{
-								// put a variable declaration at the beginning of the code
-								var thisVar:String = String(value);
-								if (thisVar)
-									code.unshift(JS_var_this(thisVar));
-							}
-							else if (key == 'catch')
-							{
-								// save error handler
-								marshallExceptions = value;
-							}
-							else
-							{
-								// put a variable declaration at the beginning of the code
-								code.unshift("var " + key + " = " + json.stringify(value) + ";");
-							}
+							// put a variable declaration at the beginning of the code
+							var thisVar:String = String(value);
+							if (thisVar)
+								code.unshift(JS_var_this(thisVar));
+						}
+						else if (key == 'catch')
+						{
+							// save error handler
+							marshallExceptions = value;
+						}
+						else if (json)
+						{
+							// put a variable declaration at the beginning of the code
+							code.unshift("var " + key + " = " + json.stringify(value) + ";");
 						}
 						else
 						{
@@ -422,7 +422,10 @@ package
 						appliedCode = appliedCode.split('\\').join('\\\\');
 					
 					// we need to use "eval" in order to receive syntax errors
-					result = ExternalInterface.call('eval', appliedCode);
+					var evalFunc:String = 'eval';
+					if (!marshallExceptions)
+						evalFunc = 'function(code){ try { return eval(code); } catch (e) { e.message += "\\n" + code; console.error(e); } }';
+					result = ExternalInterface.call(evalFunc, appliedCode);
 				}
 				else
 				{

@@ -19,7 +19,6 @@
 
 package weave.services
 {
-	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 
 	/**

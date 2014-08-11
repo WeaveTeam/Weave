@@ -21,7 +21,6 @@ package weave.services.wms
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
@@ -165,6 +164,26 @@ package weave.services.wms
 		{
 			reportError("Attempt to get copyright information of AbstractWMS.");
 			return null;
+		}
+		
+		// image dimensions
+		protected var _imageWidth:int;
+		protected var _imageHeight:int;
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getImageWidth():int
+		{
+			return _imageWidth;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getImageHeight():int
+		{
+			return _imageHeight;
 		}
 	}
 }

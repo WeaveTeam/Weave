@@ -21,15 +21,11 @@ package weave.radviz
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.radviz.ILayoutAlgorithm;
-	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.utils.ColumnUtils;
-	import weave.utils.RadVizUtils;
 	
 	/**
 	 * An implementation of the Class Discrimination Layout dimensional ordering algorithm.

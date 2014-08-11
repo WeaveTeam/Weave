@@ -32,32 +32,12 @@
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
-			import mx.controls.ToolTip;
-			import mx.core.Application;
-			import mx.core.IFlexDisplayObject;
-			import mx.events.CloseEvent;
-			import mx.events.ListEvent;
-			import mx.managers.PopUpManager;
-			import mx.utils.StringUtil;
-			
-			import org.igniterealtime.xiff.events.OutgoingDataEvent;
-			import org.igniterealtime.xiff.events.RoomEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableHashMap;
-			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
-			import weave.api.newDisposableChild;
 			import weave.api.registerDisposableChild;
-			import weave.api.registerLinkableChild;
-			import weave.api.setSessionState;
-			import weave.core.SessionManager;
-			import weave.core.SessionStateLog;
 			import weave.services.collaboration.CollaborationEvent;
 			import weave.services.collaboration.CollaborationService;
-			import weave.ui.AlertTextBox;
 			
 			public static function get instance():CollaborationTool
 			{
@@ -192,7 +172,7 @@
 		]]>
 	</mx:Script>
 
-	<mx:TabNavigator width="100%" height="100%" id="tabs">
+	<ui:CustomTabNavigator width="100%" height="100%" id="tabs">
 		<mx:VBox label="Chat" width="100%" height="100%"
 				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
 				 id="chat">
@@ -234,6 +214,6 @@
 				<mx:Button id="disconnectButton" label="{lang('Disconnect')}" enabled="false" click="collabService.disconnect();"/>
 			</mx:HBox>
 		</mx:VBox>
-	</mx:TabNavigator>
+	</ui:CustomTabNavigator>
 	
 </ui:DraggablePanel>

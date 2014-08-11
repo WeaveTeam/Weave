@@ -19,10 +19,8 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IPrimitiveColumn;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;

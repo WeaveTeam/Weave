@@ -36,9 +36,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.unlinkBindableProperty;
-			import weave.api.linkBindableProperty;
-			import weave.core.SessionManager;
 			import weave.visualization.tools.SimpleVisTool;
 			[Bindable]
 			public var colormapLinkingEnabled:Boolean = true;

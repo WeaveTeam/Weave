@@ -45,6 +45,8 @@
 		<![CDATA[
 			import avmplus.DescribeType;
 			
+			import flash.utils.getDefinitionByName;
+			
 			import mx.containers.VBox;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
@@ -52,7 +54,6 @@
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.reportError;
@@ -61,6 +62,8 @@
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
+			import weave.core.ClassUtils;
+			import weave.core.WeaveXMLDecoder;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
 			import weave.utils.MethodChainProxy;
@@ -141,25 +144,11 @@
 				return log.text = '';
 			}
 			
-			private const symbolTable:Object = {
+			private const symbolTable:Object = [{
 				'exec': JavaScript.exec,
-				'call': function(...args):*
-				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					var result:*;
-					try
-					{
-						ExternalInterface.marshallExceptions = true;
-						result = ExternalInterface.call.apply(this, args);
-					}
-					catch (e:Error)
-					{
-						ExternalInterface.marshallExceptions = prev;
-						throw e;
-					}
-					// we can't put this in a finally{} block because it prevents catch() from happening if set to false.
-					ExternalInterface.marshallExceptions = prev;
-					return result;
+				'call': function(...args):* {
+					ExternalInterface.marshallExceptions = true;
+					return ExternalInterface.call.apply(ExternalInterface, args);
 				},
 				'application': WeaveAPI.topLevelApplication,
 				'visApp': getVisApp(),
@@ -174,8 +163,18 @@
 				'chain': methodChainer,
 				'display': debugDisplayList,
 				'identify': Identify.identify,
+				'debugCompiler': function(script:String):String { return ObjectUtil.toString(new Compiler().compileToObject(script), null, 'evaluatedMethod,evaluatedHost,evaluatedMethodName,evaluatedParams,evalIndex,originalTokens'.split(',')); },
 				'_': {}
-			};
+			}, new ProxyObject(getClassDef, getClassDef, null)];
+			
+			private function getClassDef(className:String):Object
+			{
+				className = WeaveXMLDecoder.getClassName(className);
+				try {
+					return getDefinitionByName(className);
+				} catch (e:Error) { }
+				return null;
+			}
 			
 			private function styleProxy(component:UIComponent):ProxyObject
 			{
@@ -288,7 +287,14 @@
 				}
 				catch (e:*)
 				{
-					result = String(result)
+					try
+					{
+						result = String(result)
+					}
+					catch (ee:*)
+					{
+						result = debugId(result);
+					}
 				}
 				
 				// if the command runs successfully, clear the input area

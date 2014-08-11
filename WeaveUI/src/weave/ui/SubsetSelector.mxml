@@ -23,7 +23,7 @@
 					 title="{lang('Saved Subsets')}"
 					 width="25%" height="10%"
 					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
-	<mx:ViewStack width="100%" height="100%" id="viewStack">
+	<CustomViewStack width="100%" height="100%" id="viewStack">
 		<mx:Box width="100%" height="100%" id="comboView">
 			<CustomComboBox id="subsetSelectorBox"
 						 width="100%" height="100%" minHeight="0"
@@ -35,7 +35,7 @@
 			<mx:VSlider id="subsetSelectorSlider" width="100%" height="100%" minHeight="0" liveDragging="true" showDataTip="false" minimum="0" snapInterval="1"
 						change="itemSelected()"/>
 		</mx:Box>
-	</mx:ViewStack>
+	</CustomViewStack>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;

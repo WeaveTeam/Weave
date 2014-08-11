@@ -72,7 +72,7 @@ public class FileUtils
 	
 	/**
 	 * Extracts a single file from an archive.
-	 * @param archiveBase64 The bytes of the archive encoded as base64
+	 * @param archiveBytesBase64 The bytes of the archive encoded as base64
 	 * @param filePath The path in the archive of the file to extract
 	 * @return The bytes of the extracted file encoded as base64
 	 * @throws IOException
@@ -100,7 +100,7 @@ public class FileUtils
 	 * Extracts a single file from an archive.
 	 * @param archiveFile The archive
 	 * @param filePath The path in the archive of the file to extract
-	 * @return The bytes of the extracted file
+	 * @return The bytes of the extracted file, or null if the file does not exist in the archive.
 	 * @throws IOException
 	 */
 	public static byte[] extractFileFromArchive(File archiveFile, String filePath) throws IOException
@@ -112,6 +112,8 @@ public class FileUtils
 		{
 			archive = new ZipFile(archiveFile);
 			ZipEntry entry = archive.getEntry(filePath);
+			if (entry == null)
+				return null;
 			in = archive.getInputStream(entry);
 			out = new ByteArrayOutputStream();
 			FileUtils.copy(in, out);

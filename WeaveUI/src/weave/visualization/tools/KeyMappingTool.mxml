@@ -2,16 +2,12 @@
                    xmlns:mx="http://www.adobe.com/2006/mxml"
                    xmlns:ui="weave.ui.*" 
                    xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-                   layout="absolute" implements="weave.api.ui.IVisToolWithSelectableAttributes"
+                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
                    title="{lang('Key Mapping Tool')}" xmlns:editors="weave.editors.*">
                    <mx:Script>
 <![CDATA[
 
-import flash.utils.Dictionary;
-
 import weave.Weave;
-import weave.api.WeaveAPI;
-import weave.api.data.IKeySet;
 import weave.api.data.IQualifiedKey;
 import weave.api.linkBindableProperty;
 import weave.api.newLinkableChild;
@@ -20,9 +16,7 @@ import weave.core.LinkableBoolean;
 import weave.core.LinkableString;
 import weave.data.AttributeColumns.DynamicColumn;
 import weave.data.KeySets.KeySet;
-import weave.data.KeySets.KeySetUnion;
 import weave.utils.ColumnUtils;
-import weave.utils.DebugUtils;
 
 
 public const sourceKeyType:LinkableString = newLinkableChild(this, LinkableString, handleColumnsChange, true);
@@ -46,7 +40,7 @@ private var reverseKeyMapping:Dictionary = new Dictionary();
 private var currentlyMappedKeys:KeySet = new KeySet(); /* To ensure we only do one step */
 private var previouslyMappedKeys:KeySet = new KeySet();
 
-WeaveAPI.registerImplementation(IVisTool, KeyMappingTool, "Foreign Key Mapping Tool");
+WeaveAPI.ClassRegistry.registerImplementation(IVisTool, KeyMappingTool, "Foreign Key Mapping Tool");
 
 override protected function constructor():void
 {
@@ -57,7 +51,7 @@ private function mapKeys(inputKeys:KeySet, mapping:Dictionary):KeySet
     
     var outputKeys:KeySet = new KeySet();
     var inputKeyArray:Array = inputKeys.keys;
-    for (var i:int = inputKeyArray.length; i >= 0; i--)
+    for (var i:int = inputKeyArray.length -1; i >= 0; i--)
     {
         var inKey:IQualifiedKey = inputKeyArray[i] as IQualifiedKey;
         
@@ -115,7 +109,7 @@ private function handleColumnsChange():void
 
     var columns:Array = ColumnUtils.joinColumns([sourceLocalNameColumn, targetLocalNameColumn], String);
     
-    for (var i:int = columns[0].length; i >= 0; i--)
+    for (var i:int = columns[0].length - 1; i >= 0; i--)
     {
         var sourceKeyLocalName:String = columns[1][i];
         var targetKeyLocalName:String = columns[2][i];
@@ -162,7 +156,7 @@ public function getSelectableAttributes():Array
 
 public function getSelectableAttributeNames():Array
 {
-    return [sourceLocalNameColumnComponent.label, targetLocalNameColumnComponent.label];
+    return ['Source LocalName', 'Target LocalName'];
 }
 
 ]]>
@@ -171,15 +165,15 @@ public function getSelectableAttributeNames():Array
         <mx:VBox label="{lang('Attributes')}">
             <mx:HBox>
                 <mx:Label text="{lang('Source KeyType')}"/>
-                <mx:TextInput id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500)"/>
+                <ui:KeyTypesMenu id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500, true)"/>
             </mx:HBox>
-            <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent" label="{lang('Source LocalName')}"/>
+            <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent"/>
             <mx:HBox>
                 <mx:Label text="{lang('Target KeyType')}"/>
-                <mx:TextInput id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500)"/>
+                <ui:KeyTypesMenu id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500, true)"/>
             </mx:HBox>
 
-            <ui:DynamicColumnComponent id="targetLocalNameColumnComponent" label="{lang('Target LocalName')}"/>
+            <ui:DynamicColumnComponent id="targetLocalNameColumnComponent"/>
 
             <mx:CheckBox id="enableSelectionCheckBox"
                 label="{lang('Perform Mapping on Selection')}"

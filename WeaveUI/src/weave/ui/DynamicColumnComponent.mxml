@@ -26,8 +26,10 @@
 -->
 <Indent xmlns:mx="http://www.adobe.com/2006/mxml" 
 		xmlns="weave.ui.*"
+		implements="weave.api.core.ILinkableObject"
 		height="30" creationPolicy="all"
-		verticalAlign="middle" implements="weave.api.core.ILinkableObject"
+		verticalAlign="middle"
+		translate="true"
 		>
 	<mx:HBox horizontalGap="4" width="100%">
 		<mx:List id="internalList"
@@ -88,7 +90,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.newLinkableChild;
-			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -150,8 +152,8 @@
 			
 			private function updateLabel():void
 			{
-				toolWatcher.target = AttributeSelectorPanel.getVisTool(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
-				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
+				toolWatcher.target = AttributeSelectorPanel.getOwnerWithSelectableAttributes(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
+				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
 				if (!tool)
 					return;
 				var names:Array = tool.getSelectableAttributeNames();

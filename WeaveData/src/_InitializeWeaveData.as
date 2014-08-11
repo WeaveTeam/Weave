@@ -19,7 +19,6 @@
 
 package
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
 	import weave.api.data.IProjectionManager;
@@ -39,12 +38,12 @@ package
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */
-		WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-		WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-		WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IProjectionManager, ProjectionManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
 		[Embed(source="WeavePathData.js", mimeType="application/octet-stream")]
 		public static const WeavePathData:Class;
 		/**
@@ -57,7 +56,11 @@ package
 			"weave.data.BinningDefinitions",
 			"weave.data.DataSources",
 			"weave.data.KeySets",
+			"weave.data.Transforms",
 			"weave.primitives",
+			"weave.services",
+			"weave.services.beans",
+			"weave.services.collaboration",
 			"weave.services.wms"
 		);
 	}

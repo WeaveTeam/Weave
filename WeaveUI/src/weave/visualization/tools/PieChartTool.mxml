@@ -26,7 +26,6 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
@@ -37,7 +36,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.PieChartPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartTool, "Pie Chart");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, PieChartTool, "Pie Chart");
 			
 			public var _plotter:PieChartPlotter = null;
 			
@@ -55,7 +54,6 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(_plotter.data);
 				// see if there is a matching column in probe headers
 				var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 				for (var i:int = 0; i < headers.length; i++)
@@ -74,6 +72,11 @@
 				visualization.plotManager.marginBottom.value = "65";
 				visualization.plotManager.marginLeft.value = "85";
 				visualization.plotManager.marginRight.value = "85";
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([_plotter.data], input);
 			}
 			
 			override protected function childrenCreated():void
@@ -138,15 +141,6 @@
 				visualization.additionalProbeColumns = columns;
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Wedge Size"),lang("Wedge Color"),lang("Label")];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.data, _plotter.fill.color, _plotter.label];
-			}
-			
 			private function invalidateAxes():void
 			{
 				handlePanelTitleChange();
@@ -180,7 +174,7 @@
 		<mx:VBox label="{lang('Mouseover info')}">
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+				<ui:CheckBoxList id="probeChecklist" translate="true" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>

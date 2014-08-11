@@ -24,11 +24,12 @@ package weave.utils
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.copySessionState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IKeyFilter;
@@ -88,9 +89,9 @@ package weave.utils
 			var projection:String = column.getMetadata(ColumnMetadata.PROJECTION);
 			var dateFormat:String = column.getMetadata(ColumnMetadata.DATE_FORMAT);
 			
-			if (dataType == DataTypes.DATE && dateFormat)
+			if (dataType == DataType.DATE && dateFormat)
 				dataType = dataType + '; ' + dateFormat;
-			if (dataType == DataTypes.GEOMETRY && projection)
+			if (dataType == DataType.GEOMETRY && projection)
 				dataType = dataType + '; ' + projection;
 			
 			if (dataType && keyType)
@@ -350,30 +351,37 @@ package weave.utils
 		 * @param columns A list of IAttributeColumns to compute a join table from.
 		 * @param dataType The dataType parameter to pass to IAttributeColumn.getValueFromKey().
 		 * @param allowMissingData If this is set to true, then all keys will be included in the join result.  Otherwise, only the keys that have associated values will be included.
-		 * @param keys A list of IQualifiedKey objects to use to filter the results.
+		 * @param keyFilter Either an IKeyFilter or an Array of IQualifiedKey objects used to filter the results.
 		 * @return An Array of Arrays, the first being IQualifiedKeys and the rest being Arrays data values from the given columns that correspond to the IQualifiedKeys. 
 		 */
-		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keys:Array = null):Array
+		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keyFilter:Object = null):Array
 		{
+			var keys:Array;
 			var key:IQualifiedKey;
 			var column:IAttributeColumn;
 			// if no keys are specified, get the keys from the columns
-			if (keys == null)
+			if (keyFilter is Array)
+			{
+				keys = (keyFilter as Array).concat(); // make a copy so we don't modify the original
+			}
+			else if (keyFilter is IKeySet)
+			{
+				keys = (keyFilter as IKeySet).keys.concat(); // make a copy so we don't modify the original
+			}
+			else
 			{
 				// count the number of appearances of each key in each column
 				var keyCounts:Dictionary = new Dictionary();
 				for each (column in columns)
 					for each (key in column.keys)
 						keyCounts[key] = int(keyCounts[key]) + 1;
-				// get a list of keys that appeared in every column
+				// get a list of keys
 				keys = [];
+				var filter:IKeyFilter = keyFilter as IKeyFilter;
 				for (var qkey:* in keyCounts)
 					if (allowMissingData || keyCounts[qkey] == columns.length)
-						keys.push(qkey);
-			}
-			else
-			{
-				keys = keys.concat(); // make a copy so we don't modify the original
+						if (!filter || filter.containsKey(qkey))
+							keys.push(qkey);
 			}
 			// put the keys in the result
 			var result:Array = [keys];
@@ -384,7 +392,7 @@ package weave.utils
 				var values:Array = [];
 				for (var kIndex:int = 0; kIndex < keys.length; kIndex++)
 				{
-					var value:* = column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType);
+					var value:* = column ? column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType) : undefined;
 					var isUndef:Boolean = StandardLib.isUndefined(value);
 					if (!allowMissingData && isUndef)
 					{
@@ -583,6 +591,66 @@ package weave.utils
 		public static function sortMetadataPropertyNames(names:Array):void
 		{
 			AsyncSort.sortImmediately(names, _compareMetadataPropertyNames);
+		}
+		
+		/**
+		 * This will initialize selectable attributes using a list of columns and/or column references.
+		 * @param selectableAttributes An Array of IColumnWrapper and/or ILinkableHashMaps to initialize.
+		 * @param columns An Array of IAttributeColumn and/or IColumnReference objects
+		 */
+		public static function initSelectableAttributes(selectableAttributes:Array, input:Array):void
+		{
+			for (var i:int = 0; i < selectableAttributes.length; i++)
+				initSelectableAttribute(selectableAttributes[i], input[i % input.length]);
+		}
+		
+		/**
+		 * This will initialize one selectable attribute using a column or column reference. 
+		 * @param selectableAttribute A selectable attribute (Either an IColumnWrapper or an ILinkableHashMap)
+		 * @param column_or_columnReference Either an IAttributeColumn or an ILinkableHashMap
+		 * @param clearHashMap If the selectableAttribute is an ILinkableHashMap, all objects will be removed from it prior to adding a column.
+		 */
+		public static function initSelectableAttribute(selectableAttribute:Object, column_or_columnReference:Object, clearHashMap:Boolean = true):void
+		{
+			var inputCol:IAttributeColumn = column_or_columnReference as IAttributeColumn;
+			var inputRef:IColumnReference = column_or_columnReference as IColumnReference;
+			
+			var outputCol:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
+			if (outputCol && outputCol.getInternalColumn() == null)
+			{
+				if (inputCol)
+				{
+					if (inputCol is DynamicColumn)
+						copySessionState(inputCol, outputCol);
+					else
+						outputCol.requestLocalObjectCopy(inputCol);
+				}
+				else if (inputRef)
+					ReferencedColumn(
+						outputCol.requestLocalObject(ReferencedColumn, false)
+					).setColumnReference(
+						inputRef.getDataSource(),
+						inputRef.getColumnMetadata()
+					);
+				else
+					outputCol.removeObject();
+			}
+			
+			var outputHash:ILinkableHashMap = selectableAttribute as ILinkableHashMap;
+			if (outputHash)
+			{
+				if (clearHashMap)
+					outputHash.removeAllObjects()
+				if (inputCol)
+					outputHash.requestObjectCopy(null, inputCol);
+				else if (inputRef)
+					ReferencedColumn(
+						outputHash.requestObject(null, ReferencedColumn, false)
+					).setColumnReference(
+						inputRef.getDataSource(),
+						inputRef.getColumnMetadata()
+					);
+			}
 		}
 		
 		//todo: (cached) get sorted index from a key and a column

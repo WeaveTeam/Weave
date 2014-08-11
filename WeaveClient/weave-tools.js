@@ -100,7 +100,7 @@ function getEntityTree(dataServiceUrl, rootEntityId, callback)
 			callback(lookup[rootEntityId]);
 		});
 	}
-	cacheEntityTree([rootEntityId], callback);
+	cacheEntityTree([rootEntityId]);
 }
 
 /**
@@ -157,9 +157,8 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 		metadata['weaveEntityId'] = columnId;
 	
 	if (sqlParams)
-		metadata['sqlParams'] = path.libs('weave.api.WeaveAPI')
-			.vars({"_arr": sqlParams})
-			.getValue('WeaveAPI.CSVParser.createCSVRow(_arr)');
+		metadata['sqlParams'] = path.vars({"params": sqlParams}, true)
+			.getValue('WeaveAPI.CSVParser.createCSVRow(params)');
 	
 	// make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
 	path.request('DynamicColumn')

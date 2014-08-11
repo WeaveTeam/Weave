@@ -32,7 +32,6 @@
 			import spark.core.SpriteVisualElement;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
@@ -50,7 +49,7 @@
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.CompoundRadVizPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, CompoundRadVizTool, "Compound RadViz");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CompoundRadVizTool, "Compound RadViz");
 			
 			private static const ANCHOR_LAYER:String = "anchorLayer";
 			
@@ -70,16 +69,6 @@
 				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
-				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
-				var columnsToInit:Array = [];
-				for (var i:int = 0; i < count; i++)
-				{
-					columnsToInit.push(_plotter.columns.requestObject(null, DynamicColumn, false));
-				}
-				
-				if(columnsToInit.length > 0)
-					(initColumnDefaults as Function).apply(null, columnsToInit);
-				
 				_plotter.setAnchorLocations();
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true);
 				visualization.plotManager.getLayerSettings(ANCHOR_LAYER).selectable.value = false;
@@ -91,6 +80,13 @@
 				
 				visualization.plotManager.marginTop.value =	visualization.plotManager.marginBottom.value = "20";
 				visualization.plotManager.marginLeft.value = visualization.plotManager.marginRight.value = "20";				
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				input.forEach(function(item:Object, i:int, a:Array):void {
+					ColumnUtils.initSelectableAttribute(_plotter.columns, item, i == 0);
+				});
 			}
 			
 			override protected function childrenCreated():void
@@ -188,16 +184,6 @@
 				var theta:Number = _probedAnchor.polarRadians.value;
 				_probedAnchor.x.value = Math.cos(theta);
 				_probedAnchor.y.value = Math.sin(theta);			
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Size"), lang("Color"), lang("Anchor Dimensions")];
-			}
-			
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.radiusColumn, _plotter.fillStyle.color, _plotter.columns];
 			}
 			
 			override public function get defaultPanelTitle():String

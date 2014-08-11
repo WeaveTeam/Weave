@@ -21,10 +21,9 @@ package weave.visualization.plotters
 {
 	import flash.display.Graphics;
 	import flash.display.Shape;
-	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
+	import weave.api.core.DynamicState;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -33,11 +32,9 @@ package weave.visualization.plotters
 	import weave.api.reportError;
 	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -50,8 +47,6 @@ package weave.visualization.plotters
 	{
 		public function CircleGlyphPlotter()
 		{
-			// initialize default line & fill styles
-			lineStyle.requestLocalObject(SolidLineStyle, false);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 
@@ -70,7 +65,7 @@ package weave.visualization.plotters
 		public const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		// delare dependency on statistics (for norm values)
 		private const _screenRadiusStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius));
-		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
 		// backwards compatibility
 		[Deprecated] public function set fillStyle(value:Object):void
@@ -100,7 +95,7 @@ package weave.visualization.plotters
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
-			lineStyle.beginLineStyle(recordKey, graphics);
+			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
 			
 			var radius:Number;
@@ -162,6 +157,18 @@ package weave.visualization.plotters
 			}
 			graphics.endFill();
 //			graphics.moveTo(tempPoint.x, tempPoint.y);
+		}
+		
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 	}
 }

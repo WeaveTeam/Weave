@@ -25,7 +25,6 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
@@ -38,6 +37,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -64,7 +64,7 @@ package weave.visualization.plotters
 	 * @author adufilie
 	 * @author abaumann
 	 */
-	public class ParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries 
+	public class ParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
 	{
 		public function ParallelCoordinatesPlotter()
 		{
@@ -113,6 +113,22 @@ package weave.visualization.plotters
 			}
 			
 			updateFilterEquationColumns();
+		}
+		
+		
+		public function getSelectableAttributeNames():Array
+		{
+			if (enableGroupBy.value)
+				return ["X values", "Y values", "Group by", "Group color"];
+			else
+				return ["Color", "Y Columns"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			if (enableGroupBy.value)
+				return [xData, yData, groupBy, lineStyle.color];
+			else
+				return [lineStyle.color, columns];
 		}
 
 		/*

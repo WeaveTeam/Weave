@@ -23,7 +23,6 @@ package weave.visualization.plotters
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -44,7 +43,7 @@ package weave.visualization.plotters
 	 */
 	public class AxisLabelPlotter extends AbstractPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, AxisLabelPlotter, "Axis labels");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, AxisLabelPlotter, "Axis labels");
 		
 		public function AxisLabelPlotter()
 		{
@@ -173,5 +172,6 @@ package weave.visualization.plotters
 		
 		// backwards compatibility
 		[Deprecated] public function set start(value:Number):void { begin.value = offset.value = value; }
+		[Deprecated] public function set horizontal(value:Boolean):void { alongXAxis.value = value; }
 	}
 }

@@ -45,7 +45,6 @@
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.visualization.layers.PlotManager;

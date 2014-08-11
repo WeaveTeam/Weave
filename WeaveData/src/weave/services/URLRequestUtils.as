@@ -35,7 +35,6 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.URLUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
 	import weave.compiler.StandardLib;
@@ -129,6 +128,9 @@ package weave.services
 		 */
 		public function getURL(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
 		{
+			var urlLoader:CustomURLLoader;
+			var fault:Fault;
+			
 			if (request.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
 			{
 				var fileName:String = request.url.substr(LOCAL_FILE_URL_SCHEME.length);
@@ -136,21 +138,18 @@ package weave.services
 				// If it's a local file, we still need to return a new URLLoader.
 				// CustomURLLoader doesn't load if the last parameter to the constructor is false.
 				urlLoader = new CustomURLLoader(request, dataFormat, false);
+				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 				
-				var handler:Function;
-				var event:Event;
 				if (_localFiles.hasOwnProperty(fileName))
 				{
-					handler = asyncResultHandler;
-					event = ResultEvent.createEvent(_localFiles[fileName]);
+					WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyResult, [_localFiles[fileName]]);
 				}
 				else
 				{
-					handler = asyncFaultHandler;
-					event = FaultEvent.createEvent(new Fault("Error", "Missing local file: " + fileName));
+					fault = new Fault("Error", "Missing local file: " + fileName);
+					WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyFault, [fault]);
 				}
 				
-				WeaveAPI.StageUtils.callLater(relevantContext, handler || noOp, [event, token]);
 				return urlLoader;
 			}
 			
@@ -159,11 +158,9 @@ package weave.services
 			// attempt to load crossdomain.xml from same folder as file
 			//Security.loadPolicyFile(URLUtil.getFullURL(request.url, 'crossdomain.xml'));
 			
-			var urlLoader:CustomURLLoader;
 			try
 			{
 				urlLoader = new CustomURLLoader(request, dataFormat, true);
-				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 			}
 			catch (e:Error)
 			{
@@ -171,18 +168,17 @@ package weave.services
 				// and return a new URLLoader. CustomURLLoader doesn't load if the 
 				// last parameter to the constructor is false.
 				urlLoader = new CustomURLLoader(request, dataFormat, false);
-				WeaveAPI.StageUtils.callLater(
-					relevantContext, 
-					asyncFaultHandler || noOp, 
-					[new FaultEvent(FaultEvent.FAULT, false, true, new Fault(String(e.errorID), e.name, e.message)), token]
-				);
+				
+				fault = new Fault(String(e.errorID), e.name, e.message);
+				fault.rootCause = e;
+				WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyFault, [fault]);
 			}
+			
+			urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 			
 			return urlLoader;
 		}
 		
-		private function noOp(..._):void { } // does nothing
-
 		/**
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
 		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
@@ -248,9 +244,9 @@ package weave.services
 			var bytes:ByteArray = resultEvent.result as ByteArray;
 			if (!bytes || bytes.length == 0)
 			{
-				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault("Error", "HTTP GET failed: Content is null from " + url));
+				var fault:Fault = new Fault("Error", "HTTP GET failed: Content is null from " + url);
 				delete _requestURLToLoader[url];
-				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
+				customURLLoader.applyFault(fault);
 				return;
 			}
 
@@ -274,9 +270,9 @@ package weave.services
 			};
 			var handleLoaderError:Function = function(errorEvent:IOErrorEvent):void
 			{
-				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault(errorEvent.type, errorEvent.text));
+				var fault:Fault = new Fault(errorEvent.type, errorEvent.text + " (" + url + ")");
 				delete _requestURLToLoader[url];
-				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
+				customURLLoader.applyFault(fault);
 			};
 		
 		
@@ -312,7 +308,6 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
 
-import weave.api.WeaveAPI;
 import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
 import weave.compiler.StandardLib;
@@ -467,7 +462,7 @@ internal class CustomURLLoader extends URLLoader
 		{
 			_resumeFunc = resume; // this cancels the pending delay behavior
 		}
-		else
+		else if (_resumeFunc != resume)
 		{
 			_resumeFunc(_resumeParam);
 		}
@@ -490,7 +485,7 @@ internal class CustomURLLoader extends URLLoader
 		}
 		
 		// broadcast result to responders
-		_asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data));
+		applyResult(data);
 	}
 	
 	private function fixErrorMessage(errorEvent:ErrorEvent):void
@@ -525,11 +520,11 @@ internal class CustomURLLoader extends URLLoader
 		if (errorEvent)
 		{
 			fixErrorMessage(errorEvent);
-			fault = new Fault(String(event.type), event.type, errorEvent.text);
+			fault = new Fault(event.type, event.type, errorEvent.text);
 		}
 		else
-			fault = new Fault(String(event.type), event.type, "Request cancelled");
-		_asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault));
+			fault = new Fault(event.type, event.type, "Request cancelled");
+		applyFault(fault);
 		_isClosed = true;
 	}
 	
@@ -550,6 +545,18 @@ internal class CustomURLLoader extends URLLoader
 		{
 			handleGetError(event);
 		}
+	}
+	
+	internal function applyResult(data:Object):void
+	{
+		if (this.data !== data)
+			this.data = data;
+		_asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data));
+	}
+	
+	internal function applyFault(fault:Fault):void
+	{
+		_asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault));
 	}
 }
 

@@ -27,25 +27,11 @@ package weave.data.AttributeColumns
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.reportError;
 
 	public class ImageColumn extends DynamicColumn
 	{
-		public function ImageColumn()
-		{
-		}
-		
-		[Embed( source="/weave/resources/images/missing.png")]
-		private static var _missingImageClass:Class;
-		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
-		
-		/**
-		 * This is the image cache.
-		 */
-		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
-		
 		/**
 		 * This function returns BitmapData objects as its default dataType.
 		 * @inheritDoc
@@ -56,6 +42,22 @@ package weave.data.AttributeColumns
 				return super.getValueFromKey(key, dataType);
 			
 			var url:String = super.getValueFromKey(key, String) as String;
+			return getImageFromUrl(url);
+		}
+		
+		//------------------------------
+		
+		[Embed( source="/weave/resources/images/missing.png")]
+		private static var _missingImageClass:Class;
+		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
+		
+		/**
+		 * This is the image cache.
+		 */
+		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+		
+		public function getImageFromUrl(url:String):BitmapData
+		{
 			if (url && _urlToImageMap[url] === undefined) // only request image if not already requested
 			{
 				_urlToImageMap[url] = null; // set this here so we don't make multiple requests

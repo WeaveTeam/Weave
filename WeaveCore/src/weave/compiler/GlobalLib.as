@@ -19,6 +19,8 @@
 
 package weave.compiler
 {
+	import avmplus.DescribeType;
+	
 	import flash.debugger.enterDebugger;
 	import flash.net.getClassByAlias;
 	import flash.net.navigateToURL;
@@ -58,6 +60,8 @@ package weave.compiler
 	 */
 	public class GlobalLib
 	{
+		public static const describeTypeJSON:Function = avmplus.DescribeType.getInfo;
+		
 		public static const enterDebugger:Function = flash.debugger.enterDebugger;
 		
 		public static const getClassByAlias:Function = flash.net.getClassByAlias;

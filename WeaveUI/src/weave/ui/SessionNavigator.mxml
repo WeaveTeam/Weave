@@ -39,7 +39,6 @@
 		<![CDATA[
 			import mx.events.ListEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.compiler.Compiler;
 			import weave.core.SessionManager;

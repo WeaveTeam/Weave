@@ -24,7 +24,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -42,7 +41,7 @@ package weave.visualization.plotters
 	 */
 	public class SimpleGlyphPlotter extends AbstractGlyphPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, SimpleGlyphPlotter, "Simple glyphs");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, SimpleGlyphPlotter, "Simple glyphs");
 		
 		public function SimpleGlyphPlotter()
 		{

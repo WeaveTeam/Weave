@@ -32,7 +32,6 @@
 
 <mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IDataSource;
@@ -40,7 +39,7 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.utils.VectorUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
 			
 			override protected function constructor():void
 			{

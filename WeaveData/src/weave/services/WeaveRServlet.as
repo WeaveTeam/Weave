@@ -93,6 +93,12 @@ package weave.services
 		{
 			return servlet.invokeAsyncMethod("normalize", arguments);
 			
-		}	
+		}
+		
+		public function doClassDiscrimination(dataX:Array, dataY:Array, flag:Boolean):AsyncToken
+		{
+			return servlet.invokeAsyncMethod("doClassDiscrimintation", arguments);
+		}
+		
 	}
 }

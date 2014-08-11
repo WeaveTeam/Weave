@@ -48,7 +48,6 @@ package weave.services.collaboration
 	import org.igniterealtime.xiff.util.*;
 	import org.igniterealtime.xiff.vcard.*;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;

@@ -39,30 +39,12 @@
 				// lock dynamic objects into place
 				_plotter = initializePlotters(StickFigureGlyphPlotter, true);
 
-				initColumnDefaults(
-						_plotter.dataX,
-						_plotter.dataY,
-						_plotter.theta1,
-						_plotter.theta2,
-						_plotter.theta3,
-						_plotter.theta4
-					);
-				
 				_plotter.dataX.addImmediateCallback(this,updateProbeColumns);
 				_plotter.dataY.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta1.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta2.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta3.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta4.addImmediateCallback(this,updateProbeColumns);
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["X","Y","Theta 1","Theta 2","Theta 3","Theta 4"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.dataX,_plotter.dataY,_plotter.theta1,_plotter.theta2,_plotter.theta3,_plotter.theta4];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);

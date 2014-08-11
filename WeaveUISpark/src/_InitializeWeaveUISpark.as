@@ -41,7 +41,6 @@ package
 	 */
 	public class _InitializeWeaveUISpark
 	{
-		
 		/**
 		 * Register all ILinkableObjectEditor implementations.
 		 */
@@ -73,6 +72,7 @@ package
 			"weave.visualization",
 			"weave.visualization.tools",
 			"weave.visualization.layers",
+			"weave.visualization.layers.filters",
 			"weave.visualization.plotters",
 			"weave.visualization.plotters.styles"
 		);

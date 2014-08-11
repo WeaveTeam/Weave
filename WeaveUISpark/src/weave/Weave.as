@@ -19,7 +19,6 @@
 
 package weave
 {
-	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.events.NetStatusEvent;
 	import flash.external.ExternalInterface;
@@ -28,16 +27,14 @@ package weave
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.core.UIComponent;
-	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.WeaveArchive;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -45,6 +42,7 @@ package weave
 	import weave.core.LibraryUtils;
 	import weave.core.LinkableHashMap;
 	import weave.core.SessionStateLog;
+	import weave.core.WeaveArchive;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -52,7 +50,6 @@ package weave
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
-	import weave.utils.BitmapUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -61,26 +58,17 @@ package weave
 	{
 		SparkClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
-		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
-
 		public static var debug:Boolean = false;
 		
-		
 		private static var _root:ILinkableHashMap = null; // root object of Weave
-		private static var _history:SessionStateLog = null; // root session history
 
 		/**
 		 * This is the root object in Weave, which is an ILinkableHashMap.
 		 */
 		public static function get root():ILinkableHashMap
 		{
-			if (_root == null)
-			{
-				_root = WeaveAPI.globalHashMap;
-				createDefaultObjects(_root);
-				_history = new SessionStateLog(_root, 100);
-			}
-			return _root;
+			createDefaultObjects(WeaveAPI.globalHashMap);
+			return WeaveAPI.globalHashMap;
 		}
 		
 		/**
@@ -88,9 +76,8 @@ package weave
 		 */		
 		public static function get history():SessionStateLog
 		{
-			if (!root) // this check will initialize the _history variable
-				throw "unexpected";
-			return _history;
+			createDefaultObjects(WeaveAPI.globalHashMap);
+			return WeaveArchive.history;
 		}
 
 		/**
@@ -107,8 +94,26 @@ package weave
 		public static function getSessionStateXML():XML
 		{
 			var xml:XML = WeaveXMLEncoder.encode(root.getSessionState(), "Weave");
-			if (ALLOW_PLUGINS)
-				xml.@plugins = WeaveAPI.CSVParser.createCSVRow(getPluginList());
+			
+			var plugins:Array = getPluginList();
+			if (plugins.length)
+				xml.@plugins = WeaveAPI.CSVParser.createCSVRow(plugins);
+			
+			WeaveArchive.updateLocalThumbnailAndScreenshot(false);
+			
+			// embed local files
+			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
+			{
+				var bytes:ByteArray = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
+				
+				// use Base64Encoder here instead of StandardLib.btoa() because we want the line breaks in the XML.
+				var encoder:Base64Encoder = new Base64Encoder();
+				encoder.encodeBytes(bytes);
+				var ascii:String = encoder.flush();
+				
+				xml.appendChild(<ByteArray name={ fileName } encoding="base64">{ ascii }</ByteArray>);
+			}
+			
 			return xml;
 		}
 		
@@ -141,6 +146,9 @@ package weave
 		 */
 		private static function createDefaultObjects(target:ILinkableHashMap):void
 		{
+			if (target.objectIsLocked(DEFAULT_WEAVE_PROPERTIES))
+				return;
+			
 			target.requestObject(DEFAULT_WEAVE_PROPERTIES, WeaveProperties, true);
 
 			// default color column
@@ -161,27 +169,31 @@ package weave
 
 			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
 			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
+			
+			// clear history afterwards so that the creation of these default objects do not get recorded.
+			history.clearHistory();
 		}
 		
 		
 		
 		/******************************************************************************************/
 		
-		public static const THUMBNAIL_SIZE:int = 200;
-		public static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
-		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
-		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
-		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
-		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
-		
 		private static var _pluginList:Array = [];
+		
+		/**
+		 * This is included in the list of plugins for forward-compatibility.
+		 */
+		public static var INCLUDE_DEFAULT_PLUGINS:String = "INCLUDE_DEFAULT_PLUGINS";
 		
 		/**
 		 * @return A copy of the list of plugins currently loaded. 
 		 */		
 		public static function getPluginList():Array
 		{
-			return _pluginList.concat();
+			var array:Array = _pluginList.concat();
+			if (array.length)
+				array.unshift(INCLUDE_DEFAULT_PLUGINS);
+			return array;
 		}
 		
 		/**
@@ -197,7 +209,7 @@ package weave
 			// remove duplicates
 			var array:Array = [];
 			for (i = 0; i < newPluginList.length; i++)
-				if (array.indexOf(newPluginList[i]) < 0)
+				if (array.indexOf(newPluginList[i]) < 0 && newPluginList[i] != INCLUDE_DEFAULT_PLUGINS)
 					array.push(newPluginList[i]);
 			newPluginList = array;
 			// stop if no change
@@ -308,39 +320,7 @@ package weave
 		 */
 		public static function createWeaveFileContent(saveScreenshot:Boolean=false):ByteArray
 		{
-			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
-			var output:WeaveArchive = new WeaveArchive();
-			var component:UIComponent = WeaveAPI.topLevelApplication['visApp'];
-			// screenshot thumbnail
-			try
-			{
-				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-				WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_THUMBNAIL_PNG, _pngEncoder.encode(_thumbnail));
-				if (saveScreenshot)
-				{
-					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(component);
-					WeaveAPI.URLRequestUtils.saveLocalFile(ARCHIVE_SCREENSHOT_PNG, _pngEncoder.encode(_screenshot));
-				}
-				else
-					WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
-			}
-			catch (e:SecurityError)
-			{
-				reportError(e, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + e.message);
-			}
-			
-			// embedded files
-			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
-				output.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
-			
-			if (Weave.ALLOW_PLUGINS)
-				output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
-			
-			// session history
-			var _history:Object = history.getSessionState();
-			output.objects[ARCHIVE_HISTORY_AMF] = _history;
-			
-			return output.serialize();
+			return WeaveArchive.createWeaveFileContent(saveScreenshot, getPluginList());
 		}
 		
 		/**
@@ -352,8 +332,6 @@ package weave
 		{
 			return 'Weave_' + StandardLib.formatDate(new Date(), "YYYY-MM-DD_HH.NN.SS", false) + '.weave';
 		}
-		
-		private static var _lastLoadedArchive:WeaveArchive = null;
 		
 		/**
 		 * This function will load content that was previously created with createWeaveFileContent().
@@ -379,9 +357,11 @@ package weave
 					// begin with empty history after loading the session state from the xml
 					history.clearHistory();
 					
-					// remove all local files and replace with list from archive
+					// remove all local files and replace with list from xml
 					for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 						WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
+					for each (var node:XML in xml.ByteArray)
+						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(node.text()));
 				}
 			}
 			else if (content)
@@ -402,18 +382,24 @@ package weave
 					}
 				}
 				
-				_lastLoadedArchive = content as WeaveArchive;
-				var _history:Object = _lastLoadedArchive.objects[ARCHIVE_HISTORY_AMF];
+				var archive:WeaveArchive = content as WeaveArchive;
+				if (!archive)
+				{
+					reportError("Invalid session history: " + debugId(content), null, content);
+					return;
+				}
+				
+				var _history:Object = archive.objects[WeaveArchive.ARCHIVE_HISTORY_AMF];
 				if (!_history)
 					throw new Error("Weave session history not found.");
 				
 				// remove all local files and replace with list from archive
 				for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 					WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
-				for (fileName in _lastLoadedArchive.files)
-					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, _lastLoadedArchive.files[fileName]);
+				for (fileName in archive.files)
+					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, archive.files[fileName]);
 				
-				plugins = _lastLoadedArchive.objects[ARCHIVE_PLUGINS_AMF] as Array || [];
+				plugins = archive.objects[WeaveArchive.ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
@@ -430,26 +416,16 @@ package weave
 			}
 		}
 		
-		/**
-		 * This function returns the screenshot image if saved in the last loaded archive file
-		 * */
-		public static function getScreenshotFromArchive():ByteArray
-		{
-			return _lastLoadedArchive ? _lastLoadedArchive.files[ARCHIVE_SCREENSHOT_PNG] : null;
-		}
-		
-		public static function loadDraggedCSV(content:Object):void
-		{
-			WeaveAPI.topLevelApplication['visApp'].CSVWizardWithData(content);
-		}
-		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
 		
 		/**
 		 * This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
+		 * @param weaveContent Either a WeaveArchive or an XML
 		 */
 		public static function externalReload(weaveContent:Object = null):void
 		{
+			weaveContent = weaveContent as WeaveArchive || weaveContent as XML;
+			
 			if (!JavaScript.available)
 			{
 				//TODO: is it possible to restart an Adobe AIR application from within?
@@ -488,6 +464,16 @@ package weave
 					return;
 				}
 				obj.close();
+				
+				// before reloading, dispose everything in case any JavaScript cleanup needs to happen.
+				try
+				{
+					disposeObject(WeaveAPI.globalHashMap);
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
 				
 				// reload the application
 				if (ExternalInterface.objectID)
@@ -578,7 +564,7 @@ package weave
 				return;
 			try
 			{
-				JavaScript.exec({"this": "weave"}, new WeaveStartup());
+				WeaveAPI.initializeJavaScript(WeaveStartup);
 				_startupComplete = true;
 			}
 			catch (e:Error)

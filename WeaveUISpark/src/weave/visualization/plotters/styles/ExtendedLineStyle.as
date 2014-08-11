@@ -32,7 +32,7 @@ package weave.visualization.plotters.styles
 	 *  
 	 * @author abaumann
 	 */
-	public class ExtendedLineStyle extends SolidLineStyle
+	[ExcludeClass] public class ExtendedLineStyle extends SolidLineStyle
 	{
 		public function ExtendedLineStyle()
 		{
@@ -43,12 +43,10 @@ package weave.visualization.plotters.styles
 		private var _matrix:Matrix = null;
 		override public function beginLineStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
-			var lineEnabled:Boolean = StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			var lineWeight:Number = weight.getValueFromKey(recordKey, Number);
 			var lineColor:Number = color.getValueFromKey(recordKey, Number);
-
 			
-			if (lineEnabled && lineWeight > 0 && isNaN(lineColor))
+			if (enable.getSessionState() && lineWeight > 0 && isNaN(lineColor))
 			{
 				if (!_matrix)
 				{

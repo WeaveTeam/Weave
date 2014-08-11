@@ -6,7 +6,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.data.IKeySet;
 			import weave.api.getCallbackCollection;

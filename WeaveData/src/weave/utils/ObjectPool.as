@@ -20,9 +20,6 @@
 package weave.utils
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
-	
-	import weave.core.ClassUtils;
 	
 	/**
 	 * This class contains static functions for pooling reusable objects.  The purpose of this class

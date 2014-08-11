@@ -23,9 +23,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
  * @spurushe
  * */package weave.ui.DataMiningEditors
 {
-	import flash.display.Bitmap;
-	import flash.display.BitmapData;
-	import flash.display.Shape;
 	import flash.geom.Point;
 	
 	import mx.collections.ArrayCollection;
@@ -36,7 +33,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.reportError;
 	import weave.core.LinkableHashMap;

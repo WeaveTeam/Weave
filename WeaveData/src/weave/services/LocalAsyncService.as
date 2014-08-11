@@ -34,7 +34,6 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.disposeObject;
 	import weave.api.reportError;

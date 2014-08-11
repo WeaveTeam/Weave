@@ -19,12 +19,8 @@
 package weave.tests;
 
 
-public class testForMultipleJRIloading {
-
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
+public class testForMultipleJRIloading
+{
 
 	public static void call(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{

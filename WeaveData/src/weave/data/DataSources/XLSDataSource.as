@@ -30,7 +30,6 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
@@ -47,9 +46,9 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufile
 	 */
-	public class XLSDataSource extends AbstractDataSource
+	public class XLSDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.registerImplementation(IDataSource, XLSDataSource, "XLS file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, XLSDataSource, "XLS file");
 
 		public function XLSDataSource()
 		{

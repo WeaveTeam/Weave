@@ -23,7 +23,7 @@
 <ControlPanel
 	xmlns="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	title="Attribute Selector"
+	title="{lang('Attribute Selector')}"
 	verticalScrollPolicy="off" horizontalScrollPolicy="off"
 	backgroundColor="#EFF4BC" xmlns:editors="weave.editors.*"
 	>
@@ -34,14 +34,14 @@
 				id="dimensionTypeLinks"
 				width="100%"
 				useHandCursor="true"
-				dataProvider="{selectableAttributeNames}"
+				dataProvider="{selectableAttributeNames.map(translateAttrName)}"
 				itemClick="linkToObject(selectableAttributes[event.index]);"/>
 		</mx:HBox>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Add selected" click="addSelected()" enabled="{editor.explorer.fileView.selectedItem}"/>
+				<mx:Button label="{lang('Add selected')}" click="addSelected()" enabled="{editor.explorer.fileView.selectedItem}"/>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
 		</mx:VDividedBox>
@@ -49,9 +49,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Label;
-			import mx.managers.PopUpManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
@@ -61,7 +59,7 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -128,7 +126,7 @@
 			private var selectableAttributes:Array = [];
 			[Bindable] private var selectableAttributeNames:Array = [];
 			
-			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IVisToolWithSelectableAttributes), handleToolImmediately);
+			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IObjectWithSelectableAttributes), handleToolImmediately);
 			
 			private function handleToolImmediately():void
 			{
@@ -141,7 +139,7 @@
 				if (!parent)
 					toolWatcher.target = null;
 				
-				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
+				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();
@@ -170,6 +168,11 @@
 				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
 			}
 			
+			private static function translateAttrName(name:String, i:int, a:Array):String
+			{
+				return lang(name);
+			}
+			
 			private static const DEFAULT_TITLE:String = "Attribute selector";
 			private static const TITLE_FORMAT:String = DEFAULT_TITLE + " for {0}";
 			
@@ -187,7 +190,7 @@
 				editor.explorer.fileView.allowMultipleSelection = !!columnList.hashMap;
 				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
 
-				var tool:IVisToolWithSelectableAttributes = getVisTool(columnOrHashMap);
+				var tool:IObjectWithSelectableAttributes = getOwnerWithSelectableAttributes(columnOrHashMap);
 				toolWatcher.target = tool;
 				// make sure we call handleTool() later
 				getCallbackCollection(toolWatcher).triggerCallbacks();
@@ -243,13 +246,13 @@
 				instance.copyCoordinatesFromSessionedProperties();
 				return instance;
 			}
-			public static function getVisTool(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IVisToolWithSelectableAttributes
+			public static function getOwnerWithSelectableAttributes(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IObjectWithSelectableAttributes
 			{
 				var owner:ILinkableObject = getLinkableOwner(selectableAttribute);
-				while (owner && !(owner is IVisToolWithSelectableAttributes))
+				while (owner && !(owner is IObjectWithSelectableAttributes))
 					owner = getLinkableOwner(owner);
 				
-				var tool:IVisToolWithSelectableAttributes = owner as IVisToolWithSelectableAttributes;
+				var tool:IObjectWithSelectableAttributes = owner as IObjectWithSelectableAttributes;
 
 				if (evenIfNotInSelectableAttributes)
 					return tool;

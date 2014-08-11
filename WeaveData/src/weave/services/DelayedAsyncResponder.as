@@ -21,8 +21,6 @@ package weave.services
 {
 	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
-	
-	import weave.api.WeaveAPI;
 
 	/**
 	 * This is an AsyncResponder that uses StageUtils.callLater() on the result and fault functions.

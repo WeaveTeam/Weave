@@ -21,10 +21,8 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
-	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -33,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
@@ -49,7 +48,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class HistogramPlotter extends AbstractPlotter
+	public class HistogramPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		public function HistogramPlotter()
 		{
@@ -72,6 +71,15 @@ package weave.visualization.plotters
 			registerSpatialProperty(fillStyle.color.internalDynamicColumn);
 
 			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Grouping values", "Height values (Optional)"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [fillStyle.color, columnToAggregate];
 		}
 		
 		/**

@@ -19,10 +19,8 @@
 
 package weave.primitives
 {
-	import weave.api.WeaveAPI;
 	import weave.api.primitives.IMatrix;
 	import weave.api.reportError;
-	import weave.core.ErrorManager;
 
 	/**
 	 * This class defines the general operations for a matrix which will not change

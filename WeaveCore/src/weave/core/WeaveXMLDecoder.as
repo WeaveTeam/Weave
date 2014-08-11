@@ -26,7 +26,7 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLDecoder;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.DynamicState;
 	import weave.api.reportError;
 	
 	/**
@@ -73,7 +73,7 @@ package weave.core
 		 * defaultPackages Array if the specified packageName returns no result.
 		 * @param className The name of a class.
 		 * @param packageName The package the class exists in.
-		 * @return The class definition, or null if the class cannot be resolved.
+		 * @return The qualified class name, or null if the class cannot be found.
 		 */
 		public static function getClassName(className:String, packageName:String = null):String
 		{
@@ -137,6 +137,11 @@ package weave.core
 			{
 				var childNode:XMLNode = dataNode.childNodes[i];
 				var className:String = childNode.nodeName;
+				
+				// hack - skip ByteArray nodes
+				if (className == "ByteArray")
+					continue;
+				
 				var packageName:String = childNode.attributes["package"] as String;
 				// ignore child nodes that do not have tag names (whitespace)
 				if (className == null)
@@ -151,7 +156,7 @@ package weave.core
 				delete childNode.attributes["name"];
 				delete childNode.attributes["package"];
 				//trace("decoding property of dynamic session state xml:",name,qualifiedClassName,childNode);
-				result.push(new DynamicState(name, qualifiedClassName, decodeXML(childNode)));
+				result.push(DynamicState.create(name, qualifiedClassName, decodeXML(childNode)));
 	    	}
 	    	return result;
 	    }
@@ -165,7 +170,7 @@ package weave.core
 			var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
 			if (encoding == WeaveXMLEncoder.JSON_ENCODING)
 			{
-				var str:String = dataNode.firstChild.nodeValue;
+				var str:String = dataNode.firstChild ? dataNode.firstChild.nodeValue : '';
 				var object:Object = null;
 				var json:Object = ClassUtils.getClassDefinition('JSON');
 				if (json)

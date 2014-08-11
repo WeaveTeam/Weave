@@ -25,7 +25,6 @@ package weave.services
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerDisposableChild;
@@ -80,6 +79,7 @@ package weave.services
 			{
 				fr = new FileReference();
 				fr.addEventListener(Event.SELECT, selected);
+				fr.addEventListener(Event.CANCEL, function(e:Event):void { cancel(); });
 				fr.addEventListener(ProgressEvent.PROGRESS, progress);
 				fr.addEventListener(Event.COMPLETE, complete);
 				fr.addEventListener(IOErrorEvent.IO_ERROR, error);

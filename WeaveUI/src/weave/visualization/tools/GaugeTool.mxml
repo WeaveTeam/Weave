@@ -27,7 +27,6 @@
 			import mx.managers.CursorManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.ui.IVisTool;
 			import weave.ui.AttributeSelectorPanel;
@@ -37,7 +36,7 @@
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.plotters.GaugePlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, GaugeTool, "Gauge Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, GaugeTool, "Gauge Tool");
 			
 			private function get plotter():GaugePlotter { return mainPlotter as GaugePlotter; }
 			
@@ -68,22 +67,12 @@
 				getCallbackCollection(plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(plotter.meterColumn);
 				plotter.meterColumn.addGroupedCallback(this, updateMarginLabel, true);
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateMarginLabel, true);
 				
 				visualization.plotManager.marginBottom.value    = DEFAULT_MARGIN_BOTTOM.toString();
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Gauge Column")];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.meterColumn]
 			}
 			
 			private function invalidateAxes():void

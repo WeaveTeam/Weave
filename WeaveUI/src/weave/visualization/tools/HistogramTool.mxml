@@ -27,7 +27,6 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
@@ -40,7 +39,7 @@
 			import weave.visualization.plotters.HistogramPlotter;
 			import weave.visualization.plotters.SimpleAxisPlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, HistogramTool, "Histogram");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, HistogramTool, "Histogram");
 			
 			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
 			
@@ -67,8 +66,11 @@
 				
 				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.leftMarginColumn); });
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.bottomMarginColumn); });
-				
-				initColumnDefaults(ColumnUtils.hack_findInternalDynamicColumn(plotter.fillStyle.color));
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([plotter.fillStyle.color], input);
 			}
 			
 			override protected function childrenCreated():void
@@ -78,15 +80,6 @@
 				plotter.columnToAggregate.addGroupedCallback(this, function():void {
 					agMethodCombo.enabled = plotter.columnToAggregate.getInternalColumn() != null;
 				}, true);
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Grouping values"), lang("Height values (Optional)")];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.fillStyle.color, plotter.columnToAggregate];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);

@@ -34,20 +34,15 @@ package weave.ui.DataMiningEditors
 	
 	import weave.Weave;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableHashMap;
-	import weave.data.AttributeColumns.CSVColumn;
-	import weave.data.AttributeColumns.StringColumn;
 	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.PartitionAroundMedoidsClusteringResult;
 	import weave.services.beans.RResult;
 	import weave.utils.ResultUtils;
-	import weave.utils.VectorUtils;
 
 	public class PartitionAroundMedoidsClustering implements ILinkableObject
 	{

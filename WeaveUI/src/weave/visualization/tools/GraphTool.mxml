@@ -33,7 +33,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
@@ -51,7 +50,7 @@
 			import weave.visualization.plotters.GraphLabelPlotter;
 			import weave.visualization.plotters.GraphPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, GraphTool, "Graph Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, GraphTool, "Graph Tool");
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
 			public var _labelPlotter:GraphLabelPlotter = null;
@@ -202,7 +201,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Color"), lang("Node IDs"), lang("Label"), lang("Edge Source IDs"), lang("Edge Target IDs"), lang("Edge Color Column")];
+				return ["Color", "Node IDs", "Label", "Edge Source IDs", "Edge Target IDs", "Edge Color Column"];
 			}
 			override public function getSelectableAttributes():Array
 			{

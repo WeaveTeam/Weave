@@ -24,7 +24,6 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
@@ -35,7 +34,7 @@ package weave.visualization.plotters
 	
 	public class GridLinePlotter extends AbstractPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, GridLinePlotter, "Grid lines");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GridLinePlotter, "Grid lines");
 		
 		public function GridLinePlotter()
 		{

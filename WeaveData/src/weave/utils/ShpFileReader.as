@@ -29,7 +29,6 @@ package weave.utils
 	import org.vanrijkom.shp.ShpRecord;
 	import org.vanrijkom.shp.ShpTools;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.primitives.GeneralizedGeometry;

@@ -27,7 +27,6 @@ package weave.visualization.layers
 	import mx.managers.ToolTipManager;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
@@ -67,7 +66,7 @@ package weave.visualization.layers
 			
 			// hacks
 			plotManager.hack_adjustFullDataBounds = this.hack_adjustFullDataBounds;
-			plotManager.hack_updateZoom = this.hack_updateZoom;
+			plotManager.hack_onUpdateZoom(this.hack_updateZoom);
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomXToNiceNumbers);
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomYToNiceNumbers);
 			getCallbackCollection(plotManager.zoomBounds).addGroupedCallback(this, hack_defineZoomIfUndefined, true);
@@ -114,10 +113,12 @@ package weave.visualization.layers
 		private const tempBounds:Bounds2D = new Bounds2D();
 		
 		public function getMainLayerSettings():LayerSettings { return plotManager.getLayerSettings(MAIN_PLOT_LAYER_NAME); }
-		public function getMainPlotter():IPlotter { return plotManager.getPlotter(MAIN_PLOT_LAYER_NAME); }
+		public function getMainPlotter():IPlotter { return _mainPlotterInitialized ? plotManager.getPlotter(MAIN_PLOT_LAYER_NAME) : null; }
 		public function getXAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(X_AXIS_LAYER_NAME) as SimpleAxisPlotter; }
 		public function getYAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(Y_AXIS_LAYER_NAME) as SimpleAxisPlotter; }
 		public function getProbeLinePlotter():ProbeLinePlotter { return plotManager.getPlotter(PROBE_LINE_LAYER_NAME) as ProbeLinePlotter; }
+		
+		private var _mainPlotterInitialized:Boolean = false;
 		
 		/**
 		 * @param mainPlotterClass The main plotter class definition.
@@ -132,6 +133,7 @@ package weave.visualization.layers
 			
 			if (mainPlotterClass && !getMainPlotter())
 			{
+				_mainPlotterInitialized = true;
 				plotManager.plotters.requestObject(MAIN_PLOT_LAYER_NAME, mainPlotterClass, true);
 			}
 			if (showAxes)

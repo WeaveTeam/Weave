@@ -27,12 +27,12 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
@@ -58,7 +58,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter
+	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter, IObjectWithSelectableAttributes
 	{
 		public function ColorBinLegendPlotter()
 		{
@@ -66,6 +66,15 @@ package weave.visualization.plotters
 			
 			setSingleKeySource(dynamicColorColumn);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Color data"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [dynamicColorColumn];
 		}
 		
 		/**

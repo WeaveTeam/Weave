@@ -449,7 +449,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
          // This will parse a delimited string into an array of
          // arrays. The default delimiter is the comma, but this
          // can be overriden in the second argument.
-     
+ 
         this.CSVToArray = function(strData, strDelimiter) {
             // Check to see if the delimiter is defined. If not,
             // then default to comma.

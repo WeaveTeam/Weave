@@ -24,10 +24,9 @@ package weave.data
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.getCallbackCollection;
@@ -54,7 +53,7 @@ package weave.data
 		{
 			// if there is no keyType specified, use the default
 			if (!keyType)
-				keyType = DataTypes.STRING;
+				keyType = DataType.STRING;
 			
 			// get mapping of key strings to QKey weak refrences
 			var keyToQKeyRefMap:Object = _keyTypeMap[keyType] as Object;

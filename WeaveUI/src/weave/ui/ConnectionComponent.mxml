@@ -41,14 +41,12 @@ ConnectionComponent
 
 <mx:Script>
 	<![CDATA[
-		import mx.core.Application;
 		import mx.core.DragSource;
 		import mx.core.IUIComponent;
 		import mx.events.DragEvent;
 		import mx.managers.DragManager;
 		
 		import weave.Weave;
-		import weave.api.WeaveAPI;
 		import weave.api.core.ILinkableDynamicObject;
 		import weave.api.getCallbackCollection;
 		

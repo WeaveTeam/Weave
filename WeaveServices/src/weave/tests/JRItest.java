@@ -18,17 +18,10 @@
 */
 package weave.tests;
 
-
-//import weave.beans.WeaveRecordList;
 import java.util.Properties;
-public class JRItest {
 
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
-
-
+public class JRItest
+{
 	//static JRIService ws = null;
 	public static void call(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception{
 		
@@ -48,7 +41,6 @@ public class JRItest {
 	
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
 		System.out.println("hi");		
 		//ws = new JRIService();
 		
@@ -96,13 +88,4 @@ public class JRItest {
 		call(keys, new String []{},new Object[][]{},resultNames,"","",false,false,false);
 	
 	}
-	
-	
-	public JRItest() {
-		
-	}
-	
-	
-	
-	
 }

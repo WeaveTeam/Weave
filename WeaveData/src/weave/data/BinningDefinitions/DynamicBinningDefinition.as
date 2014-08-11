@@ -19,14 +19,12 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.core.CallbackCollection;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableWatcher;
 	

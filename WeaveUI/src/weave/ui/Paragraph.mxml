@@ -36,7 +36,6 @@
     <mx:Script>
         <![CDATA[
 			import mx.core.EdgeMetrics;
-			import mx.core.mx_internal;
 			import mx.utils.StringUtil;
 			
 			import weave.compiler.StandardLib;
@@ -69,7 +68,6 @@
 				}
 			}
 			
-			[Exclude]
 			public function set content(value:*):void
 			{
 				text = value as String;

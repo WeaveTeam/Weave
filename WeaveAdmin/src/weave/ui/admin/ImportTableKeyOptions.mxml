@@ -91,8 +91,6 @@
 	</mx:VBox>
 	<fx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			
 			private static const paddingIndent:int = 20;
 			
 			[Bindable] public var defaultKeyType:String = '';

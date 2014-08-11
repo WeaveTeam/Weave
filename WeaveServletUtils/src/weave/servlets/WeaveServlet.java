@@ -55,6 +55,7 @@ import weave.beans.JsonRpcRequestModel;
 import weave.beans.JsonRpcResponseModel;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
+import weave.utils.MapUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -95,10 +96,16 @@ public class WeaveServlet extends HttpServlet
 	public static long debugThreshold = 1000;
 	
 	/**
-	 * This is the name of the URL parameter corresponding to the method name.
+	 * The name of the property which contains the remote method name.
 	 */
 	protected final String METHOD = "method";
+	/**
+	 * The name of the property which contains method parameters.
+	 */
 	protected final String PARAMS = "params";
+	/**
+	 * The name of the property which specifies the index in the params Array that corresponds to an InputStream.
+	 */
 	protected final String STREAM_PARAMETER_INDEX = "streamParameterIndex";
 	
 	private Map<String, ExposedMethod> methodMap = new HashMap<String, ExposedMethod>(); //Key: methodName
@@ -121,32 +128,27 @@ public class WeaveServlet extends HttpServlet
 	}
 	
 	/**
-	 * Default constructor.
-	 * This initializes all public methods defined in a class extending WeaveServlet.
-	 */
-	protected WeaveServlet()
-	{
-		super();
-		initLocalMethods();
-	}
-	
-	/**
 	 * @param serviceObjects The objects to invoke methods on.
 	 */
 	protected WeaveServlet(Object ...serviceObjects)
 	{
 	    super();
-	    initLocalMethods();
+	    
+	    try
+	    {
+	    	// explicitly initialize this method
+	    	initMethod(this, WeaveServlet.class.getMethod(GET_CAPABILITIES));
+	    }
+	    catch (NoSuchMethodException e)
+	    {
+	    	e.printStackTrace();
+	    }
+	    
+	    // automatically initialize methods of this object
+	    initAllMethods(this);
+	    
 	    for (Object serviceObject : serviceObjects)
 	    	initAllMethods(serviceObject);
-	}
-	
-	/**
-	 * This function will expose all the public methods of this object as servlet methods.
-	 */
-	protected void initLocalMethods()
-	{
-		initAllMethods(this);
 	}
 	
 	/**
@@ -156,27 +158,19 @@ public class WeaveServlet extends HttpServlet
 	 */
 	protected void initAllMethods(Object serviceObject)
 	{
-		Method[] weaveServletMethods = WeaveServlet.class.getMethods();
-		Method[] declaredMethods = serviceObject.getClass().getDeclaredMethods();
-		for (int i = declaredMethods.length; i-- > 0;)
+		for (Method method : serviceObject.getClass().getDeclaredMethods())
 		{
-			Method declaredMethod = declaredMethods[i];
-			boolean shouldIgnore = false;
-			for (Method weaveServletMethod : weaveServletMethods)
+			try
 			{
-				if (declaredMethod.getName().equals(weaveServletMethod.getName()) &&
-					Arrays.equals(declaredMethod.getParameterTypes(), weaveServletMethod.getParameterTypes()) )
-				{
-					shouldIgnore = true;
-					break;
-				}
+				// if this succeeds, we don't want to initialize the method automatically
+				WeaveServlet.class.getMethod(method.getName(), method.getParameterTypes());
 			}
-			if (!shouldIgnore)
-				initMethod(serviceObject, declaredMethod);
+			catch (NoSuchMethodException e)
+			{
+				// no matching method found in WeaveServlet, so initialize the method
+				initMethod(serviceObject, method);
+			}
 		}
-		
-		// for debugging
-		printExposedMethods();
 	}
 	
 	/**
@@ -207,34 +201,6 @@ public class WeaveServlet extends HttpServlet
 		}
 	}
 	
-	protected void printExposedMethods()
-	{
-		String output = "";
-		List<String> methodNames = new Vector<String>(methodMap.keySet());
-		Collections.sort(methodNames);
-		for (String methodName : methodNames)
-		{
-			ExposedMethod m = methodMap.get(methodName);
-			if (m != null)
-			{
-				if (m.method.getAnnotation(Deprecated.class) != null)
-					continue;
-				output += String.format(
-	    				"Exposed servlet method: %s.%s\n",
-	    				m.instance.getClass().getName(),
-	    				formatFunctionSignature(
-	    						m.method.getName(),
-	    						m.method.getParameterTypes(),
-	    						m.paramNames
-	    					)
-	    			);
-			}
-			else
-				output += "Not exposed: "+methodName;
-		}
-		System.out.print(output);
-	}
-	
 	private static class ServletRequestInfo
 	{
 		public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
@@ -260,6 +226,7 @@ public class WeaveServlet extends HttpServlet
 		public Number streamParameterIndex = null;
 		public PeekableInputStream inputStream;
 		public Boolean isBatchRequest = false;
+		public boolean prettyPrinting = false;
 	}
 	
 	/**
@@ -334,6 +301,7 @@ public class WeaveServlet extends HttpServlet
 				json.params = params;
 				
 	    		info.currentJsonRequest = json;
+	    		info.prettyPrinting = true;
 	    		invokeMethod(json.method, params);
 			}
 			else // post
@@ -379,6 +347,12 @@ public class WeaveServlet extends HttpServlet
 		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
 		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
 		.disableHtmlEscaping()
+		.create();
+	private static final Gson GSON_PRETTY = new GsonBuilder()
+		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
+		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
+		.disableHtmlEscaping()
+		.setPrettyPrinting()
 		.create();
 	
 	// Base64 adapter modified from GsonHelper.java, https://gist.github.com/orip/3635246
@@ -486,10 +460,12 @@ public class WeaveServlet extends HttpServlet
 			// However, this means we have to add a special case in our JS code when we send an empty batch request.
 			// It is more convenient if the server returns an empty Array, so we don't follow this part of the specification.
 			
+			Gson gson = info.prettyPrinting ? GSON_PRETTY : GSON;
+			
 			if (info.isBatchRequest)
-				result = GSON.toJson(info.jsonResponses);
+				result = gson.toJson(info.jsonResponses);
 			else
-				result = GSON.toJson(info.jsonResponses.get(0));
+				result = gson.toJson(info.jsonResponses.get(0));
 			
 			PrintWriter writer = new PrintWriter(info.getOutputStream());
 			writer.print(result);
@@ -606,6 +582,13 @@ public class WeaveServlet extends HttpServlet
 	private void invokeMethod(String methodName, Object methodParams) throws IOException
 	{
 		ServletRequestInfo info = getServletRequestInfo();
+		
+		// when no method is specified, call getCapabilities()
+		if (methodName == null)
+		{
+			methodName = GET_CAPABILITIES;
+			info.prettyPrinting = true;
+		}
 		
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		if (exposedMethod == null)
@@ -823,6 +806,37 @@ public class WeaveServlet extends HttpServlet
 		// Return original value if not handled above.
 		// Primitives and their Object equivalents will cast automatically.
 		return value;
+	}
+	
+	private static final String GET_CAPABILITIES = "getCapabilities";
+	
+	/**
+	 * Lists available methods.
+	 */
+	public Map<String,Object> getCapabilities()
+	{
+		List<String> methodNames = new Vector<String>(methodMap.keySet());
+		Collections.sort(methodNames);
+		List<String> methods = new Vector<String>();
+		List<String> deprecated = new Vector<String>();
+		for (String methodName : methodNames)
+		{
+			ExposedMethod em = methodMap.get(methodName);
+			String str = String.format(
+				"%s %s",
+				em.method.getReturnType().getSimpleName(),
+				formatFunctionSignature(methodName, em.method.getParameterTypes(), em.paramNames)
+			);
+			if (em.method.getAnnotation(Deprecated.class) != null)
+				deprecated.add(str);
+			else
+				methods.add(str);
+		}
+		return MapUtils.fromPairs(
+				"class", this.getClass().getCanonicalName(),
+				"methods", methods.toArray(),
+				"deprecated", deprecated.toArray()
+			);
 	}
 	
 	/**

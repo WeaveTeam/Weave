@@ -15,9 +15,8 @@
 		<![CDATA[
 			import mx.core.FlexGlobals;
 			import mx.rpc.events.ResultEvent;
-			import weave.application.VisApp;
 			
-			import weave.api.WeaveAPI;
+			import weave.application.VisApp;
 			
 			public var visApp:VisApp = null
 			private var params:Object = null;

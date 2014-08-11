@@ -24,7 +24,6 @@ package weave.ui
 	
 	import mx.core.UIComponent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 

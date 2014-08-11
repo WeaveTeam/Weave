@@ -25,7 +25,6 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;

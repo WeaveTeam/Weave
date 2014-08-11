@@ -23,12 +23,10 @@ package weave.data
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
 	import weave.api.getCallbackCollection;
 	import weave.utils.AsyncSort;
-	import weave.utils.createCSV;
 
 	/**
 	 * Parses and generates CSV-encoded data.
@@ -95,6 +93,9 @@ package weave.data
 		
 		private function parseIterate(stopTime:int):Number
 		{
+			// This isn't actually asynchronous at the moment, but moving the code to
+			// FlasCC made it so much faster that it won't matter most of the time.
+			// The async code structure is kept in case we want to make it asynchronous again in the future.
 			weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
 			csvData = null;
 			return 1;

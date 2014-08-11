@@ -24,7 +24,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author spurushe
 @author fkamayou
 -->
-<mx:TabNavigator xmlns="weave.visualization.tools.*" 
+<ui:CustomTabNavigator xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
@@ -36,18 +36,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.events.FlexEvent;
+			
+			import weave.services.beans.ClassDiscriminationResult;
+			
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
-			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.radviz.ClassInfoObject;
@@ -133,36 +132,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 
 				receivedFromRCounter++;
 					//Object to stored returned result - Which is array of object{name: , value: }
-					var Robj:Array = event.result as Array;				
+					var result:ClassDiscriminationResult = new ClassDiscriminationResult(event.result);				
 				
-					if (Robj == null)
+					if (result == null)
 					{
-						reportError("R Servlet did not return an Array of results as expected.");
+						reportError("Error running the class discrimination script");
 						return;
 					}
-					
-					//Collecting all RResult Objects into an Array 
-					var RresultArray:Array = new Array();
-					
-					//collecting Objects of type RResult(Should Match result object from Java side)
-					for (var i:int = 0; i < (event.result).length; i++)
-					{
-						if (Robj[i] == null)
-						{
-							trace("WARNING! R Service returned null in results array at index "+i);
-							continue;
-						}
-						var rResult:RResult = new RResult(Robj[i]);
-						RresultArray.push(rResult);	
-						
-						
-					}	
 					
 					//var colIndex:int = token[1];
 				     var colIndex: int = _target._plotter.columns.getNames().indexOf(token[1]);
 					//Fills in the t-statistic and pValues(hard coded since we will be receiving only two values from R)
-					(token[0] as ClassInfoObject).tStatisticArray[colIndex] = ((RresultArray[0] as RResult).value);
-					(token[0] as ClassInfoObject).pValuesArray[colIndex] =((RresultArray[1] as RResult).value);
+					(token[0] as ClassInfoObject).tStatisticArray[colIndex] = result.statistic;
+					(token[0] as ClassInfoObject).pValuesArray[colIndex] = result.pvalue;
 					trace("handlescript successful!");
 					trace("receivedFromRCounter :" + receivedFromRCounter);
 					trace("sentToRCounter :" + sentToRCounter);
@@ -226,21 +208,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(colObjects.length == 0)
 					return;
 				
-				if(flag)
-				{script = "cdoutput <- t.test(x,y, var.equal = TRUE)"; trace(script);}
-				if(flag == false)
-				{script = "cdoutput <- t.test(x,y, var.equal = FALSE)"; trace(script);}  
-				//var script:String = "cdoutput <- t.test(x,y)";
-				
 				for (var type:Object in _target.cdLayout.ClassToColumnMap)
 				{						
 					for(var l:int = 0; l < colObjects.length; l++)
 					{
 						var inputValues:Array = new Array();//sending two vectors to R
-						var inputNames:Array;
+						
 						inputValues.push((_target.cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);//pushing col belonging to type
+						
 						var temArray:Array = new Array();
-						var temArray2:Array = new Array();
 						for(var comparetype:Object in _target.cdLayout.ClassToColumnMap)
 						{
 							if(type!= comparetype)//collecting the values of the same column for other types
@@ -250,13 +226,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						}
 						
 						inputValues.push(temArray);
-						inputNames = ["x", "y"];
-						
-						//var idString:String = _target._plotter.columns.getNames()[l]+"_"+type+"_";
-						var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
 						
 						//send one column to R at a time
-						var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+						var query:AsyncToken = Rservice.doClassDiscrimination(inputValues[0], inputValues[1], flag);
 						addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
 						sentToRCounter++;
 						//addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
@@ -616,4 +588,4 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:VBox>
 		
 	
-</mx:TabNavigator>
+</ui:CustomTabNavigator>

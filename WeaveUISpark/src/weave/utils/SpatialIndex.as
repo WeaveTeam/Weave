@@ -24,7 +24,6 @@ package weave.utils
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
@@ -106,14 +105,6 @@ package weave.utils
 		public function get keys():Array
 		{
 			return _keysArray;
-		}
-		
-		/**
-		 * The number of records in the index
-		 */
-		public function get recordCount():int
-		{
-			return _kdTree.nodeCount;
 		}
 		
 		/**
