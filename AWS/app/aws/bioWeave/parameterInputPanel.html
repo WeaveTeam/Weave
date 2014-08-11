@@ -12,15 +12,15 @@
 			<!-- the input UI -->
 			<div style="width: 60%; display: table-cell">
 							
-							<div style="width: 200px;">
-							Select data
-								<select ui-select2 multiple ng-model="blah" data-placeholder="Choose Column(s) for algorithm">
-									<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.columns">{{opt}}</option>
-								</select>
-							</div>
 							<!-- This input type will be added if the input type is numberical -->
-							<div ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
-
+							<div class= "form-group" ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
+								<div  ng-if="input.param_type =='column'">
+									{{input.label}}
+<!--TODO make a dual list box later --><select style="width:350px;" ui-select2 multiple ng-model="blah">
+										<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.columns">{{opt}}</option>
+									</select>
+								</div>
+								
 								<div class = form-group ng-if="input.param_type == 'number'" >
 									{{input.label}}
 									<input ng-model = "input.param_user_value" class= "form-control"type= "text" placeholder="{{input.default}}">
@@ -40,7 +40,7 @@
 								</div>
 								
 							</div>
-					</div>
+			</div>
 			<!-- This code needs some fixing, this is for the help icon/link to documentation		
 			<div style="display: table-cell; ng-model = "algorithmObjectService.data.currentMetObj.algoName">
 
