@@ -9,6 +9,7 @@ angular.module('aws.bioWeave')
 	this.data = {};
 	this.data.chosenAlgorithms = [];//represents the list of algorithms in the algorithm cart, Algorithms which will be executed
 	//will serve as a temp cache to store metadata objects before executing the algorithms, so that we dont have to make a server call everytime
+	this.data.chosenScripts = [];
 	this.data.algorithmMetadataObjects= [];
 	this.data.dataTableSelected;
 	this.data.columns = [];
@@ -58,7 +59,6 @@ angular.module('aws.bioWeave')
 			
 			console.log("columns", that.data.dataColumnObjects);
 			//we need to loop over and retrieve strings to use in the select option UI
-			//TODO find a way to use object directly for select Ui (or else loops will be needed everytime)
 //			for(var i in that.data.dataColumnObjects){
 //				that.data.columns.push(
 //					that.data.dataColumnObjects[i].publicMetadata.title
@@ -141,14 +141,14 @@ angular.module('aws.bioWeave')
 	 * for eg for algoX collect algoX.R or algoX.py
 	 */
 	this.getScripts= function(algoNames){
-		console.log("inputoBjects", algoNames);
-		
 		var deferred = $q.defer();
 		aws.queryService(scriptManagementURL, 'getScriptFiles', [algoNames], function(result){
 			
-			console.log("got scripts", result);
+			//console.log("got scripts", result);
+			that.data.chosenScripts = result;
 			
-			runScriptService.runScript(that.data.algorithmMetadataObjects ,result);
+			//TODO call this function from the controller and not from this service directly
+			runScriptService.runScript(that.data.algorithmMetadataObjects, that.data.chosenScripts);
 			
 			scope.$safeApply(function() {
 				deferred.resolve(result);
