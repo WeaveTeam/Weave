@@ -18,7 +18,7 @@ package weave.api.ui
 	import mx.core.IUIComponent;
 	
 	import weave.api.core.ILinkableObject;
-
+	
 	/**
 	 * This is an interface to an editor for an ILinkableObject.
 	 */
@@ -27,13 +27,13 @@ package weave.api.ui
 		/**
 		 * Sets the target object to be edited.
 		 * @param object The target object.
-		 */		
+		 */
 		function setTarget(object:ILinkableObject):void;
 		
 		/**
 		 * Checks if the user has made any unsaved changes.
 		 * @return true if there are unsaved changes.
-		 */		
+		 */
 		function hasPendingChanges():Boolean;
 		
 		/**

@@ -28,7 +28,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
@@ -43,7 +42,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
 			
 			private function get plotter():Histogram2DPlotter
 			{
@@ -58,6 +57,7 @@
 				visualization.enableProbeLine(false, true);
 				
 				xAxisPlotter.forceTickCount.value = true;
+				yAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.enableProbeLine(true, true);
@@ -77,9 +77,6 @@
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
-				
-				initColumnDefaults(plotter.xColumn, plotter.yColumn);
-				
 			}
 			
 			override protected function childrenCreated():void
@@ -93,15 +90,6 @@
 				colorColumnComponent.dynamicObject = Weave.defaultColorDataColumn.internalDynamicColumn;
 				
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["X","Y"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.xColumn,plotter.yColumn];
 			}
 			
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
@@ -213,7 +201,7 @@
 			<ui:DynamicColumnComponent id="yColumnComponent" label="{lang('Y Column')}"/>
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+				<ui:CheckBoxList id="probeChecklist" translate="true" dataProvider="{getSelectableAttributeNames()}" />
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox label="{lang('Binning Controls')}">

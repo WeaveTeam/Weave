@@ -31,9 +31,8 @@ package weave.data.DataSources
 	import org.vanrijkom.dbf.DbfRecord;
 	import org.vanrijkom.dbf.DbfTools;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
@@ -62,11 +61,10 @@ package weave.data.DataSources
 	 */
 	public class DBFDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
 		
 		public function DBFDataSource()
 		{
-			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, _attributeHierarchy);
 		}
 		
 		override protected function get initializationComplete():Boolean
@@ -150,26 +148,14 @@ package weave.data.DataSources
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
-		{
-			// do nothing
-		}
-
 		/**
 		 * Gets the root node of the attribute hierarchy.
 		 */
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			if (_attributeHierarchy.value === null)
-			{
-				if (!(_rootNode is DBFColumnNode))
-					_rootNode = new DBFColumnNode(this);
-				return _rootNode;
-			}
-			else
-			{
-				return super.getHierarchyRoot();
-			}
+			if (!(_rootNode is DBFColumnNode))
+				_rootNode = new DBFColumnNode(this);
+			return _rootNode;
 		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
@@ -196,7 +182,7 @@ package weave.data.DataSources
 			if (objectWasDisposed(this) || url != shpUrl.value)
 				return;
 			
-			debug('shp download complete',shpUrl.value);
+			//debugTrace(this, 'shp download complete', shpUrl.value);
 			
 			if (shpfile)
 			{
@@ -274,17 +260,17 @@ package weave.data.DataSources
 
 			var newColumn:IAttributeColumn;
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			if (dataType == DataTypes.GEOMETRY)
+			if (dataType == DataType.GEOMETRY)
 			{
 				newColumn = new GeometryColumn();
 				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(data));
 			}
-			else if (dataType == DataTypes.DATE)
+			else if (dataType == DataType.DATE)
 			{
 				newColumn = new DateColumn(metadata);
 				(newColumn as DateColumn).setRecords(keysVector, Vector.<String>(data));
 			}
-			else if (dataType == DataTypes.NUMBER)
+			else if (dataType == DataType.NUMBER)
 			{
 				newColumn = new NumberColumn(metadata);
 				data.forEach(function(str:String, i:int, a:Array):Number { return StandardLib.asNumber(str); });
@@ -322,7 +308,7 @@ package weave.data.DataSources
 			meta[ColumnMetadata.PROJECTION] = projection.value;
 			if (columnName == THE_GEOM_COLUMN)
 			{
-				meta[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
+				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
 			}
 			else
 			{
@@ -334,7 +320,7 @@ package weave.data.DataSources
 						var dataType:String = FIELD_TYPE_LOOKUP[typeChar];
 						if (dataType)
 							meta[ColumnMetadata.DATA_TYPE] = dataType;
-						if (dataType == DataTypes.DATE)
+						if (dataType == DataType.DATE)
 							meta[ColumnMetadata.DATE_FORMAT] = "YYYYMMDD";
 						break;
 					}
@@ -366,13 +352,13 @@ package weave.data.DataSources
 		}
 		
 		private static const FIELD_TYPE_LOOKUP:Object = {
-			"C": DataTypes.STRING, // Char - ASCII
-			"D": DataTypes.DATE, // Date - 8 Ascii digits (0..9) in the YYYYMMDD format
-			"F": DataTypes.NUMBER, // Numeric - Ascii digits (-.0123456789) variable position of floating point
-			"N": DataTypes.NUMBER, // Numeric - Ascii digits (-.0123456789) fixed position/no floating point
-			"2": DataTypes.NUMBER, // short int -- binary int
-			"4": DataTypes.NUMBER, // long int - binary int
-			"8": DataTypes.NUMBER, // double - binary signed double IEEE
+			"C": DataType.STRING, // Char - ASCII
+			"D": DataType.DATE, // Date - 8 Ascii digits (0..9) in the YYYYMMDD format
+			"F": DataType.NUMBER, // Numeric - Ascii digits (-.0123456789) variable position of floating point
+			"N": DataType.NUMBER, // Numeric - Ascii digits (-.0123456789) fixed position/no floating point
+			"2": DataType.NUMBER, // short int -- binary int
+			"4": DataType.NUMBER, // long int - binary int
+			"8": DataType.NUMBER, // double - binary signed double IEEE
 			"L": "boolean", // Logical - Ascii chars (YyNnTtFf space ?)
 			"M": null, // Memo - 10 digits representing the start block position in .dbt file, or 10 spaces if no entry in memo
 			"B": null, // Binary - binary data in .dbt, structure like M
@@ -386,7 +372,6 @@ package weave.data.DataSources
 	}
 }
 
-import weave.api.WeaveAPI;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
 import weave.api.data.IWeaveTreeNode;

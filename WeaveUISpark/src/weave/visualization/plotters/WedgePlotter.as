@@ -23,14 +23,15 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.DrawUtils;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -44,17 +45,14 @@ package weave.visualization.plotters
 	{
 		public function WedgePlotter()
 		{
-			// initialize default line & fill styles
-			lineStyle.requestLocalObject(SolidLineStyle, false);
-			fillStyle.requestLocalObject(SolidFillStyle, false);
 			setColumnKeySources([beginRadians]);
 		}
 		
 		public const beginRadians:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const spanRadians:DynamicColumn = newSpatialProperty(DynamicColumn);
 		
-		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
-		public const fillStyle:DynamicFillStyle = newLinkableChild(this, DynamicFillStyle);		
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);		
 
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
@@ -67,8 +65,8 @@ package weave.visualization.plotters
 
 			var graphics:Graphics = tempShape.graphics;
 			// begin line & fill
-			lineStyle.beginLineStyle(recordKey, graphics);				
-			fillStyle.beginFillStyle(recordKey, graphics);
+			line.beginLineStyle(recordKey, graphics);				
+			fill.beginFillStyle(recordKey, graphics);
 			// move to center point
 			drawProjectedWedge(graphics, dataBounds, screenBounds, _beginRadians, _spanRadians);
 			// end fill
@@ -141,6 +139,29 @@ package weave.visualization.plotters
 			}
 			// continue line back to start of outer arc
 			destination.lineTo(tempPoint.x, tempPoint.y);
+		}
+		
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
+		[Deprecated(replacement="fill")] public function set fillStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 	}
 }

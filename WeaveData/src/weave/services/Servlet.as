@@ -34,7 +34,6 @@ package weave.services
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.services.IAsyncService;
 	import weave.utils.VectorUtils;
@@ -64,8 +63,18 @@ package weave.services
 			METHOD = methodVariableName;
 		}
 		
+		/**
+		 * The name of the property which contains the remote method name.
+		 */
 		private var METHOD:String = "method";
+		/**
+		 * The name of the property which contains method parameters.
+		 */
 		private var PARAMS:String = "params";
+		/**
+		 * The name of the property which specifies the index in the params Array that corresponds to an InputStream on the server side.
+		 */
+		private var STREAM_PARAM_INDEX:String = "streamParameterIndex";
 		
 		/**
 		 * This is the base URL of the servlet.
@@ -154,7 +163,7 @@ package weave.services
 				var obj:Object = new Object();
 				obj[METHOD] = methodName;
 				obj[PARAMS] = methodParameters;
-				obj["streamParameterIndex"] = -1; // index of stream parameter
+				obj[STREAM_PARAM_INDEX] = -1; // index of stream parameter
 				
 				var streamContent:ByteArray = null;
 				var params:Array = methodParameters as Array;
@@ -166,7 +175,7 @@ package weave.services
 							break;
 					if (index < params.length)
 					{
-						obj.streamParameterIndex = index; // tell the server about the stream parameter index
+						obj[STREAM_PARAM_INDEX] = index; // tell the server about the stream parameter index
 						streamContent = params[index];
 						params[index] = null; // keep the placeholder where the server will insert the stream parameter
 					}

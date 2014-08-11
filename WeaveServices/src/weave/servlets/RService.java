@@ -24,6 +24,7 @@ import java.rmi.RemoteException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import weave.beans.ClassDiscriminationResult;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
@@ -188,7 +189,12 @@ public class RService extends WeaveServlet
 	{
 		return RServiceUsingRserve.linearRegression( docrootPath, method, dataX, dataY, polynomialDegree);
 	}
-
+	
+	public ClassDiscriminationResult doClassDiscrimintation(double[] dataX, double[] dataY, boolean flag) throws RemoteException
+	{
+		return RServiceUsingRserve.doClassDiscrimination(docrootPath, dataX, dataY, flag);
+	}
+	
 	public Object normalize(Object[][] data) throws RemoteException
 	{
 		return RServiceUsingRserve.normalize(docrootPath, data);

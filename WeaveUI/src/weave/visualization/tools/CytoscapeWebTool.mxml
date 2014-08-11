@@ -2,7 +2,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
-		 implements="weave.api.ui.IVisToolWithSelectableAttributes"
+		 implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 		 layout="vertical">
 		<mx:VBox>
 
@@ -17,7 +17,6 @@
 			import mx.controls.Alert;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
@@ -25,6 +24,7 @@
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
@@ -59,7 +59,7 @@
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;				
 
-			WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, "Cytoscape-Web Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CytoscapeWebTool, "Cytoscape-Web Tool");
 			private var _toolName:String;
 
 			// Scratchspace for prepping the data to be sent to CytoscapeWeb
@@ -121,13 +121,23 @@
 			private function launchCytoscape():void
 			{
 				var windowFeatures:String = "menubar=no,status=no,toolbar=no";
-				ExternalInterface.call(
-				"function (weaveID, toolname, url, name, features) {\
-				 var weave = weaveID ? document.getElementById(weaveID) : document;\
-				 if (weave.external_tools == undefined) weave.external_tools = {};\
-				 weave.external_tools[toolname] = window.open(url, toolname, features);\
-				}", 
-					ExternalInterface.objectID, _toolName, "CytoscapeWebPopout.html", _toolName, windowFeatures);
+				var success:Boolean = ExternalInterface.call(
+					"function (weaveID, toolname, url, name, features) {\
+					 var weave = weaveID ? document.getElementById(weaveID) : document;\
+					 if (weave.external_tools == undefined)\
+					     weave.external_tools = {};\
+					 var popup = window.open(url, toolname, features);\
+					 weave.external_tools[toolname] = popup;\
+					 return !!popup;\
+					}", 
+					ExternalInterface.objectID,
+					_toolName,
+					"CytoscapeWebPopout.html",
+					_toolName,
+					windowFeatures
+				);
+				if (!success)
+					reportError("Popup blocked by web browser");
 
 				var launchTimer:Timer = new Timer(5000, 1);
 				launchTimer.addEventListener(TimerEvent.TIMER, launchTimeout);
@@ -316,26 +326,28 @@
 				_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
 			}
 			
-			/*
+			override public function getSelectableAttributes():Array
+			{
+				return [nodeLabelColumn, nodeColorColumn, nodeRadiusColumn, nodeParentColumn, edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeLabelColumn, edgeWeightColumn];
+			}
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Color"), lang("Node IDs"), lang("Label"), lang("Edge Source IDs"), lang("Edge Target IDs"), lang("Edge Color Column")];
+				return ["Node Labels", "Node Color", "Node Size", "Node Parent ID", "Edge Sources", "Edge Targets", "Edge Thickness", "Edge Labels", "Edge Weight"];
 			}
-			*/
 
 		]]>
 	</mx:Script>
 		<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
-			<ui:DynamicColumnComponent id="nodeLabelComponent" label="{lang('Node Labels')}"/>
-			<ui:DynamicColumnComponent id="nodeColorComponent" label="{lang('Node Color')}"/> 
-			<ui:DynamicColumnComponent id="nodeRadiusComponent" label="{lang('Node Size')}"/> 
-			<ui:DynamicColumnComponent id="nodeParentComponent" label="{lang('Node Parent ID')}"/>
-			<ui:DynamicColumnComponent id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
-			<ui:DynamicColumnComponent id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
-			<ui:DynamicColumnComponent id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
-			<ui:DynamicColumnComponent id="edgeLabelComponent" label="{lang('Edge Labels')}"/>
-			<ui:DynamicColumnComponent id="edgeWeightComponent" label="{lang('Edge Weight')}"/>
+			<ui:DynamicColumnComponent id="nodeLabelComponent"/>
+			<ui:DynamicColumnComponent id="nodeColorComponent"/>
+			<ui:DynamicColumnComponent id="nodeRadiusComponent"/>
+			<ui:DynamicColumnComponent id="nodeParentComponent"/>
+			<ui:DynamicColumnComponent id="edgeSourceComponent"/>
+			<ui:DynamicColumnComponent id="edgeTargetComponent"/>
+			<ui:DynamicColumnComponent id="edgeThicknessComponent"/>
+			<ui:DynamicColumnComponent id="edgeLabelComponent"/>
+			<ui:DynamicColumnComponent id="edgeWeightComponent"/>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 		 	<mx:HBox>

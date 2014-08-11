@@ -33,7 +33,7 @@ package weave.core
 
 		public function get value():String
 		{
-			return _sessionState;
+			return _sessionStateExternal;
 		}
 		public function set value(value:String):void
 		{

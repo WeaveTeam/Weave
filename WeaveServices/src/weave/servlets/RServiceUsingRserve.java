@@ -40,6 +40,7 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import weave.beans.ClassDiscriminationResult;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
@@ -382,6 +383,52 @@ public class RServiceUsingRserve
 				rConnection.close();
 		}
 		return result;
+	}
+	
+	public static ClassDiscriminationResult doClassDiscrimination(String docrootPath, double[] dataX, double[] dataY, boolean flag) throws RemoteException
+	{
+		RConnection rConnection = null;
+		
+		ClassDiscriminationResult result = new ClassDiscriminationResult();
+		
+		try
+		{
+			rConnection = getRConnection();
+			
+			String script = "";
+			
+			rConnection.assign("x", dataX);
+			rConnection.assign("y", dataY);
+			if(flag) 
+			{
+				script = "cdoutput <- t.test(x,y, var.equal = TRUE)\n" +
+						"statistic <- cdoutput$statistic\n" +
+						"pvalue <- cdoutput$p.value";
+			} else {
+				script = "cdoutput <- t.test(x,y, var.equal = FALSE)\n" +
+				"statistic <- cdoutput$statistic\n" +
+				"pvalue <- cdoutput$p.value"; 
+			}
+			
+			rConnection.eval(script);
+			result.pvalue = rConnection.eval("pvalue").asDouble();
+			result.statistic = rConnection.eval("statistic").asDouble();
+			
+		}
+		
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException("Unable to run Class Discrimination Layout", e);
+		}
+		finally
+		{
+			if (rConnection != null)
+				rConnection.close();
+		}
+		
+		return result;
+		
 	}
 	
 	// This function computes the regression models in R

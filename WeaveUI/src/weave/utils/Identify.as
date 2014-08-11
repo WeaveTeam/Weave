@@ -19,15 +19,11 @@
 package weave.utils
 {
 	import flash.display.DisplayObject;
-	import flash.display.Graphics;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
 	import mx.core.UIComponent;
-	
-	import weave.api.WeaveAPI;
 
 	/**
 	 * This contains a static function, identify(), which will display tooltips for every DisplayObject you mouse over.

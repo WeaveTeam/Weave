@@ -21,7 +21,7 @@ package weave.core
 {
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.DynamicState;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
@@ -50,7 +50,7 @@ package weave.core
 		{
 			if (!_globalHashMap)
 			{
-				_globalHashMap = WeaveAPI.getSingletonInstance(ILinkableHashMap);
+				_globalHashMap = WeaveAPI.ClassRegistry.getSingletonInstance(ILinkableHashMap);
 				_globalHashMap.childListCallbacks.addImmediateCallback(null, handleGlobalListChange);
 			}
 			// set up the local hash map which automatically enforces the type restriction
@@ -163,12 +163,12 @@ package weave.core
 		{
 			// handle global link
 			if (_globalName != null)
-				return [ new DynamicState(_globalName, GlobalObjectReference.qualifiedClassName, null) ];
+				return [ DynamicState.create(_globalName, GlobalObjectReference.qualifiedClassName, null) ];
 			
 			// handle local link or no link
 			var state:Array = _localHashMap.getSessionState();
 			if (state.length == 1)
-				(state[0] as DynamicState).objectName = null;
+				state[0][DynamicState.OBJECT_NAME] = null;
 			return state;
 		}
 
@@ -190,7 +190,7 @@ package weave.core
 				var objectName:String;
 				for each (var item:Object in newState)
 				{
-					if (DynamicState.objectHasProperties(item))
+					if (DynamicState.isDynamicState(item))
 					{
 						if (item[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
 						{
@@ -419,6 +419,14 @@ package weave.core
 		public function lock():void
 		{
 			_locked = true;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get locked():Boolean
+		{
+			return _locked;
 		}
 
 		/**

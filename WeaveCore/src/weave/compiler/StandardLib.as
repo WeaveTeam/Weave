@@ -19,10 +19,13 @@
 
 package weave.compiler
 {
+	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
+	import mx.utils.Base64Decoder;
+	import mx.utils.Base64Encoder;
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
@@ -63,6 +66,7 @@ package weave.compiler
 		}
 		
 		/**
+		 * Converts a value to a non-null String
 		 * @param value A value to cast to a String.
 		 * @return The value cast to a String.
 		 */
@@ -95,15 +99,25 @@ package weave.compiler
 			return value;
 		}
 		
+		/**
+		 * Tests if a value is anything other than undefined, null, or NaN.
+		 */
 		public static function isDefined(value:*):Boolean
 		{
 			return value !== undefined && value !== null && !(value is Number && isNaN(value));
 		}
+		
+		/**
+		 * Tests if a value is undefined, null, or NaN.
+		 */
 		public static function isUndefined(value:*):Boolean
 		{
 			return value === undefined || value === null || (value is Number && isNaN(value));
 		}
 		
+		/**
+		 * Pads a string on the left.
+		 */
 		public static function lpad(str:String, length:uint, padString:String = ' '):String
 		{
 			if (str.length >= length)
@@ -112,6 +126,10 @@ package weave.compiler
 				padString += padString;
 			return padString.substr(0, length - str.length) + str;
 		}
+		
+		/**
+		 * Pads a string on the right.
+		 */
 		public static function rpad(str:String, length:uint, padString:String = ' '):String
 		{
 			if (str.length >= length)
@@ -141,6 +159,8 @@ package weave.compiler
 			return string;
 		}
 		
+		private static const argRef:RegExp = new RegExp("^(0|[1-9][0-9]*)\}");
+		
 		/**
 		 * Substitutes "{n}" tokens within the specified string with the respective arguments passed in.
 		 * Same syntax as StringUtil.substitute() without the side-effects of using String.replace() with a regex.
@@ -149,14 +169,23 @@ package weave.compiler
 		 */
 		public static function substitute(format:String, ...args):String
 		{
-			for (var i:int = 0; i < args.length; i++)
+			if (args.length == 1 && args[0] is Array)
+				args = args[0] as Array;
+			var split:Array = format.split('{')
+			var output:String = split[0];
+			for (var i:int = 1; i < split.length; i++)
 			{
-				var str:String = '{' + i + '}';
-				var j:int = int.MAX_VALUE;
-				while ((j = format.lastIndexOf(str, j)) >= 0)
-					format = format.substr(0, j) + args[i] + format.substr(j + str.length);
+				var str:String = split[i] as String;
+				if (argRef.test(str))
+				{
+					var j:int = str.indexOf("}");
+					output += args[str.substring(0, j)];
+					output += str.substring(j + 1);
+				}
+				else
+					output += "{" + str;
 			}
-			return format;
+			return output;
 		}
 		
 		/**
@@ -223,6 +252,7 @@ package weave.compiler
 		}
 
 		/**
+		 * Converts a number to a String using a specific numeric base and optionally pads with leading zeros.
 		 * @param number The Number to convert to a String.
 		 * @param base Specifies the numeric base (from 2 to 36) to use.
 		 * @param zeroPad This is the minimum number of digits to return.  The number will be padded with zeros if necessary.
@@ -323,6 +353,7 @@ package weave.compiler
 		}
 		
 		/**
+		 * Scales a number between 0 and 1 using specified min and max values.
 		 * @param value The value between min and max.
 		 * @param min The minimum value that corresponds to a result of 0.
 		 * @param max The maximum value that corresponds to a result of 1.
@@ -416,9 +447,10 @@ package weave.compiler
 		}
 
 		/**
+		 * Calculates an interpolated color for a normalized value.
 		 * @param normValue A Number between 0 and 1.
 		 * @param colors An Array or list of colors to interpolate between.  Normalized values of 0 and 1 will be mapped to the first and last colors.
-		 * @return An interpolated color associated with the given normValue based on the min,max color values.
+		 * @return An interpolated color associated with the given normValue based on the list of color values.
 		 */
 		public static function interpolateColor(normValue:Number, ...colors):Number
 		{
@@ -533,6 +565,9 @@ package weave.compiler
 			return values;
 		}
 		
+		/**
+		 * Calculates the mean value from a list of Numbers.
+		 */
 		public static function mean(...args):Number
 		{
 			if (args.length == 1 && args[0] is Array)
@@ -543,6 +578,9 @@ package weave.compiler
 			return sum / args.length;
 		}
 		
+		/**
+		 * Calculates the sum of a list of Numbers.
+		 */
 		public static function sum(...args):Number
 		{
 			if (args.length == 1 && args[0] is Array)
@@ -781,6 +819,43 @@ package weave.compiler
 				if (compareDynamicObjects(o1,o2) != 0)
 					throw "StandardLib.compareDynamicObjects fail";
 			DebugTimer.end('StandardLib.compareDynamicObjects');
+		}
+		
+		/**
+		 * Binary to Ascii (Base64)
+		 */
+		public static function btoa(binary:ByteArray):String
+		{
+			var encoder:Base64Encoder = new Base64Encoder();
+			encoder.insertNewLines = false;
+			if (binary)
+				encoder.encodeBytes(binary);
+			return encoder.drain();
+		}
+		
+		/**
+		 * Ascii (Base64) to Binary
+		 */
+		public static function atob(ascii:String):ByteArray
+		{
+			var decoder:Base64Decoder = new Base64Decoder();
+			decoder.decode(ascii);
+			return decoder.drain();
+		}
+		
+		/**
+		 * @see https://github.com/bestiejs/punycode.js
+		 */
+		internal static function ucs2encode(value:uint):String
+		{
+			var output:String = '';
+			if (value > 0xFFFF)
+			{
+				value -= 0x10000;
+				output += String.fromCharCode(value >>> 10 & 0x3FF | 0xD800);
+				value = 0xDC00 | value & 0x3FF;
+			}
+			return output + String.fromCharCode(value);
 		}
 	}
 }

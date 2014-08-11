@@ -184,7 +184,7 @@ package weave.services
 		{
 			var tileService:IWeaveGeometryTileService = new WeaveGeometryTileServlet(this, columnId);
 			
-			// when we dispose of this servlet, we also want to dispose of the spawned tile servlet
+			// when we dispose this servlet, we also want to dispose the spawned tile servlet
 			registerDisposableChild(this, tileService);
 			
 			return tileService;
@@ -207,7 +207,10 @@ package weave.services
 		////////////////////////////
 		// backwards compatibility
 		
-		[Deprecated] public function getColumnFromMetadata(metadata:Object):AsyncToken
+		/**
+		 * Deprecated. Use getColumn() instead.
+		 */
+		public function getColumnFromMetadata(metadata:Object):AsyncToken
 		{
 			return invoke(getColumnFromMetadata, arguments, AttributeColumnData);
 		}
@@ -217,7 +220,6 @@ package weave.services
 
 import mx.rpc.AsyncToken;
 
-import weave.api.WeaveAPI;
 import weave.api.services.IWeaveGeometryTileService;
 import weave.services.WeaveDataServlet;
 

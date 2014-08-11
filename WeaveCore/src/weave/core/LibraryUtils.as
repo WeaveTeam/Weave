@@ -23,8 +23,6 @@ package weave.core
 	
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
-	
 	/**
 	 * This is an all-static class containing functions for loading SWC libraries at runtime.
 	 * 
@@ -135,8 +133,8 @@ import mx.rpc.Fault;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
-import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
+import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
 import weave.utils.AsyncSort;
 
@@ -313,13 +311,17 @@ internal class Library implements IDisposableObject
 					// initialize the class
 					var classDef:Class = ClassUtils.getClassDefinition(classQName);
 					
+					// We can't get definitions of internal classes, so classDef may be null.
+					if (!classDef)
+						continue;
+					
 					// register this class as an implementation of every interface it implements.
 					var classInfo:Object = DescribeType.getInfo(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
 					for each (var interfaceQName:String in classInfo.traits.interfaces)
 					{
 						var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
 						if (interfaceDef)
-							WeaveAPI.registerImplementation(interfaceDef, classDef);
+							WeaveAPI.ClassRegistry.registerImplementation(interfaceDef, classDef);
 					}
 				}
 				catch (e:Error)

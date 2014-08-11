@@ -23,7 +23,6 @@ package weave.ui
 	
 	import spark.components.Label;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.core.UIUtils;
 

@@ -37,7 +37,6 @@ package weave.visualization.layers
 	import spark.components.Group;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
 	import weave.api.primitives.IBounds2D;
@@ -49,6 +48,7 @@ package weave.visualization.layers
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
@@ -547,6 +547,7 @@ package weave.visualization.layers
 		
 		private var _selectionGraphicsCleared:Boolean = true;
 		private const _selectionGeometry:SimpleGeometry = new SimpleGeometry();
+		private const _selectionPoint:SimpleGeometry = new SimpleGeometry(GeometryType.POINT);
 		private var _lassoScreenPoints:Array = [];
 		private var _lastLassoPoint:Point = null;
 		

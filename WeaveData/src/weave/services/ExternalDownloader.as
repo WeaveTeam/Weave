@@ -29,11 +29,10 @@ package weave.services
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.Base64Decoder;
-	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 
 	public class ExternalDownloader
 	{
@@ -55,7 +54,7 @@ package weave.services
 			
 			try
 			{
-				JavaScript.exec({"this": "weave"}, new JS_ExternalDownloader());
+				WeaveAPI.initializeJavaScript(JS_ExternalDownloader);
 				JavaScript.registerMethod("ExternalDownloader_callback", callback);
 				
 				_initialized = true;
@@ -88,11 +87,7 @@ package weave.services
 					bytes.writeUTFBytes(urlRequest.data as String);
 				}
 				
-				var encoder:Base64Encoder = new Base64Encoder();
-				encoder.insertNewLines = false;
-				if (bytes)
-					encoder.encodeBytes(bytes);
-				base64data = encoder.drain();
+				base64data = StandardLib.btoa(bytes);
 			}
 			else
 			{
@@ -102,11 +97,24 @@ package weave.services
 			
 			uniqueIDToTokenMap[id] = new QueryToken(urlRequest, dataFormat, token);
 			
-			JavaScript.exec(
-				{"args": [id, method, url, requestHeaders, base64data]},
-				"this.ExternalDownloader_request.apply(this, args);"
-			);
+			try
+			{
+				JavaScript.exec(
+					{"args": [id, method, url, requestHeaders, base64data]},
+					"this.ExternalDownloader_request.apply(this, args);"
+				);
+			}
+			catch (e:Error)
+			{
+				_errors[id] = e;
+				WeaveAPI.StageUtils.callLater(null, callback, [id, -1, null]);
+			}
 		}
+		
+		/**
+		 * id -> Error
+		 */
+		private static const _errors:Object = {};
 		
 		/**
 		 * @param id The id that was passed to weave.ExternalDownloader_get().
@@ -123,12 +131,11 @@ package weave.services
 			var result:Object;
 			if (base64data)
 			{
-				var decoder:Base64Decoder = new Base64Decoder();
-				decoder.decode(base64data);
+				var bytes:ByteArray = StandardLib.atob(base64data);
 				if (qt.dataFormat == URLRequestUtils.DATA_FORMAT_BINARY)
-					result = decoder.flush();
+					result = bytes;
 				else
-					result = decoder.flush().toString();
+					result = bytes.toString();
 			}
 			
 			if (status == 200)
@@ -137,16 +144,25 @@ package weave.services
 			}
 			else
 			{
-				var faultCode:String = null;
-				if (HTTP_STATUS_CODES[status])
-					faultCode = status + " " + lang(HTTP_STATUS_CODES[status]);
-				else if (status)
-					faultCode = "" + status;
+				var fault:Fault;
+				if (_errors[id])
+				{
+					fault = new Fault(lang("Malformed URL"), qt.urlRequest.url);
+					fault.rootCause = _errors[id];
+				}
 				else
-					faultCode = lang("Error");
-				
-				var fault:Fault = new Fault(faultCode, lang("HTTP " + qt.urlRequest.method + " failed; Check that the server allows Cross-Origin Resource Sharing (CORS)"), qt.urlRequest.url);
-				fault.content = result;
+				{
+					var faultCode:String = null;
+					if (HTTP_STATUS_CODES[status])
+						faultCode = status + " " + lang(HTTP_STATUS_CODES[status]);
+					else if (status)
+						faultCode = "" + status;
+					else
+						faultCode = lang("Error");
+					
+					fault = new Fault(faultCode, lang("HTTP " + qt.urlRequest.method + " failed; Check that the server allows Cross-Origin Resource Sharing (CORS)"), qt.urlRequest.url);
+					fault.content = result;
+				}
 				qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
 			}
 		}

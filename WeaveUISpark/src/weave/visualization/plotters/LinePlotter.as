@@ -23,13 +23,15 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
-	import weave.api.core.ILinkableObject;
+	import weave.api.core.DynamicState;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 
 	/**
@@ -42,9 +44,6 @@ package weave.visualization.plotters
 	{
 		public function LinePlotter()
 		{
-			// initialize default line style
-			lineStyle.requestLocalObject(SolidLineStyle, false);
-			
 			setColumnKeySources([x1Data, y1Data, x2Data, y2Data]);
 		}
 
@@ -86,7 +85,7 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the line.
 		 */
-		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle());
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
@@ -114,7 +113,7 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 
 			// project data coordinates to screen coordinates and draw graphics onto tempShape
-			lineStyle.beginLineStyle(recordKey, graphics);				
+			line.beginLineStyle(recordKey, graphics);				
 			
 			// project data coordinates to screen coordinates and draw graphics
 			tempPoint.x = x1Data.getValueFromKey(recordKey, Number);
@@ -135,5 +134,17 @@ package weave.visualization.plotters
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object
+		
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
 	}
 }

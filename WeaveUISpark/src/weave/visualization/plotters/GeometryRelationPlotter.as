@@ -22,7 +22,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFormat;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -40,7 +39,7 @@ package weave.visualization.plotters
 
 	public class GeometryRelationPlotter extends AbstractPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, GeometryRelationPlotter, "Geometry relations");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryRelationPlotter, "Geometry relations");
 
 		public function GeometryRelationPlotter()
 		{

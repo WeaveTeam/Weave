@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:tools="weave.visualization.tools.*"
+				   xmlns:ui="weave.ui.*"
+				   width="400" height="300" implements="weave.api.ui.IVisTool" layout="absolute"
+				   resize="fixVideoSizing()" title="{lang('Video Tool')}">	
+	<mx:VBox width="100%" height="100%">
+		<mx:UIComponent id="theVideoSpace" width="100%" height="100%"/>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[			
+			import cc.cote.chromatracker.ChromaTracker;
+			
+			import weave.api.linkBindableProperty;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			
+			public const videoURL:LinkableString = registerLinkableChild(this, new LinkableString("/videos/movie.mp4"), loadVideo);
+			public const rectangleColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFF0000));
+			public const trackingColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10040115), updateTrackingColor);
+			public const trackingTolerance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.15), updateTrackingTolerance);
+			
+			
+			private var theVideo:Video; //Video container component
+			private var vidConnection:NetStream = null; //Connection that is the video stream.
+			private var netConnect:NetConnection = new NetConnection(); //Connection to the server.
+			private var overlay:Sprite; //Used for drawing the overlay rectangle.
+			private var keyFrameTimer:Timer = new Timer(33); //Timer set to run every frame to draw a rectangle. (30 FPS)
+			private var connected:Boolean = false; //Inidicates if a NetConnection was successfully made.
+			private var colorDetectionMap:BitmapData = new BitmapData(600,600);
+			private var tracker:ChromaTracker;
+			
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, VideoTool, "Video Tool");
+			
+			override protected function childrenCreated():void
+			{
+				linkBindableProperty(rectangleColor, this.rectangleColorPicker, "selectedColor");
+				linkBindableProperty(trackingColor, this.trackingColorColorPicker, "selectedColor");
+				linkBindableProperty(trackingTolerance, this.trackingTolerancePicker, "value");
+				//Overlay setup
+				overlay = new Sprite();
+				overlay.mouseEnabled = false;
+				overlay.mouseChildren = false;
+				//Initial setup for the video and server connection
+				theVideo = new Video(theVideoSpace.width, theVideoSpace.height);
+				colorDetectionMap = new BitmapData(theVideo.width,theVideo.height);
+				netConnect.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				netConnect.connect(null);
+				//Add the video container and overlay to the UIComponent.
+				theVideoSpace.addChild(theVideo);
+				theVideoSpace.addChild(overlay);
+				
+				//Rectangle draw timer.
+				keyFrameTimer.addEventListener(TimerEvent.TIMER, stepFrame);
+			}
+			
+			private function lastKeyFrameDetector(event:NetStatusEvent):void
+			{
+				switch(event.info.code){
+					case "NetStream.Play.Start":
+						keyFrameTimer.start();
+						break;
+					case "NetStream.Buffer.Empty":
+						keyFrameTimer.stop();
+						break;
+					case "NetStream.Play.StreamNotFound":
+						keyFrameTimer.stop();
+						overlay.graphics.clear();
+						break;
+				}
+				fixVideoSizing();
+			}
+			
+			private var colorRect:Rectangle;
+			
+			private function stepFrame(event:TimerEvent):void
+			{
+				//Currently drawing randomly placed rectangles on each frame.
+				colorRect = tracker.track();
+				if( !(colorRect.height == 0 && colorRect.width == 0) )
+					drawClassifierRectangle(colorRect.x, colorRect.y, colorRect.height, colorRect.width);
+				else
+					overlay.graphics.clear();
+			}
+			
+			private function netStatusHandler(event:NetStatusEvent):void
+			{
+				switch (event.info.code) {
+					case "NetConnection.Connect.Success":
+						connected = true;
+						loadVideo();
+						break;
+					case "NetStream.Play.StreamNotFound":
+						connected = false;
+						trace("Stream not found");
+						break;
+				}
+			}
+			
+			private function loadVideo():void
+			{
+				try
+				{
+					if( connected )
+					{
+						if( vidConnection == null )
+						{
+							//Setup the initial connection.
+							vidConnection = new NetStream(netConnect);
+							vidConnection.checkPolicyFile = true;
+							vidConnection.addEventListener(NetStatusEvent.NET_STATUS, lastKeyFrameDetector);
+							//This is a hack for a metadata error that was occuring.
+							vidConnection.client={onMetaData:function(obj:Object):void{} }
+							theVideo.attachNetStream(vidConnection);
+						}
+						
+						videoURLInput.text = videoURL.value;
+						vidConnection.close();
+						theVideo.clear();
+						vidConnection.play(videoURL.value);
+						tracker = new ChromaTracker(theVideo, trackingColor.value,trackingTolerance.value);
+					}
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+			}
+			
+			override public function get defaultPanelTitle():String
+			{
+				return lang("Video Tool");
+			}
+			
+			private var called:Boolean = false;
+			
+			//Used for resizing the video area.
+			protected function fixVideoSizing():void
+			{
+				theVideo.height = theVideoSpace.height;
+				theVideo.width = theVideoSpace.width;
+				if( theVideo.width != 0 && theVideo.height != 0 )
+					colorDetectionMap = new BitmapData(theVideo.width,theVideo.height);
+				if( !called )
+					callLater(fixVideoSizing);
+				called = false;
+			}
+			
+			protected function playVideoPressed(event:MouseEvent):void
+			{
+				//loadVideo() should run after setting this.
+				if( videoURL.value == videoURLInput.text )
+					loadVideo();
+				else
+					videoURL.value = videoURLInput.text;
+			}
+			
+			//Draws a recangle on the video overlay as specified by a classification algorithm.
+			public function drawClassifierRectangle(x:Number, y:Number, height:Number, width:Number):void
+			{
+				overlay.graphics.clear();
+				overlay.graphics.beginFill(rectangleColor.value);
+				overlay.graphics.drawRect(x+5,y+5,width-10,height-10);
+				overlay.graphics.drawRect(x,y,width,height);
+				overlay.graphics.endFill();
+			}
+			
+			//Pause button function.
+			protected function pauseOrResumeStream(event:MouseEvent):void
+			{
+				if( pauseButton.label == lang("Pause") )
+				{
+					keyFrameTimer.stop();
+					vidConnection.pause();
+					pauseButton.label = lang("Resume");
+					
+				}
+				else
+				{
+					vidConnection.resume();
+					pauseButton.label = lang("Pause");
+					keyFrameTimer.start();
+				}
+			}
+			
+			private function updateTrackingColor():void
+			{
+				if( tracker != null )
+					tracker.color = trackingColor.value;
+			}
+			
+			private function updateTrackingTolerance():void
+			{
+				if( tracker != null )
+					tracker.tolerance = trackingTolerance.value;
+			}
+			
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox>
+			<mx:HBox>
+				<mx:TextInput id="videoURLInput"/>
+				<mx:Button label="{lang('Play')}" click="playVideoPressed(event)"/>
+			</mx:HBox>
+			<mx:Button id="pauseButton" label="{lang('Pause')}" click="pauseOrResumeStream(event)"/>
+			<mx:HBox>
+				<mx:Label text="Rectangle identifier color:"/>
+				<mx:ColorPicker id="rectangleColorPicker"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Color to identify:"/>
+				<mx:ColorPicker id="trackingColorColorPicker"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Rectangle identifier color:"/>
+				<mx:NumericStepper id="trackingTolerancePicker" maximum="1" minimum="0"
+								   stepSize="0.01"/>
+			</mx:HBox>
+		</mx:VBox>
+	</ui:ControlPanel>
+</ui:DraggablePanel>

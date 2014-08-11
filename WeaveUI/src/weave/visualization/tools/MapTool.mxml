@@ -31,11 +31,11 @@
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.data.ColumnMetadata;
-			import weave.api.data.DataTypes;
+			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnReference;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -55,10 +55,11 @@
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 			import weave.editors.SimpleAxisEditor;
 			import weave.editors.WindowSettingsEditor;
-			import weave.editors.managers.CustomLayerWindow;
+			import weave.editors.managers.LayerListComponent;
+			import weave.menus.WeaveMenuItem;
 			import weave.primitives.Bounds2D;
+			import weave.ui.AttributeMenuTool;
 			import weave.ui.SubMenu;
-			import weave.ui.SubMenuItem;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
@@ -72,31 +73,49 @@
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, MapTool, "Map");
 			
 			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
 			private const visibleScaleController:VariableListController = newDisposableChild(this, VariableListController);
 			
-			// no main plotter
-			override protected function get mainPlotter():IPlotter { return null; }
-			
 			override protected function constructor():void
 			{
 				super.constructor();
+				
+				AttributeMenuTool.hack_skipToolTargets[this] = true;
 			}
 			
-			private var selectionSubMenu:SubMenu;
-			
-			override public function getSelectableAttributeNames():Array
+			private function isGeomColumnOrRef(obj:Object, i:*, a:*):Boolean
 			{
-				// hack
-				return ["Color"];
+				var col:IAttributeColumn = obj as IAttributeColumn;
+				if (col)
+					return col.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY;
+				
+				var ref:IColumnReference = obj as IColumnReference;
+				if (ref)
+				{
+					var meta:Object = ref.getColumnMetadata();
+					return meta && meta[ColumnMetadata.DATA_TYPE] == DataType.GEOMETRY;
+				}
+				
+				return false;
 			}
-			override public function getSelectableAttributes():Array
+			
+			override public function initSelectableAttributes(input:Array):void
 			{
-				// hack
-				return [Weave.defaultColorColumn];
+				var geomColumns:Array = input.filter(isGeomColumnOrRef);
+				var nonGeomColumns:Array = input.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
+				for each (var geomColumn:Object in geomColumns)
+				{
+					var gp:GeometryPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter, false);
+					if (gp)
+					{
+						ColumnUtils.initSelectableAttribute(gp.geometryColumn, geomColumn);
+						if (!Weave.defaultColorDataColumn.getInternalColumn())
+							ColumnUtils.initSelectableAttribute(Weave.defaultColorDataColumn, nonGeomColumns[0]);
+					}
+				}
 			}
 			
 			/**
@@ -154,13 +173,14 @@
 			}
 			private function handlePlottersChange():void
 			{
+				var ourSRS:String = projectionSRS.value || null;
 				_projComboBoxData.length = 0;
 				// TEMPORARY: set the selected item in the combo box because changing the data provider 
 				// will reset the text field
-				if (WeaveAPI.ProjectionManager.projectionExists(projectionSRS.value))
+				if (WeaveAPI.ProjectionManager.projectionExists(ourSRS))
 				{
-					_projComboBoxData.push(projectionSRS.value);
-					projComboBox.selectedItem = projectionSRS.value; 
+					_projComboBoxData.push(ourSRS);
+					projComboBox.selectedItem = ourSRS; 
 				}
 				
 				var projString:String;
@@ -180,8 +200,7 @@
 				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
 				{
 					linkProjection(wmsPlotter.srs);
-					var service:IWMSService = wmsPlotter.service.internalObject as IWMSService;
-					projString = service ? service.getProjectionSRS() : null;
+					projString = wmsPlotter.sourceSRS;
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);
 				}
@@ -197,6 +216,26 @@
 				}
 				
 				updateProbeColumns();
+				
+				if (zoomToBaseMap.value)
+				{
+					_baseMapZoomAuthority = null;
+					wmsPlotters = visualization.plotManager.plotters.getObjects(WMSPlotter);
+					for each (wmsPlotter in wmsPlotters)
+					{
+						if (ourSRS && wmsPlotter.sourceSRS != ourSRS)
+							continue; // doesn't match projection
+						
+						var layerName:String = visualization.plotManager.plotters.getName(wmsPlotter);
+						if (!visualization.plotManager.layerShouldBeRendered(layerName))
+							continue; // not visible
+						
+						// the first visible wmsPlotter we find that matches the current projection is treated as the authority
+						_baseMapZoomAuthority = wmsPlotter;
+						break;
+					}
+					updateZoom();
+				}
 			}
 			private function updateProbeColumns():void
 			{
@@ -206,7 +245,7 @@
 					// get all ReferencedColumn objects, excluding geometry columns
 					var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization, ReferencedColumn);
 					for each (var col:IAttributeColumn in refCols)
-						if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) != 0) // non-geometry
+						if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataType.GEOMETRY, true) != 0) // non-geometry
 							visualization.additionalProbeColumns.push(col);
 				}
 				else
@@ -217,7 +256,9 @@
 			{
 				// hack
 				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(Weave.defaultColorColumn);
-				return "Map " + (dc.getInternalColumn() == null ? '' : "of " + ColumnUtils.getTitle(dc));
+				if (dc.getInternalColumn())
+					return lang("Map of {0}", ColumnUtils.getTitle(dc));
+				return lang("Map");
 			}
 			
 			override protected function createChildren():void
@@ -262,6 +303,7 @@
 				Weave.defaultColorDataColumn.addGroupedCallback(this, handlePanelTitleChange);
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
+				visualization.plotManager.hack_onUpdateZoom(updateZoom);
 				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
 				visualization.plotManager.plotters.addGroupedCallback(this,handleLayerSettingsChange,true);
 				Weave.defaultColorDataColumn.addGroupedCallback(this,updateProbeColumns, true);
@@ -272,23 +314,39 @@
 				
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 				
-				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP], [
-					new SubMenuItem(lang("Rectangular Selection"), function():void {
-						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;
-					}),
-					new SubMenuItem(lang("Circular Selection"), function():void {
-						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;
-					}),
-					new SubMenuItem(lang("Lasso Selection"), function():void {
-						Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
-						Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;
-					})
-				]);
+				initSelectionSubMenu();
 				
 				visibleScaleController.view = visibleScaleRangesList;
 				visibleScaleController.hashMap = visualization.plotManager.layerSettings
+			}
+			
+			private var selectionSubMenu:SubMenu;
+			private function initSelectionSubMenu():void
+			{
+				selectionSubMenu = new SubMenu(selectModeButton, [
+					menuItem(InteractionController.SELECTION_MODE_RECTANGLE, "Rectangular Selection"),
+					menuItem(InteractionController.SELECTION_MODE_CIRCLE, "Circular Selection"),
+					menuItem(InteractionController.SELECTION_MODE_LASSO, "Lasso Selection")/*,
+					menuItem(InteractionController.SELECTION_MODE_POINT, "Point Selection")*/
+				]);
+				selectionSubMenu.setSubMenuEvents([MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
+				function menuItem(mode:String, label:String):Object {
+					return {
+						data: mode,
+						label: lang(label),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					};
+				}
+				function onClick(item:WeaveMenuItem):void {
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
+					Weave.properties.selectionMode.value = item.data as String;
+				}
+				function isToggled(item:WeaveMenuItem):Boolean {
+					return Weave.properties.toolInteractions.defaultDragMode.value == InteractionController.SELECT
+						&& Weave.properties.selectionMode.value == item.data;
+				}
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void
@@ -465,16 +523,16 @@
 				if (grp)
 					return grp.geometryColumn.internalDynamicColumn;
 				
-				var spp:ScatterPlotPlotter = p as ScatterPlotPlotter;
-				if (spp)
-					return spp.dataX;
+				var agp:AbstractGlyphPlotter = p as AbstractGlyphPlotter;
+				if (agp)
+					return agp.dataX;
 				
 				return null;
 			}
 			
 			private function addGeomLayer():void
 			{
-				CustomLayerWindow.addPlotterAndEdit(visualization, GeometryPlotter);
+				LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter);
 			}
 			
 			private function addLabelLayer():void
@@ -486,7 +544,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:GeometryLabelPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryLabelPlotter);
+				var plotter:GeometryLabelPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryLabelPlotter);
 				if (!plotter)
 					return;
 				
@@ -522,7 +580,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:ScatterPlotPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, ScatterPlotPlotter);
+				var plotter:ScatterPlotPlotter = LayerListComponent.addPlotterAndEdit(visualization, ScatterPlotPlotter);
 				if (!plotter)
 					return;
 				
@@ -551,7 +609,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:GeometryRelationPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryRelationPlotter);
+				var plotter:GeometryRelationPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryRelationPlotter);
 				if (!plotter)
 					return;
 				
@@ -571,7 +629,7 @@
 				var oldLayerNames:Array = visualization.plotManager.plotters.getNames();
 
 				// create new plotter
-				var plotter:WMSPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, WMSPlotter);
+				var plotter:WMSPlotter = LayerListComponent.addPlotterAndEdit(visualization, WMSPlotter);
 				if (!plotter)
 					return;
 				
@@ -703,6 +761,20 @@
 			}
 			
 			public const zoomSliderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
+			
+			public const zoomToBaseMap:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), handlePlottersChange, true);
+			private var _baseMapZoomAuthority:WMSPlotter;
+			private function updateZoom():void
+			{
+				if (!zoomToBaseMap.value || WeaveAPI.SessionManager.objectWasDisposed(_baseMapZoomAuthority))
+				{
+					_baseMapZoomAuthority = null;
+				}
+				else if (_baseMapZoomAuthority)
+				{
+					_baseMapZoomAuthority.adjustZoomBounds(visualization.plotManager.zoomBounds);
+				}
+			}
 			
 			// BACKWARDS COMPATIBILITY
 			[Deprecated(replacement="zoomSliderHeight")] public function set sizeFactorOfMapControls(value:Number):void { zoomSliderHeight.value *= value; }
@@ -866,18 +938,16 @@
 			layerControls.addChild(layersEditor);
 			layersEditor.addChildAt(layerButtons, 0);
 			layersEditor.removeChild(layersEditor.layerButtons);
-			layerButtons.addChild(layersEditor.removeButton);
 			layersEditor.visible = true;
 			layersEditor.labelFunction = getPlotterLabel;
 		</ui:creationComplete>
 		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
-			<ui:Indent id="layerButtons" grouped="false" label="Add layer:" translate="true" horizontalGap="4">
+			<ui:Indent id="layerButtons" grouped="false" label="Add a layer:" translate="true" horizontalGap="4">
 				<mx:Button label="{lang('Base Map')}" click="addWMSLayer();" toolTip="{lang('Add an image layer underneath the geometries')}"/>
 				<mx:Button label="{lang('Geometry')}" click="addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
 				<mx:Button label="{lang('Labels')}" click="addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
 				<mx:Button label="{lang('Bubbles')}" click="addBubbleLayer();" toolTip="{lang('Add bubbles to the selected geometry layer')}"/>
-				<mx:Button label="{lang('Other...')}" click="layersEditor.addLayer()" toolTip="{lang('Add another type of layer')}"/>
-				<mx:Spacer width="100%"/>
+				<mx:Button id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListComponent.initAddLayerButton(addLayerButton, visualization)"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
@@ -921,6 +991,15 @@
 						Used for zoom +/- buttons, mouse wheel, and double-click.
 					</ui:HelpComponent>
 				</ui:Indent>
+				<mx:HBox>
+					<ui:CustomCheckBox label="{lang('Snap zoom level to base map')}" creationComplete="linkBindableProperty(zoomToBaseMap, event.target, 'selected')"/>
+					<ui:HelpComponent>
+						This option will make sure the zoom level matches the base map so the map image looks crisp as intended.
+						Disabling this option allows more freedom in zooming while sacrificing image quality.
+						
+						This option has no effect when no base map is in use or when the selected projection does not match the projection of the base map.
+					</ui:HelpComponent>
+				</mx:HBox>
 			</ui:CheckBoxWithNestedOptions>
 
 			<mx:CheckBox label="{lang('Show map overview')}" id="overviewCheckBox"

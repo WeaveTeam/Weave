@@ -23,7 +23,6 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.graphs.IGraphAlgorithm;
 	import weave.api.graphs.IGraphNode;

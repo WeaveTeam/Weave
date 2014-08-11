@@ -32,7 +32,6 @@
 		<![CDATA[
 			import mx.containers.Canvas;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;

@@ -34,22 +34,21 @@
 	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed, playButton.selected) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
-	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
-	<mx:Button width="24" id="menuButton" icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
+	<mx:HSlider id="slider" width="100%" minWidth="0" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
+	<mx:Button width="24" id="menuButton" toolTip="{lang('Menu')}" icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.newLinkableChild;
+			import weave.api.objectWasDisposed;
 			import weave.api.reportError;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableWatcher;
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
-			import weave.ui.SubMenuItem;
 			
 			private const padding:Number = 4;
 			
@@ -60,17 +59,20 @@
 			{
 				super.childrenCreated();
 				
-				_editMenu = new SubMenu(menuButton, null, null, [
-					// new SubMenuItem(getPresentationMenuLabel, togglePresentationMode),
-					new SubMenuItem(lang("Clear all history"), _stateLog.clearHistory),
-					new SubMenuItem(lang("Clear undo history"), _stateLog.clearHistory, [-1]),
-					new SubMenuItem(lang("Clear redo history"), _stateLog.clearHistory, [1]),
-					new SubMenuItem(getSquashMenuLabel, squash)
+				_editMenu = new SubMenu(menuButton, [
+					{label: lang("Clear all history"), click: _stateLog.clearHistory},
+					{label: lang("Clear undo history"), click: function():void { _stateLog.clearHistory(-1); }},
+					{label: lang("Clear redo history"), click: function():void { _stateLog.clearHistory(1); }},
+					{label: getSquashMenuLabel, click: squash, shown: getSquashMenuLabel}
 				]);
 				
-				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				for each (var speed:int in [1,2,4,8,16])
-					_playMenu.menuItems.push(new SubMenuItem(speed + 'x', play, [speed]));
+				_playMenu = new SubMenu(
+					playButton,
+					[1,2,4,8,16].map(function(speed:int, i:int, a:Array):Object {
+						return {label: speed + 'x', click: function():void { play(speed); }};
+					})
+				);
+				_playMenu.setSubMenuEvents([MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
 			
@@ -127,6 +129,40 @@
 					_squashItem = _stateLog.undoHistory[undoLength - 1];
 					
 					squashActive.value = true;
+				}
+				showSquashTicks();
+			}
+			private function showSquashTicks():void
+			{
+				if (_squashItem)
+				{
+					var pos:int = _stateLog.undoHistory.length;
+					var i:int = _stateLog.undoHistory.indexOf(_squashItem);
+					if (i < 0)
+					{
+						i = _stateLog.redoHistory.indexOf(_squashItem)
+						if (i >= 0)
+							i += pos;
+					}
+					
+					if (i < 0)
+					{
+						slider.tickValues = [];
+					}
+					else
+					{
+						var min:int = Math.min(i + 1, pos);
+						var max:int = Math.max(i + 1, pos);
+						var values:Array = new Array(max - min + 1);
+						i = values.length;
+						while (i--)
+							values[i] = min + i;
+						slider.tickValues = values;
+					}
+				}
+				else if (slider.tickValues.length > 0)
+				{
+					slider.tickValues = [];
 				}
 			}
 			
@@ -195,7 +231,7 @@
 			private function handleAnyClick():void
 			{
 				// hack so slider doesn't disappear
-				Weave.properties.showSessionHistoryControls.value = true;
+				Weave.properties.enableSessionHistoryControls.value = true;
 			}
 			
 			// called when slider value changes
@@ -207,6 +243,8 @@
 				else
 					_stateLog.redo(delta);
 				
+				showSquashTicks();
+				
 				// hack so slider doesn't disappear
 				handleAnyClick();
 			}
@@ -214,6 +252,9 @@
 			// called when state log changes
 			private function handleStateLogChange():void
 			{
+				if (objectWasDisposed(_stateLog))
+					return;
+				
 				if (!parent)
 				{
 					callLater(handleStateLogChange);

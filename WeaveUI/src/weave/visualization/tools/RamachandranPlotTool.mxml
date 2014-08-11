@@ -35,9 +35,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
@@ -45,7 +43,6 @@
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.DataSources.CSVDataSource;
@@ -58,12 +55,10 @@
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
-			import weave.utils.HierarchyUtils;
-			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
 			
 			public var _plotter:ScatterPlotPlotter = null;
 			override protected function constructor():void
@@ -106,7 +101,6 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(_plotter.dataX, _plotter.dataY, colorColumn);
 				registerLinkableChild(this,histogramColumn);
 				
 			}
@@ -120,13 +114,18 @@
 				visualization.plotManager.marginRight.value  = "10";
 			}
 			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([_plotter.dataX, _plotter.dataY, colorColumn], input);
+			}
+			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("X"),lang("Y"),lang("Color"),lang("Size"),lang("Histogram Column")];
+				return ["X", "Y", "Color", "Size", "Histogram Column"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.dataX,_plotter.dataY,_plotter.fill.color,_plotter.sizeBy,histogramColumn];
+				return [_plotter.dataX, _plotter.dataY, _plotter.fill.color, _plotter.sizeBy, histogramColumn];
 			}
 			private function invalidateAxes():void
 			{

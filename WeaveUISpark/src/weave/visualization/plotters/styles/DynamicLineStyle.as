@@ -30,7 +30,7 @@ package weave.visualization.plotters.styles
 	 * 
 	 * @author adufilie
 	 */
-	public class DynamicLineStyle extends LinkableDynamicObject implements ILineStyle
+	[ExcludeClass] public class DynamicLineStyle extends LinkableDynamicObject implements ILineStyle
 	{
 		public function DynamicLineStyle(defaultLineStyleClass:Class = null)
 		{

@@ -109,7 +109,6 @@ SchafersMissingDataImputation
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
@@ -127,10 +126,10 @@ SchafersMissingDataImputation
 			import weave.services.beans.RResult;
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.DataTableTool;
-			import weave.visualization.tools.SimpleVisTool;
 			
-			WeaveAPI.registerImplementation(IVisTool, SchafersMissingDataTool, "Schafers Missing Data Imputation Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SchafersMissingDataTool, "Schafers Missing Data Imputation Tool");
 			
 			
 			private const padding:int = 5;
@@ -150,7 +149,7 @@ SchafersMissingDataImputation
 			override protected function constructor():void
 			{
 				super.constructor();				
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 			}

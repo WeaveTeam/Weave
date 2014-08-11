@@ -89,7 +89,6 @@
 			import mx.controls.Image;
 			
 			import weave.api.linkBindableProperty;
-			import weave.utils.DebugUtils;
 			import weave.utils.ProbeTextUtils;
 			
 			private const pad:Number = 3 ;

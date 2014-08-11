@@ -18,69 +18,114 @@
 */
 package weave.visualization.tools
 {
-	import weave.api.WeaveAPI;
+	import mx.utils.Base64Encoder;
+	import mx.utils.UIDUtil;
+	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.ui.IVisToolWithSelectableAttributes;
+	import weave.api.reportError;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
-	import weave.utils.EventUtils;
+	import weave.core.UIUtils;
 
-	public class ExternalTool extends LinkableHashMap implements IVisToolWithSelectableAttributes 
+	public class ExternalTool extends LinkableHashMap implements IObjectWithSelectableAttributes
 	{
+		/**
+		 * The name of the global JavaScript variable which is a mapping from a popup's
+		 * window.name to an object containing "path" and "window" properties.
+		 */
+		public static const WEAVE_EXTERNAL_TOOLS:String = 'WeaveExternalTools';
+		
+		/**
+		 * URL for external tool
+		 */
 		private var toolUrl:LinkableString;
-		private var toolPath:Array;
-		private var windowName:String;
-
+		
+		/**
+		 * The popup's window.name
+		 */
+		public const windowName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
+		
 		public function ExternalTool()
 		{
+			super();
+			
 			toolUrl = requestObject("toolUrl", LinkableString, true);
-			toolUrl.addImmediateCallback(this, EventUtils.generateDelayedCallback(this, toolPropertiesChanged, 0));
+			toolUrl.addGroupedCallback(this, toolPropertiesChanged);
 		}
+		
 		private function toolPropertiesChanged():void
 		{
-			if (toolUrl.value != "")
+			if (toolUrl.value)
 			{
 				launch();
 			}
 		}
-		public function launch():void
+		
+		public function launch():Boolean
 		{
-			if (toolPath == null || windowName == null)
-			{
-				toolPath = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this);
-				toolPath.unshift(JavaScript.objectID);
-				windowName = Compiler.stringify(toolPath);
-			}
-			JavaScript.exec(
+			var success:Boolean = JavaScript.exec(
 				{
-					windowName: windowName,
-					toolPath: toolPath,
-					url: toolUrl.value,
-					features: "menubar=no,status=no,toolbar=no"
+					WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
+					"url": toolUrl.value,
+					"windowName": windowName,
+					"features": "menubar=no,status=no,toolbar=no",
+					"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
 				},
-				"if (!this.external_tools) this.external_tools = {};",
-				"this.external_tools[windowName] = window.open(url, windowName, features);"
+				'if (!window[WEAVE_EXTERNAL_TOOLS]) {',
+				'    window[WEAVE_EXTERNAL_TOOLS] = {};',
+				'    // when we close this window, close all popups',
+				'    if (window.addEventListener)',
+				'        window.addEventListener("unload", function(){',
+				'            for (var key in window[WEAVE_EXTERNAL_TOOLS])',
+				'                try { window[WEAVE_EXTERNAL_TOOLS][key].window.close(); } catch (e) { }',
+				'        });',
+				'}',
+				'var popup = window.open(url, windowName, features);',
+				'window[WEAVE_EXTERNAL_TOOLS][windowName] = {"path": this.path(path), "window": popup};',
+				'return !!popup;'
 			);
+			
+			if (!success)
+				reportError("External tool popup was blocked by the web browser.");
+			
+			return success;
 		}
+		
 		override public function dispose():void
 		{
 			super.dispose();
 			JavaScript.exec(
-				{windowName: windowName},
-				"if (this.external_tools && this.external_tools[windowName]) this.external_tools[windowName].close();"
+				{
+					WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
+					"windowName": windowName,
+					"catch": ignoreError
+				},
+				'window[WEAVE_EXTERNAL_TOOLS][windowName].window.close();',
+				'delete window[WEAVE_EXTERNAL_TOOLS][windowName];'
 			);
 		}
+		
+		private function ignoreError(error:*):void { }
+		
 		/**
-		 * @return An Array of names corresponding to the objects returned by getSelectableAttributes().
+		 * @inheritDoc
 		 */
 		public function getSelectableAttributeNames():Array
 		{
-			return getNames(IAttributeColumn);
+			return getObjects(IAttributeColumn).map(getLabel);
+		}
+		
+		private function getLabel(obj:ILinkableObject, i:int, a:Array):String
+		{
+			return WeaveAPI.EditorManager.getLabel(obj);
 		}
 
 		/**
-		 * @return An Array of DynamicColumn and/or ILinkableHashMap objects that an AttributeSelectorPanel can link to.
+		 * @inheritDoc
 		 */
 		public function getSelectableAttributes():Array
 		{

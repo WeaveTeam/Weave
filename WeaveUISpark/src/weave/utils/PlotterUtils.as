@@ -50,7 +50,7 @@ package weave.utils
 		}
 		
 		/**
-		 * This will dispose of any existing BitmapData inside a Bitmap and set it to null.
+		 * This will dispose any existing BitmapData inside a Bitmap and set it to null.
 		 * @param bitmap The Bitmap to empty.
 		 */
 		public static function emptyBitmapData(bitmap:Bitmap):void
@@ -124,7 +124,7 @@ package weave.utils
 				{
 					var newBitmapData:BitmapData = new BitmapData(unscaledWidth, unscaledHeight, true, fillColor);
 					//trace("new BitmapData(",[unscaledWidth, unscaledHeight, true, 0x00000000],");");
-					// dispose of oldBitmapData, if any exists
+					// dispose oldBitmapData, if any exists
 					if (oldBitmapData != null)
 						disposeObject(oldBitmapData);
 					// connect Bitmap to newBitmapData

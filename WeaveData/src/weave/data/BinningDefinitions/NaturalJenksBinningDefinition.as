@@ -23,18 +23,13 @@ package weave.data.BinningDefinitions
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
-	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;

@@ -23,9 +23,10 @@
 	This is a ViewStack whose children are to be used as different steps in a WizardPanel.
 	@author adufilie
 -->
-<mx:ViewStack 
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+<ui:CustomViewStack 
 	xmlns="weave.ui.admin.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:ui="weave.ui.*"
 	creationPolicy="all"
 	paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8"
 	width="100%" height="100%"
@@ -106,4 +107,4 @@
 			}
 		]]>
 	</mx:Script>
-</mx:ViewStack>
+</ui:CustomViewStack>

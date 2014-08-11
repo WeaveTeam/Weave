@@ -28,30 +28,33 @@
 	<ui:Indent id="layerButtons" grouped="false" label="{lang('Visualization layers')}" fontWeight="bold" verticalAlign="bottom">
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button id="addButton" label="{lang('New layer...')}" click="addLayer()"/>
-			<mx:Button id="removeButton"
-				label="{lang('Remove selected')}"
-				toolTip="{lang('Remove the selected layers.')}"
-				click="removeSelectedLayers()"
-				enabled="{list.selectedIndex >= 0}"/>
+			<mx:Button id="addButton" label="{lang('New layer...')}"/>
 		</mx:HBox>
 	</ui:Indent>
 	<mx:VBox borderStyle="solid" initialize="UIUtils.pad(event, 5, 100, 100)">
-		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Background layers appear at the beginning of this list.')}">
+		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Foreground layers appear at the beginning of this list.')}">
 			<mx:HRule width="100%"/>
-			<mx:Label text="{lang('Background')}" alpha="0.5"/>
+			<mx:Label text="{lang('Foreground')}" alpha="0.5"/>
 			<mx:HRule width="100%"/>
 		</mx:HBox>
-		<mx:List id="list" variableRowHeight="true" initialize="UIUtils.pad(event, 2, 100, 100)" borderStyle="none">
+		<mx:List id="list" variableRowHeight="true" initialize="UIUtils.pad(event, 2, 100, 100)" borderStyle="none"
+				 mouseDown="onMouseDown(event)" dragStart="onDragStart(event)">
 			<mx:itemRenderer>
 				<mx:Component>
 					<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 							 resize="(parent as UIComponent).invalidateSize();"
 							 addedToStage="(parent as UIComponent).invalidateSize();">
+						<ui:CustomCheckBox label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+						<ui:CustomCheckBox label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
+						<ui:Paragraph id="lbl" textAlign="center"/>
+						<mx:HBox horizontalGap="4">
+							<mx:Button id="menuButton" toolTip="{lang('Menu')}" width="24"
+									   icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
+							<mx:Button label="{lang('Edit properties')}" click="openSettingsPanel()"/>
+						</mx:HBox>
 						<mx:Script>
 							<![CDATA[
 								import mx.core.UIComponent;
-								import mx.managers.PopUpManager;
 								
 								import weave.api.getSessionState;
 								import weave.api.linkBindableProperty;
@@ -59,28 +62,49 @@
 								import weave.api.setSessionState;
 								import weave.api.ui.IPlotter;
 								import weave.api.unlinkBindableProperty;
+								import weave.menus.WeaveMenuItem;
 								import weave.ui.AlertTextBox;
 								import weave.ui.AlertTextBoxEvent;
 								import weave.ui.ControlPanel;
+								import weave.ui.SubMenu;
 								import weave.ui.VariableListController;
 								import weave.visualization.layers.LayerSettings;
 								import weave.visualization.layers.PlotManager;
 								import weave.visualization.layers.Visualization;
 								
-								private function get visualization():Visualization
+								override protected function childrenCreated():void
 								{
-									return outerDocument.visualization;
-								}
-								private var plotter:IPlotter;
-								private var layerSettings:LayerSettings;
-								
-								private function openSettingsPanel(plotter:IPlotter):void
-								{
-									ControlPanel.openEditor(plotter, [visualization]);
+									super.childrenCreated();
+									
+									menuButton.data = new SubMenu(menuButton, [
+										//{label: lang('Edit properties'), click: openSettingsPanel},
+										{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
+										//WeaveMenuItem.TYPE_SEPARATOR,
+										{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
+									]);
 								}
 								
 								[Bindable] public var layerIsVisible:Boolean = true;
 								[Bindable] public var layerIsSelectable:Boolean = true;
+								
+								// accessors for convenience
+								private function get plotter():IPlotter
+								{
+									return data as IPlotter;
+								}
+								private function get plotManager():PlotManager
+								{
+									return outerDocument.visualization.plotManager;
+								}
+								private function get plotterName():String
+								{
+									return plotManager.plotters.getName(plotter);
+								}
+								private function get layerSettings():LayerSettings
+								{
+									return plotManager.layerSettings.getObject(plotterName) as LayerSettings;
+								}
+								
 								override public function set data(newPlotter:Object):void
 								{
 									// filter out bogus data
@@ -96,7 +120,7 @@
 										return;
 									
 									// unlink checkboxes
-									if (plotter)
+									if (layerSettings)
 									{
 										unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
 										unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
@@ -104,22 +128,27 @@
 									
 									// save pointers
 									super.data = newPlotter;
-									plotter = data as IPlotter;
-									var pm:PlotManager = outerDocument.visualization.plotManager;
-									var name:String = pm.plotters.getName(plotter);
-									layerSettings = pm.getLayerSettings(name);
 									
 									// link checkboxes
-									if (plotter)
+									if (layerSettings)
 									{
 										linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
 										linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
 									}
 									
-									rename.enabled = !pm.plotters.objectIsLocked(name);
+									menuButton.visible = menuButton.includeInLayout = objectIsNotLocked();
 								}
 								
-								protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
+								// menu code
+								private function objectIsNotLocked():Boolean
+								{
+									return !plotManager.plotters.objectIsLocked(plotterName);
+								}
+								private function openSettingsPanel():void
+								{
+									ControlPanel.openEditor(plotter, [plotManager]);
+								}
+								private function rename():void
 								{
 									var defaultInputString:String = outerDocument.controller.getItemName(data);
 									var alertBox:AlertTextBox = AlertTextBox.show(lang("Rename Layer"), lang("Please enter a new layer name:"), defaultInputString);
@@ -131,23 +160,21 @@
 											if( !e.confirm ) return;
 											
 											//Alert.show("Input was " + e.textInput);
-											var pm:PlotManager = outerDocument._visualization.plotManager;
-											var ls:LayerSettings = pm.layerSettings.getObject(defaultInputString) as LayerSettings;
-											var settings:Object = getSessionState(ls);
-											pm.plotters.renameObject(defaultInputString, e.textInput);
-											ls = pm.layerSettings.getObject(e.textInput) as LayerSettings;
-											setSessionState(ls, settings);
+											var ls:LayerSettings = plotManager.layerSettings.getObject(defaultInputString) as LayerSettings;
+											var state:Object = getSessionState(ls);
+											plotManager.plotters.renameObject(defaultInputString, e.textInput);
+											ls = plotManager.layerSettings.getObject(e.textInput) as LayerSettings;
+											setSessionState(ls, state);
 										}
 									);
 								}
-								
+								private function remove():void
+								{
+									var name:String = outerDocument.controller.getItemName(data);
+									outerDocument.controller.hashMap.removeObject(name);
+								}
 							]]>
 						</mx:Script>
-						<ui:CustomCheckBox id="visibleCheckbox" label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
-						<ui:CustomCheckBox id="selectedCheckbox" label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
-						<ui:Paragraph id="lbl" textAlign="center"/>
-						<mx:Button id="rename" label="{lang('Rename')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
-						<mx:Button label="{lang('Edit properties')}" click="openSettingsPanel(data as IPlotter)"/>
 					</mx:HBox>
 				</mx:Component>
 			</mx:itemRenderer>
@@ -159,9 +186,9 @@
 				  text="{lang('Start by adding a new layer.')}"
 				  creationComplete="list.addChild(listOverlay);"
 				  visible="{isEmpty(list.dataProvider)}"/>
-		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Foreground layers appear at the end of this list.')}">
+		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Background layers appear at the end of this list.')}">
 			<mx:HRule width="100%"/>
-			<mx:Label text="{lang('Foreground')}" alpha="0.5"/>
+			<mx:Label text="{lang('Background')}" alpha="0.5"/>
 			<mx:HRule width="100%"/>
 		</mx:HBox>
 	</mx:VBox>
@@ -183,11 +210,14 @@
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
+			import weave.ui.ControlPanel;
+			import weave.api.getSessionState;
+			import weave.menus.WeaveMenuItem;
+			import weave.ui.SubMenu;
 			import weave.api.ui.IPlotter;
 			import weave.core.UIUtils;
 			import weave.primitives.Bounds2D;
 			import weave.visualization.layers.PlotManager;
-			import weave.api.WeaveAPI;
 			import weave.api.newDisposableChild;
 			import weave.ui.VariableListController;
 			import weave.visualization.layers.Visualization;
@@ -242,7 +272,10 @@
 					linkBindableProperty(_visualization.plotManager.overrideYMax, overrideYMax, 'text');
 				}
 				
+				controller.reverse = true;
 				controller.view = list;
+				
+				initAddLayerButton(addButton, function():Visualization { return visualization; });
 			}
 			
 			private function setOverrideCoords(setOrUnset:Boolean):void
@@ -273,6 +306,17 @@
 				_minimumNumObjectsInList = value;
 			}
 			
+			private var _mouseDownTarget:*;
+			private function onMouseDown(event:Event):void
+			{
+				_mouseDownTarget = event.target;
+			}
+			private function onDragStart(event:Event):void
+			{
+				if (_mouseDownTarget is Button)
+					event.preventDefault();
+			}
+			
 			[Inspectable]
 			public function set dragMoveEnabled(value:Boolean):void
 			{
@@ -281,22 +325,53 @@
 			}
 			[Bindable] private var _dragMoveEnabled:Boolean = false;
 
-			private var _addLayerPopup:CustomLayerWindow;
-			public function addLayer():void
+			/**
+			 * @param button
+			 * @param visualization_or_function Either a Visualization or a Function that returns one.
+			 */
+			public static function initAddLayerButton(button:Button, visualization_or_function:Object):void
 			{
-				if (!_addLayerPopup)
+				function getLabel(item:WeaveMenuItem):String
 				{
-					_addLayerPopup = newDisposableChild(this, CustomLayerWindow);
-					_addLayerPopup.targetVisualization = _visualization;
+					return WeaveAPI.ClassRegistry.getDisplayName(item.data as Class);
 				}
-				
-				_addLayerPopup.restorePanel();
-				if (!_addLayerPopup.parent)
-					PopUpManager.addPopUp(_addLayerPopup, WeaveAPI.topLevelApplication as DisplayObject);
+				function onClick(item:WeaveMenuItem):void
+				{
+					var vis:Visualization = visualization_or_function as Visualization;
+					var vis_func:Function = visualization_or_function as Function;
+					addPlotterAndEdit(vis || vis_func(), item.data as Class);
+				}
+				// save a pointer to the SubMenu on the Button itself so the SubMenu doesn't get garbage collected.
+				button.data = new SubMenu(button, {
+					children: function():Array {
+						return WeaveAPI.ClassRegistry.getImplementations(IPlotter).map(
+							function(impl:Class, i:*, a:*):* {
+								return {
+									data: impl,
+									label: getLabel,
+									click: onClick
+								};
+							}
+						);
+					}
+				});
 			}
-			public function removeSelectedLayers():void
+			
+			/**
+			 * @return The newly created IPlotter, or null if it could not be created.
+			 */
+			public static function addPlotterAndEdit(visualization:Visualization, plotterType:Class, openEditor:Boolean = true):*
 			{
-				controller.removeSelectedItems();
+				var hm:ILinkableHashMap = visualization.plotManager.plotters;
+				var state:Object = getSessionState(visualization);
+				var name:String = hm.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(plotterType));
+				var plotter:IPlotter = hm.requestObject(name, plotterType, false) as IPlotter;
+				if (!plotter)
+					return null;
+				
+				if (openEditor)
+					ControlPanel.openEditor(plotter, [visualization], [state]);
+				return plotter;
 			}
 		]]>
 	</mx:Script>

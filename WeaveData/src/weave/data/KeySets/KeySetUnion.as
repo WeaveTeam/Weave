@@ -22,10 +22,8 @@ package weave.data.KeySets
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;

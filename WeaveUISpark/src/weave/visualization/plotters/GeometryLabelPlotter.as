@@ -21,7 +21,6 @@ package weave.visualization.plotters
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
@@ -40,7 +39,7 @@ package weave.visualization.plotters
 	 */
 	public class GeometryLabelPlotter extends TextGlyphPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
 
 		public function GeometryLabelPlotter()
 		{

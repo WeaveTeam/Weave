@@ -24,7 +24,6 @@ package weave.visualization.plotters
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;

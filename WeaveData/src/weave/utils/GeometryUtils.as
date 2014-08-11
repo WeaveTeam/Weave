@@ -30,6 +30,7 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.primitives.IBounds2D;
+	import weave.compiler.StandardLib;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -459,6 +460,45 @@ package weave.utils
 			var dx:Number = bx - ax;
 			var dy:Number = by - ay;
 			return dx * dx + dy * dy;
+		}
+		
+		/**
+		 * Computes the convex hull of a set of points.
+		 * http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+		 * @param points Array(s) of points used to compute the hull.
+		 * @return An Array of points in the convex hull.
+		 */
+		public static function convexHull(...points):Array
+		{
+			var P:Array = [].concat.apply(null, points);
+			var H:Array = new Array(P.length * 2);
+			var n:int = P.length;
+			var k:int = 0;
+			var i:int, t:int;
+			
+			// Sort points lexicographically
+			StandardLib.sort(P, comparePoints);
+			
+			// Build lower hull
+			for (i = 0; i < n; ++i)
+				while (k >= 2 && crossProduct(H[k-2], H[k-1], P[i]) <= 0) k--;
+					H[k++] = P[i];
+			
+			// Build upper hull
+			for (i = n-2, t = k+1; i >= 0; i--)
+				while (k >= t && crossProduct(H[k-2], H[k-1], P[i]) <= 0) k--;
+					H[k++] = P[i];
+			
+			H.length = k;
+			return H;
+		}
+		private static function comparePoints(a:Object, b:Object):int
+		{
+			return ObjectUtil.numericCompare(a.x, b.x) || ObjectUtil.numericCompare(a.y, b.y);
+		}
+		private static function crossProduct(O:Object, A:Object, B:Object):Number
+		{
+			return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
 		}
 		
 		// reusable temporary objects to reduce GC activity:

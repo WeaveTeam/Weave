@@ -24,15 +24,16 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 
@@ -48,11 +49,9 @@ package weave.visualization.plotters
 		{
 			for each (var spatialProperty:ILinkableObject in [xMinData, yMinData, xMaxData, yMaxData])
 				registerSpatialProperty(spatialProperty);
-			for each (var child:ILinkableObject in [xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset, lineStyle, fillStyle])
+			for each (var child:ILinkableObject in [xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset, line, fill])
 				registerLinkableChild(this, child);
-			// initialize default line & fill styles
-			lineStyle.requestLocalObject(SolidLineStyle, false);
-			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
+			
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
 			setColumnKeySources([xMinData, yMinData, xMaxData, yMaxData]);
@@ -96,11 +95,11 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		public const lineStyle:DynamicLineStyle = new DynamicLineStyle();
+		public const line:SolidLineStyle = new SolidLineStyle();
 		/**
 		 * This is the fill style used to fill the rectangle.
 		 */
-		public const fillStyle:DynamicFillStyle = new DynamicFillStyle();
+		public const fill:SolidFillStyle = new SolidFillStyle();
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
@@ -141,8 +140,8 @@ package weave.visualization.plotters
 			// draw graphics
 			var graphics:Graphics = tempShape.graphics;
 
-			lineStyle.beginLineStyle(recordKey, graphics);
-			fillStyle.beginFillStyle(recordKey, graphics);
+			line.beginLineStyle(recordKey, graphics);
+			fill.beginFillStyle(recordKey, graphics);
 
 			//trace(recordKey,tempBounds);
 			graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
@@ -152,5 +151,28 @@ package weave.visualization.plotters
 		
 		private static const tempBounds:IBounds2D = new Bounds2D(); // reusable object
 		private static const tempPoint:Point = new Point(); // reusable object
+		
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
+		[Deprecated(replacement="fill")] public function set fillStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
 	}
 }

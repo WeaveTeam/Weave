@@ -32,7 +32,6 @@ package weave.utils
 	import mx.core.UIComponent;
 	import mx.utils.StringUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.primitives.IBounds2D;
 	
 	/**

@@ -22,7 +22,6 @@ package weave.core
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
@@ -43,13 +42,13 @@ package weave.core
 		private var _oldEntries:Array;
 
 		/**
-		 * If specified, the preCallback function will be called immediately before running each callback.
-		 * This means if there are five callbacks added, preCallback() gets called five times whenever
-		 * _runCallbacksImmediately() is called.  An example usage of this is to make sure a relevant
-		 * variable is set to the appropriate value while each callback is running.  If preCallback()
-		 * takes any parameters, they must be made optional.  The preCallback function will not be called
-		 * before grouped callbacks.
 		 * @param preCallback An optional function to call before each immediate callback.
+		 *     If specified, the preCallback function will be called immediately before running each
+		 *     callback using the parameters passed to _runCallbacksImmediately(). This means if there
+		 *     are five callbacks added, preCallback() gets called five times whenever
+		 *     _runCallbacksImmediately() is called.  An example usage of this is to make sure a relevant
+		 *     variable is set to the appropriate value while each callback is running.  The preCallback
+		 *     function will not be called before grouped callbacks.
 		 */
 		public function CallbackCollection(preCallback:Function = null)
 		{
@@ -64,7 +63,7 @@ package weave.core
 		/**
 		 * This is the function that gets called immediately before every callback.
 		 */
-		private var _preCallback:Function = null;
+		protected var _preCallback:Function = null;
 
 		/**
 		 * This is the number of times delayCallbacks() has been called without a matching call to resumeCallbacks().
@@ -81,7 +80,7 @@ package weave.core
 		 * This is the default value of triggerCounter.
 		 * The default value is 1 to avoid being equal to a newly initialized uint=0.
 		 */
-		protected const DEFAULT_TRIGGER_COUNT:uint = 1;
+		public static const DEFAULT_TRIGGER_COUNT:uint = 1;
 		
 		/**
 		 * This value keeps track of how many times callbacks were triggered, and is returned by the public triggerCounter accessor function.
@@ -168,7 +167,7 @@ package weave.core
 					// if we haven't reached the matching schedule yet, skip this callback
 					if (entry.schedule != schedule)
 						continue;
-					// Remove the entry if the context was disposed of by SessionManager.
+					// Remove the entry if the context was disposed by SessionManager.
 					var shouldRemoveEntry:Boolean;
 					if (entry.callback == null)
 						shouldRemoveEntry = true;
@@ -193,7 +192,7 @@ package weave.core
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
-						entry.callback();
+						entry.callback.apply();
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
@@ -333,7 +332,6 @@ internal const STACK_TRACE_REMOVE:String = "This is the stack trace from when th
 import flash.events.Event;
 import flash.utils.Dictionary;
 
-import weave.api.WeaveAPI;
 import weave.api.core.ICallbackCollection;
 import weave.core.CallbackCollection;
 
@@ -353,7 +351,7 @@ internal class CallbackEntry
 	
 	/**
 	 * This is the context in which the callback function is relevant.
-	 * When the context is disposed of, the callback should not be called anymore.
+	 * When the context is disposed, the callback should not be called anymore.
 	 * 
 	 * Note that the context could be stored using a weak reference in an effort to make the garbage-
 	 * collector take care of removing the callback, but in most situations this would not work because
@@ -372,6 +370,7 @@ internal class CallbackEntry
 	/**
 	 * This is the current recursion depth.
 	 * If this is greater than zero, it means the function is currently running.
+	 * Note that it IS possible for this to go above 1 if an external JavaScript popup interrupts our code.
 	 */
 	public var recursionCount:uint = 0;
 	/**
@@ -423,7 +422,10 @@ internal class GroupedCallbackEntry extends CallbackEntry
 		callbackCollection.removeCallback(groupedCallback);
 		
 		// add the trigger function as a callback
-		callbackCollection.addImmediateCallback(relevantContext, entry.trigger, triggerCallbackNow);
+		// The relevantContext parameter is set to null for entry.trigger so the same callback can be added multiple times to the same
+		// target using different contexts without having the side effect of losing the callback when one of those contexts is disposed.
+		// The entry.trigger function will be removed once all contexts are disposed.
+		callbackCollection.addImmediateCallback(null, entry.trigger, triggerCallbackNow);
 	}
 	
 	public static function removeGroupedCallback(callbackCollection:ICallbackCollection, groupedCallback:Function):void
@@ -558,7 +560,7 @@ internal class GroupedCallbackEntry extends CallbackEntry
 		
 		// first, make sure there is at least one relevant context for this callback.
 		var allContexts:Array = context as Array;
-		// remove the contexts that have been disposed of.
+		// remove the contexts that have been disposed.
 		for (var i:int = 0; i < allContexts.length; i++)
 			if (WeaveAPI.SessionManager.objectWasDisposed(allContexts[i]))
 				allContexts.splice(i--, 1);

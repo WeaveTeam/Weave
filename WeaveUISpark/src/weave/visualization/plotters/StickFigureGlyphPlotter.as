@@ -23,12 +23,12 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -40,10 +40,19 @@ package weave.visualization.plotters
 	 * 
 	 * @heather byrne
 	 */
-	public class StickFigureGlyphPlotter extends AbstractGlyphPlotter
+	public class StickFigureGlyphPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
 	{
 		public function StickFigureGlyphPlotter()
 		{
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["X", "Y", "Theta 1", "Theta 2", "Theta 3", "Theta 4"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [dataX, dataY, theta1, theta2, theta3, theta4];
 		}
 
 		/**

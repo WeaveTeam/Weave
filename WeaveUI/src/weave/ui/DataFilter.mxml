@@ -22,13 +22,12 @@
 <DraggablePanel xmlns="weave.ui.*" 
 				layout="vertical" verticalAlign="middle"
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisToolWithSelectableAttributes"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
 			import weave.api.getSessionState;
@@ -39,10 +38,10 @@
 			import weave.core.LinkableWatcher;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
+			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
-			import weave.utils.EditorManager;
 			
-			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
 
 			private var _editor:ILinkableObjectEditor;
 			private var _globalName:String;
@@ -78,10 +77,23 @@
 					return;
 				super.createChildren();
 				
-				subMenu.menuItems.push(
-					new SubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]),
-					new SubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter])
-				);
+				function onClick(item:WeaveMenuItem):void { setFilterType(item.data as Class); }
+				function isToggled(item:WeaveMenuItem):Boolean { return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is (item.data as Class); }
+				subMenu.dataProvider = [
+					{
+						data: StringDataFilter,
+						label: lang("String filter"),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					},{
+						data: NumberDataFilter,
+						label: lang("Number filter"),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					}
+				];
 				
 				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
 				if (!keyFilter)
@@ -114,7 +126,7 @@
 				var filter:IKeyFilter = keyFilter;
 				if (filter && !_editor)
 				{
-					_editor = EditorManager.getNewEditor(filter);
+					_editor = WeaveAPI.EditorManager.getNewEditor(filter);
 					addChild(_editor as DisplayObject);
 				}
 				_filterWatcher.target = filter;
@@ -130,7 +142,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return filterColumn ? [lang('Filter')] : [];
+				return filterColumn ? ['Filter'] : [];
 			}
 			
 			public function getSelectableAttributes():Array

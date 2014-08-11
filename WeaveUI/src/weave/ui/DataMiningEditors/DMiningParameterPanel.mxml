@@ -35,19 +35,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		
 	<mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
-			import mx.containers.HBox;
 			import mx.containers.VBox;
 			import mx.controls.Button;
-			import mx.controls.ComboBox;
-			import mx.controls.Label;
 			import mx.controls.Spacer;
-			
-			import spark.components.ComboBox;
-			
-			import weave.core.UIUtils;
-			import weave.ui.Indent;
-			import weave.ui.TextInputWithPrompt;
 
 
 

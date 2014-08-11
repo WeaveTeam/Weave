@@ -38,7 +38,7 @@ package weave.core
 	import mx.rpc.AsyncToken;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.DynamicState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableCompositeObject;
@@ -90,7 +90,7 @@ package weave.core
 			if (linkableParent == linkableChild)
 				throw new Error("registerLinkableChild(): Invalid attempt to register sessioned property having itself as its parent");
 			
-			// add a callback that will be cleaned up when the parent is disposed of.
+			// add a callback that will be cleaned up when the parent is disposed.
 			// this callback will be called BEFORE the child triggers the parent callbacks.
 			if (callback != null)
 			{
@@ -105,7 +105,7 @@ package weave.core
 			// and the child should be disposed when the parent is disposed.
 			// registerDisposableChild() also initializes the required Dictionaries.
 			registerDisposableChild(linkableParent, linkableChild);
-
+			
 			// only continue if the child is not already registered with the parent
 			if (childToParentDictionaryMap[linkableChild][linkableParent] === undefined)
 			{
@@ -118,7 +118,9 @@ package weave.core
 				// set alwaysCallLast=true for triggering parent callbacks, so parent will be triggered after all the other child callbacks
 				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, false, true); // parent-child relationship
 			}
-
+			
+			_treeCallbacks.triggerCallbacks();
+			
 			return linkableChild;
 		}
 		
@@ -166,6 +168,8 @@ package weave.core
 			if (parentToChildDictionaryMap[parent])
 				delete parentToChildDictionaryMap[parent][child];
 			getCallbackCollection(child).removeCallback(getCallbackCollection(parent).triggerCallbacks);
+			
+			_treeCallbacks.triggerCallbacks();
 		}
 		
 		/**
@@ -297,6 +301,19 @@ package weave.core
 				return null;
 			return result;
 		}
+		
+		/**
+		 * Adds a grouped callback that will be triggered when the session state tree changes.
+		 */
+		public function addTreeCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
+		{
+			_treeCallbacks.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
+		}
+		public function removeTreeCallback(groupedCallback:Function):void
+		{
+			_treeCallbacks.removeCallback(groupedCallback);
+		}
+		private const _treeCallbacks:CallbackCollection = new CallbackCollection();
 
 		/**
 		 * @inheritDoc
@@ -352,7 +369,7 @@ package weave.core
 				{
 					var array:Array = [];
 					for (var key:String in newState)
-						array.push(new DynamicState(key, null, newState[key]));
+						array.push(DynamicState.create(key, null, newState[key]));
 					newState = array;
 				}
 				
@@ -633,14 +650,9 @@ package weave.core
 		 */
 		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
 		{
-			if (root == null)
-			{
-				reportError("SessionManager.getLinkableDescendants(): root cannot be null.");
-				return [];
-			}
-			
 			var result:Array = [];
-			internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
+			if (root)
+				internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
 			// don't include root object
 			if (result.length > 0 && result[0] == root)
 				result.shift();
@@ -911,7 +923,7 @@ package weave.core
 		/**
 		 * This function will register a UIComponent/ILinkableObject as a disposable child of an ancestral
 		 * DisplayObjectContainer/ILinkableObject if it has no linkable owner yet.  This makes sure that the
-		 * component is disposed of when its ancestor is disposed of.
+		 * component is disposed when its ancestor is disposed.
 		 * @param linkableComponent A UIComponent that implements ILinkableObject.
 		 * @return true if the component has a linkable owner, either before or after this function is called, or if the object was disposed.
 		 */
@@ -991,7 +1003,7 @@ package weave.core
 				var linkableObject:ILinkableObject = object as ILinkableObject;
 				if (linkableObject)
 				{
-					// dispose of the callback collection corresponding to the object.
+					// dispose the callback collection corresponding to the object.
 					// this removes all callbacks, including the one that triggers parent callbacks.
 					var objectCC:ICallbackCollection = getCallbackCollection(linkableObject);
 					if (objectCC != linkableObject)
@@ -1028,14 +1040,14 @@ package weave.core
 				for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
 					unlinkSessionState(linkableObject, otherObject as ILinkableObject);
 				
-				// dispose of all registered children that this object owns
+				// dispose all registered children that this object owns
 				var children:Dictionary = ownerToChildDictionaryMap[object] as Dictionary;
 				if (children != null)
 				{
 					// clear the pointers to the child dictionaries for this object
 					delete ownerToChildDictionaryMap[object];
 					delete parentToChildDictionaryMap[object];
-					// dispose of the children this object owned
+					// dispose the children this object owned
 					for (var child:Object in children)
 						disposeObject(child);
 				}
@@ -1077,6 +1089,8 @@ package weave.core
 					if (displayObject is UIComponent)
 						(displayObject as UIComponent).mx_internal::cancelAllCallLaters();
 				}
+				
+				_treeCallbacks.triggerCallbacks();
 			}
 		}
 		
@@ -1335,7 +1349,8 @@ package weave.core
 			var callLaterTime:int = 0;
 			var uiComponent:UIComponent = bindableParent as UIComponent;
 			var recursiveCall:Boolean = false;
-			// a function that takes zero parameters and sets the bindable value.
+			// When given zero parameters, this function copies the linkable value to the bindable value.
+			// When given one or more parameters, this function copies the bindable value to the linkable value.
 			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
 				// unlink if linkableVariable was disposed
@@ -1411,7 +1426,7 @@ package weave.core
 							// if we haven't reached the target time yet or callbacks are delayed, call later
 							if (currentTime < callLaterTime)
 							{
-								uiComponent.callLater(synchronize, [firstParam, true]);
+								uiComponent.callLater(synchronize, [firstParam, true]); // callingLater = true
 								return;
 							}
 						}
@@ -1637,7 +1652,7 @@ package weave.core
 					}
 					
 					// save in new array and remove from lookup
-					result.push(new DynamicState(objectName || null, className, sessionState)); // convert empty string to null
+					result.push(DynamicState.create(objectName || null, className, sessionState)); // convert empty string to null
 					changeDetected = true;
 				}
 				
@@ -1645,7 +1660,7 @@ package weave.core
 				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
 				for (objectName in oldLookup)
 				{
-					result.push(new DynamicState(objectName || null, DIFF_DELETE)); // convert empty string to null
+					result.push(DynamicState.create(objectName || null, DIFF_DELETE)); // convert empty string to null
 					changeDetected = true;
 				}
 				

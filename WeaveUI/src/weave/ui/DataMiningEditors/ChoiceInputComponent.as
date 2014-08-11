@@ -23,9 +23,7 @@ package weave.ui.DataMiningEditors
 	 * Consists of a label and a combobox
 	 * @spurushe
 	 */
-	import mx.containers.HBox;
 	import mx.controls.ComboBox;
-	import mx.controls.Label;
 	
 	import weave.ui.Indent;
 

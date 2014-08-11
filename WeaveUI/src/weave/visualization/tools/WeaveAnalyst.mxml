@@ -75,14 +75,13 @@
 		<![CDATA[
 			import mx.events.ListEvent;
 			
-			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.UIUtils;
 			import weave.editors.PrincipalComponentEditor;
-			import weave.services.WeaveRServlet;
+			import weave.utils.ProbeTextUtils;
 
 
 			private static var analystInstance:WeaveAnalyst = null;
@@ -98,7 +97,7 @@
 			
 			 protected function constructor():*
 			{
-				 var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				 var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
 				 for (var i:int = 0; i < columns.length; i++)
 					 inputColumns.requestObjectCopy(null, columns[i]);
 				 

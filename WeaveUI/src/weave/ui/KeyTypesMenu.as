@@ -20,15 +20,15 @@ package weave.ui
 {
 	import mx.collections.ArrayCollection;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.utils.EventUtils;
 
 	public class KeyTypesMenu extends CustomComboBox
 	{
+		public static const helpContent:String = 'The keytype is used to link your dataset with other data sets and shapefiles. Data sets and shapefiles with the same keytype are linked. Select from the options provided here or enter your own keytype.';
+		
 		public function KeyTypesMenu()
 		{
-			toolTip = lang('The keytype is used to link your dataset with other data sets and shapefiles. Data sets and shapefiles with the same keytype are linked. Select from the options provided here or enter your own keytype.');
 			editable = true; 
 			getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this,handleQKeyManagerChange);
 			handleQKeyManagerChange();

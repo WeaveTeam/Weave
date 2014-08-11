@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -25,25 +25,22 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newDisposableChild;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.utils.ColumnUtils;
-	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -51,39 +48,41 @@ package weave.visualization.plotters
 	 * 
 	 * @author skolman
 	 */
-	public class Histogram2DPlotter extends AbstractPlotter
+	public class Histogram2DPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IPlotter, Histogram2DPlotter, "Histogram 2D");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, Histogram2DPlotter, "Histogram 2D");
 		
 		public function Histogram2DPlotter()
 		{
-			// hack, only supports default color column
-			var cc:ColorColumn = Weave.defaultColorColumn;
-			registerLinkableChild(this, cc);
-			
 			setColumnKeySources([xColumn, yColumn]);
 		}
 		
-		private var _keySet:KeySet = newDisposableChild(this, KeySet);
+		public function getSelectableAttributeNames():Array
+		{
+			return ["X", "Y"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [xColumn, yColumn];
+		}
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const binColors:ColorRamp = registerLinkableChild(this, new ColorRamp("0xFFFFFF,0x000000"));
 		
-		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, handleColumnChange);
-		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, handleColumnChange);
-		private const xInternalStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(xBinnedColumn.internalDynamicColumn);
-		private const yInternalStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(yBinnedColumn.internalDynamicColumn);
+		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn);
+		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn);
+		private const xDataStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(xBinnedColumn.internalDynamicColumn);
+		private const yDataStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(yBinnedColumn.internalDynamicColumn);
 
 		public const showAverageColorData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
+		// hack, only supports default color column
+		private const _colorColumn:ColorColumn = registerLinkableChild(this, Weave.defaultColorColumn);
 		
 		public function get xColumn():DynamicColumn { return xBinnedColumn.internalDynamicColumn; }
 		public function get yColumn():DynamicColumn { return yBinnedColumn.internalDynamicColumn; }
 		
-		private var cellToKeysMap:Object = {};
 		private var keyToCellMap:Dictionary = new Dictionary(true);
-		private var cellToAverageValueMap:Object = {};
-		
 		private var xBinWidth:Number;
 		private var yBinWidth:Number;
 		private var maxBinSize:int;
@@ -91,30 +90,30 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		private const tempBounds:IBounds2D = new Bounds2D();
 
-		private function handleColumnChange():void
+		private function validate():void
 		{
-			cellToKeysMap = {};
-			cellToAverageValueMap = {};
-			keyToCellMap = new Dictionary(true);
-			maxBinSize = 0;
-			
-			for each (var key:IQualifiedKey in _keySet.keys)
+			if (detectLinkableObjectChange(validate, filteredKeySet, xBinnedColumn, yBinnedColumn, xDataStats, yDataStats))
 			{
-				var xCell:int = xBinnedColumn.getValueFromKey(key, Number);
-				var yCell:int = yBinnedColumn.getValueFromKey(key, Number);
-				var cell:String = String(xCell) + "," + String(yCell);
+				var cellSizes:Object = {};
+				keyToCellMap = new Dictionary(true);
+				maxBinSize = 0;
 				
-				keyToCellMap[key] = cell;
+				for each (var key:IQualifiedKey in _filteredKeySet.keys)
+				{
+					var xCell:int = xBinnedColumn.getValueFromKey(key, Number);
+					var yCell:int = yBinnedColumn.getValueFromKey(key, Number);
+					var cell:String = xCell + "," + yCell;
+					
+					keyToCellMap[key] = cell;
+					
+					var size:int = int(cellSizes[cell]) + 1;
+					cellSizes[cell] = size;
+					maxBinSize = Math.max(maxBinSize, size);
+				}
 				
-				var keys:Array = cellToKeysMap[cell] as Array;
-				if (!keys)
-					cellToKeysMap[cell] = keys = [];
-				keys.push(key);
-				maxBinSize = Math.max(maxBinSize, keys.length);
+				xBinWidth = (xDataStats.getMax() - xDataStats.getMin()) / xBinnedColumn.numberOfBins;
+				yBinWidth = (yDataStats.getMax() - yDataStats.getMin()) / yBinnedColumn.numberOfBins;
 			}
-			
-			xBinWidth = (xInternalStats.getMax() - xInternalStats.getMin()) / xBinnedColumn.numberOfBins;
-			yBinWidth = (yInternalStats.getMax() - yInternalStats.getMin()) / yBinnedColumn.numberOfBins;
 		}
 		
 		/**
@@ -127,14 +126,13 @@ package weave.visualization.plotters
 		}
 		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			validate();
 			if (isNaN(xBinWidth) || isNaN(yBinWidth))
 				return;
 			
-			// hack, only supports default color column
-			var colorCol:ColorColumn = Weave.defaultColorColumn;
-			var binCol:BinnedColumn = colorCol.getInternalColumn() as BinnedColumn;
+			var binCol:BinnedColumn = _colorColumn.getInternalColumn() as BinnedColumn;
 			var dataCol:IAttributeColumn = binCol ? binCol.internalDynamicColumn : null;
-			var ramp:ColorRamp = showAverageColorData.value ? colorCol.ramp : this.binColors;
+			var ramp:ColorRamp = showAverageColorData.value ? _colorColumn.ramp : this.binColors;
 			
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
@@ -211,12 +209,14 @@ package weave.visualization.plotters
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			initBoundsArray(output);
-			if(xBinnedColumn.getInternalColumn() == null || yBinnedColumn.getInternalColumn() == null)
+			if (xBinnedColumn.getInternalColumn() == null || yBinnedColumn.getInternalColumn() == null)
 				return;
+			
+			validate();
 			
 			var shapeKey:String = keyToCellMap[recordKey];
 			
-			if(shapeKey == null)
+			if (shapeKey == null)
 				return;
 			
 			var temp:Array = shapeKey.split(",");

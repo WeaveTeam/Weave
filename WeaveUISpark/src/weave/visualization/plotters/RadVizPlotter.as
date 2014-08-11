@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -26,23 +26,25 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFieldAutoSize;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
-	import mx.controls.Alert;
 	import mx.core.UITextField;
 	import mx.graphics.ImageSnapshot;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
@@ -55,7 +57,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.radviz.BruteForceLayoutAlgorithm;
@@ -63,8 +64,8 @@ package weave.visualization.plotters
 	import weave.radviz.IncrementalLayoutAlgorithm;
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
+	import weave.utils.CachedBitmap;
 	import weave.utils.ColumnUtils;
-	import weave.utils.EquationColumnLib;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -74,7 +75,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class RadVizPlotter extends AbstractPlotter
+	public class RadVizPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		public function RadVizPlotter()
 		{
@@ -90,8 +91,6 @@ package weave.visualization.plotters
 			getCallbackCollection(filteredKeySet).addGroupedCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 			columns.addGroupedCallback(this, handleColumnsChange);
-
-			//pointSensitivityColumns.addGroupedCallback(this, handlePointSensitivityColumnsChange);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -113,6 +112,16 @@ package weave.visualization.plotters
 				// invariant: same number of anchors and columns
 				anchors.removeObject(oldColumnName);
 			}
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Size", "Color", "Anchor Dimensions"];
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [radiusColumn, fillStyle.color, columns];
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -139,15 +148,16 @@ package weave.visualization.plotters
 		{
 			pointSensitivityColumns = [];
 			annCenterColumns = [];
-			var tempArray:Array = pointSensitivitySelection.getSessionState() as Array;
+			var tempArray:Array = pointSensitivitySelection.getSessionState() as Array || [];
+			var cols:Array = columns.getObjects();
 			for( var i:int = 0; i < tempArray.length; i++)
 			{
 				if (tempArray[i])
 				{
-					pointSensitivityColumns.push(columns.getObjects()[i]);
+					pointSensitivityColumns.push(cols[i]);
 				} else
 				{
-					annCenterColumns.push(columns.getObjects()[i]);
+					annCenterColumns.push(cols[i]);
 				}
 			}
 		}
@@ -172,6 +182,8 @@ package weave.visualization.plotters
 		
 		public var LayoutClasses:Dictionary = null;//(Set via the editor) needed for setting the Cd layout dimensional anchor  locations
 		
+		private var minRadius:Number = 2;
+		private var maxRadius:Number = 10;
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -452,52 +464,100 @@ package weave.visualization.plotters
 					return 1;
 				if (columns.getObjects().length != anchors.getObjects().length)
 					return 1;
+				if (detectLinkableObjectChange(drawPlotAsyncIteration, lineStyle, fillStyle, radiusConstant, radiusColumn))
+					keyToGlyph = new Dictionary(true);
+				task.asyncState = 0;
 			}
-			return super.drawPlotAsyncIteration(task);
+			for (var recordIndex:int = int(task.asyncState); recordIndex < task.recordKeys.length; task.asyncState = ++recordIndex)
+			{
+				// if time is up, report progress
+				if (getTimer() > task.iterationStopTime)
+					return recordIndex / task.recordKeys.length;
+				
+				var key:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
+				
+				getXYcoordinates(key);
+				// skip missing x,y
+				if (isFinite(coordinate.x) && isFinite(coordinate.y))
+				{
+					task.dataBounds.projectPointTo(coordinate, task.screenBounds);
+					var radius:Number;
+					if (useGlyphCache)
+					{
+						var glyph:CachedBitmap = keyToGlyph[key];
+						if (!glyph)
+						{
+							if (radiusColumn.getInternalColumn())
+								radius = minRadius + radiusColumnStats.getNorm(key) * (maxRadius - minRadius);
+							else
+								radius = radiusConstant.value;
+							
+							keyToGlyph[key] = glyph = getCachedGlyph(
+								lineStyle.getLineStyleParams(key),
+								fillStyle.getBeginFillParams(key),
+								StandardLib.roundSignificant(radius, 3),
+								radiusConstant.value
+							);
+						}
+						glyph.drawTo(task.buffer, Math.round(coordinate.x), Math.round(coordinate.y));
+					}
+					else
+					{
+						if (radiusColumn.getInternalColumn())
+							radius = minRadius + radiusColumnStats.getNorm(key) * (maxRadius - minRadius);
+						else
+							radius = radiusConstant.value;
+						var shape:Shape = drawGlyph(
+							lineStyle.getLineStyleParams(key),
+							fillStyle.getBeginFillParams(key),
+							StandardLib.roundSignificant(radius, 3),
+							radiusConstant.value
+						);
+						tempMatrix.identity();
+						tempMatrix.translate(coordinate.x, coordinate.y);
+						task.buffer.draw(shape, tempMatrix);
+					}
+				}
+			}
+			
+			// report progress
+			return 1; // avoids division by zero in case task.recordKeys.length == 0
 		}
+		
+		private var keyToGlyph:Dictionary = new Dictionary(true);
+		private const tempMatrix:Matrix = new Matrix();
+		public var useGlyphCache:Boolean = true;
+		
+		/**
+		 * A memoized version of drawGlyph() which returns a CachedBitmap object.
+		 */
+		private const getCachedGlyph:Function = Compiler.memoize(function(...args):* {
+			return registerDisposableChild(this, new CachedBitmap(this.drawGlyph.apply(this, args)));
+		}, this);
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
-		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
+		private function drawGlyph(lineParams:Array, fillParams:Array, radius:Number, radiusConstant:Number):Shape
 		{
 			var graphics:Graphics = tempShape.graphics;
-			var radius:Number = radiusColumnStats.getNorm(recordKey);
+			graphics.clear();
 			
-			// Get coordinates of record and add jitter (if specified)
-			getXYcoordinates(recordKey);
+			if (fillParams)
+				graphics.beginFill(fillParams[0], fillParams[1]);
+			else
+				graphics.endFill();
 			
-			if(radiusColumn.getInternalColumn() != null)
-			{
-				if(radius <= Infinity) radius = 2 + (radius *(10-2));
-				if(isNaN(radius))
-				{			
-					radius = radiusConstant.value;
-					
-					lineStyle.beginLineStyle(recordKey, graphics);
-					fillStyle.beginFillStyle(recordKey, graphics);
-					dataBounds.projectPointTo(coordinate, screenBounds);
-					
-					// draw a square of fixed size for missing size values				
-					graphics.drawRect(coordinate.x - radius/2, coordinate.y - radius/2, radius, radius);		
-					graphics.endFill();
-					return ;
-				}	
-			}
-			else if (isNaN(radius))
-			{
-				radius = radiusConstant.value ;
-			}
+			graphics.lineStyle.apply(graphics, lineParams);
+			if (isFinite(radius))
+				graphics.drawCircle(0, 0, radius);
+			else // draw a square of fixed size for missing size values
+				graphics.drawRect(0 - radiusConstant/2, 0 - radiusConstant/2, radiusConstant, radiusConstant);
 			
-			if(isNaN(coordinate.x) || isNaN(coordinate.y)) return; // missing values skipped
+			if (fillParams)
+				graphics.endFill();
 			
-			lineStyle.beginLineStyle(recordKey, graphics);
-			fillStyle.beginFillStyle(recordKey, graphics);
-			
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			graphics.drawCircle(coordinate.x, coordinate.y, radius);
-			
-			graphics.endFill();
+			return tempShape;
 		}
 		
 		/**
@@ -903,13 +963,13 @@ package weave.visualization.plotters
 				} 
 				else
 				{
-					Alert.show(lang("No data found."))
+					trace(this, "No data found.");
 					return;
 				}
 				if (originalArray.length < sampleSizeRows.value)
 				{
 					sampledArray = originalArray; // sample size is bigger than the data set.
-					Alert.show(lang("Data sampled successfully."))
+					trace(this, "Data sampled successfully.");
 				}
 				else // sampling begins here
 				{
@@ -961,12 +1021,12 @@ package weave.visualization.plotters
 					// begin saving the CSVDataSource.
 					if (sampleTitle.value == "" || sampleTitle.value == "optional")
 					{
-						sampleTitle.value = Weave.root.generateUniqueName("Sampled " + WeaveAPI.globalHashMap.getName(originalCSVDataSource));
+						sampleTitle.value = WeaveAPI.globalHashMap.generateUniqueName("Sampled " + WeaveAPI.globalHashMap.getName(originalCSVDataSource));
 					}
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
 					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;
-					Alert.show(lang("Data sampled successfully"));
+					trace(this, "Data sampled successfully");
 					sampleTitle.value = "";
 				} 
 			}

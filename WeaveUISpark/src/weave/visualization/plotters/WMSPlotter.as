@@ -32,7 +32,6 @@ package weave.visualization.plotters
 	
 	import org.openscales.proj4as.ProjConstants;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
@@ -47,6 +46,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.ZoomBounds;
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
 	import weave.services.wms.OnEarthProvider;
@@ -54,6 +54,7 @@ package weave.visualization.plotters
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
 	import weave.utils.Dictionary2D;
+	import weave.utils.ZoomUtils;
 
 	/**
 	 * WMSPlotter
@@ -64,7 +65,7 @@ package weave.visualization.plotters
 	 */
 	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
-		WeaveAPI.registerImplementation(IPlotter, WMSPlotter, "WMS images");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, WMSPlotter, "WMS images");
 		
 		// TODO: move the image reprojection code elsewhere
 		
@@ -81,6 +82,12 @@ package weave.visualization.plotters
 			
 			//setting default WMS Map to Blue Marble
 			setProvider(WMSProviders.OPEN_STREET_MAP);
+		}
+		
+		public function get sourceSRS():String
+		{
+			var srv:IWMSService = _service;
+			return srv ? srv.getProjectionSRS() : null;
 		}
 
 		// the service and its parameters
@@ -488,6 +495,24 @@ package weave.visualization.plotters
 		{
 			return false;
 		}
+		
+		public function adjustZoomBounds(zoomBounds:ZoomBounds):void
+		{
+			var minScreenSize:int = Math.max(_service.getImageWidth(), _service.getImageHeight());
+			zoomBounds.getDataBounds(_tempDataBounds);
+			zoomBounds.getScreenBounds(_tempScreenBounds);
+			getBackgroundDataBounds(_tempBackgroundDataBounds);
+			
+			var inputZoomLevel:Number = ZoomUtils.getZoomLevel(_tempDataBounds, _tempScreenBounds, _tempBackgroundDataBounds, minScreenSize);
+			var inputScale:Number = ZoomUtils.getScaleFromZoomLevel(_tempBackgroundDataBounds, minScreenSize, inputZoomLevel);
+			
+			var outputZoomLevel:Number = Math.round(inputZoomLevel);
+			var outputScale:Number = ZoomUtils.getScaleFromZoomLevel(_tempBackgroundDataBounds, minScreenSize, outputZoomLevel);
+			
+			ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempDataBounds, _tempScreenBounds, _tempScreenBounds.getXCenter(), _tempScreenBounds.getYCenter(), outputScale / inputScale, false);
+			zoomBounds.setDataBounds(_tempDataBounds);
+		}
+		
 		[Deprecated(replacement="service")] public function set serviceName(value:String):void { setProvider(value); }
 	}
 }

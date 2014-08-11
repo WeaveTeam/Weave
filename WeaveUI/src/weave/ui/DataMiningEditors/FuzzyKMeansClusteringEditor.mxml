@@ -59,8 +59,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableHashMap;
 			import weave.services.WeaveRServlet;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
@@ -79,7 +79,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function constructor():void
 			{
 				super.constructor();
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					inputColumns.requestObjectCopy(null, columns[i]);
 			}

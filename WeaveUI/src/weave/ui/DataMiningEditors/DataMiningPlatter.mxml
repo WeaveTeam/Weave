@@ -42,7 +42,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.CollectionEvent;
 			import mx.events.ResizeEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;

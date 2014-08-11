@@ -61,9 +61,7 @@
 			import mx.core.UIComponent;
 			import mx.utils.URLUtil;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
-			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.services.beans.ConnectionInfo;
 			

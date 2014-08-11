@@ -1,16 +1,14 @@
 package weave.visualization.tools
 {
-    import weave.api.data.IQualifiedKey;
+    import flash.utils.Dictionary;
+    
+    import mx.collections.ArrayCollection;
+    import mx.collections.ICollectionView;
+    import mx.controls.treeClasses.ITreeDataDescriptor;
+    
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IKeySet;
-    import weave.api.WeaveAPI;
-    import weave.utils.DebugUtils;
-
-    import mx.collections.ICollectionView;
-    import mx.collections.ArrayCollection;
-    import mx.controls.treeClasses.ITreeDataDescriptor;
-
-    import flash.utils.Dictionary;
+    import weave.api.data.IQualifiedKey;
 
 
     public class ParentColumnTreeDescriptor implements ITreeDataDescriptor

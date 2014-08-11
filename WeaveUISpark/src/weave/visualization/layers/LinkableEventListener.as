@@ -22,7 +22,6 @@ package weave.visualization.layers
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getLinkableRoot;

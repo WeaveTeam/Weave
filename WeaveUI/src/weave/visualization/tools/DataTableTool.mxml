@@ -29,7 +29,7 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute" implements="weave.api.ui.IVisToolWithSelectableAttributes"
+				   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
@@ -103,9 +103,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.desktop.Clipboard;
-			import flash.desktop.ClipboardFormats;
-			
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.UIComponent;
@@ -118,10 +115,9 @@
 			import mx.managers.IFocusManagerComponent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.DataTypes;
+			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
@@ -157,12 +153,12 @@
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
-			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
-			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IFilterComponent));
 			public const enableProbing:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
 			private const dataGridColumns:Dictionary = new Dictionary();
@@ -175,7 +171,6 @@
 			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
-			private var _lastHighlighted:IQualifiedKey;
 
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -230,8 +225,6 @@
 				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);
 				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
 				filterComponents.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
-				
-				dimensionsList.hashMap = columns;
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 			}
@@ -364,14 +357,14 @@
 			
 			override public function get defaultPanelTitle():String
 			{
-				return "Data Table";
+				return lang("Data Table");
 			}
 			
 			
 			private function addImageColumn():void
 			{
-				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
-				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
+				var imageColumnName:String = columns.generateUniqueName("ImageColumn");
+				var imageCol:ImageColumn = columns.requestObject(imageColumnName,ImageColumn, false);
 				AttributeSelectorPanel.open(imageCol);
 			}
 			
@@ -382,7 +375,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return [lang("Columns")];
+				return ["Columns"];
 			}
 			
 			
@@ -521,19 +514,9 @@
 					callLater(updateGlobalProbeChange);
 					return;
 				}
-				dataGrid.drawItemForced(_lastHighlighted, _selection.containsKey(_lastHighlighted), false);
-				if (_probe.keys.length > 0)
-				{
-					var key:IQualifiedKey = _probe.keys[0];
-					var keySelected:Boolean = _selection.containsKey(key);
-					dataGrid.drawItemForced(key, keySelected, true);
-					_lastHighlighted = key;
-				}
-				else
-				{
-					_lastHighlighted = null;
-				}
-				return;
+				dataGrid.invalidateList();
+				dataGrid.validateNow();
+				dataGrid.highlightItemsForced(_probe.keys, _selection.containsKey);
 			}
 			
 			/**
@@ -614,7 +597,7 @@
 					if (attrCol is KeyColumn)
 						continue;
 					
-					var keyType:String = ColumnUtils.getKeyType(attrCol) || DataTypes.STRING;
+					var keyType:String = ColumnUtils.getKeyType(attrCol) || DataType.STRING;
 					if (keyTypeList.indexOf(keyType) == -1)
 						keyTypeList.push(keyType);
 				}
@@ -654,7 +637,7 @@
 						
 						//filterComponent Section
 						var classDef:Class = null;
-						if (dataType == DataTypes.NUMBER)
+						if (dataType == DataType.NUMBER)
 							classDef = SliderFilterComponent;
 						else
 							classDef = SearchFilterComponent;
@@ -896,7 +879,6 @@
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
 				function (column, key, cell) {\n\
-					import 'weave.api.WeaveAPI';\n\
 					var name = 'defaultColorColumn';\n\
 					var cc = WeaveAPI.globalHashMap.getObject(name);\n\
 					return cc.getValueFromKey(key, Number);\n\
@@ -1004,7 +986,7 @@
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
-			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
+			<ui:ColumnListComponent id="dimensionsList" creationComplete="dimensionsList.hashMap = columns;"/>
 			<mx:HBox>
 				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>

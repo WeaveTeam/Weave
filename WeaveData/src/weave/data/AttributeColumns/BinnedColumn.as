@@ -22,7 +22,6 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinClassifier;

@@ -48,7 +48,6 @@
 	<![CDATA[
 		import mx.managers.PopUpManager;
 		
-		import weave.api.WeaveAPI;
 		import weave.api.data.EntityType;
 		import weave.api.disposeObject;
 		import weave.api.registerLinkableChild;

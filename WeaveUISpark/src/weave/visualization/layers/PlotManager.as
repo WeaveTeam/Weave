@@ -34,7 +34,6 @@ package weave.visualization.layers
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
@@ -121,7 +120,7 @@ package weave.visualization.layers
 		
 		public const minScreenSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(128), updateZoom, true);
 		public const minZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateZoom, true);
-		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateZoom, true);
+		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(18), updateZoom, true);
 		public const enableFixedAspectRatio:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
 		public const enableAutoZoomToSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
@@ -195,7 +194,11 @@ package weave.visualization.layers
 		/**
 		 * This can be set to a function that will be called whenever updateZoom is called.
 		 */
-		public var hack_updateZoom:Function = null;
+		private var hack_updateZoom_callbacks:Array = [];
+		public function hack_onUpdateZoom(callback:Function):void
+		{
+			hack_updateZoom_callbacks.push(callback);
+		}
 		
 		/**
 		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
@@ -279,8 +282,8 @@ package weave.visualization.layers
 				zoomToSelection();
 			
 			// ----------------- hack --------------------
-			if (hack_updateZoom != null)
-				hack_updateZoom();
+			for each (var callback:Function in hack_updateZoom_callbacks)
+				callback();
 			// -------------------------------------------
 			
 			getCallbackCollection(zoomBounds).resumeCallbacks();
@@ -418,6 +421,11 @@ package weave.visualization.layers
 			else
 				tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
 			zoomBounds.setDataBounds(tempDataBounds);
+
+			// ----------------- hack --------------------
+			for each (var callback:Function in hack_updateZoom_callbacks)
+				callback();
+			// -------------------------------------------
 			
 			cc.resumeCallbacks();
 		}
@@ -732,10 +740,12 @@ package weave.visualization.layers
 					{
 						if (debug)
 							debugTrace('render',name,getPlotter(name));
+						var settings:LayerSettings = layerSettings.getObject(name) as LayerSettings;
 						for each (var task:PlotTask in _name_to_PlotTask_Array[name])
 						{
 							var busy:Boolean = linkableObjectIsBusy(task);
 							var completedReady:Boolean = !task.completedDataBounds.isUndefined();
+							var alpha:Number = settings.alpha.value;
 							
 							if (completedReady)
 							{
@@ -745,7 +755,7 @@ package weave.visualization.layers
 								copyScaledPlotGraphics(
 									task.completedBitmap, task.completedDataBounds, task.completedScreenBounds,
 									bitmap.bitmapData, tempDataBounds, tempScreenBounds,
-									fade && busy ? 1 - task.progress : 1
+									alpha * (fade && busy ? 1 - task.progress : 1)
 								);
 							}
 							else if (debug)
@@ -761,10 +771,11 @@ package weave.visualization.layers
 									debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
 								
 								shouldRender = true;
+								
 								copyScaledPlotGraphics(
 									task.bufferBitmap, task.dataBounds, task.screenBounds,
 									bitmap.bitmapData, tempDataBounds, tempScreenBounds,
-									completedReady || task.progress == 0 ? .25 + .75 * task.progress : 1
+									alpha * (completedReady || task.progress == 0 ? .25 + .75 * task.progress : 1)
 								);
 							}
 							

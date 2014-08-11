@@ -21,7 +21,6 @@ package weave.data.DataSources
 {
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.rpc.AsyncToken;
@@ -29,10 +28,9 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
@@ -65,9 +63,9 @@ package weave.data.DataSources
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource
+	public class CSVDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.registerImplementation(IDataSource, CSVDataSource, "CSV file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
 
 		public function CSVDataSource()
 		{
@@ -226,7 +224,7 @@ package weave.data.DataSources
 				return null;
 			var metadata:Object = {};
 			metadata[ColumnMetadata.TITLE] = getColumnTitle(id);
-			metadata[ColumnMetadata.KEY_TYPE] = keyType.value || DataTypes.STRING;
+			metadata[ColumnMetadata.KEY_TYPE] = keyType.value || DataType.STRING;
 			
 			// get column metadata from session state
 			var meta:Object = getColumnMetadata(id);
@@ -453,7 +451,7 @@ package weave.data.DataSources
 		 */
 		private function handleCSVDownload(event:ResultEvent, token:Object = null):void
 		{
-			debug("handleCSVDownload", url.value);
+			//debugTrace(this, "handleCSVDownload", url.value);
 			// Only handle this download if it is for current url.
 			if (token == url.value)
 			{
@@ -530,7 +528,7 @@ package weave.data.DataSources
 			// loop through values, determine column type
 			var nullValue:String;
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			var isNumericColumn:Boolean = dataType == null || dataType == DataTypes.NUMBER;
+			var isNumericColumn:Boolean = dataType == null || dataType == DataType.NUMBER;
 			if (isNumericColumn)
 			{
 				//check if it is a numeric column.
@@ -574,7 +572,7 @@ package weave.data.DataSources
 				{
 					var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
 	
-					if (dataType == DataTypes.DATE)
+					if (dataType == DataType.DATE)
 					{
 						newColumn = new DateColumn(metadata);
 						(newColumn as DateColumn).setRecords(keysVector, stringVector);
@@ -587,7 +585,7 @@ package weave.data.DataSources
 				}
 				proxyColumn.setInternalColumn(newColumn);
 				
-				debug("initialized column",proxyColumn);
+				//debugTrace(this, "initialized column", proxyColumn);
 			}
 			
 			proxyColumn.setMetadata(metadata);
@@ -647,7 +645,6 @@ package weave.data.DataSources
 	}
 }
 
-import weave.api.WeaveAPI;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;

@@ -21,7 +21,6 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -39,7 +38,7 @@ package weave.visualization.plotters
 	 */
 	public class CustomGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, CustomGlyphPlotter, "ActionScript glyphs");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, CustomGlyphPlotter, "ActionScript glyphs");
 		
 		public function CustomGlyphPlotter()
 		{

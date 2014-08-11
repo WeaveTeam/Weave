@@ -200,11 +200,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		DataEntity entity = null;
 		
-		if (columnId instanceof Number)
-		{
-			entity = getColumnEntity(((Number)columnId).intValue());
-		}
-		else if (columnId instanceof Map)
+		if (columnId instanceof Map)
 		{
 			@SuppressWarnings({ "rawtypes" })
 			Map metadata = (Map)columnId;
@@ -214,14 +210,17 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 				throw new RemoteException("No column with id " + columnId);
 			if (ids.length > 1)
 				throw new RemoteException(String.format(
-					"The specified metadata does not uniquely identify a column (%s matching columns found): %s",
-					ids.length,
-					columnId
-				));
+						"The specified metadata does not uniquely identify a column (%s matching columns found): %s",
+						ids.length,
+						columnId
+						));
 			entity = getColumnEntity(ids[0]);
 		}
 		else
-			throw new RemoteException("columnId must either be an Integer or a Map of public metadata values.");
+		{
+			columnId = cast(columnId,  Integer.class);
+			entity = getColumnEntity((Integer)columnId);
+		}
 		
 		// if it's a geometry column, just return the metadata
 		if (assertStreamingGeometryColumn(entity, false))

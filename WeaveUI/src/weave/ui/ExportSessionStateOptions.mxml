@@ -24,8 +24,7 @@
 		<Paragraph trim="false">
 			<creationComplete>
 				<![CDATA[
-				var list:Array = WeaveAPI.URLRequestUtils.getLocalFileNames();
-				list = list.filter(function(s:String, ..._):Boolean{ return s != Weave.ARCHIVE_THUMBNAIL_PNG && s != Weave.ARCHIVE_SCREENSHOT_PNG; });
+				var list:Array = getEmbeddedFileNames();
 				(event.target as Paragraph).text = list.join('\n');
 				embeddedFiles.visible = embeddedFiles.includeInLayout = !!list.length;
 				]]>
@@ -41,7 +40,8 @@
 							 change="handleXMLToggle()"
 							 selected="false"/>
 				<HelpComponent id="xmlHelp">
-					XML format does not support embedded files.
+					A ".weave" file is a zip archive which includes the session state and history encoded in AMF3.
+					XML format is uncompressed and does not support saving the session history.
 				</HelpComponent>
 			</mx:HBox>
 			<mx:CheckBox label="{lang('Dashboard mode')}"
@@ -66,12 +66,12 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
 			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.UIUtils;
+			import weave.core.WeaveArchive;
 			import weave.utils.EventUtils;
 			
 			private const padding:Number = 5;
@@ -101,17 +101,20 @@
 				handleXMLToggle();
 			}
 			
+			private function getEmbeddedFileNames():Array
+			{
+				return WeaveAPI.URLRequestUtils.getLocalFileNames().filter(function(s:String, ..._):Boolean {
+					return s != WeaveArchive.ARCHIVE_THUMBNAIL_PNG
+						&& s != WeaveArchive.ARCHIVE_SCREENSHOT_PNG;
+				});
+			}
+			
 			private function handleXMLToggle():void
 			{
-				if (WeaveAPI.URLRequestUtils.getLocalFileNames().length)
-					saveXML.enabled = saveXML.selected = false;
-				else
-					saveXML.enabled = true;
-				
 				var xml:Boolean = saveXML.selected;
 				saveHistory.selected = !xml;
 				saveHistory.enabled = !xml;
-				saveScreenshot.selected = !xml && !!Weave.getScreenshotFromArchive();
+				saveScreenshot.selected = !xml && !!WeaveAPI.URLRequestUtils.getLocalFile(WeaveArchive.ARCHIVE_SCREENSHOT_PNG);
 				saveScreenshot.enabled = !xml;
 				fixFileName();
 			}
@@ -145,7 +148,8 @@
 				if (saveXML.selected)
 				{
 					content = new ByteArray();
-					(content as ByteArray).writeMultiByte(Weave.getSessionStateXML().toXMLString(), "utf-8");
+					var xml:XML = Weave.getSessionStateXML();
+					(content as ByteArray).writeMultiByte(xml.toXMLString(), "utf-8");
 				}
 				else if (!saveHistory.selected)
 				{

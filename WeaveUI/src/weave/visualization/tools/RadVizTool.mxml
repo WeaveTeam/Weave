@@ -31,14 +31,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			  >
 	<mx:Script>
 		<![CDATA[
-			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import spark.core.SpriteVisualElement;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
@@ -61,7 +59,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
-			import weave.services.beans.RResult;
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
@@ -69,7 +66,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RadVizTool, "RadViz");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RadVizTool, "RadViz");
 			
 			[Bindable]
 			public var _plotter:RadVizPlotter ;
@@ -100,17 +97,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
-				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
-				var columnsToInit:Array = [];
-				for (var i:int = 0; i < count; i++)
-				{
-					columnsToInit.push(_plotter.columns.requestObject(null, DynamicColumn, false));
-				}
-				
-				if(columnsToInit.length > 0)
-					(initColumnDefaults as Function).apply(null, columnsToInit);
-				
-				
 				_plotter.setAnchorLocations();//normal layout
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true) ;
 				visualization.plotManager.getLayerSettings(ANCHOR_LAYER).selectable.value = false;
@@ -121,6 +107,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				visualization.plotManager.marginTop.value =	visualization.plotManager.marginBottom.value = "20";
 				visualization.plotManager.marginLeft.value = visualization.plotManager.marginRight.value = "20";				
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				input.forEach(function(item:Object, i:int, a:Array):void {
+					ColumnUtils.initSelectableAttribute(_plotter.columns, item, i == 0);
+				});
 			}
 			
 			override protected function childrenCreated():void
@@ -380,12 +373,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Size"), lang("Color"), lang("Anchor Dimensions"), lang("Class Discriminator")];
+				return super.getSelectableAttributeNames().concat(['Class Descriminator']);
 			}
 			
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.radiusColumn, _plotter.fillStyle.color, _plotter.columns, classDiscriminatorColumn];
+				return super.getSelectableAttributes().concat([classDiscriminatorColumn]);
 			}
 			
 			override public function get defaultPanelTitle():String

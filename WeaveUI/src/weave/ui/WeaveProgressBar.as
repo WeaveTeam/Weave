@@ -23,11 +23,8 @@ package weave.ui
 	
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
-	import mx.managers.PopUpManager;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 
 	/**
 	 * This is a progress bar for Weave which updates on tasks added to the ProgressIndicator

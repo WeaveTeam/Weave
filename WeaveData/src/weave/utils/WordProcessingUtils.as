@@ -20,7 +20,7 @@
 
 package weave.utils
 {
-	import mx.utils.ObjectUtil;
+	
 	
 	public class WordProcessingUtils
 	{

@@ -102,9 +102,7 @@ RTextEditor
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -112,17 +110,15 @@ RTextEditor
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.data.AttributeColumns.CSVColumn;
-			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			
-			WeaveAPI.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
 			
 			private const padding:int = 5;
 			
@@ -157,7 +153,7 @@ RTextEditor
 			override protected function constructor():void
 			{
 				super.constructor();				
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 			}

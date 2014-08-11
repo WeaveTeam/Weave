@@ -18,9 +18,12 @@
 */
 package weave.ui
 {
+	import flash.display.Graphics;
+	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
+	import flash.utils.Dictionary;
 	
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
@@ -46,8 +49,6 @@ package weave.ui
 	 */
 	public class CustomTree extends Tree
 	{
-		[Bindable] public var highlightedItems:Array = [];
-		
 		public function CustomTree()
 		{
 			super();
@@ -125,7 +126,8 @@ package weave.ui
 			if (maxHSP <= 0)
 			{
 				maxHSP = 0;
-				horizontalScrollPosition = 0;
+				if (horizontalScrollPosition != 0)
+					horizontalScrollPosition = 0;
 				
 				// horizontal scroll is kept on except when there is no vertical scroll
 				// this avoids an infinite hide/show loop where hiding/showing the h-scroll bar affects the max h-scroll value
@@ -221,6 +223,53 @@ package weave.ui
 		}
 		
 		///////////////////////////////////////////////////////////////////////////////
+		// fixes bug where setting selectedItems does not work if the items are not in the dataProvider
+		
+		[Bindable("change")]
+		[Bindable("valueCommit")]
+		[Inspectable(category="General")]
+		override public function get selectedItems():Array
+		{
+			return super.selectedItems;
+		}
+		override public function set selectedItems(items:Array):void
+		{
+			_uidCache = new Dictionary(true);
+			super.selectedItems = items;
+			_uidCache = null;
+		}
+		private var _uidCache:Dictionary;
+		override protected function itemToUID(data:Object):String
+		{
+			// call super.super.itemToUID(data) either way to avoid breaking other things
+			var uid:String = super.itemToUID(data);
+			if (_uidCache)
+			{
+				var cached:String = _uidCache[data];
+				if (cached)
+				{
+					// one-time override for ListBase.setSelectionDataLoop()
+					uid = cached;
+					delete _uidCache[data];
+				}
+			}
+			return uid;
+		}
+		override public function get selectedItemsCompareFunction():Function
+		{
+			if (super.selectedItemsCompareFunction != null)
+				return wrappedSelectedItemCompare as Function;
+			return null;
+		}
+		private function wrappedSelectedItemCompare(inDataProvider:Object, inSelectedItems:Object):Boolean
+		{
+			var equal:Boolean = super.selectedItemsCompareFunction(inDataProvider, inSelectedItems);
+			if (equal && _uidCache)
+				_uidCache[inDataProvider] = super.itemToUID(inSelectedItems);
+			return equal;
+		}
+		
+		///////////////////////////////////////////////////////////////////////////////
 		// solution for display bugs when hierarchical data changes
 		
 		private var _dataProvider:Object; // remembers previous value that was passed to "set dataProvider"
@@ -289,13 +338,6 @@ package weave.ui
 			actualIterator = ai;
 		}
 		
-		
-
-		protected function drawHighlightedItems():void
-		{
-
-		}
-
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			updateHScrollLater();
@@ -325,8 +367,40 @@ package weave.ui
 			var renderer:IListItemRenderer = itemToItemRenderer(item);
 			drawItem(renderer, selected, highlighted, caret, transition);
 		}
-
+		/**
+		 * @param items Array of items
+		 * @param selected function(item):Boolean
+		 */
+		public function highlightItemsForced(items:Array, selected:Function):void
+		{
+			_drawingItems = 0;
+			for each (var item:Object in items)
+			{
+				drawItemForced(item, selected(item), true);
+				_drawingItems++;
+			}
+			_drawingItems = 0;
+		}
+		private var _drawingItems:int = 0;
+		override protected function drawItem(item:IListItemRenderer, selected:Boolean=false, highlighted:Boolean=false, caret:Boolean=false, transition:Boolean=false):void
+		{
+			if (highlighted)
+				highlightUID = null;
 			
+			super.drawItem(item, selected, highlighted, caret, transition);
+		}
+		override protected function drawHighlightIndicator(indicator:Sprite, x:Number, y:Number, width:Number, height:Number, color:uint, itemRenderer:IListItemRenderer):void
+		{
+			var g:Graphics = Sprite(indicator).graphics;
+			if (_drawingItems == 0)
+				g.clear();
+			g.beginFill(color);
+			g.drawRect(x, y, width, height);
+			g.endFill();
+			
+			indicator.x = 0;
+			indicator.y = 0;
+		}
 
 		private var _pendingScrollToIndex:int = -1;
 		override public function scrollToIndex(index:int):Boolean

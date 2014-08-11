@@ -155,12 +155,9 @@
 			import com.as3xls.xls.Sheet;
 			
 			import mx.collections.ArrayCollection;
-			import mx.collections.ICollectionView;
 			import mx.controls.Alert;
-			import mx.controls.dataGridClasses.DataGridColumn;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.reportError;

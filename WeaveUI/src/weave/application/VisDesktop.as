@@ -24,7 +24,6 @@ package weave.application
 	
 	import spark.components.Group;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.newLinkableChild;
@@ -32,7 +31,6 @@ package weave.application
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.core.UIUtils;
 	import weave.ui.BasicLinkableLayoutManager;
-	import weave.ui.WeavePodLayoutManager;
 	
 	internal class VisDesktop extends Canvas implements ILinkableContainer, IDisposableObject
 	{
