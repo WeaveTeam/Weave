@@ -41,31 +41,10 @@
 							</div>
 			</div>
 		
-			<div style="display: table-cell; ng-model = "algorithmObjectService.data.currentMetObj.algoName">
-
-				<a href={{algorithmObjectService.data.currentMetObj.documentation}}
-					title="Blah">		
-						<img width = "25" height = "25" ng-src= "{{'../aws/css/img/helpLogo.png.png'}}"></img>
-						
-				</a>
 				
-				<!--  
-				<img width = "25" height = "25" ng-src= "{{'../aws/css/img/helpLogo.png.png'}}"
-					title = "Link to Documentation"
-				></img>
-
-					  <!--  <div ng-if="algorithmObjectService.data.currentMetObj.algoName == 'K Means Clustering'">
-
-						<a href="http://stat.ethz.ch/R-manual/R-devel/library/stats/html/kmeans.html"
-							title="Link to Algorithm Documentation">
-
-						</a> -->
-			</div> 
-			
-				
-			</div>		
+		</div>		
 					
-			<!-- the Computation Engine image -->
+			<!-- The Computation Engine image -->
 			<div style="display: table-cell; padding-left: 100px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
 					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
 
@@ -92,11 +71,19 @@
 					</div>
 			</div>
 			
+			<!-- Help icon div -->
+			<div style="display: table-cell; padding-top: 25px"; ng-model = "algorithmObjectService.data.currentMetObj.documentation">
+
+				<a href={{algorithmObjectService.data.currentMetObj.documentation}}
+					title="Blah">		
+						<img width = "25" height = "25" ng-src= "{{'../aws/css/img/helpLogo.png.png'}}"></img>	
+				</a>
+			</div> 
 			
 		</div>
 	</div>
 <!-- Button and the rest -->	
-	<div style="display:table-cell">
+	<div style="display:table-cell" >
 		<button class= "btn btn-primary" ng-click="collectAlgoObjects()">RUN</button>
 	</div>
 
