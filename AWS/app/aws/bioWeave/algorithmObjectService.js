@@ -117,6 +117,7 @@ angular.module('aws.bioWeave')
 			algoMetadataObject.ComputationEngine = result.ComputationEngine;
 			algoMetadataObject.inputParams = result.inputParams;
 			algoMetadataObject.outputs = result.outputs;
+			algoMetadataObject.documentation = result.documentation;
 			
 			//adding it to the list
 			that.data.algorithmMetadataObjects.push(algoMetadataObject);

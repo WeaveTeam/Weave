@@ -20,7 +20,6 @@
 										<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.columns">{{opt}}</option>
 									</select>
 								</div>
-								
 								<div class = form-group ng-if="input.param_type == 'number'" >
 									{{input.label}}
 									<input ng-model = "input.param_user_value" class= "form-control"type= "text" placeholder="{{input.default}}">
@@ -41,21 +40,30 @@
 								
 							</div>
 			</div>
-			<!-- This code needs some fixing, this is for the help icon/link to documentation		
+		
 			<div style="display: table-cell; ng-model = "algorithmObjectService.data.currentMetObj.algoName">
 
-				<img width = "25" height = "25" ng-src= "{{'../aws/ccs/img/Help_Icon.png'}}"
+				<a href={{algorithmObjectService.data.currentMetObj.documentation}}
+					title="Blah">		
+						<img width = "25" height = "25" ng-src= "{{'../aws/css/img/helpLogo.png.png'}}"></img>
+						
+				</a>
+				
+				<!--  
+				<img width = "25" height = "25" ng-src= "{{'../aws/css/img/helpLogo.png.png'}}"
+					title = "Link to Documentation"
+				></img>
 
-					   <div ng-if="algorithmObjectService.data.currentMetObj.algoName == 'K Means Clustering'">
+					  <!--  <div ng-if="algorithmObjectService.data.currentMetObj.algoName == 'K Means Clustering'">
 
 						<a href="http://stat.ethz.ch/R-manual/R-devel/library/stats/html/kmeans.html"
 							title="Link to Algorithm Documentation">
 
-						</a>
-					</div> 
+						</a> -->
+			</div> 
 			
-				></img>
-			</div>		-->
+				
+			</div>		
 					
 			<!-- the Computation Engine image -->
 			<div style="display: table-cell; padding-left: 100px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
