@@ -16,8 +16,8 @@
 							<div class= "form-group" ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
 								<div  ng-if="input.param_type =='column'">
 									{{input.label}}
-<!--TODO make a dual list box later --><select style="width:350px;" ui-select2 multiple ng-model="blah">
-										<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.columns">{{opt}}</option>
+<!--TODO make a dual list box later --><select style="width:350px;" ui-select2 multiple ng-model="blah" data-placeholder="Click here to select multiple columns">
+										<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.dataColumnObjects">{{opt.publicMetadata.title}}</option>
 									</select>
 								</div>
 								

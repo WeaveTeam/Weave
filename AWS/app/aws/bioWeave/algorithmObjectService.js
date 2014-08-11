@@ -57,12 +57,14 @@ angular.module('aws.bioWeave')
 			that.data.dataColumnObjects = queryService.dataObject.columns;
 			
 			console.log("columns", that.data.dataColumnObjects);
-			for(var i in that.data.dataColumnObjects){
-				that.data.columns.push(
-					that.data.dataColumnObjects[i].publicMetadata.title
-				);
-			}
-			console.log("newcolumns", that.data.columns);
+			//we need to loop over and retrieve strings to use in the select option UI
+			//TODO find a way to use object directly for select Ui (or else loops will be needed everytime)
+//			for(var i in that.data.dataColumnObjects){
+//				that.data.columns.push(
+//					that.data.dataColumnObjects[i].publicMetadata.title
+//				);
+//			}
+			//console.log("newcolumns", that.data.columns);
 			
 		});
 	};
