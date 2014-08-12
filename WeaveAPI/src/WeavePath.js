@@ -95,80 +95,34 @@ if (!Function.prototype.bind) {
 }
 //------------------------------------------------------------
 
-// enhance weave.addCallback() to support function pointers
+var asFunction_lookup = {};
+/**
+ * Provides backwards compatibility for callbacks given as strings.
+ * Also sets callback['this'] = thisArg, if provided, which is used by Weave when calling the function.
+ */
+function asFunction(callback, thisArg)
+{
+	if (typeof callback === 'string')
+		callback = asFunction_lookup[callback] || (asFunction_lookup[callback] = function(){ return window.eval('(' + callback + ')()'); });
+	if (thisArg !== undefined)
+		callback['this'] = thisArg;
+	return callback;
+}
 var _addCallback = weave.addCallback;
 weave.addCallback = function(target, callback, triggerNow, immediateMode)
 {
-	if (typeof callback == 'function')
-		callback = this.callbackToString(callback, Array.isArray(target) ? weave.path(target) : weave.path());
+	callback = asFunction(callback, Array.isArray(target) ? weave.path(target) : weave.path());
 	return _addCallback.call(this, target, callback, triggerNow, immediateMode);
 };
-// enhance weave.removeCallback() to support function pointers
 var _removeCallback = weave.removeCallback;
 weave.removeCallback = function(target, callback, everywhere)
 {
-	if (typeof callback == 'function')
-		callback = this.callbackToString(callback); // don't update 'this' context when removing callback
-	return _removeCallback.call(this, target, callback, everywhere);
+	return _removeCallback.call(this, target, asFunction(callback), everywhere);
 };
-// enhance weave.loadFile() to support function pointers
 var _loadFile = weave.loadFile;
 weave.loadFile = function(url, callback, noCacheHack)
 {
-	if (typeof callback == 'function')
-		callback = this.callbackToString(callback);
-	return _loadFile.call(this, url, callback, noCacheHack);
-};
-
-/**
- * For internal use with weave.addCallback() and weave.removeCallback().
- * @param callback The callback function.
- * @param thisObj The 'this' context to use for the callback function.
- * @return A String containing a script for a function that invokes the callback.
- * @memberof weave
- */
-weave.callbackToString = function(callback, thisObj)
-{
-	// callback entries must be stored in a public place so they can be accessed by Weave
-	var list = this.callbackToString.list;
-	if (!list)
-		list = this.callbackToString.list = [];
-	
-	// try to find the callback in the list
-	for (var i in list)
-	{
-		if (list[i]['callback'] == callback)
-		{
-			// update thisObj if specified
-			if (thisObj)
-				list[i]['this'] = thisObj;
-			// this callback has already been listed
-			return list[i]['string'];
-		}
-	}
-	
-	// if this has no id, create one that is not already in use
-	if (!this.id)
-	{
-		var id = 'weave';
-		while (document.getElementById(id))
-			id += '_';
-		this.id = id;
-	}
-	
-	// build a script for a function that invokes the callback
-	var idStr = JSON && JSON.stringify ? JSON.stringify(this.id) : '"' + this.id + '"';
-	var string = '(function(){' +
-			'var weave = document.getElementById(' + idStr + ');' +
-			'var obj = weave.callbackToString.list[' + list.length + '];' +
-			'obj["callback"].apply(obj["this"]);' +
-		'})';
-	list.push({
-		"callback": callback,
-		"string": string,
-		"this": thisObj
-	});
-	return string;
+	return _loadFile.call(this, url, asFunction(callback), noCacheHack);
 };
 
 /**
@@ -394,7 +348,6 @@ weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, i
 {
 	if (this._assertParams('addCallback', arguments))
 	{
-		callback = this.weave.callbackToString(callback, new this.constructor(this._path));
 		this.weave.addCallback(this._path, callback, triggerCallbackNow, immediateMode)
 			|| this._failObject('addCallback', this._path);
 	}
@@ -586,10 +539,10 @@ weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 	var args = this._A(arguments, 2);
 	if (this._assertParams('getDiff', args))
 	{
-		var otherState = args.pop();
+		var previousState = args.pop();
 		var pathcopy = this._path.concat(args);
-		var script = "return WeaveAPI.SessionManager.computeDiff(otherState, this ? WeaveAPI.SessionManager.getSessionState(this) : null);";
-		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
+		var script = "return WeaveAPI.SessionManager.computeDiff(previousState, WeaveAPI.SessionManager.getSessionState(this));";
+		return this.weave.evaluateExpression(pathcopy, script, {"previousState": previousState});
 	}
 	return null;
 };
@@ -608,7 +561,7 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
 	{
 		var otherState = args.pop();
 		var pathcopy = this._path.concat(args);
-		var script = "return WeaveAPI.SessionManager.computeDiff(this ? WeaveAPI.SessionManager.getSessionState(this) : null, otherState);";
+		var script = "return WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(this), otherState);";
 		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
 	return null;

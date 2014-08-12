@@ -1174,8 +1174,8 @@ package weave.compiler
 			output = [];
 			if (value is Array)
 			{
-				for (key in value)
-					output.push(_stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+				for (var i:int = 0; i < (value as Array).length; i++)
+					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
 			}
 			else if (value.constructor == Object)
 			{

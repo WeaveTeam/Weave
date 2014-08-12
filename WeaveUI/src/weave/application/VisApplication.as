@@ -229,10 +229,10 @@ package weave.application
 		 * Loads a session state file from a URL.
 		 * @param url The URL to the session state file (.weave or .xml) specified as a String, a URLRequest, or an Object containing properties "url", "requestHeaders", "method".
 		 *            Example:  {"url": "myfile.ext", "requestHeaders": {"Content-type", "foo"}, method: "POST"}
-		 * @param callback Either a Function or a String containing a JavaScript function definition. The callback will be invoked when the file loading completes.
+		 * @param callback This function will be invoked when the file loading completes.
 		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.  Only works when url is given as a String.
 		 */
-		public function loadFile(url:Object, callback:Object = null, noCacheHack:Boolean = false):void
+		public function loadFile(url:Object, callback:Function = null, noCacheHack:Boolean = false):void
 		{
 			var request:URLRequest;
 			if (url is URLRequest)
@@ -257,8 +257,6 @@ package weave.application
 				_requestedConfigFile = request.url;
 			}
 			
-			if (callback is String)
-				callback = ExternalSessionStateInterface.getCachedCallbackFunction(callback as String);
 			_loadFileCallback = callback as Function;
 			
 			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
