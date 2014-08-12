@@ -539,10 +539,10 @@ weave.WeavePath.prototype.getDiff = function(/*...relativePath, previousState*/)
 	var args = this._A(arguments, 2);
 	if (this._assertParams('getDiff', args))
 	{
-		var otherState = args.pop();
+		var previousState = args.pop();
 		var pathcopy = this._path.concat(args);
-		var script = "return WeaveAPI.SessionManager.computeDiff(otherState, this ? WeaveAPI.SessionManager.getSessionState(this) : null);";
-		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
+		var script = "return WeaveAPI.SessionManager.computeDiff(previousState, WeaveAPI.SessionManager.getSessionState(this));";
+		return this.weave.evaluateExpression(pathcopy, script, {"previousState": previousState});
 	}
 	return null;
 };
@@ -561,7 +561,7 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
 	{
 		var otherState = args.pop();
 		var pathcopy = this._path.concat(args);
-		var script = "return WeaveAPI.SessionManager.computeDiff(this ? WeaveAPI.SessionManager.getSessionState(this) : null, otherState);";
+		var script = "return WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(this), otherState);";
 		return this.weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 	}
 	return null;

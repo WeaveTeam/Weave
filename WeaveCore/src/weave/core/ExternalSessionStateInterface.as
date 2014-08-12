@@ -294,6 +294,7 @@ package weave.core
 					return object;
 				
 				getObjectFromPathOrVariableName_error = "No ILinkableObject at path " + Compiler.stringify(objectPathOrVariableName);
+				return null;
 			}
 			
 			var variableName:String = String(objectPathOrVariableName);
@@ -303,6 +304,7 @@ package weave.core
 					return _variables[variableName];
 				
 				getObjectFromPathOrVariableName_error = "Undefined variable " + Compiler.stringify(variableName);
+				return null;
 			}
 			
 			return null;
@@ -464,7 +466,10 @@ package weave.core
 		
 		private static function externalError(format:String, ...args):void
 		{
-			WeaveAPI.externalError(StandardLib.substitute("Error: " + format, args));
+			var prefix:String = "Error: ";
+			if (format.indexOf(prefix) != 0)
+				format = prefix + format;
+			WeaveAPI.externalError(StandardLib.substitute(format, args));
 		}
 		
 		private static function externalWarning(format:String, ...args):void
