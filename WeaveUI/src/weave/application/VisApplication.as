@@ -168,12 +168,6 @@ package weave.application
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, refreshMenu);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
-			if (JavaScript.available)
-			{
-				JavaScript.registerMethod('loadFile', loadFile);
-				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
-			}
-
 			getFlashVars();
 			handleFlashVarPresentation();
 			handleFlashVarAllowDomain();
@@ -214,6 +208,12 @@ package weave.application
 			else
 			{
 				downloadConfigFile();
+			}
+
+			if (JavaScript.available)
+			{
+				JavaScript.registerMethod('loadFile', loadFile);
+				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
 			}
 		}
 
