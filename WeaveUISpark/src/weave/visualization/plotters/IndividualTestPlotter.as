@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	
 	import weave.Weave;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
@@ -55,13 +56,14 @@ package weave.visualization.plotters
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y", "Color"];
+			return ["X", "Y", "Color","Size"];
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [dataX, dataY, fill.color];
+			return [dataX, dataY, fill.color,sizeBy];
 		}
 		
+		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
@@ -72,6 +74,7 @@ package weave.visualization.plotters
 		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
 		
 		// delare dependency on statistics (for norm values)
+		private const _sizeByStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(sizeBy));
 		public var hack_horizontalBackgroundLineStyle:Array;
 		public var hack_verticalBackgroundLineStyle:Array;
 		
@@ -98,7 +101,7 @@ package weave.visualization.plotters
 		
 		private function updateKeySources():void
 		{
-			var columns:Array = [];
+			var columns:Array = [sizeBy];
 			if (colorDataWatcher.target)
 				columns.push(colorDataWatcher.target)
 			columns.push(dataX, dataY);
@@ -158,17 +161,22 @@ package weave.visualization.plotters
 			fill.beginFillStyle(recordKey, graphics);
 			
 			var radius:Number;
-			radius = defaultScreenRadius.value;
+			if (sizeBy.internalObject)
+			{
+				radius = minScreenRadius.value + (_sizeByStats.getNorm(recordKey) * (maxScreenRadius.value - minScreenRadius.value));
+			}
+			else
+				radius = defaultScreenRadius.value;
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
 				// draw default circle
-				graphics.drawCircle(tempPoint.x, tempPoint.y, defaultScreenRadius.value );
+				graphics.drawRect(tempPoint.x, tempPoint.y, defaultScreenRadius.value, defaultScreenRadius.value );
 			}
 			else
 			{
 				//trace('circle',tempPoint);
-				graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
+				graphics.drawRect(tempPoint.x, tempPoint.y, radius, radius);
 			}
 			graphics.endFill();
 		}

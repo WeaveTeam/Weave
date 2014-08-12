@@ -147,6 +147,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (plotter.fill.color.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
 					columns.push(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
 				
+				var sizeColIndex:int = attributes.indexOf(plotter.sizeBy);
+				if(plotter.sizeBy.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
+					columns.push(plotter.sizeBy.getInternalColumn());
+				
 				visualization.additionalProbeColumns = columns;
 			}
 			
@@ -212,8 +216,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if (!UIUtils.hasFocus(overrideColorCheckBox) && !overrideColorPicker.hasFocus)
 					return;
-				plotter.fill.color.defaultValue.value = NaN;
-				plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
+				if (overrideColorCheckBox.selected)
+				{
+					plotter.fill.color.defaultValue.value = overrideColorPicker.selectedColor;
+					plotter.fill.color.internalDynamicColumn.removeObject();
+				}
+				else
+				{
+					plotter.fill.color.defaultValue.value = NaN;
+					plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
+				}
 			}
 			
 		]]>
@@ -224,15 +236,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
 			<ui:DynamicColumnComponent label="{lang('Attributes')}"
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
-			<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"  creationComplete="(event.target as DynamicColumnComponent).columnWrapper = plotter.fill.color"/>
+			<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}"
+									   creationComplete="(event.target as DynamicColumnComponent).columnWrapper = plotter.fill.color"
+									   showLinkControl="false"/>
+			<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}"
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.sizeBy"/>
 			<mx:HBox>
-				<mx:CheckBox id="overrideColorCheckBox"
-							 label="{lang('Override global color')}"
+				<mx:CheckBox id="overrideColorCheckBox" label="{lang('Override global color')}"
 							 change="handleOverrideColor(event)"/>
-				<ui:CustomColorPicker id="overrideColorPicker"
+				<ui:CustomColorPicker id="overrideColorPicker" change="handleOverrideColor(event)"
 									  enabled="{overrideColorCheckBox.selected}"
-									  selectedColor="0xE0E0E0"
-									  change="handleOverrideColor(event)"/>
+									  selectedColor="0xE0E0E0"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
