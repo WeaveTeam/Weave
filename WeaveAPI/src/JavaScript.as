@@ -263,16 +263,14 @@ package
 		 */
 		private static function _jsonCall(methodId:String, paramsJson:String):String
 		{
+			ExternalInterface.marshallExceptions = true; // let the external code handle errors
+			
 			var method:Function = _jsonReviver('', methodId) as Function;
 			if (method == null)
 				throw new Error('No method with id="' + methodId + '"');
 			
 			var params:Array = json.parse(paramsJson, _jsonReviver);
-			
-			ExternalInterface.marshallExceptions = true; // let the external code handle errors from the method
 			var result:* = method.apply(null, params);
-			ExternalInterface.marshallExceptions = false; // any other errors should be handled by flash
-			
 			var resultJson:String = json.stringify(result, _jsonReplacer) || 'undefined';
 			
 			// work around unescaped backslash bug

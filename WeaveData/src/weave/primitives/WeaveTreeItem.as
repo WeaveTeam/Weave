@@ -55,7 +55,7 @@ package weave.primitives
 				return new item();
 			
 			// If the item is a String or an Object, we can pass it to the constructor.
-			if (item is String || Object(item).constructor == Object)
+			if (item is String || (item != null && Object(item).constructor == Object))
 			{
 				var ItemClass:Class = this as Class || WeaveTreeItem;
 				return new ItemClass(item);
@@ -230,7 +230,7 @@ package weave.primitives
 			if (!items)
 				return null;
 			
-			return items.map(_mapItems, childItemClass);
+			return items.map(_mapItems, childItemClass).filter(_filterItems);
 		}
 		
 		/**
