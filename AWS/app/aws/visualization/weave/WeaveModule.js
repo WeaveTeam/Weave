@@ -1,17 +1,19 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
 
-weave_mod.service("WeaveService", function($rootScope) {
+AnalysisModule.service("WeaveService", function($rootScope) {
 	
 	var that = this;
 	this.weave;
 	this.dataSourceName;
+	
+	this.columnNames = [];
 	
 	this.toggleTool = function(tool, status) {
 		this[tool].toggle(status);
 	};
 	
 	this.addCSVData = function(csvData) {
-		console.log("adding data source, weave is: ", that.weave);
+		console.log("adding data source, weave is: ", csvData);
 		this.dataSourceName = that.weave.path().getValue('generateUniqueName("CSVDataSource")');
 	
 		that.weave.path(this.dataSourceName)
@@ -20,63 +22,60 @@ weave_mod.service("WeaveService", function($rootScope) {
 			.exec('setCSVData(rows)');
 	};
 	
+	this.addCSVData.setCSVColumn = function (columnPath, columnName){
+		that.weave.path(that.dataSourceName)
+		  .vars({i:columnName, p:columnPath})
+		  .exec('putColumn(i,p)');
+	};
+	
 	this.BarChartTool = {
 		toolName : "",
 		
-		toggle : function (status) {
+		toggle : function (status, title) {
 			
 			if(status) {
 				this.toolName = that.weave.path().getValue('generateUniqueName("BarChartTool")');
-				that.weave.path(this.toolName).request('CompoundBarChartTool');
-				that.weave.path(this.toolName).push('panelX').state("0%").pop().push('panelY').state("50%");
+				that.weave.path(that.BarChartTool.toolName).request('CompoundBarChartTool');
+				that.weave.path(that.BarChartTool.toolName).push('panelX').state("0%").pop().push('panelY').state("50%");
 			} else {
-				that.weave.path(this.toolName).remove();
+				that.weave.path(that.BarChartTool.toolName).remove();
 				this.toolName = "";
 			}
 		},
 		
 		setTitle : function (title) {
-			that.weave.path("BarChartTool", 'enableTitle').state(enableTitle);
-			that.weave.path("BarChartTool", 'panelTitle').state(title);
+			that.weave.path(that.BarChartTool.toolName, 'enableTitle').state(true);
+			that.weave.path(that.BarChartTool.toolName, 'panelTitle').state(title);
 		},
-		setHeightColumns : function (columns) {
-			if (this.toolName) {
-				
+		setHeightColumns : function (heights) {
+			if (that.BarChartTool.toolName) {
+				for (var i in heights)
+				{
+					var path = that.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
+					that.setCSVColumn(path, heights[i]);
+				}
 			}
 		},
 		setSortColumns : function (column) {
-			if (this.toolName) {
-				
+			if (that.BarChartTool.toolName) {
+				var path = that.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
+			   	this.setCSVColumn(path, path);
 			}
 			
 		},
 		setLabel : function (column) {
-			if (this.toolName) {
-				
+			if (that.BarChartTool.toolName) {
+				var path = that.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
+			   	that.setCSVColumn(path, column);
 			}
 		},
 	};
+});
+
+AnalysisModule.controller('WeaveCtrl', function($scope, WeaveService) {
 	
 });
 
-weave_mod.controller('WeaveCtrl', function($scope, WeaveService) {
-
-});
-
-weave_mod.run(['$rootScope', function($rootScope){
-	$rootScope.$safeApply = function(fn, $scope) {
-			if($scope == undefined){
-				$scope = $rootScope;
-			}
-			fn = fn || function() {};
-			if ( !$scope.$$phase ) {
-        	$scope.$apply( fn );
-    	}
-    	else {
-        	fn();
-    	}
-	};
-}]);
 //goog.require('aws');
 //goog.provide('aws.WeaveClient');
 //	

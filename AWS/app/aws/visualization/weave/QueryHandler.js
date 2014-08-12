@@ -10,9 +10,12 @@ var weavewindow;
 function waitForWeave(popup, callback)
 {
     function checkWeaveReady() {
+    	console.log("check weave ready");
         var weave = popup.document.getElementById('weave');
-        if (weave && weave.path)
-            callback(weave);
+        if (weave && weave.WeavePath) {
+        	console.log("inside if");
+        	weave.loadFile('defaults.xml', callback.bind(this, weave));
+        }
         else
             setTimeout(checkWeaveReady, 50);
     }
@@ -205,12 +208,13 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 				QueryHandlerService.weaveWindow = $window.open("/weave.html",
 						"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 			}
-			
+			console.log('calling wait for weave');
 			waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
 				WeaveService.weave = weave;
 				console.log(resultData);
 				console.log(weave);
 				WeaveService.addCSVData(resultData.data);
+				WeaveService.columnNames = resultData.data[0];
 			});
 			
 		});

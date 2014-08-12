@@ -17,7 +17,7 @@
 			Height Columns
 			<div >
 			<select style = "width : 100%" class="widget-ui-control" ui-select2  ng-model="service.queryObject.BarChartTool.heights" multiple  data-placeholder="Choose Height Column(s)">
-				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 			</select>
 			</div>
 			<br>
@@ -31,7 +31,7 @@
 			<div>
 				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.sort" data-placeholder="Choose Sort Column">
 					<option></option>
-					<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 				</select>
 			</div>
 			
@@ -41,7 +41,7 @@
 			<div>
 				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column"> -->
 				<option></option>
-				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 			</select>
 			</div>
 			
