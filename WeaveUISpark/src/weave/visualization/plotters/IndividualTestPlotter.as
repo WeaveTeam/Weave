@@ -22,10 +22,8 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
-	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
@@ -35,8 +33,6 @@ package weave.visualization.plotters
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
-	import weave.compiler.StandardLib;
-	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -46,9 +42,6 @@ package weave.visualization.plotters
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
-	/**
-	 * @author adufilie
-	 */
 	public class IndividualTestPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, IndividualTestPlotter, "IndividualTestTool");
@@ -62,30 +55,23 @@ package weave.visualization.plotters
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y", "Color", "Size"];
+			return ["X", "Y", "Color"];
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [dataX, dataY, fill.color, sizeBy];
+			return [dataX, dataY, fill.color];
 		}
 		
-		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-		public const colorBySize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
 		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
 		
-		// for line connecting demo
-		public var connectTheDots:Boolean = false;
-		private var prevPoint:Point;
-		
 		// delare dependency on statistics (for norm values)
-		private const _sizeByStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(sizeBy));
 		public var hack_horizontalBackgroundLineStyle:Array;
 		public var hack_verticalBackgroundLineStyle:Array;
 		
@@ -112,7 +98,7 @@ package weave.visualization.plotters
 		
 		private function updateKeySources():void
 		{
-			var columns:Array = [sizeBy];
+			var columns:Array = [];
 			if (colorDataWatcher.target)
 				columns.push(colorDataWatcher.target)
 			columns.push(dataX, dataY);
@@ -151,12 +137,7 @@ package weave.visualization.plotters
 			{
 				if (!task.asyncState)
 					task.asyncState = {};
-				if (!task.asyncState.prevPoint)
-					task.asyncState.prevPoint = new Point();
-				var p:Point = task.asyncState.prevPoint as Point;
-				p.x = p.y = NaN;
 			}
-			prevPoint = task.asyncState.prevPoint as Point;
 			return super.drawPlotAsyncIteration(task);
 		}
 		
@@ -177,70 +158,19 @@ package weave.visualization.plotters
 			fill.beginFillStyle(recordKey, graphics);
 			
 			var radius:Number;
-			if (colorBySize.value)
-			{
-				var sizeData:Number = sizeBy.getValueFromKey(recordKey, Number);
-				var alpha:Number = fill.alpha.getValueFromKey(recordKey, Number);
-				if( sizeData < 0 )
-					graphics.beginFill(colorNegative.value, alpha);
-				else if( sizeData > 0 )
-					graphics.beginFill(colorPositive.value, alpha);
-				var min:Number = _sizeByStats.getMin();
-				var max:Number = _sizeByStats.getMax();
-				var absMax:Number = Math.max(Math.abs(min), Math.abs(max));
-				var normRadius:Number = StandardLib.normalize(Math.abs(sizeData), 0, absMax);
-				radius = normRadius * maxScreenRadius.value;
-			}
-			else if (sizeBy.internalObject)
-			{
-				radius = minScreenRadius.value + (_sizeByStats.getNorm(recordKey) * (maxScreenRadius.value - minScreenRadius.value));
-			}
-			else
-			{
-				radius = defaultScreenRadius.value;
-			}
-			
-			var hasPrevPoint:Boolean = connectTheDots && isFinite(prevPoint.x) && isFinite(prevPoint.y);
-			if (hasPrevPoint)
-			{
-				graphics.moveTo(prevPoint.x, prevPoint.y);
-				graphics.lineTo(tempPoint.x, tempPoint.y);
-			}
+			radius = defaultScreenRadius.value;
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
-				if (colorBySize.value)
-				{
-					// draw nothing
-				}
-				else if (sizeBy.internalObject)
-				{
-					// draw square
-					radius = defaultScreenRadius.value;
-					graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);
-				}
-				else
-				{
-					// draw default circle
-					graphics.drawCircle(tempPoint.x, tempPoint.y, defaultScreenRadius.value );
-				}
+				// draw default circle
+				graphics.drawCircle(tempPoint.x, tempPoint.y, defaultScreenRadius.value );
 			}
 			else
 			{
-				if (colorBySize.value && radius == 0)
-				{
-					// draw nothing
-				}
-				else
-				{
-					//trace('circle',tempPoint);
-					graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
-				}
+				//trace('circle',tempPoint);
+				graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
 			}
 			graphics.endFill();
-			
-			prevPoint.x = tempPoint.x;
-			prevPoint.y = tempPoint.y;
 		}
 	}
 }

@@ -30,12 +30,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.ColorColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.IndividualTestPlotter;
+			
+			//This allows for setSelected to be used with the overrideColor checkbox.
+			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, IndividualTestTool, "IndividualTestTool");
 			
@@ -73,6 +78,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
 				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
 				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
+				plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
+				plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
 				
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginTop.value    = "30";
@@ -88,10 +95,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
-			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
-			{
-				handleSelectAllAttrInProbe(value);
-			}
 			
 			private function handleSelectAllAttrInProbe(setAll:Boolean):void
 			{
@@ -144,10 +147,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (plotter.fill.color.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
 					columns.push(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
 				
-				var sizeColIndex:int = attributes.indexOf(plotter.sizeBy);
-				if(plotter.sizeBy.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
-					columns.push(plotter.sizeBy.getInternalColumn());
-				
 				visualization.additionalProbeColumns = columns;
 			}
 			
@@ -191,19 +190,52 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
 			}
 			
+			private var _prevGlobalColorColumnName:String = null;
+			
+			private function handleColorColumnChange():void
+			{
+				var newName:String = plotter.fill.color.internalDynamicColumn.globalName;
+				if (newName)
+					_prevGlobalColorColumnName = newName;
+			}
+			
+			private function handlePlotterFillColor():void
+			{
+				overrideColorCheckBox.setSelected(!plotter.fill.color.getInternalColumn());
+				var color:Number = StandardLib.asNumber(plotter.fill.color.defaultValue.value);
+				if (isFinite(color))
+					overrideColorPicker.selectedColor = color;
+			}
+			
+			//Need to review color override functionality.
+			private function handleOverrideColor(event:Event):void
+			{
+				if (!UIUtils.hasFocus(overrideColorCheckBox) && !overrideColorPicker.hasFocus)
+					return;
+				plotter.fill.color.defaultValue.value = NaN;
+				plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
+			}
+			
 		]]>
 	</mx:Script>
-	<ui:Paragraph id="equationText" left="0" bottom="0" width="NaN" horizontalScrollPolicy="off"
-				  selectable="true" trim="false" verticalScrollPolicy="off" wordWrap="false"/>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 			<ui:DynamicColumnComponent label="{lang('Sort')}"
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
 			<ui:DynamicColumnComponent label="{lang('Attributes')}"
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
+			<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"  creationComplete="(event.target as DynamicColumnComponent).columnWrapper = plotter.fill.color"/>
+			<mx:HBox>
+				<mx:CheckBox id="overrideColorCheckBox"
+							 label="{lang('Override global color')}"
+							 change="handleOverrideColor(event)"/>
+				<ui:CustomColorPicker id="overrideColorPicker"
+									  enabled="{overrideColorCheckBox.selected}"
+									  selectedColor="0xE0E0E0"
+									  change="handleOverrideColor(event)"/>
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
-			
 			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox"
 										  label="{lang('Include tool attributes in mouseover info')}"
 										  change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
