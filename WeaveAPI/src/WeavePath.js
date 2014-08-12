@@ -97,7 +97,8 @@ if (!Function.prototype.bind) {
 
 var asFunction_lookup = {};
 /**
- * Provides backwards compatibility for callbacks given as strings and also sets callback['this'] = thisArg, if provided.
+ * Provides backwards compatibility for callbacks given as strings.
+ * Also sets callback['this'] = thisArg, if provided, which is used by Weave when calling the function.
  */
 function asFunction(callback, thisArg)
 {
