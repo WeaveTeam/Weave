@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -42,7 +43,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class AxisLabelPlotter extends AbstractPlotter
+	public class AxisLabelPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, AxisLabelPlotter, "Axis labels");
 		
@@ -50,6 +51,16 @@ package weave.visualization.plotters
 		{
 			setSingleKeySource(text);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [text];
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ['Label text'];
 		}
 				
 		private const bitmapText:BitmapText = new BitmapText();

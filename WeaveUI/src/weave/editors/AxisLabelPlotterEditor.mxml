@@ -58,6 +58,7 @@ Editor for custom layers using AxisLabelPlotters
 	<ui:Indent label="{lang('Label alignment')}" verticalAlign="top">
 		<ui:AlignmentControl id="alignment"/>
 	</ui:Indent>
+	<ui:DynamicColumnComponent id="textColumnComponent" creationComplete="textColumnComponent.dynamicObject = _plotter.text;"/>
 	<ui:Indent label="{lang('Label function')}" verticalAlign="top" height="100%">
 		<ui:CodeEditor creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
 	</ui:Indent>
