@@ -320,6 +320,8 @@
 				return _attrNames.indexOf(ta);
 			}
 			
+			private var _prevDescendants:Array;
+			
 			// called whenever a global object gets added/removed/reordered
 			private function handleGlobalListChange():void
 			{
@@ -328,7 +330,8 @@
 				// two filter passes because the filter function may modify the array on the first pass
 				descendants = descendants.filter(filterDescendants).filter(filterDescendants).map(objectToPathString);
 				StandardLib.sort(descendants);
-				targetToolCombo.dataProvider = descendants;
+				if (StandardLib.arrayCompare(_prevDescendants, descendants) != 0)
+					targetToolCombo.dataProvider = _prevDescendants = descendants;
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = pathToString(targetToolPath.getSessionState() as Array);
 				validateToolWatcherTarget();
