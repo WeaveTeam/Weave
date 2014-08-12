@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+-->
+<SimpleVisTool xmlns="weave.visualization.tools.*"
+			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:ui="weave.ui.*"
+			   xmlns:editors="weave.editors.*">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
+			import weave.ui.AttributeSelectorPanel;
+			import weave.utils.BitmapText;
+			import weave.utils.ColumnUtils;
+			import weave.visualization.plotters.IndividualTestPlotter;
+			
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, IndividualTestTool, "IndividualTestTool");
+			
+			[Bindable]
+			public var plotter:IndividualTestPlotter = null;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				// lock dynamic objects into place
+				plotter = initializePlotters(IndividualTestPlotter, true);
+				
+				visualization.enableProbeLine(true, true);
+				
+				//BEGIN TEMPORARY SOLUTION
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
+				// END TEMPORARY SOLUTION
+				
+				visualization.enableZoomAndPan.value = false;
+				
+				xAxisPlotter.setLabelFunction(labelFunctionX, plotter.dataX);
+				yAxisPlotter.setLabelFunction(labelFunctionY, plotter.dataY);
+				
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataX); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataY); })
+				
+				visualization.enableAutoZoomXToNiceNumbers.value = true;
+				visualization.enableAutoZoomYToNiceNumbers.value = true;
+				
+				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
+				
+				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
+				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
+				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
+				
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "30";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "30";
+				
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([plotter.dataX, plotter.dataY, plotter.fill.color], input);
+			}
+			
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
+			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
+			{
+				handleSelectAllAttrInProbe(value);
+			}
+			
+			private function handleSelectAllAttrInProbe(setAll:Boolean):void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var valuesToSet:Array = [];
+				if(setAll)
+				{
+					for each (var name:String in attributes)
+					{
+						valuesToSet.push(true);
+					}
+				}
+				else
+				{
+					for each (var name2:String in attributes)
+					{
+						valuesToSet.push(false);
+					}
+				}
+				attributesToIncludeInProbe.setSessionState(valuesToSet);
+			}
+			
+			
+			private function updateProbeColumns():void
+			{
+				if (!parent)
+				{
+					callLater(updateProbeColumns);
+					return;
+				}
+				
+				/* first check to see if select all should be disabled or not */
+				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+				
+				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
+					probeColumnsCheckBox.selected = true;
+				
+				var attributes:Array = getSelectableAttributes();
+				var columns:Array = [];
+				
+				var dataXColIndex:int = attributes.indexOf(plotter.dataX);
+				if (plotter.dataX.getInternalColumn() && attrToIncludeCheckList[dataXColIndex])
+					columns.push(plotter.dataX.getInternalColumn());
+				
+				var dataYColIndex:int = attributes.indexOf(plotter.dataY);
+				if (plotter.dataY.getInternalColumn() && attrToIncludeCheckList[dataYColIndex])
+					columns.push(plotter.dataY.getInternalColumn());
+				
+				var colorColIndex:int = attributes.indexOf(plotter.fill.color);
+				if (plotter.fill.color.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
+					columns.push(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
+				
+				var sizeColIndex:int = attributes.indexOf(plotter.sizeBy);
+				if(plotter.sizeBy.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
+					columns.push(plotter.sizeBy.getInternalColumn());
+				
+				visualization.additionalProbeColumns = columns;
+			}
+			
+			override public function get defaultPanelTitle():String
+			{
+				return lang("Individual Record Tool");
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
+			}
+			private function updateAxisLabels():void
+			{
+				visualization.bottomMarginColumn = plotter.dataX;
+				visualization.leftMarginColumn = plotter.dataY;
+				
+				xAxisPlotter.setSideAxisName(
+					ColumnUtils.getTitle(plotter.dataX), 
+					0,   
+					0, visualization.plotManager.marginBottomNumber.value - 3, 
+					BitmapText.VERTICAL_ALIGN_BOTTOM
+				);
+				
+				yAxisPlotter.setSideAxisName(
+					ColumnUtils.getTitle(plotter.dataY), 
+					-90, 
+					-visualization.plotManager.marginLeftNumber.value, 0, 
+					BitmapText.VERTICAL_ALIGN_TOP
+				);
+			}
+			
+			public function labelFunctionX(value:Number):String
+			{
+				return ColumnUtils.deriveStringFromNumber(plotter.dataX, value);
+			}
+			public function labelFunctionY(value:Number):String
+			{
+				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
+			}
+			
+		]]>
+	</mx:Script>
+	<ui:Paragraph id="equationText" left="0" bottom="0" width="NaN" horizontalScrollPolicy="off"
+				  selectable="true" trim="false" verticalScrollPolicy="off" wordWrap="false"/>
+	<ui:ControlPanel>
+		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<ui:DynamicColumnComponent label="{lang('Sort')}"
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
+			<ui:DynamicColumnComponent label="{lang('Attributes')}"
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
+		</mx:VBox>
+		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
+			
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox"
+										  label="{lang('Include tool attributes in mouseover info')}"
+										  change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}"
+								 translate="true"/>
+			</ui:CheckBoxWithNestedOptions>
+		</mx:VBox>
+	</ui:ControlPanel>
+</SimpleVisTool>
