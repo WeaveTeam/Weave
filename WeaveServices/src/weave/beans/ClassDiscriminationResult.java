@@ -17,23 +17,9 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.visualization.tools
-{
-	import weave.Weave;
-	import weave.api.ui.IVisTool;
-	
-	/**
-	 * kept for backwards compatibility
-	 * 
-	 * @author adufilie
-	 */
-	public class ColormapHistogramTool extends HistogramTool
-	{
-		WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ColormapHistogramTool, "Color Histogram");
+package weave.beans;
 
-		public function ColormapHistogramTool()
-		{
-			plotter.fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-		}
-	}
+public class ClassDiscriminationResult {
+	public double statistic;
+	public double pvalue;
 }

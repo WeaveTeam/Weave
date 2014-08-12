@@ -73,7 +73,7 @@ package weave.menus
 		{
 			function getLabel(item:WeaveMenuItem):String
 			{
-				var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(item.data as Class);
+				var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(item.data as Class);
 				if (labelFormat)
 					return lang(labelFormat, displayName);
 				return displayName;
@@ -84,7 +84,7 @@ package weave.menus
 				adsp.dataSourceType = item.data as Class;
 			}
 			return createItems(
-				WeaveAPI.getRegisteredImplementations(IDataSource).map(
+				WeaveAPI.ClassRegistry.getImplementations(IDataSource).map(
 					function(impl:Class, ..._):* {
 						return {
 							shown: Weave.properties.enableManageDataSources,

@@ -54,7 +54,7 @@ package weave.visualization.plotters
 	 */
 	public class ScatterPlotPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
 		
 		public function ScatterPlotPlotter()
 		{

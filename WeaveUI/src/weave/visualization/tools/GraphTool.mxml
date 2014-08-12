@@ -50,7 +50,7 @@
 			import weave.visualization.plotters.GraphLabelPlotter;
 			import weave.visualization.plotters.GraphPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, GraphTool, "Graph Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, GraphTool, "Graph Tool");
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
 			public var _labelPlotter:GraphLabelPlotter = null;

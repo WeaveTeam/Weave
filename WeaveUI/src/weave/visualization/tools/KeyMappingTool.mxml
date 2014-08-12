@@ -40,7 +40,7 @@ private var reverseKeyMapping:Dictionary = new Dictionary();
 private var currentlyMappedKeys:KeySet = new KeySet(); /* To ensure we only do one step */
 private var previouslyMappedKeys:KeySet = new KeySet();
 
-WeaveAPI.registerImplementation(IVisTool, KeyMappingTool, "Foreign Key Mapping Tool");
+WeaveAPI.ClassRegistry.registerImplementation(IVisTool, KeyMappingTool, "Foreign Key Mapping Tool");
 
 override protected function constructor():void
 {

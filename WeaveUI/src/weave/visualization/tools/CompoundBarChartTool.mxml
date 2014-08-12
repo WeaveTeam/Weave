@@ -50,7 +50,7 @@
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 			import weave.visualization.plotters.SimpleAxisPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
 
 			/**
 			 * When this is set to true, labels for all bars will be shown.
@@ -463,11 +463,11 @@
 				<mx:RadioButton id="stackedRadioButton" groupName="groupMode" label="{lang('Stacked bars')}" value="{CompoundBarChartPlotter.STACK}"/>
 				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="{lang('100% Stacked bars')}" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
 			</mx:HBox>
-			<mx:TabNavigator creationPolicy="all" initialize="UIUtils.pad(event, 5, 100, 100)">
+			<ui:CustomTabNavigator creationPolicy="all" initialize="UIUtils.pad(event, 5, 100, 100)">
 				<ui:ColumnListComponent creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 				<ui:ColumnListComponent creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
 				<ui:ColumnListComponent creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
-			</mx:TabNavigator>
+			</ui:CustomTabNavigator>
 			<mx:HBox>
 				<ui:CustomCheckBox label="{lang('Link Height and Sort Column')}" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
 				<ui:CustomCheckBox label="{lang('Link Height and Color Column')}" creationComplete="linkBindableProperty(linkHeightAndColorColumns, event.target, 'selected');"/>

@@ -118,7 +118,7 @@ RTextEditor
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
 			
 			private const padding:int = 5;
 			

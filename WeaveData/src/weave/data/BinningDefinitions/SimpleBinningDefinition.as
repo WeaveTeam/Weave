@@ -19,7 +19,7 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -67,13 +67,13 @@ package weave.data.BinningDefinitions
 				{
 					if (column.getValueFromKey(key) is Number)
 					{
-						dataType = DataTypes.NUMBER;
+						dataType = DataType.NUMBER;
 						break;
 					}
 				}
 			}
 			
-			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataTypes.NUMBER;
+			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataType.NUMBER;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();

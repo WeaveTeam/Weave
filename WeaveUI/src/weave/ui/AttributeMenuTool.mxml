@@ -23,7 +23,7 @@
 				implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
-	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
+	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
 		<mx:Canvas label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
@@ -57,7 +57,7 @@
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 			</mx:HBox>
 		</mx:Canvas>
-	</mx:ViewStack>
+	</CustomViewStack>
 	
 	<ControlPanel>
 		<mx:VBox width="100%" label="{lang('Settings')}">
@@ -145,7 +145,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
-			WeaveAPI.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
@@ -320,6 +320,8 @@
 				return _attrNames.indexOf(ta);
 			}
 			
+			private var _prevDescendants:Array;
+			
 			// called whenever a global object gets added/removed/reordered
 			private function handleGlobalListChange():void
 			{
@@ -328,7 +330,8 @@
 				// two filter passes because the filter function may modify the array on the first pass
 				descendants = descendants.filter(filterDescendants).filter(filterDescendants).map(objectToPathString);
 				StandardLib.sort(descendants);
-				targetToolCombo.dataProvider = descendants;
+				if (StandardLib.arrayCompare(_prevDescendants, descendants) != 0)
+					targetToolCombo.dataProvider = _prevDescendants = descendants;
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = pathToString(targetToolPath.getSessionState() as Array);
 				validateToolWatcherTarget();

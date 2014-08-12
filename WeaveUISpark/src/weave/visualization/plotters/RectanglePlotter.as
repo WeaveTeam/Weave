@@ -26,7 +26,7 @@ package weave.visualization.plotters
 	import weave.Weave;
 	import weave.api.core.DynamicState;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -51,7 +51,7 @@ package weave.visualization.plotters
 	 */
 	public class RectanglePlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
 		
 		public function RectanglePlotter()
 		{
@@ -125,7 +125,7 @@ package weave.visualization.plotters
 		protected function getCoordFromRecordKey(recordKey:IQualifiedKey, trueXfalseY:Boolean):Number
 		{
 			var dataCol:IAttributeColumn = trueXfalseY ? xData : yData;
-			if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY)
 			{
 				var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
 				var geom:GeneralizedGeometry;

@@ -36,7 +36,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, "Pie Chart Histogram");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, PieChartHistogramTool, "Pie Chart Histogram");
 			
 			public var _plotter:PieChartHistogramPlotter = null;
 			

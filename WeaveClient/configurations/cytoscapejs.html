@@ -8,7 +8,7 @@
     <style>
         body { font: 14px helvetica neue, helvetica, arial, sans-serif;}
         #cy { height: 100%; width: 100%; position: absolute; left: 0; top: 0;}
-        #controls {position: absolute;top: 0;left: 0;}
+        #controlsleft {position: absolute;top: 0;left: 0;}
     </style>
     <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.2.4/cytoscape.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
@@ -18,7 +18,7 @@
     <div id="cy">
         
     </div>
-    <div id="controls">
+    <div id="controlsleft">
             <button title="Zoom to Fit" onclick="cy.fit()">Z</button>
             <select name="layout_dropdown"></select>
             <button title="Run layout" onclick="run_layout()">&#8634;</button>
@@ -26,7 +26,7 @@
     </div>
 
 <script>
-    cytoscape_style = 
+    cytoscape_style =
         cytoscape.stylesheet()
             .selector('node')
                 .css({
@@ -38,9 +38,7 @@
                         'line-width': 1,
                         'border-width': 1,
                         'text-outline-color': '#888',
-                        'background-color': 'data(color)',
-                        'height': 30,
-                        'width': 30
+                        'background-color': 'data(color)'
                         })
             .selector('edge')
                 .css({
@@ -69,15 +67,21 @@
                         })
             .selector('node.probed')
                 .css({
-                        'border-width': 7,
-                        'height': 28,
-                        'width':28
+                        'border-width': 7
                 })
             .selector('edge.probed')
                 .css({
                         'line-color': 'red',
                         'line-width': 3
                 })
+            .selector('$node > node')
+                .css({ 
+                        'padding-top': '5px',
+                        'padding-left': '5px',
+                        'padding-bottom': '5px',
+                        'padding-right': '5px',
+                        'text-valign': 'top'
+                    });
 
     var node_data;
     var edge_data;
@@ -120,6 +124,7 @@
 
         modifyRecords(edge_data, 'source', localNameToKeyString);
         modifyRecords(edge_data, 'target', localNameToKeyString);
+        modifyRecords(node_data, 'parent', localNameToKeyString);
 
         var node_ids = _.zipObject(_.pluck(node_data, 'id'));
 
@@ -130,7 +135,6 @@
         node_data = _.map(node_data, function (d) {return {data: d};});
         edge_data = _.map(edge_data, function (d) {return {data: d};});
 
-        //cy.layout({name: 'preset', positions: get_weave_positions()});
         cy.load({nodes: node_data, edges: edge_data}, set_local_positions);
     };
 
@@ -160,9 +164,11 @@
         }
     };
 
+    var last_probed;
     function probe_handler(evt)
     {
         var ele = evt.cyTarget;
+        last_probed = ele;
         ele.toggleClass("probed", true);
         toolPath.probe_keyset.setKeys([ele.id()]);
     };
@@ -207,6 +213,7 @@
 
         for (var keyType in positions)
         {
+            
             for (var localName in positions[keyType])
             {
                 var id = toolPath.qkeyToString({keyType: keyType, localName: localName});
@@ -224,10 +231,13 @@
         
         if (positions == null)
         {
-            return;
+            positions = {};
         }
 
         cy.nodes().positions(function (i, ele) { return positions[ele.id()]; });
+        cy.nodes().filter(function (i, ele) { if (positions[ele.id()]) ele.lock()});
+        console.log("Nodes locked");
+        run_layout(function(evt) { cy.nodes().unlock(); console.log("Nodes unlocked"); });
     }
 
     function set_weave_positions(evt)
@@ -256,7 +266,7 @@
                          breadthfirst: 'Breadth-First', arbor: 'Arbor (Force-Directed)', 
                          cose: "CompoundSpring"};
 
-    function run_layout()
+    function run_layout(on_finished)
     {
         var layout_name = tool[LAYOUT].getState();
         var layout_params = tool[LAYOUT_OPTIONS].getState();
@@ -271,16 +281,25 @@
             tool[LAYOUT].state("circle");
             layout_name = "circle";
         }
-        layout_params['name'] = layout_name;
-        layout_params['stop'] = set_weave_positions;
 
-        cy.layout(layout_params);
+        function on_stop (evt) 
+        {
+            set_weave_positions(evt);
+            if (on_finished) on_finished(evt);
+        }
+        layout_params['name'] = layout_name;
+        layout_params['stop'] = on_stop;
+
+        if (cy.nodes().filter(function (i,ele) {return !ele.locked();}).length)
+            cy.layout(layout_params);
+        else
+            if (on_finished) on_finished();
     };
 
 
     function open_attribute_selector()
     {
-        tool[NODES].libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(this)");
+        toolPath.push(NODES).libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(this)");
         return;
     }
 
@@ -333,7 +352,7 @@
             .text(value).attr("value",key));
     });
 
-    $('#cy').cytoscape( { style: cytoscape_style, ready: function () { 
+    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: 'cose', padding: 5}, ready: function () { 
         window.cy = this;
 
         toolPath = opener.WeaveExternalTools[window.name].path;

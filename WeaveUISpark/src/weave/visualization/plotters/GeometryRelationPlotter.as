@@ -39,7 +39,7 @@ package weave.visualization.plotters
 
 	public class GeometryRelationPlotter extends AbstractPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, GeometryRelationPlotter, "Geometry relations");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryRelationPlotter, "Geometry relations");
 
 		public function GeometryRelationPlotter()
 		{

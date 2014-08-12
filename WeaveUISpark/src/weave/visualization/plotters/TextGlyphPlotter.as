@@ -45,7 +45,7 @@ package weave.visualization.plotters
 	 */
 	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, TextGlyphPlotter, "Labels");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, TextGlyphPlotter, "Labels");
 		
 		public function TextGlyphPlotter()
 		{

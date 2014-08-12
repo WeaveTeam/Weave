@@ -19,12 +19,10 @@ package
 	
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
-	import flash.utils.getQualifiedClassName;
 	
-	import mx.core.ByteArrayAsset;
 	import mx.core.FlexGlobals;
-	import mx.core.Singleton;
 	
+	import weave.api.core.IClassRegistry;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
@@ -39,6 +37,7 @@ package
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
 	import weave.api.ui.IEditorManager;
+	import weave.core.ClassRegistryImpl;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -66,102 +65,186 @@ package
 		public static const TASK_PRIORITY_3_PARSING:uint = 3;
 		
 		/**
+		 * Static instance of ClassRegistry
+		 */
+		private static var _classRegistry:ClassRegistryImpl = null;
+		
+		/**
+		 * This is the singleton instance of the registered ISessionManager implementation.
+		 */
+		public static function get ClassRegistry():IClassRegistry
+		{
+			if (!_classRegistry)
+			{
+				_classRegistry = new ClassRegistryImpl();
+				
+				///////////////////////
+				// TEMPORARY SOLUTION (until everything is a plug-in.)
+				// run static initialization code to register weave implementations
+//				try
+//				{
+					/*
+					// before initializing other classes, initialize all public properties of this class
+					for each (var array:Object in DescribeType.getClassInfo(WeaveAPI).traits)
+					for each (var item:Object in array)
+					if (item.metadata.access != 'writeonly')
+					WeaveAPI[item.name];
+					*/
+					
+					getDefinitionByName("_InitializeWeaveCore");
+					getDefinitionByName("_InitializeWeaveData"); 
+					getDefinitionByName("_InitializeWeaveUISpark");
+					getDefinitionByName("_InitializeWeaveUI");
+//				}
+//				catch (e:Error)
+//				{
+//					trace(e.getStackTrace() || e);
+//				}
+				// END TEMPORARY SOLUTION
+				///////////////////////////
+			}
+			return _classRegistry;
+		}
+		
+		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
 		 */
 		public static function get SessionManager():ISessionManager
 		{
-			return getSingletonInstance(ISessionManager);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[ISessionManager]
+				|| _classRegistry.getSingletonInstance(ISessionManager);
 		}
 		/**
 		 * This is the singleton instance of the registered IStageUtils implementation.
 		 */
 		public static function get StageUtils():IStageUtils
 		{
-			return getSingletonInstance(IStageUtils);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IStageUtils]
+				|| _classRegistry.getSingletonInstance(IStageUtils);
 		}
 		/**
 		 * This is the singleton instance of the registered IErrorManager implementation.
 		 */
 		public static function get ErrorManager():IErrorManager
 		{
-			return getSingletonInstance(IErrorManager);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IErrorManager]
+				|| _classRegistry.getSingletonInstance(IErrorManager);
 		}
 		/**
 		 * This is the singleton instance of the registered IExternalSessionStateInterface implementation.
 		 */
 		public static function get ExternalSessionStateInterface():IExternalSessionStateInterface
 		{
-			return getSingletonInstance(IExternalSessionStateInterface);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IExternalSessionStateInterface]
+				|| _classRegistry.getSingletonInstance(IExternalSessionStateInterface);
 		}
 		/**
 		 * This is the singleton instance of the registered IProgressIndicator implementation.
 		 */
 		public static function get ProgressIndicator():IProgressIndicator
 		{
-			return getSingletonInstance(IProgressIndicator);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IProgressIndicator]
+				|| _classRegistry.getSingletonInstance(IProgressIndicator);
 		}
 		/**
 		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
 		 */
 		public static function get AttributeColumnCache():IAttributeColumnCache
 		{
-			return getSingletonInstance(IAttributeColumnCache);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IAttributeColumnCache]
+				|| _classRegistry.getSingletonInstance(IAttributeColumnCache);
 		}
 		/**
 		 * This is the singleton instance of the registered IStatisticsCache implementation.
 		 */
 		public static function get StatisticsCache():IStatisticsCache
 		{
-			return getSingletonInstance(IStatisticsCache);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IStatisticsCache]
+				|| _classRegistry.getSingletonInstance(IStatisticsCache);
 		}
 		/**
 		 * This is the singleton instance of the registered IProjectionManager implementation.
 		 */
 		public static function get ProjectionManager():IProjectionManager
 		{
-			return getSingletonInstance(IProjectionManager);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IProjectionManager]
+				|| _classRegistry.getSingletonInstance(IProjectionManager);
 		}
 		/**
 		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.
 		 */
 		public static function get QKeyManager():IQualifiedKeyManager
 		{
-			return getSingletonInstance(IQualifiedKeyManager);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IQualifiedKeyManager]
+				|| _classRegistry.getSingletonInstance(IQualifiedKeyManager);
 		}
 		/**
 		 * This is the singleton instance of the registered ICSVParser implementation.
 		 */
 		public static function get CSVParser():ICSVParser
 		{
-			return getSingletonInstance(ICSVParser);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[ICSVParser]
+				|| _classRegistry.getSingletonInstance(ICSVParser);
 		}
 		/**
 		 * This is the singleton instance of the registered IURLRequestUtils implementation.
 		 */
 		public static function get URLRequestUtils():IURLRequestUtils
 		{
-			return getSingletonInstance(IURLRequestUtils);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IURLRequestUtils]
+				|| _classRegistry.getSingletonInstance(IURLRequestUtils);
 		}
 		/**
 		 * This is the singleton instance of the registered ILocaleManager implementation.
 		 */
 		public static function get LocaleManager():ILocaleManager
 		{
-			return getSingletonInstance(ILocaleManager);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[ILocaleManager]
+				|| _classRegistry.getSingletonInstance(ILocaleManager);
 		}
 		/**
 		 * This is the singleton instance of the registered IEditorManager implementation.
 		 */
 		public static function get EditorManager():IEditorManager
 		{
-			return getSingletonInstance(IEditorManager);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[IEditorManager]
+				|| _classRegistry.getSingletonInstance(IEditorManager);
 		}
 		/**
 		 * This is the top-level object in Weave.
 		 */		
 		public static function get globalHashMap():ILinkableHashMap
 		{
-			return getSingletonInstance(ILinkableHashMap);
+			if (!_classRegistry)
+				ClassRegistry;
+			return _classRegistry.singletonInstances[ILinkableHashMap]
+				|| _classRegistry.getSingletonInstance(ILinkableHashMap);
 		}
 		/**************************************/
 
@@ -228,7 +311,7 @@ package
 					if (script is Class)
 					{
 						var instanceInfo:Object = DescribeType.getInfo(script, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS | DescribeType.INCLUDE_BASES);
-						if (instanceInfo.traits.bases.indexOf(getQualifiedClassName(ByteArrayAsset)) >= 0)
+						if (instanceInfo.traits.bases.indexOf('mx.core::ByteArrayAsset') >= 0)
 						{
 							// run embedded script file
 							JavaScript.exec({"this": "weave"}, new script());
@@ -236,7 +319,7 @@ package
 						else
 						{
 							// initialize interface
-							registerJavaScriptInterface(getSingletonInstance(script as Class), instanceInfo);
+							registerJavaScriptInterface(ClassRegistry.getSingletonInstance(script as Class), instanceInfo);
 						}
 					}
 					else
@@ -311,173 +394,6 @@ package
 			else
 				ErrorManager.reportError(e);
 		}
-		
-		/**************************************/
-		
-		/**
-		 * This will register an implementation of an interface.
-		 * @param theInterface The interface class.
-		 * @param theImplementation An implementation of the interface.
-		 * @param displayName An optional display name for the implementation.
-		 */
-		public static function registerImplementation(theInterface:Class, theImplementation:Class, displayName:String = null):void
-		{
-			_verifyImplementation(theInterface, theImplementation);
-			
-			var array:Array = _implementations[theInterface] as Array;
-			if (!array)
-				_implementations[theInterface] = array = [];
-			
-			// overwrite existing displayName if specified
-			if (displayName || !_implementationDisplayNames[theImplementation])
-				_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
-
-			if (array.indexOf(theImplementation) < 0)
-			{
-				array.push(theImplementation);
-				// sort by displayName
-				array.sort(_sortImplementations);
-			}
-		}
-		
-		/**
-		 * This will get an Array of class definitions that were previously registered as implementations of the specified interface.
-		 * @param theInterface The interface class.
-		 * @return An Array of class definitions that were previously registered as implementations of the specified interface.
-		 */
-		public static function getRegisteredImplementations(theInterface:Class):Array
-		{
-			var array:Array = _implementations[theInterface] as Array;
-			return array ? array.concat() : [];
-		}
-		
-		/**
-		 * This will get the displayName that was specified when an implementation was registered with registerImplementation().
-		 * @param theImplementation An implementation that was registered with registerImplementation().
-		 * @return The display name for the implementation.
-		 */
-		public static function getRegisteredImplementationDisplayName(theImplementation:Class):String
-		{
-			var str:String = _implementationDisplayNames[theImplementation] as String;
-			return str && lang(str);
-		}
-		
-		/**
-		 * @private
-		 * sort by displayName
-		 */
-		private static function _sortImplementations(impl1:Class, impl2:Class):int
-		{
-			var name1:String = _implementationDisplayNames[impl1] as String;
-			var name2:String = _implementationDisplayNames[impl2] as String;
-			if (name1 < name2)
-				return -1;
-			if (name1 > name2)
-				return 1;
-			return 0;
-		}
-		
-		private static const _implementations:Dictionary = new Dictionary(); // Class -> Array<Class>
-		private static const _implementationDisplayNames:Dictionary = new Dictionary(); // Class -> String
-		
-		/**
-		 * @private
-		 */
-		private static function _verifyImplementation(theInterface:Class, theImplementation:Class):void
-		{
-			var interfaceName:String = getQualifiedClassName(theInterface);
-			var classInfo:Object = DescribeType.getInfo(theImplementation, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
-			if (classInfo.traits.interfaces.indexOf(interfaceName) < 0)
-				throw new Error(getQualifiedClassName(theImplementation) + ' does not implement ' + interfaceName);
-		}
-		
-		/**
-		 * This registers an implementation for a singleton interface.
-		 * @param theInterface The interface to register.
-		 * @param theImplementation The implementation to register.
-		 * @return A value of true if the implementation was successfully registered.
-		 */
-		public static function registerSingleton(theInterface:Class, theImplementation:Class):Boolean
-		{
-			_verifyImplementation(theInterface, theImplementation);
-			
-			var interfaceName:String = getQualifiedClassName(theInterface);
-			Singleton.registerClass(interfaceName, theImplementation);
-			return Singleton.getClass(interfaceName) == theImplementation;
-		}
-		
-		/**
-		 * This function returns the singleton instance for a registered interface.
-		 *
-		 * This method should not be called at static initialization time,
-		 * because the implementation may not have been registered yet.
-		 * 
-		 * @param singletonInterface An interface to a singleton class.
-		 * @return The singleton instance that implements the specified interface.
-		 */
-		public static function getSingletonInstance(singletonInterface:Class):*
-		{
-			///////////////////////
-			// TEMPORARY SOLUTION (until everything is a plug-in.)
-			if (!_initialized)
-			{
-				_initialized = true;
-				// run static initialization code to register weave implementations
-				try
-				{
-					getDefinitionByName("_InitializeWeaveCore");
-					getDefinitionByName("_InitializeWeaveData"); 
-					getDefinitionByName("_InitializeWeaveUISpark");
-					getDefinitionByName("_InitializeWeaveUI");
-				}
-				catch (e:Error)
-				{
-					trace(e.getStackTrace() || e);
-				}
-			}
-			// END TEMPORARY SOLUTION
-			///////////////////////////
-			
-			var result:* = _singletonDictionary[singletonInterface];
-			// If no instance has been created yet, create one now.
-			if (!result)
-			{
-				var interfaceName:String = getQualifiedClassName(singletonInterface);
-				try
-				{
-					// This may fail if there is no registered class,
-					// or the class doesn't have a getInstance() method.
-					result = Singleton.getInstance(interfaceName);
-				}
-				catch (e:Error)
-				{
-					var classDef:Class = Singleton.getClass(interfaceName);
-					// If there is a registered class, use the local dictionary.
-					if (classDef)
-					{
-						result = new classDef();
-					}
-					else
-					{
-						// Throw the error from Singleton.getInstance().
-						throw e;
-					}
-				}
-				_singletonDictionary[singletonInterface] = result;
-			}
-			// Return saved instance.
-			return result;
-		}
-		
-		/**
-		 * Used by getSingletonInstance.
-		 */		
-		private static var _initialized:Boolean = false;
-		
-		/**
-		 * This is used to save a mapping from an interface to its singleton implementation instance.
-		 */
-		private static const _singletonDictionary:Dictionary = new Dictionary();
 		
 		/**
 		 * Outputs to external console.log()

@@ -58,10 +58,7 @@ package weave
 	{
 		SparkClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
-		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
-
 		public static var debug:Boolean = false;
-		
 		
 		private static var _root:ILinkableHashMap = null; // root object of Weave
 
@@ -99,7 +96,7 @@ package weave
 			var xml:XML = WeaveXMLEncoder.encode(root.getSessionState(), "Weave");
 			
 			var plugins:Array = getPluginList();
-			if (_pluginList.length)
+			if (plugins.length)
 				xml.@plugins = WeaveAPI.CSVParser.createCSVRow(plugins);
 			
 			WeaveArchive.updateLocalThumbnailAndScreenshot(false);
@@ -184,11 +181,19 @@ package weave
 		private static var _pluginList:Array = [];
 		
 		/**
+		 * This is included in the list of plugins for forward-compatibility.
+		 */
+		public static var INCLUDE_DEFAULT_PLUGINS:String = "INCLUDE_DEFAULT_PLUGINS";
+		
+		/**
 		 * @return A copy of the list of plugins currently loaded. 
 		 */		
 		public static function getPluginList():Array
 		{
-			return _pluginList.concat();
+			var array:Array = _pluginList.concat();
+			if (array.length)
+				array.unshift(INCLUDE_DEFAULT_PLUGINS);
+			return array;
 		}
 		
 		/**
@@ -204,7 +209,7 @@ package weave
 			// remove duplicates
 			var array:Array = [];
 			for (i = 0; i < newPluginList.length; i++)
-				if (array.indexOf(newPluginList[i]) < 0)
+				if (array.indexOf(newPluginList[i]) < 0 && newPluginList[i] != INCLUDE_DEFAULT_PLUGINS)
 					array.push(newPluginList[i]);
 			newPluginList = array;
 			// stop if no change
@@ -315,7 +320,7 @@ package weave
 		 */
 		public static function createWeaveFileContent(saveScreenshot:Boolean=false):ByteArray
 		{
-			return WeaveArchive.createWeaveFileContent(saveScreenshot, ALLOW_PLUGINS ? _pluginList : null);
+			return WeaveArchive.createWeaveFileContent(saveScreenshot, getPluginList());
 		}
 		
 		/**

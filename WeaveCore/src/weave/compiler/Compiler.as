@@ -192,6 +192,10 @@ package weave.compiler
 		 */
 		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 		
+		private static const maxUnicodeEscapeValue:uint = 0x10FFFF;
+		private static const maxUnicodeEscapeChars:uint = 8; // {10FFFF}
+		private static const unicodeRegex:RegExp = /^(\{[0-9A-Fa-f]+\}|[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/;
+		
 		private const JUMP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
 		private const LOOP_LOOKUP:Dictionary = new Dictionary(); // Function -> true or ST_BREAK or ST_CONTINUE
 		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function -> Boolean, for short-circuiting
@@ -1170,8 +1174,8 @@ package weave.compiler
 			output = [];
 			if (value is Array)
 			{
-				for (key in value)
-					output.push(_stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+				for (var i:int = 0; i < (value as Array).length; i++)
+					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
 			}
 			else if (value.constructor == Object)
 			{
@@ -1262,10 +1266,21 @@ package weave.compiler
 					}
 					else if (c == 'u')
 					{
-						// \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
-						var unicode:String = input.substr(escapeIndex + 2, 4);
-						c = String.fromCharCode(parseInt(unicode, 16));
-						searchIndex = escapeIndex + 6; // skip over escape sequence
+						var unicodeDigits:String;
+						var unicodeValue:int;
+						var foundUnicode:Object = unicodeRegex.exec(input.substr(escapeIndex + 2, maxUnicodeEscapeChars))
+						if (foundUnicode)
+						{
+							unicodeDigits = foundUnicode[0];
+							if (unicodeDigits.charAt(0) == '{') // \u{10FFFF}
+								unicodeValue = parseInt(unicodeDigits.substr(1, unicodeDigits.length - 2), 16);
+							else // \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
+								unicodeValue = parseInt(unicodeDigits, 16);
+						}
+						if (!foundUnicode || unicodeValue > maxUnicodeEscapeValue)
+							throw new Error("Malformed Unicode character escape sequence: " + input);
+						c = StandardLib.ucs2encode(unicodeValue);
+						searchIndex = escapeIndex + 2 + unicodeDigits.length; // skip over escape sequence
 					}
 					else
 					{
@@ -2382,9 +2397,10 @@ package weave.compiler
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @param flattenFunctionDefinition If set to true and the compiledObject represents a function definition, that function definition will be evaluated and returned.
+		 * @param bindThis If non-null, the <code>this</code> symbol will be bound to the given value. Otherwise, it will be dynamically determined by how the function is called.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true, bindThis:Object = null):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -2411,6 +2427,7 @@ package weave.compiler
 
 			const builtInSymbolTable:Object = {};
 			builtInSymbolTable['eval'] = undefined;
+			builtInSymbolTable['this'] = bindThis;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
 			const allSymbolTables:Array = [builtInSymbolTable]; // buit-in first
@@ -2455,12 +2472,13 @@ package weave.compiler
 				var propertyHost:Object;
 				var propertyName:String;
 				
+				if (bindThis === null)
+					builtInSymbolTable['this'] = this;
+				builtInSymbolTable['arguments'] = arguments;
+				
 				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
 				if (useThisScope)
-					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
-				
-				builtInSymbolTable['this'] = this;
-				builtInSymbolTable['arguments'] = arguments;
+					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = builtInSymbolTable['this'];
 				
 				// make function parameters available under the specified parameter names
 				if (paramNames)
@@ -2691,7 +2709,7 @@ package weave.compiler
 						{
 							var _symbolTables:Array = [localSymbolTable].concat(symbolTable); // works whether symbolTable is an Array or Object
 							if (useThisScope)
-								_symbolTables.push(this);
+								_symbolTables.push(builtInSymbolTable['this']);
 							
 							var funcParams:Object = call.evaluatedParams[0];
 							result = compileObjectToFunction(
@@ -2701,7 +2719,8 @@ package weave.compiler
 								cascadeThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES],
-								false
+								false,
+								method == operators['=>'] ? builtInSymbolTable['this'] : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)

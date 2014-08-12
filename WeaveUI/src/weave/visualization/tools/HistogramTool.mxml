@@ -39,7 +39,7 @@
 			import weave.visualization.plotters.HistogramPlotter;
 			import weave.visualization.plotters.SimpleAxisPlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, HistogramTool, "Histogram");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, HistogramTool, "Histogram");
 			
 			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
 			

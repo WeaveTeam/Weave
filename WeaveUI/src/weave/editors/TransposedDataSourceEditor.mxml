@@ -39,7 +39,7 @@
 			The values in this column will be used as titles for the transposed columns.
 		</ui:helpContent>
 	</ui:DynamicColumnComponent>
-	<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100);">
+	<ui:CustomTabNavigator initialize="UIUtils.pad(event, 8, 100, 100);">
 		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns to transpose')}">
 			<ui:helpContent>
 				Each column you add below will correspond to a record in the transposed data source.
@@ -52,7 +52,7 @@
 				For example, create a metadata variable named "title" to define the text used for each transposed column title.
 			</ui:helpContent>
 		</ui:ColumnListComponent>
-	</mx:TabNavigator>
+	</ui:CustomTabNavigator>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;

@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.external.ExternalInterface;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.core.IExternalSessionStateInterface;
@@ -295,6 +294,7 @@ package weave.core
 					return object;
 				
 				getObjectFromPathOrVariableName_error = "No ILinkableObject at path " + Compiler.stringify(objectPathOrVariableName);
+				return null;
 			}
 			
 			var variableName:String = String(objectPathOrVariableName);
@@ -304,6 +304,7 @@ package weave.core
 					return _variables[variableName];
 				
 				getObjectFromPathOrVariableName_error = "Undefined variable " + Compiler.stringify(variableName);
+				return null;
 			}
 			
 			return null;
@@ -363,40 +364,14 @@ package weave.core
 		}
 		
 		/**
-		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
-		 */		
-		private var _callbackFunctionCache:Object = {};
-		private var _d2d_callbackStr_target:Dictionary2D = new Dictionary2D(true, true);
-		
-		/**
-		 * @private
+		 * Stores information for removeCallback() and removeAllCallbacks()
 		 */
-		private function getCachedCallbackFunction(callback:String):Function
-		{
-			if (!_callbackFunctionCache[callback])
-			{
-				_callbackFunctionCache[callback] = function():void
-				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					ExternalInterface.marshallExceptions = true;
-					try
-					{
-						ExternalInterface.call(callback);
-					}
-					catch (e:*)
-					{
-						externalError(e);
-					}
-					ExternalInterface.marshallExceptions = prev;
-				}
-			}
-			return _callbackFunctionCache[callback];
-		}
-		
+		private static var _d2d_callback_target:Dictionary2D = new Dictionary2D(true, true);
+
 		/**
 		 * @inheritDoc
 		 */
-		public function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
+		public function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
 		{
 			try
 			{
@@ -418,11 +393,11 @@ package weave.core
 					return false;
 				}
 				
-				_d2d_callbackStr_target.set(callback, object, true);
+				_d2d_callback_target.set(callback, object, true);
 				if (immediateMode)
-					getCallbackCollection(object).addImmediateCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+					getCallbackCollection(object).addImmediateCallback(null, callback, triggerCallbackNow);
 				else
-					getCallbackCollection(object).addGroupedCallback(null, getCachedCallbackFunction(callback), triggerCallbackNow);
+					getCallbackCollection(object).addGroupedCallback(null, callback, triggerCallbackNow);
 				return true;
 			}
 			catch (e:Error)
@@ -436,14 +411,13 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function removeCallback(objectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean
+		public function removeCallback(objectPathOrVariableName:Object, callback:Function, everywhere:Boolean = false):Boolean
 		{
 			if (everywhere)
 			{
-				for (var target:Object in _d2d_callbackStr_target.dictionary[callback])
-					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callback] as Function);
-				delete _callbackFunctionCache[callback];
-				delete _d2d_callbackStr_target.dictionary[callback];
+				for (var target:Object in _d2d_callback_target.dictionary[callback])
+					getCallbackCollection(target as ILinkableObject).removeCallback(callback);
+				delete _d2d_callback_target.dictionary[callback];
 				return true;
 			}
 			
@@ -467,8 +441,8 @@ package weave.core
 					return false;
 				}
 				
-				_d2d_callbackStr_target.remove(callback, object);
-				getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
+				_d2d_callback_target.remove(callback, object);
+				getCallbackCollection(object).removeCallback(callback);
 				return true;
 			}
 			catch (e:Error)
@@ -484,16 +458,18 @@ package weave.core
 		 */
 		public function removeAllCallbacks():void
 		{
-			for (var callbackStr:String in _d2d_callbackStr_target.dictionary)
-				for (var target:Object in _d2d_callbackStr_target.dictionary[callbackStr])
-					getCallbackCollection(target as ILinkableObject).removeCallback(_callbackFunctionCache[callbackStr] as Function);
-			_callbackFunctionCache = {};
-			_d2d_callbackStr_target = new Dictionary2D(true, true);
+			for (var callback:* in _d2d_callback_target.dictionary)
+				for (var target:Object in _d2d_callback_target.dictionary[callback])
+					getCallbackCollection(target as ILinkableObject).removeCallback(callback as Function);
+			_d2d_callback_target = new Dictionary2D(true, true);
 		}
 		
 		private static function externalError(format:String, ...args):void
 		{
-			WeaveAPI.externalError(StandardLib.substitute("Error: " + format, args));
+			var prefix:String = "Error: ";
+			if (format.indexOf(prefix) != 0)
+				format = prefix + format;
+			WeaveAPI.externalError(StandardLib.substitute(format, args));
 		}
 		
 		private static function externalWarning(format:String, ...args):void

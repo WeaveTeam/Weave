@@ -63,6 +63,7 @@ package weave.application
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveArchive;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -79,7 +80,6 @@ package weave.application
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
-	import weave.ui.SessionStateEditor;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
@@ -95,8 +95,6 @@ package weave.application
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
-		SessionStateEditor.initialize; // adds keyboard shortcut & upper-left click shortcut
-
 		/**
 		 * Constructor.
 		 */
@@ -231,10 +229,10 @@ package weave.application
 		 * Loads a session state file from a URL.
 		 * @param url The URL to the session state file (.weave or .xml) specified as a String, a URLRequest, or an Object containing properties "url", "requestHeaders", "method".
 		 *            Example:  {"url": "myfile.ext", "requestHeaders": {"Content-type", "foo"}, method: "POST"}
-		 * @param callback Either a Function or a String containing a JavaScript function definition. The callback will be invoked when the file loading completes.
+		 * @param callback This function will be invoked when the file loading completes.
 		 * @param noCacheHack If set to true, appends "?" followed by a series of numbers to prevent Flash from using a cached version of the file.  Only works when url is given as a String.
 		 */
-		public function loadFile(url:Object, callback:Object = null, noCacheHack:Boolean = false):void
+		public function loadFile(url:Object, callback:Function = null, noCacheHack:Boolean = false):void
 		{
 			var request:URLRequest;
 			if (url is URLRequest)
@@ -260,8 +258,6 @@ package weave.application
 			}
 			
 			_loadFileCallback = callback as Function;
-			if (callback is String)
-				_loadFileCallback = function():void { JavaScript.exec(callback + "();"); };
 			
 			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
 		}
@@ -372,7 +368,7 @@ package weave.application
 			if (JavaScript.available)
 			{
 				var windowName:String = JavaScript.exec("return window.name;");
-				if (windowName.indexOf(ADMIN_SESSION_WINDOW_NAME_PREFIX) == 0)
+				if (windowName && windowName.indexOf(ADMIN_SESSION_WINDOW_NAME_PREFIX) == 0)
 					return windowName.substr(ADMIN_SESSION_WINDOW_NAME_PREFIX.length);
 			}
 			return null;
@@ -420,7 +416,7 @@ package weave.application
 			// check address bar for any variables not found in FlashVars
 			try
 			{
-				var paramsStr:String = JavaScript.exec("return window.location.search.substring(1);"); // text after '?'
+				var paramsStr:String = JavaScript.exec("return window.location.search.substring(1);") || ''; // text after '?'
 				var paramsObj:Object = URLUtil.stringToObject(paramsStr, '&');
 				for (var key:String in paramsObj)
 					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params

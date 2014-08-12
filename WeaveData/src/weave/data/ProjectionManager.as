@@ -321,7 +321,7 @@ import org.openscales.proj4as.ProjProjection;
 
 import weave.api.core.IDisposableObject;
 import weave.api.data.ColumnMetadata;
-import weave.api.data.DataTypes;
+import weave.api.data.DataType;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IProjector;
@@ -413,7 +413,7 @@ internal class WorkerThread implements IDisposableObject
 		var metadata:XML = <attribute
 				title={ ColumnUtils.getTitle(unprojectedColumn) }
 		keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
-		dataType={ DataTypes.GEOMETRY }
+		dataType={ DataType.GEOMETRY }
 		projection={ destinationProjSRS }
 		/>;
 		reprojectedColumn.setMetadata(metadata);

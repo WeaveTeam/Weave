@@ -148,13 +148,13 @@ package weave.menus
 		{
 			function getToolItemLabel(item:WeaveMenuItem):String
 			{
-				var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(item.data as Class);
+				var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(item.data as Class);
 				if (labelFormat)
 					return lang(labelFormat, displayName);
 				return displayName;
 			}
 			return createItems(
-				WeaveAPI.getRegisteredImplementations(IVisTool).map(function(impl:Class, ..._):* {
+				WeaveAPI.ClassRegistry.getImplementations(IVisTool).map(function(impl:Class, ..._):* {
 					return {
 						shown: [notDash, Weave.properties.getToolToggle(impl)],
 						label: getToolItemLabel,

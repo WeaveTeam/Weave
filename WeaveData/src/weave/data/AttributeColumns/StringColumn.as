@@ -24,7 +24,7 @@ package weave.data.AttributeColumns
 	import flash.utils.getTimer;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
@@ -49,7 +49,7 @@ package weave.data.AttributeColumns
 		override public function getMetadata(propertyName:String):String
 		{
 			if (propertyName == ColumnMetadata.DATA_TYPE)
-				return DataTypes.STRING;
+				return DataType.STRING;
 			return super.getMetadata(propertyName);
 		}
 
@@ -319,7 +319,7 @@ package weave.data.AttributeColumns
 			{
 				var type:String = _metadata ? _metadata[ColumnMetadata.DATA_TYPE] : null;
 				if (!type)
-					type = DataTypes.STRING;
+					type = DataType.STRING;
 				return WeaveAPI.QKeyManager.getQKey(type, string);
 			}
 			

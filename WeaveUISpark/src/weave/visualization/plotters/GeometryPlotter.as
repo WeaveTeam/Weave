@@ -64,7 +64,7 @@ package weave.visualization.plotters
 	 */
 	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
 		
 		public function GeometryPlotter()
 		{

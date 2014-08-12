@@ -32,7 +32,7 @@
 			import weave.primitives.Bounds2D;
 			import weave.visualization.layers.PlotManager;
 			
-			WeaveAPI.registerImplementation(IVisTool, CustomTool, "Custom Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CustomTool, "Custom Tool");
 			
 			override protected function constructor():void
 			{

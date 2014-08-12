@@ -28,34 +28,39 @@
     implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
     >
     <mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
-    <ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
+    <ui:Indent label="{lang('Source Name *')}">
         <mx:TextInput id="sourceName" focusOut=
             "nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Nodes');
              edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');"  width="100%"/>
     </ui:Indent>
-    <ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
-        <ui:TextInputWithPrompt change="handleURLTextChange()" id="sourceUrl" width="100%" prompt="http://www.example.com/example.graphml"/><mx:Button label="{lang('Open file')}" click="fileAttacher.browseAndAttachFile()"/>
-        <mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
+    <ui:Indent label="{lang('Source URL')}">
+        <ui:TextInputWithPrompt change="handleUrlInput()" id="sourceUrl" width="100%" prompt="http://www.example.com/example.graphml"/>
+		<mx:Button label="{lang('Open file')}" click="fileAttacher.browseAndAttachFile()"/>
+        <mx:Label id="uploadMessage" color="0xFF0000" visible="{uploadMessage.text?true:false}" includeInLayout="{uploadMessage.text?true:false}"/>
     </ui:Indent>
 
-    <ui:Indent group="{indentGroup}" label="{lang('Nodes')}">
+    <ui:Indent label="{lang('Nodes')}">
         <mx:VBox>
             <ui:Indent label="{lang('KeyType *')}">
                 <ui:KeyTypesMenu id="nodeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
-                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(target == null || !target.nodeKeyPropertyValid)}"/ -->
+                <ui:CustomComboBox id="nodeKeyPropertyInput" editable="true" width="100%"
+								   toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
+				<!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(target == null || !target.nodeKeyPropertyValid)}"/ -->
             </ui:Indent>
         </mx:VBox>
     </ui:Indent>
 
-    <ui:Indent group="{indentGroup}" label="{lang('Edges')}">
+    <ui:Indent label="{lang('Edges')}">
         <mx:VBox>
             <ui:Indent label="{lang('KeyType *')}">
                 <ui:KeyTypesMenu id="edgeKeyTypeSelector"/>
             </ui:Indent>
             <ui:Indent label="{lang('Key Property')}">
-                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%" toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/><!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(target == null || !target.edgeKeyPropertyValid)}"/ -->
+                <ui:CustomComboBox id="edgeKeyPropertyInput" editable="true" width="100%"
+								   toolTip="{lang('Enter the name of the property that uniquely identifies each node in the graph (Default: Use the id property.)')}"/>
+				<!-- mx:Label color = "0xFF0000" text="{lang{'Non-unique'}}" visible="{!(target == null || !target.edgeKeyPropertyValid)}"/ -->
             </ui:Indent>
         </mx:VBox>
     </ui:Indent>
@@ -65,39 +70,49 @@
     <mx:Label text="{lang('* = required')}"/>
     <mx:Script>
         <![CDATA[
-            import mx.collections.ArrayCollection;
-            import mx.controls.Alert;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
+			import weave.api.getCallbackCollection;
+			import weave.api.newDisposableChild;
+			import weave.api.registerDisposableChild;
+			import weave.api.reportError;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableWatcher;
+			import weave.data.DataSources.GraphMLDataSource;
+			import weave.services.FileAttacher;
+			import weave.ui.BusyIndicator;
             
-            import weave.api.core.ILinkableObject;
-            import weave.api.data.IDataSource;
-            import weave.api.newDisposableChild;
-            import weave.compiler.StandardLib;
-            import weave.data.DataSources.GraphMLDataSource;
-            import weave.services.FileAttacher;
-            import weave.ui.BusyIndicator;
-            import weave.ui.IndentGroup;
-            
-            [Bindable] private var indentGroup:IndentGroup = new IndentGroup();
-            
-            private var busyIndicator:BusyIndicator = new BusyIndicator();
-       
-            [Bindable] public var target:GraphMLDataSource = null;
-            
+            private const busyIndicator:BusyIndicator = new BusyIndicator(watcher);
+			private const watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(GraphMLDataSource, null, handleTarget));
+			private const fileAttacher:FileAttacher = new FileAttacher(watcher, [new FileFilter("GraphML", "*.graphml")], handleFileLoad, handleFileError);
+			
             override protected function createChildren():void
             {
                 super.createChildren();
+				
                 addChild(busyIndicator);
-                busyIndicator.visible = false;
                 sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GraphMLDataSource");
 
                 nodeKeyPropertyInput.labelFunction = nodeKeyLabelFunction;
                 edgeKeyPropertyInput.labelFunction = edgeKeyLabelFunction;
 
-                nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Nodes');
-                nodeKeyTypeSelector.selectedKeyType = sourceName.text+'Nodes';
-                edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text+'Edges');
-                edgeKeyTypeSelector.selectedKeyType = sourceName.text+'Edges';
+                nodeKeyTypeSelector.addKeyTypeToMenu(sourceName.text + 'Nodes');
+                nodeKeyTypeSelector.selectedKeyType = sourceName.text + 'Nodes';
+                edgeKeyTypeSelector.addKeyTypeToMenu(sourceName.text + 'Edges');
+                edgeKeyTypeSelector.selectedKeyType = sourceName.text + 'Edges';
             }
+			
+			private function handleUrlInput():void
+			{
+				if (!target)
+					setTarget(newDisposableChild(this, GraphMLDataSource));
+				
+				// Note: because we're modifying the session state here, [Cancel] button does not work properly in DataSourceManager.
+				target.sourceUrl.value = sourceUrl.text;
+			}
             
             private function nodeKeyLabelFunction(item:Object):String
             {
@@ -107,7 +122,7 @@
                 {
                     var label:String = target.nodeSchema[key].name;
                     if (label)
-                        return label + " (" + key +")";
+                        return label + " (" + key + ")";
                     else
                         return key;
                 }
@@ -129,67 +144,62 @@
                 return "";
             }
             
+			private function get target():GraphMLDataSource
+			{
+				return watcher.target as GraphMLDataSource;
+			}
+			
             public function setTarget(object:ILinkableObject):void
             {
-                target = object as GraphMLDataSource
-                
+				watcher.target = object;
+			}
+			
+			private function handleTarget():void
+			{
                 if (!parent)
                 {
-                    callLater(setTarget, arguments);
+                    callLater(handleTarget);
                     return;
                 }
                 
-                if (target)
+                if (!target)
+					return;
+				
+                if (WeaveAPI.globalHashMap.getName(target))
                 {
-                    if (WeaveAPI.globalHashMap.getName(target))
-                    {
-                        sourceName.text = WeaveAPI.globalHashMap.getName(target);
-                        sourceName.editable = false;
-                        sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
-                    }
-                    
-                    sourceUrl.text = target.sourceUrl.value;
-
-                    nodeKeyPropertyInput.dataProvider = new ArrayCollection(target.nodeProperties || []);
-                    nodeKeyPropertyInput.selectedItem = target.nodeKeyPropertyName.value;
-                    
-                    if (target.nodeKeyType.value)
-                    {
-                        nodeKeyTypeSelector.addKeyTypeToMenu(target.nodeKeyType.value);
-                        nodeKeyTypeSelector.selectedKeyType = target.nodeKeyType.value;
-                    }
-                    else
-                    {
-                        target.nodeKeyType.value = nodeKeyTypeSelector.selectedKeyType;
-                    }
-                    
-
-                    edgeKeyPropertyInput.dataProvider = new ArrayCollection(target.edgeProperties || []);
-                    edgeKeyPropertyInput.selectedItem = target.edgeKeyPropertyName.value;
-
-                    if (target.edgeKeyType.value)
-                    {
-                        edgeKeyTypeSelector.addKeyTypeToMenu(target.edgeKeyType.value);
-                        edgeKeyTypeSelector.selectedKeyType = target.edgeKeyType.value;
-                    }
-                    else
-                    {
-                        target.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
-                    }
-
-                    handleURLTextChange();
+                    sourceName.text = WeaveAPI.globalHashMap.getName(target);
+                    sourceName.editable = false;
+                    sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
                 }
+                
+				if (sourceUrl.text != target.sourceUrl.value)
+				{
+					uploadMessage.text = '';
+	                sourceUrl.text = target.sourceUrl.value;
+				}
+
+                nodeKeyPropertyInput.dataProvider = new ArrayCollection(target.nodeProperties || []);
+                nodeKeyPropertyInput.selectedItem = target.nodeKeyPropertyName.value;
+                
+                nodeKeyTypeSelector.addKeyTypeToMenu(target.nodeKeyType.value);
+                nodeKeyTypeSelector.selectedKeyType = target.nodeKeyType.value;
+
+                edgeKeyPropertyInput.dataProvider = new ArrayCollection(target.edgeProperties || []);
+                edgeKeyPropertyInput.selectedItem = target.edgeKeyPropertyName.value;
+
+                edgeKeyTypeSelector.addKeyTypeToMenu(target.edgeKeyType.value);
+                edgeKeyTypeSelector.selectedKeyType = target.edgeKeyType.value;
             }
+			
+			private function eq(a:String, b:String):Boolean { return StandardLib.asString(a) == StandardLib.asString(b); }
             
             public function hasPendingChanges():Boolean
-            {  
-                return StandardLib.asString(target.sourceUrl.value) != StandardLib.asString(sourceUrl.text) ||
-                       
-                       StandardLib.asString(target.nodeKeyType.value) != StandardLib.asString(nodeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(target.nodeKeyPropertyName.value) != StandardLib.asString(nodeKeyPropertyInput.selectedItem as String) ||
-
-                       StandardLib.asString(target.edgeKeyType.value) != StandardLib.asString(edgeKeyTypeSelector.selectedKeyType) ||
-                       StandardLib.asString(target.edgeKeyPropertyName.value) != StandardLib.asString(edgeKeyPropertyInput.selectedItem as String);
+            {
+                return !eq(target.sourceUrl.value, sourceUrl.text)
+                	|| !eq(target.nodeKeyType.value, nodeKeyTypeSelector.selectedKeyType)
+                    || !eq(target.nodeKeyPropertyName.value, nodeKeyPropertyInput.selectedItem as String)
+					|| !eq(target.edgeKeyType.value, edgeKeyTypeSelector.selectedKeyType)
+                    || !eq(target.edgeKeyPropertyName.value, edgeKeyPropertyInput.selectedItem as String);
             }
 
             public function applyChanges():void
@@ -217,9 +227,9 @@
                 }
 				
 				if (target)
-	                target = WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, target) as GraphMLDataSource;
+	                setTarget( WeaveAPI.globalHashMap.requestObjectCopy(sourceName.text, target) );
 				else
-					target = WeaveAPI.globalHashMap.requestObject(sourceName.text, GraphMLDataSource, false);
+					setTarget( WeaveAPI.globalHashMap.requestObject(sourceName.text, GraphMLDataSource, false) );
 
                 if (!target)
                 {
@@ -232,34 +242,19 @@
                 return target;
             }
             
-            private var fileAttacher:FileAttacher = new FileAttacher(this, [new FileFilter("GraphML", "*.graphml")], graphmlFileUrlHandler);
-
-            private function graphmlFileUrlHandler(url:String):void
+            private function handleFileLoad(url:String):void
             {
                 //weaveTrace("File attached.");
 
                 sourceUrl.text = url;
-                handleURLTextChange();
+				uploadMessage.text = lang('Loaded');
+				handleUrlInput();
             }
-
-            private function handleURLTextChange():void
-            {
-                //weaveTrace("URL text changed.");
-
-                busyIndicator.visible = false;
-                
-                uploadMessage.visible = true;
-
-                if (!target)
-                {
-                    target = newDisposableChild(this, GraphMLDataSource);
-                }
-
-                target.onFinish = function():void {setTarget(target);};
-                
-                target.sourceUrl.value = sourceUrl.text;
-                
-            }
+			private function handleFileError(e:Error):void
+			{
+				uploadMessage.text = lang('Error');
+				reportError(e);
+			}
         ]]>
     </mx:Script>
 </mx:VBox>

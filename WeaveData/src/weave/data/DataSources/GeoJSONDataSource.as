@@ -29,7 +29,7 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
@@ -49,7 +49,7 @@ package weave.data.DataSources
 	
 	public class GeoJSONDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
  		
 		public function GeoJSONDataSource()
 		{
@@ -231,7 +231,7 @@ package weave.data.DataSources
 			proxyColumn.setMetadata(metadata);
 			
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			if (dataType == DataTypes.GEOMETRY)
+			if (dataType == DataType.GEOMETRY)
 			{
 				var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 				var geoms:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
@@ -290,7 +290,7 @@ package weave.data.DataSources
 				meta[GEOJSON_PROPERTY_NAME] = '';
 				meta[ColumnMetadata.TITLE] = GEOM_COLUMN_TITLE;
 				meta[ColumnMetadata.KEY_TYPE] = getKeyType();
-				meta[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
+				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
 				meta[ColumnMetadata.PROJECTION] = getProjection();
 			}
 			else if (jsonData.propertyNames.indexOf(propertyName) >= 0)

@@ -271,6 +271,7 @@ package weave
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
 		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
+		public const enableManagePlugins:LinkableBoolean = new LinkableBoolean(false); // show "manage plugins" menu item
 		public const enableSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel

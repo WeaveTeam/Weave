@@ -24,7 +24,7 @@ package weave.data.AttributeColumns
 	import mx.utils.StringUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
@@ -56,7 +56,6 @@ package weave.data.AttributeColumns
 		
 		public static const compiler:Compiler = new Compiler();
 		compiler.includeLibraries(
-			WeaveAPI,
 			WeaveAPI.CSVParser,
 			WeaveAPI.StatisticsCache,
 			WeaveAPI.AttributeColumnCache,
@@ -71,7 +70,7 @@ package weave.data.AttributeColumns
 			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			
 			setMetadataProperty(ColumnMetadata.TITLE, "Untitled Equation");
-			//setMetadataProperty(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
+			//setMetadataProperty(AttributeColumnMetadata.DATA_TYPE, DataType.NUMBER);
 			
 			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
 		}
@@ -215,13 +214,13 @@ package weave.data.AttributeColumns
 		private function cacheDefaultDataType():void
 		{
 			var _dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
-			if (_dataType == DataTypes.GEOMETRY)
+			if (_dataType == DataType.GEOMETRY)
 				_defaultDataType = null;
-			else if (_dataType == DataTypes.NUMBER)
+			else if (_dataType == DataType.NUMBER)
 				_defaultDataType = Number;
-			else if (_dataType == DataTypes.STRING)
+			else if (_dataType == DataType.STRING)
 				_defaultDataType = String;
-			else if (_dataType == DataTypes.DATE)
+			else if (_dataType == DataType.DATE)
 				_defaultDataType = Date;
 			else if (_dataType) // any other data type is treated as a foreign keyType
 				_defaultDataType = IQualifiedKey;

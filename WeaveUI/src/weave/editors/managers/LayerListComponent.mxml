@@ -333,7 +333,7 @@
 			{
 				function getLabel(item:WeaveMenuItem):String
 				{
-					return WeaveAPI.getRegisteredImplementationDisplayName(item.data as Class);
+					return WeaveAPI.ClassRegistry.getDisplayName(item.data as Class);
 				}
 				function onClick(item:WeaveMenuItem):void
 				{
@@ -344,7 +344,7 @@
 				// save a pointer to the SubMenu on the Button itself so the SubMenu doesn't get garbage collected.
 				button.data = new SubMenu(button, {
 					children: function():Array {
-						return WeaveAPI.getRegisteredImplementations(IPlotter).map(
+						return WeaveAPI.ClassRegistry.getImplementations(IPlotter).map(
 							function(impl:Class, i:*, a:*):* {
 								return {
 									data: impl,
@@ -364,7 +364,7 @@
 			{
 				var hm:ILinkableHashMap = visualization.plotManager.plotters;
 				var state:Object = getSessionState(visualization);
-				var name:String = hm.generateUniqueName(WeaveAPI.getRegisteredImplementationDisplayName(plotterType));
+				var name:String = hm.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(plotterType));
 				var plotter:IPlotter = hm.requestObject(name, plotterType, false) as IPlotter;
 				if (!plotter)
 					return null;

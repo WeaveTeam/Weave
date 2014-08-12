@@ -34,7 +34,7 @@ package weave.visualization.plotters
 	
 	public class GridLinePlotter extends AbstractPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, GridLinePlotter, "Grid lines");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GridLinePlotter, "Grid lines");
 		
 		public function GridLinePlotter()
 		{

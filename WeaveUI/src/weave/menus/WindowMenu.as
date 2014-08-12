@@ -65,7 +65,7 @@ package weave.menus
 		
 		private static function get stage():Stage
 		{
-			return WeaveAPI.topLevelApplication['stage'];
+			return WeaveAPI.StageUtils.stage;
 		}
 		
 		public static const staticItems:Array = createItems(

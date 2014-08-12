@@ -65,7 +65,7 @@ package weave.visualization.plotters
 	 */
 	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
-		WeaveAPI.registerImplementation(IPlotter, WMSPlotter, "WMS images");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, WMSPlotter, "WMS images");
 		
 		// TODO: move the image reprojection code elsewhere
 		

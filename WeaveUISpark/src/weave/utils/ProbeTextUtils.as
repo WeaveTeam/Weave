@@ -191,7 +191,7 @@ package weave.utils
 			if (!probeToolTip)
 				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
 		
-			var stage:Stage = WeaveAPI.topLevelApplication.stage;
+			var stage:Stage = WeaveAPI.StageUtils.stage;
 			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 		
 			if (stageBounds == null)

@@ -48,7 +48,7 @@ package weave.visualization.plotters
 	 */
 	public class ImageGlyphPlotter extends AbstractGlyphPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, ImageGlyphPlotter, "Image glyphs");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, ImageGlyphPlotter, "Image glyphs");
 		
 		public static var debug:Boolean = false;
 		

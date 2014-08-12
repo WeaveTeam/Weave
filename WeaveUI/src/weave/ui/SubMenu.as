@@ -26,12 +26,11 @@ package weave.ui
 	import flash.geom.Point;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.controls.Menu;
 	import mx.core.UIComponent;
 	import mx.events.MenuEvent;
 	
+	import weave.compiler.StandardLib;
 	import weave.menus.WeaveMenuItem;
-	import weave.primitives.Bounds2D;
 	
 	/**
 	 * This class adds a submenu to any UI Compnent.
@@ -39,7 +38,7 @@ package weave.ui
 	 * @author skolman
 	 * @author adufilie
 	 */
-	public class SubMenu extends Menu
+	public class SubMenu extends CustomMenu
 	{
 		/**
 		 * Adds a submenu to any UI Component.
@@ -162,34 +161,35 @@ package weave.ui
 			if (!dataProvider)
 				return;
 			
-			var menuLocation:Point = _uiParent.localToGlobal(new Point(0, _uiParent.height));
+			var stage:Stage = WeaveAPI.StageUtils.stage;
+			var xMin:Number = 0;
+			var yMin:Number = 0;
+			var xMax:Number = stage.stageWidth;
+			var yMax:Number = stage.stageHeight;
 			
-			var stage:Stage = WeaveAPI.topLevelApplication.stage;
-			tempBounds.setBounds(0, 0, stage.stageWidth, stage.stageHeight);
-			
-			var xMin:Number = tempBounds.getXNumericMin();
-			var yMin:Number = tempBounds.getYNumericMin();
-			var xMax:Number = tempBounds.getXNumericMax();
-			var yMax:Number = tempBounds.getYNumericMax();
+			var parentGlobal:Point = _uiParent.localToGlobal(new Point(0, 0));
+			var parentHeight:Number = _uiParent.height;
 			
 			setStyle("openDuration", 0);
 			popUpMenu(this, _uiParent, rootItem || dataProvider);
-			show(menuLocation.x, menuLocation.y);
 			
-			if (menuLocation.x < xMin)
-				menuLocation.x = xMin;
-			else if(menuLocation.x + width > xMax)
-				menuLocation.x = xMax - width;
+			// first show menu below parent so the width and height get calculated
+			show(parentGlobal.x, parentGlobal.y + parentHeight);
 			
-			if (menuLocation.y < yMin)
-				menuLocation.y = yMin + _uiParent.height;
-			else if (menuLocation.y + height > yMax)
-				menuLocation.y -= height + _uiParent.height;
+			var global:Point = this.parent.localToGlobal(new Point(x, y));
+			// make sure we are on stage in x coordinates
+			global.x = StandardLib.constrain(global.x, xMin, xMax - measuredWidth);
+			// if we extend below the stage and there is more room above, move above the parent
+			var moreRoomAbove:Boolean = parentGlobal.y - yMin > yMax - (parentGlobal.y + parentHeight);
+			var extendsBelowStage:Boolean = global.y + measuredHeight > yMax;
+			if (moreRoomAbove && extendsBelowStage)
+				global.y -= measuredHeight + parentHeight;
 			
-			move(menuLocation.x, menuLocation.y);
+			// move to adjusted position
+			var parentLocal:Point = parent.globalToLocal(global);
+			move(parentLocal.x, parentLocal.y);
+			
 			setFocus();
 		}
-		
-		private const tempBounds:Bounds2D = new Bounds2D();
 	}
 }

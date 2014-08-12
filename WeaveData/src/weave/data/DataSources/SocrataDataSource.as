@@ -22,7 +22,7 @@ package weave.data.DataSources
 	import flash.utils.Dictionary;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.disposeObject;
@@ -41,7 +41,7 @@ package weave.data.DataSources
 	
 	public class SocrataDataSource extends AbstractDataSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, SocrataDataSource, "Socrata Open Data Portal");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, SocrataDataSource, "Socrata Open Data Portal");
 		
 		public function SocrataDataSource()
 		{
@@ -288,16 +288,16 @@ package weave.data.DataSources
 				var dataType:String = input['dataTypeName'];
 				if (dataType == 'text')
 				{
-					dataType = DataTypes.STRING;
+					dataType = DataType.STRING;
 				}
 				if (dataType == 'percent')
 				{
-					dataType = DataTypes.STRING;
+					dataType = DataType.STRING;
 					output[ColumnMetadata.NUMBER] = "asNumber(replace(string,'%',''))";
 				}
 				if (dataType == 'calendar_date')
 				{
-					dataType = DataTypes.DATE;
+					dataType = DataType.DATE;
 					//output[ColumnMetadata.DATE_FORMAT] = 'YYYY-MM-DDTHH:NN:SS';
 				}
 				output[ColumnMetadata.DATA_TYPE] = dataType;

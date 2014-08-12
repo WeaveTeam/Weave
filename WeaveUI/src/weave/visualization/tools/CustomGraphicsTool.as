@@ -48,7 +48,7 @@ package weave.visualization.tools
 	
 	public class CustomGraphicsTool extends DraggablePanel implements IVisTool, IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
+		WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
 		
 		override protected function constructor():void
 		{

@@ -76,12 +76,15 @@ package weave.primitives
 		/**
 		 * Constructs a new WeaveTreeItem.
 		 * @param params An Object containing property values to set on the WeaveTreeItem.
-		 *               If this is a String equal to "separator" (TYPE_SEPARATOR), a new separator will be created.
+		 *               If params is a String, both <code>label</code> and <code>data</code> will be set to that String.
 		 */
 		public function WeaveTreeItem(params:Object = null)
 		{
 			if (params is String)
+			{
 				this.label = params;
+				this.data = params;
+			}
 			else
 				for (var key:String in params)
 					this[key] = params[key];
@@ -91,7 +94,7 @@ package weave.primitives
 		 * Set this to change the constructor used for initializing child items.
 		 * This variable is intentionally uninitialized to avoid overwriting the value set by an extending class in its constructor.
 		 */
-		protected var childItemClass:Class; // no initial value
+		protected var childItemClass:Class; // IMPORTANT - no initial value
 		
 		/**
 		 * Computes a Boolean value from various structures
