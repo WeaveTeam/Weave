@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	
 	/**
@@ -75,7 +76,7 @@ package weave.visualization.plotters
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
 		public const alignToDataMax:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));
+		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string', 'column']));
 
 		/**
 		 * Draws the graphics onto BitmapData.
@@ -123,11 +124,11 @@ package weave.visualization.plotters
 		
 		private function drawLabel(number:Number, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			bitmapText.text = StandardLib.formatNumber(number);
+			bitmapText.text = ColumnUtils.deriveStringFromNumber(text, number) || StandardLib.formatNumber(number);
 			try
 			{
 				if (labelFunction.value)
-					bitmapText.text = labelFunction.apply(null, [number, bitmapText.text]);
+					bitmapText.text = labelFunction.apply(null, [number, bitmapText.text, text]);
 			}
 			catch (e:Error)
 			{
