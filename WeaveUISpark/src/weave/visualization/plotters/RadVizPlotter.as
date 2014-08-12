@@ -197,7 +197,6 @@ package weave.visualization.plotters
 		private var keyNumberMap:Dictionary;		
 		private var keyNormMap:Dictionary;
 		private var keyGlobalNormMap:Dictionary;
-		private var columnTitleMap:Dictionary;
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
@@ -221,7 +220,6 @@ package weave.visualization.plotters
 			keyNormMap = 			new Dictionary(true);
 			keyGlobalNormMap = 		new Dictionary(true);
 			keyNumberMap = 			new Dictionary(true);
-			columnTitleMap = 		new Dictionary(true);
 			
 			
 			setAnchorLocations();//normal layout
@@ -242,8 +240,6 @@ package weave.visualization.plotters
 					sum = 0;
 					for each( var column:IAttributeColumn in columns.getObjects())
 					{
-						if(i == 0)
-							columnTitleMap[column] = columns.getName(column);
 						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 						columnNormArray.push(stats.getNorm(key));
 						columnNumberMap[column] = column.getValueFromKey(key, Number);
@@ -398,7 +394,6 @@ package weave.visualization.plotters
 			var anchorArray:Array = anchors.getObjects();			
 			
 			var value:Number = 0;			
-			var name:String;
 			var anchor:AnchorPoint;
 			var normArray:Array = (localNormalization.value) ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
 			var _cols:Array = columns.getObjects();
@@ -410,8 +405,7 @@ package weave.visualization.plotters
 				if (isNaN(value))
 					continue;
 				
-				name = normArray ? columnTitleMap[column] : columns.getName(column);
-				anchor = anchors.getObject(name) as AnchorPoint;
+				anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
 				numeratorX += value * anchor.x.value;
 				numeratorY += value * anchor.y.value;						
 				denominator += value;
@@ -646,7 +640,6 @@ package weave.visualization.plotters
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 				var value:Number;
-				var name:String;
 				var anchor:AnchorPoint;
 				for (var i:int = 0; i < _cols.length; i++)
 				{
@@ -659,8 +652,7 @@ package weave.visualization.plotters
 						continue;
 					
 					/*draw the line from point to anchor*/
-					name = normArray ? columnTitleMap[column] : columns.getName(column);
-					anchor = anchors.getObject(name) as AnchorPoint;
+					anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
 					tempPoint.x = anchor.x.value;
 					tempPoint.y = anchor.y.value;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
@@ -729,7 +721,6 @@ package weave.visualization.plotters
 					getXYcoordinates(key);
 					dataBounds.projectPointTo(coordinate, screenBounds);
 					var value:Number;
-					var name:String;
 					var anchor:AnchorPoint;
 					var column:IAttributeColumn = columns.getObject(anchorKey.localName) as IAttributeColumn;
 					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
@@ -740,8 +731,7 @@ package weave.visualization.plotters
 						continue;
 					
 					/*draw the line from point to anchor*/
-					name = columns.getName(column);
-					anchor = anchors.getObject(name) as AnchorPoint;
+					anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
 					tempPoint.x = anchor.x.value;
 					tempPoint.y = anchor.y.value;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
@@ -805,7 +795,6 @@ package weave.visualization.plotters
 			var eta:Number = 0;
 			var annCenterX:Number = 0;
 			var annCenterY:Number = 0;
-			var name:String;
 			var anchor:AnchorPoint;
 			var i:int = 0;
 			var colorIncrementor:Number = 0x00f0f0;
@@ -865,8 +854,7 @@ package weave.visualization.plotters
 					{
 						value = 0
 					}
-					name = normArray ? columnTitleMap[column] : columns.getName(column);
-					anchor = anchors.getObject(name) as AnchorPoint;
+					anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
 					annCenterX += (value * anchor.x.value)/eta;
 					annCenterY += (value * anchor.y.value)/eta;
 				}

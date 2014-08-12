@@ -140,24 +140,22 @@ package weave.api.core
 		/**
 		 * This function will add a callback to an ILinkableObject.
 		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
-		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
-		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
+		 * @param callback The callback function.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered after it is added.
 		 * @param immediateMode If this is set to true, addImmediateCallback() will be used.  Otherwise, addGroupedCallback() will be used.
 		 * @return true if successful.
 		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
-		function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean;
+		function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.
 		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
-		 * @param callback The callback function. Though this parameter needs to be a String in ActionScript,
-		 *                 it can be a function pointer in JavaScript.  The WeavePath API takes care of this functionality.
+		 * @param callback The callback function.
 		 * @param everywhere If set to true, removes the callback from every object to which it was added.
 		 * @return true if successful.
 		 */
-		function removeCallback(scopeObjectPathOrVariableName:Object, callback:String, everywhere:Boolean = false):Boolean;
+		function removeCallback(scopeObjectPathOrVariableName:Object, callback:Function, everywhere:Boolean = false):Boolean;
 		
 		/**
 		 * This function will remove all callbacks that were previously added using addCallback().
