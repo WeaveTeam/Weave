@@ -468,7 +468,7 @@ package
 			// if the code references "this", we need to use Function.apply() to make the symbol work as expected
 			var appliedCode:String = '(function(){\n' + code.join('\n') + '\n}).apply(' + JS_this + ')';
 			
-			var result:*;
+			var result:* = undefined;
 			var prevMarshallExceptions:Boolean = ExternalInterface.marshallExceptions;
 			ExternalInterface.marshallExceptions = !!marshallExceptions;
 			try
@@ -486,10 +486,11 @@ package
 					var evalFunc:String = 'window.eval';
 					if (!marshallExceptions)
 						evalFunc = 'function(code){ try { return window.eval(code); } catch (e) { e.message += "\\n" + code; console.error(e); } }';
-					var resultJson:String = ExternalInterface.call(evalFunc, appliedCode);
+					var resultJson:String = ExternalInterface.call(evalFunc, appliedCode) as String;
 					
 					// parse stringified results
-					result = json.parse(resultJson, _jsonReviver);
+					if (resultJson)
+						result = json.parse(resultJson, _jsonReviver);
 				}
 				else
 				{
