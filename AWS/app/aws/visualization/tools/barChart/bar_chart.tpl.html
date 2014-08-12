@@ -16,7 +16,13 @@
 
 			Height Columns
 			<div >
-			<select style = "width : 100%" class="widget-ui-control" ui-select2  ng-model="service.queryObject.BarChartTool.heights" multiple  data-placeholder="Choose Height Column(s)">
+			<select style = "width : 100%" 
+					class="widget-ui-control" 
+					ui-select2  
+					ng-model="service.queryObject.BarChartTool.heights" 
+					multiple  
+					data-placeholder="Choose Height Column(s)"
+					ng-change="setHeights()">
 				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 			</select>
 			</div>
@@ -29,7 +35,12 @@
 
 			Sort Column
 			<div>
-				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.sort" data-placeholder="Choose Sort Column">
+				<select  style = "width : 100%" 
+						 class="widget-ui-control" 
+						 ui-select2
+						 ng-model="service.queryObject.BarChartTool.sort" 
+						 ng-change="setSort(service.queryObject.BarChartTool.sort)"
+						 data-placeholder="Choose Sort Column">
 					<option></option>
 				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 				</select>
@@ -39,21 +50,17 @@
 			
 			Label Column
 			<div>
-				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column"> -->
+				<select  style = "width : 100%" 
+						 class="widget-ui-control" 
+						 ui-select2 
+						 ng-model="service.queryObject.BarChartTool.label" 
+						 data-placeholder="Choose Label Column"
+						 ng-change="setLabel(service.queryObject.BarChartTool.sort)">
 				<option></option>
 				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 			</select>
 			</div>
 			
-<!-- 			</li> -->
-			
-<!-- 			<li class="tool-list-control-element"> -->
-<!-- 			<span>Label Column</span> -->
-<!-- 			<select class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column"> -->
-<!-- 				<option></option> -->
-<!-- 				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option> -->
-<!-- 			</select> -->
-<!-- 			</li> -->
 		</ul>
 			
 		</div>

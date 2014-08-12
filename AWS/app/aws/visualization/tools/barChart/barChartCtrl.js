@@ -2,7 +2,10 @@ AnalysisModule.controller("BarChartCtrl", function($scope, queryService, WeaveSe
 
 	$scope.service = queryService;
 	$scope.WeaveService = WeaveService;
-	$scope.setTitle = WeaveService.BarChartTool.setTitle;
+	
+	$scope.setTitle = function () {
+		WeaveService.BarChartTool.setTitle;
+	};
 	$scope.setHeights = WeaveService.BarChartTool.setHeightColumns;
 	$scope.setSort = WeaveService.BarChartTool.setSortColumn;
 	$scope.setLabel = WeaveService.BarChartTool.setLabelColumn;
