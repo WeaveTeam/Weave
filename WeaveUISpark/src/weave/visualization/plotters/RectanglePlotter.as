@@ -66,12 +66,12 @@ package weave.visualization.plotters
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ['X', 'Y', 'Width', 'Height', 'xMin Screen Offset', 'yMin Screen Offset', 'xMax Screen Offset', 'yMax Screen Offset'];
+			return ['Fill Color', 'X', 'Y', 'Width', 'Height', 'xMin Screen Offset', 'yMin Screen Offset', 'xMax Screen Offset', 'yMax Screen Offset'];
 		}
 		
 		public function getSelectableAttributes():Array
 		{
-			return [xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset];
+			return [fill.color, xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset];
 		}
 		
 		// spatial properties
