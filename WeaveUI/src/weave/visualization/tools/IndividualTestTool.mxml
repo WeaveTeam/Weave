@@ -237,6 +237,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(plotter.sizeBy.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
 					columns.push(plotter.sizeBy.getInternalColumn());
 				
+				var startColIndex:int = attributes.indexOf(plotter.startTimeCol);
+				if(plotter.startTimeCol.getInternalColumn() && attrToIncludeCheckList[startColIndex])
+					columns.push(plotter.startTimeCol.getInternalColumn());
+				
 				visualization.additionalProbeColumns = columns;
 			}
 			
@@ -481,6 +485,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   showLinkControl="false"/>
 			<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}"
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.sizeBy"/>
+			<ui:DynamicColumnComponent id="startCol" label="{lang('Start Time')}"
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.startTimeCol"/>
 			<mx:HBox>
 				<mx:CheckBox id="overrideColorCheckBox" label="{lang('Override global color')}"
 							 change="handleOverrideColor(event)"/>
