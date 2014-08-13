@@ -66,6 +66,7 @@
 								import weave.ui.AlertTextBox;
 								import weave.ui.AlertTextBoxEvent;
 								import weave.ui.ControlPanel;
+								import weave.ui.SessionStateEditor;
 								import weave.ui.SubMenu;
 								import weave.ui.VariableListController;
 								import weave.visualization.layers.LayerSettings;
@@ -77,9 +78,9 @@
 									super.childrenCreated();
 									
 									menuButton.data = new SubMenu(menuButton, [
-										//{label: lang('Edit properties'), click: openSettingsPanel},
 										{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
-										//WeaveMenuItem.TYPE_SEPARATOR,
+										{label: lang('Edit session state'), click: openSessionEditor},
+										WeaveMenuItem.TYPE_SEPARATOR,
 										{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
 									]);
 								}
@@ -143,6 +144,10 @@
 								private function objectIsNotLocked():Boolean
 								{
 									return !plotManager.plotters.objectIsLocked(plotterName);
+								}
+								private function openSessionEditor():void
+								{
+									SessionStateEditor.openDefaultEditor(plotter);
 								}
 								private function openSettingsPanel():void
 								{

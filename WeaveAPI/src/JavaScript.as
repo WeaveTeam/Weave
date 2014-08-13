@@ -110,6 +110,11 @@ package
 		private static var _functionCounter:int = 0;
 		
 		/**
+		 * This flag will be set to true whenever _jsonReplacer makes a replacement that requires _jsonReviver to interpret.
+		 */
+		private static var _needsReviving:Boolean = false;
+		
+		/**
 		 * Alias for ExternalInterface.available
 		 * @see flash.external.ExternalInterface#available
 		 */
@@ -137,17 +142,6 @@ package
 		}
 		
 		/**
-		 * Generates a line of JavaScript which intializes a variable equal to this Flash object using document.getElementById().
-		 * @param variableName The variable name, which must be a valid JavaScript identifier.
-		 */
-		private static function JS_var_this(variableName:String):String
-		{
-			if (!_objectID)
-				_objectID = getExternalObjectID(variableName);
-			return 'var ' + variableName + ' = ' + JS_this + ';';
-		}
-		
-		/**
 		 * A way to get a Flash application's external object ID when ExternalInterface.objectID is null,
 		 * which may occur when using jQuery.flash().
 		 * @param desiredId If the flash application really has no id, this will be used as a base for creating a new unique id.
@@ -155,13 +149,14 @@ package
 		 */
 		private static function getExternalObjectID(desiredId:String = "flash"):String
 		{
-			var id:String = ExternalInterface.objectID;
-			if (!id) // if we don't know our ID
+			if (!_objectID)
+				_objectID = ExternalInterface.objectID;
+			if (!_objectID) // if we don't know our ID
 			{
 				// use addCallback() to add a property to the flash component that will allow us to be found 
 				ExternalInterface.addCallback(JSON_SUFFIX, trace);
 				// find the element with the unique property name and get its ID (or set the ID if it doesn't have one)
-				id = ExternalInterface.call(
+				_objectID = ExternalInterface.call(
 					"function(uid, newId){\
 						while (document.getElementById(newId))\
 							newId += '_';\
@@ -174,7 +169,7 @@ package
 					desiredId
 				);
 			}
-			return id;
+			return _objectID;
 		}
 		
 		/**
@@ -185,6 +180,7 @@ package
 			// one-time initialization attempt
 			initialized = true;
 			
+			// save special IDs for values not supported by JSON
 			for each (var symbol:* in [undefined, NaN, Infinity, -Infinity])
 				_jsonLookup[symbol + JSON_SUFFIX] = symbol;
 			
@@ -231,7 +227,7 @@ package
 					"    }",
 					"    if (value === undefined || (typeof value === 'number' && !isFinite(value)))",
 					"        return value + JSON_SUFFIX;",
-					"    return Array.isArray(value) ? [].concat(value) : value;",
+					"    return Array.isArray(value) && !(value instanceof Array) ? [].concat(value) : value;",
 					"};",
 					
 					"flash[JSON_REVIVER] = function(key, value) {",
@@ -296,10 +292,14 @@ package
 					_jsonLookup[value] = id;
 					_jsonLookup[id] = value;
 				}
+				_needsReviving = true;
 				return id;
 			}
 			if (value === undefined || (typeof value === 'number' && !isFinite(value)))
+			{
+				_needsReviving = true;
 				return value + JSON_SUFFIX;
+			}
 			return value;
 		}
 		
@@ -419,9 +419,13 @@ package
 						if (key == 'this')
 						{
 							// put a variable declaration at the beginning of the code
-							var thisVar:String = String(value);
+							var thisVar:String = value as String;
 							if (thisVar)
-								code.unshift(JS_var_this(thisVar));
+							{
+								if (!_objectID)
+									getExternalObjectID(thisVar);
+								code.unshift("var " + thisVar + " = this;");
+							}
 						}
 						else if (key == 'catch')
 						{
@@ -432,12 +436,17 @@ package
 						{
 							// put a variable declaration at the beginning of the code
 							var jsValue:String;
-							if (value === null || value === undefined || (value is Number && !isFinite(value)))
+							if (value === null || value === undefined || value is Number || value is Boolean)
 								jsValue = String(value);
-							else if (typeof value === 'object')
-								jsValue = "JSON.parse(" + json.stringify(json.stringify(value, _jsonReplacer)) + ", this[" + json.stringify(JSON_REVIVER) + "])";
 							else if (value is Function)
-								jsValue = "this[" + json.stringify(JSON_REVIVER) + "]('', " + json.stringify(value, _jsonReplacer) + ")";
+								jsValue = 'this.' + JSON_REVIVER + '("", ' + json.stringify(value, _jsonReplacer) + ')';
+							else if (typeof value === 'object')
+							{
+								_needsReviving = false;
+								jsValue = json.stringify(value, _jsonReplacer);
+								if (_needsReviving)
+									jsValue = 'JSON.parse(' + json.stringify(jsValue) + ', this.' + JSON_REVIVER + ')';
+							}
 							else
 								jsValue = json.stringify(value);
 							
@@ -474,7 +483,7 @@ package
 				if (json)
 				{
 					// stringify results
-					appliedCode = "JSON.stringify(" + appliedCode + ", " + JS_this + "[" + json.stringify(JSON_REPLACER) + "])";
+					appliedCode = 'JSON.stringify(' + appliedCode + ', ' + JS_this + '.' + JSON_REPLACER + ')';
 					
 					// work around unescaped backslash bug
 					if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
