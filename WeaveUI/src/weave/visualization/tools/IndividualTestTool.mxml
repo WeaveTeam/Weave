@@ -24,9 +24,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*"
 			   xmlns:editors="weave.editors.*">
+	<mx:HBox id="profileArea" width="100%" height="30%">
+		<mx:Canvas id="profileImage" width="30%" height="100%" backgroundColor="0xF443DC"/>
+		<mx:Box id="personalInformationBox" width="70%" height="100%" direction="vertical">
+			<mx:Label id="infoLine1" text="test1"/>
+			<mx:Label id="infoLine2" text="test2"/>
+			<mx:Label id="infoLine3" text="test3"/>
+			<mx:Label id="infoLine4" text="test4"/>
+			<mx:Label id="infoLine5" text="test5"/>
+		</mx:Box>
+		<mx:Button id="lockButton" label="{lang('Lock Record')}" click="lockRecordClick(event)"/>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import weave.api.getCallbackCollection;
+			import weave.core.LinkableBoolean;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
@@ -43,6 +55,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, IndividualTestTool, "IndividualTestTool");
+			
+			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
 			
 			[Bindable]
 			public var plotter:IndividualTestPlotter = null;
@@ -81,12 +95,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
 				plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
 				
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
 				visualization.plotManager.marginBottom.value = "80";
-				visualization.plotManager.marginTop.value    = "30";
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "30";
 				
-				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			override public function initSelectableAttributes(input:Array):void
@@ -159,12 +180,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return lang("Individual Record Tool");
 			}
 			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
-				
-				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
-			}
 			private function updateAxisLabels():void
 			{
 				visualization.bottomMarginColumn = plotter.dataX;
@@ -192,6 +207,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function labelFunctionY(value:Number):String
 			{
 				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
+			}
+			
+			private function updateLockLabel():void
+			{
+				if( _locked.value )
+					lockButton.label = lang("Unlock Record");
+				else
+					lockButton.label = lang("Lock Record");
+			}
+			
+			protected function lockRecordClick(event:MouseEvent):void
+			{
+				_locked.value = ( lockButton.label == lang("Lock Record") ) ? true : false;
+				if( _locked.value )
+					lockButton.label = lang("Unlock Record");
+				else
+					lockButton.label = lang("Lock Record");
 			}
 			
 			private var _prevGlobalColorColumnName:String = null;
