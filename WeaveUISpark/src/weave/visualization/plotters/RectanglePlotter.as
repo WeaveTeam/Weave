@@ -66,12 +66,12 @@ package weave.visualization.plotters
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ['X', 'Y', 'Width', 'Height', 'xMin Screen Offset', 'yMin Screen Offset', 'xMax Screen Offset', 'yMax Screen Offset'];
+			return ['Fill Color', 'X', 'Y', 'Width', 'Height', 'xMin Screen Offset', 'yMin Screen Offset', 'xMax Screen Offset', 'yMax Screen Offset'];
 		}
 		
 		public function getSelectableAttributes():Array
 		{
-			return [xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset];
+			return [fill.color, xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset];
 		}
 		
 		// spatial properties
@@ -91,6 +91,15 @@ package weave.visualization.plotters
 		 * This is the maximum Y data value associated with the rectangle.
 		 */
 		public const heightData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0));
+		
+		/**
+		 * If this is true, the rectangle will be centered on xData coordinates.
+		 */
+		public const centerX:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		/**
+		 * If this is true, the rectangle will be centered on yData coordinates.
+		 */
+		public const centerY:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 
 		// visual properties
 		/**
@@ -144,12 +153,25 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			initBoundsArray(output);
+			getBounds(recordKey, initBoundsArray(output));
+		}
+		
+		private function getBounds(recordKey:IQualifiedKey, output:IBounds2D):void
+		{
 			var x:Number = getCoordFromRecordKey(recordKey, true);
 			var y:Number = getCoordFromRecordKey(recordKey, false);
 			var width:Number = widthData.getValueFromKey(recordKey, Number);
 			var height:Number = heightData.getValueFromKey(recordKey, Number);
-			(output[0] as IBounds2D).setBounds(x, y, x + width, y + height);
+			
+			if (centerX.value)
+				output.setCenteredXRange(x, width);
+			else
+				output.setXRange(x, x + width);
+			
+			if (centerY.value)
+				output.setCenteredYRange(y, height);
+			else
+				output.setYRange(y, y + height);
 		}
 
 		/**
@@ -160,15 +182,10 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 
 			// project data coordinates to screen coordinates and draw graphics onto tempShape
-
-			var x:Number = getCoordFromRecordKey(recordKey, true);
-			var y:Number = getCoordFromRecordKey(recordKey, false);
-			var width:Number = widthData.getValueFromKey(recordKey, Number);
-			var height:Number = heightData.getValueFromKey(recordKey, Number);
+			getBounds(recordKey, tempBounds);
 			
 			// project x,y data coordinates to screen coordinates
-			tempPoint.x = x;
-			tempPoint.y = y;
+			tempBounds.getMinPoint(tempPoint);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			// add screen offsets
 			tempPoint.x += xMinScreenOffset.getValueFromKey(recordKey, Number);
@@ -177,8 +194,7 @@ package weave.visualization.plotters
 			tempBounds.setMinPoint(tempPoint);
 			
 			// project x+w,y+h data coordinates to screen coordinates
-			tempPoint.x = x + width;
-			tempPoint.y = y + height;
+			tempBounds.getMaxPoint(tempPoint);
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			// add screen offsets
 			tempPoint.x += xMaxScreenOffset.getValueFromKey(recordKey, Number);
@@ -187,12 +203,13 @@ package weave.visualization.plotters
 			tempBounds.setMaxPoint(tempPoint);
 			
 			// draw graphics
+			tempBounds.makeSizePositive();
 			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
 			if (drawEllipse.value)
-				graphics.drawEllipse(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage(), tempBounds.getYCoverage());
+				graphics.drawEllipse(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 			else
-				graphics.drawRect(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage(), tempBounds.getYCoverage());
+				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 			graphics.endFill();
 		}
 		

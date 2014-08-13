@@ -44,6 +44,7 @@ package weave.data.AttributeColumns
 	import weave.utils.ColumnUtils;
 	import weave.utils.Dictionary2D;
 	import weave.utils.EquationColumnLib;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * This is a column of data derived from an equation with variables.
@@ -177,10 +178,13 @@ package weave.data.AttributeColumns
 					}
 				}
 			}
-			else
+			else if (propertyName == ColumnMetadata.KEY_TYPE)
 			{
-				value = super.getMetadata(propertyName);
+				var cols:Array = variables.getObjects(IAttributeColumn);
+				if (cols.length)
+					value = (cols[0] as IAttributeColumn).getMetadata(propertyName);
 			}
+			
 			_cachedMetadata[propertyName] = value;
 			return value;
 		}
@@ -193,6 +197,16 @@ package weave.data.AttributeColumns
 				_lastError = str;
 				reportError(e);
 			}
+		}
+		
+		override public function setMetadata(value:Object):void
+		{
+			metadata.setSessionState(value);
+		}
+		
+		override public function getMetadataPropertyNames():Array
+		{
+			return VectorUtils.getKeys(metadata.getSessionState());
 		}
 
 		/**

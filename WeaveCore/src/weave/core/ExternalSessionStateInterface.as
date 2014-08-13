@@ -338,19 +338,13 @@ package weave.core
 					compiledObject,
 					[variables, _variables],
 					WeaveAPI.ErrorManager.reportError,
-					thisObject != null
+					thisObject != null,
+					null,
+					null,
+					true,
+					thisObject
 				);
-				var result:*;
-				if (isAssignment && isFuncDef)
-				{
-					// bind 'this' scope
-					result = Compiler.bind(compiledMethod, thisObject);
-				}
-				else
-				{
-					result = compiledMethod.apply(thisObject);
-				}
-				
+				var result:* = isFuncDef ? compiledMethod : compiledMethod.apply(thisObject);
 				if (isAssignment)
 					_variables[assignVariableName] = result;
 				else

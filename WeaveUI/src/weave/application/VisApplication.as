@@ -224,7 +224,14 @@ package weave.application
 		}
 		
 		private var _requestedConfigFile:String;
-		private var _loadFileCallback:Function;
+		private function setRequestedConfigFile(value:String):void
+		{
+			if (_requestedConfigFile == value)
+				return;
+			_requestedConfigFile = value;
+			_loadFileCallbacks.length = 0;
+		}
+		private var _loadFileCallbacks:Array = [];
 		/**
 		 * Loads a session state file from a URL.
 		 * @param url The URL to the session state file (.weave or .xml) specified as a String, a URLRequest, or an Object containing properties "url", "requestHeaders", "method".
@@ -238,11 +245,11 @@ package weave.application
 			if (url is URLRequest)
 			{
 				request = url as URLRequest;
-				_requestedConfigFile = request.url;
+				setRequestedConfigFile(request.url);
 			}
 			else if (url is String)
 			{
-				_requestedConfigFile = String(url);
+				setRequestedConfigFile(String(url));
 				if (noCacheHack)
 					url = String(url) + "?" + (new Date()).getTime(); // prevent flex from using cache
 				request = new URLRequest(String(url));
@@ -254,17 +261,17 @@ package weave.application
 				var headers:Object = url['requestHeaders'];
 				for (var k:String in headers)
 					request.requestHeaders.push(new URLRequestHeader(k, headers[k]));
-				_requestedConfigFile = request.url;
+				setRequestedConfigFile(request.url);
 			}
 			
-			_loadFileCallback = callback as Function;
+			if (callback != null)
+				_loadFileCallbacks.push(callback);
 			
 			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
 		}
 		
 		private function downloadConfigFile():void
 		{
-			_loadFileCallback = null;
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
 			{
 				handleConfigFileDownloaded();
@@ -297,9 +304,9 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			if (_loadFileCallback != null)
-				_loadFileCallback();
 			WeaveAPI.callExternalWeaveReady();
+			while (_loadFileCallbacks.length)
+				(_loadFileCallbacks.shift() as Function)();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
