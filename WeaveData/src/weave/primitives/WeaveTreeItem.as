@@ -18,6 +18,7 @@
 */
 package weave.primitives
 {
+	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	
 	/**
@@ -73,6 +74,8 @@ package weave.primitives
 			return item != null;
 		}
 		
+		//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----
+		
 		/**
 		 * Constructs a new WeaveTreeItem.
 		 * @param params An Object containing property values to set on the WeaveTreeItem.
@@ -95,6 +98,22 @@ package weave.primitives
 		 * This variable is intentionally uninitialized to avoid overwriting the value set by an extending class in its constructor.
 		 */
 		protected var childItemClass:Class; // IMPORTANT - no initial value
+		protected var _recursion:Object = {}; // recursionName -> Boolean
+		private var _label:* = "";
+		private var _children:* = null;
+		private var _source:ILinkableObject = null;
+		
+		/**
+		 * Cached values that get invalidated when the source triggers callbacks.
+		 */
+		protected var _cache:Object = {};
+		
+		/**
+		 * Cached values of getCallbackCollection(source).triggerCounter.
+		 */
+		protected var _counter:Object = {};
+		
+		//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----
 		
 		/**
 		 * Computes a Boolean value from various structures
@@ -121,7 +140,7 @@ package weave.primitives
 					var breakValue:Boolean = recursionName.indexOf("or_") == 0;
 					for each (param in param)
 					{
-						param = getBoolean(param, recursionName + "_item");
+						param = getBoolean(param, "item_" + recursionName);
 						if (param ? breakValue : !breakValue)
 							break;
 					}
@@ -197,11 +216,45 @@ package weave.primitives
 			return param;
 		}
 		
-		protected var _recursion:Object = {}; // recursionName -> Boolean
+		//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----
 		
-		private var _label:* = "";
-		private var _children:* = null;
+		/**
+		 * Checks if cached value is valid.
+		 * Always returns false if the source property is not set.
+		 * @param id A string identifying a property.
+		 * @return true if the property value has been cached.
+		 */
+		protected function isCached(id:String):Boolean
+		{
+			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
+				source = null;
+			return _source && _counter[id] === WeaveAPI.SessionManager.getCallbackCollection(_source).triggerCounter;
+		}
 		
+		/**
+		 * Retrieves or updates a cached value for a property.
+		 * Does not cache the value if the source property is not set.
+		 * @param id A string identifying a property.
+		 * @param newValue Optional new value to cache for the property.
+		 * @return The new or existing value for the property.
+		 */
+		protected function cache(id:String, newValue:* = undefined):*
+		{
+			if (arguments.length == 1)
+				return _cache[id];
+			
+			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
+				source = null;
+			if (_source)
+			{
+				_counter[id] = WeaveAPI.SessionManager.getCallbackCollection(_source).triggerCounter;
+				_cache[id] = newValue;
+			}
+			return newValue;
+		}
+		
+		//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----
+
 		/**
 		 * This can be set to either a String or a Function.
 		 * This property is checked by Flex's default data descriptor.
@@ -209,13 +262,18 @@ package weave.primitives
 		 */
 		public function get label():String
 		{
-			var str:String = getString(_label, 'label');
+			const id:String = 'label';
+			if (isCached(id))
+				return _cache[id];
+			
+			var str:String = getString(_label, id);
 			if (!str && data != null)
 				str = String(data);
-			return str;
+			return cache(id, str);
 		}
 		public function set label(value:*):void
 		{
+			_counter['label'] = undefined;
 			_label = value;
 		}
 		
@@ -226,11 +284,16 @@ package weave.primitives
 		 */
 		public function get children():Array
 		{
-			var items:Array = getObject(_children, 'children') as Array;
-			if (!items)
-				return null;
+			const id:String = 'children';
+			if (isCached(id))
+				return _cache[id];
 			
-			return items.map(_mapItems, childItemClass).filter(_filterItems);
+			var items:Array = getObject(_children, id) as Array;
+			if (!items)
+				return cache(id, null);
+			
+			var result:Array = items.map(_mapItems, childItemClass).filter(_filterItems);
+			return cache(id, result);
 		}
 		
 		/**
@@ -240,7 +303,25 @@ package weave.primitives
 		 */
 		public function set children(value:*):void
 		{
+			_counter['children'] = undefined;
 			_children = value;
+		}
+		
+		/**
+		 * A pointer to the ILinkableObject that created this node.
+		 * This is used to determine when to invalidate cached values.
+		 */
+		public function get source():ILinkableObject
+		{
+			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
+				source = null;
+			return _source;
+		}
+		public function set source(value:ILinkableObject):void
+		{
+			if (_source != value)
+				_counter = {};
+			_source = value;
 		}
 		
 		/**

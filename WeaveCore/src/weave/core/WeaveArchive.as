@@ -74,6 +74,7 @@ package weave.core
 		private function filterFilePathsToReadAsObject(filePath:String):Boolean
 		{
 			return filePath.indexOf(FOLDER_AMF + '/') == 0;
+			//return filePath.substr(-4).toLowerCase() == ".amf";
 		}
 		
 		/**
