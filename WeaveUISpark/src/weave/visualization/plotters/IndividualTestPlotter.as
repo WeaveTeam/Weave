@@ -22,11 +22,13 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.geom.Point;
 	
 	import weave.Weave;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -40,6 +42,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.KeySets.FilteredKeySet;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -52,6 +55,23 @@ package weave.visualization.plotters
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
+			
+			filteredStartTimeCol.filter.requestLocalObject(FilteredKeySet, true);
+			
+			registerSpatialProperty(startTimeCol);
+			
+			linkSessionState(_filteredKeySet.keyFilter, filteredStartTimeCol.filter);
+		}
+		
+		protected const filteredStartTimeCol:FilteredColumn = newDisposableChild(this, FilteredColumn);
+		
+		//Statistics for the column that contains the start times for a given date.
+		protected const statsStartTime:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredStartTimeCol));
+		
+		//Column that contains the start times for a given date.
+		public function get startTimeCol():DynamicColumn
+		{
+			return filteredStartTimeCol.internalDynamicColumn;
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -66,7 +86,7 @@ package weave.visualization.plotters
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
-		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
+		public const defaultScreenRectangleHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite));
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
@@ -144,6 +164,8 @@ package weave.visualization.plotters
 			return super.drawPlotAsyncIteration(task);
 		}
 		
+		public const tempPointEndRectangle:Point = new Point();
+		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
@@ -153,9 +175,15 @@ package weave.visualization.plotters
 			graphics.clear();
 			
 			// project data coordinates to screen coordinates and draw graphics
-			getCoordsFromRecordKey(recordKey, tempPoint);
-			
+			//Get first rectangle point. (initial time)
+			getCoordsFromRecordKey(recordKey, tempPoint);		
 			dataBounds.projectPointTo(tempPoint, screenBounds);
+			
+			//Get second rectangle point. (end time)
+			getCoordsFromRecordKey(recordKey, tempPointEndRectangle);	
+			if( sizeBy.getValueFromKey(recordKey, Number) != undefined )
+				tempPointEndRectangle.x  += sizeBy.getValueFromKey(recordKey, Number);
+			dataBounds.projectPointTo(tempPointEndRectangle, screenBounds);
 			
 			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
@@ -166,19 +194,26 @@ package weave.visualization.plotters
 				radius = minScreenRadius.value + (_sizeByStats.getNorm(recordKey) * (maxScreenRadius.value - minScreenRadius.value));
 			}
 			else
-				radius = defaultScreenRadius.value;
+				radius = defaultScreenRectangleHeight.value;
 			if (!isFinite(radius))
 			{
-				// handle undefined radius
-				// draw default circle
-				graphics.drawRect(tempPoint.x, tempPoint.y, defaultScreenRadius.value, defaultScreenRadius.value );
+				// handle undefined sizing
+				// draw default rectangle
+				//graphics.drawRect(tempPoint.x, tempPoint.y-(defaultScreenRectangleHeight.value/2), defaultScreenRectangleHeight.value, defaultScreenRectangleHeight.value );
+				graphics.drawRect(tempPoint.x, tempPoint.y-(defaultScreenRectangleHeight.value/2), tempPointEndRectangle.x - tempPoint.x, defaultScreenRectangleHeight.value );
 			}
 			else
 			{
-				//trace('circle',tempPoint);
-				graphics.drawRect(tempPoint.x, tempPoint.y, radius, radius);
+				graphics.drawRect(tempPoint.x, tempPoint.y-(defaultScreenRectangleHeight.value/2), radius, defaultScreenRectangleHeight.value);
 			}
 			graphics.endFill();
+		}
+		
+		override public function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
+		{
+			super.getCoordsFromRecordKey(recordKey, output);
+			if( startTimeCol.getValueFromKey(recordKey, Number) != null )
+				output.x += startTimeCol.getValueFromKey(recordKey, Number);
 		}
 	}
 }
