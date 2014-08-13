@@ -2720,7 +2720,7 @@ package weave.compiler
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES],
 								false,
-								method == operators['=>'] ? builtInSymbolTable['this'] : null
+								method == operators['=>'] || cascadeThisScope ? builtInSymbolTable['this'] : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
