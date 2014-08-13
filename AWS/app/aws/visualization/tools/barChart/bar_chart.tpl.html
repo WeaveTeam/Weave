@@ -6,7 +6,7 @@
 			<input  style = "width : 100%" type="text"
 					placeholder="Default" 
 					ng-model="service.queryObject.BarChartTool.title" 
-					ng-change="setTitle(service.queryObject.BarChartTool.title)"/>
+					/>
 		</div>
 		
 		<div>
@@ -22,7 +22,7 @@
 					ng-model="service.queryObject.BarChartTool.heights" 
 					multiple  
 					data-placeholder="Choose Height Column(s)"
-					ng-change="setHeights()">
+					>
 				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 			</select>
 			</div>
@@ -39,7 +39,6 @@
 						 class="widget-ui-control" 
 						 ui-select2
 						 ng-model="service.queryObject.BarChartTool.sort" 
-						 ng-change="setSort(service.queryObject.BarChartTool.sort)"
 						 data-placeholder="Choose Sort Column">
 					<option></option>
 				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
@@ -55,7 +54,7 @@
 						 ui-select2 
 						 ng-model="service.queryObject.BarChartTool.label" 
 						 data-placeholder="Choose Label Column"
-						 ng-change="setLabel(service.queryObject.BarChartTool.sort)">
+						 >
 				<option></option>
 				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 			</select>

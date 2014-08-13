@@ -2,15 +2,12 @@ var weave_mod = angular.module('aws.WeaveModule', []);
 
 AnalysisModule.service("WeaveService", function(queryService) {
 	
-	var that = this;
 	this.weave;
+	var ws = this;
+	
 	this.dataSourceName;
 	
 	this.columnNames = [];
-	
-	this.toggleTool = function(tool, status) {
-		this[tool].toggle(status);
-	};
 	
 	this.addCSVData = function(csvData) {
 		this.dataSourceName = that.weave.path().getValue('generateUniqueName("CSVDataSource")');
@@ -21,64 +18,25 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			.exec('setCSVData(rows)');
 	};
 	
-	this.setCSVColumn = function (columnPath, columnName){
-		that.weave.path(that.dataSourceName)
-		  .vars({i:columnName, p:columnPath})
-		  .exec('putColumn(i,p)');
+	// weave path func
+	var setCSVColumn = function (columnName, propertyName){
+		this.weave.path(that.dataSourceName)
+			.getValue('putColumn')(columnName, this.push(propertyName));
 	};
 	
-	this.BarChartTool = {
-		toolName : "",
-		
-		toggle : function (status) {
-			
-			if(status) {
-				this.toolName = that.weave.path().getValue('generateUniqueName("BarChartTool")');
-				that.weave.path(that.BarChartTool.toolName).request('CompoundBarChartTool');
-				that.weave.path(that.BarChartTool.toolName).push('panelX').state("0%").pop().push('panelY').state("50%");
-				that.BarChartTool.setTitle();
-				that.BarChartTool.setHeightColumns();
-				that.BarChartTool.setLabelColumn();
-				that.BarChartTool.setSortColumn();
-			} else {
-				that.weave.path(that.BarChartTool.toolName).remove();
-				this.toolName = "";
-			}
-		},
-		
-		setTitle : function () {
-			var title = queryService.queryObject.BarChartTool.title;
-			that.weave.path(that.BarChartTool.toolName, 'enableTitle').state(true);
-			that.weave.path(that.BarChartTool.toolName, 'panelTitle').state(title);
-		},
-		setHeightColumns : function () {
-			var heights = queryService.queryObject.BarChartTool.heights;
-			if (that.BarChartTool.toolName) {
-				that.weave.path(that.BarChartTool.toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state([]);
-				for (var i in heights)
-				{
-					var path = that.weave.path(that.BarChartTool.toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
-					that.setCSVColumn(path, heights[i]);
-				}
-			}
-		},
-		setSortColumn : function () {
-			var column = queryService.queryObject.BarChartTool.sort;
-			if (that.BarChartTool.toolName) {
-				var path = that.weave.path(that.BarChartTool.toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
-				that.weave.path(path).state(null);
-				that.setCSVColumn(path, column);
-			}
-			
-		},
-		setLabelColumn : function () {
-			var column = queryService.queryObject.BarChartTool.label;
-			if (that.BarChartTool.toolName) {
-				var path = that.weave.path(that.BarChartTool.toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
-				that.weave.path(path).state(null);
-				that.setCSVColumn(path, column);
-			}
-		},
+	this.BarChartTool =  function (state) {
+		var toolName = state.toolName || "BarChartTool";
+		if(!state.enabled)
+			return ws.weave.path(toolName).remove();
+		ws.weave.path(toolName)
+				.request('CompoundBarChartTool')
+				.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true })
+				.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
+					.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
+					.forEach({ heightColumns : state.heights, positiveErrorColumns : null, negativeErrorColumns : null}, 
+							function(heights, name) {
+								this.push(name).forEach(heights, setCSVColumn);
+							});
 	};
 });
 

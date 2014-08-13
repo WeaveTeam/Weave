@@ -93,17 +93,13 @@
 						<option></option>
 						<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
 					</select>
+					<a href="javascript:"  title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" placement="bottom" bs-popover>Settings</a>
+		 			<br> <textarea id="resultTextArea" width="100%" cols="40" rows="5"></textarea></td>
 					</div>
 					
 					<!--<div id="loading" ng-show="show_load" class="ng-hide">
 					<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
 					</div>-->
-					<a href="javascript:"  title="Settings" data-content="" data-template="aws/analysis/script_settings.tpl.html" placement="bottom" bs-popover>Settings</a>
-					<table border="0">
-					  <tr>
-		 			   <td><textarea id="resultTextArea" width="100%" cols="100" rows="1"></textarea></td>
-		  			  </tr>
-					</table>
 				</div>
 
 				<!--<div class="body" ng-model="content-tools">
@@ -132,7 +128,7 @@
 								</li>
 								<li ng-repeat= "tool in AnalysisService.tool_list">
 									<span class="checkbox">
-										<input type="checkbox"  ng-model="tool.enabled" ng-change="WeaveService.toggleTool(tool.id, tool.enabled)">
+										<input type="checkbox"  ng-model="tool.enabled">
 									</span>
 									<a href='javascript: void()'> {{tool.title}}</a>
 								</li>
