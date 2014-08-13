@@ -10,13 +10,13 @@
 		<!-- the content -->
 		<div style="padding-top:10px; width :100% ;display: table" class="portlet-content">
 			<!-- the input UI -->
-			<div style="width: 60%; display: table-cell">
+			<div style="width: 40%; display: table-cell">
 							
 							<!-- This input type will be added if the input type is numberical -->
 							<div class= "form-group" ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
 								<div  ng-if="input.param_type =='column'">
 									{{input.label}}
-<!--TODO make a dual list box later --><select style="width:350px;" ui-select2 multiple ng-model="input.param_user_value" data-placeholder="Click here to select multiple columns">
+<!--TODO make a dual list box later --><select style= "width:500px" ui-select2 multiple ng-model="input.param_user_value" data-placeholder="Click here to select multiple columns">
 										<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.dataColumnObjects">{{opt.publicMetadata.title}}</option>
 									</select>
 								</div>
@@ -39,10 +39,9 @@
 								</div>		
 							</div>
 			</div>	
-		</div>		
-					
+			
 			<!-- The Computation Engine image -->
-			<div style="display: table-cell; padding-left: 100px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
+			<div style="display: table-cell; padding-left: 80px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
 					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
 
 							<img width = "45" height = "45" ng-src= "{{'../aws/css/img/Rlogo.png'}}" 
@@ -66,10 +65,9 @@
 							></img>
 							
 					</div>
-			</div>
-			
-			<!-- Help icon div -->
-			<div style="display: table-cell; padding-top: 25px"; ng-model = "algorithmObjectService.data.currentMetObj.documentation">
+					
+					<!-- Help icon div -->
+			<div style= "padding-top:5px"ng-model = "algorithmObjectService.data.currentMetObj.documentation">
 
 				<a href={{algorithmObjectService.data.currentMetObj.documentation}}
 					title="Link to Algorithm Documentation">		
@@ -77,6 +75,13 @@
 						
 				</a>
 			</div> 
+			</div>
+			
+			
+		</div>		
+					
+			
+			
 			
 		</div>
 	</div>
