@@ -37,17 +37,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.Weave;
 			import weave.api.getCallbackCollection;
-			import weave.core.LinkableBoolean;
 			import weave.api.linkBindableProperty;
+			import weave.api.newDisposableChild;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.ColorColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.ImageColumn;
+			import weave.data.KeySets.FilteredKeySet;
+			import weave.data.KeySets.KeySet;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
+			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.IndividualTestPlotter;
 			
@@ -56,7 +65,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, IndividualTestTool, "IndividualTestTool");
 			
+			//Begin top UI section variables
+			
+			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
+			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
+			public const secondProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine2Update, true);
+			public const thirdProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine3Update, true);
+			public const fourthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine4Update, true);
+			public const fifthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine5Update, true);
+			
+			public const line1LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine1);
+			public const line2LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine2);
+			public const line3LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine3);
+			public const line4LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine4);
+			public const line5LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine5);
+			
+			private var previousText1:String;
+			private var previousText2:String;
+			private var previousText3:String;
+			private var previousText4:String;
+			private var previousText5:String;
+			
 			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
+			//End top UI variable code.
+			
+			//Test variables for subsetting.
+			public const _recordKeySubset:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet; 
 			
 			[Bindable]
 			public var plotter:IndividualTestPlotter = null;
@@ -96,6 +132,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
 				
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+				
+				//Top UI code.
+				_recordKeySubset.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				
+				_recordKeySubset.setColumnKeySources([profilePicturesColumn,firstProfileColumn,secondProfileColumn,thirdProfileColumn,fourthProfileColumn,fifthProfileColumn]);
+				
+				_recordKeySubset.addGroupedCallback(this, handleSubsetChange);
+				_probe.addGroupedCallback(this, handleSubsetChange);
+				_selection.addGroupedCallback(this, handleSubsetChange);
 			}
 			
 			override protected function childrenCreated():void
@@ -108,6 +153,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.marginRight.value  = "30";
 				
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
+				
+				//Top UI code.
+				previousText1 = line1LeadingText.value;
+				previousText2 = line1LeadingText.value;
+				previousText3 = line1LeadingText.value;
+				previousText4 = line1LeadingText.value;
+				previousText5 = line1LeadingText.value;
+				
+				imageCol.dynamicObject = profilePicturesColumn;
+				profileFirstCol.dynamicObject = firstProfileColumn;
+				profileSecondCol.dynamicObject = secondProfileColumn;
+				profileThirdCol.dynamicObject = thirdProfileColumn;
+				profileFourthCol.dynamicObject = fourthProfileColumn;
+				profileFifthCol.dynamicObject = fifthProfileColumn;
+				
+				linkBindableProperty(line1LeadingText, this.infoLine1FrontText1, "text");
+				linkBindableProperty(line2LeadingText, this.infoLine1FrontText2, "text");
+				linkBindableProperty(line3LeadingText, this.infoLine1FrontText3, "text");
+				linkBindableProperty(line4LeadingText, this.infoLine1FrontText4, "text");
+				linkBindableProperty(line5LeadingText, this.infoLine1FrontText5, "text");
 			}
 			
 			override public function initSelectableAttributes(input:Array):void
@@ -209,6 +274,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
 			}
 			
+			//Top UI code begins here.
+			
 			private function updateLockLabel():void
 			{
 				if( _locked.value )
@@ -224,6 +291,147 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					lockButton.label = lang("Unlock Record");
 				else
 					lockButton.label = lang("Lock Record");
+			}
+			
+			//Top UI code ends here.
+			
+			private function handleSubsetChange():void
+			{
+				if( (_selection.keys.length == 1 || _probe.keys.length == 1 || _recordKeySubset.keys.length == 1) && !_locked.value)
+				{
+					handlePictureChange();
+					columnLine1Update();
+					columnLine2Update();
+					columnLine3Update();
+					columnLine4Update();
+					columnLine5Update();
+				}
+			}			
+			
+			private function handlePictureChange():void
+			{
+				if( _recordKeySubset.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData);
+				else if( _probe.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData);
+				else if( _selection.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData);
+			}
+			
+			private function columnLine1Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && firstProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && firstProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+			}
+			private function columnLine2Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && secondProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && secondProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+			}
+			private function columnLine3Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && thirdProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && thirdProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+			}
+			private function columnLine4Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && fourthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && fourthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+			}
+			private function columnLine5Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && fifthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && fifthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+			}
+			private function updateLine1():void
+			{
+				infoLine1.text = line1LeadingText.value + infoLine1.text.replace(previousText1,"");
+				previousText1 = line1LeadingText.value;
+			}
+			private function updateLine2():void
+			{
+				infoLine2.text = line2LeadingText.value + infoLine2.text.replace(previousText2,"");
+				previousText2 = line2LeadingText.value;
+			}
+			private function updateLine3():void
+			{
+				infoLine3.text = line3LeadingText.value + infoLine3.text.replace(previousText3,"");
+				previousText3 = line3LeadingText.value;
+			}
+			private function updateLine4():void
+			{
+				infoLine4.text = line4LeadingText.value + infoLine4.text.replace(previousText4,"");
+				previousText4 = line4LeadingText.value;
+			}
+			private function updateLine5():void
+			{
+				infoLine5.text = line5LeadingText.value + infoLine5.text.replace(previousText5,"");
+				previousText5 = line5LeadingText.value;
 			}
 			
 			private var _prevGlobalColorColumnName:String = null;
@@ -279,6 +487,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<ui:CustomColorPicker id="overrideColorPicker" change="handleOverrideColor(event)"
 									  enabled="{overrideColorCheckBox.selected}"
 									  selectedColor="0xE0E0E0"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox id="toolOptions" label="{lang('Top UI Controls')}">
+			<ui:DynamicColumnComponent id="imageCol" label="{lang('Profile image')}"/>
+			<ui:DynamicColumnComponent id="profileFirstCol" label="{lang('First line')}"/>
+			<ui:DynamicColumnComponent id="profileSecondCol" label="{lang('Second line')}"/>
+			<ui:DynamicColumnComponent id="profileThirdCol" label="{lang('Third line')}"/>
+			<ui:DynamicColumnComponent id="profileFourthCol" label="{lang('Fourth line')}"/>
+			<ui:DynamicColumnComponent id="profileFifthCol" label="{lang('Fifth line')}"/>
+			<mx:HBox>
+				<mx:Label text="Line 1 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText1"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 2 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText2"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 3 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText3"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 4 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText4"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 5 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText5"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
