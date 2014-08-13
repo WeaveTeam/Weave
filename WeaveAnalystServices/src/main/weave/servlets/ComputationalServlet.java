@@ -3,6 +3,8 @@ package weave.servlets;
 import static weave.config.WeaveConfig.initWeaveConfig;
 
 import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -50,7 +52,7 @@ public class ComputationalServlet extends WeaveServlet
 
 	private static final long serialVersionUID = 1L;
 
-	public ScriptResult runScript(String scriptName, int[] ids, NestedColumnFilters filters) throws Exception
+	public ScriptResult runScript(String scriptName, int[] ids, Object[] params) throws Exception
  	{
  		Object resultData = null;
  		ScriptResult result = new ScriptResult();
@@ -59,10 +61,9 @@ public class ComputationalServlet extends WeaveServlet
  		long endTime = 0;
  		long time1 = 0;
  		long time2 = 0;
- 		
  		// Start the timer for the data request
  		startTime = System.currentTimeMillis();
- 		Object[][] recordData = DataService.getFilteredRows(ids, filters, null).recordData;
+ 		Object[][] recordData = DataService.getFilteredRows(ids, null, null).recordData;
  		if(recordData.length == 0){
  			throw new RemoteException("Query produced no rows...");
  		}

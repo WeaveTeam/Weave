@@ -57,7 +57,7 @@ angular.module('aws.bioWeave')
 		queryService.getDataColumnsEntitiesFromId(dataTableId, true).then(function(){
 			that.data.dataColumnObjects = queryService.dataObject.columns;
 			
-			console.log("columns", that.data.dataColumnObjects);
+			//console.log("columns", that.data.dataColumnObjects);
 			//we need to loop over and retrieve strings to use in the select option UI
 //			for(var i in that.data.dataColumnObjects){
 //				that.data.columns.push(
