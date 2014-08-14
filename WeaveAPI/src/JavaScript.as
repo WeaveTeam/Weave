@@ -33,7 +33,7 @@ package
 	 * ExternalInterface generates the following invalid code: <code>{Content-Type: "foo\"}</code>.
 	 * The same problem occurs when returning an Object from an ActionScript function that was invoked
 	 * from JavaScript. This class works around the limitation by using JSON.stringify() and JSON.parse()
-	 * and escaping backslashes in resulting JSON strings. The values <code>undefined, NaN, Infinity, -Infinity</code>
+	 * and escaping backslashes in resulting JSON strings. The values <code>NaN, Infinity, -Infinity</code>
 	 * are preserved.
 	 * 
 	 * This class also provides an objectID accessor which is more reliable than ExternalInterface.objectID,
@@ -87,7 +87,7 @@ package
 		private static const JSON_LOOKUP:String = "_jsonLookup";
 		
 		/**
-		 * A random String which is highly unlikely to appear in any String value.  Used as a suffix for <code>undefined, NaN, -Infinity, Infinity</code>.
+		 * A random String which is highly unlikely to appear in any String value.  Used as a suffix for <code>NaN, -Infinity, Infinity</code>.
 		 */
 		private static const JSON_SUFFIX:String = ';' + Math.random() + ';' + new Date();
 		
@@ -181,7 +181,7 @@ package
 			initialized = true;
 			
 			// save special IDs for values not supported by JSON
-			for each (var symbol:* in [undefined, NaN, Infinity, -Infinity])
+			for each (var symbol:Object in [NaN, Infinity, -Infinity])
 				_jsonLookup[symbol + JSON_SUFFIX] = symbol;
 			
 			// determine if backslashes need to be escaped
@@ -212,7 +212,7 @@ package
 					"var flash = this;",
 					"var functionCounter = 0;",
 					"var lookup = flash[JSON_LOOKUP] = {};",
-					"var symbols = [undefined, NaN, Infinity, -Infinity];",
+					"var symbols = [NaN, Infinity, -Infinity];",
 					"for (var i in symbols)",
 					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
 
@@ -225,9 +225,11 @@ package
 					"        }",
 					"        return value[JSON_FUNCTION_PREFIX];",
 					"    }",
-					"    if (value === undefined || (typeof value === 'number' && !isFinite(value)))",
+					"    if (typeof value === 'number' && !isFinite(value))",
 					"        return value + JSON_SUFFIX;",
-					"    return Array.isArray(value) && !(value instanceof Array) ? [].concat(value) : value;",
+					"    if (Array.isArray(value) && !(value instanceof Array))",
+					"        return Array.prototype.slice.call(value);",
+					"    return value;",
 					"};",
 					
 					"flash[JSON_REVIVER] = function(key, value) {",
@@ -277,7 +279,7 @@ package
 		}
 		
 		/**
-		 * Preserves primitive values not supported by JSON: undefined, NaN, Infinity, -Infinity
+		 * Preserves primitive values not supported by JSON: NaN, Infinity, -Infinity
 		 * Also looks up or generates an ID corresponding to a Function value.
 		 */
 		private static function _jsonReplacer(key:String, value:*):*
@@ -295,7 +297,7 @@ package
 				_needsReviving = true;
 				return id;
 			}
-			if (value === undefined || (typeof value === 'number' && !isFinite(value)))
+			if (value is Number && !isFinite(value as Number))
 			{
 				_needsReviving = true;
 				return value + JSON_SUFFIX;
