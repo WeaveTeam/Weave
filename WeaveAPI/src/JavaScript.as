@@ -323,7 +323,8 @@ package
 							{
 								"JSON_REVIVER": JSON_REVIVER,
 								"id": value,
-								"args": arguments
+								"args": arguments,
+								"catch": false
 							},
 							"var func = this[JSON_REVIVER]('', id);",
 							"return func.apply(func['this'], args);"
