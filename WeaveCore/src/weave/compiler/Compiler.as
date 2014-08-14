@@ -1717,7 +1717,9 @@ package weave.compiler
 		private function compileOperator(operatorName:String, compiledParams:Array):CompiledFunctionCall
 		{
 			operatorName = OPERATOR_ESCAPE + operatorName;
-			return new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			var op:CompiledFunctionCall = new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			//op.originalTokens = originalTokensForDecompiling;
+			return op;
 		}
 		
 		private function compileFunctionHeader(functionOperator:String, paramsToken:Object):ICompiledObject
@@ -1765,7 +1767,9 @@ package weave.compiler
 			functionParams[FUNCTION_PARAM_NAMES] = variableNames;
 			functionParams[FUNCTION_PARAM_VALUES] = variableValues;
 			
-			return compileOperator(functionOperator, [new CompiledConstant(null, functionParams)]);
+			var op:CompiledFunctionCall = compileOperator(functionOperator, [new CompiledConstant(null, functionParams)]);
+			op.originalTokens = functionOperator == FUNCTION ? [FUNCTION, paramsToken] : [paramsToken, '=>'];
+			return op;
 		}
 		
 		private function compileFunctionDefinition(functionHeader:CompiledFunctionCall, body:ICompiledObject):ICompiledObject
@@ -1777,6 +1781,7 @@ package weave.compiler
 				throw new Error("Unexpected error: attempting to overwrite function body");
 			cc.value[FUNCTION_CODE] = finalize(body);
 			functionHeader.evaluateConstants();
+			functionHeader.originalTokens.push(body);
 			return functionHeader;
 		}
 		
@@ -2366,6 +2371,18 @@ package weave.compiler
 				
 				if (op == '(' && n > 0) // zero params not allowed for this syntax
 					return '(' + params.join('; ') + ')';
+				
+				if (op == '{')
+				{
+					var str:String = '';
+					for (i = 0; i < params.length - 1; i += 2)
+					{
+						if (str)
+							str += ', ';
+						str += params[i] + ': ' + params[i + 1];
+					}
+					return '{' + str + '}';
+				}
 				
 				if (PURE_OP_LOOKUP[cMethod.value as Function] || op == 'in')
 				{
