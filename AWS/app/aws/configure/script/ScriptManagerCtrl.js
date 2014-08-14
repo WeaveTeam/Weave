@@ -2,11 +2,21 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
 
           $scope.service = scriptManagerService;
           
-          $scope.listOfScripts = [];
+          $scope.rScripts = scriptManagerService.getListOfScripts().then(function(result) {
+        	  return angular.forEach(result, function(item) {
+                  return {name: item};
+              });
+          });
+          
+          $scope.stataScripts = scriptManagerService.getListOfScripts().then(function(result) {
+        	  return angular.forEach(result, function(item) {
+                  return {name: item};
+              });
+          });
+          
           $scope.uploadScript = false;
           $scope.textScript = false;
           $scope.saveButton = false;
-          scriptManagerService.getListOfScripts();
           $scope.selectedScript = [];
           $scope.selectedMetadata = {};
           $scope.scriptContent = {};
@@ -14,16 +24,9 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           $scope.editMode = false;
           $scope.scriptToUpload = "";
           $scope.fileUpload = null;
-          $scope.defaultTemplate = {
-            name: "New Script Name",
-            description: "New Script Description",
-            inputs: [{param: "New Input",
-                description: "Type a Description",
-                type: "type (column? value?)",
-                columnType: "Column Type (analytics? indicator?)"}],
-            outputs: [{param: "New Output",
-                description: "Type a Description"}]
-          };
+          
+          $scope.inputOptions = [];
+          
           $scope.$watch('selectedMetadata', function(newv, oldv) {
             if ($scope.selectedScript[0] != "" && $scope.selectedScript[0] != undefined) {
               $scope.savingMetadata = true;
@@ -36,15 +39,7 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
                       });
             }
           }, true);
-          $scope.$watch(function() {
-            return scriptManagerService.dataObject.listOfScripts;
-          }, function() {
-            $scope.listOfScripts = [];
-            angular.forEach(scriptManagerService.dataObject.listOfScripts, function(item) {
-              $scope.listOfScripts.push({name: item});
-            });
-          }, true);
-
+         
           $scope.addInput = function() {
             if (!$scope.selectedMetadata) {
               $scope.selectedMetadata = $scope.defaultTemplate;
@@ -109,11 +104,20 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
             //console.log("scriptcontent", $scope.scriptContent);
           });
 
-          $scope.scriptListOptions = {data: 'service.getListOfScripts()',
-            columnDefs: [{field: 'Scripts', displayName: 'Scripts'}],
-            selectedItems: $scope.selectedScript,
-            multiSelect: false,
-	        enableRowSelection: true,
+          $scope.rScriptListOptions = {
+        		  data: 'stataScripts',
+        		  columnDefs: [{field: 'Scripts', displayName: 'R Scripts'}],
+        		  selectedItems: $scope.selectedScript,
+        		  multiSelect: false,
+        		  enableRowSelection: true,
+          };
+          
+          $scope.stataScriptListOptions = {
+        		  data: 'rScripts',
+        		  columnDefs: [{field: 'Scripts', displayName: 'Stata Scripts'}],
+        		  selectedItems: $scope.selectedScript,
+        		  multiSelect: false,
+        		  enableRowSelection: true,
           };
           
         });

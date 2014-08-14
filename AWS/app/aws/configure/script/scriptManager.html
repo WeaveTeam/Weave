@@ -6,12 +6,12 @@
 		</div>
 		<div class="row" contenteditable="false">
 			<div class="col-md-3" contenteditable="false">
-				<div class="gridStyle" ng-grid="scriptListOptions"></div>
+				<div class="gridStyle" ng-grid="rScriptListOptions"></div>
+				<div class="gridStyle" ng-grid="stataScriptListOptions"></div>
+
 				<div>
-					<!-- <button class="file-nput-btn" ng-click="deleteSelectedScript()">
-					Delete Selected
-					</button> -->
-					<file-upload label="Upload"></file-upload>
+					</button>
+					<file-upload label="Add New Script"></file-upload>
 					<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
 				</div>
 
@@ -21,7 +21,7 @@
 					<div style="display:block">
 						<div>
 							<div>
-								<span>Scripts:</span>
+								<span>Script:</span>
 								<editablespan class= "editab-span-script" model='selectedScript[0].name'>
 									{{selectedScript[0].name}}
 								</editablespan>
@@ -41,7 +41,7 @@
 
 						</div>
 						<div>
-							<span>General description</span>
+							<span>Description:</span>
 							<editablespan model="selectedMetadata.description">
 								{{selectedMetadata.description}}
 							</editablespan>
@@ -49,6 +49,8 @@
 
 					</div>
 				</div>
+				
+				<div class="gridStyle" ng-grid="scriptMetadataGridOptions"></div>
 				<div class="well">
 					<h3 class="">Inputs</h3>
 					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
