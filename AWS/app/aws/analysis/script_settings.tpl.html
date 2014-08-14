@@ -1,8 +1,6 @@
-<div class="popover" style="width: 500px; padding: 10px; top: 70px !important">
-	<div class="arrow"></div>
-	
+<div>
+
 	<table>
-	<div style="width: 100%" class="portlet-content">
 		<tr ng-repeat="input in service.dataObject.scriptMetadata.inputs">
 			<td>
 				<div class="label-p">{{input.param}}:</div>
@@ -47,10 +45,5 @@
 				<br>
 			</td>
 		</tr>
-		
-	</div>
-	<button class="btn btn-primary" ng-click="$hide()">Hide</button>
-	<div ng-controller="QueryHandlerCtrl">
-	<button class="btn btn-primary" ng-click="run()"> <span style="vertical-align: right">Run</span>
-						
+	</table>
 </div>

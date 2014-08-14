@@ -104,6 +104,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	$scope.disable_widget = function(tool) {
 		tool.enabled = false;
 		queryService.queryObject[tool.id].enabled = false;
+		WeaveService[tool.id](queryService.queryObject[tool.id]); // temporary because the watch is not triggered
 	};
 	
 	$scope.$watch('queryService.queryObject.Indicator', function() {
