@@ -50,6 +50,7 @@ package weave.services
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.WeaveFileInfo;
+	import weave.utils.fixErrorMessage;
 	
 	/**
 	 * The functions in this class correspond directly to Weave servlet functions written in Java.
@@ -155,7 +156,9 @@ package weave.services
 		}
 		private function initializeAdminServiceError(event:IOErrorEvent):void
 		{
-			messageDisplay(event.type, event.text, true);
+			var error:Error = new Error(event.text, event.errorID);
+			fixErrorMessage(error);
+			messageDisplay(null, error.message, true);
 		}
 		
 		/**
@@ -309,6 +312,7 @@ package weave.services
 		// this function displays an error message from a FaultEvent in an Alert box.
 		private function alertFault(event:FaultEvent, query:ProxyAsyncToken):void
 		{
+			fixErrorMessage(event.fault);
 			var methodName:String = query._params[0];
 			var methodParams:Array = query._params[1];
 			if (PREVENT_FAULT_ALERT[query])
