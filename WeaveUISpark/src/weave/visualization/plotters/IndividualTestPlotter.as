@@ -86,7 +86,7 @@ package weave.visualization.plotters
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
-		public const defaultScreenRectangleHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite));
+		public const defaultScreenRectangleHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12, isFinite));
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
@@ -214,6 +214,7 @@ package weave.visualization.plotters
 			super.getCoordsFromRecordKey(recordKey, output);
 			if( startTimeCol.getValueFromKey(recordKey, Number) != null )
 				output.x += startTimeCol.getValueFromKey(recordKey, Number);
+			output.y += 0.5;
 		}
 	}
 }
