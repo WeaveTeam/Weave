@@ -11,6 +11,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'aws.project',  // shweta's module
                                  'aws.outputView',
                                  'aws.bioWeave',
+                                 'aws.dataCommunication',
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
@@ -68,6 +69,10 @@ app.run(['$rootScope', function($rootScope){
 		templateUrl : 'aws/bioWeave/BioWeaveManager.html',
 		controller : 'BioWeaveController',
 		activetab : 'BioWeave_management'
+	}).when('/Data_communication', {
+		templateUrl : 'aws/dataCommunication/DataCommunication.html',
+		controller : 'DataCommunicationController',
+		activetab : 'Data_communication'
 	});
 });
 
