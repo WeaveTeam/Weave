@@ -947,7 +947,7 @@
 				<mx:Button label="{lang('Geometry')}" click="addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
 				<mx:Button label="{lang('Labels')}" click="addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
 				<mx:Button label="{lang('Bubbles')}" click="addBubbleLayer();" toolTip="{lang('Add bubbles to the selected geometry layer')}"/>
-				<mx:Button id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListComponent.initAddLayerButton(addLayerButton, visualization)"/>
+				<ui:MenuButton id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListComponent.initAddLayerButton(addLayerButton, visualization)"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">

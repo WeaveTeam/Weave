@@ -119,7 +119,7 @@
 				minimizable.value = false;
 				maximizable.value = false;
 				enableSubMenu.value = true;
-				subMenu.dataProvider = [
+				subMenuButton.data = [
 					{
 						label: lang('Edit session state'),
 						click: function():void {
