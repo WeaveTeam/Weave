@@ -90,8 +90,6 @@ package weave.visualization.plotters
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
-		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
 		
 		// delare dependency on statistics (for norm values)
 		private const _sizeByStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(sizeBy));
@@ -212,8 +210,10 @@ package weave.visualization.plotters
 		override public function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
 		{
 			super.getCoordsFromRecordKey(recordKey, output);
+			//Account for a start time on a date, if one is provided.
 			if( startTimeCol.getValueFromKey(recordKey, Number) != null )
 				output.x += startTimeCol.getValueFromKey(recordKey, Number);
+			//This puts the record in betweeen grid lines.
 			output.y += 0.5;
 		}
 	}

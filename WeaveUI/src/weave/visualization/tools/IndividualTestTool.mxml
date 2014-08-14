@@ -67,6 +67,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			//Begin top UI section variables
 			
+			public const showTopUI:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateTopUI);
+			
 			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
 			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
 			public const secondProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine2Update, true);
@@ -155,8 +157,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.marginRight.value  = "30";
 				
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
+				linkBindableProperty(plotter.defaultScreenRectangleHeight, this.rectangleHeightStepper, "value");
 				
 				//Top UI code.
+				linkBindableProperty(showTopUI, this.showTopUICheckBox, "selected");
+				
 				previousText1 = line1LeadingText.value;
 				previousText2 = line1LeadingText.value;
 				previousText3 = line1LeadingText.value;
@@ -315,6 +320,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			//Top UI code ends here.
+			
+			private function updateTopUI():void
+			{
+				if( showTopUI.value )
+				{
+					profileArea.visible = true;
+					profileArea.includeInLayout = true;
+					//Resize the plotter.
+					visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
+				}
+				else
+				{
+					profileArea.visible = false;
+					profileArea.includeInLayout = false;
+					//Resize the plotter.
+					visualization.plotManager.marginTop.value = "30";
+				}
+			}
 			
 			private function handleSubsetChange():void
 			{
@@ -511,8 +534,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									  enabled="{overrideColorCheckBox.selected}"
 									  selectedColor="0xE0E0E0"/>
 			</mx:HBox>
+			<mx:NumericStepper id="rectangleHeightStepper" minimum="2" maximum="50" stepSize="2"/>
 		</mx:VBox>
 		<mx:VBox id="toolOptions" label="{lang('Top UI Controls')}">
+			<mx:CheckBox id="showTopUICheckBox" label="Show Top UI" />
 			<ui:DynamicColumnComponent id="imageCol" label="{lang('Profile image')}"/>
 			<ui:DynamicColumnComponent id="profileFirstCol" label="{lang('First line')}"/>
 			<ui:DynamicColumnComponent id="profileSecondCol" label="{lang('Second line')}"/>
