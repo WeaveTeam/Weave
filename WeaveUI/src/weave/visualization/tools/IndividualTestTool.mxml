@@ -116,6 +116,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				xAxisPlotter.setLabelFunction(labelFunctionX, plotter.dataX);
 				yAxisPlotter.setLabelFunction(labelFunctionY, plotter.dataY);
+				//Make the labels horizontal to match up to the cells.
+				yAxisPlotter.axisLabelRelativeAngle.value = 90;
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataX); })
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataY); })
@@ -149,7 +151,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
 				visualization.plotManager.marginBottom.value = "80";
-				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginLeft.value   = "90";
 				visualization.plotManager.marginRight.value  = "30";
 				
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
@@ -241,7 +243,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(plotter.startTimeCol.getInternalColumn() && attrToIncludeCheckList[startColIndex])
 					columns.push(plotter.startTimeCol.getInternalColumn());
 				
+				var uniqueYValues:int = findUniqueYValues();
+				if( uniqueYValues != 0 )
+					yAxisPlotter.tickCountRequested.value = uniqueYValues + 3;
+				
 				visualization.additionalProbeColumns = columns;
+			}
+			
+			private function findUniqueYValues():int
+			{
+				var tempArray:Array = [];
+				for( var i:int = 0; i < plotter.dataY.keys.length; i++ )
+				{
+					if( tempArray.indexOf(plotter.dataY.getValueFromKey(plotter.dataY.keys[i])) == -1 )
+						tempArray.push(plotter.dataY.getValueFromKey(plotter.dataY.keys[i]));
+				}
+				return tempArray.length;
 			}
 			
 			override public function get defaultPanelTitle():String
