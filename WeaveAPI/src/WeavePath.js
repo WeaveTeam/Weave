@@ -422,6 +422,7 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 	var callback = type == 'function' ? callback_or_variableName : null;
 	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
 	var variableName = type == 'string' ? callback_or_variableName : "";
+	this._vars[''] = Object.keys(this._vars); // include a list of keys in property '' so undefined variables will be preserved
 	var result = this.weave.evaluateExpression(this._path, script, this._vars, null, variableName);
 	this._deleteTempVars();
 	// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
@@ -575,6 +576,7 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
  */
 weave.WeavePath.prototype.getValue = function(script_or_variableName)
 {
+	this._vars[''] = Object.keys(this._vars); // include a list of keys in property '' so undefined variables will be preserved
 	var result = this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);
 	this._deleteTempVars();
 	return result;
