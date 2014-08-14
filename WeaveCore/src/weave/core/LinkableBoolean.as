@@ -42,11 +42,6 @@ package weave.core
 			setSessionState(value);
 		}
 
-		override public function isUndefined():Boolean
-		{
-			return !_sessionStateWasSet;
-		}
-
 		override public function setSessionState(value:Object):void
 		{
 			if (value is String)

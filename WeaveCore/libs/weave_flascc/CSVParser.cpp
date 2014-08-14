@@ -95,7 +95,7 @@ void createCSV()
  * @param output
  */
 void parseCSV() __attribute__((used,
-		annotate("as3sig:public function parseCSV(input:*, delimiter:String = ',', quote:String = '\"', removeBlankLines:Boolean = true, parseTokens:Boolean = true, output:Array = null):Array"),
+		annotate("as3sig:public function parseCSV(input:Object, delimiter:String = ',', quote:String = '\"', removeBlankLines:Boolean = true, parseTokens:Boolean = true, output:Array = null):Array"),
 		annotate("as3package:weave.utils"),
 		annotate("as3import:flash.utils.ByteArray")));
 
@@ -111,7 +111,7 @@ void parseCSV()
 		"    output.length = 0;"
 		"else"
 		"    output = [];"
-		"if (input === undefined || input === null || input === '')"
+		"if (input === null || input === '')"
 		"    return output;" // no rows
 		"if (input is ByteArray)"
 		"{"
