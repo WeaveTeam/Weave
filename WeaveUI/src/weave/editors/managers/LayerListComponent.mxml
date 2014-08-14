@@ -51,7 +51,7 @@
 						</mx:HBox>
 						<ui:CustomCheckBox label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
 						<ui:Paragraph id="lbl" textAlign="center"/>
-						<ui:MenuButton id="menuButton" label="{lang('Edit...')}" data="{[
+						<ui:MenuButton label="{lang('Edit...')}" data="{[
 							{label: lang('Edit properties'), click: openSettingsPanel},
 							{label: lang('Edit session state'), click: openSessionEditor},
 							{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
@@ -138,8 +138,6 @@
 										linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
 										linkBindableProperty(layerSettings.alpha, this, "layerAlpha");
 									}
-									
-									menuButton.visible = menuButton.includeInLayout = objectIsNotLocked();
 								}
 								
 								// menu code
