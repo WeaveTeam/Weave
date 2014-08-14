@@ -52,7 +52,7 @@ public class ComputationalServlet extends WeaveServlet
 
 	private static final long serialVersionUID = 1L;
 
-	public ScriptResult runScript(String scriptName, int[] ids, Object[] params) throws Exception
+	public ScriptResult runScript(String scriptName, int[] ids, Map<String, Object> params) throws Exception
  	{
  		Object resultData = null;
  		ScriptResult result = new ScriptResult();
