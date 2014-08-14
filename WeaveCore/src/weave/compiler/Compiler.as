@@ -1118,7 +1118,7 @@ package weave.compiler
 		\x00 .. \xFF        a byte specified in hexadecimal
 		\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
 		*/
-		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\', '{':'{'};
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
 		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
 		
 		/**
