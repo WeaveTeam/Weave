@@ -12,7 +12,7 @@ function waitForWeave(popup, callback)
     function checkWeaveReady() {
         var weave = popup.document.getElementById('weave');
         if (weave && weave.WeavePath) {
-    		weave.loadFile('defaults.xml', callback.bind(this, weave));
+    		weave.loadFile('empty.xml', callback.bind(this, weave));
         }
         else
             setTimeout(checkWeaveReady, 50);

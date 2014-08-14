@@ -96,6 +96,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	$scope.WeaveService = WeaveService;
 	
 	$scope.IndicDescription = "";
+	
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;
 	};
@@ -111,23 +112,22 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		}
 	});
 	
-	$scope.$watch(function() {
-		return queryService.tool_list;
-	}, function(newVal, oldVal) {
-		if(newVal, oldVal) {
-			for(var i in newVal) {
-				var tool = newVal[i];
-				queryService.queryObject[tool.id].enabled = tool.enabled;
-			}
-		}
-	}, true);
+	$scope.$watchCollection(function() {
+		return $.map(AnalysisService.tool_list, function(tool) {
+			return tool.enabled;
+		});
+	}, function() {
+		$.map(AnalysisService.tool_list, function(tool) {
+			queryService.queryObject[tool.id].enabled = tool.enabled;
+		});
+	});
 	
 	$scope.$watch(function () {
 		return queryService.queryObject.BarChartTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "BarCharTool") {
 					tool.enabled = newVal;
 					break;
@@ -140,8 +140,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		return queryService.queryObject.MapTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "MapTool") {
 					tool.enabled = newVal;
 					break;
@@ -154,8 +154,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		return queryService.queryObject.ScatterPlotTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "ScatterPlotTool") {
 					tool.enabled = newVal;
 					break;
@@ -168,8 +168,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		return queryService.queryObject.DataTableTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "DataTableTool") {
 					tool.enabled = newVal;
 					break;
