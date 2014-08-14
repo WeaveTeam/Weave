@@ -329,9 +329,10 @@ package weave.core
 					throw new Error("Invalid variable name: " + Compiler.encodeString(assignVariableName));
 				
 				// To avoid "variable is undefined" errors, treat variables[''] as an Array of keys and set any missing properties to undefined
-				for each (var key:String in variables[''])
-					if (!variables.hasOwnProperty(key))
-						variables[key] = undefined;
+				if (variables)
+					for each (var key:String in variables[''])
+						if (!variables.hasOwnProperty(key))
+							variables[key] = undefined;
 				
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				if (getObjectFromPathOrVariableName_error)
