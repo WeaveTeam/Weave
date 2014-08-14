@@ -4,23 +4,11 @@
      Please customize this file as necessary. -->
 <!-- Generated from project settings as of 4/14/11 8:55 PM -->
 <project name="WeaveUISpark" default="build" basedir=".">
-
 	<property environment="env"/>
-	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
-
-    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-	<taskdef name="mxmlc" classname="flex.ant.MxmlcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-	<taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-
-	<property name="DEBUG" value="false"/>
-	<property name="PROJECT_DIR" value="${basedir}"/>
-	<property name="SOURCE_DIR" value="${PROJECT_DIR}/src"/>
-	<property name="OUTPUT_DIR" value="${PROJECT_DIR}/bin"/>
-	<property name="LOCALE" value="en_US"/>
-	<property name="API" value="WeaveAPI"/>
-	<property name="CORE" value="WeaveCore"/>
-	<property name="DATA" value="WeaveData"/>
+	<property file="../build.properties"/>
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
+	<property name="SOURCE_DIR" value="${basedir}/src"/>
+	<property name="OUTPUT_DIR" value="${basedir}/bin"/>
 
 	<target name="build">
 		<antcall target="clean"/>
@@ -46,15 +34,6 @@
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>			
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.mxml"/>
 			<source-path path-element="${SOURCE_DIR}"/>
-<!--			<library-path file="${FLEX_HOME}/frameworks/libs/" />	
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/> 
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/> 
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/> 
- 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/> 
-			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/> 
-			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/> 
-			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>  
-			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>  -->
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/textLayout.swc" append="true"/>  
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/> 
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/> 
@@ -62,12 +41,11 @@
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/>  
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/mx/mx.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/osmf.swc" append="true"/>
-<!--                    <external-library-path file="${FLEX_HOME}/frameworks/libs/" append="true"/>  -->
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
 
-			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>
+			<library-path dir="${basedir}/libs" includes="*.swc" append="true"/>
 		</compc>
 	</target>
 
