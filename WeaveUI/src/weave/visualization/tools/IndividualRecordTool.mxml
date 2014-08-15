@@ -582,18 +582,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
-			<ui:DynamicColumnComponent label="{lang('Sort')}"
+			<ui:DynamicColumnComponent label="{lang('Sort')}" helpContent="This should contain data pertaining to the dates/hours."
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
-			<ui:DynamicColumnComponent label="{lang('Attributes')}"
+			<ui:DynamicColumnComponent label="{lang('Attributes')}" helpContent="Column that contains descriptions of various attributes."
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
 			<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}"
 									   creationComplete="(event.target as DynamicColumnComponent).columnWrapper = plotter.fill.color"
 									   showLinkControl="false"/>
-			<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}"
+			<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}" helpContent="This column should contain duration information. For example hours/days of length."
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.sizeBy"/>
-			<ui:DynamicColumnComponent id="startCol" label="{lang('Start Time')}"
+			<ui:DynamicColumnComponent id="startCol" label="{lang('Start Time')}" helpContent="If there is a start hour involved set this column."
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.startTimeCol"/>
-			<ui:DynamicColumnComponent id="filterByCol" label="{lang('Filter Column')}"
+			<ui:DynamicColumnComponent id="filterByCol" label="{lang('Filter Column')}" helpContent="This column contains the column that will be used to filter out which records shall be drawn."
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.filterCol"/>
 			<mx:HBox>
 				<mx:CheckBox id="overrideColorCheckBox" label="{lang('Override global color')}"
@@ -602,7 +602,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									  enabled="{overrideColorCheckBox.selected}"
 									  selectedColor="0xE0E0E0"/>
 			</mx:HBox>
-			<mx:NumericStepper id="rectangleHeightStepper" maximum="50" minimum="2" stepSize="2"/>
+			<mx:HBox>
+				<mx:Label text="Record rectangle size" />
+				<mx:NumericStepper id="rectangleHeightStepper" maximum="50" minimum="2" stepSize="2"/>
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox id="toolOptions" label="{lang('Top UI Controls')}">
 			<mx:HBox>

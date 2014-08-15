@@ -94,7 +94,7 @@ package weave.visualization.plotters
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y", "Color","Size", "Start Time", "Filter"];
+			return ["Sort", "Attributes", "Color", "Size", "Start Time", "Filter"];
 		}
 		public function getSelectableAttributes():Array
 		{
