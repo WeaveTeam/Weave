@@ -232,5 +232,26 @@ package weave.visualization.plotters
 			//This puts the record in betweeen grid lines.
 			output.y += 0.5;
 		}
+		
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
+		{
+			if( subsetKey != null )
+			{
+				var nameCheck:* = filterCol.getValueFromKey(subsetKey);
+				if( nameCheck != filterCol.getValueFromKey(recordKey) )
+				{
+					initBoundsArray(output);
+					return;
+				}
+			}
+			getCoordsFromRecordKey(recordKey, tempPoint);
+			
+			var bounds:IBounds2D = initBoundsArray(output);
+			bounds.includePoint(tempPoint);
+			if (isNaN(tempPoint.x))
+				bounds.setXRange(-Infinity, Infinity);
+			if (isNaN(tempPoint.y))
+				bounds.setYRange(-Infinity, Infinity);
+		}
 	}
 }

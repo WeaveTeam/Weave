@@ -59,6 +59,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.IndividualRecordToolPlotter;
+			import weave.visualization.plotters.ProbeLinePlotter;
 			
 			//This allows for setSelected to be used with the overrideColor checkbox.
 			use namespace mx_internal;
@@ -357,6 +358,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					//Trigger the plotter to update based off our filtering criteria.
 					getCallbackCollection(plotter).triggerCallbacks();
 					//Function calls to update the top UI based off of a new record being singled out.
+					plotter.spatialCallbacks.triggerCallbacks();
 					handlePictureChange();
 					columnLine1Update();
 					columnLine2Update();
