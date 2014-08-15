@@ -1,6 +1,7 @@
 var dc_mod = angular.module('aws.dataCommunication', []);
 
-dc_mod.controller("DataCommunicationController", function($scope){
+dc_mod.controller("DataCommunicationController", function($scope,algorithmObjectService){
 
-	console.log("reached DC controller! :) ");
+	$scope.algorithmObjectService = algorithmObjectService;
+	algorithmObjectService.getDataTableList();
 });
