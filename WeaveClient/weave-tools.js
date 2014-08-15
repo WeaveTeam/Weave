@@ -145,9 +145,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 		path = weave.path(path);
 	
 	if (!dataSourceName)
-		dataSourceName = weave.path()
-			.libs('weave.data.DataSources::WeaveDataSource')
-			.getValue('getNames(WeaveDataSource)[0]');
+		dataSourceName = weave.evaluateExpression([], 'this.getNames(WeaveDataSource)[0]', null, ['weave.data.DataSources::WeaveDataSource']);
 	
 	var metadata = {};
 	if (typeof columnId == 'object')
@@ -157,8 +155,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 		metadata['weaveEntityId'] = columnId;
 	
 	if (sqlParams)
-		metadata['sqlParams'] = path.vars({"params": sqlParams}, true)
-			.getValue('WeaveAPI.CSVParser.createCSVRow(params)');
+		metadata['sqlParams'] = weave.evaluateExpression(null, 'WeaveAPI.CSVParser.createCSVRow')(sqlParams);
 	
 	// make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
 	path.request('DynamicColumn')
