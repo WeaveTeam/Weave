@@ -52,22 +52,30 @@ package weave.visualization.plotters
 		
 		public function IndividualRecordToolPlotter()
 		{
+			//Color column initialization code.
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 			
+			//Initialize filters.
 			filteredStartTimeCol.filter.requestLocalObject(FilteredKeySet, true);
+			filteredFilterCol.filter.requestLocalObject(FilteredKeySet, true);
 			
+			//When one of these changes set off the spatial callbacks.
 			registerSpatialProperty(startTimeCol);
 			registerSpatialProperty(filterCol);
 			
+			//Link the filters together.
 			linkSessionState(_filteredKeySet.keyFilter, filteredStartTimeCol.filter);
 			linkSessionState(_filteredKeySet.keyFilter, filteredFilterCol.filter);
 		}
 		
+		//Column for the start time of an attribute.
 		protected const filteredStartTimeCol:FilteredColumn = newDisposableChild(this, FilteredColumn);
+		//Column to filter by ex. User Name.
 		protected const filteredFilterCol:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		
+		//Variable to be set by the tool for which key in the filtered column we should care about.
 		public var subsetKey:IQualifiedKey = null;
 		
 		//Statistics for the column that contains the start times for a given date.
@@ -78,6 +86,7 @@ package weave.visualization.plotters
 		{
 			return filteredStartTimeCol.internalDynamicColumn;
 		}
+		//Column that will be used to know which records should be filtered.
 		public function get filterCol():DynamicColumn
 		{
 			return filteredFilterCol.internalDynamicColumn;
@@ -85,18 +94,21 @@ package weave.visualization.plotters
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y", "Color","Size"];
+			return ["X", "Y", "Color","Size", "Start Time", "Filter"];
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [dataX, dataY, fill.color,sizeBy];
+			return [dataX, dataY, fill.color, sizeBy, startTimeCol, filterCol];
 		}
 		
+		//Column for duration.
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		//Defaults to help guide the duration sizing.
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRectangleHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12, isFinite));
 		
+		//Re-usable objects for drawing purposes.
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		
@@ -105,11 +117,14 @@ package weave.visualization.plotters
 		public var hack_horizontalBackgroundLineStyle:Array;
 		public var hack_verticalBackgroundLineStyle:Array;
 		
+		//Watcher for the color column.
 		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
 		
+		//Used for making sure all keys are included.
 		private var _extraKeyDependencies:Array;
 		private var _keyInclusionLogic:Function;
 		
+		//Keys from all columns are included.
 		public function hack_setKeyInclusionLogic(keyInclusionLogic:Function, extraColumnDependencies:Array):void
 		{
 			_extraKeyDependencies = extraColumnDependencies;
@@ -117,6 +132,7 @@ package weave.visualization.plotters
 			updateKeySources();
 		}
 		
+		//Setup the colordatawatcher.
 		private function handleColor():void
 		{
 			var cc:ColorColumn = fill.color.getInternalColumn() as ColorColumn;
@@ -126,6 +142,7 @@ package weave.visualization.plotters
 			colorDataWatcher.target = dc || fc || bc || cc;
 		}
 		
+		//Keep key sources up-to-date.
 		private function updateKeySources():void
 		{
 			var columns:Array = [sizeBy];
@@ -160,17 +177,7 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function drawPlotAsyncIteration(task:IPlotTask):Number
-		{
-			// this template will draw one record per iteration
-			if (task.iteration == 0)
-			{
-				if (!task.asyncState)
-					task.asyncState = {};
-			}
-			return super.drawPlotAsyncIteration(task);
-		}
-		
+		//Re-usable point variable for drawing.
 		public const tempPointEndRectangle:Point = new Point();
 		
 		/**
@@ -199,15 +206,18 @@ package weave.visualization.plotters
 				tempPointEndRectangle.x  += sizeBy.getValueFromKey(recordKey, Number);
 			dataBounds.projectPointTo(tempPointEndRectangle, screenBounds);
 			
+			//Setup styles.
 			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
 			
 			var radius:Number;
 			if (sizeBy.internalObject)
 			{
+				//Duration information is present.
 				radius = minScreenRadius.value + (_sizeByStats.getNorm(recordKey) * (maxScreenRadius.value - minScreenRadius.value));
 			}
 			else
+				//No duration information provided.
 				radius = defaultScreenRectangleHeight.value;
 			if (!isFinite(radius))
 			{
@@ -235,6 +245,7 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			//If the record isn't part of our subset return empty bounds. Otherwise, give the proper bounds for the record.
 			if( subsetKey != null )
 			{
 				var nameCheck:* = filterCol.getValueFromKey(subsetKey);
