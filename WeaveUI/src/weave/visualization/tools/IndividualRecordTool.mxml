@@ -67,9 +67,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			//Begin top UI section variables
 			
+			//Sessioned variables for tracking visibility preferences.
 			public const showTopUI:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateTopUI);
 			public const showProfilePic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateTopUI);
 			
+			//Columns for the top UI to draw data from.
 			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
 			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
 			public const secondProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine2Update, true);
@@ -77,18 +79,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const fourthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine4Update, true);
 			public const fifthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine5Update, true);
 			
+			//Sessioned variables that store any leading text the user may desire.
 			public const line1LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine1);
 			public const line2LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine2);
 			public const line3LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine3);
 			public const line4LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine4);
 			public const line5LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine5);
 			
+			//Variables used in functions below for proper string modifications.
 			private var previousText1:String;
 			private var previousText2:String;
 			private var previousText3:String;
 			private var previousText4:String;
 			private var previousText5:String;
 			
+			//Variable indicating if the record tool should stay locked on what records it currently has.
 			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
 			//End top UI variable code.
 			
@@ -107,29 +112,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// lock dynamic objects into place
 				plotter = initializePlotters(IndividualRecordToolPlotter, true);
 				
+				//Probe line for the visualization.
 				visualization.enableProbeLine(true, true);
 				
-				//BEGIN TEMPORARY SOLUTION
+				//Axis label callbacks.
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
-				// END TEMPORARY SOLUTION
 				
+				//Don't want the user to be able to move or zoom on this visualization.
 				visualization.enableZoomAndPan.value = false;
 				
+				//Set label functions for both of the plotters.
 				xAxisPlotter.setLabelFunction(labelFunctionX, plotter.dataX);
 				yAxisPlotter.setLabelFunction(labelFunctionY, plotter.dataY);
 				//Make the labels horizontal to match up to the cells.
 				yAxisPlotter.axisLabelRelativeAngle.value = 90;
 				
+				//Callbacks for when the user clicks an axis directly and wishes to set an attribute by doing so.
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataX); })
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataY); })
 				
+				//Keeps the axes clean and lined up with the data well.
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
+				//Callbacks for updating the probe when a column changes.
 				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
 				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
 				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
@@ -138,7 +148,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 				
-				//Top UI code.
+				//Top UI code. Sets up the keyfilters for seeing if a record has been selected, probed, or subsetted.
 				_recordKeySubset.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				
 				_recordKeySubset.setColumnKeySources([profilePicturesColumn,firstProfileColumn,secondProfileColumn,thirdProfileColumn,fourthProfileColumn,fifthProfileColumn]);
@@ -152,15 +162,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				
+				//Set the visualization sizes so that it fits the tool nicely with the top UI.
 				visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginLeft.value   = "90";
 				visualization.plotManager.marginRight.value  = "30";
 				
+				//Linking plotter sessioned variables to the UI.
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 				linkBindableProperty(plotter.defaultScreenRectangleHeight, this.rectangleHeightStepper, "value");
 				
 				//Top UI code.
+				//Linking the top UI visibility sessioning variables to their UI equivalents.
 				linkBindableProperty(showTopUI, this.showTopUICheckBox, "selected");
 				linkBindableProperty(showProfilePic, this.showProfilePicture, "selected");
 				
@@ -186,11 +199,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override public function initSelectableAttributes(input:Array):void
 			{
+				//Puts default values in the attribute columns.
 				ColumnUtils.initSelectableAttributes([plotter.dataX, plotter.dataY, plotter.fill.color], input);
 			}
 			
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
 			
+			//Function to include all of the attributes in the probe.
 			private function handleSelectAllAttrInProbe(setAll:Boolean):void
 			{
 				var attributes:Array = getSelectableAttributeNames();
@@ -212,7 +227,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				attributesToIncludeInProbe.setSessionState(valuesToSet);
 			}
 			
-			
+			//Updates the probe to contain all of the columns in the tool.
 			private function updateProbeColumns():void
 			{
 				if (!parent)
@@ -230,6 +245,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var attributes:Array = getSelectableAttributes();
 				var columns:Array = [];
 				
+				//Setting up all the columns in a list for the probe.
 				var dataXColIndex:int = attributes.indexOf(plotter.dataX);
 				if (plotter.dataX.getInternalColumn() && attrToIncludeCheckList[dataXColIndex])
 					columns.push(plotter.dataX.getInternalColumn());
@@ -254,6 +270,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(plotter.filterCol.getInternalColumn() && attrToIncludeCheckList[filterByColIndex])
 					columns.push(plotter.filterCol.getInternalColumn());
 				
+				//This section discovers how many unique attributes we have for the Y-Axis and auto-sets the tick marks accordingly.
 				var uniqueYValues:int = findUniqueYValues();
 				if( uniqueYValues != 0 )
 					yAxisPlotter.tickCountRequested.value = uniqueYValues + 3;
@@ -261,6 +278,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.additionalProbeColumns = columns;
 			}
 			
+			//Helper function to identify the unique attribute count of a column.
 			private function findUniqueYValues():int
 			{
 				var tempArray:Array = [];
@@ -277,6 +295,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return lang("Individual Record Tool");
 			}
 			
+			//Callback to ensure the axis label names are always updated on the plotter.
 			private function updateAxisLabels():void
 			{
 				visualization.bottomMarginColumn = plotter.dataX;
@@ -297,10 +316,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				);
 			}
 			
+			//Standard label function for the X axis for the plotter to use.
 			public function labelFunctionX(value:Number):String
 			{
 				return ColumnUtils.deriveStringFromNumber(plotter.dataX, value);
 			}
+			//Standard label function for the Y axis for the plotter to use.
 			public function labelFunctionY(value:Number):String
 			{
 				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
@@ -308,6 +329,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			//Top UI code begins here.
 			
+			//Updates the text in the lock label whenever it is pressed.
 			private function updateLockLabel():void
 			{
 				if( _locked.value )
@@ -316,6 +338,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					lockButton.label = lang("Lock Record");
 			}
 			
+			//Lock record button click event function.
 			protected function lockRecordClick(event:MouseEvent):void
 			{
 				_locked.value = ( lockButton.label == lang("Lock Record") ) ? true : false;
@@ -325,13 +348,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					lockButton.label = lang("Lock Record");
 			}
 			
-			//Top UI code ends here.
-			
 			private function updateTopUI():void
 			{
 				//Show/hide top UI section.
 				if( showTopUI.value )
 				{
+					//Show the top UI.
 					profileArea.visible = true;
 					profileArea.includeInLayout = true;
 					//Resize the plotter.
@@ -339,6 +361,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else
 				{
+					//Hide the top UI.
 					profileArea.visible = false;
 					profileArea.includeInLayout = false;
 					//Resize the plotter.
@@ -347,12 +370,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//Show/hide profile picture section.
 				if( showProfilePic.value )
 				{
+					//Show the profile picture.
 					profileImage.visible = true;
 					profileImage.includeInLayout = true;
 					personalInformationBox.percentWidth = 70;
 				}
 				else
 				{
+					//Hide the profile picture.
 					profileImage.visible = false;
 					profileImage.includeInLayout = false;
 					personalInformationBox.percentWidth = 100;
@@ -372,8 +397,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						plotter.subsetKey = _selection.keys[0];
 					//Trigger the plotter to update based off our filtering criteria.
 					getCallbackCollection(plotter).triggerCallbacks();
-					//Function calls to update the top UI based off of a new record being singled out.
 					plotter.spatialCallbacks.triggerCallbacks();
+					//Function calls to update the top UI based off of a new record being singled out.
 					handlePictureChange();
 					columnLine1Update();
 					columnLine2Update();
@@ -383,6 +408,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}			
 			
+			//Function to update the profile picture.
 			private function handlePictureChange():void
 			{
 				if( _recordKeySubset.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData) != null)
@@ -392,6 +418,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else if( _selection.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData) != null)
 					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData);
 			}
+			
+			//Set of functions for updating the value being drawn from the personalInformationBox columns.
 			
 			private function columnLine1Update():void
 			{
@@ -483,6 +511,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					previousText5 = line5LeadingText.value;
 				}
 			}
+			
+			//Set of functions to update the text lines being displayed.
+	
 			private function updateLine1():void
 			{
 				infoLine1.text = line1LeadingText.value + infoLine1.text.replace(previousText1,"");
@@ -509,6 +540,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				previousText5 = line5LeadingText.value;
 			}
 			
+			//Top UI code ends here.
+			
+			//Code section for handling the ColorColumn being changed.
+			
 			private var _prevGlobalColorColumnName:String = null;
 			
 			private function handleColorColumnChange():void
@@ -526,7 +561,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					overrideColorPicker.selectedColor = color;
 			}
 			
-			//Need to review color override functionality.
+			//Handles when the color is being overriden by the user.
 			private function handleOverrideColor(event:Event):void
 			{
 				if (!UIUtils.hasFocus(overrideColorCheckBox) && !overrideColorPicker.hasFocus)
