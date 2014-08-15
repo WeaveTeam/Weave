@@ -72,6 +72,12 @@ package
 		private static const JSON_CALL:String = "_jsonCall";
 		
 		/**
+		 * The name of a JavaScript property of this flash instance which contains an Array of JSON replacer/reviver extensions.
+		 * Each object in the Array can contain "replacer" and "reviver" properties containing the extension functions.
+		 */
+		public static const JSON_EXTENSIONS:String = "_jsonExtensions";
+		
+		/**
 		 * Used as the second parameter to JSON.stringify
 		 */
 		private static const JSON_REPLACER:String = "_jsonReplacer";
@@ -113,6 +119,16 @@ package
 		 * This flag will be set to true whenever _jsonReplacer makes a replacement that requires _jsonReviver to interpret.
 		 */
 		private static var _needsReviving:Boolean = false;
+		
+		/**
+		 * Extensions to _jsonReplacer.
+		 */
+		private static const _jsonReplacerExtensions:Array = [];
+		
+		/**
+		 * Extensions to _jsonReviver.
+		 */
+		private static const _jsonReviverExtensions:Array = [];
 		
 		/**
 		 * Alias for ExternalInterface.available
@@ -203,6 +219,7 @@ package
 				exec(
 					{
 						"JSON_FUNCTION_PREFIX": JSON_FUNCTION_PREFIX,
+						"JSON_EXTENSIONS": JSON_EXTENSIONS,
 						"JSON_REPLACER": JSON_REPLACER,
 						"JSON_REVIVER": JSON_REVIVER,
 						"JSON_SUFFIX": JSON_SUFFIX,
@@ -212,6 +229,7 @@ package
 					"var flash = this;",
 					"var functionCounter = 0;",
 					"var lookup = flash[JSON_LOOKUP] = {};",
+					"var extensions = flash[JSON_EXTENSIONS] = [];",
 					"var symbols = [NaN, Infinity, -Infinity];",
 					"for (var i in symbols)",
 					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
@@ -223,35 +241,56 @@ package
 					"            value[JSON_FUNCTION_PREFIX] = id;",
 					"            lookup[id] = value;",
 					"        }",
-					"        return value[JSON_FUNCTION_PREFIX];",
+					"        value = value[JSON_FUNCTION_PREFIX];",
 					"    }",
-					"    if (typeof value === 'number' && !isFinite(value))",
-					"        return value + JSON_SUFFIX;",
-					"    if (Array.isArray(value) && !(value instanceof Array))",
-					"        return Array.prototype.slice.call(value);",
+					"    else if (typeof value === 'number' && !isFinite(value))",
+					"        value = value + JSON_SUFFIX;",
+					"    else if (Array.isArray(value) && !(value instanceof Array))",
+					"        value = Array.prototype.slice.call(value);",
+					"    for (var i in extensions)",
+					"        if (typeof extensions[i] === 'object' && typeof extensions[i].replacer === 'function')",
+					"            value = extensions[i].replacer.call(flash, key, value);",
 					"    return value;",
 					"};",
 					
 					"flash[JSON_REVIVER] = function(key, value) {",
 					"    if (typeof value === 'string') {",
 					"        if (lookup.hasOwnProperty(value))",
-					"            return lookup[value];",
-					"        if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX) {",
-					"            lookup[value] = function() {",
+					"            value = lookup[value];",
+					"        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX) {",
+					"            var id = value;",
+					"            var func = function() {",
 					"                var params = Array.prototype.slice.call(arguments);",
 					"                var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
-					"                var resultJson = flash[JSON_CALL](value, paramsJson);",
+					"                var resultJson = flash[JSON_CALL](id, paramsJson);",
 					"                return JSON.parse(resultJson, flash[JSON_REVIVER]);",
 					"            };",
-					"            lookup[value][JSON_FUNCTION_PREFIX] = value;",
-					"            return lookup[value];",
+					"            func[JSON_FUNCTION_PREFIX] = id;",
+					"            value = lookup[id] = func;",
 					"        }",
 					"    }",
+					"    for (var i in extensions)",
+					"        if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')",
+					"            value = extensions[i].reviver.call(flash, key, value);",
 					"    return value;",
 					"};"
 				);
 			}
 		}
+		
+		/*var replace = weave._jsonReplacer, revive = weave._jsonReviver;
+		weave._jsonReplacer = (k, v) => {
+		var r = replace.call(weave, k, v);
+		console.log('replace', k, v, r);
+		return r;
+		}
+		weave._jsonReviver = (k, v) => {
+		var r = revive.call(weave, k, v);
+		console.log('revive', k, v, r);
+		return r;
+		}
+		JSON.stringify({x: Math.round}, weave._jsonReplacer)
+		//*/
 		
 		/**
 		 * Handles a JavaScript request.
@@ -295,13 +334,15 @@ package
 					_jsonLookup[id] = value;
 				}
 				_needsReviving = true;
-				return id;
+				value = id;
 			}
-			if (value is Number && !isFinite(value as Number))
+			else if (value is Number && !isFinite(value as Number))
 			{
 				_needsReviving = true;
-				return value + JSON_SUFFIX;
+				value = value + JSON_SUFFIX;
 			}
+			for each (var extension:Function in _jsonReplacerExtensions)
+				value = extension(key, value);
 			return value;
 		}
 		
@@ -314,15 +355,16 @@ package
 			if (value is String)
 			{
 				if (_jsonLookup.hasOwnProperty(value))
-					return _jsonLookup[value];
+					value = _jsonLookup[value];
 				// ID -> Function
-				if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
+				else if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
 				{
+					var id:String = value as String;
 					var func:Function = function():*{
 						return exec(
 							{
 								"JSON_REVIVER": JSON_REVIVER,
-								"id": value,
+								"id": id,
 								"args": arguments,
 								"catch": false
 							},
@@ -330,12 +372,37 @@ package
 							"return func.apply(func['this'], args);"
 						);
 					} as Function;
-					_jsonLookup[func] = value;
-					_jsonLookup[value] = func;
-					return func as Function;
+					_jsonLookup[func] = id;
+					_jsonLookup[id] = func;
+					value = func as Function;
 				}
 			}
+			for each (var extension:Function in _jsonReviverExtensions)
+				value = extension(key, value);
 			return value;
+		}
+		
+		/**
+		 * Extends JavaScript JSON communication to support new types of objects passed between ActionScript and JavaScript.
+		 * This only extends the ActionScript side. Corresponding JavaScript code must written if specialized JavaScript
+		 * Objects are to be supported.
+		 * @param replacer function(key:String, value:*):* ; Replaces an Object with a JSON-serializable representation. 
+		 * @param reviver function(key:String, value:*):* ; Revives an Object from its JSON representation.
+		 * 
+		 * @example Example JavaScript code (func1 and func2 should be function definitions)
+		 * <listing version="3.0">
+		 * JavaScript.exec(
+		 *     {"JSON_EXTENSIONS": JavaScript.JSON_EXTENSIONS},
+		 *     'this[JSON_EXTENSIONS].push({"replacer": func1, "reviver": func2});'
+		 * );
+		 * </listing>
+		 */
+		public static function extendJson(replacer:Function, reviver:Function):void
+		{
+			if (replacer != null)
+				_jsonReplacerExtensions.push(replacer);
+			if (reviver != null)
+				_jsonReviverExtensions.push(reviver);
 		}
 		
 		/**
