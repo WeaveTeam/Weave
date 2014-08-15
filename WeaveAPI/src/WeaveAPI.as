@@ -26,6 +26,7 @@ package
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILocaleManager;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
@@ -334,6 +335,8 @@ package
 				
 				if (firstTime)
 				{
+					addJsonExtension();
+					
 					// call external weaveApiReady(weave)
 					JavaScript.exec(
 						{method: "weaveApiReady"},
@@ -350,6 +353,68 @@ package
 
 		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
 		public static const WeavePath:Class;
+		
+		private static function addJsonExtension():void
+		{
+			JavaScript.extendJson(_jsonReplacer, _jsonReviver, _needsReviving);
+			JavaScript.exec(
+				{
+					"this": "weave",
+					"WP": "WeavePath",
+					"JSON_EXTENSIONS": JavaScript.JSON_EXTENSIONS
+				},
+				'function replacer(key, value) {',
+				'    if (value instanceof weave[WP]) {',
+				'        var obj = {};',
+				'        obj[WP] = value.getPath();',
+				'        return obj;',
+				'    }',
+				'    return value;',
+				'}',
+				'function reviver(key, value) {',
+				'    if (value != null && typeof value === "object" && value.hasOwnProperty(WP) && Array.isArray(value[WP])) {',
+				'        for (key in value)',
+				'            if (key != WP)',
+				'                return value;',
+				'        return weave.path(value[WP]);',
+				'    }',
+				'    return value;',
+				'}',
+				'weave[JSON_EXTENSIONS].push({"description": "ILinkableObject/WeavePath", "replacer": replacer, "reviver": reviver});'
+			);
+		}
+		private static const _pathLookup:Dictionary = new Dictionary(true);
+		private static function _jsonReplacer(key:*, value:*):*
+		{
+			if (value is ILinkableObject)
+			{
+				var obj:* = _pathLookup[value];
+				if (obj === undefined)
+				{
+					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, value as ILinkableObject);
+					// return null for ILinkableObjects not in session state tree
+					_pathLookup[value] = obj = path ? {"WeavePath": path} : null;
+				}
+				return obj;
+			}
+			return value;
+		}
+		private static function _jsonReviver(key:*, value:*):*
+		{
+			const WP:String = 'WeavePath';
+			if (value != null && typeof value === 'object' && value.hasOwnProperty(WP) && value[WP] is Array)
+			{
+				for (key in value)
+					if (key != WP)
+						return value;
+				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, value[WP] as Array);
+			}
+			return value;
+		}
+		private static function _needsReviving(key:*, value:*):Boolean
+		{
+			return value is ILinkableObject && _jsonReplacer(key, value) != null;
+		}
 
 		/**
 		 * Calls external function(s) weave.weaveReady(weave) and/or window.weaveReady(weave).
