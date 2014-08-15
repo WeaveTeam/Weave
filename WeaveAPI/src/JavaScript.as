@@ -88,6 +88,11 @@ package
 		private static const JSON_REVIVER:String = "_jsonReviver";
 		
 		/**
+		 * JSON extension property name for the needsReviving function.
+		 */
+		private static const NEEDS_REVIVING:String = "_needsReviving";
+		
+		/**
 		 * The name of the property used to store a lookup from JSON IDs to values.
 		 */
 		private static const JSON_LOOKUP:String = "_jsonLookup";
@@ -121,14 +126,9 @@ package
 		private static var _needsReviving:Boolean = false;
 		
 		/**
-		 * Extensions to _jsonReplacer.
+		 * Extensions to _jsonReplacer/_jsonReviver.
 		 */
-		private static const _jsonReplacerExtensions:Array = [];
-		
-		/**
-		 * Extensions to _jsonReviver.
-		 */
-		private static const _jsonReviverExtensions:Array = [];
+		private static const _jsonExtensions:Array = [];
 		
 		/**
 		 * Alias for ExternalInterface.available
@@ -341,8 +341,13 @@ package
 				_needsReviving = true;
 				value = value + JSON_SUFFIX;
 			}
-			for each (var extension:Function in _jsonReplacerExtensions)
-				value = extension(key, value);
+			for each (var extension:Object in _jsonExtensions)
+			{
+				if (extension[NEEDS_REVIVING] is Function && extension[NEEDS_REVIVING](key, value))
+					_needsReviving = true;
+				if (extension[JSON_REPLACER] is Function)
+					value = extension[JSON_REPLACER](key, value);
+			}
 			return value;
 		}
 		
@@ -377,8 +382,9 @@ package
 					value = func as Function;
 				}
 			}
-			for each (var extension:Function in _jsonReviverExtensions)
-				value = extension(key, value);
+			for each (var extension:Object in _jsonExtensions)
+				if (extension[JSON_REVIVER] is Function)
+					value = extension[JSON_REVIVER](key, value);
 			return value;
 		}
 		
@@ -388,6 +394,7 @@ package
 		 * Objects are to be supported.
 		 * @param replacer function(key:String, value:*):* ; Replaces an Object with a JSON-serializable representation. 
 		 * @param reviver function(key:String, value:*):* ; Revives an Object from its JSON representation.
+		 * @param needsReviving function(key:String, value:*):Boolean ; Determines if a value requires reviving in JavaScript once replaced in ActionScript.
 		 * 
 		 * @example Example JavaScript code (func1 and func2 should be function definitions)
 		 * <listing version="3.0">
@@ -397,12 +404,13 @@ package
 		 * );
 		 * </listing>
 		 */
-		public static function extendJson(replacer:Function, reviver:Function):void
+		public static function extendJson(replacer:Function, reviver:Function, needsReviving:Function):void
 		{
-			if (replacer != null)
-				_jsonReplacerExtensions.push(replacer);
-			if (reviver != null)
-				_jsonReviverExtensions.push(reviver);
+			var extension:Object = {};
+			extension[JSON_REPLACER] = replacer;
+			extension[JSON_REVIVER] = reviver;
+			extension[NEEDS_REVIVING] = needsReviving;
+			_jsonExtensions.push(extension);
 		}
 		
 		/**
