@@ -25,7 +25,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:ui="weave.ui.*"
 			   xmlns:editors="weave.editors.*">
 	<mx:HBox id="profileArea" width="100%" height="30%">
-		<mx:Canvas id="profileImage" width="30%" height="100%" backgroundColor="0xF443DC"/>
+		<mx:Canvas id="profileImage" width="30%" height="100%" backgroundColor="0xA3A3A3"/>
 		<mx:Box id="personalInformationBox" width="70%" height="100%" direction="vertical">
 			<mx:Label id="infoLine1"/>
 			<mx:Label id="infoLine2"/>
@@ -59,7 +59,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.IndividualRecordToolPlotter;
-			import weave.visualization.plotters.ProbeLinePlotter;
 			
 			//This allows for setSelected to be used with the overrideColor checkbox.
 			use namespace mx_internal;
@@ -69,6 +68,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//Begin top UI section variables
 			
 			public const showTopUI:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateTopUI);
+			public const showProfilePic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateTopUI);
 			
 			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
 			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
@@ -162,6 +162,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				//Top UI code.
 				linkBindableProperty(showTopUI, this.showTopUICheckBox, "selected");
+				linkBindableProperty(showProfilePic, this.showProfilePicture, "selected");
 				
 				previousText1 = line1LeadingText.value;
 				previousText2 = line1LeadingText.value;
@@ -328,6 +329,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function updateTopUI():void
 			{
+				//Show/hide top UI section.
 				if( showTopUI.value )
 				{
 					profileArea.visible = true;
@@ -341,6 +343,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					profileArea.includeInLayout = false;
 					//Resize the plotter.
 					visualization.plotManager.marginTop.value = "30";
+				}
+				//Show/hide profile picture section.
+				if( showProfilePic.value )
+				{
+					profileImage.visible = true;
+					profileImage.includeInLayout = true;
+					personalInformationBox.percentWidth = 70;
+				}
+				else
+				{
+					profileImage.visible = false;
+					profileImage.includeInLayout = false;
+					personalInformationBox.percentWidth = 100;
 				}
 			}
 			
@@ -552,10 +567,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									  enabled="{overrideColorCheckBox.selected}"
 									  selectedColor="0xE0E0E0"/>
 			</mx:HBox>
-			<mx:NumericStepper id="rectangleHeightStepper" minimum="2" maximum="50" stepSize="2"/>
+			<mx:NumericStepper id="rectangleHeightStepper" maximum="50" minimum="2" stepSize="2"/>
 		</mx:VBox>
 		<mx:VBox id="toolOptions" label="{lang('Top UI Controls')}">
-			<mx:CheckBox id="showTopUICheckBox" label="Show Top UI" />
+			<mx:HBox>
+				<mx:CheckBox id="showTopUICheckBox" label="Show Top UI"/>
+				<mx:CheckBox id="showProfilePicture" label="Show Profile Picture"/>
+			</mx:HBox>
 			<ui:DynamicColumnComponent id="imageCol" label="{lang('Profile image')}"/>
 			<ui:DynamicColumnComponent id="profileFirstCol" label="{lang('First line')}"/>
 			<ui:DynamicColumnComponent id="profileSecondCol" label="{lang('Second line')}"/>
