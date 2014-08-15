@@ -2,7 +2,6 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.ui.infomap.layout.InfoMapBackgroundImage"/>
-    <classEntry path="weave.visualization.tools.IndividualTestTool"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -27,11 +27,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:HBox id="profileArea" width="100%" height="30%">
 		<mx:Canvas id="profileImage" width="30%" height="100%" backgroundColor="0xF443DC"/>
 		<mx:Box id="personalInformationBox" width="70%" height="100%" direction="vertical">
-			<mx:Label id="infoLine1" text="test1"/>
-			<mx:Label id="infoLine2" text="test2"/>
-			<mx:Label id="infoLine3" text="test3"/>
-			<mx:Label id="infoLine4" text="test4"/>
-			<mx:Label id="infoLine5" text="test5"/>
+			<mx:Label id="infoLine1"/>
+			<mx:Label id="infoLine2"/>
+			<mx:Label id="infoLine3"/>
+			<mx:Label id="infoLine4"/>
+			<mx:Label id="infoLine5"/>
 		</mx:Box>
 		<mx:Button id="lockButton" label="{lang('Lock Record')}" click="lockRecordClick(event)"/>
 	</mx:HBox>
@@ -58,12 +58,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.BitmapText;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
-			import weave.visualization.plotters.IndividualTestPlotter;
+			import weave.visualization.plotters.IndividualRecordToolPlotter;
 			
 			//This allows for setSelected to be used with the overrideColor checkbox.
 			use namespace mx_internal;
 			
-			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, IndividualTestTool, "IndividualTestTool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, IndividualRecordTool, "Individual Record Tool");
 			
 			//Begin top UI section variables
 			
@@ -97,14 +97,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _probe:KeySet = Weave.defaultProbeKeySet; 
 			
 			[Bindable]
-			public var plotter:IndividualTestPlotter = null;
+			public var plotter:IndividualRecordToolPlotter = null;
 			
 			override protected function constructor():void
 			{
 				super.constructor();
 				
 				// lock dynamic objects into place
-				plotter = initializePlotters(IndividualTestPlotter, true);
+				plotter = initializePlotters(IndividualRecordToolPlotter, true);
 				
 				visualization.enableProbeLine(true, true);
 				
@@ -248,6 +248,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(plotter.startTimeCol.getInternalColumn() && attrToIncludeCheckList[startColIndex])
 					columns.push(plotter.startTimeCol.getInternalColumn());
 				
+				var filterByColIndex:int = attributes.indexOf(plotter.filterCol);
+				if(plotter.filterCol.getInternalColumn() && attrToIncludeCheckList[filterByColIndex])
+					columns.push(plotter.filterCol.getInternalColumn());
+				
 				var uniqueYValues:int = findUniqueYValues();
 				if( uniqueYValues != 0 )
 					yAxisPlotter.tickCountRequested.value = uniqueYValues + 3;
@@ -343,6 +347,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( (_selection.keys.length == 1 || _probe.keys.length == 1 || _recordKeySubset.keys.length == 1) && !_locked.value)
 				{
+					//Set a key that we will use to filter by.
+					if( _recordKeySubset.keys.length == 1 )
+						plotter.subsetKey = _recordKeySubset.keys[0];
+					else if( _probe.keys.length == 1)
+						plotter.subsetKey = _probe.keys[0];
+					else if( _selection.keys.length == 1)
+						plotter.subsetKey = _selection.keys[0];
+					//Trigger the plotter to update based off our filtering criteria.
+					getCallbackCollection(plotter).triggerCallbacks();
+					//Function calls to update the top UI based off of a new record being singled out.
 					handlePictureChange();
 					columnLine1Update();
 					columnLine2Update();
@@ -527,6 +541,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.sizeBy"/>
 			<ui:DynamicColumnComponent id="startCol" label="{lang('Start Time')}"
 									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.startTimeCol"/>
+			<ui:DynamicColumnComponent id="filterByCol" label="{lang('Filter Column')}"
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.filterCol"/>
 			<mx:HBox>
 				<mx:CheckBox id="overrideColorCheckBox" label="{lang('Override global color')}"
 							 change="handleOverrideColor(event)"/>

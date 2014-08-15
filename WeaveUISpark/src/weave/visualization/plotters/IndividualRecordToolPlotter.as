@@ -46,11 +46,11 @@ package weave.visualization.plotters
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
-	public class IndividualTestPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
+	public class IndividualRecordToolPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, IndividualTestPlotter, "IndividualTestTool");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, IndividualRecordToolPlotter, "Individual Record Tool");
 		
-		public function IndividualTestPlotter()
+		public function IndividualRecordToolPlotter()
 		{
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
@@ -59,11 +59,16 @@ package weave.visualization.plotters
 			filteredStartTimeCol.filter.requestLocalObject(FilteredKeySet, true);
 			
 			registerSpatialProperty(startTimeCol);
+			registerSpatialProperty(filterCol);
 			
 			linkSessionState(_filteredKeySet.keyFilter, filteredStartTimeCol.filter);
+			linkSessionState(_filteredKeySet.keyFilter, filteredFilterCol.filter);
 		}
 		
 		protected const filteredStartTimeCol:FilteredColumn = newDisposableChild(this, FilteredColumn);
+		protected const filteredFilterCol:FilteredColumn = newDisposableChild(this, FilteredColumn);
+		
+		public var subsetKey:IQualifiedKey = null;
 		
 		//Statistics for the column that contains the start times for a given date.
 		protected const statsStartTime:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredStartTimeCol));
@@ -72,6 +77,10 @@ package weave.visualization.plotters
 		public function get startTimeCol():DynamicColumn
 		{
 			return filteredStartTimeCol.internalDynamicColumn;
+		}
+		public function get filterCol():DynamicColumn
+		{
+			return filteredFilterCol.internalDynamicColumn;
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -169,6 +178,13 @@ package weave.visualization.plotters
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
+			//Check filter to see if this record should be drawn.
+			if( subsetKey != null )
+			{
+				var nameCheck:* = filterCol.getValueFromKey(subsetKey);
+				if( nameCheck != filterCol.getValueFromKey(recordKey) )
+					return;
+			}
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 			

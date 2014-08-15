@@ -93,7 +93,7 @@ package
 	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
-	import weave.visualization.tools.IndividualTestTool;
+	import weave.visualization.tools.IndividualRecordTool;
 	import weave.visualization.tools.KeyMappingTool;
 	import weave.visualization.tools.LayerSettingsTool;
 	import weave.visualization.tools.LineChartTool;
@@ -196,7 +196,7 @@ package
 				TreeTool,
 				KeyMappingTool,
 				LayerSettingsTool,
-				IndividualTestTool
+				IndividualRecordTool
 			]);
 			
 			/**
