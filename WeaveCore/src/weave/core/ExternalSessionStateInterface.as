@@ -466,10 +466,7 @@ package weave.core
 		
 		private static function externalError(format:String, ...args):void
 		{
-			var prefix:String = "Error: ";
-			if (format.indexOf(prefix) != 0)
-				format = prefix + format;
-			WeaveAPI.externalError(StandardLib.substitute(format, args));
+			throw new Error(StandardLib.substitute(format, args));
 		}
 		
 		private static function externalWarning(format:String, ...args):void
