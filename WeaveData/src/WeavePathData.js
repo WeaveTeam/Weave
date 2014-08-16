@@ -202,15 +202,13 @@ weave.WeavePath.prototype.initProperties = function(property_descriptor_array, m
     return manifest;
 };
 
+/**
+ * Gets a mapping from child name to a WeavePath for that child.
+ */
 weave.WeavePath.prototype.getProperties = function(/*...relativePath*/)
 {
-    var names = this.getNames.apply(this, arguments);
     var result = {};
-    for (var idx = 0; idx < names.length; idx++)
-    {
-        name = names[idx];
-        result[name] = this.push(name);
-    }
+    this.getNames.apply(this, arguments).forEach(function(name) { result[name] = this.push(name); }, this);
     return result;
 };
 
@@ -329,49 +327,23 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
  * the column names will also be used as the corresponding property names in the resultant records.
  * An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, e.g.,
  * path.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
- * If it is omitted, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
+ * If it is null, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
  * The alphanumeric QualifiedKey for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
  * @param keySetPath A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
  * @return An array of record objects.
  */
-weave.WeavePath.prototype.retrieveRecords = function(/* [pathMapping], [keySetPath]  */)
+weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 {
-    /* check the types and length of the arguments */
+	// if only one argument given and it's a WeavePath object, assume it's supposed to be keySetPath.
+	if (arguments.length == 1 && pathMapping instanceof weave.WeavePath)
+	{
+		keySetPath = pathMapping;
+		pathMapping = null;
+	}
+	
+	if (!pathMapping)
+		pathMapping = this.getNames();
 
-    var pathMapping = null;
-    var keySetPath = null;
-
-    // if no arguments, get all child names
-    if (arguments.length == 0)
-        pathMapping = this.getNames();
-
-    // one argument
-    if (arguments.length == 1)
-    {
-        if (arguments[0] instanceof weave.WeavePath)
-        {
-            // first argument is keySetPath
-            keySetPath = arguments[0];
-            // get all child names
-            pathMapping = this.getNames();
-        }
-        else
-        {
-            // first argument is pathMapping
-            pathMapping = arguments[0];
-        }
-    }
-    
-    // two arguments: pathMapping, keySetPath
-    if (arguments.length == 2)
-    {
-        pathMapping = arguments[0];
-        keySetPath = arguments[1];
-    }
-
-    var chains; // array of property chains
-    var paths; // array of WeavePath objects
-    
     if (Array.isArray(pathMapping)) // array of child names
     {
         var names = pathMapping;
@@ -381,16 +353,14 @@ weave.WeavePath.prototype.retrieveRecords = function(/* [pathMapping], [keySetPa
     
     // pathMapping is a nested object mapping property chains to WeavePath objects
     var obj = listChainsAndPaths(pathMapping);
-    chains = obj.chains;
-    paths = obj.paths;
     
     /* Perform the actual retrieval of records */
-    var results = joinColumns(paths, null, true, keySetPath);
+    var results = joinColumns(obj.paths, null, true, keySetPath);
     return results[0]
         .map(this.qkeyToString)
         .map(function(key, iRow) {
             var record = {id: key};
-            chains.forEach(function(chain, iChain){
+            obj.chains.forEach(function(chain, iChain){
                 setChain(record, chain, results[iChain + 1][iRow])
             });
             return record;
@@ -449,15 +419,20 @@ var joinColumns = weave.evaluateExpression(null, "ColumnUtils.joinColumns", null
  * @param root The object to navigate through.
  * @param property_chain An array of property names defining a path.
  * @param value The value to which to set the final node.
- * @return The value that was set.
+ * @return The value that was set, or the current value if no value was given.
  */
 var setChain = function(root, property_chain, value)
 {
     property_chain = [].concat(property_chain); // makes a copy and converts a single string into an array
-    last_property = property_chain.pop();
-    last_node = getChain(root, property_chain);
-    last_node[last_property] = value;
-    return value;
+    var last_property = property_chain.pop();
+    property_chain.forEach(function(prop) {
+    	root = root[prop] || (root[prop] = {});
+    });
+    // if value not given, return current value
+    if (arguments.length == 2)
+    	return root[last_property];
+    // set the value and return it
+    return root[last_property] = value;
 };
 
 /**
@@ -469,27 +444,22 @@ var setChain = function(root, property_chain, value)
  */
 var getChain = function(root, property_chain)
 {
-    if (!Array.isArray(property_chain))
-        property_chain = [property_chain];
-    property_chain.forEach(function(prop) {
-        root = root[prop] || (root[prop] = {});
-    });
-    return root;
+	return setChain(root, property_chain);
 };
 
 /**
  * @private
  * Recursively builds a mapping of property chains to WeavePath objects from a path specification as used in retrieveRecords
  * @param obj A path spec object
- * @param prefix A property chain prefix
- * @param output Output object
+ * @param prefix A property chain prefix (optional)
+ * @param output Output object with "chains" and "paths" properties (optional)
  * @return An object like {"chains": [], "paths": []}, where "chains" contains property name chains and "paths" contains WeavePath objects
  */
 var listChainsAndPaths = function(obj, prefix, output)
 {
-    if (prefix === undefined)
+    if (!prefix)
         prefix = [];
-    if (output === undefined)
+    if (!output)
         output = {chains: [], paths: []};
     
     for (var key in obj)
