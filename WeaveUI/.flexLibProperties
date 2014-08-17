@@ -4,6 +4,7 @@
     <classEntry path="weave.ui.infomap.layout.InfoMapBackgroundImage"/>
     <classEntry path="weave.ui.infomap.layout.NodeGroup"/>
     <classEntry path="weave.ui.infomap.ui.NodeGroupSettingsPanel"/>
+    <classEntry path="weave.visualization.tools.IndividualRecordTool"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

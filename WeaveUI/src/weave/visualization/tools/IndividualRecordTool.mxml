@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+This file is a part of Weave.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with Weave. If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<SimpleVisTool xmlns="weave.visualization.tools.*"
+			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:ui="weave.ui.*"
+			   xmlns:editors="weave.editors.*">
+	<mx:HBox id="profileArea" width="100%" height="30%">
+		<mx:Canvas id="profileImage" width="30%" height="100%" backgroundColor="0xA3A3A3"/>
+		<mx:Box id="personalInformationBox" width="70%" height="100%" direction="vertical">
+			<mx:Label id="infoLine1"/>
+			<mx:Label id="infoLine2"/>
+			<mx:Label id="infoLine3"/>
+			<mx:Label id="infoLine4"/>
+			<mx:Label id="infoLine5"/>
+		</mx:Box>
+		<mx:Button id="lockButton" label="{lang('Lock Record')}" click="lockRecordClick(event)"/>
+	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newDisposableChild;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.ColorColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.ImageColumn;
+			import weave.data.KeySets.FilteredKeySet;
+			import weave.data.KeySets.KeySet;
+			import weave.ui.AttributeSelectorPanel;
+			import weave.utils.BitmapText;
+			import weave.utils.BitmapUtils;
+			import weave.utils.ColumnUtils;
+			import weave.visualization.plotters.IndividualRecordToolPlotter;
+			//This allows for setSelected to be used with the overrideColor checkbox.
+			use namespace mx_internal;
+			WeaveAPI.registerImplementation(IVisTool, IndividualRecordTool, "Individual Record Tool");
+			//Begin top UI section variables
+			//Sessioned variables for tracking visibility preferences.
+			public const showTopUI:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateTopUI);
+			public const showProfilePic:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateTopUI);
+			//Columns for the top UI to draw data from.
+			public const profilePicturesColumn:ImageColumn = newLinkableChild(this, ImageColumn, handlePictureChange, true);
+			public const firstProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine1Update, true);
+			public const secondProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine2Update, true);
+			public const thirdProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine3Update, true);
+			public const fourthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine4Update, true);
+			public const fifthProfileColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, columnLine5Update, true);
+			//Sessioned variables that store any leading text the user may desire.
+			public const line1LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine1);
+			public const line2LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine2);
+			public const line3LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine3);
+			public const line4LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine4);
+			public const line5LeadingText:LinkableString = registerLinkableChild(this, new LinkableString(""), updateLine5);
+			//Variables used in functions below for proper string modifications.
+			private var previousText1:String;
+			private var previousText2:String;
+			private var previousText3:String;
+			private var previousText4:String;
+			private var previousText5:String;
+			//Variable indicating if the record tool should stay locked on what records it currently has.
+			public const _locked:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateLockLabel);
+			//End top UI variable code.
+			//Test variables for subsetting.
+			public const _recordKeySubset:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet;
+			[Bindable]
+			public var plotter:IndividualRecordToolPlotter = null;
+			override protected function constructor():void
+			{
+				super.constructor();
+				// lock dynamic objects into place
+				plotter = initializePlotters(IndividualRecordToolPlotter, true);
+				//Probe line for the visualization.
+				visualization.enableProbeLine(true, true);
+				//Axis label callbacks.
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
+				//Don't want the user to be able to move or zoom on this visualization.
+				visualization.enableZoomAndPan.value = false;
+				//Set label functions for both of the plotters.
+				xAxisPlotter.setLabelFunction(labelFunctionX, plotter.dataX);
+				yAxisPlotter.setLabelFunction(labelFunctionY, plotter.dataY);
+				//Make the labels horizontal to match up to the cells.
+				yAxisPlotter.axisLabelRelativeAngle.value = 90;
+				//Callbacks for when the user clicks an axis directly and wishes to set an attribute by doing so.
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataX); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataY); })
+				//Keeps the axes clean and lined up with the data well.
+				visualization.enableAutoZoomXToNiceNumbers.value = true;
+				visualization.enableAutoZoomYToNiceNumbers.value = true;
+				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
+				//Callbacks for updating the probe when a column changes.
+				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
+				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
+				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
+				plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
+				plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+				//Top UI code. Sets up the keyfilters for seeing if a record has been selected, probed, or subsetted.
+				_recordKeySubset.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				_recordKeySubset.setColumnKeySources([profilePicturesColumn,firstProfileColumn,secondProfileColumn,thirdProfileColumn,fourthProfileColumn,fifthProfileColumn]);
+				_recordKeySubset.addGroupedCallback(this, handleSubsetChange);
+				_probe.addGroupedCallback(this, handleSubsetChange);
+				_selection.addGroupedCallback(this, handleSubsetChange);
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				//Set the visualization sizes so that it fits the tool nicely with the top UI.
+				visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginLeft.value = "90";
+				visualization.plotManager.marginRight.value = "30";
+				//Linking plotter sessioned variables to the UI.
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
+				linkBindableProperty(plotter.defaultScreenRectangleHeight, this.rectangleHeightStepper, "value");
+				//Top UI code.
+				//Linking the top UI visibility sessioning variables to their UI equivalents.
+				linkBindableProperty(showTopUI, this.showTopUICheckBox, "selected");
+				linkBindableProperty(showProfilePic, this.showProfilePicture, "selected");
+				previousText1 = line1LeadingText.value;
+				previousText2 = line1LeadingText.value;
+				previousText3 = line1LeadingText.value;
+				previousText4 = line1LeadingText.value;
+				previousText5 = line1LeadingText.value;
+				imageCol.dynamicObject = profilePicturesColumn;
+				profileFirstCol.dynamicObject = firstProfileColumn;
+				profileSecondCol.dynamicObject = secondProfileColumn;
+				profileThirdCol.dynamicObject = thirdProfileColumn;
+				profileFourthCol.dynamicObject = fourthProfileColumn;
+				profileFifthCol.dynamicObject = fifthProfileColumn;
+				linkBindableProperty(line1LeadingText, this.infoLine1FrontText1, "text");
+				linkBindableProperty(line2LeadingText, this.infoLine1FrontText2, "text");
+				linkBindableProperty(line3LeadingText, this.infoLine1FrontText3, "text");
+				linkBindableProperty(line4LeadingText, this.infoLine1FrontText4, "text");
+				linkBindableProperty(line5LeadingText, this.infoLine1FrontText5, "text");
+			}
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
+			//Function to include all of the attributes in the probe.
+			private function handleSelectAllAttrInProbe(setAll:Boolean):void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var valuesToSet:Array = [];
+				if(setAll)
+				{
+					for each (var name:String in attributes)
+					{
+						valuesToSet.push(true);
+					}
+				}
+				else
+				{
+					for each (var name2:String in attributes)
+					{
+						valuesToSet.push(false);
+					}
+				}
+				attributesToIncludeInProbe.setSessionState(valuesToSet);
+			}
+			//Updates the probe to contain all of the columns in the tool.
+			private function updateProbeColumns():void
+			{
+				if (!parent)
+				{
+					callLater(updateProbeColumns);
+					return;
+				}
+				/* first check to see if select all should be disabled or not */
+				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
+					probeColumnsCheckBox.selected = true;
+				var attributes:Array = getSelectableAttributes();
+				var columns:Array = [];
+				//Setting up all the columns in a list for the probe.
+				var dataXColIndex:int = attributes.indexOf(plotter.dataX);
+				if (plotter.dataX.getInternalColumn() && attrToIncludeCheckList[dataXColIndex])
+					columns.push(plotter.dataX.getInternalColumn());
+				var dataYColIndex:int = attributes.indexOf(plotter.dataY);
+				if (plotter.dataY.getInternalColumn() && attrToIncludeCheckList[dataYColIndex])
+					columns.push(plotter.dataY.getInternalColumn());
+				var colorColIndex:int = attributes.indexOf(plotter.fill.color);
+				if (plotter.fill.color.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
+					columns.push(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
+				var sizeColIndex:int = attributes.indexOf(plotter.sizeBy);
+				if(plotter.sizeBy.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
+					columns.push(plotter.sizeBy.getInternalColumn());
+				var startColIndex:int = attributes.indexOf(plotter.startTimeCol);
+				if(plotter.startTimeCol.getInternalColumn() && attrToIncludeCheckList[startColIndex])
+					columns.push(plotter.startTimeCol.getInternalColumn());
+				var filterByColIndex:int = attributes.indexOf(plotter.filterCol);
+				if(plotter.filterCol.getInternalColumn() && attrToIncludeCheckList[filterByColIndex])
+					columns.push(plotter.filterCol.getInternalColumn());
+				//This section discovers how many unique attributes we have for the Y-Axis and auto-sets the tick marks accordingly.
+				var uniqueYValues:int = findUniqueYValues();
+				if( uniqueYValues != 0 )
+					yAxisPlotter.tickCountRequested.value = uniqueYValues + 3;
+				visualization.additionalProbeColumns = columns;
+			}
+			//Helper function to identify the unique attribute count of a column.
+			private function findUniqueYValues():int
+			{
+				var tempArray:Array = [];
+				for( var i:int = 0; i < plotter.dataY.keys.length; i++ )
+				{
+					if( tempArray.indexOf(plotter.dataY.getValueFromKey(plotter.dataY.keys[i])) == -1 )
+						tempArray.push(plotter.dataY.getValueFromKey(plotter.dataY.keys[i]));
+				}
+				return tempArray.length;
+			}
+			override public function get defaultPanelTitle():String
+			{
+				return lang("Individual Record Tool");
+			}
+			//Callback to ensure the axis label names are always updated on the plotter.
+			private function updateAxisLabels():void
+			{
+				visualization.bottomMarginColumn = plotter.dataX;
+				visualization.leftMarginColumn = plotter.dataY;
+				xAxisPlotter.setSideAxisName(
+					ColumnUtils.getTitle(plotter.dataX),
+					0,
+					0, visualization.plotManager.marginBottomNumber.value - 3,
+					BitmapText.VERTICAL_ALIGN_BOTTOM
+				);
+				yAxisPlotter.setSideAxisName(
+					ColumnUtils.getTitle(plotter.dataY),
+					-90,
+					-visualization.plotManager.marginLeftNumber.value, 0,
+					BitmapText.VERTICAL_ALIGN_TOP
+				);
+			}
+			//Standard label function for the X axis for the plotter to use.
+			public function labelFunctionX(value:Number):String
+			{
+				return ColumnUtils.deriveStringFromNumber(plotter.dataX, value);
+			}
+			//Standard label function for the Y axis for the plotter to use.
+			public function labelFunctionY(value:Number):String
+			{
+				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
+			}
+			//Top UI code begins here.
+			//Updates the text in the lock label whenever it is pressed.
+			private function updateLockLabel():void
+			{
+				if( _locked.value )
+					lockButton.label = lang("Unlock Record");
+				else
+					lockButton.label = lang("Lock Record");
+			}
+			//Lock record button click event function.
+			protected function lockRecordClick(event:MouseEvent):void
+			{
+				_locked.value = ( lockButton.label == lang("Lock Record") ) ? true : false;
+				if( _locked.value )
+					lockButton.label = lang("Unlock Record");
+				else
+					lockButton.label = lang("Lock Record");
+			}
+			private function updateTopUI():void
+			{
+				//Show/hide top UI section.
+				if( showTopUI.value )
+				{
+					//Show the top UI.
+					profileArea.visible = true;
+					profileArea.includeInLayout = true;
+					//Resize the plotter.
+					visualization.plotManager.marginTop.value = (profileArea.percentHeight+5).toString()+"%";
+				}
+				else
+				{
+					//Hide the top UI.
+					profileArea.visible = false;
+					profileArea.includeInLayout = false;
+					//Resize the plotter.
+					visualization.plotManager.marginTop.value = "30";
+				}
+				//Show/hide profile picture section.
+				if( showProfilePic.value )
+				{
+					//Show the profile picture.
+					profileImage.visible = true;
+					profileImage.includeInLayout = true;
+					personalInformationBox.percentWidth = 70;
+				}
+				else
+				{
+					//Hide the profile picture.
+					profileImage.visible = false;
+					profileImage.includeInLayout = false;
+					personalInformationBox.percentWidth = 100;
+				}
+			}
+			private function handleSubsetChange():void
+			{
+				if( (_selection.keys.length == 1 || _probe.keys.length == 1 || _recordKeySubset.keys.length == 1) && !_locked.value)
+				{
+					//Set a key that we will use to filter by.
+					if( _recordKeySubset.keys.length == 1 )
+						plotter.subsetKey = _recordKeySubset.keys[0];
+					else if( _probe.keys.length == 1)
+						plotter.subsetKey = _probe.keys[0];
+					else if( _selection.keys.length == 1)
+						plotter.subsetKey = _selection.keys[0];
+					//Trigger the plotter to update based off our filtering criteria.
+					getCallbackCollection(plotter).triggerCallbacks();
+					plotter.spatialCallbacks.triggerCallbacks();
+					//Function calls to update the top UI based off of a new record being singled out.
+					handlePictureChange();
+					columnLine1Update();
+					columnLine2Update();
+					columnLine3Update();
+					columnLine4Update();
+					columnLine5Update();
+				}
+			}
+			//Function to update the profile picture.
+			private function handlePictureChange():void
+			{
+				if( _recordKeySubset.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData);
+				else if( _probe.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData);
+				else if( _selection.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData) != null)
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData);
+			}
+			//Set of functions for updating the value being drawn from the personalInformationBox columns.
+			private function columnLine1Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && firstProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && firstProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine1.text = line1LeadingText.value + (firstProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText1 = line1LeadingText.value;
+				}
+			}
+			private function columnLine2Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && secondProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && secondProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine2.text = line2LeadingText.value + (secondProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText2 = line2LeadingText.value;
+				}
+			}
+			private function columnLine3Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && thirdProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && thirdProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine3.text = line3LeadingText.value + (thirdProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText3 = line3LeadingText.value;
+				}
+			}
+			private function columnLine4Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && fourthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && fourthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine4.text = line4LeadingText.value + (fourthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText4 = line4LeadingText.value;
+				}
+			}
+			private function columnLine5Update():void
+			{
+				if( _recordKeySubset.keys.length == 1 && fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_recordKeySubset.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+				else if( _probe.keys.length == 1 && fifthProfileColumn.getValueFromKey(_probe.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_probe.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+				else if( _selection.keys.length == 1 && fifthProfileColumn.getValueFromKey(_selection.keys[0]) != null)
+				{
+					infoLine5.text = line5LeadingText.value + (fifthProfileColumn.getValueFromKey(_selection.keys[0]) as Object).toString();
+					previousText5 = line5LeadingText.value;
+				}
+			}
+			//Set of functions to update the text lines being displayed.
+			private function updateLine1():void
+			{
+				infoLine1.text = line1LeadingText.value + infoLine1.text.replace(previousText1,"");
+				previousText1 = line1LeadingText.value;
+			}
+			private function updateLine2():void
+			{
+				infoLine2.text = line2LeadingText.value + infoLine2.text.replace(previousText2,"");
+				previousText2 = line2LeadingText.value;
+			}
+			private function updateLine3():void
+			{
+				infoLine3.text = line3LeadingText.value + infoLine3.text.replace(previousText3,"");
+				previousText3 = line3LeadingText.value;
+			}
+			private function updateLine4():void
+			{
+				infoLine4.text = line4LeadingText.value + infoLine4.text.replace(previousText4,"");
+				previousText4 = line4LeadingText.value;
+			}
+			private function updateLine5():void
+			{
+				infoLine5.text = line5LeadingText.value + infoLine5.text.replace(previousText5,"");
+				previousText5 = line5LeadingText.value;
+			}
+			//Top UI code ends here.
+			//Code section for handling the ColorColumn being changed.
+			private var _prevGlobalColorColumnName:String = null;
+			private function handleColorColumnChange():void
+			{
+				var newName:String = plotter.fill.color.internalDynamicColumn.globalName;
+				if (newName)
+					_prevGlobalColorColumnName = newName;
+			}
+			private function handlePlotterFillColor():void
+			{
+				overrideColorCheckBox.setSelected(!plotter.fill.color.getInternalColumn());
+				var color:Number = StandardLib.asNumber(plotter.fill.color.defaultValue.value);
+				if (isFinite(color))
+					overrideColorPicker.selectedColor = color;
+			}
+			//Handles when the color is being overriden by the user.
+			private function handleOverrideColor(event:Event):void
+			{
+				if (!UIUtils.hasFocus(overrideColorCheckBox) && !overrideColorPicker.hasFocus)
+					return;
+				if (overrideColorCheckBox.selected)
+				{
+					plotter.fill.color.defaultValue.value = overrideColorPicker.selectedColor;
+					plotter.fill.color.internalDynamicColumn.removeObject();
+				}
+				else
+				{
+					plotter.fill.color.defaultValue.value = NaN;
+					plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
+				}
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<ui:DynamicColumnComponent label="{lang('Sort')}" helpContent="This should contain data pertaining to the dates/hours."
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
+			<ui:DynamicColumnComponent label="{lang('Attributes')}" helpContent="Column that contains descriptions of various attributes."
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
+			<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}"
+									   creationComplete="(event.target as DynamicColumnComponent).columnWrapper = plotter.fill.color"
+									   showLinkControl="false"/>
+			<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}" helpContent="This column should contain duration information. For example hours/days of length."
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.sizeBy"/>
+			<ui:DynamicColumnComponent id="startCol" label="{lang('Start Time')}" helpContent="If there is a start hour involved set this column."
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.startTimeCol"/>
+			<ui:DynamicColumnComponent id="filterByCol" label="{lang('Filter Column')}" helpContent="This column contains the column that will be used to filter out which records shall be drawn."
+									   creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.filterCol"/>
+			<mx:HBox>
+				<mx:CheckBox id="overrideColorCheckBox" label="{lang('Override global color')}"
+							 change="handleOverrideColor(event)"/>
+				<ui:CustomColorPicker id="overrideColorPicker" change="handleOverrideColor(event)"
+									  enabled="{overrideColorCheckBox.selected}"
+									  selectedColor="0xE0E0E0"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Record rectangle size" />
+				<mx:NumericStepper id="rectangleHeightStepper" maximum="50" minimum="2" stepSize="2"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox id="toolOptions" label="{lang('Top UI Controls')}">
+			<mx:HBox>
+				<mx:CheckBox id="showTopUICheckBox" label="Show Top UI"/>
+				<mx:CheckBox id="showProfilePicture" label="Show Profile Picture"/>
+			</mx:HBox>
+			<ui:DynamicColumnComponent id="imageCol" label="{lang('Profile image')}"/>
+			<ui:DynamicColumnComponent id="profileFirstCol" label="{lang('First line')}"/>
+			<ui:DynamicColumnComponent id="profileSecondCol" label="{lang('Second line')}"/>
+			<ui:DynamicColumnComponent id="profileThirdCol" label="{lang('Third line')}"/>
+			<ui:DynamicColumnComponent id="profileFourthCol" label="{lang('Fourth line')}"/>
+			<ui:DynamicColumnComponent id="profileFifthCol" label="{lang('Fifth line')}"/>
+			<mx:HBox>
+				<mx:Label text="Line 1 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText1"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 2 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText2"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 3 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText3"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 4 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText4"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Line 5 leading text:"/>
+				<mx:TextInput id="infoLine1FrontText5"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox"
+										  label="{lang('Include tool attributes in mouseover info')}"
+										  change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}"/>
+			</ui:CheckBoxWithNestedOptions>
+		</mx:VBox>
+	</ui:ControlPanel>
+</SimpleVisTool>
