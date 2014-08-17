@@ -1,5 +1,8 @@
 package infomap.scheduler;
 
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
@@ -11,7 +14,6 @@ import java.util.concurrent.Future;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import org.quartz.DateBuilder.IntervalUnit;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -20,11 +22,6 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.DateBuilder;
-
-import static org.quartz.SimpleScheduleBuilder.*;
-import static org.quartz.TriggerBuilder.*;
 import org.quartz.impl.StdSchedulerFactory;
 
 public final class SolrScheduler extends HttpServlet{

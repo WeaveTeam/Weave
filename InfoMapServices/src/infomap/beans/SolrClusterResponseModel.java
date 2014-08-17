@@ -1,6 +1,5 @@
 package infomap.beans;
 
-import java.util.ArrayList;
 
 public class SolrClusterResponseModel {
 	public SolrResponseHeader responseHeader;

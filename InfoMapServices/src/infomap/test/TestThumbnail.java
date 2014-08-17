@@ -1,7 +1,5 @@
 package infomap.test;
 
-import java.util.ArrayList;
-
 import infomap.scheduler.GenerateThumbnailJob;
 
 public class TestThumbnail {

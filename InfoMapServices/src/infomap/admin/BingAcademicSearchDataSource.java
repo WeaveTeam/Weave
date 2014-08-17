@@ -21,7 +21,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.google.gson.Gson;
-import com.sun.syndication.feed.atom.Entry;
 import com.sun.syndication.feed.synd.SyndEntryImpl;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedInput;

@@ -1,5 +1,22 @@
 package infomap.scheduler;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -13,20 +30,9 @@ import org.quartz.JobExecutionContext;
 import weave.utils.CommandUtils;
 import weave.utils.FileUtils;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.net.URL;
-import java.security.MessageDigest;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import com.maxstocker.jdoctopdf.doctree.DocumentElement;
 import com.maxstocker.jdoctopdf.parsers.DocParser;
 import com.maxstocker.jdoctopdf.writers.PDFWriter;
-import java.util.concurrent.Future;
 
 
 /**
