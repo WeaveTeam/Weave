@@ -28,6 +28,7 @@ package
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.Histogram2DPlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.IndividualRecordToolPlotter;
 	import weave.visualization.plotters.RectanglePlotter;
 	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SimpleGlyphPlotter;
@@ -57,6 +58,7 @@ package
 			ImageGlyphPlotter,
 			RectanglePlotter,
 			ScatterPlotPlotter,
+			IndividualRecordToolPlotter,
 			SimpleGlyphPlotter,
 			SingleImagePlotter,
 			WMSPlotter
