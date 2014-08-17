@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	paddingLeft="5"
+	paddingTop="5"
+	label="Basic">
+	<mx:HBox>
+		<mx:Label text="Edit Query: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:TextInput id="keyword" keyDown="handleEnterKey(event)"/>
+		<mx:Button label="Apply" click="applyKeyword()"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:ComboBox id="operator"/>
+	</mx:HBox>
+	<mx:HBox visible="false">
+		<mx:Label text="Sorted By: " fontWeight="bold" width="{_leftAlignWidth}"/>
+		<mx:ComboBox id="sortByComboBox"/>
+	</mx:HBox>
+	<mx:HBox visible="false">
+		<mx:Label text="Source Type: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:ComboBox id="sourceType" change="handleSourceTypeChange()"/>
+	</mx:HBox>
+	<mx:Label text="Set a Date Range" fontWeight="bold"  />
+	<mx:HBox>
+		<mx:VBox>
+			<mx:Label fontWeight="normal" text="Start Date"/>				
+			<mx:DateChooser id="startRange" change="handleStartDateChange()" showToday="false"/>
+		</mx:VBox>
+		<mx:VBox>
+			<mx:Label fontWeight="normal" text="End Date"/>
+			<mx:DateChooser id="endRange" change="handleEndDateChange()" showToday="false"/>
+		</mx:VBox>
+	</mx:HBox>
+	
+	<mx:HBox>
+		<mx:ComboBox change="handleDateFilterComboBoxChange()" id="rangeComboBox"/> <!--The Combo Box is not linked to the filterObject-->
+		<mx:Button label="Remove Date Filter" click="handleClearDates()"/>
+	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.core.LinkableString;
+			import weave.primitives.DateRangeFilter;
+			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.DateUtils;
+			
+			[Inspectable]
+			public var query:QueryObject= null;
+			
+			private var _nodeHandler:NodeHandler = null;
+			public function set nodeHandler(value:Object):void
+			{
+				if(value is NodeHandler)
+				{
+					_nodeHandler = value as NodeHandler;
+					
+				}
+			}
+			
+			private var _dateFilter:DateRangeFilter = null;
+			
+			public function set dateFilter(value:DateRangeFilter):void
+			{
+				_dateFilter = value;
+			}
+			
+			public function get dateFilter():DateRangeFilter
+			{
+				return _dateFilter;
+			}
+			
+			[Bindable]
+			private var _leftAlignWidth:Number = 150;
+			
+			
+			private var startDateStr:LinkableString = new LinkableString('');
+			private var endDateStr:LinkableString = new LinkableString('');
+			
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
+				
+				keyword.text = query.keywords.value;
+				
+				operator.dataProvider = ['OR','AND'];
+				operator.selectedItem = query.operator.value;
+				linkBindableProperty(query.operator,operator,"selectedItem");
+				
+				sourceType.dataProvider = ["","Books"];
+				sourceType.selectedItem = query.sources.value;
+				linkBindableProperty(query.sources,sourceType,"selectedItem");
+				
+				sortByComboBox.dataProvider = QueryObject.sortByOptions
+				sortByComboBox.selectedItem = query.sortBy.value;
+				linkBindableProperty(query.sortBy,sortByComboBox,"selectedItem");
+				
+				query.keywords.addImmediateCallback(this, handleKeywordsChange,false);
+				
+				_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,true);
+				_dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,true);
+				
+				startDateStr.addGroupedCallback(this,handleDateChange);
+				endDateStr.addGroupedCallback(this,handleDateChange);
+			}
+			
+			private function handleKeywordsChange():void
+			{
+				if(query.keywords.value != null)
+				{
+					keyword.text = query.keywords.value;
+				}
+			}
+			
+			private function handleSourceTypeChange():void
+			{
+				if(sourceType.selectedItem == "ALL")
+				{
+					query.sources.value = ""
+				}
+				else if(sourceType.selectedItem == "Books")
+				{
+					query.sources.value = "Books";
+				}
+			}
+			// we only want to make a query if both dates are set. 
+			private function handleDateChange():void
+			{
+				if(startDateStr.value == '' || endDateStr.value == '')
+					return;
+				getCallbackCollection(_dateFilter).delayCallbacks();
+				
+				_dateFilter.startDate.value = startDateStr.value;
+				_dateFilter.endDate.value = endDateStr.value;
+				
+				getCallbackCollection(_dateFilter).resumeCallbacks();
+				//				getCallbackCollection(_dateFilter).triggerCallbacks();				 
+			}
+			
+			private function handleStartDateFilterChange():void
+			{
+				if(_dateFilter.startDate.value != null)
+				{
+					startDateStr.value = _dateFilter.startDate.value;
+					startRange.selectedDate = DateUtils.getDateFromString(_dateFilter.startDate.value);
+					if(_dateFilter.startDate.value.search('NOW') == -1)
+						rangeComboBox.selectedItem = "--Quick Select--";
+				}
+			}
+			
+			private function handleEndDateFilterChange():void
+			{
+				if(_dateFilter.endDate.value != null)
+				{
+					endDateStr.value = _dateFilter.endDate.value;
+					endRange.selectedDate = DateUtils.getDateFromString(_dateFilter.endDate.value);
+				}
+				if(_dateFilter.endDate.value &&  _dateFilter.startDate.value.search('NOW') == -1)
+					rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			private function applyKeyword():void
+			{
+				if(query && keyword)
+					query.keywords.value = keyword.text;
+			}
+			
+			private function handleEnterKey(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					editQuery();
+				}
+			}
+			
+			private function editQuery():void
+			{
+				query.keywords.value = keyword.text;
+			}
+			
+			private function handleEnterKeyOnSearch(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					return;
+				}
+			}
+			
+			private function handleDateFilterComboBoxChange():void
+			{
+				//we set this to empty string so that a query is after the end date is set and before the start date is set
+				startDateStr.value = '';
+				
+				endDateStr.value = 'NOW';
+				if(rangeComboBox.selectedItem == 'Since Last 1 Day')
+				{
+					startDateStr.value = 'NOW-01DAY';
+				}else if(rangeComboBox.selectedItem == 'Since Last 3 Days')
+				{
+					startDateStr.value = 'NOW-03DAYS';
+				}else if(rangeComboBox.selectedItem == 'Since Last Week')
+				{
+					startDateStr.value = 'NOW-07DAYS';
+				}else if(rangeComboBox.selectedItem == 'Since Last Month')
+				{
+					startDateStr.value = 'NOW-01MONTH';
+				}else if(rangeComboBox.selectedItem == 'Since Last Year')
+				{
+					startDateStr.value = 'NOW-12MONTHS';
+				}else if(rangeComboBox.selectedItem == '--Choose--')
+				{
+					//					handleClearDates();
+					//					return;
+				}
+			}
+			
+			private function handleStartDateChange():void
+			{
+				startDateStr.value = startRange.selectedDate.toDateString();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			private function handleEndDateChange():void
+			{
+				endDateStr.value = endRange.selectedDate.toDateString();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			
+			private function handleClearDates():void
+			{
+				//clearning dates in filterObject
+				_dateFilter.endDate.value = '';
+				_dateFilter.startDate.value = '';
+				
+				
+				startRange.selectedDate = null;
+				endRange.selectedDate = null;
+				startRange.invalidateDisplayList();
+				endRange.invalidateDisplayList();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

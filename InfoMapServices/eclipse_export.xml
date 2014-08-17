@@ -1,0 +1,27 @@
+<!-- 
+To use this build script in Eclipse, first set the environment variable TOMCAT_HOME to your tomcat path.
+Then go to the Project Properties for InfoMapServices, then Builders and add this as a builder.
+
+Make sure you set the Target for "After AutoBuild" to be the "dist" target. 
+
+Whenever you build InfoMapServices, this will automatically export the WAR file.
+
+-->
+
+<project name="InfoMapServices" default="dist">
+	<property environment="env"/>
+	<property name="TOMCAT_HOME" value="${env.TOMCAT_HOME}"/>
+    <target name="dist">
+    	<echo message="Deploying InfoMapServices..."/>	
+        <war destfile="build/InfoMapServices.war" webxml="WebContent/WEB-INF/web.xml">
+            <lib dir="../WeaveServletUtils/lib"/>
+            <lib dir="lib"/>
+        	<lib dir="stanford-nlp-lib"/>
+            <classes dir="../WeaveServletUtils/bin/classes"/>
+            <classes dir="build/classes"/>
+            <webinf dir="WebContent/WEB-INF"/>
+            <metainf dir="WebContent/META-INF"/>
+        </war>
+        <move file="build/InfoMapServices.war" tofile="${TOMCAT_HOME}/webapps/InfoMapServices.war"/>
+    </target>
+</project>

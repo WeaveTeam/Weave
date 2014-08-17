@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns="weave.ui.*"
+		 xmlns:mx="http://www.adobe.com/2006/mxml"
+		 >
+	<mx:Label text="Select from current sources"/>
+	<mx:DataGrid itemClick="handleItemClick(event)" selectable="true" id="sourcesList" width="100%">
+		<mx:columns>
+			<mx:DataGridColumn sortCompareFunction="handleBooleanSort" id="sourceCheckBox" width="50" dataField="0" headerText="Select">
+			<mx:itemRenderer>
+				<mx:Component>
+					<mx:CheckBox enabled="{outerDocument.editable}" paddingLeft="5" dataChange="selected=data[0]" change="outerDocument.handleCheckBoxChange(event,data)"/>
+				</mx:Component>
+			</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn dataField="1" headerText="Title"/>
+			<mx:DataGridColumn dataField="2" headerText="URL"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:Button label="Edit" id="editButton" click="addSelectedSources()"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.events.DataGridEvent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.data.CSVParser;
+			import weave.services.InfoMapAdminInterface;
+			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.layout.NodeHandler;
+			
+			
+			private var _query:QueryObject = null;
+			[Inspectable]
+			public function set parentNode(object:QueryObject):void
+			{
+				_query = object;
+				_query.sources.addGroupedCallback(this,handleSources,true);
+			}
+			
+			
+			public var selectedSources:Dictionary = new Dictionary();
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				refreshSourcesList();
+				sourcesList.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, 0, null, 0, null, null, 0));
+			}
+			
+			[Bindable]
+			public var editable:Boolean = false;
+			public function refreshSourcesList():void
+			{
+				var sources:Array = new Array();
+				
+				//setting a value for the checkbox datagrid column.
+				//not sure if this is the right method
+				for each(var feedsRow:Array in InfoMapAdminInterface.instance.rssFeeds)
+				{
+					sources.push([false].concat(feedsRow));
+				}
+				
+				sourcesList.dataProvider = sources;
+				
+				
+				//force sort by selected sources
+//				sourcesList.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, 0, null, 0, null, null, 0));
+//				sourcesList.invalidateDisplayList();
+//				sourcesList.invalidateList();
+//				sourcesList.invalidateProperties();
+//				(sourcesList.dataProvider as ArrayCollection).refresh();
+			}
+
+			private function sortBySelected():void
+			{
+				var dp:ArrayCollection = sourcesList.dataProvider as ArrayCollection;
+				var sort:Sort = new Sort();
+				var sortF:SortField = new SortField("0",true,false);
+				sortF.descending = true;
+				sort.fields = [sortF];
+				dp.sort = sort;
+				dp.refresh();
+			}
+			
+			private function handleBooleanSort(typeOne:Object, typeTwo:Object):int
+			{
+				var result:int = ObjectUtil.stringCompare(String(typeOne[0]),String(typeTwo[0]));
+				return result;
+			}
+			
+			private function handleItemClick(event:Event):void
+			{
+				//disable selection on item click. 
+				//Selection will only be allowed by ticking checkbox.
+				event.preventDefault();	
+			}
+			
+			//defined as public so that outerDocument can access this function
+			public function handleCheckBoxChange(event:Event,dataRow:Object):void
+			{
+				if((event.target).selected)
+				{
+					selectedSources[dataRow[1]] = true;
+					dataRow[0] = true; //we do this because the checkbox in the itemrenderer should know if it has to be selected or not* 
+				}
+				else
+				{
+					dataRow[0] = false //we do this because the checkbox in the itemrenderer should know if it has to be selected or not*						
+					delete selectedSources[dataRow[1]];
+				}
+				
+				//* Read the Recycling Renderers section in this page: http://www.adobe.com/devnet/flex/articles/itemrenderers_pt1.html
+				
+			}
+			
+			private var parser:CSVParser = new CSVParser();
+			private function  addSelectedSources():void
+			{
+				
+				if(editButton.label == 'Edit')
+				{
+					editable = true;
+					editButton.label = 'Done';
+					return;
+				}
+				
+				var selectedSourcesArray:Array = new Array();
+				selectedSourcesArray.push([]);
+				
+				for (var key:String in selectedSources)
+				{
+					selectedSourcesArray[0].push(key);
+				}
+				
+				_query.sources.value = parser.createCSV(selectedSourcesArray);
+				editable = false;
+				editButton.label = 'Edit';
+			}
+			
+			private function handleSources():void
+			{
+				if(!_query.sources.value)
+					return;						
+				
+				
+				var sourceNames:Array = parser.parseCSV(_query.sources.value)[0];
+				
+				var allSources:Array = (sourcesList.dataProvider as ArrayCollection).source;
+				
+				for each (var sourceName:String in sourceNames)
+				{
+					for(var i:int = 0; i<allSources.length; i++)
+					{
+						if(sourceName == allSources[i][1])
+						{
+							allSources[i][0] = true;
+							selectedSources[sourceName] = true;
+							break;
+						}
+					}
+				}
+				sortBySelected();
+			}
+			
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

@@ -340,6 +340,10 @@ package weave
 		//selection location information
 		public const recordsTooltipLocation:LinkableString = new LinkableString(RECORDS_TOOLTIP_LOWER_LEFT, verifyLocationMode);
 		
+		//infomap properties
+		public const enableAutoSave:LinkableBoolean = new LinkableBoolean(false);
+		public const enableInfoMap:LinkableBoolean = new LinkableBoolean(true);
+		
 		public static const RECORDS_TOOLTIP_LOWER_LEFT:String = 'Lower left';
 		public static const RECORDS_TOOLTIP_LOWER_RIGHT:String = 'Lower right';
 		public function get recordsTooltipEnum():Array

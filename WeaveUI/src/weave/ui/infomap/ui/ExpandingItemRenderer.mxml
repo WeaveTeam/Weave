@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--http://flexponential.com/2011/11/10/accordionlist-with-expanding-item-renderers/-->
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark"  
+				height="20" height.selected="120" 
+				autoDrawBackground="false"
+				xmlns:ui="weave.ui.infomap.ui.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.effects.EffectTargetFilter;
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+					
+				buttonLabelDisplay.label = value.label;
+				
+				if(!optionsList.dataProvider)
+				{
+					optionsList.dataProvider = new ArrayCollection();
+				}
+				(optionsList.dataProvider as ArrayCollection).source = value.children;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="selected"/>                 
+	</s:states>
+	
+	<s:transitions>
+		<s:Transition fromState="*" toState="selected">
+			<s:Parallel>
+				<s:Fade id="fadeToSelected" target="{optionsList}" duration="300"/>
+				<s:Resize id="resizeToSelected" target="{this}" duration="300" interpolator="{IntegerInterpolator.getInstance()}"
+						  effectStart="dispatchEvent(new Event('expandEffectStart'));" 
+						  effectEnd="dispatchEvent(new Event('expandEffectEnd'));"/>
+			</s:Parallel>
+			
+		</s:Transition>
+		<s:Transition fromState="selected" toState="*">
+			<s:Parallel >
+				<s:Fade id="fadeToUnselected" target="{optionsList}" duration="300"/>
+				<s:Resize id="resizeToUnselected" target="{this}" duration="300" interpolator="{IntegerInterpolator.getInstance()}"/>
+			</s:Parallel>
+			
+		</s:Transition>
+	</s:transitions>
+	
+	<s:Group top="0" height="20" left="0" right="0">
+			<s:Button id="buttonLabelDisplay" />
+	</s:Group>
+	<s:List borderVisible="false" maxHeight="105" verticalScrollPolicy="off" id="optionsList" top="23" left="0" right="10" bottom="0" visible.normal="false" visible.selected="true"/>
+	
+</s:ItemRenderer>

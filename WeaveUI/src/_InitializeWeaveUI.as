@@ -67,6 +67,7 @@ package
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.SessionStateEditor;
+	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
@@ -178,6 +179,8 @@ package
 				GaugeTool,
 				HistogramTool,
 				Histogram2DTool,
+				InfoMapPanel,
+				IndividualRecordTool,
 				GraphTool,
 				LineChartTool,
 				DimensionSliderTool,
@@ -196,7 +199,6 @@ package
 				TreeTool,
 				KeyMappingTool,
 				LayerSettingsTool,
-				IndividualRecordTool
 			]);
 			
 			/**

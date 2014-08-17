@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This component is used for handling node operations.
+It has a text area which diplays the keywords.
+It has 4 icons to:
+	Close/Delete the node
+	Edit the keyword
+	Search within the node.
+	Filter by Date
+	Info to provide a tooltip describing the node (like number of documents found)
+
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	  autoLayout="false" 
+	  width="100%" minWidth="220" clipContent="false">
+	<!--<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">
+		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
+		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
+		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
+		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>
+		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/cloud.png')"/>
+		<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/>http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png
+		<mx:Image id="distributionImg" source="@Embed(source='/weave/resources/images/bar_chart.png')"/>
+		<mx:Image id="topicsImg" source="@Embed(source='/weave/resources/images/topics.png')"/>
+		<mx:Image id="gridImg" source="@Embed(source='/weave/resources/images/grid.png')"/>http://findicons.com/icon/267689/3x3_grid?width=16
+		<mx:Image id="pointsImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>
+	</mx:HBox>-->
+	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" 
+				 focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
+	<mx:HBox id="filterStatus" width="100%" clipContent="false" minHeight="10"/>
+	
+	<!--<mx:Canvas id="keywordCanvas" horizontalScrollPolicy="off" verticalScrollPolicy="off"  width="100%">
+		<mx:Image id="editImage" source="@Embed(source='/weave/resources/images/editButton.png')" 
+				  toolTip="click image to add comments" y="{keywordTextArea.height - editImage.height}" />		
+		<mx:TextArea visible="false"
+					 includeInLayout="false" id="commentTextArea" 
+					 cornerRadius="5" width="100%" borderThickness="0" 
+					 wordWrap="true"
+					 backgroundColor="{uint(0xd1fff9)}" y="{keywordTextArea.textHeight + 5}" maxChars="200" 
+					 />
+	</mx:Canvas>-->
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Label;
+			import mx.controls.Text;
+			import mx.managers.CursorManager;
+			
+			import weave.ui.SubMenu;
+			import weave.ui.infomap.core.QueryObject;
+			import weave.utils.CustomCursorManager;
+			import weave.visualization.layers.InteractiveVisualization;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				keywordTextArea.minWidth = 20;
+				keywordTextArea.verticalScrollPolicy = "off";
+				
+				filterLabel.selectable = false;
+				filterLabel.alpha = 0.5;
+				filterLabel.buttonMode = true;
+				filterLabel.useHandCursor = true;
+				filterLabel.mouseChildren = false;
+				filterStatus.addChild(filterLabel);
+				
+				sortLabel.selectable = false;
+				sortLabel.alpha = 0.5;
+				sortLabel.buttonMode = true;
+				sortLabel.useHandCursor = true;
+				sortLabel.mouseChildren = false;
+				filterStatus.addChild(sortLabel);
+				
+				//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
+				//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon
+				//sphere icon: http://www.iconfinder.com/icondetails/29260/16/
+			}
+			public var filterLabel:Label = new Label();
+			public var filterSubMenu:SubMenu = new SubMenu(filterLabel,[MouseEvent.CLICK]);
+			
+			public var sortLabel:Label = new Label();
+			public var sortSubMenu:SubMenu = new SubMenu(sortLabel,[MouseEvent.CLICK]);
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

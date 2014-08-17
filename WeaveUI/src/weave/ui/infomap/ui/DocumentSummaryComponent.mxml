@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This component is UI to show a summery of the document object assigned to it.
+Use the static functions to show this as a popup.
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+			 xmlns:infomap="weave.ui.infomap.*" 
+			 width="400" height="400" 
+			 verticalScrollPolicy="off" 
+			 horizontalScrollPolicy="off" 
+			 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
+			 visible="true"
+			 mouseChildren="false">
+		<mx:Fade target="{this}" id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="700"/>
+	    <mx:Fade target="{this}" id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="700"/>
+		
+		<mx:Script >
+			<![CDATA[
+				import mx.managers.PopUpManager;
+				import mx.rpc.events.FaultEvent;
+				import mx.rpc.events.ResultEvent;
+				
+				import weave.Weave;
+				import weave.api.services.IURLRequestToken;
+				import weave.core.LinkableString;
+				import weave.data.DataSources.InfoMapsDataSource;
+				import weave.services.addAsyncResponder;
+				import weave.ui.infomap.layout.NodeHandler;
+
+				private static var _docURL:LinkableString = new LinkableString("");
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					this.setStyle("backgroundColor",0xEDE6E6);
+					this.setStyle("borderStyle","solid");
+					this.setStyle("borderColor",0xC40202);
+					this.setStyle("cornerRadius",10);
+					this.setStyle("borderThickness",2);
+					this.maxWidth = 250;
+					this.maxHeight = 300;
+					
+//					_docURL.addGroupedCallback(this, updateText);
+					
+//					linkBindableProperty(doc.summary,nodeDescription,"text");
+//					linkBindableProperty(doc.title,nodeTitle,"text");
+//					linkBindableProperty(doc.date,nodeTimeStamp,"text");
+					
+				}
+				
+				private static var instance:DocumentSummaryComponent = null;
+				private static var requestToken:IURLRequestToken = null;
+				private static var  _offset:Number = 20;
+				/**
+				 * Call this function to show a Summary Component as a Popup
+				 * 
+				 * @param xPos the x value of the popup
+				 * @param yPos the y value of the popup
+				 * @param document The document object whose summary is to be displayed
+				 * @parent the parent display object calling this function
+				 * */
+				public static function show(xPos:Number,yPos:Number,docURL:String,parent:DisplayObject,node:NodeHandler):void
+				{
+					if(!instance)
+						instance = new DocumentSummaryComponent();
+					if(!docURL)
+						return;
+
+					instance.fadeOut.stop();
+					_docURL.value = docURL;
+					
+					_bitmap = null;
+					
+					var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+					
+					var imgURL:String = source.getImageURLForURL(_docURL.value);
+					
+					if(imgURL && !(imgURL=="ERROR"))
+					{
+						requestToken = WeaveAPI.URLRequestUtils.getContent(instance,new URLRequest(imgURL),handleImage,null,_docURL.value);
+					}
+					if(xPos+instance.width >=parent.stage.stageWidth)
+					{
+						xPos = xPos - instance.width - _offset; 
+					}
+					xPos = Math.min(xPos, parent.stage.stageWidth - instance.width);
+					yPos = Math.min(yPos, parent.stage.stageHeight - instance.height);
+					instance.move(xPos,yPos);
+					PopUpManager.addPopUp(instance,parent);
+					instance.nodeTitle.text= source.getTitleForURL(_docURL.value);
+					
+					var keywords:Array = node.previousQuery.keywords.value.split(',');
+					if(node.parentPanel.relatedKeywords.value)
+						keywords = keywords.concat(node.parentPanel.relatedKeywords.value.split(','));
+					addAsyncResponder(source.getDescriptionForURL(_docURL.value,keywords),handleGetDescriptionResult,handleGetDescriptionFault,_docURL.value);
+					addAsyncResponder(source.getSourceForURL(_docURL.value),handleGetSourceResult,handleGetSourceFault,_docURL.value);
+					instance.nodeTimeStamp.text = getDateText(_docURL.value);
+					instance.fadeIn.play();
+				}
+				
+				private static function getDateText(url:String):String
+				{
+					var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+					var date:String = source.getDatePublishedForURL(url);
+					
+					if(date)
+					{
+						return 'Date Published: ' + parseDate(date);
+					}
+					
+					date = source.getDateAddedForURL(url);
+					
+					if(date)
+					{
+						return 'Date Added: ' + parseDate(date);
+					}
+					
+					return "";
+				}
+				
+				private static function parseDate(str:String):String
+				{
+					try
+					{
+						var re:RegExp = new RegExp(/[a-zA-z]{3} ([a-zA-z]{3} [0-9]{2}) [0-9:]* [a-zA-Z]* ([0-9]{4})/);
+						var matches:Array = str.match(re);
+						if(matches.length==3)//it should match 2 groups
+						{
+							str = matches[1] + " " + matches[2];
+						}
+					}catch(e:Error)
+					{
+						return str;
+					}
+					return str;
+				}
+				
+				private static function handleGetDescriptionResult(event:ResultEvent,token:Object =null):void
+				{
+					if((token as String) != _docURL.value)
+						return;
+					instance.nodeDescription.htmlText = event.result as String; 
+				}
+				
+				private static function handleGetDescriptionFault(event:ResultEvent,token:Object =null):void
+				{
+					instance.nodeDescription.htmlText = "";
+				}
+				
+				private static function handleGetSourceResult(event:ResultEvent,token:Object=null):void
+				{
+					if((token as String) != _docURL.value)
+						return;
+					instance.sourceType.htmlText = "<b>Source Type:</b> " + event.result as String;				
+				}
+				
+				private static function handleGetSourceFault(event:ResultEvent,token:Object =null):void
+				{
+					instance.sourceType.htmlText = "";
+				}
+				
+				
+				public static function hide():void
+				{
+					if(instance)
+					{
+						if(requestToken)
+						{
+							requestToken.cancelRequest(); 
+						}
+						instance.fadeIn.stop();
+						instance.fadeOut.play();
+						PopUpManager.removePopUp(instance);
+					}
+				}
+				
+				private var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+//								
+				[Bindable]
+				private static var _bitmap:Bitmap = new Bitmap();
+				private static function handleImage(event:ResultEvent,token:Object=null):void
+				{
+					if(token==_docURL.value)
+						_bitmap = new Bitmap((event.result as Bitmap).bitmapData);
+
+				}
+				
+				private static function handleNoImage(event:FaultEvent,token:Object=null):void
+				{
+					_bitmap = null;
+				}
+				
+			]]>
+		</mx:Script>
+		<mx:Text id="nodeTitle" fontWeight="bold" width="100%"/>
+		<!--<mx:HRule width="100%"/>-->
+		<mx:HBox width="100%" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Image id="nodeThumbnail" source="{_bitmap}" maintainAspectRatio="false" maxWidth="140" maxHeight="140"/>
+			<mx:Text  id="nodeDescription" width="100%" height="100%">
+			</mx:Text>
+		</mx:HBox>
+		
+		<mx:HRule width="100%"/>
+		<mx:Text creationComplete="event.currentTarget.text=getDateText(_docURL.value)" id="nodeTimeStamp" fontWeight="bold" width="100%" height="5%" />
+		<mx:Text id="sourceType" width="100%" height="5%" />
+		
+	</mx:VBox>

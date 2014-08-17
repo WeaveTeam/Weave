@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	paddingLeft="5"
+	paddingTop="5"
+	label="Tag Cloud">
+	<mx:HBox>
+		<mx:Label text="Words in word-cloud" fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:TextInput toolTip="not more than 100" id="numOfWords" width="50"/>
+	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+			import weave.ui.infomap.layout.NodeHandler;
+			
+			private var _nodeHandler:NodeHandler = null;
+			public function set nodeHandler(value:Object):void
+			{
+				if(value is NodeHandler)
+				{
+					_nodeHandler = value as NodeHandler;
+					
+				}
+			}
+			
+			[Bindable]
+			private var _leftAlignWidth:Number = 150;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				if(_nodeHandler != null){
+					linkBindableProperty(_nodeHandler.numOfWordsInCloud,numOfWords,"text",1000);
+				}
+			}			
+		]]>
+	</mx:Script>
+</mx:VBox>

@@ -1,0 +1,2872 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:ui="weave.ui.infomap.ui.*"
+		   autoLayout="false" cacheAsBitmap="false" clipContent="false"
+		   creationComplete="updatePinImage(event)" creationPolicy="all"
+		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
+		   verticalScrollPolicy="off">
+	<!--Show this status box only when list is visible-->
+	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}"
+			  width="300"/>
+	<!--<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
+	<mx:Label id="filterStatus"/>
+	<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
+	</mx:HBox>-->
+	<!--<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>-->
+	<!--<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>-->
+	<mx:Glow id="selectedBorder" alphaFrom="1.0" alphaTo="1.0" blurXFrom="10.0" blurXTo="10.0"
+			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
+	<mx:Glow id="unselectedBorder" alphaFrom="0.0" alphaTo="1.0" blurXFrom="10.0" blurXTo="10.0"
+			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
+	<mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="750"
+			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/>
+	<mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="750"
+			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/>
+	<mx:Sequence id="newDocumentHighlight" target="{nodeBase.keywordTextArea}">
+		<mx:Fade id="newDocumentFadeOut" alphaFrom="1.0" alphaTo="0.0" duration="1000"/>
+		<mx:Fade id="newDocumentFadeIn" alphaFrom="0.0" alphaTo="1.0" duration="1000"/>
+	</mx:Sequence>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.controls.Label;
+			import mx.controls.List;
+			import mx.core.Application;
+			import mx.core.DragSource;
+			import mx.core.UIComponent;
+			import mx.core.mx_internal;
+			import mx.events.CloseEvent;
+			import mx.events.DragEvent;
+			import mx.events.EffectEvent;
+			import mx.events.ListEvent;
+			import mx.events.SandboxMouseEvent;
+			import mx.managers.DragManager;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			import weave.Weave;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableOwner;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.SessionManager;
+			import weave.core.StageUtils;
+			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.CSVParser;
+			import weave.data.DataSources.CSVDataSource;
+			import weave.data.DataSources.GoogleSearchDataSource;
+			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			import weave.menus.WeaveMenuItem;
+			import weave.primitives.ColorRamp;
+			import weave.services.InfoMapAdminInterface;
+			import weave.services.addAsyncResponder;
+			import weave.ui.ControlPanel;
+			import weave.ui.CustomLabel;
+			import weave.ui.DraggablePanel;
+			import weave.ui.infomap.core.MovedThumbnailPosition;
+			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.ui.AbstractListView;
+			import weave.ui.infomap.ui.BasicSettingsComponent;
+			import weave.ui.infomap.ui.DocThumbnailComponent;
+			import weave.ui.infomap.ui.DocumentListView;
+			import weave.ui.infomap.ui.GoogleSearchListView;
+			import weave.ui.infomap.ui.InfoMapPanel;
+			import weave.ui.infomap.ui.NodeBaseComponent;
+			import weave.ui.infomap.ui.PointsLayout;
+			import weave.ui.infomap.ui.RadialMenu;
+			import weave.ui.infomap.ui.TagCloud;
+			import weave.ui.infomap.ui.TagCloudSettingComponent;
+			import weave.ui.infomap.ui.ThumbnailsListView;
+			import weave.ui.infomap.ui.TopicNodeComponent;
+			import weave.utils.ColumnUtils;
+			import weave.utils.CustomCursorManager;
+			import weave.utils.DateUtils;
+			import weave.utils.VectorUtils;
+			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.tools.CompoundBarChartTool;
+			import weave.visualization.tools.RadVizTool;
+			
+			private const currentQuery:QueryObject = newLinkableChild(this,QueryObject);
+			
+			public const previousQuery:QueryObject = newLinkableChild(this,QueryObject);
+			
+			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			//String that is the name of the NodeGroup this node may be a part of, the name corresponds to the nodeGroups LinkableHashmap name.
+			public const parentNodeGroup:LinkableString = registerLinkableChild(this, new LinkableString(""));
+			
+			//			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
+			
+			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+			
+			public const thumbnailsDefaultColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0));
+			
+			public const movedThumbNails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+			
+			public const comments:LinkableString = newLinkableChild(this,LinkableString);
+			
+			public const numOfWordsInCloud:LinkableNumber = registerLinkableChild(this,new LinkableNumber(75,function(value:*):Boolean{
+				if(value > 100)
+					return false;
+				else 
+					return true;},false));
+			
+			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			
+			public const showNewDocumentsOnTop:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false,null,false));
+			
+			/* We separate dateFilter from previousQuery because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
+			is unpredictable. It is easier to handle the callbacks for keywords and date separately.*/
+			//			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true); // ToDo
+			
+			public const numOfTopics:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5,function(value:*):Boolean{
+				if(value > 10 || value <2)
+					return false;
+				else 
+					return true;},false), handleTopicsPropertiesChange, true);
+			
+			public const numOfKeywordsInEachTopic:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5,function(value:*):Boolean{
+				if(value > 10 || value < 1)
+					return false;
+				else 
+					return true;},false), handleTopicsPropertiesChange, true);
+			
+			public const spaceBetwwenTopicRect:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, function(value:*):Boolean{
+				if(value > 10 || value < 1)
+					return false;
+				else 
+					return true;},false), handleTopicLayoutSettingChange, true); // ToDo
+			
+			public const enablePinView:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
+			
+			public static const LIST_VIEW:String = "List";
+			public static const GOOGLE_SEARCH_VIEW:String = "Google";
+			public static const THUMBNAILS_VIEW:String = "Thumbnails";
+			public static const TOPICS_VIEW:String = "Topics";
+			public static const WORD_CLOUD_VIEW:String = "Word Cloud";
+			public static const POINTS_VIEW:String = "Points";
+			public static const views:Array = [LIST_VIEW,GOOGLE_SEARCH_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW,TOPICS_VIEW];
+			public const currentView:LinkableString =  registerLinkableChild(this,new LinkableString(LIST_VIEW,function(value:*):Boolean{
+				if(views.indexOf(value) != -1)
+					return true;
+				else
+					return false;
+			},false));
+			
+			public const enableTopicClassification:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
+			
+			private function handleTopicLayoutSettingChange():void
+			{
+				flag_init = true;
+				showClassificationResults();
+			}
+			
+			private const listWidth:LinkableNumber = new LinkableNumber();
+			
+			private var loader:URLLoader = null;
+			
+			//we override the x,y value because we are binding the values to LinkableNumber 
+			//which could be NaN when component loads for the first time
+			override public function set x(value:Number):void
+			{
+				if(parent)
+					super.x = isNaN(value)?parent.width/2:value;
+				else
+					super.x=value
+			}
+			
+			override public function set y(value:Number):void
+			{
+				if(parent)
+					super.y = isNaN(value)?parent.height/2:value;
+				else
+					super.y=value
+				
+			}
+			
+			private var _parentPanel:InfoMapPanel;
+			public function get parentPanel():InfoMapPanel
+			{
+				return _parentPanel;
+			}
+			
+			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+			
+			//We create a private key filter for tag word click
+			//			private var _tagWordSubset:KeyFilter = new KeyFilter();
+			
+			
+			override protected function createChildren():void
+			{
+				
+				super.createChildren();
+				this.addChild(nodeBase);
+			}
+			
+			/* We will use this variable to send a query to data sources on first load of the node */
+			private var _firstLoad:Boolean = true;
+			
+			[Embed( source="/weave/resources/images/cancel.png")]
+			private var CloseImgClass:Class;
+			private var _closeImgText:String ="Remove node";
+			
+			[Embed( source="/weave/resources/images/tinyWrench.png")]
+			private var SettingsImgClass:Class;
+			private var _settingsImgText:String = "Settings Panel" ;
+			
+			[Embed( source="/weave/resources/images/list.png")]
+			private var ListImgClass:Class;
+			private var _listImgText:String = "List View";
+			
+			[Embed( source="/weave/resources/images/google.png")]
+			private var GoogleImgClass:Class;
+			private var _googleImgText:String ="Google Search View";
+			
+			[Embed( source="/weave/resources/images/cloud.png")]
+			private var WordCloudImgClass:Class;
+			private var _wordCloudText:String = "Word Cloud";
+			
+			[Embed( source="/weave/resources/images/bar_chart.png")]
+			private var EntityDistributionImgClass:Class;
+			private var _entityDistributionImgText:String = "Entity Distribution";
+			
+			[Embed( source="/weave/resources/images/cluster.png")]
+			private var ClusterImgClass:Class;
+			private var _clusterImgText:String = "Clusters by LINGO";
+			
+			
+			[Embed( source="/weave/resources/images/topics.png")]
+			private var TopicsImgClass:Class;
+			private var _topicsClustersImgText:String = "Topic Clusters";
+			private var _topicsImgText:String = "Topics View";
+			
+			
+			[Embed( source="/weave/resources/images/grid.png")]
+			private var GridImgClass:Class;
+			private var _gridImgText:String = "Grid View";
+			
+			[Embed( source="/weave/resources/images/sphere.png")]
+			private var PointsImgClass:Class;
+			private var _pointsImgText:String = "Points View";
+			
+			[Embed( source="/weave/resources/images/editButton.png")]
+			private var EditImgClass:Class;
+			private var _editImgText:String = "Edit Query";
+			
+			[Embed( source="/weave/resources/images/tick-icon.png")]
+			private var TickImgClass:Class;
+			private var _tickImgText:String = "Clear new documents";
+			
+			
+			[Embed( source="/weave/resources/images/arrowDown.png")]
+			private var _subMenuIcon:Class;
+			//			private var _menuButton:Image = new Image();
+			//			private var _subMenu:SubMenu;
+			private var _radialMenu:RadialMenu;
+			private var _closeImg:Bitmap = new CloseImgClass() as Bitmap;
+			private var _settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
+			private var _editImg:Bitmap = new EditImgClass() as Bitmap;
+			private var _googleImg:Bitmap = new GoogleImgClass() as Bitmap;
+			private var _tickImg:Bitmap = new TickImgClass() as Bitmap;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				var tempMenuItem:WeaveMenuItem
+				var tempArray:Array = new Array();
+				
+				for each(var filterOption:String in QueryObject.filterByOptions)
+				{
+					tempMenuItem = new WeaveMenuItem({label: filterOption, click: filterNodeBy});
+					tempArray.push(tempMenuItem);
+				}
+				nodeBase.filterSubMenu.dataProvider = tempArray;
+				
+				tempArray = new Array();
+				for each(var sortOption:String in QueryObject.sortByOptions.concat(["New Documents"]))
+				{
+					tempMenuItem = new WeaveMenuItem({label: sortOption, click: sortNodeBy});
+					tempArray.push(tempMenuItem);
+				}
+				nodeBase.sortSubMenu.dataProvider = tempArray;
+				
+				
+				getCallbackCollection(previousQuery).addGroupedCallback(this,handleChangeToPrevQuery,true);
+				
+				//opens the settings panel
+				//				_menuButton.source = _subMenuIcon;
+				//				nodeBase.addChildAt(_menuButton,0);
+				//				_menuButton.x = 0 - _menuButton.contentHeight;//height doesn't get updated correctly
+				//				_subMenu = new SubMenu(_menuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
+				
+				//drag and drop of the node will be use the text area as the handler/anchor point
+				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
+				stage.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
+				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,keywordTextAreaKeyDownHandler);
+				nodeBase.addEventListener(DragEvent.DRAG_ENTER,handleDragEnter);
+				
+				nodeBase.addEventListener(MouseEvent.ROLL_OVER,handleViewOnRollOver);
+				nodeBase.addEventListener(MouseEvent.ROLL_OUT,handleViewOnRollOut);
+				
+				
+				//sessioning the x and y positions of this node
+				linkBindableProperty(xPos,this,"x");
+				linkBindableProperty(yPos,this,"y");
+				
+				thumbnailsDefaultColor.addImmediateCallback(this,handleBorderColor,true);
+				
+				//sets a pointer to the node's parent which is an InfoMapPanel
+				if(!_parentPanel)
+				{
+					var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
+					_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
+				}
+				
+				//adding a callback to the Global Date Filter
+				//TODO: needs to be tested
+				_parentPanel.globalDateFilter.startDate.addGroupedCallback(this,handleGlobalDateChange);
+				_parentPanel.globalDateFilter.endDate.addGroupedCallback(this,handleGlobalDateChange);
+				
+				//adding listener to Click event to toggle node selection
+				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
+				
+				
+				//we want to trigger the callback for thumbnails at each frame and check the trigger counter
+				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
+				
+				//the set of keys matching the query is stored in docKeyset. 
+				//when the results are stored in this keySet a callback is triggered for parsing the results
+				docKeySet.addGroupedCallback(this,handleDocKeySetChange,false);
+				
+				//this keySet stores the keys matching the search query.
+				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
+				//				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
+				
+				//				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
+				prevNewDocsCount.addGroupedCallback(this,handleChangeToPrevQuery);
+				
+				numOfWordsInCloud.addGroupedCallback(this,redrawWordCloud,false);
+				
+				//				refreshTimer.start();
+				//call event for each tick of refreshTimer
+				refreshTimer.addEventListener(TimerEvent.TIMER, createAndSendQuery);
+				
+				glowFilter.color = thumbnailsDefaultColor.value;
+				
+				var owner:ILinkableObject = getLinkableOwner(this);
+				
+				_nodeName= (owner as ILinkableHashMap).getName(this);
+				
+				entityDistributionDataSource = Weave.root.requestObject(_nodeName + "entityDistributionDataSource",CSVDataSource,false);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.csvData);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyColName);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
+				
+				clusterCSVDataSource = Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);
+				_clusterRadVizName = Weave.root.generateUniqueName(_nodeName + "Clusters");
+				
+				addChild(topicComponent);
+				topicComponent.rectColors.addImmediateCallback(this, handleTopicLayoutSettingChange); // ToDo
+				
+				parentPanel.entityColumnsHashmap.addGroupedCallback(this,getEntityDistribution);
+				
+				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
+				
+				docListComponent.parentNode = this;
+				thumbnailListComponent.parentNode = this;
+				
+				getCallbackCollection(movedThumbNails).addGroupedCallback(this, handleMovedThumbnailsChangesInViews);
+				
+				showNewDocumentsOnTop.addGroupedCallback(this,handleSortNewDocsChange);
+				
+				_pointCanvas.visible = false;
+				_pointCanvas.alpha = 0;
+				_viewToObjectMapping[POINTS_VIEW] = _pointCanvas;
+				
+				thumbnailListComponent.visible = false;
+				thumbnailListComponent.alpha = 0;
+				_viewToObjectMapping[THUMBNAILS_VIEW] = thumbnailListComponent;
+				
+				docListComponent.visible = false;
+				docListComponent.alpha = 0;
+				addChild(docListComponent);
+				docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
+				_viewToObjectMapping[LIST_VIEW] = docListComponent;
+				
+				googleDocListComponent.visible = false;
+				googleDocListComponent.alpha = 0;
+				addChild(googleDocListComponent);
+				_viewToObjectMapping[GOOGLE_SEARCH_VIEW] = googleDocListComponent;
+				
+				topicComponent.visible = false;
+				topicComponent.alpha = 0;
+				_viewToObjectMapping[TOPICS_VIEW] = topicComponent;
+				
+				wordCloud.visible = false;
+				wordCloud.alpha = 0;
+				_viewToObjectMapping[WORD_CLOUD_VIEW] = wordCloud;
+				
+				_pinImg = new Image();
+				_pinImg.width = _pinImg.height = 14; //width & height is not updated. Bug in Image Class. Needs a listener for Update event.
+				_pinImg.buttonMode = true;
+				nodeBase.addChild(_pinImg);
+				
+				enablePinView.addGroupedCallback(this,handlePinViewChange,true);
+				_pinImg.addEventListener(MouseEvent.CLICK,togglePinViews);
+				currentView.addGroupedCallback(this,handleCurrentViewChange,true);
+				
+				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
+				nodeBase.addChildAt(_radialMenu,0);
+				
+				_radialMenu.addMenuItem(_closeImg,_closeImgText,close,null);
+				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
+				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
+				_radialMenu.addMenuItem(_googleImg,_googleImgText,googleSearchQuery,null);
+				//				_subMenu.addSubMenuItem("Edit Query",editQuery);
+				//				_subMenu.addSubMenuItem("Settings",settings);
+				//				_subMenu.addSubMenuItem("Close",close);
+				
+				/* pointing the currentNode in the InfoMaps panel to this so that a new query node becomes the current node.
+				When loading from a session state the last created node becomes the current node.
+				*/
+				parentPanel.currentNode = this;
+			}
+			
+			private function filterNodeBy():void
+			{
+				var ftext:String = (nodeBase.filterSubMenu.selectedItem).label;
+				nodeBase.filterLabel.text = "Filter: " + ftext;
+				if(ftext == QueryObject.FILTER_BY_NONE)
+				{
+					previousQuery.sources.value = "";
+				}
+				else
+				{
+					previousQuery.sources.value = ftext;
+				}
+			}
+			
+			private function sortNodeBy():void
+			{
+				nodeBase.sortLabel.text = "Sort: "+nodeBase.sortSubMenu.selectedItem.label;
+				if(nodeBase.sortSubMenu.selectedItem.label == "New Documents")
+				{
+					showNewDocumentsOnTop.value = true;					
+				}
+				else
+				{
+					showNewDocumentsOnTop.value = false;
+					previousQuery.sortBy.value = nodeBase.sortSubMenu.selectedItem.label;
+				}
+			}
+			
+			
+			private var _count:int = 0;
+			private function updatePinImage(event:Event):void
+			{
+				_pinImg.x = nodeBase.width; 
+				_pinImg.y = 0;
+				nodeBase.keywordTextArea.y = 0;
+				nodeBase.filterStatus.y = nodeBase.keywordTextArea.y+nodeBase.keywordTextArea.height;
+				_radialMenu.y = -_radialMenu.iconSize;
+			}
+			private var _numOfDocuments:int = 500;
+			
+			private var _viewToObjectMapping:Dictionary = new Dictionary();
+			
+			private var _nodeName:String = "";
+			
+			private var delayedCommentKeyUp:Function = null;
+			
+			private var refreshTimer:Timer = new Timer(60*5*1000);
+			
+			[Bindable]
+			public var nodeBase:NodeBaseComponent = new NodeBaseComponent();
+			
+			private var docKeySet:KeySet = new KeySet();
+			
+			//////////////////////////////
+			// Query Functions
+			//////////////////////////////
+			
+			public function refreshQuery():void
+			{
+				handleEmptyResultSet();
+				createAndSendQuery();
+				
+				// For Google Search
+				if (currentView.value == GOOGLE_SEARCH_VIEW) {
+					if (!currentQuery.keywords.value) return;
+					
+					if(contains(googleDocListComponent)) googleDocListComponent.keys = []; // Clearing items in list
+					
+					var token:QueryObject = new QueryObject();
+					copySessionState(currentQuery, token);
+					var googleDocSetQuery:AsyncToken = InfoMapAdminInterface.instance.getGoogleSearchResultWithRelatedKeywords(_currentQueryTerms, _currentRelatedKeywords);
+					addAsyncResponder(googleDocSetQuery, handleGoogleQueryWithRelatedKeywordsResults, handleGoogleQueryWithRelatedKeywordsFault, token);
+				}
+			}
+			
+			/**
+			 * @private
+			 * Called when the session state of query is changed
+			 **/
+			//			private var _currentQueryTerms:Array = [];
+			private var _currentQueryString:String = "";
+			private function createAndSendQuery(event:TimerEvent=null):void
+			{
+				/* this function is called every time the query parameters changes, so we will reset the timer so that it is not called immediately
+				when the query changes. This way we can avoid adding old results for a new query. */
+				refreshTimer.reset();
+				refreshTimer.start();
+				
+				//				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
+				
+				/* if this is an empty query clear all documents */
+				if(!currentQuery.keywords.value)
+				{	
+					handleEmptyResultSet();
+					return;
+				}
+				
+				if (this.parent == null)
+				{
+					WeaveAPI.StageUtils.callLater(this,createAndSendQuery);
+					return;
+				}
+				
+				status.text = "Searching...";
+				
+				/* check to see if this a new query or an old query */
+				var isQueryDifferent:Boolean = QueryObject.isQueryDifferent(previousQuery,currentQuery);
+				
+				_currentQueryString = processQuery(); 
+				
+				if(!_currentQueryString)
+				{
+					handleEmptyResultSet();
+					return;
+				}
+				if(isQueryDifferent || _firstLoad)
+				{
+					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
+						_currentRelatedKeywords);
+				}
+				
+				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
+					_currentQueryString,currentQuery.dateFilter,currentQuery.sources.value);
+				
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,token);
+			}
+			
+			private var _currentQueryTerms:Array = [];
+			private var _currentRelatedKeywords:Array = [];
+			private function processQuery():String
+			{
+				var result:String = "";
+				var queryString:String = currentQuery.keywords.value.toLowerCase();
+				queryString = StringUtil.trim(queryString);
+				
+				var currentRelatedKeywords:Array = [];
+				/* Make query to get number of documents */
+				/* We first check to see if they are separated by commas if not then assume space*/
+				if(_parentPanel.relatedKeywords.value)
+					currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
+						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
+				var temp:Array = [];
+				/* if the query has AND,OR use it as it is  */
+				if(queryString.indexOf(" or ")>-1 || queryString.indexOf(" and ")>-1)
+				{
+					/* TODO: break or & and's  and change to upper case for each */
+					queryString = queryString.replace(new RegExp(/ and /g)," AND ");
+					queryString = queryString.replace(new RegExp(/ or /g)," OR ");
+					result = queryString;
+					
+					
+					/* get related and required keywords */
+					if(queryString.indexOf(" AND ") >-1)
+					{
+						temp = queryString.split(" AND ");
+						
+						for each (var s:String in temp)
+						{
+							if(s.indexOf(" OR ") > -1)
+							{
+								var temp2:Array = s.split(" OR ");
+								for each(var s2:String in temp2)
+								{
+									_currentRelatedKeywords.push(s2);
+								}
+							}
+							else
+							{
+								_currentQueryTerms.push(s);
+							}
+						}
+					}
+					else if(queryString.indexOf(" OR ") >-1)
+					{
+						temp = queryString.split(" OR ");
+						
+						for each (var s3:String in temp)
+						{
+							if(s3.indexOf(" AND ") > -1)
+							{
+								var temp3:Array = s3.split(" AND ");
+								for each(var s4:String in temp3)
+								{
+									_currentQueryTerms.push(s4);
+								}
+							}
+							else
+							{
+								_currentRelatedKeywords.push(s3);
+							}
+						}
+					}
+					
+					return result;
+				}
+				
+				var processedQueryTerms:Array = [];
+				temp = [];
+				
+				/* use quoted text as a single term/phrase */
+				if(queryString.indexOf('"')>-1)
+				{
+					if(queryString.indexOf('"') != queryString.lastIndexOf('"'))
+					{
+						var quotedTextArray:Array = queryString.match(new RegExp(/"[\w-' ]+"/g));//match hyphenated, spaced words
+					}
+				}
+				
+				/* once we have all the quoted text we will remove them from the query string and process the rest of the string */
+				for each(var quotedText:String in quotedTextArray)
+				{
+					temp.push(quotedText);
+					queryString = queryString.replace(new RegExp(quotedText),"");
+				}
+				
+				/* separate the terms by comma or space */
+				temp = temp.concat(queryString.indexOf(',') != -1?queryString.split(','):
+					queryString.split(' '));
+				
+				for(var i:int=0; i<temp.length; i++)
+				{
+					if(temp[i] && (temp[i] as String).length > 0)
+						processedQueryTerms.push(temp[i]);
+				}
+				
+				if(processedQueryTerms.length==0)
+				{
+					return result;
+				}
+				
+				_currentQueryTerms = processedQueryTerms.concat();
+				_currentRelatedKeywords = currentRelatedKeywords.concat();
+				
+				var requiredQueryString:String = processedQueryTerms.join(" "+currentQuery.operator.value+" ");
+				
+				if(currentRelatedKeywords.length>0)
+				{
+					var relatedQueryString:String = currentRelatedKeywords.join(" OR ");
+					relatedQueryString = "(" + relatedQueryString + ")";
+					requiredQueryString = "(" + requiredQueryString + ")";
+					result = requiredQueryString + " AND " + relatedQueryString;
+				}
+				else
+				{
+					result = "(" + requiredQueryString + ")";
+				}
+				return result;
+			}
+			
+			private function handleNumOfDocsQueryResult(event:ResultEvent,token:QueryObject=null):void
+			{
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
+				
+				if(diff)
+				{
+					return;
+				}
+				
+				var numOfDocs:Number = event.result as Number;
+				
+				/* If no documents found, show status and do nothing. */
+				if(numOfDocs <= 0)
+				{
+					status.text = "0 documents found.";
+					//					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
+					//						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
+					handleEmptyResultSet();
+					return;						
+				}
+				/* If not loading the page for the first time and if the same number of documents are found */
+				if(!_firstLoad && numOfMatchedDocuments.value == numOfDocs)
+				{
+					status.text = "";
+					adjustNodeBase();
+					return;
+				}
+				
+				_firstLoad = false;
+				
+				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
+				wordCount = [];
+				
+				status.text = numOfDocs.toString() + " documents found. Fetching documents...";
+				numOfMatchedDocuments.value = numOfDocs;
+				handleChangeToPrevQuery();
+				
+				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
+					_currentQueryString,currentQuery.sources.value,
+					currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
+				
+				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
+				
+				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryString,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
+				
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				
+				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,token);
+				if(currentView.value == WORD_CLOUD_VIEW)
+				{
+					status.text = "Loading Word Cloud...";
+				}
+				else if(currentView.value == TOPICS_VIEW)
+				{
+					status.text = "Loading Topics...";
+				}
+				else if(currentView.value == POINTS_VIEW)
+				{
+					status.text = "Loading Points...";
+				}
+				
+				if(enableTopicClassification.value)
+				{
+					getTopicsClassification();
+				}
+				getEntityDistribution();
+				getClusters();
+				triggeredByQuerObjectChange = true;  // For Google Search Handle QueryObject change
+				googleSearchQuery(); // For Google Search Handle QueryObject change
+			}
+			
+			private function handleTotalResults(event:ResultEvent,token:Object=null):void
+			{
+				if(event.result as Number> 0)
+				{
+					status.text = "Documents found! Wait for next refresh...";
+				}
+				else
+				{
+					status.text = "No documents found."; 
+				}
+			}
+			
+			private function handleTotalResultsFault(event:FaultEvent,token:Object=null):void
+			{
+				WeaveAPI.ErrorManager.reportError(event.fault.message,"Error with Data Source query");
+			}
+			
+			
+			
+			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:QueryObject=null):void
+			{
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery)
+					|| QueryObject.isSortByDifferent(token as QueryObject, currentQuery);
+				
+				if(diff)
+				{
+					return;
+				}
+				
+				var docsArray:Array = event.result as Array;
+				var docsToAdd:Array = [];
+				var keys:Array = [];
+				
+				var urlCol:IAttributeColumn =_parentPanel.infoMapsDataSource.getColumnByName('url'); 
+				
+				for (var i:int = 0; i < docsArray.length; i++)
+				{
+					var link:String = docsArray[i][0];
+					
+					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",link);
+					
+					/*if the key is already present in the column, then we only add it to the keys keyset
+					we will not add the currentDoc to the docsArray, this way the rows are not repeated in the csvDataString */
+					if(urlCol.containsKey(key))
+					{
+						keys.push(link);
+						continue;
+					}
+					
+					docsToAdd.push(docsArray[i]);
+					
+					keys.push(link);
+				}
+				
+				_parentPanel.infoMapsDataSource.csvData.setSessionState(
+					(_parentPanel.infoMapsDataSource.csvData.getSessionState() as Array).concat(docsToAdd));			
+				VectorUtils.copy(keys,_nameOrder);
+				docKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+				
+				/* we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called */
+				docKeySet.triggerCallbacks(); 
+			}
+			
+			private function handleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
+			{
+				reportError("Error making query");
+			}
+			
+			private function handleGoogleQueryWithRelatedKeywordsResults(event:ResultEvent, token:QueryObject=null):void {
+				var diff:Boolean = QueryObject.isQueryKeywordsDifferent(token as QueryObject, currentQuery);
+				
+				if(diff || (event.result == null)) return;
+				
+				var docsArray:Array = event.result as Array;
+				var docsToAdd:Array = [];
+				var keys:Array = [];
+				
+				var urlCol:IAttributeColumn =_parentPanel.googleSearchDataSource.getColumnByName('url'); 
+				
+				for (var i:int = 0; i < docsArray.length; i++)
+				{
+					var link:String = docsArray[i][0];
+					
+					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(GoogleSearchDataSource.DOC_KEYTYPE, link);
+					
+					/*if the key is already present in the column, then we only add it to the keys keyset
+					we will not add the currentDoc to the docsArray, this way the rows are not repeated in the csvDataString */
+					if(urlCol.containsKey(key))
+					{
+						keys.push(link);
+						continue;
+					}
+					
+					docsToAdd.push(docsArray[i]);
+					
+					keys.push(link);
+				}
+				
+				_parentPanel.googleSearchDataSource.csvData.setSessionState(
+					(_parentPanel.googleSearchDataSource.csvData.getSessionState() as Array).concat(docsToAdd));
+				
+				var qkeys:Array = [];
+				for(var j:int = 0; j < keys.length; j++) {
+					qkeys.push(WeaveAPI.QKeyManager.getQKey(GoogleSearchDataSource.DOC_KEYTYPE, keys[j]));
+				}
+				googleDocListComponent.keys = qkeys;
+				
+				showCurrentView();
+			}
+			
+			private function handleGoogleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
+			{
+				reportError("Error making query");
+			}
+			
+			/**
+			 * @private
+			 **/
+			private function handleDocKeySetChange():void
+			{
+				var response:Array = docKeySet.keys;
+				
+				/* Sometimes the dockeys are triggered for old queries because new documents might have been added. So we do a test to see for
+				old vs. new queries and update the list accordingly.*/
+				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery);
+				
+				if(diff)
+				{
+					//its a new query
+					thumbnails.removeAllObjects();
+					highlightNewDocuments = false;
+					/* We do this because we want to remain on the same page if it is the same query. 
+					Only switch to first page if it is new query*/
+					if(docListComponent)
+						docListComponent.startIndex.value = 0;
+					
+					if(thumbnailListComponent)
+						thumbnailListComponent.startIndex.value = 0;
+				}else
+				{
+					//its an old query
+					if(thumbnails.getObjects().length == 0)
+					{
+						highlightNewDocuments = false;
+					}
+					else
+					{
+						highlightNewDocuments = true;
+					}
+				}
+				
+				/* we test the text because htmlText has tags with '/' */
+				if(nodeBase.keywordTextArea.text && nodeBase.keywordTextArea.text.indexOf("/") >-1)
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\/[0-9]*/g,"/" +
+						numOfMatchedDocuments.value);
+				else
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*/g,"(" +
+						numOfMatchedDocuments.value);
+				
+				_reusableThumbnailsToPlotArray = [];
+				_currentNewDocsCount = 0;
+				_thumbnailCount = 0;
+				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_3_PARSING,_completeThumbnailsIteration);
+			}
+			
+			private var _thumbnailCount:Number = 0;
+			private var _nameOrder:Array = [];
+			private function _iterateEachThumbnail():Number
+			{
+				if(_thumbnailCount >= docKeySet.keys.length)
+					return 1;
+				
+				var link:String = (docKeySet.keys[_thumbnailCount] as IQualifiedKey).localName;					
+				var thumbnail:DocThumbnailComponent = thumbnails.getObject(link) as DocThumbnailComponent;
+				
+				
+				if(!thumbnail)//if thumbnail does not exist
+				{
+					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
+					
+					thumbnail.docURL.value = link;
+					if(highlightNewDocuments)
+					{
+						thumbnail.highlighted.value = true;
+						_currentNewDocsCount++;
+					}
+				}else
+				{
+					if(thumbnail.highlighted.value)
+						_currentNewDocsCount++;
+				}
+				
+				thumbnail.setStyle("borderColor",thumbnailsDefaultColor.value);
+				
+				/* first check to see if the thumbnail is present in movedThumbnails */
+				var position:MovedThumbnailPosition = movedThumbNails.getObject(thumbnail.docURL.value) as MovedThumbnailPosition;
+				
+				/* if the document exists in movedThumbnails then make sure to set the moved positions and set hasBeenMoved to true; */
+				if(position)
+				{
+					//					thumbnail.hasBeenMoved.value = true;
+					
+					//					copySessionState(position.xPos,thumbnail.xPos);
+					//					copySessionState(position.yPos,thumbnail.yPos);
+					
+					thumbnail.pos.setSessionState({x:position.xPos.value,y:position.yPos.value});
+				}
+				
+				var p:Object = thumbnail.pos.getSessionState();
+				/* if thumbnail has been moved make sure to add it as a child to Panel else make sure to add it as child to node. */
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
+				{
+					if(thumbnail.parent != _parentPanel.map)
+					{
+						_parentPanel.map.addChild(thumbnail);
+						
+					}
+					//xPos and yPos are not linked
+					thumbnail.move(thumbnail.pos.getSessionState().x,thumbnail.pos.getSessionState().y);
+					
+				}else
+				{
+					if(thumbnail.parent != this)
+					{
+						thumbnail.visible = false;
+					}
+				}
+				
+				var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,link);
+				
+				if(_subset.containsKey(qKey))
+				{
+					thumbnail.visible = true;
+				}else{
+					
+					thumbnail.visible = false;
+				}
+				thumbnail.setStyle("borderColor",thumbnailsDefaultColor.value);
+				//				linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+				//				linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
+				
+				_thumbnailCount++;
+				
+				return _thumbnailCount/docKeySet.keys.length;
+			}
+			
+			private var _listImg:Bitmap = new ListImgClass() as Bitmap;
+			private var _gridImg:Bitmap = new GridImgClass() as Bitmap;
+			
+			private function _completeThumbnailsIteration():void
+			{
+				thumbnails.setNameOrder(_nameOrder);
+				thumbnails.resumeCallbacks();
+				prevNewDocsCount.value = _currentNewDocsCount;
+				
+				if(_nameOrder.length>0)
+				{
+					_radialMenu.addMenuItem(_listImg,_listImgText,toggleView,[LIST_VIEW]);
+					_radialMenu.addMenuItem(_gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
+					_radialMenu.addMenuItem(_tickImg,_tickImgText,clearAllNewDocuments,null);
+				}
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
+				//				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
+				//				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
+				//					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+				//				
+				//				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy,filterQueryBy],
+				//					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS],[QueryObject.FILTER_BY_RSSFEEDS]]);
+				
+				updateNodeTextOnNewDocuments();
+				adjustNodeBase();
+				addAllDocumentsToList();
+				handleSortNewDocsChange();
+				if(currentView.value == THUMBNAILS_VIEW || currentView.value == LIST_VIEW)
+				{
+					status.text = "";
+				}
+				showCurrentView();
+			}
+			
+			private var _wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
+			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
+			{
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
+				
+				if(diff)
+				{
+					return;
+				}
+				
+				wordCount = event.result as Array;
+				
+				_radialMenu.addMenuItem(_wordCloudImg,_wordCloudText,toggleView,[WORD_CLOUD_VIEW]);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
+				if(currentView.value == WORD_CLOUD_VIEW)
+				{
+					showView(WORD_CLOUD_VIEW);
+				}
+			}
+			
+			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error making query for word count");
+			}
+			
+			
+			private function handleNumOfDocsQueryFault(event:FaultEvent,token:Object=null):void
+			{
+				Alert.show("Error getting number of documents");
+				status.text = "";
+			}
+			
+			
+			private var parser:CSVParser = new CSVParser();
+			
+			public const prevNewDocsCount:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0)); 
+			[Bindable]
+			private var _currentNewDocsCount:int = 0;
+			//			private var _firstLoad:Boolean = true;
+			
+			
+			private var _currTCount:int = 0;
+			private var _totalT:int = 0;
+			private function clearAllNewDocuments(event:Event=null):void
+			{
+				if(_currentNewDocsCount ==0)
+					return;
+				
+				_totalT = docKeySet.keys.length;
+				WeaveAPI.StageUtils.startTask(this,_iterateClearDocs,WeaveAPI.TASK_PRIORITY_3_PARSING,_finalClearDocs);
+				//stopGlow();
+			}
+			
+			private function _iterateClearDocs():int
+			{
+				if(_currTCount >= _totalT)
+					return 1;
+				
+				var link:String = (docKeySet.keys[_currTCount] as IQualifiedKey).localName;					
+				var thumbnail:DocThumbnailComponent = thumbnails.getObject(link) as DocThumbnailComponent;
+				
+				if(thumbnail)
+				{
+					thumbnail.highlighted.value = false;
+				}
+				_currTCount++;
+				return _currTCount/_totalT;
+				
+			}
+			
+			private function _finalClearDocs():void
+			{
+				prevNewDocsCount.value = 0;
+				_currentNewDocsCount = 0;
+				showNewDocumentsOnTop.value = false;
+			}
+			
+			private function getRequiredKeywords():Array
+			{
+				var selectedKeys:Array = _selection.keys;
+				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				
+				var requriedKeywords:Array = getKeywordsFromEntityColumns(selectedKeys);
+				
+				return requriedKeywords;
+			}
+			
+			private function getUniqueKeywordsFromArray(keywords:Array):Array
+			{
+				//get unique keywords from extracted values 
+				var dict:Dictionary = new Dictionary();
+				
+				for each(var word:String in keywords)
+				{
+					if(dict[word] == undefined)
+						dict[word] = word;
+				}
+				
+				var uniqueEntityValues:Array = []
+				for each(var prop:String in dict)
+				{
+					prop = StringUtil.trim(prop);
+					if(prop.split(' ').length >1) //if it has more than 1 word add quotes
+						uniqueEntityValues.push('"'+prop+'"');
+					else
+						uniqueEntityValues.push(prop);
+				}
+				
+				return uniqueEntityValues;
+			}
+			
+			private var glowFilter:GlowFilter = new GlowFilter();
+			private var glowTimer:Timer = new Timer(125);
+			private function startGlow():void
+			{
+				nodeBase.keywordTextArea.filters = [glowFilter];
+				glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
+				glowTimer.start();
+			}
+			
+			private function changeGlow(event:TimerEvent):void
+			{
+				glowFilter.alpha = 0.125 + (event.target.currentCount % 8) *0.125;
+				glowFilter.color = thumbnailsDefaultColor.value;
+				nodeBase.keywordTextArea.filters=[glowFilter];
+			}
+			
+			private function stopGlow():void
+			{
+				glowTimer.stop();
+				nodeBase.keywordTextArea.filters = [];
+				nodeBase.keywordTextArea.alpha = 1;//restore alpha value to 1 incase timer stops at lesser alpha value
+			}
+			
+			private function adjustNodeBase():void
+			{
+				nodeBase.keywordTextArea.validateNow();
+				var widthOffset:int = 50;
+				
+				nodeBase.width = nodeBase.keywordTextArea.textWidth + widthOffset;
+				if(nodeBase.width < 220)
+					nodeBase.width = 220;
+				nodeBase.keywordTextArea.width = nodeBase.width;
+				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
+				//				nodeBase.height = nodeBase.keywordTextArea.height+nodeBase.filterStatus.height + _menuButton.contentHeight;
+				//				_menuButton.y = 0
+				nodeBase.keywordTextArea.y = 0;
+				nodeBase.filterStatus.y = nodeBase.keywordTextArea.y+nodeBase.keywordTextArea.height;
+				_radialMenu.y = -_radialMenu.iconSize;
+				if(docListComponent)
+					docListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+				
+				if(googleDocListComponent)
+					googleDocListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+				
+				if(thumbnailListComponent)
+					thumbnailListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+				if(_pinImg)
+				{
+					_pinImg.move(nodeBase.width,0);
+				}
+				/*set pushpin image if required*/
+				
+			}
+			
+			override public function validateDisplayList():void
+			{
+				super.validateDisplayList();
+				//				if(detectLinkableObjectChange(invalidateDisplayList,thumbnails,movedThumbNails))
+				//					positionThumbnails();
+			}
+			
+			public var _reusableThumbnailsToPlotArray:Array = [];
+			
+			
+			
+			private var _entitiesToKeysHashMap:Dictionary = null;
+			public var entityDistributionDataSource:CSVDataSource = new CSVDataSource(); 
+			
+			private const ENTITY_DISTRIBUTION_ENTITY_COLUMN:String =  "Entities";
+			private const ENTITY_DISTRIBUTION_NUMBER_COLUMN:String =  "Number of Documents";
+			private const ENTITY_DISTRIBUTION_KEYTYPE:String =  "entityDistribution";
+			
+			private function getEntityDistribution():void
+			{
+				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				
+				if(entityColumns.length == 0)
+					return;
+				
+				if(!currentQuery.keywords.value)
+					return;
+				
+				
+				if(_currentQueryString.length == 0)
+				{
+					return;
+				}
+				
+				var keys:Array = [];
+				for each(var col:IAttributeColumn in entityColumns)
+				{
+					keys = keys.concat((col as IAttributeColumn).keys);
+				}
+				
+				if(keys.length ==0)
+				{
+					return;
+				}
+				
+				_entitiesToKeysHashMap = new Dictionary();
+				
+				/* if there more than 1000 entities we will only show entity distribution for selected entities */
+				//				if(keys.length > 1000)
+				//				{
+				//				 return;					
+				//				}
+				
+				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
+				for each(var attrCol:IAttributeColumn in entityColumns)
+				{
+					for each(var qKey:IQualifiedKey in keys)
+					{
+						var value:String = ColumnUtils.getString(attrCol,qKey);
+						if(value)
+						{
+							//if the entity is encountered for the first time, create an array containing the key
+							//else push the key to the already existing array
+							if(_entitiesToKeysHashMap[value] == undefined)
+							{
+								var a:Array = [qKey];
+								_entitiesToKeysHashMap[value] = a;
+								
+							}else
+							{
+								(_entitiesToKeysHashMap[value] as Array).push(qKey);
+							}
+						}
+					}
+				}
+				
+				var entities:Array = [];
+				for (var key:Object in _entitiesToKeysHashMap)
+				{
+					entities.push(key);
+				}
+				
+				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(_currentQueryString,entities,
+					currentQuery.sources.value,currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
+				
+				var token:Object = new Object();
+				token.query = new QueryObject();
+				copySessionState(currentQuery,token.query);
+				token.entities = _entitiesToKeysHashMap;
+				addAsyncResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,token);
+			}
+			
+			
+			//TODO: clear/invalidate them when the attirbute column changes.
+			private var _entitiesToURLsHashMap:Dictionary = new Dictionary();
+			private var _URLToEntitiesHashMap:Dictionary = new Dictionary();
+			private var _entityDistributionImg:Bitmap = new EntityDistributionImgClass() as Bitmap;
+			
+			private function handleEntityQueryResults(event:ResultEvent,token:Object=null):void
+			{
+				//make sure the return query results is for the same set of entities.
+				if(_entitiesToKeysHashMap != token.entities)
+					return;
+				
+				var diff:Boolean = QueryObject.isQueryDifferent(token.query as QueryObject, currentQuery);
+				
+				if(diff)
+				{
+					return;
+				}
+				
+				var entities:Array = event.result.entities;
+				var urls:Array = event.result.urls;
+				
+				var entityCSVData:Array = [];
+				
+				entityCSVData.push([ENTITY_DISTRIBUTION_ENTITY_COLUMN,ENTITY_DISTRIBUTION_NUMBER_COLUMN]);
+				
+				entityDistributionDataSource.keyType.value = ENTITY_DISTRIBUTION_KEYTYPE;
+				
+				for(var i:int = 0; i<entities.length; i++)
+				{
+					_entitiesToURLsHashMap[entities[i]] = urls[i];
+					if(urls[i] != null)
+						entityCSVData.push([entities[i],(urls[i] as Array).length]);
+					
+				}
+				
+				entityDistributionDataSource.csvData.setSessionState(entityCSVData);
+				
+				
+				for(var j:int =0; j<urls.length; j++)
+				{
+					if(urls[j] == null)
+						continue;
+					
+					for(var k:int = 0; k<urls[j].length; k++)
+					{
+						if(_URLToEntitiesHashMap[urls[j][k]] == undefined)
+						{
+							_URLToEntitiesHashMap[urls[j][k]] = [entities[j]]; 
+						}else
+						{
+							(_URLToEntitiesHashMap[urls[j][k]] as Array).push(entities[j]);
+						}
+					}
+				}
+				
+				_radialMenu.addMenuItem(_entityDistributionImg,_entityDistributionImgText,showDistributionChart,null);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
+				
+			}
+			
+			private function handleEntityQueryFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error making query for entities");
+				return;
+			}
+			
+			private var _entityChartName:String = "entityDistributionChart";
+			private function showDistributionChart(event:Event=null):void
+			{
+				//clear any selection so that bars don't appear faded out
+				_selection.replaceKeys([]);
+				//				var className:String = getQualifiedClassName(CompoundBarChartTool).split("::")[1];
+				//				
+				//				_entityChartName = Weave.root.generateUniqueName(className);
+				
+				var object:CompoundBarChartTool = Weave.root.requestObject(_entityChartName, CompoundBarChartTool, false);
+				object.showAllLabels.value = false;
+				object.plotter.colorColumn.defaultValue.value = "0x0FDF801";
+				
+				if (object is DraggablePanel)
+					(object as DraggablePanel).restorePanel();
+				// put panel in front
+				
+				//				dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+				
+				object.heightColumns.removeAllObjects();
+				
+				entityDistributionDataSource.putColumnInHashMap(ENTITY_DISTRIBUTION_NUMBER_COLUMN,object.heightColumns);
+				
+				entityDistributionDataSource.putColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.labelColumn);
+				entityDistributionDataSource.putColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.sortColumn);
+				
+				object.panelTitle.value = 'Entity Distribution for Query "' + currentQuery.keywords.value + '"';
+			}
+			
+			
+			private var _sortedByNewDocsArray:Array;
+			private function sortNewDocumentsToTop():void
+			{
+				if(_nameOrder.length == 0)
+					return;
+				if(_currentNewDocsCount == 0)
+					return;
+				
+				var newDocs:Array= [];
+				var oldDocs:Array = [];
+				
+				for(var i:int=0; i <_nameOrder.length; i++)
+				{
+					var  d:DocThumbnailComponent = thumbnails.getObject(_nameOrder[i]) as DocThumbnailComponent;
+					if(d.highlighted.value)
+					{
+						newDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
+					}
+					else
+					{
+						oldDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
+					}
+				}
+				
+				_sortedByNewDocsArray = newDocs.concat(oldDocs);
+				docListComponent.keys = _sortedByNewDocsArray;
+				thumbnailListComponent.keys = _sortedByNewDocsArray;
+			}
+			
+			private function sortByNameOrder():void
+			{
+				var keys:Array = [];
+				for(var i:int=0; i<_nameOrder.length; i++)
+				{
+					keys.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,_nameOrder[i]));
+				}
+				docListComponent.keys = keys;
+				thumbnailListComponent.keys = keys;
+			}
+			
+			private function handleCurrentViewChange():void
+			{
+				hideAllViews();
+				if(enablePinView.value)
+				{
+					showCurrentView();
+				}
+			}
+			
+			private function showCurrentView():void
+			{
+				showView(currentView.value);
+			}
+			
+			private function hideCurrentView():void
+			{
+				hideView(currentView.value);
+			}
+			private function showView(view:String):void
+			{
+				if(view != currentView.value)
+				{
+					currentView.value = view;
+					return;
+				}
+				
+				if(!enablePinView.value)
+				{
+					return;
+				}
+				
+				if(view == THUMBNAILS_VIEW)
+				{
+					//if the list is not added yet
+					if(!contains(thumbnailListComponent))
+					{
+						thumbnailListComponent.alpha = 0;
+						addChild(thumbnailListComponent);
+						
+					}
+				}
+				else if(view == TOPICS_VIEW) //Initialize Topics Component
+				{
+					status.text = "Loading Topics...";
+					
+					/* if topicResult is null but number of matched documents is greater than 0 
+					then we are still waiting to get back topic results*/
+					if(_topicsResult == null && numOfMatchedDocuments.value > 0)
+					{
+						return;
+					}
+					if(flag_init){
+						
+						// ToDo This will not update automatically when new documents come in.
+						//var colorRamp:Array = [0x808080, 0xFF0000, 0xFFFF00, 0x808000, 0x008000, 0x800080, 0xFF00FF, 0x0000FF]; // ToDo
+						topicComponent.removeAllChildren();
+						var urls:Array = _topicsResult.urls;
+						var keywords:Array = _topicsResult.keywords;
+						
+						//store all the urls of the uncategoried documents, it is an 1D.
+						var uncategoried:Array = _topicsResult.uncategoried; 
+						
+						//var topicComponent:TopicNodeComponent = new TopicNodeComponent();
+						var parentComponent:UIComponent = new UIComponent();
+						parentComponent.width = 400;
+						parentComponent.height = 230; // ToDo Add extra 20 for displaying spot label
+						parentComponent.y= nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+						
+						topicComponent.drawTreeMap(urls, keywords, parentComponent, spaceBetwwenTopicRect.value);
+						topicComponents.push(topicComponent);
+						topicComponent.includeInLayout = false;
+						
+						//addChild(topicComponent);
+						
+						flag_init = false;
+						topicComponent.alpha = 0;
+					}
+				}
+				else if(view == WORD_CLOUD_VIEW)//Initialize Word Clould Canvas
+				{
+					status.text = "Loading Word Cloud...";
+					
+					/* if wordcount is zero but number of matched documents is greater than 0 
+					then we are still waiting to get back word count results*/
+					if(wordCount.length == 0 && numOfMatchedDocuments.value > 0)
+					{
+						return;
+					}
+					/*Add wordCloud as a child if not added yet*/
+					if(wordCloud == null || !contains(wordCloud))
+					{
+						wordCloud = new TagCloud();
+						wordCloud.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
+						wordCloud.visible = false;
+						wordCloud.includeInLayout = false;
+						addChild(wordCloud);
+						wordCloud.alpha = 0;
+						_viewToObjectMapping[WORD_CLOUD_VIEW] = wordCloud;
+					}
+					wordCloud.y= nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+					if(StandardLib.arrayCompare(wordCloud.dataProvider,wordCount) != 0)
+					{
+						wordCloud.dataProvider = wordCount;
+						wordCloud.draw(numOfWordsInCloud.value);
+					}
+				}
+				else if(view == POINTS_VIEW)
+				{
+					status.text = "Drawing points...";
+					/* if topicResult is null but number of matched documents is greater than 0 
+					then we are still waiting to get back topic results*/
+					if(_topicsResult == null && numOfMatchedDocuments.value > 0)
+					{
+						return;
+					}
+					var topicURLS:Array = [];
+					VectorUtils.copy(_topicsResult.urls,topicURLS);
+					if(!contains(_pointCanvas))
+					{
+						addChild(_pointCanvas);
+						_pointCanvas.alpha = 0; //initializing so that toggle will show the points
+						_pointCanvas.visible = false;
+					}
+					_pointCanvas.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+					_pointCanvas.drawPoints(topicURLS, _topicsResult.keywords, this);
+					
+				}
+				
+				adjustNodeBase();
+				status.text = "";
+				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
+				if(viewUI.visible && viewUI.alpha == 1)
+					return;
+				fadeIn.play([viewUI]);
+			}
+			
+			private function hideView(view:String):void
+			{
+				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
+				
+				if(!viewUI.visible && viewUI.alpha == 0)
+					return;
+				fadeOut.play([viewUI]);
+			}
+			
+			private function hideAllViews():void
+			{
+				for each(var value:* in _viewToObjectMapping)
+				{
+					if(!value)
+						continue;
+					if(value.alpha !=0)
+					{
+						fadeOut.play([value]);
+					}
+				}
+			}
+			
+			private function addAllDocumentsToList():void
+			{
+				var tNails:Array = thumbnails.getObjects();
+				_reusableThumbnailsToPlotArray = [];	
+				for (var i:int = 0; i<tNails.length; i++)
+				{
+					var t:DocThumbnailComponent = tNails[i];
+					
+					var docURL:String = thumbnails.getName(t);
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+					
+					if(_subset.containsKey(qKey))
+					{
+						_reusableThumbnailsToPlotArray.push(qKey);
+					}
+				}
+				docListComponent.keys = _reusableThumbnailsToPlotArray;
+				thumbnailListComponent.keys = _reusableThumbnailsToPlotArray;
+			}
+			
+			public function showRelatedRecords():void
+			{
+				var selectedKeys:Array = _selection.keys;
+				
+				var requiredURLS:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+					{
+						requiredURLS.push(key.localName);		
+					}
+				}
+				
+				handleDocumentSelection(requiredURLS);				
+			}
+			
+			public function showRelatedDocuments():void
+			{
+				var requiredKeys:Array = _selection.keys;
+				var entityColumns:Array = parentPanel.entityColumnsHashmap.getObjects();
+				
+				var entities:Array = [];
+				
+				for each (var key:IQualifiedKey in requiredKeys)
+				{
+					for each(var c:IAttributeColumn in entityColumns)
+					{
+						if(c.containsKey(key))
+						{
+							entities.push(c.getValueFromKey(key));				
+						}
+					}
+				}
+				
+				var docs:Array = [];
+				for each (var entity:String in entities)
+				{
+					docs = docs.concat(_entitiesToURLsHashMap[entity]);
+				}
+				
+				var requiredDocKeys:Array = WeaveAPI.QKeyManager.getQKeys(InfoMapsDataSource.DOC_KEYTYPE,docs);
+				
+				_selection.addKeys(requiredDocKeys);
+			}
+			
+			
+			private function handleDocumentSelection(urls:Array):void
+			{
+				var keys:Array = [];
+				//get all keys for selected documents
+				for each (var url:String in urls)
+				{
+					var entities:Array = _URLToEntitiesHashMap[url];
+					
+					for each(var entity:String in entities)
+					{
+						if(_entitiesToKeysHashMap[entity])
+							keys = keys.concat(_entitiesToKeysHashMap[entity]);
+					}
+				}
+				_selection.addKeys(keys);
+			}
+			
+			private function handleDocumentSelectedFromList(event:ListEvent):void
+			{
+				var items:Array = (event.currentTarget as List).selectedItems;
+				
+				var urls:Array = [];
+				for each (var doc:IQualifiedKey in items)
+				{
+					urls.push(doc.localName);
+				}
+				handleDocumentSelection(urls);
+			}
+			
+			
+			private function getKeywordsFromEntityColumns(keys:Array=null):Array
+			{
+				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				
+				var requriedKeywords:Array = [];
+				
+				if(keys==null)
+				{
+					keys = (entityColumns[0] as IAttributeColumn).keys;
+				}
+				
+				for each(var attrCol:IAttributeColumn in entityColumns)
+				{
+					for each(var key:IQualifiedKey in keys)
+					{
+						var value:String = ColumnUtils.getString(attrCol,key);
+						if(value)
+						{
+							requriedKeywords.push(value);
+						}
+					}
+				}
+				
+				requriedKeywords = getUniqueKeywordsFromArray(requriedKeywords);
+				
+				return requriedKeywords;
+			}
+			
+			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			/**
+			 * Highlights selected documents
+			 **/
+			private function handleSelectionKeySetChange():void
+			{
+				var keys:Array = _selection.keys;
+				
+				/* Check to see if the selection is made from Rad Viz tool for clusters*/
+				var rTool:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
+				if((rTool && rTool == DraggablePanel.activePanel))
+				{
+					var temp:Array = [];
+					for each(var key:IQualifiedKey in keys)
+					{
+						if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						{
+							temp.push(key);
+						}
+					}
+					if(temp.length>0)
+					{
+						docListComponent.applyFilter("SELECTION",temp);
+						showRelatedRecords();
+					}
+					else
+					{
+						docListComponent.removeFilter("SELECTION");
+					}
+					return;
+				}
+				
+				/* if the selection is made from an InfoMaps Panel, then show related data records */
+				if(parentPanel == DraggablePanel.activePanel)
+				{
+					showRelatedRecords();	
+				}
+					/* else the selection is made other visual tools. We assume that selected keys are data records so we show related documents */
+				else 
+				{
+					showRelatedDocuments();
+				}
+				
+				var docs:Array = thumbnails.getNames();
+				
+				
+				var selectedDocs:Array = getSelectedDocumentKeys();
+				
+				//if none are selected set all to default mode
+				if(selectedDocs.length == 0)
+				{
+					for each(var doc1:String in docs)
+					{
+						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
+						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
+					}
+					handleSelectionChangeInViews();
+					return;
+				}
+				
+				
+				for each(var doc:String in docs)
+				{
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
+					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
+					var selected:Boolean =_selection.containsKey(qKey) 
+					if(selected)
+						t.setMode(DocThumbnailComponent.SELECTED_MODE);
+					else
+						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
+				}
+				
+				handleSelectionChangeInViews();
+			}
+			
+			private function handleSelectionChangeInViews():void
+			{
+				if(parentPanel == DraggablePanel.activePanel)
+				{
+					return;
+				}
+				var view:String = currentView.value;
+				
+				if( view == THUMBNAILS_VIEW || view == LIST_VIEW)
+				{
+					
+					var listView:AbstractListView = _viewToObjectMapping[view];
+					var keys:Array = _selection.keys;
+					if(keys.length == 0)
+					{
+						listView.removeFilter(AbstractListView.SELECTION_TEXT);
+					}
+					else
+					{
+						var filterByKeys:Array = [];
+						for each(var key:IQualifiedKey in keys)
+						{
+							if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+							{
+								filterByKeys.push(key);
+							}
+						}
+						
+						listView.applyFilter(AbstractListView.SELECTION_TEXT,filterByKeys);
+					}
+				}
+			}
+			
+			/* If there is a change in the moved thumbnails then we redraw the list incase a document was added back to the node. */
+			private function handleMovedThumbnailsChangesInViews():void
+			{
+				if(currentView.value == LIST_VIEW)
+				{
+					docListComponent.redrawList();
+				}
+				else if(currentView.value == THUMBNAILS_VIEW)
+				{
+					thumbnailListComponent.redrawList();
+				}
+			}
+			private function getSelectedDocumentKeys():Array
+			{
+				var selectedKeys:Array = _selection.keys;
+				var selectedDocs:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						selectedDocs.push(key);
+				}
+				
+				return selectedDocs;
+			}
+			
+			//			private var _searchKeySet:KeySet = new KeySet();
+			//sends a query to solr for the search keywords filtrered by document links belonging to this node
+			private function handleGlobalSearch():void
+			{
+				
+				//				if(!_parentPanel.globalSearchKeyword.value)
+				//				{
+				////					_searchKeySet.clearKeys();
+				////					_searchKeySet.triggerCallbacks();
+				//					return;
+				//				}
+				//				
+				//				var fieldNames:Array = ['link'];
+				//				
+				//				var fieldValues:Array = [];
+				//				
+				//				fieldValues.push(thumbnails.getNames());
+				//				
+				//				if(!query.sources.value == '')
+				//				{
+				//					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+				//				}
+				//				
+				//				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,false);
+				
+				
+				//				filteredWords.value = 
+			}
+			
+			//			public function filterBy(keywords:String):void
+			//			{
+			//				filteredWords.value = keywords;
+			//			}
+			
+			//this function is called when the _searchKeySet is set. 
+			//This sets the thumbnail's visiblity based if its link is included or excluded in the _searchKeySet
+			private function handleSearchKeySetChange():void
+			{
+				//				var tnails:Array = thumbnails.getObjects();
+				//				
+				//				var searchMatchedKeys:Array =_searchKeySet.keys; 
+				//				
+				//				if(searchMatchedKeys.length == 0)
+				//				{
+				//					//if searchKeys length is zero and if there is search keyword then none of the documents matched. So we set all visiblity to false
+				//					//else set all to true;
+				//					var visiblity:Boolean =  (_parentPanel.globalSearchKeyword.value != "");
+				//					for each(var t1:DocThumbnailComponent in tnails)
+				//					{
+				//						var qKey1:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t1.docURL.value);
+				//						if(_subset.containsKey(qKey1))
+				//						{
+				//							
+				//							t1.visible = !visiblity;
+				//						}
+				//					}
+				//				}else
+				//				{
+				//					for each(var t2:DocThumbnailComponent in tnails)
+				//					{
+				//						var qKey2:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t2.docURL.value);
+				//						if(_subset.containsKey(qKey2))
+				//						{
+				//							
+				//							t2.visible = false;
+				//						}
+				//					}
+				//				}
+				//				
+				//				for each(var k:IQualifiedKey in searchMatchedKeys)
+				//				{
+				//					var t3:DocThumbnailComponent = thumbnails.getObject(k.localName) as DocThumbnailComponent;
+				//					
+				//					if(!t3)
+				//						continue;
+				//					
+				//					var qKey3:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t3.docURL.value);
+				//								
+				//					
+				//					if(t3 && qKey3 && _subset.containsKey(qKey3))
+				//					{
+				//						
+				//						t3.visible = true;
+				//					}
+				//				}
+				
+			}
+			
+			// ToDo dateFilter should be previousQuery.dateFilter
+			private function handleGlobalDateChange():void
+			{
+				//				getCallbackCollection(currentQuery).delayCallbacks();
+				//				dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
+				//				dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
+				//				getCallbackCollection(currentQuery).resumeCallbacks();
+			}
+			private function removeEmptyStringElementsFromArray(arg:Array):Array
+			{
+				var result:Array = [];
+				for each(var item:String in arg)
+				{
+					if(item != "")
+						result.push(item);
+				}
+				
+				return result;
+			}
+			
+			
+			private var _wasClicked:Boolean = false;
+			//toggle node selection on click
+			private function handleClick(event:Event):void
+			{
+				//if running to blink node.
+				stopGlow();
+				
+				_wasClicked = true;
+				
+				if(wasDragged)
+				{
+					wasDragged = false;
+					return;
+				}
+				//				if(node.selected.value)
+				//					node.selected.value = false;
+				//				else
+				//					node.selected.value = true;
+			}
+			
+			//highlight node based on node.selected.value
+			private function highlightNode():void
+			{
+				//				unselectedBorder.color = _parentPanel.defaultNodeBorderColor.value;
+				//				selectedBorder.color = _parentPanel.selectedNodeBorderColor.value;
+				//				
+				//				if(node.selected.value)
+				//					selectedBorder.play();
+				//				else
+				//					unselectedBorder.play();
+			}
+			
+			//this variable will be  used to avoid selection/unselection when the node is dragged
+			private var wasDragged:Boolean = false;
+			private var _lastX:Number = 0;
+			private var _lastY:Number = 0;
+			private var sbroot:DisplayObject = Application.application.systemManager.getSandboxRoot();
+			private var handCursorID:int = -1;
+			protected function canvas1_mouseDownHandler(event:MouseEvent):void
+			{
+				/* the last ndoe in focus (or clicked) becomes current node of InfoMaps panel */
+				parentPanel.currentNode = this;
+				event.stopImmediatePropagation();
+				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
+				//Cursor gets overriden currently by DragManager. TO DO:Look into fixing cursor shown.
+				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
+				_lastX = x;
+				_lastY = y;
+				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				// solution for handling mous_up outside of stage : http://stackoverflow.com/questions/2944122/flash-correctly-handling-click-and-drag-outside-the-browser
+				sbroot.addEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, handleMouseUpSomewhere);
+				var dragInitiator:NodeHandler = this;
+				var ds:DragSource = new DragSource();
+				//Need to do both drag variations.
+				//This starts the typical componenet drag.
+				this.startDrag();
+				//This initiates a data drag that fires off events like DRAG_ENTER.
+				DragManager.doDrag(dragInitiator, ds, event);
+			}
+			
+			private function handleMouseMove(event:Event):void
+			{
+				wasDragged = true;
+			}
+			
+			private var stageUtils:StageUtils = new StageUtils();
+			protected function canvas1_mouseUpHandler(event:Event):void
+			{
+				nodeBase.keywordTextArea.setStyle("fontWeight","normal");
+				CustomCursorManager.removeCursor(handCursorID);
+				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				sbroot.removeEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, handleMouseUpSomewhere);
+				this.stopDrag();
+			}
+			
+			private function handleMouseUpSomewhere(event:Event):void
+			{
+				this.x = _lastX;
+				this.y = _lastY;
+				canvas1_mouseUpHandler(event);
+			}
+			
+			private function keywordTextAreaKeyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER || event.keyCode == Keyboard.ESCAPE)
+				{
+					event.preventDefault();
+					nodeBase.keywordTextArea.editable = false;
+					nodeBase.keywordTextArea.selectable = false;
+					if(event.keyCode == Keyboard.ENTER)
+					{
+						previousQuery.keywords.value = nodeBase.keywordTextArea.text;
+					}
+					else
+					{
+						updateTextArea();
+						updateNodeTextOnNewDocuments();
+					}
+				}
+			}
+			
+			private function handleViewOnRollOver(event:Event):void
+			{
+				if(!enablePinView.value)
+				{
+					fadeOut.stop();
+					var viewUI:DisplayObject = _viewToObjectMapping[currentView.value] as DisplayObject;
+					if(viewUI.visible && viewUI.alpha == 1)
+						return;
+					fadeIn.play([viewUI]);
+				}
+			}
+			
+			private function handleViewOnRollOut(event:Event):void
+			{
+				if(!enablePinView.value)
+				{
+					fadeIn.stop();
+					hideCurrentView();
+				}
+			}
+			
+			// ToDo ???
+			//			private function filter(event:Event):void
+			//			{
+			//				DateFilterComponent.openInstance(this,dateFilter);
+			//			}
+			
+			//			private var _instance:NodeSettingsComponent = null;
+			//			private function settings(event:Event):void
+			//			{
+			//				
+			//				if(_instance)
+			//				{
+			//					PopUpManager.addPopUp(_instance,this);
+			//				}
+			//				else
+			//				{
+			//					_instance = new NodeSettingsComponent();
+			//					_instance.query = this.currentQuery;
+			//					_instance.nodeHandler = this;
+			//					_instance.dateFilter = dateFilter;
+			//					PopUpManager.addPopUp(_instance,this);
+			//				}
+			//			}
+			
+			[Embed( source="/weave/resources/images/pushpinback.png")]
+			private var _pinBackImgClass:Class;
+			
+			[Embed( source="/weave/resources/images/pushpin.png")]
+			private var _pinImgClass:Class;
+			
+			private var _pinImgText:String ="Pin Views";
+			private var _pinImg:Image = null;
+			private function togglePinViews(event:Event=null):void
+			{
+				enablePinView.value = !enablePinView.value;
+			}
+			
+			private function handlePinViewChange():void
+			{
+				if(enablePinView.value)
+				{
+					_pinImg.source = _pinBackImgClass;
+					showCurrentView();
+				}
+				else
+				{
+					_pinImg.source = _pinImgClass;
+					hideCurrentView();
+				}
+			}
+			
+			private var _instance:ControlPanel = null;
+			protected var basicSettingComponent:BasicSettingsComponent;
+			protected var tagCloudSettingComponent:TagCloudSettingComponent;
+			//protected var topicModelSettingComponent:TopicNodeSettingComponent
+			private function settings(event:Event=null):void
+			{
+				
+				if(_instance)
+				{
+					PopUpManager.addPopUp(_instance,this);
+				}
+				else
+				{
+					_instance = new ControlPanel();
+					
+					basicSettingComponent = new BasicSettingsComponent();
+					basicSettingComponent.query = this.previousQuery;
+					basicSettingComponent.dateFilter = previousQuery.dateFilter;
+					basicSettingComponent.nodeHandler = this;
+					
+					tagCloudSettingComponent = new TagCloudSettingComponent();
+					tagCloudSettingComponent.nodeHandler = this;
+					
+					//topicModelSettingComponent = new TopicNodeSettingComponent();
+					//topicModelSettingComponent.nodeHandler = this;
+					
+					_instance.targets = [basicSettingComponent.query.keywords,basicSettingComponent.query.sources, basicSettingComponent.dateFilter.startDate, basicSettingComponent.dateFilter.endDate, numOfWordsInCloud, numOfTopics, numOfKeywordsInEachTopic, spaceBetwwenTopicRect, topicNodeComponent.rectColors]
+					//_instance.children = [basicSettingComponent, tagCloudSettingComponent, topicModelSettingComponent];
+					_instance.children = [basicSettingComponent, tagCloudSettingComponent];
+					
+					PopUpManager.addPopUp(_instance,this);
+				}
+			}
+			
+			private function close(event:Event=null):void
+			{
+				Alert.show("Are you sure you want to remove this node?",
+					"Remove Node?",
+					Alert.YES | Alert.NO,
+					null,
+					handleCloseEvent
+				);
+			}
+			
+			
+			
+			/* TODO: if _subset and _tagWordSubset is empty just plot all */
+			private function includedThumbnails():Array
+			{
+				var thumbs:Array = thumbnails.getObjects();
+				var requiredThumbs:Array = []
+				for (var i:int = 0; i < thumbs.length; i++)
+				{
+					var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+					
+					if(_subset.containsKey(qKey))
+					{
+						requiredThumbs.push(thumbs[i]);
+					}
+				}
+				return requiredThumbs;
+			}
+			
+			private var _pointCanvas:PointsLayout = new PointsLayout();
+			
+			private var wordCloud:TagCloud = new TagCloud();
+			private var colorRamp:ColorRamp = new ColorRamp();
+			private var wordCount:Array = [];
+			
+			private function redrawWordCloud():void
+			{
+				if(wordCloud != null)
+				{
+					removeWordCloud();
+					toggleView(WORD_CLOUD_VIEW);
+				}
+			}
+			
+			private function toggleView(view:String):void
+			{
+				/* if current view is not List then we change it to current view and leave it to handleCurrentViewChange */
+				if(currentView.value != view)
+				{
+					currentView.value = view
+				}
+					/* if current view is already List view then toggle it*/
+				else
+				{
+					var v:String = currentView.value;
+					var viewUI:DisplayObject = _viewToObjectMapping[v] as DisplayObject;
+					if(viewUI.visible && viewUI.alpha != 0)
+					{
+						hideView(v);
+					}
+					else
+					{
+						showView(v);
+					}
+				}
+				
+			}
+			
+			public const docListComponent:DocumentListView = registerLinkableChild(this, new DocumentListView());
+			public const googleDocListComponent:GoogleSearchListView = registerLinkableChild(this, new GoogleSearchListView());
+			public const thumbnailListComponent:ThumbnailsListView = registerLinkableChild(this,new ThumbnailsListView());
+			
+			private var _showListFlag:Boolean = false;
+			//			private var clickedWordKeySet:KeySet = new KeySet();
+			//			public const filteredWords:LinkableString = registerLinkableChild(this,new LinkableString("",null,false));
+			private function handleTagCloudClick(event:MouseEvent):void
+			{
+				//we don't use the event.target for getting the text because this is based on the bounding box clicked and not necessarily the 
+				//probed word. So we used the last recorded probed word
+				if(event.target is CustomLabel)
+				{
+					var keyword:String = ((event.target as CustomLabel).parent as TagCloud).lastProbedWord.value;
+					var filter:KeyFilter = docListComponent.listFilters.getObject(keyword) as KeyFilter;
+					if(!filter)
+					{
+						var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryString,
+							currentQuery.dateFilter,[keyword],_numOfDocuments,currentQuery.sources.value,currentQuery.sortBy.value);
+						
+						addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault,keyword);
+					}
+				}
+			}
+			
+			private function handleFilterQueryResult(event:ResultEvent,token:Object=null):void
+			{
+				var urls:Array = event.result as Array;
+				filterDocumentsByURLS(urls,"'" + token + "'");
+			}
+			
+			private function handleFilterQueryFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error making query for filtering");
+				
+			}
+			
+			public function filterDocumentsByURLS(urls:Array,filterMessage:String=""):void
+			{
+				var keys:Array = [];
+				for (var i:int = 0; i < urls.length; i++)
+				{
+					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",urls[i]);
+					keys.push(key);
+				}
+				
+				docListComponent.applyFilter(filterMessage,keys);
+				
+				status.text = "";
+				currentView.value = LIST_VIEW;
+			}
+			
+			private function getTopicsClassification():void
+			{
+				var topicsQuery:AsyncToken = null
+				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
+				{
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryString,currentQuery.sources.value,
+						currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, 3,numOfKeywordsInEachTopic.value);
+				}
+				else
+				{
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryString,currentQuery.sources.value,
+						currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, numOfTopics.value,numOfKeywordsInEachTopic.value);
+				}
+				
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				addAsyncResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,token);
+			}
+			
+			private function handleTopicsPropertiesChange():void
+			{
+				if(currentQuery.keywords.value != null)
+				{
+					getTopicsClassification();
+					
+					flag_init = true;
+					if(!flag_click){
+						flag_click = true;
+					}  
+				}
+			}
+			
+			private var _clusterRadVizName:String;
+			private function getClusters():void
+			{
+				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
+				var servletParam:Object = new Object();
+				servletParam.method = "getClustersForQueryString";
+				servletParam.params = [_currentQueryString,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
+					currentQuery.sources.value,currentQuery.sortBy.value];
+				clusterCSVDataSource.servletParams.value = servletParam;
+				clusterCSVDataSource.keyColName.value = "document";
+				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
+				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
+				
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
+			}
+			
+			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
+			public function showClusters(event:Event=null):void
+			{
+				var object:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
+				if(object)
+				{
+					object.restorePanel();
+					return;
+				}
+				var columnNames:Array = clusterCSVDataSource.getColumnNames();
+				
+				if(WeaveAPI.SessionManager.linkableObjectIsBusy(clusterCSVDataSource.getColumnByName("document")))
+				{
+					status.text = "Loading topics...";
+					callLater(showClusters);					
+					return;
+				}
+				status.text = "";
+				object = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
+				object._plotter.columns.removeAllObjects();
+				object._plotter.probeLineNormalizedThreshold.value = 0.5;
+				object._plotter.localNormalization.value = false;
+				object._plotter.anchorLabelFunction.value = "Class('weave.utils.ColumnUtils').getTitle(column).substring(0,Class('weave.utils.ColumnUtils').getTitle(column).lastIndexOf('_cluster_'))"; // ToDo make it simple
+				//				object._anchorPlotter.anchors.removeAllObjects();
+				var count:int = 0;
+				for each(var columnName:String in columnNames)
+				{
+					if(count >30)
+						break;
+					if(columnName != "document")
+					{
+						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
+					}
+					count++;
+				}
+				object.panelTitle.value = 'Document Clustered by Labels';
+				object.enableProbeLines.value = true;
+				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
+				if (object is DraggablePanel)
+					(object as DraggablePanel).restorePanel();
+				
+				var tempDictionary:Dictionary = new Dictionary();
+				var tempColumnNames:Array = object._plotter.columns.getNames();
+				var tempLabelCluster:String = "";
+				var tempLabelWithCluster:String = "";
+				for (var i:int = 0; i < tempColumnNames.length; i++)
+				{
+					tempLabelWithCluster = (object._plotter.columns.getObject(tempColumnNames[i]) as ReferencedColumn).getMetadata("title");
+					tempLabelCluster = tempLabelWithCluster.substring(tempLabelWithCluster.lastIndexOf('_cluster_') + 9); // ToDo temp hack to remove label cluster string
+					if(!tempDictionary.hasOwnProperty(tempLabelCluster))
+						tempDictionary[tempLabelCluster] = new Array();
+					
+					(tempDictionary[tempLabelCluster] as Array).push(tempColumnNames[i]);
+				}
+				
+				object._anchorPlotter.doCDLayoutMetric = false; // Disable display metric information
+				object._anchorPlotter.drawingClassLines = true;//cd coloring
+				object._anchorPlotter.doCDLayout = true;//cd layout needed for tstat rendering
+				object.cdLayout.tAndpMapping = tempDictionary;
+				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping;
+				object._anchorPlotter.anchorClasses = object.cdLayout.tAndpMapping;//we need this to be able to draw the classlines and color the anchors accorsing to the class they belong to
+				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping; //for setting cd dimensional anchor locations
+				object._plotter.doCDLayoutFlag = true; // ToDo yenfu temporary flag to fix the RadVizPlotter code
+				
+				object._plotter.setClassDiscriminationAnchorsLocations();//cd layout
+			}
+			
+			private var topicComponents:Array = new Array();
+			private var flag_click:Boolean = true;
+			private var flag_init:Boolean =true;
+			private var _topicsResult:Object = null;
+			public const topicComponent:TopicNodeComponent = registerLinkableChild(this, new TopicNodeComponent());
+			public function get topicNodeComponent():TopicNodeComponent // ToDo TopicModelSettingComponent
+			{
+				return topicComponent;
+			}
+			private function showClassificationResults(event:Event=null, forceShow:Boolean=false,forceHide:Boolean=false):void
+			{   
+				if(_topicsResult == null)
+					return;
+				toggleView(TOPICS_VIEW);
+			}
+			
+			private var _topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
+			private var _pointsImg:Bitmap = new PointsImgClass() as Bitmap;
+			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
+			{
+				status.text = "";
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
+				
+				if(diff)
+				{
+					return;
+				}
+				
+				_topicsResult = event.result;
+				
+				if (_topicsResult.keywords == null || _topicsResult.urls == null)
+				{
+					reportError(lang("Topic Models did not return an Array of results as expected."));
+					return;
+					
+				}
+				
+				_radialMenu.addMenuItem(_topicsImg,_topicsImgText,showClassificationResults,null);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
+				
+				_radialMenu.addMenuItem(_pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
+				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
+				{
+					showView(currentView.value);
+				}
+			}
+			
+			private function handleTopicsQueryFault(event:FaultEvent, token:Object = null):void
+			{
+				trace(["fault", token, event.message].join('\n'));
+				reportError(event);
+			}
+			
+			//this variable is false when the user loads the map for the first time. 			
+			private var highlightNewDocuments:Boolean = true;
+			//			private function checkForNewDocuments(event:TimerEvent):void
+			//			{
+			//				if(!previousQuery.sources.value == '')
+			//				{
+			//					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+			//				}
+			//				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
+			//				wordCount = [];
+			//				status.text = "Searching...";
+			//				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,currentQuery.dateFilter);
+			//			}
+			
+			private var tempQueryObject:QueryObject = new QueryObject();
+			private var triggeredByQuerObjectChange:Boolean = false;
+			private function googleSearchQuery():void {
+				if (_currentQueryString.length == 0 || !currentQuery.keywords.value) return;
+				
+				if (triggeredByQuerObjectChange) {
+					triggeredByQuerObjectChange = false;
+					if (!(currentView.value == GOOGLE_SEARCH_VIEW)) return; 
+				}
+				
+				if (QueryObject.isQueryKeywordsDifferent(currentQuery, tempQueryObject)) {
+					copySessionState(currentQuery, tempQueryObject);
+					currentView.value = GOOGLE_SEARCH_VIEW;
+				} else {
+					currentView.value = GOOGLE_SEARCH_VIEW;
+					return;
+				}
+				
+				// How to detect related keywords change? ==> refreshQuery
+				
+				if(contains(googleDocListComponent)) googleDocListComponent.keys = []; // Clearing items in list
+				
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery, token);
+				var googleDocSetQuery:AsyncToken = InfoMapAdminInterface.instance.getGoogleSearchResultWithRelatedKeywords(_currentQueryTerms, _currentRelatedKeywords);
+				addAsyncResponder(googleDocSetQuery, handleGoogleQueryWithRelatedKeywordsResults, handleGoogleQueryWithRelatedKeywordsFault, token);
+			}
+			
+			private function editQuery():void
+			{
+				makeKeywordTextAreaEditable();
+				/*remove document numbers to edit query*/
+				var cursorPosition:int = nodeBase.keywordTextArea.text.indexOf('(');
+				nodeBase.keywordTextArea.text = nodeBase.keywordTextArea.text.substr(0,cursorPosition); 
+				nodeBase.keywordTextArea.setSelection(nodeBase.keywordTextArea.length,nodeBase.keywordTextArea.length);
+			}
+			private function makeKeywordTextAreaEditable():void
+			{
+				nodeBase.keywordTextArea.editable = true;
+				nodeBase.keywordTextArea.selectable = true;
+				nodeBase.keywordTextArea.setFocus();
+				stage.focus = nodeBase.keywordTextArea;
+			}
+			
+			private function handleChangeToPrevQuery():void
+			{
+				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery) || 
+					QueryObject.isSortByDifferent(previousQuery, currentQuery);
+				
+				if(previousQuery.sources.value == '')
+				{
+					nodeBase.filterLabel.text = "Filter: " + QueryObject.FILTER_BY_NONE;
+				}
+				else
+				{
+					nodeBase.filterLabel.text = "Filter: " + previousQuery.sources.value;
+				}
+				
+				nodeBase.sortLabel.text = "Sort: " + previousQuery.sortBy.value;
+				
+				if(!previousQuery.keywords.value)
+				{
+					makeKeywordTextAreaEditable();
+					nodeBase.keywordTextArea.setSelection(0,0);
+					nodeBase.keywordTextArea.htmlText = "";
+					newDocumentHighlight.stop();//in case node is blinking
+					stopGlow();
+					hideView(WORD_CLOUD_VIEW);
+					hideView(POINTS_VIEW);
+					if(contains(docListComponent))
+					{
+						docListComponent.keys = [];//clearing items in list
+					}
+					if(contains(thumbnailListComponent))
+					{
+						thumbnailListComponent.keys = [];
+					}
+					if(wordCloud)
+					{
+						removeWordCloud();
+					}
+					if(diff)
+						copySessionState(previousQuery,currentQuery);
+					
+					adjustNodeBase();
+					return;
+				}
+				
+				updateTextArea();
+				
+				if(QueryObject.isQueryDifferent(previousQuery,currentQuery))
+				{
+					
+					copySessionState(previousQuery,currentQuery);
+					if(!_firstLoad)
+					{
+						/* remove all documents */
+						handleEmptyResultSet();
+						
+						/* Hide any views */
+						hideAllViews();
+						
+						hideIcons();
+					}
+					createAndSendQuery();
+				}
+				else if(QueryObject.isSortByDifferent(previousQuery,currentQuery))
+				{
+					status.text = "Sorting...";
+					copySessionState(previousQuery,currentQuery);
+					/* this is not a new query but only a new order of documents. So we don't handle it as empty result 
+					but still clear thumbnails so that they are not treated as new documents.*/
+					thumbnails.removeAllObjects(); 
+					var token:QueryObject = new QueryObject();
+					copySessionState(currentQuery,token);
+					var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
+						_currentQueryString,currentQuery.sources.value,
+						currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
+					
+					addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
+				}
+				
+				updateNodeTextOnNewDocuments();
+				adjustNodeBase();
+			}
+			
+			private function updateTextArea():void
+			{
+				if(!previousQuery.keywords.value)
+					return;
+				//we restrict node length to 200.
+				if(previousQuery.keywords.value.length >200)
+				{
+					nodeBase.keywordTextArea.htmlText = previousQuery.keywords.value.substr(0,200) + " ... ("+numOfMatchedDocuments.value +")";
+				}else
+				{
+					nodeBase.keywordTextArea.htmlText = previousQuery.keywords.value + "("+ numOfMatchedDocuments.value +")";
+				}
+				nodeBase.keywordTextArea.editable = false;
+				nodeBase.keywordTextArea.selectable = false;
+			}
+			private function removeWordCloud():void
+			{
+				if(!wordCloud)
+					return;
+				wordCloud.clearCloud();
+				wordCloud.dataProvider = [];//clearing word cloud
+				wordCount = [];
+				if(contains(wordCloud))
+					removeChild(wordCloud);
+				wordCloud = null;
+			}
+			
+			private function updateNodeTextOnNewDocuments():void
+			{
+				if((prevNewDocsCount.value>0) || (highlightNewDocuments && _currentNewDocsCount>0 && _currentNewDocsCount != prevNewDocsCount.value))
+				{
+					
+					/* htmlText sometimes just has the text and sometimes the text with the HTML tags.
+					I haven't tested to see when each case specifically occirs. For now, I test it with text and if text is null
+					test it with htmlText.
+					*/
+					var nodeText:String;
+					if(nodeBase.keywordTextArea.text)
+					{
+						nodeText = nodeBase.keywordTextArea.text;
+					}
+					else
+					{
+						nodeText = nodeBase.keywordTextArea.htmlText;	
+					}
+					
+					if(nodeText.indexOf("/") >-1)
+						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*\//g,"(" + _currentNewDocsCount + "/");
+					else
+						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\(/g,"(" + _currentNewDocsCount + "/");
+				}
+			}
+			
+			/* Since we use a private query object we define a public function to set variable */
+			public function applyKeywords(keywords:String):void
+			{
+				previousQuery.keywords.value = keywords;
+			}
+			
+			//			private var _currentRelatedKeywords:Array = null;
+			public function applyKeywordsFromSelection():void
+			{
+				var currentTool:DraggablePanel = DraggablePanel.getTopPanel();
+				if(!_parentPanel)
+				{
+					var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;					
+					_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
+				}
+				
+				previousQuery.keywords.value = getRequiredKeywords().join(',');
+				previousQuery.operator.value = "OR";
+				_selection.clearKeys();
+			}
+			
+			public function toggleShowNewDocsOnTop():void
+			{
+				showNewDocumentsOnTop.value = !showNewDocumentsOnTop.value
+			}
+			
+			private function handleSortNewDocsChange():void
+			{
+				if(showNewDocumentsOnTop.value)
+				{
+					sortNewDocumentsToTop();
+					nodeBase.sortLabel.text = "Sort: " + "New Documents";
+				}
+				else
+				{
+					sortByNameOrder();
+					nodeBase.sortLabel.text = "Sort: " + previousQuery.sortBy.value;
+				}
+			}
+			private function sortBy(option:String):void
+			{
+				if(previousQuery.sortBy.value == option)
+				{
+					sortByNameOrder();		
+				}
+				else
+				{
+					previousQuery.sortBy.value = option;
+				}
+			}
+			
+			private function filterQueryBy(option:String):void
+			{
+				if(option == QueryObject.FILTER_BY_NONE)
+					option = "";
+				
+				if(previousQuery.sources.value != option)
+					status.text = "Filtering...";
+				
+				previousQuery.sources.value = option;
+			}
+			
+			private function handleDateFilterChange():void
+			{
+				//								createAndSendQuery(); // ToDo
+			}
+			
+			
+			private function handleDragEnter(event:DragEvent):void 
+			{
+				if(event.dragInitiator is DocThumbnailComponent)
+				{
+					if(thumbnails.getObject((event.dragInitiator as DocThumbnailComponent).docURL.value))
+						DragManager.acceptDragDrop(event.currentTarget as NodeBaseComponent);
+				}
+			}
+			
+			//			private var _currentView:UIComponent = null;
+			private function handleEffectsStart(event:EffectEvent):void
+			{
+				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
+				if(!displayObj)
+					return;
+				
+				displayObj.mouseChildren = false;
+				if(event.currentTarget == fadeIn)
+				{
+					displayObj.visible = true;
+				}
+			}
+			
+			private function handleEffectsEnd(event:EffectEvent):void
+			{
+				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
+				
+				if(!displayObj)
+					return;
+				
+				displayObj.mouseChildren = true;
+				if(event.currentTarget == fadeOut)
+				{
+					displayObj.visible = false;
+					if(displayObj == _pointCanvas)
+					{
+						_pointCanvas.removeAllChildren();
+					}
+				}else
+				{
+					if(!displayObj.visible)
+						displayObj.visible = true;
+				}
+			}
+			
+			private function handleBorderColor():void
+			{
+				nodeBase.keywordTextArea.setStyle("borderColor",thumbnailsDefaultColor.value);
+			}
+			
+			private function handleCloseEvent(e:CloseEvent):void
+			{
+				if(e.detail == Alert.YES)
+				{
+					thumbnails.removeAllObjects();
+					var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableOwner(this) as ILinkableHashMap);
+					var nodeName:String  = parent.getName(this);
+					parent.removeObject(nodeName);
+				}
+				else if(e.detail == Alert.NO)
+				{
+					return;
+				}
+			}			
+			
+			private function hideIcons():void
+			{
+				_radialMenu.removeAllMenuItems();
+				_radialMenu.addMenuItem(_closeImg,_closeImgText,close,null);
+				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
+				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
+				_radialMenu.addMenuItem(_googleImg,_googleImgText,googleSearchQuery,null);
+				//				_subMenu.removeAllSubMenuItems();
+				//				_subMenu.addSubMenuItem("Edit Query",editQuery);
+				//				_subMenu.addSubMenuItem("Settings",settings);
+				//				_subMenu.addSubMenuItem("Close",close);
+				
+				
+			}
+			
+			private function handleEmptyResultSet():void
+			{
+				thumbnails.removeAllObjects();
+				_currentQueryString = "";
+				_currentQueryTerms = [];
+				_currentRelatedKeywords = [];
+				_nameOrder = [];
+				numOfMatchedDocuments.value = 0;
+				_currentNewDocsCount = 0;
+				prevNewDocsCount.value = 0;
+				hideCurrentView();
+				updateTextArea();
+				docKeySet.replaceKeys([]);
+				
+				removeWordCloud();
+				Weave.root.removeObject(_clusterRadVizName);
+				adjustNodeBase();
+			}
+			
+			public function dispose():void
+			{
+				refreshTimer.stop();
+			}
+			
+			/**
+			* Returns true if this node is part of a NodeGroup.
+			*/
+			public function isInGroup():Boolean
+			{
+				if( parentNodeGroup.value != "" )
+					return true;
+				else
+					return false;
+			}
+			
+			/**
+			 * Takes a String that is the name of a NodeGroup then assigns it to the class variable tracking which group this Node is in.
+			 */
+			public function addToGroup(nodeGroup:String):void
+			{
+				parentNodeGroup.value = nodeGroup;
+			}
+			
+			/**
+			 * Clears the internal group tracking variable for this node.
+			 */
+			public function removeFromGroup():String
+			{
+				var name:String = parentNodeGroup.value;
+				parentNodeGroup.value = "";
+				return name;
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

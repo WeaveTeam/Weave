@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox verticalAlign="middle" xmlns:mx="http://www.adobe.com/2006/mxml" borderThickness="0.5" borderStyle="solid" backgroundColor="0xBDD7E7" cornerRadius="2">
+	<mx:Label id="filterName" fontSize="8"/>
+	<mx:Image buttonMode="true" verticalAlign="middle" id="deleteButton" source='@Embed(source="/weave/resources/images/cancel.png")' width="8" height="8"/>
+</mx:HBox>
