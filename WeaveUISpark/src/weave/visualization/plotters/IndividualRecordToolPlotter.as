@@ -259,6 +259,10 @@ package weave.visualization.plotters
 			
 			var bounds:IBounds2D = initBoundsArray(output);
 			bounds.includePoint(tempPoint);
+			getCoordsFromRecordKey(recordKey, tempPointEndRectangle);	
+			if( sizeBy.getValueFromKey(recordKey, Number) != undefined )
+				tempPointEndRectangle.x  += sizeBy.getValueFromKey(recordKey, Number);
+			bounds.includePoint(tempPointEndRectangle);
 			if (isNaN(tempPoint.x))
 				bounds.setXRange(-Infinity, Infinity);
 			if (isNaN(tempPoint.y))
