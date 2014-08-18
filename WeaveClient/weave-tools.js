@@ -129,6 +129,10 @@ function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
 }
 
 /**
+ * @deprecated Consider using weave.path([...]).setColumn(metadata[, dataSourceName]) instead.
+ * @example weave.path('defaultColorDataColumn').setColumn({weaveEntityId: 123, sqlParams: [1,2,3]})
+ *
+ * 
  * This will create or update a DynamicColumn to refer to an attribute column on a Weave data server.
  * @param {Weave} weave A Weave instance.
  * @param {Array|WeavePath} path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
@@ -147,25 +151,14 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 	if (!dataSourceName)
 		dataSourceName = weave.evaluateExpression([], 'this.getNames(WeaveDataSource)[0]', null, ['weave.data.DataSources::WeaveDataSource']);
 	
-	var metadata = {};
+	var metadata = {"sqlParams": sqlParams};
 	if (typeof columnId == 'object')
 		for (var k in columnId)
 			metadata[k] = columnId[k];
 	else
 		metadata['weaveEntityId'] = columnId;
 	
-	if (sqlParams)
-		metadata['sqlParams'] = weave.evaluateExpression(null, 'WeaveAPI.CSVParser.createCSVRow')(sqlParams);
-	
-	// make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
-	path.request('DynamicColumn')
-		.push(null)
-			.request('ReferencedColumn')
-			.state({
-				"dataSourceName": dataSourceName,
-				"metadata": metadata
-			})
-		.pop();
+	path.setColumn(metadata, dataSourceName);
 }
 
 /**
