@@ -24,14 +24,16 @@ package weave.visualization.plotters.styles
 	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.ILineStyle;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.NormalizedColumn;
-	import weave.utils.ColumnUtils;
 	import weave.utils.EquationColumnLib;
 
 	/**
@@ -73,7 +75,7 @@ package weave.visualization.plotters.styles
 		/**
 		 * Used to enable or disable line drawing.
 		 */
-		public const enabled:AlwaysDefinedColumn = createColumn(Boolean, true);
+		public const enable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
 		 * These properties are used with a basic Graphics.lineStyle() function call.
@@ -90,13 +92,22 @@ package weave.visualization.plotters.styles
 		public const caps:AlwaysDefinedColumn = createColumn(String, null);
 		public const joints:AlwaysDefinedColumn = createColumn(String, null);
 		public const miterLimit:AlwaysDefinedColumn = createColumn(Number, 3);
+		
+		/**
+		 * IQualifiedKey -> getLineStyleParams() result
+		 */
+		private var cache:Dictionary;
 
 		/**
 		 * This function sets the line style on a Graphics object using the saved border properties.
-		 * @param graphics
-		 *     The Graphics object to initialize.
+		 * @param graphics The Graphics object to initialize.
 		 */
 		public function beginLineStyle(recordKey:IQualifiedKey, target:Graphics):void
+		{
+			target.lineStyle.apply(target, getLineStyleParams(recordKey));
+		}
+		
+		public function getLineStyleParams(recordKey:IQualifiedKey):Array
 		{
 			if (_triggerCounter != _callbackCollection.triggerCounter)
 			{
@@ -110,9 +121,13 @@ package weave.visualization.plotters.styles
 					else
 						_defaultValues[column] = EquationColumnLib.cast(column.defaultValue.value, _typesMap[column]);
 				}
+				cache = new Dictionary(true);
 			}
 			
-			var _enabled:* = _defaultValues[enabled];
+			var params:Array = cache[recordKey];
+			if (params)
+				return params;
+			
 			var _color:* = _defaultValues[color];
 			var _weight:* = _defaultValues[weight];
 			var _alpha:* = _defaultValues[alpha];
@@ -122,12 +137,7 @@ package weave.visualization.plotters.styles
 			var _joints:* = _defaultValues[joints];
 			var _miterLimit:* = _defaultValues[miterLimit];
 			
-			var lineEnabled:Boolean = _enabled !== undefined ? _enabled : StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
-			if (!lineEnabled)
-			{
-				target.lineStyle(0, 0, 0);
-			}
-			else
+			if (enable.getSessionState())
 			{
 				var lineWeight:Number = _weight !== undefined ? _weight : weight.getValueFromKey(recordKey, Number);
 				var lineColor:Number = _color !== undefined ? _color : color.getValueFromKey(recordKey, Number);
@@ -135,26 +145,43 @@ package weave.visualization.plotters.styles
 				{
 					if (lineWeight == 0) // treat lineWeight 0 as no line
 					{
-						target.lineStyle(0, 0, 0);
+						params = [0, 0, 0];
 					}
 					else
 					{
-						var         lineAlpha:Number = _alpha !== undefined ? _alpha               :      alpha.getValueFromKey(recordKey, Number);
-						var linePixelHinting:Boolean = _pixelHinting !== undefined ? _pixelHinting : ColumnUtils.getBoolean(pixelHinting, recordKey);
-						var     lineScaleMode:String = _scaleMode !== undefined ? _scaleMode       :  scaleMode.getValueFromKey(recordKey, String) as String;
-						var          lineCaps:String = _caps !== undefined ? _caps                 :       caps.getValueFromKey(recordKey, String) as String;
-						var        lineJoints:String = _joints !== undefined ? _joints             :     joints.getValueFromKey(recordKey, String) as String;
-						var    lineMiterLimit:Number = _miterLimit !== undefined ? _miterLimit     : miterLimit.getValueFromKey(recordKey, Number);
+						var lineAlpha:Number         = _alpha        !== undefined ? _alpha        :      alpha.getValueFromKey(recordKey, Number);
+						var linePixelHinting:Boolean = _pixelHinting !== undefined ? _pixelHinting : StandardLib.asBoolean(pixelHinting.getValueFromKey(recordKey));
+						var lineScaleMode:String     = _scaleMode    !== undefined ? _scaleMode    :  scaleMode.getValueFromKey(recordKey, String) as String;
+						var lineCaps:String          = _caps         !== undefined ? _caps         :       caps.getValueFromKey(recordKey, String) as String || null;
+						var lineJoints:String        = _joints       !== undefined ? _joints       :     joints.getValueFromKey(recordKey, String) as String || null;
+						var lineMiterLimit:Number    = _miterLimit   !== undefined ? _miterLimit   : miterLimit.getValueFromKey(recordKey, Number);
 
-						target.lineStyle(lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit);
-						//trace("target.lineStyle(",lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit,");");
+						params = [lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit];
 					}
 				}
 				else
 				{
-					target.lineStyle(0, 0, 0);
+					params = [0, 0, 0];
 				}
 			}
+			else
+			{
+				params = [0, 0, 0];
+			}
+			cache[recordKey] = params;
+			return params;
 		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="enable")] public function get enabled():AlwaysDefinedColumn
+		{
+			if (!_adc)
+			{
+				_adc = newDisposableChild(this, AlwaysDefinedColumn);
+				_adc.defaultValue.addImmediateCallback(this, function():void { enable.value = _adc.defaultValue.value; });
+			}
+			return _adc;
+		}
+		private var _adc:AlwaysDefinedColumn
 	}
 }

@@ -24,7 +24,7 @@ package weave.data.AttributeColumns
 	import mx.formatters.NumberFormatter;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.reportError;
@@ -75,7 +75,7 @@ package weave.data.AttributeColumns
 						return value + TYPE_SUFFIX
 					break;
 				case ColumnMetadata.DATA_TYPE:
-					return value || (_dataType == Number ? DataTypes.NUMBER : DataTypes.STRING);
+					return value || (_dataType == Number ? DataType.NUMBER : DataType.STRING);
 			}
 			
 			return value;
@@ -159,10 +159,10 @@ package weave.data.AttributeColumns
 			
 			//if it's string data - create list of unique strings
 			var dataType:String = super.getMetadata(ColumnMetadata.DATA_TYPE);
-			if (data[0] is String || (dataType && dataType != DataTypes.NUMBER))
+			if (data[0] is String || (dataType && dataType != DataType.NUMBER))
 			{
 				if (!dataType)
-					dataType = DataTypes.STRING;
+					dataType = DataType.STRING;
 				for (var i:int = 0; i < data.length; i++)
 				{
 					if (_uniqueStrings.indexOf(data[i]) < 0)
@@ -176,13 +176,13 @@ package weave.data.AttributeColumns
 			}
 			else
 			{
-				dataType = DataTypes.NUMBER;
+				dataType = DataType.NUMBER;
 				// reset min,max before looping over records
 				_minNumber = NaN;
 				_maxNumber = NaN;
 			}
 			_metadata[ColumnMetadata.DATA_TYPE] = dataType;
-			_dataType = dataType == DataTypes.NUMBER ? Number : String;
+			_dataType = dataType == DataType.NUMBER ? Number : String;
 			
 			// save a mapping from keys to data
 			for (index = 0; index < keysA.length; index++)
@@ -288,10 +288,10 @@ package weave.data.AttributeColumns
 				if (_qkeyCache[qkey] === undefined)
 				{
 					var type:String = getMetadata(ColumnMetadata.DATA_TYPE);
-					if (type == DataTypes.NUMBER)
+					if (type == DataType.NUMBER)
 						return null;
 					if (type == '')
-						type = DataTypes.STRING;
+						type = DataType.STRING;
 					_qkeyCache[qkey] = WeaveAPI.QKeyManager.getQKey(type, deriveStringFromNumber(value));
 				}
 				return _qkeyCache[qkey];

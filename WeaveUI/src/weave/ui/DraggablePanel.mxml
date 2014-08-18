@@ -43,7 +43,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				titleStyleName="weave-panel-title-style"
 				styleName="weave-panel-style"
 				
-				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject"
+				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject, weave.api.ui.IObjectWithLabel"
 				>
 	<mx:Script>
 		<![CDATA[
@@ -74,6 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.compiler.StandardLib;
+			import weave.core.CallbackCollection;
 			import weave.core.ClassUtils;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
@@ -119,12 +120,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
 			
 			public const userControlButton:Button = new Button();
-			protected const subMenuButton:Button = new Button();
+			protected const subMenuButton:MenuButton = new MenuButton();
 			protected const attributeButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
-			protected const zOrderButton:Button = new Button();
+			protected const zOrderButton:MenuButton = new MenuButton([
+				{
+					label: lang('Reset'),
+					click: function():void { zOrder.value = 0; },
+					shown: function():Boolean { return zOrder.value != 0; }
+				},{
+					label: lang('Always above'),
+					click: function():void { zOrder.value = 1; },
+					shown: function():Boolean { return zOrder.value <= 0; }
+				},{
+					label: lang('Always below'),
+					click: function():void { zOrder.value = -1; },
+					shown: function():Boolean { return zOrder.value >= 0; }
+				}
+			]);
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
@@ -168,8 +183,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
 			private var minimizedComponentVersion:MinimizedComponent = null;
-			public const subMenu:SubMenu = new SubMenu(subMenuButton);
-			protected const zOrderSubMenu:SubMenu = new SubMenu(zOrderButton);
 			
 			public function get controlPanel():ControlPanel { return _controlPanel; }
 
@@ -187,6 +200,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_constructorCalled = true;
 					reposition();
 					constructor();
+					afterConstructor();
 				}
 			}
 			
@@ -217,6 +231,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
+			 * This is called after the constructor.
+			 */
+			protected function afterConstructor():void
+			{
+			}
+			
+			/**
 			 * This function gets called when the preinitialize event is dispatched.
 			 * Subclasses can override this method and call super.preinitialize().
 			 */
@@ -239,28 +260,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				UIUtils.pad(this, 0);
 				
 				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, TOOLTIP_CONTROLS);
-				setupControlButton(subMenuButton, _subMenuIcon, null, TOOLTIP_SUBMENU);
+				setupControlButton(subMenuButton, null, null, TOOLTIP_SUBMENU);
 				setupControlButton(attributeButton, _attributeIcon, handleAttributeButtonClick, TOOLTIP_ATTRIBUTES);
 				setupControlButton(zOrderButton, [icon_zOrder, icon_zOrderReverse, icon_zOrder], null);
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, TOOLTIP_MINIMIZE);
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, TOOLTIP_MAXIMIZE);
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
-				zOrderSubMenu.dataProvider = [
-					{
-						label: lang('Reset'),
-						click: function():void { zOrder.value = 0; },
-						shown: function():Boolean { return zOrder.value != 0; }
-					},{
-						label: lang('Always above'),
-						click: function():void { zOrder.value = 1; },
-						shown: function():Boolean { return zOrder.value <= 0; }
-					},{
-						label: lang('Always below'),
-						click: function():void { zOrder.value = -1; },
-						shown: function():Boolean { return zOrder.value >= 0; }
-					}
-				];
+				subMenuButton.smallIcon = true;
 				
 				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 				if (hashMap)
@@ -302,7 +309,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (_controlPanel)
 				{
-					_controlPanel.title = ControlPanel.getControlPanelTitle(this);
+					_controlPanel.title = _controlPanel._defaultTitle = ControlPanel.getControlPanelTitle(this);
 					_controlPanel.enableSubMenu.value = true;
 					_controlPanel.sessionEditorTarget = this;
 				}
@@ -339,6 +346,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				panelNeedsUpdate();
+				
+				if (panelTitle.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					panelTitle.triggerCallbacks(); // force defaultPanelTitle to be used
 			}
 			
 			private function handleCreationComplete():void
@@ -355,6 +365,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			public function getLabel():String
+			{
+				return title;
+			}
+			
 			/**
 			 * Override this function to provide a default panel title when the panelTitle session state is undefined.
 			 * The panel title will be set when handlePanelTitleChange() is called.
@@ -362,14 +377,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function get defaultPanelTitle():String
 			{
-				return lang(getQualifiedClassName(this).split(':').pop());
+				return _defaultTitle || lang(getQualifiedClassName(this).split(':').pop());
 			}
 			
 			// workaround to fix text layout performance problem
 			override public function set title(value:String):void
 			{
+				if (panelTitle.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					_defaultTitle = value;
 				super.title = value && value.substr(0, 256);
 			}
+			internal var _defaultTitle:String;
 			
 			/**
 			 * This gets called when the panelTitle session state changes.
@@ -1214,7 +1232,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function setupControlButton(button:Button, iconClassOrArray_0icon_1over_2down:Object, clickHandler:Function, tooltip:String = null):void
 			{
-				setupButtonIcons(button, iconClassOrArray_0icon_1over_2down);
+				if (iconClassOrArray_0icon_1over_2down)
+					setupButtonIcons(button, iconClassOrArray_0icon_1over_2down);
 				
 				button.toolTip = lang(tooltip);
 				
@@ -1272,7 +1291,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var w:int = buttonOffsetFromSide;
 				for each (var button:Button in [zOrderButton, minimizeButton, maximizeButton, closePanelButton])
 					if (button.parent)
-						w+= buttonSize + spaceBetweenButtons;
+						w += buttonSize + spaceBetweenButtons;
 				return w;
 			}
 			
@@ -1775,7 +1794,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Embed(source="/weave/resources/images/gear6_13x13_h.png")] private static var _userControlIcon:Class;
 			[Embed(source="/weave/resources/images/gear6_13x13_v.png")] private static var _userControlIcon2:Class;
-			[Embed(source="/weave/resources/images/menu_9x7.png")] private static var _subMenuIcon:Class;
 			[Embed(source="/weave/resources/images/alpha_11x11.png")] private static var _attributeIcon:Class;
 			
 			[Embed(source="/weave/resources/images/z-order.png")] private static var icon_zOrder:Class;

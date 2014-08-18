@@ -21,7 +21,7 @@ package weave.data.BinClassifiers
 {
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinClassifier;
 	import weave.api.data.IPrimitiveColumn;
@@ -117,7 +117,7 @@ package weave.data.BinClassifiers
 				return minStr;
 			
 			// if the column dataType is string, put quotes around the labels
-			if (toStringColumn && toStringColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.STRING)
+			if (toStringColumn && toStringColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.STRING)
 			{
 				minStr = lang('"{0}"', minStr);
 				maxStr = lang('"{0}"', maxStr);

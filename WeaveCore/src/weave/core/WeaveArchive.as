@@ -74,6 +74,7 @@ package weave.core
 		private function filterFilePathsToReadAsObject(filePath:String):Boolean
 		{
 			return filePath.indexOf(FOLDER_AMF + '/') == 0;
+			//return filePath.substr(-4).toLowerCase() == ".amf";
 		}
 		
 		/**
@@ -162,7 +163,8 @@ package weave.core
 			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
 				output.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
 			
-			if (pluginList)
+			// for forwards compatibility, don't include plugin list unless it has items
+			if (pluginList && pluginList.length)
 				output.objects[ARCHIVE_PLUGINS_AMF] = pluginList;
 			
 			// session history

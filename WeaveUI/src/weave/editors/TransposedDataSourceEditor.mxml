@@ -27,8 +27,8 @@
 	creationPolicy="all"
 	implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_dataSource ? 'Edit' : 'Add') + ' Transposed Data Source' )}"/>
-	<ui:Indent label="{lang('Source Name')}" visible="{!_dataSource}" includeInLayout="{!_dataSource}">
+	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
+	<ui:Indent label="{lang('Source Name')}" visible="{!target}" includeInLayout="{!target}">
 		<ui:TextInputWithPrompt id="sourceName"
 								width="100%"
 								prompt="{lang('Enter a name')}"
@@ -39,7 +39,7 @@
 			The values in this column will be used as titles for the transposed columns.
 		</ui:helpContent>
 	</ui:DynamicColumnComponent>
-	<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100);">
+	<ui:CustomTabNavigator initialize="UIUtils.pad(event, 8, 100, 100);">
 		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns to transpose')}">
 			<ui:helpContent>
 				Each column you add below will correspond to a record in the transposed data source.
@@ -52,7 +52,7 @@
 				For example, create a metadata variable named "title" to define the text used for each transposed column title.
 			</ui:helpContent>
 		</ui:ColumnListComponent>
-	</mx:TabNavigator>
+	</ui:CustomTabNavigator>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -76,7 +76,7 @@
 			public const metadata:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			
-			[Bindable] private var _dataSource:TransposedDataSource = null;
+			[Bindable] private var target:TransposedDataSource = null;
 			
 			override protected function createChildren():void
 			{
@@ -106,7 +106,7 @@
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				_dataSource = object as TransposedDataSource;
+				target = object as TransposedDataSource;
 				
 				if (!parent)
 				{
@@ -114,11 +114,11 @@
 					return;
 				}
 				
-				if (_dataSource)
+				if (target)
 				{
-					copySessionState(_dataSource.metadata, metadata);
-					copySessionState(_dataSource.columns, columns);
-					sourceName.text = WeaveAPI.globalHashMap.getName(_dataSource);
+					copySessionState(target.metadata, metadata);
+					copySessionState(target.columns, columns);
+					sourceName.text = WeaveAPI.globalHashMap.getName(target);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 				}
@@ -126,14 +126,14 @@
 			
 			public function hasPendingChanges():Boolean
 			{
-				return !!WeaveAPI.SessionManager.computeDiff(getSessionState(metadata), getSessionState(_dataSource.metadata))
-					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(columns), getSessionState(_dataSource.columns));
+				return !!WeaveAPI.SessionManager.computeDiff(getSessionState(metadata), getSessionState(target.metadata))
+					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(columns), getSessionState(target.columns));
 			}
 			
 			public function applyChanges():void
 			{
-				copySessionState(metadata, _dataSource.metadata);
-				copySessionState(columns, _dataSource.columns);
+				copySessionState(metadata, target.metadata);
+				copySessionState(columns, target.columns);
 			}
 			
 			public function createDataSource():IDataSource
@@ -148,14 +148,14 @@
 					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 					return null;
 				}
-				_dataSource = WeaveAPI.globalHashMap.requestObject(sourceName.text, TransposedDataSource, false);
-				if (!_dataSource)
+				target = WeaveAPI.globalHashMap.requestObject(sourceName.text, TransposedDataSource, false);
+				if (!target)
 				{
 					Alert.show(lang("Unexpected problem. Unable to add the data source."));
 					return null;
 				}
 				applyChanges();
-				return _dataSource;
+				return target;
 			}
 		]]>
 	</mx:Script>

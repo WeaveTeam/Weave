@@ -45,7 +45,7 @@
 	</ui:CheckBoxWithNestedOptions>
 	
 	<ui:CheckBoxWithNestedOptions id="fillEnabled" label="{lang('Enable fill color')}"
-								  creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')">
+								  creationComplete="linkBindableProperty(_plotter.fill.enable, event.target, 'selected')">
 		<mx:HBox id="fillColorColumnControls" width="100%" verticalAlign="middle">
 			<ui:DynamicColumnComponent id="fillColorColumn" label="{lang('Color')}" showLinkControl="false" columnWrapper="{_plotter.fill.color}"/>
 			<mx:Button label="{lang('Edit Bins...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
@@ -74,7 +74,7 @@
 	</ui:CheckBoxWithNestedOptions>
 	
 	<ui:CheckBoxWithNestedOptions id="lineEnabled" label="{lang('Enable borders')}"
-				 				  creationComplete="linkBindableProperty(_plotter.line.enabled.defaultValue,event.target,'selected')">
+				 				  creationComplete="linkBindableProperty(_plotter.line.enable, event.target, 'selected')">
 		<mx:HBox horizontalGap="{hgap}">
 			<ui:Indent grouped="false" label="{lang('Alpha')}">
 				<mx:NumericStepper 	id="lineAlpha" 
@@ -113,7 +113,7 @@
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
-			import weave.api.data.DataTypes;
+			import weave.api.data.DataType;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.compiler.StandardLib;
@@ -151,7 +151,7 @@
 			
 			private function getGeometryErrorString():String
 			{
-				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataTypes.GEOMETRY)
+				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataType.GEOMETRY)
 					return lang('Please select a geometry column.');
 				return '';
 			}

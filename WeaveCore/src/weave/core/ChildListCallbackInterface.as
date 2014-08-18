@@ -67,8 +67,15 @@ package weave.core
 		 */	
 		public function runCallbacks(name:String, objectAdded:ILinkableObject, objectRemoved:ILinkableObject):void
 		{
+			// remember previous values
+			var _name:String = _lastNameAdded || _lastNameRemoved;
+			var _added:ILinkableObject = _lastObjectAdded;
+			var _removed:ILinkableObject = _lastObjectRemoved;
+			
 			_runCallbacksImmediately(name, objectAdded, objectRemoved);
-			setCallbackVariables(); // clear the variables
+			
+			// restore previous values (in case an external JavaScript popup caused us to interrupt something else)
+			setCallbackVariables(_name, _added, _removed);
 		}
 	
 		/**

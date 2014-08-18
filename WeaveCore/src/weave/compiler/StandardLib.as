@@ -169,6 +169,8 @@ package weave.compiler
 		 */
 		public static function substitute(format:String, ...args):String
 		{
+			if (args.length == 1 && args[0] is Array)
+				args = args[0] as Array;
 			var split:Array = format.split('{')
 			var output:String = split[0];
 			for (var i:int = 1; i < split.length; i++)
@@ -839,6 +841,21 @@ package weave.compiler
 			var decoder:Base64Decoder = new Base64Decoder();
 			decoder.decode(ascii);
 			return decoder.drain();
+		}
+		
+		/**
+		 * @see https://github.com/bestiejs/punycode.js
+		 */
+		internal static function ucs2encode(value:uint):String
+		{
+			var output:String = '';
+			if (value > 0xFFFF)
+			{
+				value -= 0x10000;
+				output += String.fromCharCode(value >>> 10 & 0x3FF | 0xD800);
+				value = 0xDC00 | value & 0x3FF;
+			}
+			return output + String.fromCharCode(value);
 		}
 	}
 }

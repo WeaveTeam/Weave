@@ -73,7 +73,7 @@
 		<!-- Data manipulation and value exhibit-->
 		<mx:VBox id="dataBox" width="50%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
 			<mx:Label text="(1) Select data to send to R" fontWeight="bold"/>
-			<mx:TabNavigator width="100%" height="100%">
+			<ui:CustomTabNavigator width="100%" height="100%">
 				<mx:VBox label="Columns">
 					<mx:HBox paddingLeft="5" paddingRight="5">
 						<mx:CheckBox id="columnsasVectorCB" label="Send Columns to R as Vectors" enabled="false"/>
@@ -119,7 +119,7 @@
 				</mx:VBox>
 				
 				<mx:VBox id="misc" label="Miscellaneous">
-					<mx:TabNavigator width="100%" height="100%">
+					<ui:CustomTabNavigator width="100%" height="100%">
 						<mx:VBox id="sampling" label="Sampling">
 							
 							<mx:HBox width="100%" height="80%">
@@ -139,10 +139,10 @@
 								<mx:Button id="runSampleBUtton" label="Sample" />
 							
 						</mx:VBox>
-					</mx:TabNavigator>
+					</ui:CustomTabNavigator>
 					
 				</mx:VBox>
-			</mx:TabNavigator>
+			</ui:CustomTabNavigator>
 			<mx:Button id="assignmentButton" label="(2) Generate and assign Variables" click="updateVariableAssignment(event)"/>
 			
 			<mx:Label text="Orginal Columns" fontWeight="bold"/>
@@ -218,7 +218,7 @@
 			</mx:HBox>
 			<mx:Label text="(4) Enter your Rscript" fontWeight="bold"/>
 			<!--2-->
-			<mx:TabNavigator width="100%" height="50%">
+			<ui:CustomTabNavigator width="100%" height="50%">
 				<mx:VBox id="RscriptTab" label="R Script">
 					<mx:TextArea id="RScriptTA" width="100%" height="100%"/>
 					<!--ui:TextInputWithPrompt width="100%" height="100%" id="searchAttrTerms"
@@ -263,7 +263,7 @@
 					<mx:TextArea id="queryObjectTA" width="100%" height="100%"/>
 				</mx:VBox>
 				
-			</mx:TabNavigator>
+			</ui:CustomTabNavigator>
 			<mx:HBox>
 			<mx:Spacer width="75%"	/>
 			<!--mx:Button id="newScript" layoutDirection="rtl" label="New Script" click="newScript_clickHandler(event)"/-->
@@ -333,9 +333,10 @@
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.ui.DataMiningEditors.PamClusteringEditor;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 
-			//WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
+			//WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
 			
 			[Bindable]
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();
@@ -392,7 +393,7 @@
 			override protected function constructor():void
 			{
 				super.constructor();				
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 				

@@ -117,7 +117,7 @@
 			import weave.Weave;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.DataTypes;
+			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
@@ -153,7 +153,7 @@
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
-			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -597,7 +597,7 @@
 					if (attrCol is KeyColumn)
 						continue;
 					
-					var keyType:String = ColumnUtils.getKeyType(attrCol) || DataTypes.STRING;
+					var keyType:String = ColumnUtils.getKeyType(attrCol) || DataType.STRING;
 					if (keyTypeList.indexOf(keyType) == -1)
 						keyTypeList.push(keyType);
 				}
@@ -637,7 +637,7 @@
 						
 						//filterComponent Section
 						var classDef:Class = null;
-						if (dataType == DataTypes.NUMBER)
+						if (dataType == DataType.NUMBER)
 							classDef = SliderFilterComponent;
 						else
 							classDef = SearchFilterComponent;

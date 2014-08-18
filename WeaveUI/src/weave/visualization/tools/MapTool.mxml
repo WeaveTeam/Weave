@@ -33,8 +33,9 @@
 			import weave.Weave;
 			import weave.api.copySessionState;
 			import weave.api.data.ColumnMetadata;
-			import weave.api.data.DataTypes;
+			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnReference;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -54,7 +55,7 @@
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 			import weave.editors.SimpleAxisEditor;
 			import weave.editors.WindowSettingsEditor;
-			import weave.editors.managers.CustomLayerWindow;
+			import weave.editors.managers.LayerListComponent;
 			import weave.menus.WeaveMenuItem;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeMenuTool;
@@ -72,7 +73,7 @@
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, MapTool, "Map");
 			
 			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
@@ -83,6 +84,38 @@
 				super.constructor();
 				
 				AttributeMenuTool.hack_skipToolTargets[this] = true;
+			}
+			
+			private function isGeomColumnOrRef(obj:Object, i:*, a:*):Boolean
+			{
+				var col:IAttributeColumn = obj as IAttributeColumn;
+				if (col)
+					return col.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY;
+				
+				var ref:IColumnReference = obj as IColumnReference;
+				if (ref)
+				{
+					var meta:Object = ref.getColumnMetadata();
+					return meta && meta[ColumnMetadata.DATA_TYPE] == DataType.GEOMETRY;
+				}
+				
+				return false;
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				var geomColumns:Array = input.filter(isGeomColumnOrRef);
+				var nonGeomColumns:Array = input.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
+				for each (var geomColumn:Object in geomColumns)
+				{
+					var gp:GeometryPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter, false);
+					if (gp)
+					{
+						ColumnUtils.initSelectableAttribute(gp.geometryColumn, geomColumn);
+						if (!Weave.defaultColorDataColumn.getInternalColumn())
+							ColumnUtils.initSelectableAttribute(Weave.defaultColorDataColumn, nonGeomColumns[0]);
+					}
+				}
 			}
 			
 			/**
@@ -212,7 +245,7 @@
 					// get all ReferencedColumn objects, excluding geometry columns
 					var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization, ReferencedColumn);
 					for each (var col:IAttributeColumn in refCols)
-						if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) != 0) // non-geometry
+						if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataType.GEOMETRY, true) != 0) // non-geometry
 							visualization.additionalProbeColumns.push(col);
 				}
 				else
@@ -290,12 +323,13 @@
 			private var selectionSubMenu:SubMenu;
 			private function initSelectionSubMenu():void
 			{
-				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP], [
+				selectionSubMenu = new SubMenu(selectModeButton, [
 					menuItem(InteractionController.SELECTION_MODE_RECTANGLE, "Rectangular Selection"),
 					menuItem(InteractionController.SELECTION_MODE_CIRCLE, "Circular Selection"),
 					menuItem(InteractionController.SELECTION_MODE_LASSO, "Lasso Selection")/*,
 					menuItem(InteractionController.SELECTION_MODE_POINT, "Point Selection")*/
 				]);
+				selectionSubMenu.setSubMenuEvents([MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				function menuItem(mode:String, label:String):Object {
 					return {
 						data: mode,
@@ -489,16 +523,16 @@
 				if (grp)
 					return grp.geometryColumn.internalDynamicColumn;
 				
-				var spp:ScatterPlotPlotter = p as ScatterPlotPlotter;
-				if (spp)
-					return spp.dataX;
+				var agp:AbstractGlyphPlotter = p as AbstractGlyphPlotter;
+				if (agp)
+					return agp.dataX;
 				
 				return null;
 			}
 			
 			private function addGeomLayer():void
 			{
-				CustomLayerWindow.addPlotterAndEdit(visualization, GeometryPlotter);
+				LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter);
 			}
 			
 			private function addLabelLayer():void
@@ -510,7 +544,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:GeometryLabelPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryLabelPlotter);
+				var plotter:GeometryLabelPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryLabelPlotter);
 				if (!plotter)
 					return;
 				
@@ -546,7 +580,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:ScatterPlotPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, ScatterPlotPlotter);
+				var plotter:ScatterPlotPlotter = LayerListComponent.addPlotterAndEdit(visualization, ScatterPlotPlotter);
 				if (!plotter)
 					return;
 				
@@ -575,7 +609,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:GeometryRelationPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryRelationPlotter);
+				var plotter:GeometryRelationPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryRelationPlotter);
 				if (!plotter)
 					return;
 				
@@ -595,7 +629,7 @@
 				var oldLayerNames:Array = visualization.plotManager.plotters.getNames();
 
 				// create new plotter
-				var plotter:WMSPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, WMSPlotter);
+				var plotter:WMSPlotter = LayerListComponent.addPlotterAndEdit(visualization, WMSPlotter);
 				if (!plotter)
 					return;
 				
@@ -904,18 +938,16 @@
 			layerControls.addChild(layersEditor);
 			layersEditor.addChildAt(layerButtons, 0);
 			layersEditor.removeChild(layersEditor.layerButtons);
-			layerButtons.addChild(layersEditor.removeButton);
 			layersEditor.visible = true;
 			layersEditor.labelFunction = getPlotterLabel;
 		</ui:creationComplete>
 		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
-			<ui:Indent id="layerButtons" grouped="false" label="Add layer:" translate="true" horizontalGap="4">
+			<ui:Indent id="layerButtons" grouped="false" label="Add a layer:" translate="true" horizontalGap="4">
 				<mx:Button label="{lang('Base Map')}" click="addWMSLayer();" toolTip="{lang('Add an image layer underneath the geometries')}"/>
 				<mx:Button label="{lang('Geometry')}" click="addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
 				<mx:Button label="{lang('Labels')}" click="addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
 				<mx:Button label="{lang('Bubbles')}" click="addBubbleLayer();" toolTip="{lang('Add bubbles to the selected geometry layer')}"/>
-				<mx:Button label="{lang('Other...')}" click="layersEditor.addLayer()" toolTip="{lang('Add another type of layer')}"/>
-				<mx:Spacer width="100%"/>
+				<ui:MenuButton id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListComponent.initAddLayerButton(addLayerButton, visualization)"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">

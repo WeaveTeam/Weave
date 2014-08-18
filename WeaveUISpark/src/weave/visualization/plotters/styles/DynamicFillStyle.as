@@ -30,7 +30,7 @@ package weave.visualization.plotters.styles
 	 * 
 	 * @author adufilie
 	 */
-	public class DynamicFillStyle extends LinkableDynamicObject implements IFillStyle
+	[ExcludeClass] public class DynamicFillStyle extends LinkableDynamicObject implements IFillStyle
 	{
 		public function DynamicFillStyle(defaultFillStyleClass:Class = null)
 		{

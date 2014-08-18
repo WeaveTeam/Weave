@@ -26,10 +26,14 @@ correspond to the items in the dataProvider and the selection Array will
 automatically be updated to correspond to changes in dataProvider item order.
 -->
 <mx:List xmlns:mx="http://www.adobe.com/2006/mxml"
-		 width="100%" borderThickness="0" selectable="false"
+		 width="100%"
+		 paddingLeft="0"
+		 paddingRight="0"
+		 backgroundAlpha="0"
+		 borderThickness="0"
+		 selectable="false"
 		 rowCount="{dataProvider.length || 1}"
-		 paddingLeft="0" paddingRight="0"
-		 paddingTop="{getStyle('verticalGap')/2}" paddingBottom="{getStyle('verticalGap')/2}" xmlns:ui="weave.ui.*">
+		 xmlns:ui="weave.ui.*">
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ICollectionView;
@@ -68,7 +72,7 @@ automatically be updated to correspond to changes in dataProvider item order.
 					for (var newIndex:int = 0; newIndex < newData.length; newIndex++)
 					{
 						var oldIndex:int = _prevData.indexOf(newData[newIndex]);
-						newSelection[newIndex] = oldIndex < 0 ? defaultSelectedState : !!_selection[oldIndex];
+						newSelection[newIndex] = getSelectedState(oldIndex);
 					}
 					_prevData = newData;
 					selection = newSelection;
@@ -78,7 +82,8 @@ automatically be updated to correspond to changes in dataProvider item order.
 			private var _selection:Array = [];
 			
 			/**
-			 * This array stores the list of Boolean values for the checkboxes
+			 * This array stores the list of Boolean values for the checkboxes.
+			 * If items in the selection Array are undefined, defaultSelectedState will be used.
 			 */
 			[Bindable] public function set selection(value:Array):void
 			{
@@ -90,13 +95,24 @@ automatically be updated to correspond to changes in dataProvider item order.
 				{
 					var checkBox:CustomCheckBox = indexToItemRenderer(i) as CustomCheckBox;
 					if (checkBox)
-						checkBox.selected = _selection[i];
+						checkBox.selected = getSelectedState(i);
 				}
 			}
 			
 			public function get selection():Array
 			{
 				return _selection;
+			}
+			
+			/**
+			 * Gets the selected state of a single CheckBox.
+			 */
+			public function getSelectedState(index:int):Boolean
+			{
+				var value:* = _selection[index];
+				if (value === undefined)
+					return defaultSelectedState;
+				return value;
 			}
 		]]>
 	</mx:Script>
@@ -110,12 +126,14 @@ automatically be updated to correspond to changes in dataProvider item order.
 						override public function set data(d:Object):void
 						{
 							super.data = d;
-							selected = outerDocument.selection[outerDocument.itemRendererToIndex(this)];
+							var index:int = outerDocument.itemRendererToIndex(this);
+							selected = outerDocument.getSelectedState(index);
 						}
 						private function handleSelectionChange():void
 						{
 							var newSelection:Array = outerDocument.selection.concat();
-							newSelection[outerDocument.itemRendererToIndex(this)] = this.selected;
+							var index:int = outerDocument.itemRendererToIndex(this);
+							newSelection[index] = this.selected;
 							outerDocument.selection = newSelection;
 						}
 					]]>

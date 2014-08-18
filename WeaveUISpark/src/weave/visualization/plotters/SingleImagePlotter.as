@@ -49,7 +49,7 @@ package weave.visualization.plotters
 	 */	
 	public class SingleImagePlotter extends AbstractPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, SingleImagePlotter, "Single image");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, SingleImagePlotter, "Single image");
 		
 		public function SingleImagePlotter()
 		{

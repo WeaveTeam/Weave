@@ -8,7 +8,7 @@
     <style>
         body { font: 14px helvetica neue, helvetica, arial, sans-serif;}
         #cy { height: 100%; width: 100%; position: absolute; left: 0; top: 0;}
-        #controls {position: absolute;top: 0;left: 0;}
+        #controlsleft {position: absolute;top: 0;left: 0;}
     </style>
     <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.2.4/cytoscape.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
@@ -18,7 +18,7 @@
     <div id="cy">
         
     </div>
-    <div id="controls">
+    <div id="controlsleft">
             <button title="Zoom to Fit" onclick="cy.fit()">Z</button>
             <select name="layout_dropdown"></select>
             <button title="Run layout" onclick="run_layout()">&#8634;</button>
@@ -26,7 +26,7 @@
     </div>
 
 <script>
-    cytoscape_style = 
+    cytoscape_style =
         cytoscape.stylesheet()
             .selector('node')
                 .css({
@@ -38,9 +38,7 @@
                         'line-width': 1,
                         'border-width': 1,
                         'text-outline-color': '#888',
-                        'background-color': 'data(color)',
-                        'height': 30,
-                        'width': 30
+                        'background-color': 'data(color)'
                         })
             .selector('edge')
                 .css({
@@ -69,46 +67,53 @@
                         })
             .selector('node.probed')
                 .css({
-                        'border-width': 7,
-                        'height': 28,
-                        'width':28
+                        'border-width': 7
                 })
             .selector('edge.probed')
                 .css({
                         'line-color': 'red',
                         'line-width': 3
                 })
+            .selector('$node > node')
+                .css({ 
+                        'padding-top': '5px',
+                        'padding-left': '5px',
+                        'padding-bottom': '5px',
+                        'padding-right': '5px',
+                        'text-valign': 'top'
+                    });
 
-    /* Session variable names */
-    var NODE_LABEL = "Node Label";
-    var NODE_COLOR = "Node Color";
-    var NODE_SIZE = "Node Size";
-    var NODE_PARENT = "Node Parent";
-    var EDGE_SOURCE = "Edge Source";
-    var EDGE_TARGET = "Edge Target";
-    var EDGE_COLOR = "Edge Color";
-    var EDGE_LABEL = "Edge Label";
-    var LAYOUT_NAME = "Layout Name";
-    var LAYOUT_PARAMS = "Layout Parameters";
-    var POSITIONS = "Positions";
-    var VIEWPORT = "Viewport";
-    var DIRECTIONAL = "Directional";
-
-    var nodeColumns = {};
-    var edgeColumns = {};
     var node_data;
     var edge_data;
+    var toolPath;
+    var tool = {};
+
+    var NODES = 'nodes';
+    var NODE_NAME = 'name';
+    var NODE_COLOR = 'color';
+    var NODE_SIZE = 'size';
+    var NODE_PARENT = 'parent';
+
+    var EDGES = 'edges';
+    var EDGE_SOURCE = 'source';
+    var EDGE_TARGET = 'target';
+    var EDGE_NAME = 'name';
+
+    var LAYOUT = "layout";
+    var LAYOUT_OPTIONS = "layout_options";
+    var POSITIONS = "positions";
+    var VIEWPORT = "viewport";
+    var DIRECTIONAL = "directional";
 
     function data_updated()
     {
-        var node_keytype = toolPath.push(NODE_LABEL).getValue("getMetadata('keyType')");
+        
+        var node_keytype = tool[NODES][NODE_NAME].getValue("getMetadata('keyType')");
 
-        node_data = toolPath.retrieveRecords(nodeColumns, nodeColumns["name"]);
-        edge_data = toolPath.retrieveRecords(edgeColumns, edgeColumns["source"]);
+        node_data = toolPath.retrieveRecords(tool[NODES], tool[NODES][NODE_NAME]);
+        edge_data = toolPath.retrieveRecords(tool[EDGES], tool[EDGES][EDGE_SOURCE]);
 
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
-
-        function colorIntToColorString(colorInt) {return (typeof colorInt == "number") ? "#" + colorInt.toString(16) : colorInt;}
 
         function modifyRecords(records, field, func)
         {
@@ -116,11 +121,10 @@
         }
 
         //modifyRecords(node_data, 'parent', localNameToKeyString);
-        modifyRecords(node_data, 'color', colorIntToColorString);
 
         modifyRecords(edge_data, 'source', localNameToKeyString);
         modifyRecords(edge_data, 'target', localNameToKeyString);
-        modifyRecords(edge_data, 'color', colorIntToColorString);
+        modifyRecords(node_data, 'parent', localNameToKeyString);
 
         var node_ids = _.zipObject(_.pluck(node_data, 'id'));
 
@@ -131,126 +135,127 @@
         node_data = _.map(node_data, function (d) {return {data: d};});
         edge_data = _.map(edge_data, function (d) {return {data: d};});
 
-        cy.layout({name: 'preset', positions: get_positions()});
-
-        cy.load({nodes: node_data, edges: edge_data});
+        cy.load({nodes: node_data, edges: edge_data}, set_local_positions);
     };
 
     
     var selection_changed_calls = 0;
 
 
-    function probe_changed()
+    function set_local_probe(keys)
     {
+        var added_keys = _.zipObject(keys.added);
+        var removed_keys = _.zipObject(keys.removed);
 
-        var local_probes = _.zipObject(toolPath.probe_keyset.getKeys());
-
-        cy.filter(function(i, ele) { return _.has(local_probes, ele.id()); }).toggleClass("probed", true);
-        cy.filter(function(i, ele) { return !_.has(local_probes, ele.id()); }).toggleClass("probed", false);
+        cy.filter(function(i, ele) { return _.has(added_keys, ele.id()); }).toggleClass("probed", true);
+        cy.filter(function(i, ele) { return _.has(removed_keys, ele.id()); }).toggleClass("probed", false);
 
     };
 
-    function probe(evt)
+    function set_local_selection(keys)
+    {
+        var added_keys = _.zipObject(keys.added);
+        var removed_keys = _.zipObject(keys.removed);
+
+        if (cy.nodes().length != 0)
+        {
+            cy.filter(function(i, ele) { return _.has(added_keys, ele.id()) && !ele.selected(); }).select();
+            cy.filter(function(i, ele) { return _.has(removed_keys, ele.id()) && ele.selected(); }).unselect();
+        }
+    };
+
+    var last_probed;
+    function probe_handler(evt)
     {
         var ele = evt.cyTarget;
+        last_probed = ele;
         ele.toggleClass("probed", true);
         toolPath.probe_keyset.setKeys([ele.id()]);
     };
 
-    function unprobe(evt)
+    function unprobe_handler(evt)
     {
+        var ele = evt.cyTarget;
+        ele.toggleClass("probed", false);
         toolPath.probe_keyset.setKeys([]);
     };
+
     var local_selection = {};
     var selection_timeout_id = null;
 
-    function selection_changed()
-    {
-        local_selection = _.zipObject(toolPath.selection_keyset.getKeys());
-
-        cy.off({select: add_to_selection, unselect: remove_from_selection});
-
-        cy.elements().unselect();
-
-        cy.filter(function(i, ele) { return _.has(local_selection, ele.id()); }).select();
-
-        cy.on({select: add_to_selection, unselect: remove_from_selection});
-    };
-
-    function send_selection()
-    {
-        toolPath.selection_keyset.setKeys(Object.keys(local_selection));
-
-        selection_timeout_id = null;
-    }
     function deselect_all()
     {
         toolPath.selection_keyset.setKeys([]);
     }
-    function add_to_selection(evt)
+
+    function select_handler(evt)
     {
-        ele = evt.cyTarget;
-        local_selection[ele.id()] = true;
-        if (selection_timeout_id == null)
-            selection_timeout_id = window.setTimeout(send_selection, 50);
-    }
-    function remove_from_selection(evt)
-    {
-        ele = evt.cyTarget;
-        delete local_selection[ele.id()];
-        if (selection_timeout_id == null)
-            selection_timeout_id = window.setTimeout(send_selection, 50);
+        var ele = evt.cyTarget;
+        toolPath.selection_keyset.addKeys([ele.id()]);
     }
 
-    function qkeyStringToString(qkey_string)
+    function deselect_handler(evt)
     {
-        return toolPath.qkeyToString(JSON.parse(qkey_string));
+        var ele = evt.cyTarget;
+        toolPath.selection_keyset.removeKeys([ele.id()]);
     }
 
-    function stringToQKeyString(str)
+    function get_weave_positions()
     {
-        return JSON.stringify(toolPath.stringToQKey(str));
-    }
+        var positions = tool[POSITIONS].getState();
+        
+        var new_positions = {}; 
 
-    function get_positions()
-    {
-        var positions = toolPath.push(POSITIONS).getState();
-        var new_positions = {};
-
-        for (var key in positions)
+        if (positions == null || positions == "") 
         {
-            new_position = positions[key];
-            new_positions[qkeyStringToString(key)] = new_position;
+            return null;
         }
+
+        for (var keyType in positions)
+        {
+            
+            for (var localName in positions[keyType])
+            {
+                var id = toolPath.qkeyToString({keyType: keyType, localName: localName});
+                new_positions[id] = positions[keyType][localName];
+            }
+        }
+
         return new_positions;
     }
 
-    function positions_changed()
+    function set_local_positions()
     {
-        var positions = toolPath.push(POSITIONS).getState();
-
-        if (positions == null || positions == "")
+        
+        var positions = get_weave_positions();
+        
+        if (positions == null)
         {
-            return;
+            positions = {};
         }
 
-        cy.nodes().positions(function (i, ele) { return positions[stringToQKeyString(ele.id())]; });
+        cy.nodes().positions(function (i, ele) { return positions[ele.id()]; });
+        cy.nodes().filter(function (i, ele) { if (positions[ele.id()]) ele.lock()});
+        console.log("Nodes locked");
+        run_layout(function(evt) { cy.nodes().unlock(); console.log("Nodes unlocked"); });
     }
 
-    function update_positions(evt)
+    function set_weave_positions(evt)
     {
         var nodes = cy.nodes();
         var idx;
         var positions = {};
         for (idx = 0; idx < nodes.length; idx++)
         {
-            var id = stringToQKeyString(nodes[idx].id());
+            var key = toolPath.stringToQKey(nodes[idx].id());
             var pos = nodes[idx].position();
             if (pos.x === undefined && pos.y === undefined)
             {
                 continue;
             }
-            positions[id] = pos;
+            if (positions[key.keyType] === undefined) positions[key.keyType] = {};
+
+            positions[key.keyType][key.localName] = pos;
         }
 
         toolPath.push(POSITIONS).state(positions);
@@ -261,81 +266,83 @@
                          breadthfirst: 'Breadth-First', arbor: 'Arbor (Force-Directed)', 
                          cose: "CompoundSpring"};
 
-    function run_layout()
+    function run_layout(on_finished)
     {
-        var layout_name = toolPath.push(LAYOUT_NAME).getState();
-        var layout_params = toolPath.push(LAYOUT_PARAMS).getState();
+        var layout_name = tool[LAYOUT].getState();
+        var layout_params = tool[LAYOUT_OPTIONS].getState();
 
         if (!layout_params)
         {
-            toolPath.push(LAYOUT_PARAMS).state({});
+            tool[LAYOUT_OPTIONS].state({});
             layout_params = {};
         }
         if (layout_name == null || !_.has(valid_layouts, layout_name))
         {
-            toolPath.push(LAYOUT_NAME).state("circle");
+            tool[LAYOUT].state("circle");
             layout_name = "circle";
         }
+
+        function on_stop (evt) 
+        {
+            set_weave_positions(evt);
+            if (on_finished) on_finished(evt);
+        }
         layout_params['name'] = layout_name;
-        layout_params['stop'] = function(){update_positions()};
+        layout_params['stop'] = on_stop;
 
-        cy.layout(layout_params);
-
+        if (cy.nodes().filter(function (i,ele) {return !ele.locked();}).length)
+            cy.layout(layout_params);
+        else
+            if (on_finished) on_finished();
     };
+
 
     function open_attribute_selector()
     {
-        toolPath.push(NODE_LABEL).libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(this)");
+        toolPath.push(NODES).libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(this)");
         return;
     }
 
-    $('select[name="layout_dropdown"]').change(function ()
+    function set_local_layout()
     {
-        var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
-        toolPath.push(LAYOUT_NAME).state(new_value);
-    });
-
-    function layout_changed()
-    {
-        var layout_value = toolPath.push(LAYOUT_NAME).getState();
+        var layout_value = tool[LAYOUT].getState();
         $('select[name="layout_dropdown"] option[value="' + layout_value + '"]').prop("selected", "yes");
     }
 
-    function update_viewport()
+    function set_weave_viewport()
     {
         var viewport_value = cy.pan();
         viewport_value['zoom'] = cy.zoom();
 
-        toolPath.push(VIEWPORT).state(viewport_value);
+        tool[VIEWPORT].state(viewport_value);
     }
-    var update_viewport_disabled = false;
 
-    function viewport_changed()
+    function set_local_viewport()
     {
-        var viewport_value = toolPath.push(VIEWPORT).getState();
+        var viewport_value = tool[VIEWPORT].getState();
         if (viewport_value == null || viewport_value == undefined || 
              (viewport_value.x == undefined) || 
              (viewport_value.y == undefined) || 
              (viewport_value.zoom == undefined))
         {
-            update_viewport();
+            set_weave_viewport();
             return;
         };
         var pan_to = {x: viewport_value.x, y: viewport_value.y};
         var zoom_level = viewport_value.zoom;
 
-        cy.on({zoom: update_viewport, pan: update_viewport});
+        cy.on({zoom: set_weave_viewport, pan: set_weave_viewport});
         cy.pan(pan_to);
         cy.zoom(zoom_level);
-        cy.on({zoom: update_viewport, pan: update_viewport});
+        cy.on({zoom: set_weave_viewport, pan: set_weave_viewport});
     }
 
-    function subset_changed()
+    $('select[name="layout_dropdown"]').change(function ()
     {
-        return;
-    }
-
-    var toolPath;
+        var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
+        tool[LAYOUT].state(new_value);
+        run_layout();
+    });
 
     $(function() {
     $.each(valid_layouts, function(key, value)
@@ -345,54 +352,46 @@
             .text(value).attr("value",key));
     });
 
-    function newProperty(name, type, callback)
-    {
-        toolPath.initProperty({name: name, type: type, callback: callback, label: name});
-    }
-
-    $('#cy').cytoscape( { style: cytoscape_style, ready: function () { 
+    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: 'cose', padding: 5}, ready: function () { 
         window.cy = this;
-        opener.weave.WeavePath.prototype.newProperty = function(name, type, callback){this.push(name).request(type).addCallback(callback, true);return this;};
+
         toolPath = opener.WeaveExternalTools[window.name].path;
         
-        newProperty(LAYOUT_NAME, 'LinkableString', layout_changed);
-        newProperty(LAYOUT_PARAMS, 'LinkableVariable', null);
-        newProperty(NODE_LABEL, 'DynamicColumn', data_updated);
-        newProperty(NODE_COLOR, 'DynamicColumn', data_updated);
-        newProperty(NODE_SIZE, 'DynamicColumn', data_updated);
-        newProperty(NODE_PARENT, 'DynamicColumn', data_updated);
-        newProperty(EDGE_SOURCE, 'DynamicColumn', data_updated);
-        newProperty(EDGE_TARGET, 'DynamicColumn', data_updated);
-        newProperty(EDGE_LABEL, 'DynamicColumn', data_updated);
-        newProperty(POSITIONS, 'LinkableVariable', positions_changed);
-        newProperty(VIEWPORT, 'LinkableVariable', viewport_changed);
+        toolPath.initProperties([
+            {name: NODES, callback: data_updated, children:
+                [
+                    {name: NODE_NAME, label: "Node Label", type: 'DynamicColumn'},
+                    {name: NODE_COLOR, label: "Node Color", type: 'DynamicColumn', default: 'defaultColorColumn'},
+                    {name: NODE_SIZE, label: "Node Size", type: 'DynamicColumn'},
+                    {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'}
+                ]
+            },
+            {name: EDGES, callback: data_updated, children:
+                [
+                    {name: EDGE_NAME, label: "Edge Label", type: 'DynamicColumn'},
+                    {name: EDGE_SOURCE, label: "Edge Source", type: 'DynamicColumn'},
+                    {name: EDGE_TARGET, label: "Edge Target", type: 'DynamicColumn'}
+                ]
+            },
+            {name: LAYOUT, type:"LinkableString", default: "arbor", label: "Layout Type", callback: set_local_layout},
+            {name: LAYOUT_OPTIONS, type: "LinkableVariable", label: "Layout Options"},
+            {name: POSITIONS, type: "LinkableVariable", label: "Node Positions", callback: set_local_positions},
+            {name: VIEWPORT, type: "LinkableVariable", label: "Viewport", callback: set_local_viewport},
+            {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated}
+        ], tool);
 
-        nodeColumns['name'] = toolPath.push(NODE_LABEL).label("Node Label");
-        nodeColumns['color'] = toolPath.push(NODE_COLOR).label("Node Color");
-        nodeColumns['size'] = toolPath.push(NODE_SIZE).label("Node Size");
-        nodeColumns['parent'] = toolPath.push(NODE_PARENT).label("Node Parent");
+        toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
+        toolPath.probe_keyset.addKeySetCallback(set_local_probe, true);
 
-        edgeColumns['name'] = toolPath.push(EDGE_LABEL).label("Edge Label");
-        edgeColumns['source'] = toolPath.push(EDGE_SOURCE).label("Edge Source");
-        edgeColumns['target'] = toolPath.push(EDGE_TARGET).label("Edge Target");
+        tool[NODES][NODE_COLOR].state('defaultColorColumn');
 
-        toolPath.label(LAYOUT_NAME, "Layout Name");
-        toolPath.label(LAYOUT_PARAMS, "Layout Parameters");
-        toolPath.label(POSITIONS, "Node Positions");
-        toolPath.label(VIEWPORT, "Viewport");
+        cy.on({select: select_handler, unselect: deselect_handler});
+        cy.on({mouseover: probe_handler, mouseout: unprobe_handler}, 'node');
+        cy.on({mouseover: probe_handler, mouseout: unprobe_handler}, 'edge');
 
-        toolPath.selection_keyset.addCallback(selection_changed, true);
-        toolPath.probe_keyset.addCallback(probe_changed, true);
-        toolPath.subset_filter.addCallback(subset_changed, true);
-
-        toolPath.push(NODE_COLOR).state('defaultColorColumn');
-
-        cy.on({select: add_to_selection, unselect: remove_from_selection});
-        cy.on({mouseover: probe, mouseout: unprobe}, 'node');
-        cy.on({mouseover: probe, mouseout: unprobe}, 'edge');
         cy.on({click: deselect_all});
-        cy.on({free: update_positions});
-        cy.on({zoom: update_viewport, pan: update_viewport});
+        cy.on({free: set_weave_positions});
+        cy.on({zoom: set_weave_viewport, pan: set_weave_viewport});
 
         } });
     });

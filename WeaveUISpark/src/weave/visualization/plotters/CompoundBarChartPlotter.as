@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	
 	import weave.Weave;
+	import weave.api.core.DynamicState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IColumnWrapper;
@@ -33,6 +34,8 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
@@ -56,7 +59,6 @@ package weave.visualization.plotters
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -125,7 +127,7 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
 		public const groupBySortColumn:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
 		private const _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
@@ -476,7 +478,7 @@ package weave.visualization.plotters
 								
 								if (isFinite(color))
 									graphics.beginFill(color, 1);
-								lineStyle.beginLineStyle(recordKey, graphics);
+								line.beginLineStyle(recordKey, graphics);
 								if (tempBounds.getHeight() == 0)
 									graphics.lineStyle(0,0,0);
 								
@@ -528,7 +530,7 @@ package weave.visualization.plotters
 											}
 											
 											// BEGIN DRAW
-											lineStyle.beginLineStyle(recordKey, graphics);
+											line.beginLineStyle(recordKey, graphics);
 											for (var iCoord:int = 0; iCoord < coords.length; iCoord += 2) // loop over x,y coordinate pairs
 											{
 												tempPoint.x = coords[iCoord];
@@ -895,6 +897,17 @@ package weave.visualization.plotters
 		{
 			dynamicState.objectName = negativeErrorColumns.generateUniqueName(dynamicState.className);
 			negativeErrorColumns.setSessionState([dynamicState], false);
+		}
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 	}
 }

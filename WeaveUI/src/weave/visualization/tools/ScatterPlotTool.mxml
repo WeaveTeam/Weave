@@ -49,7 +49,7 @@
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, "Scatterplot");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ScatterPlotTool, "Scatterplot");
 			
 			[Bindable]
 			public var plotter:ScatterPlotPlotter = null;
@@ -86,8 +86,6 @@
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
-				initColumnDefaults(plotter.dataX, plotter.dataY, ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
-				
 				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
 				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
 				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
@@ -102,6 +100,11 @@
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([plotter.dataX, plotter.dataY, plotter.fill.color], input);
 			}
 			
 			private function handleChildrenChildList():void
@@ -396,14 +399,12 @@
 							var i:int = 0;
 						
 							for (i = 0; i < rawCoefficients.length ; i++ )
-							{
-								roundedCoefficients.push(round(rawCoefficients[i])); 
-							}
+								if (isFinite(rawCoefficients[i]))
+									roundedCoefficients.push(round(rawCoefficients[i])); 
 						
 							for (i = roundedCoefficients.length - 1; i >  0; i-- )
-							{
-								str += lang("{0}x^{1} + ", roundedCoefficients[i], i); 
-							}
+								if (isFinite(roundedCoefficients[i]))
+									str += lang("{0}x^{1} + ", roundedCoefficients[i], i); 
 							
 							str += roundedCoefficients[0];
 							str += lang("\nR^2 = {0}", rsquared);

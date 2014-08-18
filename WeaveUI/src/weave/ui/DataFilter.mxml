@@ -41,7 +41,7 @@
 			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
 
 			private var _editor:ILinkableObjectEditor;
 			private var _globalName:String;
@@ -79,7 +79,7 @@
 				
 				function onClick(item:WeaveMenuItem):void { setFilterType(item.data as Class); }
 				function isToggled(item:WeaveMenuItem):Boolean { return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is (item.data as Class); }
-				subMenu.dataProvider = [
+				subMenuButton.data = [
 					{
 						data: StringDataFilter,
 						label: lang("String filter"),

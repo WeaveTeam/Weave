@@ -25,25 +25,25 @@
 
 	@author spurushe
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<ui:DraggablePanel xmlns="weave.visualization.tools.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				title="Data Statistics"
 				x="15%" width="70%" y="15%" height="70%"
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
 				autoLayout="true"
-				implements="weave.api.ui.IVisTool"
+				implements="weave.api.ui.IVisTool" xmlns:ui="weave.ui.*"
 				>
 	
 	<mx:HBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
-		<mx:TabNavigator width="100%" height="100%">
+		<ui:CustomTabNavigator width="100%" height="100%">
 			
 			<mx:VBox  verticalGap="0" label="Statistics" id="statisticsBox">
 			
 			</mx:VBox>
 			
 			
-		</mx:TabNavigator>
+		</ui:CustomTabNavigator>
 		
 		
 		</mx:HBox>
@@ -73,7 +73,7 @@
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
 			
 			
 			public var _variables:ILinkableHashMap = null;
@@ -316,4 +316,4 @@
 			
 		]]>
 	</mx:Script>
-</DraggablePanel>
+</ui:DraggablePanel>

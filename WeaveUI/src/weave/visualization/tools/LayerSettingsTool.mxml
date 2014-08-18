@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+-->
+<ui:DraggablePanel xmlns="weave.visualization.tools.*" 
+			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:ui="weave.ui.*" xmlns:editors="weave.editors.*"
+			   implements="weave.api.ui.IVisTool" xmlns:managers="weave.editors.managers.*"
+			   >
+	<mx:List id="list"
+			 initialize="UIUtils.pad(event, 2, 100, 100)"
+			 borderStyle="none"
+			 width="100%" height="100%">
+		<mx:itemRenderer>
+			<mx:Component>
+				<ui:Indent translate="true">
+					<ui:CustomCheckBox id="visibleCheck" label="{label}"
+									   selected="{layerVisible}" change="layerVisible = event.target.selected"/>
+					<mx:HSlider id="alphaSlider" minimum="0" maximum="1" liveDragging="true" width="100%" minWidth="0"
+								value="{layerAlpha}" change="layerAlpha = event.target.value"/>
+					<ui:CustomCheckBox id="selectableCheck" label="{lang('Selectable')}"
+									   selected="{layerSelectable}" change="layerSelectable = event.target.selected"/>
+					<mx:Script>
+						<![CDATA[
+							import mx.core.UIComponent;
+							
+							import weave.api.getCallbackCollection;
+							import weave.api.linkBindableProperty;
+							import weave.api.objectWasDisposed;
+							import weave.api.unlinkBindableProperty;
+							import weave.core.LinkableBoolean;
+							import weave.core.LinkableVariable;
+							import weave.ui.ControlPanel;
+							import weave.ui.VariableListController;
+							import weave.visualization.layers.LayerSettings;
+							import weave.visualization.layers.PlotManager;
+							
+							[Bindable] public var layerVisible:Boolean;
+							[Bindable] public var layerSelectable:Boolean;
+							[Bindable] public var layerAlpha:Number;
+							private var layerSettings:LayerSettings;
+							private var components:Array; // array of components
+							private var show_lbs:Array; // array of LinkableBooleans for showing components
+							private var data_lvs:Array; // array of LinkableVariables for component settings
+							
+							override protected function childrenCreated():void
+							{
+								super.childrenCreated();
+								update();
+							}
+							
+							private function update():void
+							{
+								if (!parent)
+								{
+									callLater(update);
+									return;
+								}
+								
+								grouped = layerSettings != null;
+								if (!layerSettings)
+									return;
+								
+								// initialize arrays
+								if (!components)
+								{
+									components = [visibleCheck, selectableCheck, alphaSlider];
+									show_lbs = [outerDocument.showVisibleCheck, outerDocument.showSelectableCheck, outerDocument.showAlphaSlider];
+									
+									for each (var lb:LinkableBoolean in show_lbs)
+										lb.addGroupedCallback(null, update);
+								}
+								if (!data_lvs)
+									data_lvs = [layerSettings.visible, layerSettings.selectable, layerSettings.alpha];
+								
+								// update components
+								for (var i:int = 0; i < data_lvs.length; i++)
+								{
+									var component:UIComponent = components[i];
+									var show_lb:LinkableBoolean = show_lbs[i];
+									var data_lv:LinkableVariable = data_lvs[i];
+									
+									// If data_lv is locked, we set visible=false without changing includeInLayout
+									// so that the component positions will line up with the other list item components.
+									component.visible = show_lb.value && !data_lv.locked;
+									component.includeInLayout = show_lb.value;
+								}
+								
+								this.useFirstChildAsLabel = visibleCheck.visible;
+							}
+							
+							override public function set visible(value:Boolean):void
+							{
+								// when the list stops displaying this item renderer, clear the data
+								if (!value)
+									data = null;
+								super.visible = value;
+							}
+							override public function set data(value:Object):void
+							{
+								// filter out bogus data
+								var newLayerSettings:LayerSettings = value as LayerSettings;
+								if (objectWasDisposed(newLayerSettings))
+									newLayerSettings = null;
+								
+								// get label
+								if (newLayerSettings)
+									label = outerDocument.controller.hashMap.getName(newLayerSettings);
+								else
+									label = '';
+								
+								// stop if layer didn't change
+								if (layerSettings == newLayerSettings)
+									return;
+								
+								// unlink
+								if (layerSettings)
+								{
+									unlinkBindableProperty(layerSettings.visible, this, "layerVisible");
+									unlinkBindableProperty(layerSettings.selectable, this, "layerSelectable");
+									unlinkBindableProperty(layerSettings.alpha, this, "layerAlpha");
+									data_lvs = null;
+								}
+								
+								// update
+								super.data = layerSettings = newLayerSettings;
+								update();
+								
+								// link
+								if (layerSettings)
+								{
+									linkBindableProperty(layerSettings.visible, this, "layerVisible");
+									linkBindableProperty(layerSettings.selectable, this, "layerSelectable");
+									linkBindableProperty(layerSettings.alpha, this, "layerAlpha");
+								}
+							}
+						]]>
+					</mx:Script>
+				</ui:Indent>
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:List>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.detectLinkableObjectChange;
+			import weave.visualization.layers.LayerSettings;
+			import weave.core.CallbackCollection;
+			import weave.api.core.ILinkableObject;
+			import weave.core.SessionManager;
+			import weave.api.getLinkableDescendants;
+			import weave.utils.VectorUtils;
+			import mx.binding.utils.BindingUtils;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableVariable;
+			import weave.visualization.layers.PlotManager;
+			import weave.visualization.layers.Visualization;
+			import weave.api.getCallbackCollection;
+			import weave.api.registerDisposableChild;
+			import weave.core.LinkableWatcher;
+			import weave.api.newDisposableChild;
+			import weave.ui.VariableListController;
+			import weave.api.registerLinkableChild;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableBoolean;
+			import weave.api.linkBindableProperty;
+			import weave.core.UIUtils;
+			import weave.api.ui.IVisTool;
+
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, LayerSettingsTool, "Layer Settings Tool");
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				controller.view = list;
+				list.selectable = false;
+				list.dragEnabled = false;
+				list.dragMoveEnabled = false;
+				list.dropEnabled = false;
+				
+				getCallbackCollection(controller).addGroupedCallback(this, updateShownCheckboxList, true);
+				
+				targetCombo.labelFunction = getTargetLabel;
+				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, updateTargetCombo, true);
+				BindingUtils.bindSetter(handleShownCheckBoxListSelection, shownCheckBoxList, 'selection');
+			}
+			
+			public const targetPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyPath), handlePlotManagerPath);
+			private function verifyPath(path:Array):Boolean
+			{
+				return !path || StandardLib.getArrayType(path) == String;
+			}
+			private function handlePlotManagerPath():void
+			{
+				watcher.targetPath = targetPath.getSessionState() as Array;
+			}
+			
+			private const watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, handleWatcher, handlePanelTitleChange));
+			private function handleWatcher():void
+			{
+				var pm:PlotManager = watcher.target as PlotManager || getLinkableDescendants(watcher.target, PlotManager)[0] as PlotManager;
+				controller.hashMap = pm ? pm.layerSettings : null
+				if (targetCombo.selectedItem != watcher.target)
+					targetCombo.selectedItem = watcher.target;
+			}
+			
+			internal const controller:VariableListController = newDisposableChild(this, VariableListController);
+			
+			public const listForegroundFirst:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), handleListForegroundFirst);
+			private function handleListForegroundFirst():void
+			{
+				controller.reverse = listForegroundFirst.value;
+				// update shownCheckboxList to display in reversed order or not
+				updateShownCheckboxList();
+			}
+			
+			private function get layerNames():Array
+			{
+				if (!controller.hashMap)
+					return [];
+				
+				var names:Array = controller.hashMap.getNames();
+				if (listForegroundFirst.value)
+					names = names.reverse();
+				return names;
+			}
+			private var _prevLayerNames:Array;
+			
+			public const shownLayers:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Object, verifyShownLayers), updateShownCheckboxList, true);
+			private function verifyShownLayers(value:Object):Boolean
+			{
+				return typeof value == 'object';
+			}
+			private function updateShownCheckboxList():void
+			{
+				if (!parent)
+				{
+					callLater(updateShownCheckboxList);
+					return;
+				}
+				
+				// Only reset dataProvider if necessary.
+				if (StandardLib.arrayCompare(_prevLayerNames, layerNames))
+					shownCheckBoxList.dataProvider = _prevLayerNames = layerNames;
+				
+				// Only reset selection if necessary.
+				var state:Object = shownLayers.getSessionState();
+				var newSelection:Array = VectorUtils.getItems(state, layerNames, []);
+				if (StandardLib.arrayCompare(shownCheckBoxList.selection, newSelection) != 0)
+					shownCheckBoxList.selection = newSelection;
+				
+				// Only reset filterFunction if necessary because it causes a refresh.
+				// Behavior filter function only depends on shownLayers.
+				if (detectLinkableObjectChange(updateShownCheckboxList, shownLayers))
+					controller.filterFunction = filterLayerSettings;
+			}
+			private function filterLayerSettings(item:LayerSettings, i:int, a:Array):Boolean
+			{
+				var state:Object = shownLayers.getSessionState();
+				var name:String = controller.hashMap.getName(item);
+				return !state || !state.hasOwnProperty(name) || state[name];
+			}
+			
+			public const showVisibleCheck:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showSelectableCheck:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const showAlphaSlider:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			
+			private function getTargetLabel(target:ILinkableObject):String
+			{
+				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, target);
+				if (!path)
+					return null;
+				
+				var ancestor:ILinkableObject = WeaveAPI.globalHashMap.getObject(path[0]);
+				var label:String = WeaveAPI.EditorManager.getLabel(ancestor);
+				return label || path[0];
+			}
+			private function updateTargetCombo():void
+			{
+				targetCombo.dataProvider = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, PlotManager);
+				targetCombo.selectedItem = watcher.target;
+				
+				if (targetPath.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+				{
+					targetCombo.selectedIndex = 0;
+					handleTargetComboChange();
+				}
+			}
+			private function handleTargetComboChange():void
+			{
+				var target:ILinkableObject = targetCombo.selectedItem as ILinkableObject;
+				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, target);
+				targetPath.setSessionState(path);
+				shownLayers.setSessionState(null);
+			}
+			
+			private function handleShownCheckBoxListSelection(selection:Array):void
+			{
+				if (UIUtils.hasFocus(shownCheckBoxList))
+				{
+					var state:Object = {};
+					var names:Array = layerNames;
+					var selection:Array = shownCheckBoxList.selection;
+					for (var i:int = 0; i < names.length; i++)
+						if (selection[i] is Boolean)
+							state[names[i]] = selection[i];
+					shownLayers.setSessionState(state);
+				}
+			}
+			
+			override public function get defaultPanelTitle():String
+			{
+				var label:String = getTargetLabel(watcher.target);
+				if (label)
+					return lang("Layer settings for {0}", label);
+				return lang("Layer settings");
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox label="{lang('Settings')}">
+			<ui:Indent label="Target visualization tool" translate="true">
+				<ui:CustomComboBox id="targetCombo" prompt="{lang('Select a visualization tool...')}" change="if (UIUtils.hasFocus(targetCombo)) handleTargetComboChange()"/>
+			</ui:Indent>
+			
+			<mx:Label text="{lang('Show these controls:')}"/>
+			<mx:VBox paddingLeft="20">
+				<ui:CustomCheckBox label="{lang('Visibility toggle')}" creationComplete="linkBindableProperty(showVisibleCheck, event.target, 'selected')"/>
+				<ui:CustomCheckBox label="{lang('Alpha slider')}" creationComplete="linkBindableProperty(showAlphaSlider, event.target, 'selected')"/>
+				<ui:CustomCheckBox label="{lang('Selectability toggle')}" creationComplete="linkBindableProperty(showSelectableCheck, event.target, 'selected')"/>
+			</mx:VBox>
+			
+			<mx:Label text="{lang('Show controls for these layers:')}"/>
+			<mx:VBox paddingLeft="20">
+				<ui:CheckBoxList id="shownCheckBoxList" defaultSelectedState="true"/>
+			</mx:VBox>
+			
+			<ui:CustomCheckBox label="{lang('Order layers from foreground to background')}" creationComplete="linkBindableProperty(listForegroundFirst, event.target, 'selected')"/>
+		</mx:VBox>
+		<editors:WindowSettingsEditor target="{this}"/>
+	</ui:ControlPanel>
+</ui:DraggablePanel>

@@ -50,22 +50,21 @@
 			
 			import weave.api.getCallbackCollection;
 			import weave.api.newDisposableChild;
+			import weave.api.registerDisposableChild;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableWatcher;
-			import weave.core.UIUtils;
 			import weave.ui.AlertTextBox;
 			import weave.ui.AlertTextBoxEvent;
 			import weave.ui.VariableListController;
 			import weave.utils.EventUtils;
 			
 			private const controller:VariableListController = newDisposableChild(this, VariableListController);
-			private const macroWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
+			private const macroWatcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(LinkableFunction, handleMacroChange));
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				getCallbackCollection(macroWatcher).addImmediateCallback(this, handleMacroChange);
 				controller.hashMap = LinkableFunction.macros;
 				controller.allowMultipleSelection = false;
 				controller.view = macroList;
@@ -83,7 +82,7 @@
 			{
 				if (macroList.selectedItem != value)
 					macroList.selectedItem = value;
-				macroWatcher.target = value as LinkableFunction;
+				macroWatcher.target = value;
 			}
 			
 			public function get selectedMacroName():String

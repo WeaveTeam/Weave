@@ -26,6 +26,7 @@ package
 	 */
 	public function debugTrace(...args):void
 	{
+		DebugUtils.keepDebugIds(true);
 		DebugUtils.debugTrace.apply(null, args);
 	}
 }

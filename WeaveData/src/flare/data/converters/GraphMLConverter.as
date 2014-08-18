@@ -50,12 +50,9 @@ package flare.data.converters
         
         public static function read(str:String):Object
         {
-            var idx:int = str.indexOf(GRAPHML);
-            if (idx > 0) {
-                str = str.substr(0, idx+GRAPHML.length) + 
-                    str.substring(str.indexOf(">", idx));
-            }
-            return parse(XML(str));
+          var xmlnsPattern:RegExp = new RegExp("xmlns=[^\"]*\"[^\"]*\"", "gi");
+
+          return parse(XML(str.replace(xmlnsPattern, "")));
         }
         
         /**
@@ -84,31 +81,42 @@ package flare.data.converters
             var keys:Array;
             
             // set schema defaults
-            nodeSchema[ID] = ID;
-            edgeSchema[ID] = ID;
-            edgeSchema[SOURCE] = SOURCE;
-            edgeSchema[TARGET] = TARGET;
-            edgeSchema[DIRECTED] = DIRECTED;
+
+            nodeSchema[ID] = {name: ID, type: ATTRTYPE_STRING};
+
+            edgeSchema[ID] = {name: ID, type: ATTRTYPE_STRING};
+            edgeSchema[SOURCE] = {name: SOURCE, type: ATTRTYPE_STRING};
+            edgeSchema[TARGET] = {name: TARGET, type: ATTRTYPE_STRING};
+            edgeSchema[DIRECTED] = {name: DIRECTED, type: ATTRTYPE_BOOLEAN, def: isDirected};
+
+            nodeKeys.push(ID);
+
+            edgeKeys.push(ID);
+            edgeKeys.push(SOURCE);
+            edgeKeys.push(TARGET);
+            edgeKeys.push(DIRECTED);
             
             // parse data schema
             for each (var key:XML in graphml..key) {
                 id       = key.@[ID].toString();
                 group    = key.@[FOR].toString();
                 attrName = key.@[ATTRNAME].toString();
+                attrType = key.@[ATTRTYPE].toString();
                 def = key[DEFAULT].toString();
                 def = def != null && def.length > 0
                     ? def : null;
-                
+
                 schema = (group==EDGE ? edgeSchema : nodeSchema);
                 keys = (group==EDGE ? edgeKeys : nodeKeys);
-                schema[id] = attrName;
-                keys.push(attrName);
+
+                schema[id] = {name: attrName, type: attrType, def: def};
+                keys.push(id);
             }
             
             // parse nodes
             for each (var node:XML in graphml..node) {
                 id = node.@[ID].toString();
-                lookup[id] = (n = parseData(node, nodeSchema));
+                lookup[id] = (n = parseData(node));
                 nodes.push(n);
             }
             
@@ -124,26 +132,23 @@ package flare.data.converters
                 if (!lookup.hasOwnProperty(tid))
                     error("Edge "+id+" references unknown node: "+tid);
                                 
-                edges.push(e = parseData(edge, edgeSchema));
+                edges.push(e = parseData(edge));
             }
             var result:Object = {};
 
-            nodeKeys.push(ID);
-
-            edgeKeys.push(ID);
-            edgeKeys.push(SOURCE);
-            edgeKeys.push(TARGET);
-            edgeKeys.push(DIRECTED);
+            result.nodeSchema = nodeSchema;
+            result.edgeSchema = edgeSchema;
 
             result.nodeKeys = nodeKeys;
             result.edgeKeys = edgeKeys;
+
             result.nodes = nodes;
             result.edges = edges;
 
             return result;
         }
         
-        private static function parseData(node:XML, schema:Object):Object {
+        private static function parseData(node:XML):Object {
             var n:Object = {};
             var name:String, value:Object;
             
@@ -153,9 +158,9 @@ package flare.data.converters
                 n[name] = attr[0].toString();
             }
             
-            // get data values in XML
+            // get data values in XML; do not convert using schema.
             for each (var data:XML in node.data) {
-                name = schema[data.@[KEY].toString()];
+                name = data.@[KEY].toString();
                 n[name] = data[0].toString();
             }
             
@@ -170,13 +175,6 @@ package flare.data.converters
         
         // -- constants -------------------------------------------------------
         
-        private static const GRAPHML_HEADER:String = "<graphml/>";
-        //  "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\"" 
-        //    +" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
-        //    +" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns"
-        //    +" http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">"
-        //    +"</graphml>";
-        
         public static const GRAPHML:String    = "graphml";
         public static const ID:String         = "id";
         public static const GRAPH:String      = "graph";
@@ -189,6 +187,14 @@ package flare.data.converters
         public static const ALL:String        = "all";
         public static const ATTRNAME:String   = "attr.name";
         public static const ATTRTYPE:String   = "attr.type";
+
+        public static const ATTRTYPE_BOOLEAN:String  = "boolean";
+        public static const ATTRTYPE_INT:String      = "int";
+        public static const ATTRTYPE_LONG:String     = "long";
+        public static const ATTRTYPE_FLOAT:String    = "float";
+        public static const ATTRTYPE_DOUBLE:String   = "double";
+        public static const ATTRTYPE_STRING:String   = "string";
+
         public static const DEFAULT:String    = "default";
         
         public static const NODE:String   = "node";

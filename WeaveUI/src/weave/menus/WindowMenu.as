@@ -65,15 +65,17 @@ package weave.menus
 		
 		private static function get stage():Stage
 		{
-			return WeaveAPI.topLevelApplication['stage'];
+			return WeaveAPI.StageUtils.stage;
 		}
 		
 		public static const staticItems:Array = createItems(
 			{
-				shown: SessionMenu.fn_adminMode_or_(Weave.properties.enableUserPreferences),
+				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableUserPreferences]},
 				label: lang("Preferences"),
 				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); }
 			},
+			TYPE_SEPARATOR,
+			ToolsMenu.dashboardItem,
 			TYPE_SEPARATOR,
 			{
 				shown: Weave.properties.enableFullScreen,
@@ -187,7 +189,7 @@ package weave.menus
 		{
 			var cachedItems:Array;
 			super({
-				shown: SessionMenu.fn_adminMode_or_(Weave.properties.enableWindowMenu),
+				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
 				label: lang("Window"),
 				children: function():Array {
 					if (detectLinkableObjectChange(this, WeaveAPI.globalHashMap.childListCallbacks))

@@ -34,6 +34,7 @@ package weave.utils
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
+	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.primitives.Bounds2D;
 	
 	/**
@@ -190,7 +191,7 @@ package weave.utils
 			if (!probeToolTip)
 				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
 		
-			var stage:Stage = WeaveAPI.topLevelApplication.stage;
+			var stage:Stage = WeaveAPI.StageUtils.stage;
 			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 		
 			if (stageBounds == null)
@@ -290,6 +291,37 @@ package weave.utils
 		{
 			if (probeToolTip)
 				probeToolTip.visible = false;
+		}
+		
+		public static function getColumnsOfMostCommonKeyType():Array
+		{
+			var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
+			if (probedColumns.length == 0)
+				probedColumns = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
+			
+			var keyTypeCounts:Object = new Object();
+			for each (var column:IAttributeColumn in probedColumns)
+			keyTypeCounts[ColumnUtils.getKeyType(column)] = int(keyTypeCounts[ColumnUtils.getKeyType(column)]) + 1;
+			var selectedKeyType:String = null;
+			var count:int = 0;
+			for (var keyType:String in keyTypeCounts)
+				if (keyTypeCounts[keyType] > count)
+					count = keyTypeCounts[selectedKeyType = keyType];
+			
+			// remove columns not of the selected key type
+			var i:int = probedColumns.length;
+			while (--i > -1)
+				if (ColumnUtils.getKeyType(probedColumns[i]) != selectedKeyType)
+					probedColumns.splice(i, 1);
+			
+			if (probedColumns.length == 0)
+			{
+				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
+				if (filteredColumn.getInternalColumn())
+					probedColumns.push(filteredColumn.getInternalColumn());
+			}
+			
+			return probedColumns;
 		}
 	}
 }

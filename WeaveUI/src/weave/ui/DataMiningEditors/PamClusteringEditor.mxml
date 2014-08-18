@@ -57,8 +57,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.WeaveRServlet;
 			import weave.services.beans.PartitionAroundMedoidsClusteringResult;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			//to do: take input as columns and as subsets from vizs
 			public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -77,7 +77,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function constructor():void
 			{
 				super.constructor();
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					inputColumns.requestObjectCopy(null, columns[i]);
 			}

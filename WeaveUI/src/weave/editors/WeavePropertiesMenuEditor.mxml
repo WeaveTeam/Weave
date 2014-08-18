@@ -38,7 +38,7 @@
 	<ui:CustomCheckBox label="{lang('Enable tool control panels and attribute selection')}"
 					   creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
 
-	<mx:TabNavigator resizeToContent="true" width="100%" height="100%" paddingLeft="10" paddingRight="10">
+	<ui:CustomTabNavigator resizeToContent="true" width="100%" height="100%" paddingLeft="10" paddingRight="10">
 		<mx:VBox label="{lang('Right-click')}" verticalGap="{verticalGap}">
 			<ui:CustomCheckBox label="{lang('Right-click Menu')}" id="rightClick"
 						 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
@@ -66,11 +66,13 @@
 		<mx:VBox label="{lang('Session')}" verticalGap="{verticalGap}">	 	
 			<ui:CustomCheckBox label="{lang('Session Menu')}"
 						 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
+			<ui:CustomCheckBox label="{lang('Manage plugins')}"
+						 creationComplete="linkBindableProperty(Weave.properties.enableManagePlugins, event.target, 'selected')"/>
 			<ui:CustomCheckBox id="collabPanel"
 						 label="{lang('Connect to Collaboration Server')}"
 						 creationComplete="linkBindableProperty(Weave.properties.showCollaborationMenuItem, event.target, 'selected');"
 						 />
-		</mx:VBox>	
+		</mx:VBox>
 		
 		<mx:VBox  label="{lang('Data')}" verticalGap="{verticalGap}">
 			<ui:CustomCheckBox id="dataMenu"
@@ -82,11 +84,11 @@
 							 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Browse Data')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableBrowseData, event.target, 'selected')"/>
+				<ui:CustomCheckBox label="{lang('Edit Datasources')}"
+							 creationComplete="linkBindableProperty(Weave.properties.enableManageDataSources, event.target, 'selected')"/>
 				<ui:CustomCheckBox id="refreshDataCheckBox"
 							 label="{lang('Refresh data source hierarchies')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
-				<ui:CustomCheckBox label="{lang('Edit Datasources')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableManageDataSources, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
 				
 			</mx:VBox>
@@ -183,7 +185,7 @@
 					 width="120" 
 					 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
 		</mx:VBox>
-	</mx:TabNavigator>
+	</ui:CustomTabNavigator>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -202,10 +204,10 @@
 				
 				var cbArray:Array = [];
 				var cb:CustomCheckBox;
-				for each (var _class:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
+				for each (var _class:Class in WeaveAPI.ClassRegistry.getImplementations(IVisTool))
 				{
 					cb = new CustomCheckBox();
-					cb.label = WeaveAPI.getRegisteredImplementationDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
+					cb.label = WeaveAPI.ClassRegistry.getDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
 					linkBindableProperty(Weave.properties.getToolToggle(_class), cb, 'selected');
 					cbArray.push(cb);
 				}

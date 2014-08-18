@@ -294,6 +294,21 @@ package weave.data
 			
 			output.setBounds(minWorldLon, minWorldLat, maxWorldLon, maxWorldLat);
 		}
+		
+		public static function getProjectionFromURN(ogc_crs_urn:String):String
+		{
+			var array:Array = ogc_crs_urn.split(':');
+			var prevToken:String = '';
+			while (array.length > 2)
+				prevToken = array.shift();
+			var proj:String = array.join(':');
+			var altProj:String = prevToken;
+			if (array.length > 1)
+				altProj += ':' + array[1];
+			if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
+				proj = altProj;
+			return proj;
+		}
 	}
 }
 
@@ -306,7 +321,7 @@ import org.openscales.proj4as.ProjProjection;
 
 import weave.api.core.IDisposableObject;
 import weave.api.data.ColumnMetadata;
-import weave.api.data.DataTypes;
+import weave.api.data.DataType;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IProjector;
@@ -398,7 +413,7 @@ internal class WorkerThread implements IDisposableObject
 		var metadata:XML = <attribute
 				title={ ColumnUtils.getTitle(unprojectedColumn) }
 		keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
-		dataType={ DataTypes.GEOMETRY }
+		dataType={ DataType.GEOMETRY }
 		projection={ destinationProjSRS }
 		/>;
 		reprojectedColumn.setMetadata(metadata);

@@ -42,7 +42,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
 			
 			private function get plotter():Histogram2DPlotter
 			{
@@ -77,9 +77,6 @@
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
-				
-				initColumnDefaults(plotter.xColumn, plotter.yColumn);
-				
 			}
 			
 			override protected function childrenCreated():void

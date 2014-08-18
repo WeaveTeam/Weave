@@ -58,7 +58,7 @@
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
 			
 			public var _plotter:ScatterPlotPlotter = null;
 			override protected function constructor():void
@@ -101,7 +101,6 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(_plotter.dataX, _plotter.dataY, colorColumn);
 				registerLinkableChild(this,histogramColumn);
 				
 			}
@@ -115,13 +114,18 @@
 				visualization.plotManager.marginRight.value  = "10";
 			}
 			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([_plotter.dataX, _plotter.dataY, colorColumn], input);
+			}
+			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["X","Y","Color","Size","Histogram Column"];
+				return ["X", "Y", "Color", "Size", "Histogram Column"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.dataX,_plotter.dataY,_plotter.fill.color,_plotter.sizeBy,histogramColumn];
+				return [_plotter.dataX, _plotter.dataY, _plotter.fill.color, _plotter.sizeBy, histogramColumn];
 			}
 			private function invalidateAxes():void
 			{

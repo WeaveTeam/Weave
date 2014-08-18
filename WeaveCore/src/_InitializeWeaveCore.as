@@ -48,14 +48,14 @@ package
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */
-		WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-		WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-		WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-		WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-		WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-		WeaveAPI.registerSingleton(ILocaleManager, LocaleManager);
-		WeaveAPI.registerSingleton(IEditorManager, EditorManager);
-		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IStageUtils, StageUtils);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IErrorManager, ErrorManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IExternalSessionStateInterface, ExternalSessionStateInterface);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocaleManager, LocaleManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ILinkableHashMap, LinkableHashMap);
 		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

@@ -39,7 +39,7 @@ package weave.visualization.plotters
 	 */
 	public class GeometryLabelPlotter extends TextGlyphPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
 
 		public function GeometryLabelPlotter()
 		{

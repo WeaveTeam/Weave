@@ -26,54 +26,35 @@ package weave.ui
 	import flash.geom.Point;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.controls.Menu;
 	import mx.core.UIComponent;
 	import mx.events.MenuEvent;
 	
+	import weave.compiler.StandardLib;
 	import weave.menus.WeaveMenuItem;
-	import weave.primitives.Bounds2D;
 	
 	/**
 	 * This class adds a submenu to any UI Compnent.
-	 * Add menu items to the menuItems Array.
 	 * 
 	 * @author skolman
 	 * @author adufilie
 	 */
-	public class SubMenu extends Menu
+	public class SubMenu extends CustomMenu
 	{
 		/**
-		 * Adds a submenu to any UI Compnent.
+		 * Adds a submenu to any UI Component.
 		 * @param uiParentComponent The UIComponent to add the submenu to.
-		 * @param openMenuEventTypes A list of event types which will toggle the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
-		 * @param closeMenuEventTypes A list of event types which will close the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
-		 * @param dataProvider Either a single WeaveMenuItem or an Array of WeaveMenuItems (or params to pass to the WeaveMenuItem constructor).
+		 * @param dataProvider Either a single WeaveMenuItem
+		 *                     or an Array of WeaveMenuItems (or params to pass to the WeaveMenuItem constructor)
+		 *                     or a Function returning such an Array.
 		 */
-		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null, dataProvider:Object = null)
+		public function SubMenu(uiParent:UIComponent, dataProvider:Object = null)
 		{
 			if (uiParent == null)
 				throw new Error("uiParent cannot be null");
 			
 			_uiParent = uiParent;
 			
-			if (!openMenuEventTypes)
-				openMenuEventTypes = [MouseEvent.MOUSE_DOWN];
-			if (!closeMenuEventTypes)
-				closeMenuEventTypes = [MouseEvent.MOUSE_DOWN];
-			
-			var type:String;
-			for each (type in openMenuEventTypes)
-			{
-				if (closeMenuEventTypes && closeMenuEventTypes.indexOf(type) >= 0)
-					_uiParent.addEventListener(type, toggleSubMenu);
-				else
-					_uiParent.addEventListener(type, openSubMenu);
-			}
-			for each (type in closeMenuEventTypes)
-			{
-				if (openMenuEventTypes && openMenuEventTypes.indexOf(type) < 0)
-					_uiParent.addEventListener(type, closeSubMenu);
-			}
+			setSubMenuEvents([MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_DOWN, Event.REMOVED_FROM_STAGE]);
 			
 			includeInLayout = false;
 			tabEnabled = false;
@@ -82,6 +63,51 @@ package weave.ui
 			
 			addEventListener(MenuEvent.ITEM_CLICK, handleSubMenuItemClick);
 			this.dataProvider = dataProvider;
+		}
+		
+		private var _eventListeners:Object = {};
+		
+		/**
+		 * Sets up event listeners that show and hide the SubMenu.
+		 * @param openEvents A list of event types which will toggle the submenu.
+		 *                   Default is [MouseEvent.MOUSE_DOWN].
+		 *                   Supply an empty Array for no events.
+		 * @param closeEvents A list of event types which will close the submenu.
+		 *                    Default is [MouseEvent.MOUSE_DOWN, Event.REMOVED_FROM_STAGE].
+		 *                    Supply an empty Array for no events.
+		 */
+		public function setSubMenuEvents(openEvents:Array, closeEvents:Array):void
+		{
+			var type:String;
+			var func:Function;
+			
+			// remove previous event listeners
+			for (type in _eventListeners)
+				for each (func in _eventListeners[type])
+					_uiParent.removeEventListener(type, func);
+			
+			// reset event listener mapping
+			_eventListeners = {};
+			var array:Array;
+			for each (type in openEvents)
+			{
+				array = _eventListeners[type] || (_eventListeners[type] = []);
+				if (closeEvents && closeEvents.indexOf(type) >= 0)
+					array.push(toggleSubMenu);
+				else
+					array.push(openSubMenu);
+			}
+			for each (type in closeEvents)
+			{
+				array = _eventListeners[type] || (_eventListeners[type] = []);
+				if (openEvents && openEvents.indexOf(type) < 0)
+					array.push(closeSubMenu);
+			}
+			
+			// add new event listeners
+			for (type in _eventListeners)
+				for each (func in _eventListeners[type])
+					_uiParent.addEventListener(type, func);
 		}
 		
 		private var _uiParent:UIComponent = null;
@@ -124,7 +150,7 @@ package weave.ui
 		{
 			if (getQualifiedClassName(value) == 'Object')
 				value = new WeaveMenuItem(value);
-			if (value is Array)
+			if (value is Array || value is Function)
 				value = new WeaveMenuItem({children: value});
 			rootItem = value as WeaveMenuItem;
 			super.dataProvider = value;
@@ -135,34 +161,35 @@ package weave.ui
 			if (!dataProvider)
 				return;
 			
-			var menuLocation:Point = _uiParent.localToGlobal(new Point(0, _uiParent.height));
+			var stage:Stage = WeaveAPI.StageUtils.stage;
+			var xMin:Number = 0;
+			var yMin:Number = 0;
+			var xMax:Number = stage.stageWidth;
+			var yMax:Number = stage.stageHeight;
 			
-			var stage:Stage = WeaveAPI.topLevelApplication.stage;
-			tempBounds.setBounds(0, 0, stage.stageWidth, stage.stageHeight);
-			
-			var xMin:Number = tempBounds.getXNumericMin();
-			var yMin:Number = tempBounds.getYNumericMin();
-			var xMax:Number = tempBounds.getXNumericMax();
-			var yMax:Number = tempBounds.getYNumericMax();
+			var parentGlobal:Point = _uiParent.localToGlobal(new Point(0, 0));
+			var parentHeight:Number = _uiParent.height;
 			
 			setStyle("openDuration", 0);
 			popUpMenu(this, _uiParent, rootItem || dataProvider);
-			show(menuLocation.x, menuLocation.y);
 			
-			if (menuLocation.x < xMin)
-				menuLocation.x = xMin;
-			else if(menuLocation.x + width > xMax)
-				menuLocation.x = xMax - width;
+			// first show menu below parent so the width and height get calculated
+			show(parentGlobal.x, parentGlobal.y + parentHeight);
 			
-			if (menuLocation.y < yMin)
-				menuLocation.y = yMin + _uiParent.height;
-			else if (menuLocation.y + height > yMax)
-				menuLocation.y -= height + _uiParent.height;
+			var global:Point = this.parent.localToGlobal(new Point(x, y));
+			// make sure we are on stage in x coordinates
+			global.x = StandardLib.constrain(global.x, xMin, xMax - measuredWidth);
+			// if we extend below the stage and there is more room above, move above the parent
+			var moreRoomAbove:Boolean = parentGlobal.y - yMin > yMax - (parentGlobal.y + parentHeight);
+			var extendsBelowStage:Boolean = global.y + measuredHeight > yMax;
+			if (moreRoomAbove && extendsBelowStage)
+				global.y -= measuredHeight + parentHeight;
 			
-			move(menuLocation.x, menuLocation.y);
+			// move to adjusted position
+			var parentLocal:Point = parent.globalToLocal(global);
+			move(parentLocal.x, parentLocal.y);
+			
 			setFocus();
 		}
-		
-		private const tempBounds:Bounds2D = new Bounds2D();
 	}
 }

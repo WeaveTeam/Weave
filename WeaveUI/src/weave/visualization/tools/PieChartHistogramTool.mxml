@@ -36,7 +36,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, "Pie Chart Histogram");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, PieChartHistogramTool, "Pie Chart Histogram");
 			
 			public var _plotter:PieChartHistogramPlotter = null;
 			
@@ -55,7 +55,6 @@
 				invalidateAxes();
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 				
-				initColumnDefaults(_plotter.unfilteredData);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,true);
 				
 				visualization.plotManager.marginTop.value = "65";

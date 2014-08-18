@@ -39,7 +39,7 @@
 			import weave.visualization.plotters.HistogramPlotter;
 			import weave.visualization.plotters.SimpleAxisPlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, HistogramTool, "Histogram");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, HistogramTool, "Histogram");
 			
 			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
 			
@@ -66,8 +66,11 @@
 				
 				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.leftMarginColumn); });
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.bottomMarginColumn); });
-				
-				initColumnDefaults(ColumnUtils.hack_findInternalDynamicColumn(plotter.fillStyle.color));
+			}
+			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([plotter.fillStyle.color], input);
 			}
 			
 			override protected function childrenCreated():void

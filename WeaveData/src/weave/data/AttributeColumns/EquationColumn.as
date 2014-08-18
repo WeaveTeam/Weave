@@ -21,14 +21,14 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
@@ -44,6 +44,7 @@ package weave.data.AttributeColumns
 	import weave.utils.ColumnUtils;
 	import weave.utils.Dictionary2D;
 	import weave.utils.EquationColumnLib;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * This is a column of data derived from an equation with variables.
@@ -56,7 +57,6 @@ package weave.data.AttributeColumns
 		
 		public static const compiler:Compiler = new Compiler();
 		compiler.includeLibraries(
-			WeaveAPI,
 			WeaveAPI.CSVParser,
 			WeaveAPI.StatisticsCache,
 			WeaveAPI.AttributeColumnCache,
@@ -71,7 +71,7 @@ package weave.data.AttributeColumns
 			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			
 			setMetadataProperty(ColumnMetadata.TITLE, "Untitled Equation");
-			//setMetadataProperty(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
+			//setMetadataProperty(AttributeColumnMetadata.DATA_TYPE, DataType.NUMBER);
 			
 			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
 		}
@@ -178,10 +178,13 @@ package weave.data.AttributeColumns
 					}
 				}
 			}
-			else
+			else if (propertyName == ColumnMetadata.KEY_TYPE)
 			{
-				value = super.getMetadata(propertyName);
+				var cols:Array = variables.getObjects(IAttributeColumn);
+				if (cols.length)
+					value = (cols[0] as IAttributeColumn).getMetadata(propertyName);
 			}
+			
 			_cachedMetadata[propertyName] = value;
 			return value;
 		}
@@ -194,6 +197,16 @@ package weave.data.AttributeColumns
 				_lastError = str;
 				reportError(e);
 			}
+		}
+		
+		override public function setMetadata(value:Object):void
+		{
+			metadata.setSessionState(value);
+		}
+		
+		override public function getMetadataPropertyNames():Array
+		{
+			return VectorUtils.getKeys(metadata.getSessionState());
 		}
 
 		/**
@@ -215,27 +228,18 @@ package weave.data.AttributeColumns
 		private function cacheDefaultDataType():void
 		{
 			var _dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
-			if (ObjectUtil.stringCompare(_dataType, DataTypes.GEOMETRY, true) == 0) // treat values as geometries
-			{
-				// we don't have code to cast as a geometry yet, so don't attempt it
+			if (_dataType == DataType.GEOMETRY)
 				_defaultDataType = null;
-			}
-			else if (ObjectUtil.stringCompare(_dataType, DataTypes.NUMBER, true) == 0) // treat values as Numbers
-			{
+			else if (_dataType == DataType.NUMBER)
 				_defaultDataType = Number;
-			}
-			else if (ObjectUtil.stringCompare(_dataType, DataTypes.STRING, true) == 0) // treat values as Strings
-			{
+			else if (_dataType == DataType.STRING)
 				_defaultDataType = String;
-			}
-			else if (_dataType) // treat values as IQualifiedKeys
-			{
+			else if (_dataType == DataType.DATE)
+				_defaultDataType = Date;
+			else if (_dataType) // any other data type is treated as a foreign keyType
 				_defaultDataType = IQualifiedKey;
-			}
 			else
-			{
 				_defaultDataType = null;
-			}
 		}
 		
 		/**
@@ -293,9 +297,19 @@ package weave.data.AttributeColumns
 				|| LinkableFunction.macros.getObject(name) != null;
 		}
 		
-		private function handleChange():void
+		/**
+		 * Compiles the equation if it has changed, and returns any compile error message that was thrown.
+		 */
+		public function validateEquation():String
 		{
+			if (_cacheTriggerCount == triggerCounter)
+				return _compileError;
+			
 			_cacheTriggerCount = triggerCounter;
+			_compileError = null;
+			
+			cacheDefaultDataType();
+			
 			try
 			{
 				// check if the equation evaluates to a constant
@@ -321,21 +335,14 @@ package weave.data.AttributeColumns
 				// if compiling fails
 				_equationIsConstant = true;
 				_constantResult = undefined;
+				
+				_compileError = e.message;
 			}
-			cacheDefaultDataType();
 			
-			try
-			{
-				_numberToStringFunction = StandardLib.formatNumber;
-				var n2s:String = getMetadata(ColumnMetadata.STRING);
-				if (n2s)
-					_numberToStringFunction = compiler.compileToFunction(n2s, _symbolTableProxy, errorHandler, false, ['number']);
-			}
-			catch (e:*)
-			{
-				errorHandler(e);
-			}
+			return _compileError;
 		}
+		
+		private var _compileError:String;
 		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
@@ -345,7 +352,7 @@ package weave.data.AttributeColumns
 		{
 			// reset cached values if necessary
 			if (_cacheTriggerCount != triggerCounter)
-				handleChange();
+				validateEquation();
 			
 			// if dataType not specified, use default type specified in metadata
 			if (dataType == null)
@@ -413,9 +420,20 @@ package weave.data.AttributeColumns
 		private var _numberToStringFunction:Function = null;
 		public function deriveStringFromNumber(number:Number):String
 		{
-			// reset cached values if necessary
-			if (_cacheTriggerCount != triggerCounter)
-				handleChange();
+			if (detectLinkableObjectChange(deriveStringFromNumber, metadata))
+			{
+				try
+				{
+					_numberToStringFunction = StandardLib.formatNumber;
+					var n2s:String = getMetadata(ColumnMetadata.STRING);
+					if (n2s)
+						_numberToStringFunction = compiler.compileToFunction(n2s, _symbolTableProxy, errorHandler, false, ['number']);
+				}
+				catch (e:*)
+				{
+					errorHandler(e);
+				}
+			}
 			
 			if (_numberToStringFunction != null)
 			{
@@ -423,7 +441,7 @@ package weave.data.AttributeColumns
 				{
 					var string:String = _numberToStringFunction.apply(this, arguments);
 					if (debug)
-						trace(debugId(this),getMetadata(ColumnMetadata.TITLE),'deriveStringFromNumber',number,string);
+						trace(debugId(this), getMetadata(ColumnMetadata.TITLE), 'deriveStringFromNumber', number, string);
 					return string;
 				}
 				catch (e:Error)

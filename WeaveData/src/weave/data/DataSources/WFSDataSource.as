@@ -25,7 +25,7 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
@@ -40,11 +40,13 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
+	import weave.data.ProjectionManager;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
 	import weave.services.WFSServlet;
 	import weave.services.addAsyncResponder;
 	import weave.utils.BLGTreeUtils;
+	import weave.utils.GeoJSON;
 	import weave.utils.HierarchyUtils;
 	
 	/**
@@ -52,9 +54,9 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufilie
 	 */
-	public class WFSDataSource extends AbstractDataSource
+	public class WFSDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.registerImplementation(IDataSource, WFSDataSource, "WFS server");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WFSDataSource, "WFS server");
 		
 		public function WFSDataSource()
 		{
@@ -100,11 +102,11 @@ package weave.data.DataSources
 		private function _convertOldDataType(value:String):String
 		{
 			if (value == 'Geometry')
-				return DataTypes.GEOMETRY;
+				return DataType.GEOMETRY;
 			if (value == 'String')
-				return DataTypes.STRING;
+				return DataType.STRING;
 			if (value == 'Number')
-				return DataTypes.NUMBER;
+				return DataType.NUMBER;
 			return value;
 		}
 		
@@ -149,6 +151,8 @@ package weave.data.DataSources
 		 */
 		private function handleGetCapabilities(event:ResultEvent, token:Object = null):void
 		{
+			// default xml namespace = new Namespace("http://www.example.com/");
+			
 			var owsNS:String = 'http://www.opengis.net/ows';
 			var wfsNS:String = 'http://www.opengis.net/wfs';
 			var xml:XML;
@@ -232,14 +236,14 @@ package weave.data.DataSources
 					case "gml:MultiLineStringPropertyType":
 					case "gml:MultiCurvePropertyType":
 					case "gml:PointPropertyType":
-						dataType = DataTypes.GEOMETRY;
+						dataType = DataType.GEOMETRY;
 						break;
 					case "xsd:string":
 					case "xs:string":
-						dataType = DataTypes.STRING;
+						dataType = DataType.STRING;
 						break;
 					default:
-						dataType = DataTypes.NUMBER;
+						dataType = DataType.NUMBER;
 				}
 				/**
 				 * 'keyType' is used to differentiate this feature from others.
@@ -253,20 +257,9 @@ package weave.data.DataSources
 						name={ propertyName }
 						featureTypeName={ featureTypeName }
 					/>;
-				if (dataType == DataTypes.GEOMETRY)
+				if (dataType == DataType.GEOMETRY)
 				{
-					var defaultSRS:String = node.@defaultSRS;
-					var array:Array = defaultSRS.split(':');
-					var prevToken:String = '';
-					while (array.length > 2)
-						prevToken = array.shift();
-					var proj:String = array.join(':');
-					var altProj:String = prevToken;
-					if (array.length > 1)
-						altProj += ':' + array[1];
-					if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
-						proj = altProj;
-					attrNode['@'+ColumnMetadata.PROJECTION] = proj;
+					attrNode['@'+ColumnMetadata.PROJECTION] = ProjectionManager.getProjectionFromURN(node.@defaultSRS);
 				}
 				node.appendChild(attrNode);
 			}
@@ -362,7 +355,7 @@ package weave.data.DataSources
 				
 				// determine the data type, and create the appropriate type of IAttributeColumn
 				var newColumn:IAttributeColumn;
-				if (ObjectUtil.stringCompare(dataType, DataTypes.GEOMETRY, true) == 0)
+				if (ObjectUtil.stringCompare(dataType, DataType.GEOMETRY, true) == 0)
 				{
 					newColumn = new GeometryColumn(proxyColumn.getProxyMetadata());
 					var geomVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
@@ -413,7 +406,7 @@ package weave.data.DataSources
 						true
 					);
 				}
-				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
+				else if (ObjectUtil.stringCompare(dataType, DataType.NUMBER, true) == 0)
 				{
 					newColumn = new NumberColumn(proxyColumn.getProxyMetadata());
 					(newColumn as NumberColumn).setRecords(keysVector, xmlToVector(dataList, new Vector.<Number>()));

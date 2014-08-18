@@ -98,7 +98,7 @@
 			import weave.services.beans.RResult;
 			import weave.ui.userControls.DatagridDisplay;
 			import weave.utils.ColumnUtils;
-			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
 			
 			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));

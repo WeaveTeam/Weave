@@ -23,6 +23,7 @@ package weave.ui
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
+	import flash.utils.Dictionary;
 	
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
@@ -125,7 +126,8 @@ package weave.ui
 			if (maxHSP <= 0)
 			{
 				maxHSP = 0;
-				horizontalScrollPosition = 0;
+				if (horizontalScrollPosition != 0)
+					horizontalScrollPosition = 0;
 				
 				// horizontal scroll is kept on except when there is no vertical scroll
 				// this avoids an infinite hide/show loop where hiding/showing the h-scroll bar affects the max h-scroll value
@@ -218,6 +220,53 @@ package weave.ui
 			// no selection
 			selectedItems = [];
 			return null;
+		}
+		
+		///////////////////////////////////////////////////////////////////////////////
+		// fixes bug where setting selectedItems does not work if the items are not in the dataProvider
+		
+		[Bindable("change")]
+		[Bindable("valueCommit")]
+		[Inspectable(category="General")]
+		override public function get selectedItems():Array
+		{
+			return super.selectedItems;
+		}
+		override public function set selectedItems(items:Array):void
+		{
+			_uidCache = new Dictionary(true);
+			super.selectedItems = items;
+			_uidCache = null;
+		}
+		private var _uidCache:Dictionary;
+		override protected function itemToUID(data:Object):String
+		{
+			// call super.super.itemToUID(data) either way to avoid breaking other things
+			var uid:String = super.itemToUID(data);
+			if (_uidCache)
+			{
+				var cached:String = _uidCache[data];
+				if (cached)
+				{
+					// one-time override for ListBase.setSelectionDataLoop()
+					uid = cached;
+					delete _uidCache[data];
+				}
+			}
+			return uid;
+		}
+		override public function get selectedItemsCompareFunction():Function
+		{
+			if (super.selectedItemsCompareFunction != null)
+				return wrappedSelectedItemCompare as Function;
+			return null;
+		}
+		private function wrappedSelectedItemCompare(inDataProvider:Object, inSelectedItems:Object):Boolean
+		{
+			var equal:Boolean = super.selectedItemsCompareFunction(inDataProvider, inSelectedItems);
+			if (equal && _uidCache)
+				_uidCache[inDataProvider] = super.itemToUID(inSelectedItems);
+			return equal;
 		}
 		
 		///////////////////////////////////////////////////////////////////////////////

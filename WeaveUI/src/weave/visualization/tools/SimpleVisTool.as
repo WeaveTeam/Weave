@@ -31,6 +31,8 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnReference;
+	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
@@ -47,6 +49,7 @@ package weave.visualization.tools
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -85,6 +88,10 @@ package weave.visualization.tools
 				invalidateDisplayList();
 			}
 			getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
+		}
+		override protected function afterConstructor():void
+		{
+			initSelectableAttributes(ProbeTextUtils.getColumnsOfMostCommonKeyType());
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
@@ -284,36 +291,16 @@ package weave.visualization.tools
 			return childScale;
 		}
 		
-		public static function getDefaultColumnsOfMostCommonKeyType():Array
+		/**
+		 * This will initialize the selectable attributes using a list of columns and/or column references.
+		 * Tools can override this function for different behavior.
+		 * @param input An Array of IAttributeColumn and/or IColumnReference objects
+		 */
+		public function initSelectableAttributes(input:Array):void
 		{
-			var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
-			if (probedColumns.length == 0)
-				probedColumns = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
-			
-			var keyTypeCounts:Object = new Object();
-			for each (var column:IAttributeColumn in probedColumns)
-				keyTypeCounts[ColumnUtils.getKeyType(column)] = int(keyTypeCounts[ColumnUtils.getKeyType(column)]) + 1;
-			var selectedKeyType:String = null;
-			var count:int = 0;
-			for (var keyType:String in keyTypeCounts)
-				if (keyTypeCounts[keyType] > count)
-					count = keyTypeCounts[selectedKeyType = keyType];
-			
-			// remove columns not of the selected key type
-			var i:int = probedColumns.length;
-			while (--i > -1)
-				if (ColumnUtils.getKeyType(probedColumns[i]) != selectedKeyType)
-					probedColumns.splice(i, 1);
-			
-			if (probedColumns.length == 0)
-			{
-				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
-				if (filteredColumn.getInternalColumn())
-					probedColumns.push(filteredColumn.getInternalColumn());
-			}
-			
-			return probedColumns;
+			ColumnUtils.initSelectableAttributes(getSelectableAttributes(), input);
 		}
+		
 		
 		/**
 		 * This function will return an array of IQualifiedKey objects which overlap
@@ -352,30 +339,6 @@ package weave.visualization.tools
 		{
 			var keys:Array = getOverlappingQKeys(layerName);
 			Weave.defaultSelectionKeySet.replaceKeys(keys);
-		}
-		
-		
-		/**
-		 * This function takes a list of dynamic column objects and
-		 * initializes the internal columns to default ones.
-		 */
-		public static function initColumnDefaults(dynamicColumn:DynamicColumn, ... moreDynamicColumns):void
-		{
-			moreDynamicColumns.unshift(dynamicColumn);
-			
-			var probedColumns:Array = getDefaultColumnsOfMostCommonKeyType();
-			for (var i:int = 0; i < moreDynamicColumns.length; i++)
-			{
-				var selectedColumn:ILinkableObject = probedColumns[i % probedColumns.length] as ILinkableObject;
-				var columnToInit:DynamicColumn = moreDynamicColumns[i] as DynamicColumn;
-				if (columnToInit.getInternalColumn() == null)
-				{
-					if (selectedColumn is DynamicColumn)
-						copySessionState(selectedColumn, columnToInit);
-					else
-						columnToInit.requestLocalObjectCopy(selectedColumn);
-				}
-			}
 		}
 		
 		/**

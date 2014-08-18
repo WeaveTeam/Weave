@@ -401,6 +401,21 @@ package weave.utils
 		}
 		
 		/**
+		 * Creates an object from arrays of keys and values.
+		 * @param keys Keys corresponding to the values.
+		 * @param values Values corresponding to the keys.
+		 * @return A new Object.
+		 */
+		public static function zipObject(keys:Array, values:Array):Object
+		{
+			var n:int = Math.min(keys.length, values.length);
+			var o:Object = {};
+			for (var i:int = 0; i < n; i++)
+				o[keys[i]] = values[i];
+			return o;
+		}
+		
+		/**
 		 * This will get a subset of properties/items/attributes from an Object/Array/XML.
 		 * @param object An Object/Array/XML containing properties/items/attributes to retrieve.
 		 * @param keys A list of property names, index values, or attribute names.
@@ -411,12 +426,22 @@ package weave.utils
 		{
 			if (!output)
 				output = object is Array ? [] : {};
-			for each (var key:* in keys)
+			if (!object)
+				return output;
+			for (var keyIndex:* in keys)
 			{
+				var keyValue:* = keys[keyIndex];
+				
+				var item:*;
 				if (object is XML_Class)
-					output[key] = String((object as XML_Class).attribute(key));
+					item = String((object as XML_Class).attribute(keyValue));
 				else
-					output[key] = object[key];
+					item = object[keyValue];
+				
+				if (output is Array)
+					output[keyIndex] = item;
+				else
+					output[keyValue] = item;
 			}
 			return output;
 		}

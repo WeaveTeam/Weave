@@ -19,14 +19,7 @@
 
 package weave.ui.controlBars
 {
-	import flash.display.Sprite;
-	import flash.events.MouseEvent;
-	import flash.filters.BitmapFilterQuality;
-	import flash.filters.BitmapFilterType;
-	import flash.filters.GradientGlowFilter;
 	import flash.geom.Point;
-	import flash.geom.Rectangle;
-	import flash.utils.Dictionary;
 	import flash.utils.setTimeout;
 	
 	import mx.controls.Menu;
@@ -35,7 +28,7 @@ package weave.ui.controlBars
 	import mx.core.mx_internal;
 	import mx.events.MenuEvent;
 	
-	import weave.compiler.StandardLib;
+	import weave.ui.CustomMenu;
 	
 	use namespace mx_internal;
 	
@@ -101,18 +94,11 @@ package weave.ui.controlBars
 		
 		private function handleMenuShow(event:MenuEvent):void
 		{
-			// tip taken from : http://blog.flexexamples.com/2010/02/19/setting-a-variable-row-height-on-an-mx-menubar-control-in-flex/
-			// this will reduce the vertical space between separators and other items in the menu
-			event.menu.variableRowHeight = true;
-			event.menu.invalidateSize();
-			
 			// prevent the menu from appearing off-screen.
 			event.menu.callLater(repositionMenu, [event.menu]);
+			CustomMenu.initAutoScroll(event.menu);
 		}
 		
-		private const menuMouseListeners:Dictionary = new Dictionary(true);
-		private const itemHeight:int = 20;
-		private const scrollShadow:GradientGlowFilter = new GradientGlowFilter(0, 90, [0, 0], [0, 1], [0, 255], 0, itemHeight / 2, 2, BitmapFilterQuality.HIGH, BitmapFilterType.OUTER);
 		private function repositionMenu(menu:Menu):void
 		{
 			if (!menu.parent)
@@ -121,47 +107,6 @@ package weave.ui.controlBars
 			// always make the menu appear below the menu bar
 			var global:Point = this.localToGlobal(new Point(0, this.height));
 			menu.y = menu.parent.globalToLocal(global).y;
-			
-			var listener:Function = menuMouseListeners[menu] as Function;
-			if (listener == null)
-			{
-				// add a sprite for a shadow to indicate when there are more menu items below or above
-				var sprite:Sprite = new Sprite();
-				sprite.filters = [scrollShadow];
-				menu.addChild(sprite);
-				
-				// add an event listener that will automatically scroll the menu
-				listener = function(..._):void
-				{
-					var visibleHeight:Number = Math.min(menu.height, stage.stageHeight - global.y);
-					var menuMouseY:Number = stage.mouseY - global.y;
-					var maxScroll:Number = menu.height - visibleHeight;
-					
-					// The itemHeight offsets are used to align the minimum and maximum scroll positions with the middle of the first and last menu items.
-					var scrollPos:Number = Math.round((menuMouseY - itemHeight / 2) / (visibleHeight - itemHeight) * maxScroll);
-					scrollPos = StandardLib.constrain(scrollPos, 0, maxScroll) || 0; // avoid NaN
-					menu.scrollRect = new Rectangle(0, scrollPos, menu.width, visibleHeight);
-					
-					// update shadow graphics
-					sprite.graphics.clear();
-					sprite.graphics.lineStyle(1, 0, 1, true);
-					if (scrollPos > 0)
-					{
-						// hint that there are more items above
-						sprite.graphics.moveTo(0, scrollPos - 1);
-						sprite.graphics.lineTo(menu.width, scrollPos - 1);
-					}
-					if (scrollPos < maxScroll)
-					{
-						// hint that there are more items below
-						sprite.graphics.moveTo(0, scrollPos + visibleHeight);
-						sprite.graphics.lineTo(menu.width, scrollPos + visibleHeight);
-					}
-				};
-				menu.addEventListener(MouseEvent.MOUSE_MOVE, listener);
-				menuMouseListeners[menu] = listener;
-			}
-			listener(); // scroll now
 		}
 	}
 }

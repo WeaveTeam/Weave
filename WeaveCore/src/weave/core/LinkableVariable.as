@@ -116,14 +116,6 @@ package weave.core
 		}
 		
 		/**
-		 * @return true if the session state is considered undefined.
-		 */
-		public function isUndefined():Boolean
-		{
-			return !_sessionStateWasSet || _sessionStateInternal == null;
-		}
-		
-		/**
 		 * This function will verify if a given value is a valid session state for this linkable variable.
 		 * @param value The value to verify.
 		 * @return A value of true if the value is accepted by this linkable variable.

@@ -27,7 +27,7 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.EntityType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataRowSource;
@@ -69,9 +69,9 @@ package weave.data.DataSources
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveDataSource extends AbstractDataSource implements IDataRowSource
+	public class WeaveDataSource extends AbstractDataSource_old implements IDataRowSource
 	{
-		WeaveAPI.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 		
 		public function WeaveDataSource()
 		{
@@ -268,11 +268,11 @@ package weave.data.DataSources
 		protected function _convertOldDataType(value:String):String
 		{
 			if (value == 'Geometry')
-				return DataTypes.GEOMETRY;
+				return DataType.GEOMETRY;
 			if (value == 'String')
-				return DataTypes.STRING;
+				return DataType.STRING;
 			if (value == 'Number')
-				return DataTypes.NUMBER;
+				return DataType.NUMBER;
 			return value;
 		}
 
@@ -468,7 +468,7 @@ package weave.data.DataSources
 			{
 				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
 				// dataType is only used for backwards compatibility with geometry collections
-				if (params[ColumnMetadata.DATA_TYPE] != DataTypes.GEOMETRY)
+				if (params[ColumnMetadata.DATA_TYPE] != DataType.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
 				
 				query = _service.getColumnFromMetadata(params);
@@ -549,7 +549,7 @@ package weave.data.DataSources
 				
 				// special case for geometry column
 				var dataType:String = ColumnUtils.getDataType(proxyColumn);
-				var isGeom:Boolean = ObjectUtil.stringCompare(dataType, DataTypes.GEOMETRY, true) == 0;
+				var isGeom:Boolean = ObjectUtil.stringCompare(dataType, DataType.GEOMETRY, true) == 0;
 				if (isGeom && result.data == null)
 				{
 					var tileService:IWeaveGeometryTileService = _service.createTileService(result.id);
@@ -590,13 +590,13 @@ package weave.data.DataSources
 						proxyColumn.setInternalColumn(newColumn);
 						proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
 					}
-					else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
+					else if (ObjectUtil.stringCompare(dataType, DataType.NUMBER, true) == 0)
 					{
 						var newNumericColumn:NumberColumn = new NumberColumn(metadata);
 						newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
 						proxyColumn.setInternalColumn(newNumericColumn);
 					}
-					else if (ObjectUtil.stringCompare(dataType, DataTypes.DATE, true) == 0)
+					else if (ObjectUtil.stringCompare(dataType, DataType.DATE, true) == 0)
 					{
 						var newDateColumn:DateColumn = new DateColumn(metadata);
 						newDateColumn.setRecords(keysVector, Vector.<String>(result.data));
@@ -629,7 +629,7 @@ import flash.utils.getTimer;
 import mx.rpc.events.ResultEvent;
 
 import weave.api.data.ColumnMetadata;
-import weave.api.data.DataTypes;
+import weave.api.data.DataType;
 import weave.api.data.EntityType;
 import weave.api.data.IWeaveTreeNode;
 import weave.api.getCallbackCollection;
@@ -759,7 +759,7 @@ internal class GeomListNode implements IWeaveTreeNode
 			children = [];
 			var meta:Object = {};
 			meta[ColumnMetadata.ENTITY_TYPE] = EntityType.COLUMN;
-			meta[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
+			meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
 			addAsyncResponder(cache.getHierarchyInfo(meta), handleHierarchyInfo, null, children);
 		}
 		return children;

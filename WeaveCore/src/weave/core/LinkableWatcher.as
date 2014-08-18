@@ -36,12 +36,20 @@ package weave.core
 		 * Instead of calling this constructor directly, consider using one of the global functions
 		 * newLinkableChild() or newDisposableChild() to make sure the watcher will get disposed automatically.
 		 * @param typeRestriction Optionally restricts which type of targets this watcher accepts.
+		 * @param immediateCallback A function to add as an immediate callback.
+		 * @param groupedCallback A function to add as a grouped callback.
 		 * @see weave.api.core.newLinkableChild()
 		 * @see weave.api.core.newDisposableChild()
 		 */
-		public function LinkableWatcher(typeRestriction:Class = null)
+		public function LinkableWatcher(typeRestriction:Class = null, immediateCallback:Function = null, groupedCallback:Function = null)
 		{
 			_typeRestriction = typeRestriction;
+			
+			if (immediateCallback != null)
+				WeaveAPI.SessionManager.getCallbackCollection(this).addImmediateCallback(null, immediateCallback);
+			
+			if (groupedCallback != null)
+				WeaveAPI.SessionManager.getCallbackCollection(this).addGroupedCallback(null, groupedCallback);
 		}
 		
 		private var _typeRestriction:Class;

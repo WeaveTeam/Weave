@@ -159,21 +159,9 @@
 				switch (String(name))
 				{
 					case 'exec': return JavaScript.exec as Function;
-					case 'call': return function(...args):*
-					{
-						var prev:Boolean = ExternalInterface.marshallExceptions;
-						try
-						{
-							ExternalInterface.marshallExceptions = true;
-							ExternalInterface.call.apply(this, args);
-						}
-						catch (e:*)
-						{
-							ExternalInterface.marshallExceptions = prev;
-							throw e;
-						}
-						// we can't put this in a finally{} block because it prevents catch() from happening if set to false.
-						ExternalInterface.marshallExceptions = prev;
+					case 'call': return function(...args):* {
+						ExternalInterface.marshallExceptions = true;
+						return ExternalInterface.call.apply(ExternalInterface, args);
 					};
 					case 'application': return FlexGlobals.topLevelApplication;
 					case 'print': return ObjectUtil.toString as Function;

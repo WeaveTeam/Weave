@@ -23,7 +23,7 @@
 				implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
-	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
+	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
 		<mx:Canvas label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
@@ -57,7 +57,7 @@
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 			</mx:HBox>
 		</mx:Canvas>
-	</mx:ViewStack>
+	</CustomViewStack>
 	
 	<ControlPanel>
 		<mx:VBox width="100%" label="{lang('Settings')}">
@@ -68,7 +68,6 @@
 				<HelpComponent>
 					Select the visualization tool that you want the attribute menu to be linked to.
 				</HelpComponent>
-				<mx:Button label="{lang('Refresh')}" click="handleGlobalListChange()"/>
 			</Indent>
 			<Indent label="{lang('Visualization attribute')}">
 				<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
@@ -138,6 +137,7 @@
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.LinkableWatcher;
+			import weave.core.SessionManager;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -145,7 +145,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
-			WeaveAPI.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
@@ -268,7 +268,7 @@
 				
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
-				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
+				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleGlobalListChange, true);
 				targetToolPath.addGroupedCallback(this, validateToolWatcherTarget, true);
 				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addGroupedCallback(this, handleChoicesChange, true);
@@ -320,6 +320,8 @@
 				return _attrNames.indexOf(ta);
 			}
 			
+			private var _prevDescendants:Array;
+			
 			// called whenever a global object gets added/removed/reordered
 			private function handleGlobalListChange():void
 			{
@@ -328,7 +330,8 @@
 				// two filter passes because the filter function may modify the array on the first pass
 				descendants = descendants.filter(filterDescendants).filter(filterDescendants).map(objectToPathString);
 				StandardLib.sort(descendants);
-				targetToolCombo.dataProvider = descendants;
+				if (StandardLib.arrayCompare(_prevDescendants, descendants) != 0)
+					targetToolCombo.dataProvider = _prevDescendants = descendants;
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = pathToString(targetToolPath.getSessionState() as Array);
 				validateToolWatcherTarget();

@@ -229,7 +229,7 @@
 			{
 				var result:Array = [];
 				var folder:IWeaveTreeNode = explorer.folderView.selectedItem as IWeaveTreeNode;
-				if (!folder)
+				if (!folder || !destination)
 					return result;
 				
 				var nodes:Array;

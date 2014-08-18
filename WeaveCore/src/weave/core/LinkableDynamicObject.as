@@ -50,7 +50,7 @@ package weave.core
 		{
 			if (!_globalHashMap)
 			{
-				_globalHashMap = WeaveAPI.getSingletonInstance(ILinkableHashMap);
+				_globalHashMap = WeaveAPI.ClassRegistry.getSingletonInstance(ILinkableHashMap);
 				_globalHashMap.childListCallbacks.addImmediateCallback(null, handleGlobalListChange);
 			}
 			// set up the local hash map which automatically enforces the type restriction
@@ -419,6 +419,14 @@ package weave.core
 		public function lock():void
 		{
 			_locked = true;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get locked():Boolean
+		{
+			return _locked;
 		}
 
 		/**

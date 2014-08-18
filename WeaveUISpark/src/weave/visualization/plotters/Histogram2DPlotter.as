@@ -50,7 +50,7 @@ package weave.visualization.plotters
 	 */
 	public class Histogram2DPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IPlotter, Histogram2DPlotter, "Histogram 2D");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, Histogram2DPlotter, "Histogram 2D");
 		
 		public function Histogram2DPlotter()
 		{

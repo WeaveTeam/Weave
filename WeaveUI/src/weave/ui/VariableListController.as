@@ -159,6 +159,8 @@ package weave.ui
 		private const _dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
 		private const _childListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider);
 		private var _labelFunction:Function = null;
+		private var _filterFunction:Function = null;
+		private var _reverse:Boolean = false;
 		
 		public function get hashMap():ILinkableHashMap
 		{
@@ -210,7 +212,12 @@ package weave.ui
 			else if (hashMap)
 			{
 				setNameColumnHeader();
-				_editor.dataProvider = hashMap.getObjects();
+				var objects:Array = hashMap.getObjects();
+				if (_filterFunction != null)
+					objects = objects.filter(_filterFunction);
+				if (_reverse)
+					objects = objects.reverse();
+				_editor.dataProvider = objects;
 			}
 			else
 				_editor.dataProvider = null;
@@ -302,6 +309,23 @@ package weave.ui
 			refreshLabels();
 		}
 		
+		public function set filterFunction(value:Function):void
+		{
+			if (value != null && value.length < 3)
+				value = function(item:*, i:*, a:*):* { return value(item); }
+			_filterFunction = value;
+			updateDataProvider();
+		}
+		
+		public function set reverse(value:Boolean):void
+		{
+			if (_reverse != value)
+			{
+				_reverse = value;
+				updateDataProvider();
+			}
+		}
+		
 		private function updateHashMapNameOrder():void
 		{
 			if (!_editor)
@@ -319,6 +343,8 @@ package weave.ui
 					if (object)
 						newNameOrder[i] = hashMap.getName(object);
 				}
+				if (_reverse)
+					newNameOrder.reverse();
 				hashMap.setNameOrder(newNameOrder);
 			}
 		}

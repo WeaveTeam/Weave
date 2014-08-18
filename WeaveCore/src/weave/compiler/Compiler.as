@@ -192,6 +192,10 @@ package weave.compiler
 		 */
 		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
 		
+		private static const maxUnicodeEscapeValue:uint = 0x10FFFF;
+		private static const maxUnicodeEscapeChars:uint = 8; // {10FFFF}
+		private static const unicodeRegex:RegExp = /^(\{[0-9A-Fa-f]+\}|[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/;
+		
 		private const JUMP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
 		private const LOOP_LOOKUP:Dictionary = new Dictionary(); // Function -> true or ST_BREAK or ST_CONTINUE
 		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function -> Boolean, for short-circuiting
@@ -360,6 +364,28 @@ package weave.compiler
 				return function():*{ return func.apply(that, args.concat(arguments)); };
 			else
 				return function():*{ return func.apply(that, arguments); };
+		}
+		
+		/**
+		 * Creates a memoized version of a Function.
+		 * The parameters passed to the memoized version of the Function must be JSON-serializable.
+		 * @param func The function to memoize.
+		 * @param bindThis Optional thisArg parameter to pass to func.apply().
+		 * @param bindArgs Optional arguments to bind that should appear before any additional arguments passed to the memoized function.
+		 * @return A memoized version of the function.
+		 * @see #bind
+		 */
+		public static function memoize(func:Function, bindThis:* = null, ...bindArgs):Function
+		{
+			var cache:Object = {};
+			return function(...args):* {
+				var str:String = stringify(args);
+				if (cache.hasOwnProperty(str))
+					return cache[str];
+				if (bindArgs.length)
+					return cache[str] = func.apply(bindThis, bindArgs.concat(args));
+				return cache[str] = func.apply(bindThis, args);
+			};
 		}
 		
 		/**
@@ -945,14 +971,14 @@ package weave.compiler
 			if (Math.max(tokens.indexOf('?')) >= 0)
 				throw new Error('Invalid conditional branch');
 			
-			// next step: inline functions, right to left
+			// next step: inline functions (headers only), right to left
 			i = tokens.length;
 			while (i--)
 			{
 				if (tokens[i] == FUNCTION)
-					tokens.splice(i, 3, compileOperator(FUNCTION, [tokens[i + 1], tokens[i + 2]]));
+					tokens.splice(i, 2, compileFunctionHeader(FUNCTION, tokens[i + 1]));
 				if (tokens[i] == '=>')
-					tokens.splice(i - 1, 3, compileOperator('=>', [tokens[i - 1], tokens[i + 1]]));
+					tokens.splice(i - 1, 2, compileFunctionHeader('=>', tokens[i - 1]));
 			}
 			
 			// next step: function applications
@@ -963,13 +989,17 @@ package weave.compiler
 					tokens.splice(i - 1, 2, new CompiledFunctionCall(tokens[i - 1], call.compiledParams));
 			}
 			
-			// next step: variable assignment, right to left
+			// next step: variable assignment and inline function definitions, right to left
 			while (true)
 			{
 				i = tokens.length;
 				while (i--)
-					if (assignmentOperators.hasOwnProperty(tokens[i]))
+				{
+					if (isFunctionHeader(tokens[i]))
+						tokens.splice(i, 2, compileFunctionDefinition(tokens[i], tokens[i + 1]));
+					else if (assignmentOperators.hasOwnProperty(tokens[i]))
 						break;
+				}
 				if (i < 0)
 					break;
 				if (i == 0 || i + 1 == tokens.length)
@@ -1088,7 +1118,7 @@ package weave.compiler
 		\x00 .. \xFF        a byte specified in hexadecimal
 		\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
 		*/
-		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\', '{':'{'};
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
 		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
 		
 		/**
@@ -1121,7 +1151,7 @@ package weave.compiler
 		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
 		{
 			indent = indent is Number ? StandardLib.lpad('', indent as Number, ' ') : indent as String || ''
-			return _stringify("", value, replacer, indent ? '\n' : ' ', indent, json_values_only);
+			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
 		}
 		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
 		{
@@ -1148,8 +1178,8 @@ package weave.compiler
 			output = [];
 			if (value is Array)
 			{
-				for (key in value)
-					output.push(_stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+				for (var i:int = 0; i < (value as Array).length; i++)
+					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
 			}
 			else if (value.constructor == Object)
 			{
@@ -1173,7 +1203,7 @@ package weave.compiler
 			
 			return (value is Array ? "[" : "{")
 				+ lineBreakIndent
-				+ output.join("," + lineBreakIndent)
+				+ output.join(indent ? ',' + lineBreakIndent : ', ')
 				+ lineBreak
 				+ (value is Array ? "]" : "}");
 		}
@@ -1240,10 +1270,21 @@ package weave.compiler
 					}
 					else if (c == 'u')
 					{
-						// \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
-						var unicode:String = input.substr(escapeIndex + 2, 4);
-						c = String.fromCharCode(parseInt(unicode, 16));
-						searchIndex = escapeIndex + 6; // skip over escape sequence
+						var unicodeDigits:String;
+						var unicodeValue:int;
+						var foundUnicode:Object = unicodeRegex.exec(input.substr(escapeIndex + 2, maxUnicodeEscapeChars))
+						if (foundUnicode)
+						{
+							unicodeDigits = foundUnicode[0];
+							if (unicodeDigits.charAt(0) == '{') // \u{10FFFF}
+								unicodeValue = parseInt(unicodeDigits.substr(1, unicodeDigits.length - 2), 16);
+							else // \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
+								unicodeValue = parseInt(unicodeDigits, 16);
+						}
+						if (!foundUnicode || unicodeValue > maxUnicodeEscapeValue)
+							throw new Error("Malformed Unicode character escape sequence: " + input);
+						c = StandardLib.ucs2encode(unicodeValue);
+						searchIndex = escapeIndex + 2 + unicodeDigits.length; // skip over escape sequence
 					}
 					else
 					{
@@ -1673,63 +1714,75 @@ package weave.compiler
 			}
 		}
 		
-		/**
-		 * @param operatorName
-		 * @param compiledParams
-		 * @return 
-		 */
 		private function compileOperator(operatorName:String, compiledParams:Array):CompiledFunctionCall
 		{
-			// special case for inline functions
-			if (operatorName == FUNCTION || operatorName == '=>')
-			{
-				// compiledParams should have two parameters: argument list and function body
-				var args:CompiledFunctionCall = compiledParams[0] as CompiledFunctionCall;
-				var body:ICompiledObject = compiledParams[1] as ICompiledObject;
-				if (compiledParams.length != 2 || !args || !body)
-					throwInvalidSyntax(operatorName);
-				
-				// if there is only a single variable name, wrap it in an operator ',' call
-				if (!args.compiledParams)
-					args = compileOperator(',', [args]);
-				
-				if (args.evaluatedMethod != operators[','])
-					throwInvalidSyntax(operatorName);
-				
-				// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
-				var variableNames:Array = [];
-				var variableValues:Array = [];
-				for each (var token:Object in args.compiledParams)
-				{
-					var variable:CompiledFunctionCall = token as CompiledFunctionCall;
-					if (!variable)
-						throwInvalidSyntax(operatorName);
-					
-					if (!variable.compiledParams)
-					{
-						// local variable
-						variableNames.push(variable.evaluatedMethod);
-						variableValues.push(undefined);
-					}
-					else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
-					{
-						// local variable assignment
-						variableNames.push(variable.evaluatedParams[0]);
-						variableValues.push(variable.evaluatedParams[1]);
-					}
-					else
-						throwInvalidSyntax(operatorName);
-				}
-				var functionParams:Object = {};
-				functionParams[FUNCTION_PARAM_NAMES] = variableNames;
-				functionParams[FUNCTION_PARAM_VALUES] = variableValues;
-				functionParams[FUNCTION_CODE] = finalize(body);
-				
-				compiledParams = [new CompiledConstant(null, functionParams)];
-			}
-			
 			operatorName = OPERATOR_ESCAPE + operatorName;
-			return new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			var op:CompiledFunctionCall = new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			//op.originalTokens = originalTokensForDecompiling;
+			return op;
+		}
+		
+		private function compileFunctionHeader(functionOperator:String, paramsToken:Object):ICompiledObject
+		{
+			if (functionOperator != FUNCTION && functionOperator != '=>')
+				throw new Error("compileFunctionHeader called with unsupported operator: " + functionOperator);
+			
+			// when compiling a function operator, only the argument list should be provided
+			var args:CompiledFunctionCall = paramsToken as CompiledFunctionCall;
+			if (!args)
+				throwInvalidSyntax(functionOperator);
+			
+			// if there is only a single variable name, wrap it in an operator ',' call
+			if (!args.compiledParams)
+				args = compileOperator(',', [args]);
+			
+			if (args.evaluatedMethod != operators[','])
+				throwInvalidSyntax(functionOperator);
+			
+			// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
+			var variableNames:Array = [];
+			var variableValues:Array = [];
+			for each (var token:Object in args.compiledParams)
+			{
+				var variable:CompiledFunctionCall = token as CompiledFunctionCall;
+				if (!variable)
+					throwInvalidSyntax(functionOperator);
+				
+				if (!variable.compiledParams)
+				{
+					// local variable
+					variableNames.push(variable.evaluatedMethod);
+					variableValues.push(undefined);
+				}
+				else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
+				{
+					// local variable assignment
+					variableNames.push(variable.evaluatedParams[0]);
+					variableValues.push(variable.evaluatedParams[1]);
+				}
+				else
+					throwInvalidSyntax(functionOperator);
+			}
+			var functionParams:Object = {};
+			functionParams[FUNCTION_PARAM_NAMES] = variableNames;
+			functionParams[FUNCTION_PARAM_VALUES] = variableValues;
+			
+			var op:CompiledFunctionCall = compileOperator(functionOperator, [new CompiledConstant(null, functionParams)]);
+			op.originalTokens = functionOperator == FUNCTION ? [FUNCTION, paramsToken] : [paramsToken, '=>'];
+			return op;
+		}
+		
+		private function compileFunctionDefinition(functionHeader:CompiledFunctionCall, body:ICompiledObject):ICompiledObject
+		{
+			if (!body)
+				throwInvalidSyntax((functionHeader.compiledMethod as CompiledConstant).name.substr(OPERATOR_ESCAPE.length));
+			var cc:CompiledConstant = functionHeader.compiledParams[0];
+			if (cc.value[FUNCTION_CODE] != null)
+				throw new Error("Unexpected error: attempting to overwrite function body");
+			cc.value[FUNCTION_CODE] = finalize(body);
+			functionHeader.evaluateConstants();
+			functionHeader.originalTokens.push(body);
+			return functionHeader;
 		}
 		
 		private function compileVariableAssignment(variableToken:*, assignmentOperator:String, valueToken:*):CompiledFunctionCall
@@ -2319,6 +2372,18 @@ package weave.compiler
 				if (op == '(' && n > 0) // zero params not allowed for this syntax
 					return '(' + params.join('; ') + ')';
 				
+				if (op == '{')
+				{
+					var str:String = '';
+					for (i = 0; i < params.length - 1; i += 2)
+					{
+						if (str)
+							str += ', ';
+						str += params[i] + ': ' + params[i + 1];
+					}
+					return '{' + str + '}';
+				}
+				
 				if (PURE_OP_LOOKUP[cMethod.value as Function] || op == 'in')
 				{
 					if (n == 1) // unary op
@@ -2360,9 +2425,10 @@ package weave.compiler
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @param flattenFunctionDefinition If set to true and the compiledObject represents a function definition, that function definition will be evaluated and returned.
+		 * @param bindThis If non-null, the <code>this</code> symbol will be bound to the given value. Otherwise, it will be dynamically determined by how the function is called.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true, bindThis:Object = null):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -2389,6 +2455,7 @@ package weave.compiler
 
 			const builtInSymbolTable:Object = {};
 			builtInSymbolTable['eval'] = undefined;
+			builtInSymbolTable['this'] = bindThis;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
 			const allSymbolTables:Array = [builtInSymbolTable]; // buit-in first
@@ -2433,12 +2500,13 @@ package weave.compiler
 				var propertyHost:Object;
 				var propertyName:String;
 				
+				if (bindThis === null)
+					builtInSymbolTable['this'] = this;
+				builtInSymbolTable['arguments'] = arguments;
+				
 				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
 				if (useThisScope)
-					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
-				
-				builtInSymbolTable['this'] = this;
-				builtInSymbolTable['arguments'] = arguments;
+					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = builtInSymbolTable['this'];
 				
 				// make function parameters available under the specified parameter names
 				if (paramNames)
@@ -2669,7 +2737,7 @@ package weave.compiler
 						{
 							var _symbolTables:Array = [localSymbolTable].concat(symbolTable); // works whether symbolTable is an Array or Object
 							if (useThisScope)
-								_symbolTables.push(this);
+								_symbolTables.push(builtInSymbolTable['this']);
 							
 							var funcParams:Object = call.evaluatedParams[0];
 							result = compileObjectToFunction(
@@ -2679,7 +2747,8 @@ package weave.compiler
 								cascadeThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES],
-								false
+								false,
+								method == operators['=>'] || cascadeThisScope ? builtInSymbolTable['this'] : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
@@ -2777,6 +2846,13 @@ package weave.compiler
 		{
 			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
 			return cfc && !cfc.compiledParams;
+		}
+		
+		private function isFunctionHeader(token:Object):Boolean
+		{
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
+			return cfc && (cfc.evaluatedMethod == operators[FUNCTION] || cfc.evaluatedMethod == operators['=>'])
+				&& cfc.evaluatedParams[0][FUNCTION_CODE] === undefined;
 		}
 		
 		/**

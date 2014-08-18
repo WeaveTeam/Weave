@@ -97,11 +97,24 @@ package weave.services
 			
 			uniqueIDToTokenMap[id] = new QueryToken(urlRequest, dataFormat, token);
 			
-			JavaScript.exec(
-				{"args": [id, method, url, requestHeaders, base64data]},
-				"this.ExternalDownloader_request.apply(this, args);"
-			);
+			try
+			{
+				JavaScript.exec(
+					{"args": [id, method, url, requestHeaders, base64data]},
+					"this.ExternalDownloader_request.apply(this, args);"
+				);
+			}
+			catch (e:Error)
+			{
+				_errors[id] = e;
+				WeaveAPI.StageUtils.callLater(null, callback, [id, -1, null]);
+			}
 		}
+		
+		/**
+		 * id -> Error
+		 */
+		private static const _errors:Object = {};
 		
 		/**
 		 * @param id The id that was passed to weave.ExternalDownloader_get().
@@ -131,16 +144,25 @@ package weave.services
 			}
 			else
 			{
-				var faultCode:String = null;
-				if (HTTP_STATUS_CODES[status])
-					faultCode = status + " " + lang(HTTP_STATUS_CODES[status]);
-				else if (status)
-					faultCode = "" + status;
+				var fault:Fault;
+				if (_errors[id])
+				{
+					fault = new Fault(lang("Malformed URL"), qt.urlRequest.url);
+					fault.rootCause = _errors[id];
+				}
 				else
-					faultCode = lang("Error");
-				
-				var fault:Fault = new Fault(faultCode, lang("HTTP " + qt.urlRequest.method + " failed; Check that the server allows Cross-Origin Resource Sharing (CORS)"), qt.urlRequest.url);
-				fault.content = result;
+				{
+					var faultCode:String = null;
+					if (HTTP_STATUS_CODES[status])
+						faultCode = status + " " + lang(HTTP_STATUS_CODES[status]);
+					else if (status)
+						faultCode = "" + status;
+					else
+						faultCode = lang("Error");
+					
+					fault = new Fault(faultCode, lang("HTTP " + qt.urlRequest.method + " failed; Check that the server allows Cross-Origin Resource Sharing (CORS)"), qt.urlRequest.url);
+					fault.content = result;
+				}
 				qt.asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, qt.asyncToken));
 			}
 		}

@@ -38,7 +38,7 @@ package weave.visualization.plotters
 	 */
 	public class CustomGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
-		WeaveAPI.registerImplementation(IPlotter, CustomGlyphPlotter, "ActionScript glyphs");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, CustomGlyphPlotter, "ActionScript glyphs");
 		
 		public function CustomGlyphPlotter()
 		{

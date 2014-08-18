@@ -46,9 +46,9 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufile
 	 */
-	public class XLSDataSource extends AbstractDataSource
+	public class XLSDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.registerImplementation(IDataSource, XLSDataSource, "XLS file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, XLSDataSource, "XLS file");
 
 		public function XLSDataSource()
 		{

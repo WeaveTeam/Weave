@@ -40,7 +40,7 @@ private var reverseKeyMapping:Dictionary = new Dictionary();
 private var currentlyMappedKeys:KeySet = new KeySet(); /* To ensure we only do one step */
 private var previouslyMappedKeys:KeySet = new KeySet();
 
-WeaveAPI.registerImplementation(IVisTool, KeyMappingTool, "Foreign Key Mapping Tool");
+WeaveAPI.ClassRegistry.registerImplementation(IVisTool, KeyMappingTool, "Foreign Key Mapping Tool");
 
 override protected function constructor():void
 {
@@ -165,12 +165,12 @@ public function getSelectableAttributeNames():Array
         <mx:VBox label="{lang('Attributes')}">
             <mx:HBox>
                 <mx:Label text="{lang('Source KeyType')}"/>
-                <ui:KeyTypesMenu id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500)"/>
+                <ui:KeyTypesMenu id="sourceKeyTypeTextBox" creationComplete="linkBindableProperty(sourceKeyType, event.target, 'text', 500, true)"/>
             </mx:HBox>
             <ui:DynamicColumnComponent id="sourceLocalNameColumnComponent"/>
             <mx:HBox>
                 <mx:Label text="{lang('Target KeyType')}"/>
-                <ui:KeyTypesMenu id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500)"/>
+                <ui:KeyTypesMenu id="targetKeyTypeTextBox" creationComplete="linkBindableProperty(targetKeyType, event.target, 'text', 500, true)"/>
             </mx:HBox>
 
             <ui:DynamicColumnComponent id="targetLocalNameColumnComponent"/>
