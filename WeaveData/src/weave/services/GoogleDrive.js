@@ -18,7 +18,12 @@ var SCOPES = [
 var boundary = '-------314159265358979323846';
 var delimiter = "\r\n--" + boundary + "\r\n";
 var close_delim = "\r\n--" + boundary + "--";
+// for file loaded from Google Drive UI
+weave.GoogleDrive.loadDriveAPI = function(){
+	gapi.client.load('drive', 'v2', handleClientLoad);
+}
 
+// required only if weave tries to connect to Google Drive 
 //Step 1: get authorization to use private data
 weave.GoogleDrive.init = function( ) {
 	console.log("init");	

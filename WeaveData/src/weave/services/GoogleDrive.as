@@ -28,13 +28,11 @@ package weave.services
 		
 		public static var isAuthorized:Boolean ;
 		public static var busy:Boolean;
-		public static function authorize(fileId):void{
+		/*public static function authorize(fileId):void{
 			if(!busy && !isAuthorized){
 				busy = true;
 				var googleService:GoogleServlet = new GoogleServlet("/GoogleServices/DriveService");
 				googleService.getFileMetaData(fileId);
-				//WeaveAPI.initializeJavaScript(GoogleDrive_js);
-				//JavaScript.exec('this.GoogleDrive.init()');
 			}
 			
 		}
@@ -43,14 +41,14 @@ package weave.services
 			if(isAuthorized){
 				//JavaScript.exec('this.GoogleDrive.updateWeaveFile()');
 			}
-		}
+		}*/
 		
 		//javascript version
-		/*public static function authorize():void{
+		public static function authorize():void{
 			if(!busy && !isAuthorized){
 				busy = true;
 				WeaveAPI.initializeJavaScript(GoogleDrive_js);
-				JavaScript.exec('this.GoogleDrive.init()');
+				JavaScript.exec('this.GoogleDrive.loadDriveAPI()');
 			}
 			
 		}
@@ -59,7 +57,7 @@ package weave.services
 			if(isAuthorized){
 				JavaScript.exec('this.GoogleDrive.updateWeaveFile()');
 			}
-		}*/
+		}
 	
 		
 		

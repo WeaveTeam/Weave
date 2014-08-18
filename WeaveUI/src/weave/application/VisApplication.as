@@ -179,7 +179,8 @@ package weave.application
 			enabled = false;
 			if(GoogleDrive.openedFromDrive(_flashVars)){
 				var stateObj:Object = JavaScript.exec({obj:_flashVars.state},"return JSON.parse(obj);")
-				GoogleDrive.authorize(stateObj.ids[0]);
+				//GoogleDrive.authorize(stateObj.ids[0]);
+				GoogleDrive.authorize();
 				enabled = true;
 			}
 			else if (getAdminConnectionName())

@@ -30,6 +30,7 @@ package weave.menus
 	import weave.api.reportError;
 	import weave.core.LinkableBoolean;
 	import weave.menus.WeaveMenuItem;
+	import weave.services.GoogleDrive;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.DraggablePanel;
@@ -55,6 +56,11 @@ package weave.menus
 		public static function fn_adminService():Boolean
 		{
 			return WeaveAPI.topLevelApplication['visApp']['adminService'] ? true : false;
+		}
+		
+		public static function fn_GoogleService():Boolean
+		{
+			return GoogleDrive.isAuthorized;
 		}
 		//-----------
 		
@@ -157,9 +163,9 @@ package weave.menus
 					},
 					TYPE_SEPARATOR,
 					{
-						shown: fn_adminService,
-						label: lang("Save session state to server"),
-						click: saveSessionStateToServer
+						shown: fn_GoogleService,
+						label: lang("Save session state to Google Drive"),
+						click: function():void { GoogleDrive.saveToDrive(); }
 					}
 				]
 			});
