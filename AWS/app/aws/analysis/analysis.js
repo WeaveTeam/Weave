@@ -49,7 +49,7 @@ AnalysisModule.service('AnalysisService', function() {
 				title : 'By Variable Filter',
 				template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
 				description : 'Filter data by Variables',
-				category : 'datafilter',
+				category : 'datafilter'
 			}],
 			
 			tool_list : [

@@ -1,5 +1,4 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
-
 AnalysisModule.service("WeaveService", function(queryService) {
 	
 	this.weave;
@@ -16,10 +15,14 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			.request('CSVDataSource')
 			.vars({rows: csvData})
 			.exec('setCSVData(rows)');
+		
+		console.log("added CSV");
 	};
 	
 	// weave path func
 	var setCSVColumn = function (columnName, propertyName){
+		if(!columnName)
+			return;
 		this.weave.path(ws.dataSourceName)
 			.getValue('putColumn')(columnName, this.push(propertyName).request('DynamicColumn').getPath());
 	};
@@ -42,6 +45,77 @@ AnalysisModule.service("WeaveService", function(queryService) {
 							this.push(name).forEach(heights, setCSVColumn);
 						}
 					);
+	};
+	
+	
+	
+	this.MapTool = function(state){
+		var toolName = state.toolName || "MapTool";
+		if(!state.enabled)
+			return ws.weave.path(toolName).remove();
+		ws.weave.path(toolName).request('MapTool')
+		.state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
+		
+		
+		//TODO get this checked and see if done correctly
+		if(!state.geometryLayer == "")
+		{
+			console.log("sate", state);
+			ws.weave.path(toolName).request('MapTool')
+			.push('children', 'visualization', 'plotManager', 'plotters')
+			  .push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
+			  .push('line', 'color', 'defaultValue').state('0').pop()
+			  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+			  .push('dataSourceName').state('WeaveDataSource').pop()
+			  .push('metadata').state({
+			    "keyType": state.geometryLayer.keyType,
+			    "title": state.geometryLayer.title,
+			    "entityType": "column",
+			    "weaveEntityId": state.geometryLayer.id,
+			    "projection": "EPSG:4326",
+			    "dataType": "geometry"
+			  });
+			//setting the keytype and keyColName
+			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
+			
+			
+		}
+		
+		if(!state.labelLayer == "")
+			{
+			  ws.weave.path(toolName).request('MapTool')
+			  .push('children', 'visualization', 'plotManager','plotters')
+			  .push('stateLabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
+			  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+			  .push('dataSourceName').state('WeaveDataSource').pop()
+			  .push('metadata').state({
+			    "keyType": state.geometryLayer.keyType,
+			    "title": state.geometryLayer.title,
+			    "entityType": "column",
+			    "weaveEntityId": state.geometryLayer.id,
+			    "projection": "EPSG:4326",
+			    "dataType": "geometry"
+			  }).pop().pop()
+			  .push('text', null).request('ReferencedColumn')
+			  .push('dataSourceName').state(ws.dataSourceName).pop()
+			  .push('metadata').state({//hard coding the label layer paramterize later
+			    "csvColumn": state.labelLayer,
+			    "title": state.labelLayer,
+			    "keyType": state.geometryLayer.keyType
+			  });
+			}
+		
+	};
+	
+	
+	this.ScatterPlotTool = function(state){
+		var toolName = state.toolName || "ScatterPlotTool";
+		if(!state.enabled)
+			return ws.weave.path(toolName).remove();
+		ws.weave.path(toolName).request('ScatterPlotTool')
+		.state({ panelX : "50%", panelY : "50%", panelTitle : state.title, enableTitle : true})
+		.push('children', 'visualization','plotManager', 'plotters', 'plot')
+		.forEach({dataX : state.X, dataY : state.Y}, setCSVColumn);
 	};
 });
 
