@@ -22,8 +22,8 @@
 						<div>
 							<div>
 								<span>Script:</span>
-								<editablespan class= "editab-span-script" model='selectedScript[0].name'>
-									{{selectedScript[0].name}}
+								<editablespan class= "editab-span-script" model='selectedScript[0].Script'>
+									{{selectedScript[0].Script}}
 								</editablespan>
 							</div>
 
@@ -42,8 +42,8 @@
 						</div>
 						<div>
 							<span>Description:</span>
-							<editablespan model="selectedMetadata.description">
-								{{selectedMetadata.description}}
+							<editablespan model="scriptDescription">
+								{{scriptDescription}}
 							</editablespan>
 						</div>
 
@@ -51,88 +51,9 @@
 				</div>
 				
 				<div class="gridStyle" ng-grid="scriptMetadataGridOptions"></div>
-				<div class="well">
-					<h3 class="">Inputs</h3>
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<div style="width: 20%" class="col-md-2">
-							Name
-						</div>
-						<div style="width: 30%" class="col-md-2">
-							Description
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							Type
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							ColumnType
-						</div>
-					</div>
-					<div style="width: 100%; height: 40px; display: inline-block" ng-repeat="inpt in selectedMetadata.inputs">
-						<div style="width: 20%" class="col-md-2">
-							<editablespan model="inpt.param">
-								{{inpt.param}}
-							</editablespan>
-						</div>
-						<div style="width: 30%" class="col-md-2">
-							<editablespan model="inpt.description">
-								{{inpt.description}}
-							</editablespan>
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							<editablespan model="inpt.type">
-								{{inpt.type}}
-							</editablespan>
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							<editablespan model="inpt.columnType">
-								{{inpt.columnType}}
-							</editablespan>
-						</div>
-						<div style="width: 10%" class="col-md-2">
-							<a class="btn" ng-click="deleteInput($index)" ng-show="editMode"><i class="glyphicon glyphicon-remove"></i></a>
-						</div>
-					</div>
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<a class="btn pull-right" ng-click="addInput()" ng-show="editMode"><i class="glyphicon glyphicon-plus"></i>Add</a>
-					</div>
 
-				</div>
-
-				<div class="well">
-					<h3 class="">Outputs</h3>
-
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<div style="width: 30%; " class="col-md-2">
-							Name
-						</div>
-						<div style="width: 60%" class="col-md-2">
-							Description
-						</div>
-
-					</div>
-
-					<div style="width: 100%; height: 40px; display: inline-block" ng-repeat="out in selectedMetadata.outputs">
-						<div style="width: 30%" class="col-md-2 script-table-value">
-							<editablespan model="out.param">
-								{{out.param}}
-							</editablespan>
-						</div>
-						<div style="width: 60%" class="col-md-2 script-table-value">
-							<editablespan model="out.description">
-								{{out.description}}
-							</editablespan>
-						</div>
-						<div style="width: 10%" class="col-md-2 script-table-value">
-							<a class="btn" ng-click="deleteOutput($index)" ng-show="editMode"><i class="glyphicon glyphicon-remove"></i></a>
-						</div>
-					</div>
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<a class="btn pull-right" ng-click="addOutput()" ng-show="editMode"><i class="glyphicon glyphicon-plus"></i>Add</a>
-					</div>
-
-				</div>
 				<div class ="well">
-					<h3> Script Contents </h3>
+					<h3> Script Content </h3>
 					<pre>{{scriptContent}}</pre>
 				</div>
 			</div>

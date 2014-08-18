@@ -21,7 +21,7 @@
 			</div>
 		
 			<div ng-if="service.dataObject.filterType[$index] == 'categorical'" >
-	 			<select ui-select2 multiple ng-model="service.queryObject.ByVariableFilters[$index]" data-placeholder="Choose Filter(s)">
+	 			<select ui-select2 multiple ng-model="service.queryObject.ByVariableFilters[$index]" data-placeholder="Choose Filter(s)" style="width:100%">
 	 				<option value="{{cat}}" ng-repeat="cat in service.dataObject.filterOptions[$index]">{{cat.label}}</option>
 	 			</select>
 			</div>
