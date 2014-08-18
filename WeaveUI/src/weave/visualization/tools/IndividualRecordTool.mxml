@@ -411,12 +411,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//Function to update the profile picture.
 			private function handlePictureChange():void
 			{
+				profileImage.graphics.clear();
 				if( _recordKeySubset.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData) != null)
-					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData);
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, BitmapUtils.resizeBitmapData((profilePicturesColumn.getValueFromKey(_recordKeySubset.keys[0]) as BitmapData),profileImage.width,profileImage.height));
 				else if( _probe.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData) != null)
-					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData);
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, BitmapUtils.resizeBitmapData((profilePicturesColumn.getValueFromKey(_probe.keys[0]) as BitmapData),profileImage.width,profileImage.height));
 				else if( _selection.keys.length == 1 && (profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData) != null)
-					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData);
+					BitmapUtils.drawCenteredIcon(profileImage.graphics, profileImage.width/2, profileImage.height/2, BitmapUtils.resizeBitmapData((profilePicturesColumn.getValueFromKey(_selection.keys[0]) as BitmapData),profileImage.width,profileImage.height));
 			}
 			
 			//Set of functions for updating the value being drawn from the personalInformationBox columns.
