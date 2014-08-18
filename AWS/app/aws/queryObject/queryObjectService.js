@@ -100,7 +100,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			date : new Date(),
     		author : "",
 			ComputationEngine : "R",
-			Indicator : {},
+			Indicator : "",
 			GeographyFilter : {},
 			scriptOptions : {},
 			TimePeriodFilter : {},

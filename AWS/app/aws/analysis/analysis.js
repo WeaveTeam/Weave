@@ -96,6 +96,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	$scope.WeaveService = WeaveService;
 	
 	$scope.IndicDescription = "";
+	$scope.varValues = [];
 	
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;
@@ -110,6 +111,20 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	$scope.$watch('queryService.queryObject.Indicator', function() {
 		if(queryService.queryObject.Indicator) {
 			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
+		}
+		
+		if(queryService.queryObject.Indicator) {
+			queryService.getEntitiesById([angular.fromJson(queryService.queryObject.Indicator).id], true).then(function (result) {
+				if(result.length) {
+					var resultMetadata = result[0];
+					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
+						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
+						if(metadata.hasOwnProperty("varValues")) {
+							$scope.varValues = metadata.varValues;
+						}
+					}
+				}
+			});
 		}
 	});
 	

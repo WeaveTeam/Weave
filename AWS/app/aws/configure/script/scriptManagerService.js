@@ -2,11 +2,11 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
      
 	  var scriptServiceURL = "/WeaveAnalystServices/ScriptManagementServlet";
 	  
-	  this.getScript = function() {
+	  this.getScript = function(scriptName) {
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'getScript', null, function(result) {
+		  aws.queryService(scriptServiceURL, 'getScript', [scriptName], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
