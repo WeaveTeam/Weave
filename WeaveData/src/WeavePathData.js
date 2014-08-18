@@ -368,40 +368,6 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 };
 
 /**
- * Sets a human-readable label for an ILinkableObject to be used in editors.
- * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
- *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
- * @param The human-readable label for an ILinkableObject.
- * @return The current WeavePath object.
- */
-weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
-{
-    var args = this._A(arguments, 2);
-    if (this._assertParams('setLabel', args))
-    {
-        var label = args.pop();
-        var path = this._path.concat(args);
-        this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label}, null, "");
-    }
-    return this;
-};
-
-/**
- * Gets the previously-stored human-readable label for an ILinkableObject.
- * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
- *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
- * @return The human-readable label for an ILinkableObject.
- */
-weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
-{
-    var args = this._A(arguments, 1);
-    var path = this._path.concat(args);
-    return this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.getLabel(this)");
-};
-
-/* Functions used by retrieveRecords */
-
-/**
  * @private
  * A function that tests if a WeavePath references an IAttributeColumn
  */
@@ -479,4 +445,75 @@ var listChainsAndPaths = function(obj, prefix, output)
         }
     }
     return output;
+};
+
+var getLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.getLabel");
+var setLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.setLabel");
+
+/**
+ * Sets a human-readable label for an ILinkableObject to be used in editors.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param The human-readable label for an ILinkableObject.
+ * @return The current WeavePath object.
+ */
+weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
+{
+    var args = this._A(arguments, 2);
+    if (this._assertParams('setLabel', args))
+    {
+        var label = args.pop();
+        setLabel(this.push(args), label);
+    }
+    return this;
+};
+
+/**
+ * Gets the previously-stored human-readable label for an ILinkableObject.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return The human-readable label for an ILinkableObject.
+ */
+weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
+{
+    var args = this._A(arguments, 1);
+    return getLabel(this.push(args));
+};
+
+var EDC = 'weave.data.AttributeColumns::ExtendedDynamicColumn';
+var DC = 'weave.data.AttributeColumns::DynamicColumn';
+var RC = 'weave.data.AttributeColumns::ReferencedColumn';
+var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {types: [EDC, DC, RC]});
+var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]', null, ['weave.api.data.IDataSource']);
+var createCSVRow = weave.evaluateExpression(null, 'WeaveAPI.CSVParser.createCSVRow');
+
+/**
+ * Sets the metadata for a column at the current path.
+ * @param metadata The metadata identifying the column. The format depends on the data source.
+ * @param dataSourceName (Optional) The name of the data source in the session state.
+ *                       If ommitted, the first data source in the session state will be used.
+ * @return The current WeavePath object.
+ */
+weave.WeavePath.prototype.setColumn = function(metadata, dataSourceName)
+{
+	var type = this.getType();
+	if (!type)
+		this.request(type = RC);
+	else
+		type = getColumnType(this);
+	
+	if (!type)
+		this._failMessage('setColumn', 'Not a compatible column object', this._path);
+	
+	var path = this;
+	if (type == EDC)
+		path = path.push('internalDynamicColumn', null).request(RC);
+	else if (type == DC)
+		path = path.push(null).request(RC);
+	path.state({
+		"metadata": metadata,
+		"dataSourceName": arguments.length > 1 ? dataSourceName : getFirstDataSourceName()
+	});
+	
+	return this;
 };

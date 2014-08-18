@@ -609,24 +609,21 @@ weave.WeavePath.prototype._assertParams = function(methodName, args, minLength)
 
 weave.WeavePath.prototype._failPath = function(methodName, path)
 {
-	var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
-	var msg = 'command failed (path: ' + pathStr + ')';
-	this._failMessage(methodName, msg);
+	this._failMessage(methodName, 'command failed', path);
 };
 
 weave.WeavePath.prototype._failObject = function(methodName, path)
 {
-	var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
-	var msg = 'object does not exist (path: ' + pathStr + ')';
-	this._failMessage(methodName, msg);
+	this._failMessage(methodName, 'object does not exist', path);
 };
 
-weave.WeavePath.prototype._failMessage = function(methodName, message)
+weave.WeavePath.prototype._failMessage = function(methodName, message, path)
 {
 	var str = 'WeavePath.' + methodName + '(): ' + message;
-	
-	//TODO - mode where error is logged instead of thrown?
-	//console.error(str);
-	
+	if (path)
+	{
+		var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
+		str += ' (path: ' + pathStr + ')';
+	}
 	throw new Error(str);
 };
