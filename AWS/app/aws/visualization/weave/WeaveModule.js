@@ -117,6 +117,24 @@ AnalysisModule.service("WeaveService", function(queryService) {
 		.push('children', 'visualization','plotManager', 'plotters', 'plot')
 		.forEach({dataX : state.X, dataY : state.Y}, setCSVColumn);
 	};
+	
+	this.DataTableTool = function(state){
+		console.log("data", state.columns);
+		var toolName = state.toolName || "DataTableTool";
+		if(!state.enabled)
+			return ws.weave.path(toolName).remove();
+		ws.weave.path(toolName).request('DataTableTool')
+		.state({ panelX : "50%", panelY : "0%", panelTitle : state.title, enableTitle : true})
+		.forEach(
+				{ columns : state.columns}, 
+				function(heights, name) {
+					this.push(name).getNames().forEach(function(child, i){
+						if (i >= heights.length) this.remove(child);
+					}, this.push(name));
+					this.push(name).forEach(heights, setCSVColumn);
+				}
+			);
+	};
 });
 
 //goog.require('aws');
