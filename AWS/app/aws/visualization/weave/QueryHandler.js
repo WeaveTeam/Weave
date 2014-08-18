@@ -12,7 +12,7 @@ function waitForWeave(popup, callback)
     function checkWeaveReady() {
         var weave = popup.document.getElementById('weave');
         if (weave && weave.WeavePath) {
-    		weave.loadFile('empty.xml', callback.bind(this, weave));
+    		weave.loadFile('minimal.xml', callback.bind(this, weave));
         }
         else
             setTimeout(checkWeaveReady, 50);
@@ -203,13 +203,16 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 		
 		QueryHandlerService.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
 			if(!QueryHandlerService.weaveWindow || QueryHandlerService.weaveWindow.closed) {
-				QueryHandlerService.weaveWindow = $window.open("/weave.html",
+				QueryHandlerService.weaveWindow = $window.open("/weave.html?",
 						"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 			}
 			waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
 				WeaveService.weave = weave;
+				console.log("weave", WeaveService.weave);
 				WeaveService.addCSVData(resultData.data);
+				console.log("resultData.data", resultData.data);
 				WeaveService.columnNames = resultData.data[0];
+				console.log("columns inweave", WeaveService.columnNames);
 			});
 			
 		});
