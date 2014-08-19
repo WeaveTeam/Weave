@@ -8,5 +8,4 @@ AnalysisModule.controller("BarChartCtrl", function($scope, queryService, WeaveSe
 	}, function () { 
 			WeaveService.BarChartTool(queryService.queryObject.BarChartTool);
 	}, true);
-
 });

@@ -9,11 +9,11 @@
 				<div class="gridStyle" ng-grid="rScriptListOptions"></div>
 				<div class="gridStyle" ng-grid="stataScriptListOptions"></div>
 
-				<div>
-					</button>
-					<file-upload label="Add New Script"></file-upload>
-					<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
-				</div>
+			<div>
+				<button class="file-nput-btn" style="float:left; width:48%" ng-click="deteleScript()">Delete Script</button>
+				<button label="Add New Script..." style="float:left; width:50%"></button>
+				<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
+			</div>
 
 			</div>
 			<div class="col-md-9" contenteditable="false">
@@ -21,12 +21,13 @@
 					<div style="display:block">
 						<div>
 							<div>
-								<span>Script:</span>
+								<b>Script:</b>
 								<editablespan class= "editab-span-script" model='selectedScript[0].Script'>
 									{{selectedScript[0].Script}}
 								</editablespan>
 							</div>
 
+							<div>
 							<p class="text-right">
 								Edit Mode
 							</p>
@@ -38,10 +39,12 @@
 									Off
 								</button>
 							</div>
+							
+							</div>
 
 						</div>
 						<div>
-							<span>Description:</span>
+							<b>Description:</b>
 							<editablespan model="scriptDescription">
 								{{scriptDescription}}
 							</editablespan>
@@ -51,6 +54,18 @@
 				</div>
 				
 				<div class="gridStyle" ng-grid="scriptMetadataGridOptions"></div>
+				
+				<div ng-show="editMode">
+				<br>
+				<br>
+				<input type="button" value="Add" ng-click="addNewRow()">
+    		    <input type="button" value="Delete" ng-click="removeRow()">
+				<br><br>
+				</div>
+
+				<div ng-show="!editMode">
+				<br><br><br><br> <!-- spacing when not in edit mode -->
+				</div>
 
 				<div class ="well">
 					<h3> Script Content </h3>

@@ -213,6 +213,7 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 				console.log("resultData.data", resultData.data);
 				WeaveService.columnNames = resultData.data[0];
 				console.log("columns inweave", WeaveService.columnNames);
+				$scope.$apply();
 			});
 			
 		});

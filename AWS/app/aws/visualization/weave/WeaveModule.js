@@ -16,7 +16,7 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			.vars({rows: csvData})
 			.exec('setCSVData(rows)');
 		
-		console.log("added CSV");
+		console.log("added CSV", csvData);
 	};
 	
 	// weave path func
@@ -33,11 +33,11 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			return ws.weave.path(toolName).remove();
 		ws.weave.path(toolName)
 				.request('CompoundBarChartTool')
-				.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true })
+				.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
 				.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
 					.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
 					.forEach(
-						{ heightColumns : state.heights, positiveErrorColumns : [], negativeErrorColumns : []}, 
+						{ heightColumns : state.heights, positiveErrorColumns : state.posErr, negativeErrorColumns : state.negErr}, 
 						function(heights, name) {
 							var child = this.push(name);
 							child.getNames().forEach(function(n, i){

@@ -3,22 +3,34 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           $scope.service = scriptManagerService;
           $scope.selectedScript = [];
           $scope.scriptMetadata = {};
+          $scope.selectedRow = [];
+          $scope.editMode = false;
           
           $scope.$watch('scriptMetadata', function () {
-        	  console.log($scope.scriptMetadata);
+        	 // console.log($scope.scriptMetadata);
           }, true);
           
-           scriptManagerService.getListOfRScripts().then(function(result) {
-        	   $scope.rScripts = $.map(result, function(item) {
-                  return {Script : item};
-              });
+          $scope.$watch('editMode', function () {
+        	  $scope.scriptMetadataGridOptions.enableCellEdit = $scope.editMode;
+        	  console.log($scope.scriptMetadataGridOptions);
           });
           
-          scriptManagerService.getListOfStataScripts().then(function(result) {
-        	  $scope.stataScripts = $.map(result, function(item) {
-        		  return {Script : item};
-              });
-          });
+          var refreshScripts = function () {
+        	  scriptManagerService.getListOfRScripts().then(function(result) {
+        		  $scope.rScripts = $.map(result, function(item) {
+        			  return {Script : item};
+        		  });
+        	  });
+          
+	          scriptManagerService.getListOfStataScripts().then(function(result) {
+	        	  $scope.stataScripts = $.map(result, function(item) {
+	        		  return {Script : item};
+	              });
+	          });
+          };
+          
+          refreshScripts();
+          
           
           $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
  
@@ -60,11 +72,30 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
         		               {field : "description", displayName : "Description"}],
         		  multiSelect: false,
         		  enableRowSelection: true,
-        		  enableCellEdit : true
+        		  enableCellEdit : false,
+        		  selectedItems : $scope.selectedRow
           };
           
           $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
           $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
+          
+          $scope.addNewRow = function () {
+     		 $scope.scriptMetadata.push({param: '...', type: ' ', columnType : ' ', options : '...', description : '...'});
+     	 };
+
+     	 $scope.removeRow = function() {
+     		 if($scope.scriptMetadataGridOptions.selectedItems.length) {
+     			 var index = $scope.scriptMetadata.indexOf($scope.scriptMetadataGridOptions.selectedItems[0]);
+     			 $scope.scriptMetadata.splice(index, 1);
+     		 }
+     	 };
+     	 
+     	 $scope.deteleScript = function () {
+     		 if($scope.selectedScript.length) {
+     			scriptManagerService.deleteScript($scope.selectedScript[0]);
+     			refreshScripts();
+ 			 }
+     	 };
 //          $scope.uploadScript = false;
 //          $scope.textScript = false;
 //          $scope.saveButton = false;
