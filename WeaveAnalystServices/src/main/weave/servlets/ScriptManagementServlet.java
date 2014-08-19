@@ -22,11 +22,14 @@ public class ScriptManagementServlet extends WeaveServlet
 
 	private File rDirectory;
 	private File stataDirectory;
+	private File pythonDirectory;
+	private File algorithmDirectory;
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		rDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath());
 		stataDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath());
-		
+		pythonDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getPythonScriptsPath());
+		algorithmDirectory = new File(AwsContextParams.getInstance(config.getServletContext()).getAlgorithmsDirectoryPath());
 	}
 	
 	public String getScript(String scriptName) throws Exception {
@@ -45,7 +48,7 @@ public class ScriptManagementServlet extends WeaveServlet
 	
 	public String[] getListOfScripts() throws Exception{
 		
- 		File[] directories = {rDirectory, stataDirectory};
+ 		File[] directories = {rDirectory, stataDirectory, pythonDirectory};
  		return ScriptManagerService.getListOfScripts(directories);
 	}
 		 
@@ -58,7 +61,10 @@ public class ScriptManagementServlet extends WeaveServlet
  		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
  		{
  			return ScriptManagerService.getScriptMetadata(stataDirectory, scriptName);
- 		} else {
+ 		} else if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.PYTHON){
+ 			return ScriptManagerService.getScriptMetadata(pythonDirectory, scriptName);
+ 		}
+ 		else {
  			throw new RemoteException("Unknown Script Type");
   		}
 		
@@ -120,4 +126,20 @@ public class ScriptManagementServlet extends WeaveServlet
  			throw new RemoteException("Unknown Script Type");
  		}
  	}
+ 	
+ 	public Object getAlgorithmMetadata(String algoFileName) throws Exception{
+ 		Object algorithmObject = null;
+ 			algorithmObject = ScriptManagerService.getScriptMetadata(algorithmDirectory, algoFileName);//returns an algorithm Object
+ 		
+ 		return algorithmObject;
+ 	}
+ 	
+ 	public String[] getListOfAlgoObjects() throws Exception{
+ 		return AWSUtils.getAlgoObjectList(algorithmDirectory);
+ 	}
+ 	
+ 	public String[] getScriptFiles(String[] algorithmObjects) throws Exception{
+ 		return AWSUtils.getScriptFiles(algorithmDirectory, algorithmObjects);
+ 	}
+ 	
 }

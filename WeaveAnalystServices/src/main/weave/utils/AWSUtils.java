@@ -1,12 +1,16 @@
 package weave.utils;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.io.FilenameUtils;
 
 public class AWSUtils {
 
 	public enum SCRIPT_TYPE
 	{
-		STATA, R, UNKNOWN
+		STATA, R, UNKNOWN, PYTHON
 	}
 
 	public enum OS_TYPE 
@@ -14,21 +18,21 @@ public class AWSUtils {
 		LINUX, OSX, WINDOWS, UNKNOWN
 	}
 	public static Object transpose(Object array) {
-		
-		 if (array instanceof Object[][])
+
+		  if (array instanceof Object[][])
 		  {
-			 Object[][] array2 = (Object[][]) array;
-			 int width = array2.length;
-			 int max = 0;
-	         for (Object[] row : array2) {
-		        if(max < row.length) {
-		          	max = row.length;
-		        }
-		    }
-	         
-	        Object[][] array_new = new Object[max][width];
+			  Object[][] array2 = (Object[][]) array;
+			  array = null;
+			  if (array2 == null || array2.length == 0)//empty or unset array, nothing do to here
+				  return array2;
+			 
+			  int width = array2.length;
+			  
+			  int height = array2[0].length;
+			  
+			  Object[][] array_new = new Object[height][width];
+			  
 			  for (int x = 0; x < width; x++) {
-				  int height = array2[x].length;
 				  for (int y = 0; y < height; y++) {
 					  array_new[y][x] = array2[x][y];
 				  }
@@ -77,10 +81,68 @@ public class AWSUtils {
 		{
 			return SCRIPT_TYPE.STATA;
 		}
+		
+		if(extension.equalsIgnoreCase("PY")){
+			return SCRIPT_TYPE.PYTHON;
+		}
 		else
 		{
 			return SCRIPT_TYPE.UNKNOWN;
 		}
+	}
+	
+	public static String[] getAlgoObjectList(File directories) throws Exception{
+		List<String> listOfAlgoObjects = new ArrayList<String>();
+		
+	 		String[] files = directories.list();
+	 		if(files != null)
+	 			{
+	 				for (int j = 0; j < files.length; j++) 
+	 				{
+	 					String extension = FilenameUtils.getExtension(files[j]);
+	 					if(extension.equalsIgnoreCase("json")){
+	 						String filename = FilenameUtils.getBaseName(files[j]);
+	 						listOfAlgoObjects.add(filename);
+	 					}
+	 					//else
+	 						//throw new Exception("Algorithm Object needs to be a json file");
+	 				}
+	 			}
+	 	
+	 	return listOfAlgoObjects.toArray(new String[listOfAlgoObjects.size()]);
+	}
+	
+	/**
+	 * 
+	 * @param directory the algorithm directory that contains the algorithm objects and the scripts
+	 * @param algoNames titles of the algorithm Objects to retrieve corresponding scripts for 
+	 * @return names of the scripts matching the algorithm Objects
+	 * @throws Exception
+	 */
+	public static String[] getScriptFiles(File directory, String[] algoNames) throws Exception{
+		String[] scriptNames = new String[algoNames.length];
+		List<String> allScriptNames = new ArrayList<String>();
+		String[] allowedExtensions = new String[]{"R", "r", "py", "P"};//since engines supported are python, R , STATA etc
+		String[] files = directory.list();
+		
+		//retrieving all script files i.e. non-json files
+		for(int i = 0; i < files.length; i++){
+			if(FilenameUtils.isExtension(files[i], allowedExtensions))
+				allScriptNames.add(files[i]);
+		}
+		
+		//collects the matching corresponding scripts[kMEans.json --> kMEans.R]
+		for(int j = 0; j < algoNames.length; j++){
+			String tempAlgo = algoNames[j];
+			
+			for(int d = 0; d < allScriptNames.size(); d++){
+				String tempScript = FilenameUtils.getBaseName(allScriptNames.get(d));
+				if(tempScript.matches(tempAlgo))
+					scriptNames[j] = allScriptNames.get(d);
+			}
+		}
+		
+		return scriptNames;
 	}
 
 }
