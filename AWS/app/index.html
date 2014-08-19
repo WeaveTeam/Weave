@@ -19,14 +19,11 @@
 		<link rel="stylesheet" href="css/app.css">
 		<link rel="stylesheet" href="css/cutdown.css">
 		<link rel="stylesheet" href="lib/ui-select2/select2.css">
-		<link rel="stylesheet" href="lib/chosen/chosen.css">
-		<link rel="stylesheet" href="lib/chosen/chosen-spinner.css">
 		<link rel="stylesheet" href="lib/dynatree/ui.dynatree.css"/>
 		<link rel="stylesheet" href="lib/jquery-ui/ui-lightness/jquery-ui-1.10.3.custom.css" />
 		<link rel="stylesheet" href="css/projects.css"/>
 		<link rel="stylesheet" href="css/script_managemnt.css" />
 		<link rel="stylesheet" href="css/app-old.css" />
-		<link rel="stylesheet" href="css/modal.css"/>
 	</head>
 
 	<body>
@@ -59,10 +56,13 @@
 							<li ng-class="{active: $route.current.activetab == 'project_management'}">
 								<a href="#/project_management">Projects</a>
 							</li>
-<!-- 							<li ng-class = "{actibe : $route.current.activetab == 'output_view'}"> -->
-<!-- 							<a href="#/output_view">Output</a> -->
-<!-- 							</li> -->
-
+							<li ng-class="{active: $route.current.activetab == 'BioWeave_management'}">
+								<a href="#/BioWeave_management">BioWeave</a>
+							</li>
+							<li ng-class="{active: $route.current.activetab == 'Data_communication'}">
+								<a href="#/Data_communication">Data Communication</a>
+							</li>
+								
 						</ul>
 						<!--The right navbar -->
 						<!--Disabling for the release.  This is the login and settings dropdowns
@@ -139,7 +139,7 @@
 		<script src="lib/angular/1.2/angular-route.min.js" type="text/javascript"></script>
 		<script src="lib/angular/1.2/angular-sanitize.min.js" type="text/javascript"></script>
 		<script src="lib/angular/1.2/angular-animate.min.js" type="text/javascript"></script>
-		
+
 		<script src="lib/angularstrap/angular-strap-2-0-0-rc4.js" type="text/javascript"></script>
 		<script src="lib/angularstrap//angular-strap.tpl.min.js"></script>
 		<script src="lib/ui-select2/angular-ui-select2.js"></script>
@@ -153,11 +153,8 @@
 
 		<script src='lib/ui-slider/slider.js'></script>
 		<script src='lib/ui-sortable/ui-sortable.js'></script>
-		
 
 		<script src='aws/app.js'></script>
-		<script src="lib/chosen/chosen.jquery.js"></script>
-		<script src="lib/chosen/chosen.js"></script>
 
 		<!--<script src='aws/app/router.js'></script>-->
 
@@ -195,6 +192,10 @@
 		<script src='aws/project/databaseLogController.js'></script>
 		<script src='aws/project/project-query-button-directive.js'></script>
 		<script src='aws/project/projectService.js'></script>
+		<script src='aws/bioWeave/BioWeaveController.js'></script>
+		<script src='aws/dataCommunication/DataCommunicationController.js'></script>
+		<script src='aws/bioWeave/runScriptService.js'></script>
+		<script src='aws/bioWeave/algorithmObjectService.js'></script>
 		<script src="aws/visualization/tools/barChart/barChartCtrl.js"></script>
 		<script src="aws/analysis/indicator/indicatorCtrl.js"></script>
 		<script src="aws/analysis/data_filters/geographyCtrl.js"></script>
