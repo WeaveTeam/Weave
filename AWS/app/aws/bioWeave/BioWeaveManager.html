@@ -1,0 +1,88 @@
+<div class="container" contenteditable="false">
+	<div class="row">
+
+	</div>
+ 	<div class="row" contenteditable="false"> 
+		<div class="col-md-3" contenteditable="false">
+<!-- 			<div class="gridStyle" ng-grid="gridOptions"></div> -->
+<!-- 			<div> -->
+<!-- 				<button class="file-input-btn" ng-click="deleteSelectedScript()">
+<!-- 				Delete Selected -->
+<!-- 				</button> -->
+<!-- 				<file-upload label="UploadData"></file-upload> -->
+<!-- 				<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a> -->
+<!-- 			</div> -->
+ 		</div> 
+	</div>
+</div>
+
+<div style= "display:table; width: 100%">
+	<div style = "display:table-cell; width : 20%" ng-controller = "BioWeaveController">
+		<div class="header panel-heading">
+						<h2>Select a datatable</h2>
+		</div>
+		<select ng-model = "algorithmObjectService.data.dataTableSelected" class="form-control" 
+		ng-options = "option.title as option.title for option in algorithmObjectService.data.dataTableList"
+		ng-change = 'algorithmObjectService.getDataColumns(true)'>
+		</select>
+	</div>
+
+	<br/>
+	<div style= "display:table-cell; width:40%" ng-controller = AlgoObjectListController><!--Algorithm Objects -->
+				<div class="header panel-heading">
+					<h2>Algorithms</h2>
+				</div>
+				<div class="tool-bar">
+							<ul>
+								<li>
+									<h6 class='tool-category'>Add algorithms to the cart</h6>
+								</li>
+								<li ng-repeat= "algo in algorithmObjectService.data.listOfAlgoObjects">
+									{{algo}}
+									<button class="btn btn-sm new-project-button" ng-click ="algorithmObjectService.add_algorithmObject(algo)">Add</button>
+<!-- 									<span > -->
+<!-- 									<a href='javascript: void()'> {{algo}}</a> -->
+<!-- 									</span> -->
+								</li>
+							</ul>
+				</div>
+	</div>
+			<br/>
+			<br/>
+			
+	<div style= "display:table-cell" ng-controller = AlgoObjectListController><!-- Algorithm Cart -->
+		
+		<div class="header panel-heading">
+					<h2>Algorithm Cart</h2>
+		</div>	
+		
+		<div class="tool-bar">
+							<ul ng-model = "algorithmObjectService.data.chosenAlgorithms">
+								<li>
+									<h6 class='tool-category'>Algorithms to be Executed</h6>
+								</li>
+								<li ng-repeat= "algo in algorithmObjectService.data.chosenAlgorithms">
+								{{algo}}
+									<button class="btn btn-sm new-project-button" ng-click ="algorithmObjectService.remove_algorithmObject(algo)">Remove</button>
+									<button class= "btn btn-primary" ng-click = "algorithmObjectService.getAlgorithmMetadata(algo)"> Set Parameters</button>
+								</li>
+							</ul>
+		</div>
+	</div>		
+
+</div>
+<br/>
+<br/>
+
+<div ng-controller = "InputParamsController" ng-include="inputParamsHTMLTpl.url">
+	<!-- Parameter Input Panel -->
+<!-- 	<div > -->
+<!-- 	</div> -->
+	
+</div>
+<br/>
+<!-- Results Panel -->
+	<div  ng-controller = "ResultsViewController" ng-include="resultViewHTMLTpl.url">
+	</div>
+
+			
