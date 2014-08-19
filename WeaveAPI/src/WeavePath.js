@@ -478,7 +478,7 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 weave.WeavePath.prototype.trace = function(/* ...args */)
 {
 	var args = this._A(arguments);
-	this.weave.evaluateExpression(this._path, "weaveTrace.apply(null, args)", {"args": args}, null, "");
+	this.weave.evaluateExpression(null, "weaveTrace.apply(null, args)", {"args": args}, null, "");
 	return this;
 };
 
