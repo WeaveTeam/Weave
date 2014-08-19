@@ -28,6 +28,7 @@ package
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
+	import weave.data.DataSources.OauthDataSource;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
@@ -49,6 +50,7 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
+	import weave.editors.OauthDataSourceEditor;
 	import weave.editors.PartitionDataTransformEditor;
 	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
@@ -139,6 +141,7 @@ package
 			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
 			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
+			em.registerEditor(OauthDataSource, OauthDataSourceEditor);
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
 			
