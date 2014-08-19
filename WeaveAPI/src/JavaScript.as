@@ -33,7 +33,7 @@ package
 	 * ExternalInterface generates the following invalid code: <code>{Content-Type: "foo\"}</code>.
 	 * The same problem occurs when returning an Object from an ActionScript function that was invoked
 	 * from JavaScript. This class works around the limitation by using JSON.stringify() and JSON.parse()
-	 * and escaping backslashes in resulting JSON strings. The values <code>undefined, NaN, Infinity, -Infinity</code>
+	 * and escaping backslashes in resulting JSON strings. The values <code>NaN, Infinity, -Infinity</code>
 	 * are preserved.
 	 * 
 	 * This class also provides an objectID accessor which is more reliable than ExternalInterface.objectID,
@@ -72,6 +72,12 @@ package
 		private static const JSON_CALL:String = "_jsonCall";
 		
 		/**
+		 * The name of a JavaScript property of this flash instance which contains an Array of JSON replacer/reviver extensions.
+		 * Each object in the Array can contain "replacer" and "reviver" properties containing the extension functions.
+		 */
+		public static const JSON_EXTENSIONS:String = "_jsonExtensions";
+		
+		/**
 		 * Used as the second parameter to JSON.stringify
 		 */
 		private static const JSON_REPLACER:String = "_jsonReplacer";
@@ -82,12 +88,17 @@ package
 		private static const JSON_REVIVER:String = "_jsonReviver";
 		
 		/**
+		 * JSON extension property name for the needsReviving function.
+		 */
+		private static const NEEDS_REVIVING:String = "_needsReviving";
+		
+		/**
 		 * The name of the property used to store a lookup from JSON IDs to values.
 		 */
 		private static const JSON_LOOKUP:String = "_jsonLookup";
 		
 		/**
-		 * A random String which is highly unlikely to appear in any String value.  Used as a suffix for <code>undefined, NaN, -Infinity, Infinity</code>.
+		 * A random String which is highly unlikely to appear in any String value.  Used as a suffix for <code>NaN, -Infinity, Infinity</code>.
 		 */
 		private static const JSON_SUFFIX:String = ';' + Math.random() + ';' + new Date();
 		
@@ -113,6 +124,11 @@ package
 		 * This flag will be set to true whenever _jsonReplacer makes a replacement that requires _jsonReviver to interpret.
 		 */
 		private static var _needsReviving:Boolean = false;
+		
+		/**
+		 * Extensions to _jsonReplacer/_jsonReviver.
+		 */
+		private static const _jsonExtensions:Array = [];
 		
 		/**
 		 * Alias for ExternalInterface.available
@@ -181,7 +197,7 @@ package
 			initialized = true;
 			
 			// save special IDs for values not supported by JSON
-			for each (var symbol:* in [undefined, NaN, Infinity, -Infinity])
+			for each (var symbol:Object in [NaN, Infinity, -Infinity])
 				_jsonLookup[symbol + JSON_SUFFIX] = symbol;
 			
 			// determine if backslashes need to be escaped
@@ -203,6 +219,7 @@ package
 				exec(
 					{
 						"JSON_FUNCTION_PREFIX": JSON_FUNCTION_PREFIX,
+						"JSON_EXTENSIONS": JSON_EXTENSIONS,
 						"JSON_REPLACER": JSON_REPLACER,
 						"JSON_REVIVER": JSON_REVIVER,
 						"JSON_SUFFIX": JSON_SUFFIX,
@@ -212,7 +229,8 @@ package
 					"var flash = this;",
 					"var functionCounter = 0;",
 					"var lookup = flash[JSON_LOOKUP] = {};",
-					"var symbols = [undefined, NaN, Infinity, -Infinity];",
+					"var extensions = flash[JSON_EXTENSIONS] = [];",
+					"var symbols = [NaN, Infinity, -Infinity];",
 					"for (var i in symbols)",
 					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
 
@@ -223,33 +241,60 @@ package
 					"            value[JSON_FUNCTION_PREFIX] = id;",
 					"            lookup[id] = value;",
 					"        }",
-					"        return value[JSON_FUNCTION_PREFIX];",
+					"        value = value[JSON_FUNCTION_PREFIX];",
 					"    }",
-					"    if (value === undefined || (typeof value === 'number' && !isFinite(value)))",
-					"        return value + JSON_SUFFIX;",
-					"    return Array.isArray(value) && !(value instanceof Array) ? [].concat(value) : value;",
+					"    else if (typeof value === 'number' && !isFinite(value))",
+					"        value = value + JSON_SUFFIX;",
+					"    else if (Array.isArray(value) && !(value instanceof Array))",
+					"        value = Array.prototype.slice.call(value);",
+					"    for (var i in extensions)",
+					"        if (typeof extensions[i] === 'object' && typeof extensions[i].replacer === 'function')",
+					"            value = extensions[i].replacer.call(flash, key, value);",
+					"    return value;",
 					"};",
 					
 					"flash[JSON_REVIVER] = function(key, value) {",
 					"    if (typeof value === 'string') {",
 					"        if (lookup.hasOwnProperty(value))",
-					"            return lookup[value];",
-					"        if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX) {",
-					"            lookup[value] = function() {",
+					"            value = lookup[value];",
+					"        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX) {",
+					"            var id = value;",
+					"            var func = function() {",
 					"                var params = Array.prototype.slice.call(arguments);",
 					"                var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
-					"                var resultJson = flash[JSON_CALL](value, paramsJson);",
+					"                try {",
+					"                    var resultJson = flash[JSON_CALL](id, paramsJson);",
+					"                } catch (e) {",
+					"                    throw new Error(e);",
+					"                }",
 					"                return JSON.parse(resultJson, flash[JSON_REVIVER]);",
 					"            };",
-					"            lookup[value][JSON_FUNCTION_PREFIX] = value;",
-					"            return lookup[value];",
+					"            func[JSON_FUNCTION_PREFIX] = id;",
+					"            value = lookup[id] = func;",
 					"        }",
 					"    }",
+					"    for (var i in extensions)",
+					"        if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')",
+					"            value = extensions[i].reviver.call(flash, key, value);",
 					"    return value;",
 					"};"
 				);
 			}
 		}
+		
+		/*var replace = weave._jsonReplacer, revive = weave._jsonReviver;
+		weave._jsonReplacer = (k, v) => {
+		var r = replace.call(weave, k, v);
+		console.log('replace', k, v, r);
+		return r;
+		}
+		weave._jsonReviver = (k, v) => {
+		var r = revive.call(weave, k, v);
+		console.log('revive', k, v, r);
+		return r;
+		}
+		JSON.stringify({x: Math.round}, weave._jsonReplacer)
+		//*/
 		
 		/**
 		 * Handles a JavaScript request.
@@ -277,7 +322,7 @@ package
 		}
 		
 		/**
-		 * Preserves primitive values not supported by JSON: undefined, NaN, Infinity, -Infinity
+		 * Preserves primitive values not supported by JSON: NaN, Infinity, -Infinity
 		 * Also looks up or generates an ID corresponding to a Function value.
 		 */
 		private static function _jsonReplacer(key:String, value:*):*
@@ -293,12 +338,19 @@ package
 					_jsonLookup[id] = value;
 				}
 				_needsReviving = true;
-				return id;
+				value = id;
 			}
-			if (value === undefined || (typeof value === 'number' && !isFinite(value)))
+			else if (value is Number && !isFinite(value as Number))
 			{
 				_needsReviving = true;
-				return value + JSON_SUFFIX;
+				value = value + JSON_SUFFIX;
+			}
+			for each (var extension:Object in _jsonExtensions)
+			{
+				if (extension[NEEDS_REVIVING] is Function && extension[NEEDS_REVIVING](key, value))
+					_needsReviving = true;
+				if (extension[JSON_REPLACER] is Function)
+					value = extension[JSON_REPLACER](key, value);
 			}
 			return value;
 		}
@@ -312,27 +364,57 @@ package
 			if (value is String)
 			{
 				if (_jsonLookup.hasOwnProperty(value))
-					return _jsonLookup[value];
+					value = _jsonLookup[value];
 				// ID -> Function
-				if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
+				else if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
 				{
+					var id:String = value as String;
 					var func:Function = function():*{
 						return exec(
 							{
 								"JSON_REVIVER": JSON_REVIVER,
-								"id": value,
-								"args": arguments
+								"id": id,
+								"args": arguments,
+								"catch": false
 							},
 							"var func = this[JSON_REVIVER]('', id);",
 							"return func.apply(func['this'], args);"
 						);
 					} as Function;
-					_jsonLookup[func] = value;
-					_jsonLookup[value] = func;
-					return func as Function;
+					_jsonLookup[func] = id;
+					_jsonLookup[id] = func;
+					value = func as Function;
 				}
 			}
+			for each (var extension:Object in _jsonExtensions)
+				if (extension[JSON_REVIVER] is Function)
+					value = extension[JSON_REVIVER](key, value);
 			return value;
+		}
+		
+		/**
+		 * Extends JavaScript JSON communication to support new types of objects passed between ActionScript and JavaScript.
+		 * This only extends the ActionScript side. Corresponding JavaScript code must written if specialized JavaScript
+		 * Objects are to be supported.
+		 * @param replacer function(key:String, value:*):* ; Replaces an Object with a JSON-serializable representation. 
+		 * @param reviver function(key:String, value:*):* ; Revives an Object from its JSON representation.
+		 * @param needsReviving function(key:String, value:*):Boolean ; Determines if a value requires reviving in JavaScript once replaced in ActionScript.
+		 * 
+		 * @example Example JavaScript code (func1 and func2 should be function definitions)
+		 * <listing version="3.0">
+		 * JavaScript.exec(
+		 *     {"JSON_EXTENSIONS": JavaScript.JSON_EXTENSIONS},
+		 *     'this[JSON_EXTENSIONS].push({"replacer": func1, "reviver": func2});'
+		 * );
+		 * </listing>
+		 */
+		public static function extendJson(replacer:Function, reviver:Function, needsReviving:Function):void
+		{
+			var extension:Object = {};
+			extension[JSON_REPLACER] = replacer;
+			extension[JSON_REVIVER] = reviver;
+			extension[NEEDS_REVIVING] = needsReviving;
+			_jsonExtensions.push(extension);
 		}
 		
 		/**

@@ -1291,61 +1291,61 @@ weave.setSessionState(['custom panel','properties'],{title: value}, false);
             <showCloseDialog>false</showCloseDialog>
           </ColorBinLegendTool>
         </children>
-        <eventListeners/>
+        <events/>
         <properties>
           <layout>absolute</layout>
           <percentHeight>100</percentHeight>
           <percentWidth>100</percentWidth>
         </properties>
-        <qualifiedClassName>mx.containers.Canvas</qualifiedClassName>
+        <className>mx.containers.Canvas</className>
       </LinkableDisplayObject>
       <LinkableDisplayObject name="text">
         <children encoding="dynamic"/>
-        <eventListeners/>
+        <events/>
         <properties>
           <editable>false</editable>
           <percentWidth>100</percentWidth>
           <text>This entire panel (controls + layout) was created in the session state!</text>
         </properties>
-        <qualifiedClassName>mx.controls.TextArea</qualifiedClassName>
+        <className>mx.controls.TextArea</className>
       </LinkableDisplayObject>
       <LinkableDisplayObject name="hbox">
         <children encoding="dynamic">
           <LinkableDisplayObject name="slider">
             <children encoding="dynamic"/>
-            <eventListeners/>
+            <events/>
             <properties>
               <value>2.128571428571429</value>
             </properties>
-            <qualifiedClassName>mx.controls.HSlider</qualifiedClassName>
+            <className>mx.controls.HSlider</className>
           </LinkableDisplayObject>
           <LinkableDisplayObject name="spacer">
             <children encoding="dynamic"/>
-            <eventListeners/>
+            <events/>
             <properties>
               <percentWidth>100</percentWidth>
             </properties>
-            <qualifiedClassName>mx.controls.Spacer</qualifiedClassName>
+            <className>mx.controls.Spacer</className>
           </LinkableDisplayObject>
           <LinkableDisplayObject name="button">
             <children encoding="dynamic"/>
-            <eventListeners>
+            <events>
               <click>ExternalInterface.call( "function(prompt)\{ if (confirm(prompt)) weave.requestObject([null],'ScatterPlotTool'); }",  'mouse click stage coords: ' + event.stageX + ',' + event.stageY + '\nClick OK to open a ScatterPlotTool');</click>
-            </eventListeners>
+            </events>
             <properties>
               <label>click me</label>
             </properties>
-            <qualifiedClassName>mx.controls.Button</qualifiedClassName>
+            <className>mx.controls.Button</className>
           </LinkableDisplayObject>
         </children>
-        <eventListeners/>
+        <events/>
         <properties>
           <percentWidth>100</percentWidth>
         </properties>
-        <qualifiedClassName>mx.containers.HBox</qualifiedClassName>
+        <className>mx.containers.HBox</className>
       </LinkableDisplayObject>
     </children>
-    <eventListeners>
+    <events>
       <close>parent.removeChild(this)</close>
       <mouseDown>event.target == this || event.target.parent == this || event.target.parent.parent == this ? data = event : null</mouseDown>
       <mouseMove>data &amp;&amp; event.buttonDown?{
@@ -1354,7 +1354,7 @@ weave.setSessionState(['custom panel','properties'],{title: value}, false);
 }:{
   data = null
 }</mouseMove>
-    </eventListeners>
+    </events>
     <properties>
       <percentHeight>50</percentHeight>
       <percentWidth>50</percentWidth>
@@ -1363,6 +1363,6 @@ weave.setSessionState(['custom panel','properties'],{title: value}, false);
       <x>50</x>
       <y>50</y>
     </properties>
-    <qualifiedClassName>mx.containers.TitleWindow</qualifiedClassName>
+    <className>mx.containers.TitleWindow</className>
   </LinkableDisplayObject>
 </Weave>

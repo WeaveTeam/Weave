@@ -100,7 +100,8 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				columnList.selectorControls.parent.removeChild(columnList.selectorControls);
+				if (columnList.selectorControls.parent)
+					columnList.selectorControls.parent.removeChild(columnList.selectorControls);
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void

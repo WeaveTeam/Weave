@@ -188,7 +188,7 @@ package weave.visualization.layers
 			{
 				var var0:LinkableVariable = pair[0] as LinkableVariable;
 				var var1:LinkableVariable = pair[1] as LinkableVariable;
-				if (var0.isUndefined())
+				if (var0.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
 					linkSessionState(var1, var0);
 				else
 					linkSessionState(var0, var1);

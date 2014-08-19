@@ -6,23 +6,10 @@
 <project name="WeaveAdmin" default="build" basedir=".">
 
 	<property environment="env"/>
-	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
-	
-    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-	<taskdef name="mxmlc" classname="flex.ant.MxmlcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-	<taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-
-	<property name="DEBUG" value="false"/>
-	<property name="PROJECT_DIR" value="${basedir}"/>
-	<property name="SOURCE_DIR" value="${PROJECT_DIR}/src"/>
-	<property name="OUTPUT_DIR" value="${PROJECT_DIR}/bin"/>
-	<property name="LOCALE" value="en_US"/>
-	<property name="API" value="WeaveAPI"/>
-	<property name="CORE" value="WeaveCore"/>
-	<property name="DATA" value="WeaveData"/>
-	<property name="UISPARK" value="WeaveUISpark"/>
-	<property name="UI" value="WeaveUI"/>
+	<property file="../build.properties"/>
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
+	<property name="SOURCE_DIR" value="${basedir}/src"/>
+	<property name="OUTPUT_DIR" value="${basedir}/bin"/>
 
 	<target name="build">
 		<antcall target="clean"/>

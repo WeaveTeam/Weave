@@ -28,7 +28,7 @@
 	<ui:Indent id="layerButtons" grouped="false" label="{lang('Visualization layers')}" fontWeight="bold" verticalAlign="bottom">
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button id="addButton" label="{lang('New layer...')}"/>
+			<ui:MenuButton id="addButton" label="{lang('New layer...')}"/>
 		</mx:HBox>
 	</ui:Indent>
 	<mx:VBox borderStyle="solid" initialize="UIUtils.pad(event, 5, 100, 100)">
@@ -44,14 +44,20 @@
 					<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 							 resize="(parent as UIComponent).invalidateSize();"
 							 addedToStage="(parent as UIComponent).invalidateSize();">
-						<ui:CustomCheckBox label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+						<mx:HBox horizontalGap="0">
+							<ui:CustomCheckBox label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+							<mx:HSlider toolTip="{lang('Alpha (opacity)')}" width="64" liveDragging="true"
+										minimum="0" maximum="1" value="{layerAlpha}" change="layerAlpha = event.target.value"/>
+						</mx:HBox>
 						<ui:CustomCheckBox label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
 						<ui:Paragraph id="lbl" textAlign="center"/>
-						<mx:HBox horizontalGap="4">
-							<mx:Button id="menuButton" toolTip="{lang('Menu')}" width="24"
-									   icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
-							<mx:Button label="{lang('Edit properties')}" click="openSettingsPanel()"/>
-						</mx:HBox>
+						<ui:MenuButton label="{lang('Edit...')}" data="{[
+							{label: lang('Edit properties'), click: openSettingsPanel},
+							{label: lang('Edit session state'), click: openSessionEditor},
+							{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
+							WeaveMenuItem.TYPE_SEPARATOR,
+							{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
+						]}"/>
 						<mx:Script>
 							<![CDATA[
 								import mx.core.UIComponent;
@@ -76,17 +82,11 @@
 								override protected function childrenCreated():void
 								{
 									super.childrenCreated();
-									
-									menuButton.data = new SubMenu(menuButton, [
-										{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
-										{label: lang('Edit session state'), click: openSessionEditor},
-										WeaveMenuItem.TYPE_SEPARATOR,
-										{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
-									]);
 								}
 								
 								[Bindable] public var layerIsVisible:Boolean = true;
 								[Bindable] public var layerIsSelectable:Boolean = true;
+								[Bindable] public var layerAlpha:Number = 1;
 								
 								// accessors for convenience
 								private function get plotter():IPlotter
@@ -125,6 +125,7 @@
 									{
 										unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
 										unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+										unlinkBindableProperty(layerSettings.alpha, this, "layerAlpha");
 									}
 									
 									// save pointers
@@ -135,9 +136,8 @@
 									{
 										linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
 										linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+										linkBindableProperty(layerSettings.alpha, this, "layerAlpha");
 									}
-									
-									menuButton.visible = menuButton.includeInLayout = objectIsNotLocked();
 								}
 								
 								// menu code
@@ -215,6 +215,7 @@
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.sliderClasses.Slider;
 			import weave.ui.ControlPanel;
 			import weave.api.getSessionState;
 			import weave.menus.WeaveMenuItem;
@@ -254,7 +255,6 @@
 				return list.selectedItem as IPlotter;
 			}
 			
-			[Inspectable]
 			public function set visualization(value:Visualization):void
 			{
 				_visualization = value;
@@ -318,11 +318,10 @@
 			}
 			private function onDragStart(event:Event):void
 			{
-				if (_mouseDownTarget is Button)
+				if (_mouseDownTarget is Button || _mouseDownTarget is Slider)
 					event.preventDefault();
 			}
 			
-			[Inspectable]
 			public function set dragMoveEnabled(value:Boolean):void
 			{
 				// this value has to be stored for later because internalList may be null
@@ -334,7 +333,7 @@
 			 * @param button
 			 * @param visualization_or_function Either a Visualization or a Function that returns one.
 			 */
-			public static function initAddLayerButton(button:Button, visualization_or_function:Object):void
+			public static function initAddLayerButton(button:MenuButton, visualization_or_function:Object):void
 			{
 				function getLabel(item:WeaveMenuItem):String
 				{
@@ -346,8 +345,7 @@
 					var vis_func:Function = visualization_or_function as Function;
 					addPlotterAndEdit(vis || vis_func(), item.data as Class);
 				}
-				// save a pointer to the SubMenu on the Button itself so the SubMenu doesn't get garbage collected.
-				button.data = new SubMenu(button, {
+				button.data = {
 					children: function():Array {
 						return WeaveAPI.ClassRegistry.getImplementations(IPlotter).map(
 							function(impl:Class, i:*, a:*):* {
@@ -359,7 +357,7 @@
 							}
 						);
 					}
-				});
+				};
 			}
 			
 			/**
