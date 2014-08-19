@@ -12,7 +12,7 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 public class DriveWebServerAuthCallBack extends AbstractAuthorizationCodeCallbackService {
 	private static final long serialVersionUID = 1L;
 	@Override
-	protected AuthorizationCodeFlow initializeFlow() throws ServletException,IOException {
+	protected AuthorizationCodeFlow initializeFlow(String clientID,String clientSecret, String authUri, String tokenUri) throws ServletException,IOException {
 		return CredentialUtils.newFlow();
 	}
 

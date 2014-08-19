@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
-import weave.CredentialUtils;
+import weave.OauthCredentialUtils;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 
@@ -15,14 +15,14 @@ public class Oauth2Callback extends AbstractAuthorizationCodeCallbackService {
 
 	
 	@Override
-	protected AuthorizationCodeFlow initializeFlow() throws ServletException,
+	protected AuthorizationCodeFlow initializeFlow(String clientID,String clientSecret, String authUri, String tokenUri) throws ServletException,
 			IOException {
-		return CredentialUtils.newFlow();
+		return OauthCredentialUtils.newFlow(clientID,clientSecret,authUri,tokenUri);
 	}
 
 	@Override
 	protected String getRedirectUri() throws ServletException, IOException {
-		 return CredentialUtils.getRedirectUri();
+		 return OauthCredentialUtils.getRedirectUri();
 	}
 
 	@Override

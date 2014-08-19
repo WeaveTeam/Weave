@@ -5,6 +5,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -13,9 +14,8 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
 import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 
-public abstract class AbstractAuthorizationCodeCallbackService extends WeaveServlet {
+public abstract class AbstractAuthorizationCodeCallbackService extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
@@ -45,12 +45,12 @@ public abstract class AbstractAuthorizationCodeCallbackService extends WeaveServ
 	      String redirectUri = getRedirectUri();
 	      lock.lock();
 	      try {
-	        if (flow == null) {
-	          flow = initializeFlow();
-	        }
+//	        if (flow == null) {
+//	          flow = initializeFlow();
+//	        }
 	        AuthorizationCodeTokenRequest tokenRequest = flow.newTokenRequest(code).setRedirectUri(redirectUri);
-	        //resp is json object, which has 
-	        //access_token , expires_in ,id_token, refresh_token ,token_type
+	        //resp from Google  is json object= access_token , expires_in ,id_token, refresh_token ,token_type
+	        //resp from RunKeeper  is json object= access_token  ,token_type:bearer
 	        TokenResponse resp = tokenRequest.execute();
 	        String userId = getUserId(request);
 	        Credential credential = flow.createAndStoreCredential(resp, userId);
@@ -66,7 +66,7 @@ public abstract class AbstractAuthorizationCodeCallbackService extends WeaveServ
 	   * Loads the authorization code flow to be used across all HTTP servlet requests (only called
 	   * during the first HTTP servlet request with an authorization code).
 	   */
-	  protected abstract AuthorizationCodeFlow initializeFlow() throws ServletException, IOException;
+	  protected abstract AuthorizationCodeFlow initializeFlow(String clientID,String clientSecret, String authUri, String tokenUri) throws ServletException, IOException;
 
 	  /** Returns the redirect URI for the given HTTP servlet request. */
 	  protected abstract String getRedirectUri() throws ServletException, IOException;

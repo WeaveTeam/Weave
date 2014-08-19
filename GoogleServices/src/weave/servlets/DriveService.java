@@ -17,9 +17,11 @@ import com.google.api.services.drive.model.File;
 
 public class DriveService extends AbstractAuthorizationCodeService {
 	private static final long serialVersionUID = 1L;
+	
+
 
 	@Override
-	protected AuthorizationCodeFlow initializeFlow() throws ServletException,IOException {
+	protected AuthorizationCodeFlow initializeFlow(String clientID,String clientSecret, String authUri, String tokenUri) throws ServletException,IOException {
 		 return CredentialUtils.newFlow();
 	}
 
