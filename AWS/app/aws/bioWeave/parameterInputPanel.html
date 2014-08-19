@@ -1,0 +1,93 @@
+<div style="width:100%; display:table">
+ <!-- Heading, content -->
+	<div style= "width:45%; height :300px; display:table-cell" ng-model= "algorithmObjectService.data.currentMetObj">
+		<!-- the heading  -->
+		<div class="header panel-heading" >
+			<h2>Enter parameters for {{algorithmObjectService.data.currentMetObj.algoName}}</h2>
+			
+		</div>
+		
+		<!-- the content -->
+		<div style="padding-top:10px; width :100% ;display: table" class="portlet-content">
+			<!-- the input UI -->
+			<div style="width: 40%; display: table-cell">
+							
+							<!-- This input type will be added if the input type is numberical -->
+							<div class= "form-group" ng-repeat="input in algorithmObjectService.data.currentMetObj.inputParams">
+								<div  ng-if="input.param_type =='column'">
+									{{input.label}}
+<!--TODO make a dual list box later --><select style= "width:500px" ui-select2 multiple ng-model="input.param_user_value" data-placeholder="Click here to select multiple columns">
+										<option value="{{opt}}" ng-repeat="opt in algorithmObjectService.data.dataColumnObjects">{{opt.title}}</option>
+									</select>
+								</div>
+								<div class = form-group ng-if="input.param_type == 'number'" >
+									{{input.label}}
+									<input ng-model = "input.param_user_value" class= "form-control"type= "text" placeholder="{{input.default}}">
+									</input>
+								</div>
+								
+								
+							<!-- This input will be added if the input type is an array, choose an option -->
+								<div ng-if="input.param_type == 'array'">
+									{{input.label}}
+									
+								 <select ng-model = "input.param_user_value" class="form-control" ng-options = "option for option in input.param_options">
+																	</select>
+<!-- 									<select ng-model = "input.param_user_value" class="form-control" data-placeholder="{{input.default}}"> -->
+<!-- 										<option value="{{option}}" ng-repeat="option in input.param_options">{{option}}</option> -->
+<!-- 									</select> -->
+								</div>		
+							</div>
+			</div>	
+			
+			<!-- The Computation Engine image -->
+			<div style="display: table-cell; padding-left: 80px" ng-model = "algorithmObjectService.data.currentMetObj.ComputationEngine">
+					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'R'">
+
+							<img width = "45" height = "45" ng-src= "{{'../aws/css/img/Rlogo.png'}}" 
+								title = "The R Project for Statistical Computing"
+							></img>
+									
+					</div>
+
+					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'python'">
+
+							<img width = "55" height = "75" ng-src= "{{'../aws/css/img/pythonlogo.png'}}"
+								title = "Python Programming Language"
+							></img>
+							
+					</div>
+
+					<div ng-if="algorithmObjectService.data.currentMetObj.ComputationEngine == 'stata'">
+ 
+							<img width = "85" height = "40" ng-src= "{{'../aws/css/img/statalogo.png'}}"
+								title = "Stata Data Analysis and Statistical Software"
+							></img>
+							
+					</div>
+					
+					<!-- Help icon div -->
+			<div style= "padding-top:50px"ng-model = "algorithmObjectService.data.currentMetObj.documentation">
+
+				<a href={{algorithmObjectService.data.currentMetObj.documentation}}
+					title="Link to Algorithm Documentation">		
+						<img width = "25" height = "25" ng-src= "{{'../aws/css/img/helpLogo.png.png'}}"></img>
+						
+				</a>
+			</div> 
+			</div>
+			
+			
+		</div>		
+					
+			
+			
+			
+		</div>
+	</div>
+<!-- Button and the rest -->	
+	<div style="display:table-cell" >
+		<button class= "btn btn-primary" ng-click="collectAlgoObjects()">RUN</button>
+	</div>
+
+</div>
