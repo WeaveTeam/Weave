@@ -109,7 +109,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			BarChartTool : { enabled : false },
 			MapTool : { enabled : false },
 			ScatterPlotTool : { enabled : false },
-			DataTableTool : { enabled : false }
+			DataTableTool : { enabled : false },
+			ColorColumn : {column : ""}
 	};    		
     
 	this.dataObject = {
