@@ -49,6 +49,13 @@ public class ScriptManagementServlet extends WeaveServlet
  		return ScriptManagerService.getListOfScripts(directories);
 	}
 		 
+	public String[] getListOfRScripts() throws Exception{
+		return ScriptManagerService.getListOfScripts(new File[] {rDirectory});
+	}
+	
+	public String[] getListOfStataScripts() throws Exception{
+		return ScriptManagerService.getListOfScripts(new File[] {stataDirectory});
+	}
 	
 	public Object getScriptMetadata(String scriptName) throws Exception{
 		

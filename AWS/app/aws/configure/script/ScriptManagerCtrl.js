@@ -4,13 +4,17 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           $scope.selectedScript = [];
           $scope.scriptMetadata = {};
           
-           scriptManagerService.getListOfScripts().then(function(result) {
+          $scope.$watch('scriptMetadata', function () {
+        	  console.log($scope.scriptMetadata);
+          }, true);
+          
+           scriptManagerService.getListOfRScripts().then(function(result) {
         	   $scope.rScripts = $.map(result, function(item) {
                   return {Script : item};
               });
           });
           
-          scriptManagerService.getListOfScripts().then(function(result) {
+          scriptManagerService.getListOfStataScripts().then(function(result) {
         	  $scope.stataScripts = $.map(result, function(item) {
         		  return {Script : item};
               });
@@ -18,7 +22,7 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           
           $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
  
-        	  if(newVal && newVal != oldVal) {
+        	  if(newVal.length && newVal != oldVal) {
         		  scriptManagerService.getScriptMetadata(newVal[0].Script).then(function(result) {
         			  $scope.scriptDescription = result.description;
         			  $scope.scriptMetadata = result.inputs; 
@@ -32,7 +36,7 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           
           
           $scope.rScriptListOptions = {
-        		  data: 'stataScripts',
+        		  data: 'rScripts',
         		  columnDefs: [{field: 'Script', displayName: 'R Scripts'}],
         		  selectedItems: $scope.selectedScript,
         		  multiSelect: false,
@@ -40,7 +44,7 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           };
           
           $scope.stataScriptListOptions = {
-        		  data: 'rScripts',
+        		  data: 'stataScripts',
         		  columnDefs: [{field: 'Script', displayName: 'Stata Scripts'}],
         		  selectedItems: $scope.selectedScript,
         		  multiSelect: false,
@@ -50,15 +54,17 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           $scope.scriptMetadataGridOptions = {
         		  data: 'scriptMetadata',
         		  columnDefs : [{field : "param", displayName : "Parameter"},
-        		               {field :"type", displayName : "Type", cellTempplate : '<select ng-model="selectedMetadata.input" ng-options="input in inputTypes"'},
-        		               {field : "description", displayName : "Description"},
-        		               {field : "columnType", displayName : "Column Type"},
-        		               {field : "options", displayName : "Options"}],
+        		               {field :"type", displayName : "Type", editableCellTemplate : '<select  ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
+        		               {field : "columnType", displayName : "Column Type", editableCellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="input for input in columnTypes" style="align:center"></select>'},
+        		               {field : "options", displayName : "Options"},
+        		               {field : "description", displayName : "Description"}],
         		  multiSelect: false,
-        		  enableRowSelection: true
+        		  enableRowSelection: true,
+        		  enableCellEdit : true
           };
           
-          $scope.inputTypes = ["column", "options", "boolean", "value"];
+          $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
+          $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
 //          $scope.uploadScript = false;
 //          $scope.textScript = false;
 //          $scope.saveButton = false;

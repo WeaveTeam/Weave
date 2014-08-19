@@ -28,6 +28,32 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	      
 	  };
 	  
+	  this.getListOfRScripts = function () {
+		  
+		  var deferred = $q.defer();
+		  
+		  aws.queryService(scriptServiceURL, 'getListOfRScripts', null, function(result) {
+	          scope.$apply(function() {
+	            deferred.resolve(result);
+	          });
+	      });
+	      return deferred.promise;
+	      
+	  };
+	  
+	  this.getListOfStataScripts = function () {
+		  
+		  var deferred = $q.defer();
+		  
+		  aws.queryService(scriptServiceURL, 'getListOfStataScripts', null, function(result) {
+	          scope.$apply(function() {
+	            deferred.resolve(result);
+	          });
+	      });
+	      return deferred.promise;
+	      
+	  };
+	  
 	  this.getScriptMetadata = function (scriptName) {
 		  
 		  var deferred = $q.defer();
