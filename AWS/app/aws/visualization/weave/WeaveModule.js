@@ -21,7 +21,7 @@ AnalysisModule.service("WeaveService", function(queryService) {
 	
 	// weave path func
 	var setCSVColumn = function (columnName, propertyName){
-		if(!columnName)
+		if(columnName == "" || angular.isUndefined(columnName))
 			return;
 		this.weave.path(ws.dataSourceName)
 			.getValue('putColumn')(columnName, this.push(propertyName).request('DynamicColumn').getPath());
@@ -39,10 +39,11 @@ AnalysisModule.service("WeaveService", function(queryService) {
 					.forEach(
 						{ heightColumns : state.heights, positiveErrorColumns : [], negativeErrorColumns : []}, 
 						function(heights, name) {
-							this.push(name).getNames().forEach(function(child, i){
-								if (i >= heights.length) this.remove(child);
-							}, this.push(name));
-							this.push(name).forEach(heights, setCSVColumn);
+							var child = this.push(name);
+							child.getNames().forEach(function(n, i){
+								if (!heights || i >= heights.length) child.remove(n);
+							});
+							child.forEach(heights, setCSVColumn);
 						}
 					);
 	};
@@ -55,12 +56,11 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			return ws.weave.path(toolName).remove();
 		ws.weave.path(toolName).request('MapTool')
 		.state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
-		
-		
 		//TODO get this checked and see if done correctly
-		if(!state.geometryLayer == "")
+		if(state.geometryLayer)
 		{
 			console.log("sate", state);
+			var geometry = JSON.parse(state.geometryLayer);
 			ws.weave.path(toolName).request('MapTool')
 			.push('children', 'visualization', 'plotManager', 'plotters')
 			  .push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
@@ -68,20 +68,21 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			  .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
 			  .push('dataSourceName').state('WeaveDataSource').pop()
 			  .push('metadata').state({
-			    "keyType": state.geometryLayer.keyType,
-			    "title": state.geometryLayer.title,
+			    "keyType": geometry.keyType,
+			    "title": geometry.title,
 			    "entityType": "column",
-			    "weaveEntityId": state.geometryLayer.id,
+			    "weaveEntityId": geometry.id,
 			    "projection": "EPSG:4326",
 			    "dataType": "geometry"
 			  });
-			//setting the keytype and keyColName
+			//TODO parameterize setting the keytype and keyColName
 			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
+			ws.weave.setSessionState(['CSVDataSource'], {keyType : geometry.keyType});
 			
 			
 		}
 		
-		if(!state.labelLayer == "")
+		if(state.labelLayer)
 			{
 			  ws.weave.path(toolName).request('MapTool')
 			  .push('children', 'visualization', 'plotManager','plotters')
@@ -118,8 +119,9 @@ AnalysisModule.service("WeaveService", function(queryService) {
 		.forEach({dataX : state.X, dataY : state.Y}, setCSVColumn);
 	};
 	
+	
+	
 	this.DataTableTool = function(state){
-		console.log("data", state.columns);
 		var toolName = state.toolName || "DataTableTool";
 		if(!state.enabled)
 			return ws.weave.path(toolName).remove();
@@ -128,12 +130,25 @@ AnalysisModule.service("WeaveService", function(queryService) {
 		.forEach(
 				{ columns : state.columns}, 
 				function(heights, name) {
-					this.push(name).getNames().forEach(function(child, i){
-						if (i >= heights.length) this.remove(child);
-					}, this.push(name));
-					this.push(name).forEach(heights, setCSVColumn);
+					var child = this.push(name);
+					child.getNames().forEach(function(n, i){
+						if (i >= heights.length) child.remove(n);
+					});
+					child.forEach(heights, setCSVColumn);
 				}
 			);
+	};
+	
+	
+	this.ColorColumn = function(state){
+		console.log("color", state);
+		if(state.column)
+			{
+				ws.weave.path('defaultColorDataColumn').setColumn(state.column, ws.dataSourceName);
+				
+			}
+		
+		
 	};
 });
 
