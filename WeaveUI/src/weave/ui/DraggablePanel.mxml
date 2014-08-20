@@ -125,21 +125,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
-			protected const zOrderButton:MenuButton = new MenuButton([
-				{
-					label: lang('Reset'),
-					click: function():void { zOrder.value = 0; },
-					shown: function():Boolean { return zOrder.value != 0; }
-				},{
-					label: lang('Always above'),
-					click: function():void { zOrder.value = 1; },
-					shown: function():Boolean { return zOrder.value <= 0; }
-				},{
-					label: lang('Always below'),
-					click: function():void { zOrder.value = -1; },
-					shown: function():Boolean { return zOrder.value >= 0; }
-				}
-			]);
+			protected const zOrderButton:MenuButton = new MenuButton();
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
@@ -268,6 +254,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
 				subMenuButton.smallIcon = true;
+				zOrderButton.data = [
+					{
+						label: lang('Reset'),
+						click: function():void { zOrder.value = 0; },
+						shown: function():Boolean { return zOrder.value != 0; }
+					},{
+						label: lang('Always above'),
+						click: function():void { zOrder.value = 1; },
+						shown: function():Boolean { return zOrder.value <= 0; }
+					},{
+						label: lang('Always below'),
+						click: function():void { zOrder.value = -1; },
+						shown: function():Boolean { return zOrder.value >= 0; }
+					}
+				];
 				
 				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 				if (hashMap)
