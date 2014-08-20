@@ -76,7 +76,7 @@ angular.module('aws.bioWeave')
 		{	
 			for(var i in this.data.algorithmMetadataObjects)//loop over the titles and check for match
 				{
-					if(algoName.match(this.data.algorithmMetadataObjects[i].title))
+					if(algoName === this.data.algorithmMetadataObjects[i].title)
 						{
 							match = true;
 							matchedObject = this.data.algorithmMetadataObjects[i];
@@ -91,6 +91,7 @@ angular.module('aws.bioWeave')
 			else
 				{
 					this.getAlgorithmMetadataFromServer(algoName);
+					console.log("got from server 2");
 				}
 			
 		}
@@ -140,7 +141,7 @@ angular.module('aws.bioWeave')
 			that.data.chosenScripts = result;
 			
 			//TODO call this function from the controller and not from this service directly
-			//runScriptService.runScript(that.data.algorithmMetadataObjects, that.data.chosenScripts);
+			runScriptService.runScript(that.data.algorithmMetadataObjects, that.data.chosenScripts);
 			
 			scope.$safeApply(function() {
 				deferred.resolve(result);
