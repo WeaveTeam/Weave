@@ -471,6 +471,29 @@ weave.WeavePath.prototype.forEach = function(items, visitorFunction)
 };
 
 /**
+ * Applies a function to each WeavePath object that is a child of the current WeavePath or the one specified by a relativePath.
+ * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param visitorFunction A function to be called for each item in items. The function will be called using the current
+ *                        WeavePath object as the 'this' value and will receive three parameters:  child, name, childMapping.
+ * @return The current WeavePath object.
+ */
+weave.WeavePath.prototype.forEachChild = function(/*...relativePath, visitorFunction*/)
+{
+	var args = this._A(arguments, 2);
+	if (this._assertParams('forEachChild', args))
+	{
+		var visitorFunction = args.pop();
+		var pathcopy = this._path.concat(args);
+		var names = this.weave.getChildNames(pathcopy);
+		var items = {};
+		names.forEach(function(name) { items[name] = this.push(name); });
+		return this.forEach(items, visitorFunction);
+	}
+	return this;
+};
+
+/**
  * Calls weaveTrace() in Weave to print to the log window.
  * @param args A list of parameters to pass to weaveTrace().
  * @return The current WeavePath object.
