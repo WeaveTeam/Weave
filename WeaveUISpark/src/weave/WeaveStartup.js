@@ -51,13 +51,13 @@ function handleFile(file) {
 		var data = evt.target.result;
 		data = data.substr(data.indexOf('base64,') + 7);
 		
-		var libs = ['mx.utils.Base64Decoder', 'weave.Weave'];
+		var libs = ['weave.compiler.StandardLib', 'weave.Weave'];
 		
-		var script = "var ba = new Base64Decoder(); ba.decode(data); ";
+		var script;
 		if( file.name.substr(-4).toLowerCase() == ".csv" )
-			script += "WeaveAPI.topLevelApplication['visApp'].CSVWizardWithData(ba.flush())";
+			script = "WeaveAPI.topLevelApplication['visApp'].CSVWizardWithData(StandardLib.atob(data))";
 		else
-			script += "Weave.loadWeaveFileContent(ba.flush())";
+			script = "Weave.loadWeaveFileContent(StandardLib.atob(data))";
 		
 		weave.evaluateExpression([], script, {"data": data}, libs);
 	};

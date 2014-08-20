@@ -822,26 +822,14 @@ package weave.compiler
 		}
 		
 		/**
-		 * Binary to Ascii (Base64)
+		 * Binary to Ascii (Base64): function(input:ByteArray):String
 		 */
-		public static function btoa(binary:ByteArray):String
-		{
-			var encoder:Base64Encoder = new Base64Encoder();
-			encoder.insertNewLines = false;
-			if (binary)
-				encoder.encodeBytes(binary);
-			return encoder.drain();
-		}
+		public static const btoa:Function = weave.utils.btoa;
 		
 		/**
-		 * Ascii (Base64) to Binary
+		 * Ascii (Base64) to Binary: function(input:String):ByteArray
 		 */
-		public static function atob(ascii:String):ByteArray
-		{
-			var decoder:Base64Decoder = new Base64Decoder();
-			decoder.decode(ascii);
-			return decoder.drain();
-		}
+		public static const atob:Function = weave.utils.btoa;
 		
 		/**
 		 * @see https://github.com/bestiejs/punycode.js

@@ -28,7 +28,8 @@ package weave.utils
 	import mx.core.IFlexDisplayObject;
 	import mx.graphics.ImageSnapshot;
 	import mx.graphics.codec.PNGEncoder;
-	import mx.utils.Base64Encoder;
+	
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * BitmapUtils
@@ -185,12 +186,7 @@ package weave.utils
 //			var byteArray:ByteArray = new ByteArray();
 //			byteArray.writeObject(data.getPixels(data.rect));
 			
-			var byteArray:ByteArray = ImageSnapshot.captureImage(component).data; 
-			var encoder:Base64Encoder = new Base64Encoder();
-			encoder.insertNewLines = false;
-			encoder.encodeBytes(byteArray);
-			
-			return encoder.drain();
+			return StandardLib.btoa(ImageSnapshot.captureImage(component).data);
 		}
 		
 //		/**

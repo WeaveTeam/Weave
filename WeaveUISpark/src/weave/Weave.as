@@ -29,7 +29,6 @@ package weave
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.core.ILinkableHashMap;
@@ -105,13 +104,17 @@ package weave
 			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
 			{
 				var bytes:ByteArray = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
+				var ascii:String = StandardLib.btoa(bytes);
 				
-				// use Base64Encoder here instead of StandardLib.btoa() because we want the line breaks in the XML.
-				var encoder:Base64Encoder = new Base64Encoder();
-				encoder.encodeBytes(bytes);
-				var ascii:String = encoder.flush();
-				
-				xml.appendChild(<ByteArray name={ fileName } encoding="base64">{ ascii }</ByteArray>);
+				var str:String = '';
+				var lineLength:int = 76;
+				for (var i:int = 0; i < ascii.length; i += lineLength)
+				{
+					if (i > 0)
+						str += '\n';
+					str += ascii.substr(i, lineLength);
+				}
+				xml.appendChild(<ByteArray name={ fileName } encoding="base64">{ str }</ByteArray>);
 			}
 			
 			return xml;

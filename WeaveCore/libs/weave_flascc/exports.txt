@@ -18,3 +18,5 @@ readZip
 writeZip
 parseCSV
 createCSV
+atob
+btoa
