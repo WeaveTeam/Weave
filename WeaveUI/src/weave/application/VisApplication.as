@@ -208,12 +208,6 @@ package weave.application
 			{
 				downloadConfigFile();
 			}
-
-			if (JavaScript.available)
-			{
-				JavaScript.registerMethod('loadFile', loadFile);
-				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
-			}
 		}
 
 		private function handleError():void
@@ -271,6 +265,12 @@ package weave.application
 		
 		private function downloadConfigFile():void
 		{
+			if (JavaScript.available)
+			{
+				JavaScript.registerMethod('loadFile', loadFile);
+				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
+			}
+
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
 			{
 				handleConfigFileDownloaded();
@@ -303,6 +303,7 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
+			Weave.properties.runStartupJavaScript();
 			WeaveAPI.callExternalWeaveReady();
 			while (_loadFileCallbacks.length)
 				(_loadFileCallbacks.shift() as Function)();
@@ -717,6 +718,8 @@ package weave.application
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
+			if (fileName)
+				Weave.fileName = fileName.split('/').pop();
 			try
 			{
 				if (getFlashVarRecover())
@@ -728,16 +731,14 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
-				if (fileName)
-					Weave.fileName = fileName.split('/').pop();
 			}
 			catch (error:Error)
 			{
 				// attempt to parse as xml
-				var xml:XML = null;
 				// check the first character because a non-xml string may still parse as a single xml text node.
 				if (String(fileContent).charAt(0) == '<')
 				{
+					var xml:XML = null;
 					try
 					{
 						xml = XML(fileContent);
@@ -747,16 +748,13 @@ package weave.application
 						// invalid xml
 						reportError(xmlError);
 					}
+					if (xml)
+						Weave.loadWeaveFileContent(xml);
 				}
 				else
 				{
 					// not an xml, so report the original error
 					reportError(error);
-				}
-				if (xml)
-				{
-					Weave.loadWeaveFileContent(xml);
-					Weave.fileName = fileName;
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);

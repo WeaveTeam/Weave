@@ -122,7 +122,7 @@ package weave.core
 				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 			}
 			
-			externalWarning("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
+			externalError("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
 			return null;
 		}
 		

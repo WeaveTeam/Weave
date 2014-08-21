@@ -364,7 +364,10 @@ package weave
 					for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 						WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
 					for each (var node:XML in xml.ByteArray)
-						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(node.text()));
+					{
+						var ascii:String = StandardLib.replace(node.text(), '\n', '', '\r', '');
+						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(ascii));
+					}
 				}
 			}
 			else if (content)
@@ -411,12 +414,6 @@ package weave
 			
 			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
-			
-			if (WeaveAPI.javaScriptInitialized)
-			{
-				Weave.initExternalDragDrop();
-				properties.runStartupJavaScript();
-			}
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
@@ -555,25 +552,6 @@ package weave
 			obj.close();
 			
 			return saved != null;
-		}
-		
-		
-		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
-		private static const WeaveStartup:Class;
-		private static var _startupComplete:Boolean = false;
-		public static function initExternalDragDrop():void
-		{
-			if (_startupComplete || !JavaScript.available)
-				return;
-			try
-			{
-				WeaveAPI.initializeJavaScript(WeaveStartup);
-				_startupComplete = true;
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
 		}
 	}
 }

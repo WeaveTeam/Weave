@@ -271,7 +271,7 @@ package
 		
 		/**
 		 * This function will initialize the external API so calls can be made from JavaScript to Weave.
-		 * After initializing, this will call an external function weave.apiReady(weave) if it exists, where
+		 * After the first time this function is called, this will call an external function weave.apiReady(weave) if it exists, where
 		 * 'weave' is a pointer to the instance of Weave that was initialized.
 		 * @param scripts A list of JavaScript files containing initialization code, each given as a Class (for an embedded file) or a String.
 		 *                Within the script, the "weave" variable can be used as a pointer to the Weave instance.
