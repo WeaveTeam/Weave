@@ -57,7 +57,7 @@ package weave.api.core
 		 * This function gets a list of names of children of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
 		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-		 * @return An Array of names of sessioned children of the object referred to by objectPath, or null if the object doesn't exist.
+		 * @return An Array of names of sessioned children of the object referred to by objectPath.
 		 */
 		function getChildNames(objectPath:Array):Array;
 
