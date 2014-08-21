@@ -34,7 +34,8 @@ package
 	 * The same problem occurs when returning an Object from an ActionScript function that was invoked
 	 * from JavaScript. This class works around the limitation by using JSON.stringify() and JSON.parse()
 	 * and escaping backslashes in resulting JSON strings. The values <code>NaN, Infinity, -Infinity</code>
-	 * are preserved.
+	 * are preserved, as well as function pointers. When a JavaScript function is called from ActionScript,
+	 * it uses a property called "this" as the <code>this</code> argument for the function.
 	 * 
 	 * This class also provides an objectID accessor which is more reliable than ExternalInterface.objectID,
 	 * which may be null if the Flash object was created using jQuery.flash() even if the Flash object
@@ -365,31 +366,37 @@ package
 			{
 				if (_jsonLookup.hasOwnProperty(value))
 					value = _jsonLookup[value];
-				// ID -> Function
 				else if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
-				{
-					var id:String = value as String;
-					var func:Function = function():*{
-						return exec(
-							{
-								"JSON_REVIVER": JSON_REVIVER,
-								"id": id,
-								"args": arguments,
-								"catch": false
-							},
-							"var func = this[JSON_REVIVER]('', id);",
-							"return func.apply(func['this'], args);"
-						);
-					} as Function;
-					_jsonLookup[func] = id;
-					_jsonLookup[id] = func;
-					value = func as Function;
-				}
+					value = _cacheProxyFunction(value as String); // ID -> Function
 			}
 			for each (var extension:Object in _jsonExtensions)
 				if (extension[JSON_REVIVER] is Function)
 					value = extension[JSON_REVIVER](key, value);
 			return value;
+		}
+		
+		/**
+		 * Caches a new proxy function for a JavaScript function in _jsonLookup.
+		 * @param id The ID of the JavaScript function.
+		 * @return The proxy function.
+		 */
+		private static function _cacheProxyFunction(id:String):Function
+		{
+			var params:Object = {"id": id, "catch": false };
+			var script:String = [
+				"var func = this." + JSON_REVIVER + "('', id);",
+				"return func.apply(func['this'], args);"
+			].join('\n');
+			
+			var func:Function = function():*{
+				params['args'] = arguments;
+				return exec(params, script);
+			} as Function;
+			
+			_jsonLookup[func] = id;
+			_jsonLookup[id] = func;
+			
+			return func;
 		}
 		
 		/**
