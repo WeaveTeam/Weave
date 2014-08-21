@@ -463,11 +463,15 @@ package weave
 		 */
 		public const startupJavaScript:LinkableString = new LinkableString();
 		
+		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
+		private static const WeaveStartup:Class;
+
 		/**
 		 * This function will run the JavaScript code specified in the startupScript LinkableString.
 		 */
 		public function runStartupJavaScript():void
 		{
+			WeaveAPI.initializeJavaScript(WeaveStartup);
 			if (startupJavaScript.value)
 				JavaScript.exec({"this": "weave", "catch": reportError}, startupJavaScript.value);
 		}
