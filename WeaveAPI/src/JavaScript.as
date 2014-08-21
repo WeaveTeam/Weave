@@ -234,6 +234,21 @@ package
 					"var symbols = [NaN, Infinity, -Infinity];",
 					"for (var i in symbols)",
 					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
+					
+					"function cacheProxyFunction(id) {",
+					"    var func = function() {",
+					"        var params = Array.prototype.slice.call(arguments);",
+					"        var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
+					"        try {",
+					"            var resultJson = flash[JSON_CALL](id, paramsJson);",
+					"        } catch (e) {",
+					"            throw new Error(e);",
+					"        }",
+					"        return JSON.parse(resultJson, flash[JSON_REVIVER]);",
+					"    };",
+					"    func[JSON_FUNCTION_PREFIX] = id;",
+					"    return lookup[id] = func;",
+					"}",
 
 					"flash[JSON_REPLACER] = function(key, value) {",
 					"    if (typeof value === 'function') {",
@@ -258,21 +273,8 @@ package
 					"    if (typeof value === 'string') {",
 					"        if (lookup.hasOwnProperty(value))",
 					"            value = lookup[value];",
-					"        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX) {",
-					"            var id = value;",
-					"            var func = function() {",
-					"                var params = Array.prototype.slice.call(arguments);",
-					"                var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
-					"                try {",
-					"                    var resultJson = flash[JSON_CALL](id, paramsJson);",
-					"                } catch (e) {",
-					"                    throw new Error(e);",
-					"                }",
-					"                return JSON.parse(resultJson, flash[JSON_REVIVER]);",
-					"            };",
-					"            func[JSON_FUNCTION_PREFIX] = id;",
-					"            value = lookup[id] = func;",
-					"        }",
+					"        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)",
+					"            value = cacheProxyFunction(value);",
 					"    }",
 					"    for (var i in extensions)",
 					"        if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')",
@@ -282,20 +284,6 @@ package
 				);
 			}
 		}
-		
-		/*var replace = weave._jsonReplacer, revive = weave._jsonReviver;
-		weave._jsonReplacer = (k, v) => {
-		var r = replace.call(weave, k, v);
-		console.log('replace', k, v, r);
-		return r;
-		}
-		weave._jsonReviver = (k, v) => {
-		var r = revive.call(weave, k, v);
-		console.log('revive', k, v, r);
-		return r;
-		}
-		JSON.stringify({x: Math.round}, weave._jsonReplacer)
-		//*/
 		
 		/**
 		 * Handles a JavaScript request.
