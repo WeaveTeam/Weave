@@ -63,7 +63,6 @@ package weave.application
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveArchive;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -754,58 +753,10 @@ package weave.application
 					// not an xml, so report the original error
 					reportError(error);
 				}
-				
 				if (xml)
 				{
-					// backwards compatibility:
-					var stateStr:String = xml.toXMLString();
-					while (stateStr.indexOf("org.openindicators") >= 0)
-					{
-						stateStr = stateStr.replace("org.openindicators", "weave");
-						xml = XML(stateStr);
-					}
-					var tag:XML;
-					for each (tag in xml.descendants("OpenIndicatorsServletDataSource"))
-						tag.setLocalName("WeaveDataSource");
-					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
-						tag.setLocalName("WeaveDataSource");
-					for each (tag in xml.descendants("EmptyTool"))
-						tag.setLocalName("CustomTool");
-					for each (tag in xml.descendants("WMSPlotter2"))
-						tag.setLocalName("WMSPlotter");
-					for each (tag in xml.descendants("SessionedTextArea"))
-					{
-						tag.setLocalName("SessionedTextBox");
-						tag.appendChild(<enableBorders>true</enableBorders>);
-						tag.appendChild(<htmlText>{tag.textAreaString.text()}</htmlText>);
-						tag.appendChild(<panelX>{tag.textAreaWindowX.text()}</panelX>);
-						tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
-					}
-					
-					// add missing attribute titles
-					for each (var hierarchy:XML in xml.descendants('hierarchy'))
-					{
-						for each (tag in hierarchy.descendants("attribute"))
-						{
-							if (!String(tag.@title))
-							{
-								var newTitle:String = String(tag.@csvColumn);
-								if (!newTitle && String(tag.@name) && String(tag.@year))
-									newTitle = String(tag.@name) + ' (' + tag.@year + ')';
-								else if (String(tag.@name))
-									newTitle = String(tag.@name);
-								tag.@title = newTitle || 'untitled';
-							}
-						}
-					}
-					
 					Weave.loadWeaveFileContent(xml);
 					Weave.fileName = fileName;
-					
-//					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
-//					var subset:KeyFilter = Weave.defaultSubsetKeyFilter;
-//					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
-//						subset.includeMissingKeys.value = true;
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);

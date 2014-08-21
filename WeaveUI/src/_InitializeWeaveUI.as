@@ -20,6 +20,7 @@
 package
 {
 	import weave.api.ui.IEditorManager;
+	import weave.core.ClassUtils;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -67,6 +68,7 @@ package
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.SessionStateEditor;
+	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
@@ -217,6 +219,10 @@ package
 				"weave.visualization.plotters",
 				"weave.visualization.plotters.styles"
 			);
+			
+			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
+			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
+			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
 		}();
 	}
 }
