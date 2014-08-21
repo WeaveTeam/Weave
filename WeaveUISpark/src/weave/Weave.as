@@ -364,7 +364,10 @@ package weave
 					for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 						WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
 					for each (var node:XML in xml.ByteArray)
-						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(node.text()));
+					{
+						var ascii:String = StandardLib.replace(node.text(), '\n', '', '\r', '');
+						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(ascii));
+					}
 				}
 			}
 			else if (content)
