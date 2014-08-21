@@ -76,9 +76,10 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			    "dataType": "geometry"
 			  });
 			//TODO parameterize setting the keytype and keyColName
-			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
-			ws.weave.setSessionState(['CSVDataSource'], {keyType : geometry.keyType});
-			
+			if(state.useKeyTypeForCSV)
+			{
+				ws.weave.setSessionState(["CSVDataSource"], {"keyType" : geometry.keyType});
+			}
 			
 		}
 		
@@ -105,7 +106,6 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			    "keyType": state.geometryLayer.keyType
 			  });
 			}
-		
 	};
 	
 	
@@ -147,8 +147,12 @@ AnalysisModule.service("WeaveService", function(queryService) {
 				ws.weave.path('defaultColorDataColumn').setColumn(state.column, ws.dataSourceName);
 				
 			}
-		
-		
+	};
+	
+	this.keyColName = function(keyColName) {
+		if(keyColName) {
+			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
+		}
 	};
 });
 

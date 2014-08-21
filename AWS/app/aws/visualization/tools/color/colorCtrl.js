@@ -9,4 +9,10 @@ AnalysisModule.controller("ColorCtrl", function($scope, queryService, WeaveServi
 	}, function(){
 		WeaveService.ColorColumn(queryService.queryObject.ColorColumn);
 	}, true);
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.keyColumn;
+	}, function(){
+		WeaveService.keyColumnName(queryService.queryObject.keyColumn);
+	}, true);
 });

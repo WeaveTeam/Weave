@@ -13,12 +13,25 @@
 		</select>
 	</div>
 	<br>
+	
+	<div>
+		<input   type="checkbox"
+							 ng-model="service.queryObject.MapTool.useKeyTypeForCSV" 
+							 data-placeholder="Choose Label Column"
+							 ng-init="service.queryObject.MapTool.useKeyTypeForCSV = true"/>
+		Use KeyType for CSV Data Source
+	</div>
+	
+	
+	<br>
 	<div>
 	Select Label
 	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Layer">
 			<option></option>
 			<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs"> {{output.param}} </option>
 		</select>
-	</div>		
+	</div>
+	
+	
 	</ul>
 </div>
