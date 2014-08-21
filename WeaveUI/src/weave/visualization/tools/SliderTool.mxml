@@ -105,7 +105,7 @@
 	
 	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
 	
-	public const filterValues:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray, []), handleLabelChange, true);
+	public const filterValues:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, verifyStringArray, []), handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
 	public const linkGlobalColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
@@ -115,7 +115,16 @@
 	public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 	
 	private function verifyLayout(value:String):Boolean { return layoutChoices.indexOf(value) >= 0; }
-	private function verifyStringArray(array:Array):Boolean { return (array && !array.length) || StandardLib.getArrayType(array) == String; }
+	private function verifyStringArray(value:Object):Boolean
+	{
+		if (value is String)
+		{
+			filterValues.setSessionState((value as String).split(','));
+			return false;
+		}
+		var array:Array = value as Array;
+		return (array && !array.length) || StandardLib.getArrayType(array) == String;
+	}
 	
 	private var _timer:Timer;
 	[Bindable] protected var showLinkControls:Boolean = false;
@@ -215,14 +224,6 @@
 		return null;
 	}
 
-	/**
-	 * handleLabelChange
-	 * This method is called every time there is a change in labels,
-	 * so be sure to change labels only as often as is necesary.  
-	 * We fill in the hslider labels from this.labelsLinkableString
-	 * Since this.labelsLinkableString is a LinkableString it can be changed by
-	 * the user by editing the sessionHistory.  
-	 * */
 	public function handleLabelChange():void
 	{
 		//@TODO have values associated with the labels so that the labels can be
@@ -458,10 +459,7 @@
 			currentSliderPosition.value = dimensionSlider.minimum;
 	}
 	
-	[Deprecated(replacement="filterValues")] public function set labelsLinkableString(str:String):void
-	{
-		filterValues.setSessionState(str.split(','));
-	}
+	[Deprecated(replacement="filterValues")] public function get labelsLinkableString():LinkableVariable { return filterValues; }
 ]]>
 </mx:Script>
 	<ui:ControlPanel>
