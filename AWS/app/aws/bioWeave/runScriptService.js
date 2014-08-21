@@ -20,35 +20,34 @@ angular.module('aws.bioWeave')
 		{
 			var scriptName = scriptNames[r];
 			var inputParams = algorithmObjects[r].inputParams;
-			var ids = [];
-			var params = [];
+			var scriptInputs = {};
+			var columns = [];
+			for(var key in inputParams)
+				{	//handling the data
 				
-			for(var t in inputParams)
-				{
-					if(inputParams[t].param_name == 'input_data' ){//picking out the data
-						ids = inputParams[t].param_user_value;
-						for(var o in ids){
-							var id  = angular.fromJson(ids[o]).id;
-							ids[o] = id;
+						var input = inputParams[key].param_user_value;
+						switch(typeof input)
+						{
+							case  'object' :
+								for (var x in input){
+									var column = JSON.parse(input[x]);
+									scriptInputs[column.title] = {
+											id : column.id
+									};
+								}
+							break;	
+							case 'string' :
+								if(inputParams[key].param_type == 'number')
+									scriptInputs[inputParams[key].param_name] = parseFloat(input);
+								else
+									scriptInputs[inputParams[key].param_name] = input;
+							break;
 						}
-					}
-					
-					else{
-						//params.push(inputParams[t].param_user_value);//rest of the input Params
-						var param_name = inputParams[t].param_name;
-						var param_value = inputParams[t].param_user_value;
-						params.push({
-							name: param_name,
-							value: param_value 
-						});
-					}
-						
-					
+				
 				}
 			
-			
 			var deferred = $q.defer();
-			aws.queryService(computationURL, 'runScript', [scriptName, ids, params], function(result){
+			aws.queryService(computationURL, 'runScript', [scriptName, scriptInputs, null], function(result){
 				
 				console.log("script result returned", result);
 				
