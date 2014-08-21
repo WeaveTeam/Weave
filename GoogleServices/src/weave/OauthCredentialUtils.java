@@ -31,7 +31,7 @@ public class OauthCredentialUtils {
 
 	public static String getRedirectUri() {
 		
-		GenericUrl url = new GenericUrl("http://localhost:8080/GoogleServices/OauthService");
+		GenericUrl url = new GenericUrl("http://localhost:8080/GoogleServices/Oauth2Callback");
 		return url.build();
 	}
 	

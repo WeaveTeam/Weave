@@ -19,23 +19,24 @@ var boundary = '-------314159265358979323846';
 var delimiter = "\r\n--" + boundary + "\r\n";
 var close_delim = "\r\n--" + boundary + "--";
 // for file loaded from Google Drive UI
+// no need of authorization as, Drive UI trigger the Authorization window
 weave.GoogleDrive.loadDriveAPI = function(){
 	gapi.client.load('drive', 'v2', handleClientLoad);
 }
 
-// required only if weave tries to connect to Google Drive 
+//automated authorization based on token expiry time
+function checkAuth() {
+	checkAuthCallCount++;
+	console.log('checkAuth: ' + checkAuthCallCount);
+    gapi.auth.authorize({'client_id': CLIENT_ID, 'scope': SCOPES.join(' '), 'immediate': false}, handleAuthResult);
+}
+
+// required only if weave tries to connect to Google Drive , form Weave Instance
 //Step 1: get authorization to use private data
 weave.GoogleDrive.init = function( ) {
 	console.log("init");	
 	gapi.auth.authorize(  {'client_id': CLIENT_ID, 'scope': SCOPES.join(' '), 'immediate': false}, handleAuthResult);
 };
-
-// automated authorization based on token expiry time
-function checkAuth() {
-	checkAuthCallCount++;
-	console.log('checkAuth: ' + checkAuthCallCount);
-    gapi.auth.authorize({'client_id': CLIENT_ID, 'scope': SCOPES.join(' '), 'immediate': true}, handleAuthResult);
-}
 
 //Step 2: Load the Google drive API
 /**
@@ -98,6 +99,7 @@ function loadWeaveFile(fileId) {
 		console.log('loadWeaveFile:');
 		console.log(resp);
 		openedFileUrl = resp.downloadUrl;
+		console.log('downloadUrl:' + openedFileUrl);
 		var accessToken = gapi.auth.getToken().access_token;
 		var urlObject = {"url": openedFileUrl, "requestHeaders": {"Authorization": "Bearer "  + accessToken}};
 		weave.loadFile(urlObject);

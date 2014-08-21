@@ -48,7 +48,7 @@ package weave.services
 			if(!busy && !isAuthorized){
 				busy = true;
 				WeaveAPI.initializeJavaScript(GoogleDrive_js);
-				JavaScript.exec('this.GoogleDrive.loadDriveAPI()');
+				JavaScript.exec('this.GoogleDrive.init()');
 			}
 			
 		}

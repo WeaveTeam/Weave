@@ -25,7 +25,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
-	implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
+	implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*" xmlns:s="library://ns.adobe.com/flex/spark"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
 	<ui:Indent label="{lang('Source Name *')}">
@@ -43,15 +43,42 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<ui:Indent label="{lang('Token URI *')}">
 		<ui:TextInputWithPrompt id="tokenUri" width="100%"/>
 	</ui:Indent>
+	<ui:Indent label="{lang('Code *')}">
+		<ui:TextInputWithPrompt id="code" width="100%"/>
+		<s:Button id="codeBtn" label="Get Code" click="button1_clickHandler(event)"/>
+	</ui:Indent>
 	
+	<ui:Indent id="tokenContainer" includeInLayout="false" visible="false" label="{lang('AuthToken *')}">
+		<ui:TextInputWithPrompt id="token" width="100%"/>
+		<ui:TextInputWithPrompt id="tokenContentType" width="100%" />
+		<s:Button id="tokenBtn" label="Get Token" click="button1_clickHandler(event)"/>
+	</ui:Indent>
+	<ui:Indent id="apiContainer"  includeInLayout="false" visible="false" label="{lang('ApiUrl *')}">
+		<ui:TextInputWithPrompt id="apiURL" width="100%"/>
+		<ui:TextInputWithPrompt id="apiContentType" width="100%" />
+	</ui:Indent>
+	
+	<ui:Indent id="jsonDataContainer"  includeInLayout="false" visible="false" label="{lang('Json to Table *')}">
+		<ui:Indent label="{lang('Table *')}">
+			<ui:TextInputWithPrompt id="tableName" width="100%"/>
+		</ui:Indent>
+		<ui:Indent label="{lang('Key Column *')}">
+			<ui:TextInputWithPrompt id="keyColumnName" width="100%"/>
+		</ui:Indent>
+		<ui:Indent label="{lang('Columns *')}">
+			<ui:TextInputWithPrompt id="columnNames" width="100%"/>
+		</ui:Indent>
+	</ui:Indent>
 	
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			
+			import weave.api.reportError;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
-			import weave.data.DataSources.CKANDataSource;
 			import weave.data.DataSources.OauthDataSource;
 			
 			override protected function createChildren():void
@@ -64,6 +91,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				  clientSecret.text = "c624be931e554d25b71095e0b69fd6c6";
 				  authUri.text = "https://runkeeper.com/apps/authorize";
 				  tokenUri.text = "https://runkeeper.com/apps/token";
+				  
+				  tokenContentType.text = "application/x-www-form-urlencoded";
+				  apiContentType.text = "application/vnd.com.runkeeper.FitnessActivityFeed+json";
+				  apiURL.text = 'http://api.runkeeper.com/fitnessActivities';
 			}
 			
 			[Bindable] private var target:OauthDataSource = null;
@@ -81,14 +112,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					sourceName.text = WeaveAPI.globalHashMap.getName(target);
 					sourceName.editable = false;
-					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
-					
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");					
 					clientID.text = target.clientID.value;
 					clientSecret.text = target.clientSecret.value;
 					authUri.text = target.authUri.value;
-					tokenUri.text = target.tokenUri.value;
-					
-				
+					tokenUri.text = target.tokenUri.value;				
 				}
 			}
 			
@@ -97,7 +125,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return (target.clientID.value || '') != (clientID.text || '')
 					|| target.clientSecret.value != clientSecret.text
 					|| target.authUri.value != authUri.text
-					|| target.tokenUri.value != tokenUri.text;
+					|| target.tokenUri.value != tokenUri.text
+					|| target.code.value != code.text
+					|| target.authToken.value != token.text
+					|| target.apiURL.value != apiURL.text
+					|| target.apiDataContentType.value != apiContentType.text
+					|| target.tableName.value != tableName.text
+					|| target.keyColumnName.value != keyColumnName.text;
 			}
 			
 			public function applyChanges():void
@@ -106,12 +140,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				target.clientSecret.value = clientSecret.text;
 				target.authUri.value = authUri.text;
 				target.tokenUri.value = tokenUri.text;
+				target.code.value = code.text;
+				target.authToken.value = token.text;
+				target.apiURL.value = apiURL.text;
+				target.apiDataContentType.value = apiContentType.text;
+				
+				target.tableName.value = tableName.text;
+				target.keyColumnName.value = keyColumnName.text;
+				target.columns.setSessionState(  (columnNames.text).split(','));
 				
 			}
 			
 			public function createDataSource():IDataSource
 			{
-				if (!sourceName.text || (!clientID.text) || (!clientSecret.text) || (!authUri.text)|| (!tokenUri.text))
+				if (!sourceName.text || (!clientID.text) || (!clientSecret.text) || (!authUri.text)|| (!tokenUri.text) || (!code.text) || (!tableName.text)|| (!keyColumnName.text) || (!columnNames.text))
 				{
 					Alert.show(lang("Please fill all required fields"), lang("Error"));
 					return null;
@@ -131,6 +173,41 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				applyChanges();
 				return target;
 			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				if(event.target == codeBtn){
+					if (authUri.text && clientID.text){
+						var queryStr:String = authUri.text + '?client_id='+clientID.text+'&redirect_uri='+ 'http://localhost:8080/oauth2callback.html' + '&response_type=code';
+						navigateToURL(new URLRequest(queryStr),'_blank');
+						tokenContainer.visible = tokenContainer.includeInLayout = true;
+					}
+				}
+				else if(event.target ==  tokenBtn){
+					var request:URLRequest = new URLRequest(tokenUri.text);
+					request.method = URLRequestMethod.POST;
+					var contentTypeHeader:URLRequestHeader = new URLRequestHeader("Content-Type", tokenContentType.text);
+					request.requestHeaders.push(contentTypeHeader);					
+					request.data = new URLVariables("grant_type=authorization_code" + "&code=" + code.text + "&client_id=" +clientID.text+ "&client_secret=" +clientSecret.text+ "&redirect_uri=" +  'http://localhost:8080/oauth2callback.html' );
+					trace('Content-type');
+					navigateToURL(request,'_blank');
+					//var asyntoke:AsyncToken = new AsyncToken();
+					//addAsyncResponder(asyntoke,handleTokenResult,handleTokenFault);
+					//ExternalDownloader.download(request,"request",asyntoke);
+					//WeaveAPI.URLRequestUtils.getURL(null, request, handleTokenResult, handleTokenFault, code.text);
+					apiContainer.visible = apiContainer.includeInLayout = true;
+					jsonDataContainer.visible = jsonDataContainer.includeInLayout = true;
+				}
+			}
+			
+			private function handleTokenResult(event:ResultEvent,token:String):void{
+				trace(event.result);
+			}
+			
+			private function handleTokenFault(event:FaultEvent,token:String):void{
+				reportError(event.fault);
+			}
+			
 		]]>
 	</mx:Script>
 </mx:VBox>

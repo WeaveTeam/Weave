@@ -32,32 +32,32 @@ public abstract class AbstractAuthorizationCodeService extends WeaveServlet {
 
 	  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 		{	
-			StringBuffer buf = request.getRequestURL();
-			String queryString = request.getQueryString();
-			String code = null;
-		    if (queryString != null) {
-		      buf.append('?').append(request.getQueryString());
-		      AuthorizationCodeResponseUrl responseUrl = new AuthorizationCodeResponseUrl(buf.toString());
-			    code = responseUrl.getCode();
-			    if (responseUrl.getError() != null) {
-			    	onError(request, response, responseUrl);
-			    }
-		    }
-		   
-		    if(code != null){
-		      String redirectUri = getRedirectUri();
-		      lock.lock();
-		      try {
-		        AuthorizationCodeTokenRequest tokenRequest = flow.newTokenRequest(code).setRedirectUri(redirectUri);
-		        //resp from RunKeeper  is json object= access_token  ,token_type:bearer
-		        TokenResponse resp = tokenRequest.execute();
-		        String userId = getUserId(request);
-		        Credential credential = flow.createAndStoreCredential(resp, userId);
-		        onSuccess(request, response, credential);
-		      } finally {
-		        lock.unlock();
-		      }
-		    }
+//			StringBuffer buf = request.getRequestURL();
+//			String queryString = request.getQueryString();
+//			String code = null;
+//		    if (queryString != null) {
+//		      buf.append('?').append(request.getQueryString());
+//		      AuthorizationCodeResponseUrl responseUrl = new AuthorizationCodeResponseUrl(buf.toString());
+//			    code = responseUrl.getCode();
+//			    if (responseUrl.getError() != null) {
+//			    	onError(request, response, responseUrl);
+//			    }
+//		    }
+//		   
+//		    if(code != null){
+//		      String redirectUri = getRedirectUri();
+//		      lock.lock();
+//		      try {
+//		        AuthorizationCodeTokenRequest tokenRequest = flow.newTokenRequest(code).setRedirectUri(redirectUri);
+//		        //resp from RunKeeper  is json object= access_token  ,token_type:bearer
+//		        TokenResponse resp = tokenRequest.execute();
+//		        String userId = getUserId(request);
+//		        Credential credential = flow.createAndStoreCredential(resp, userId);
+//		        onSuccess(request, response, credential);
+//		      } finally {
+//		        lock.unlock();
+//		      }
+//		    }
 			super.doGet(request, response);
 		}
 	  
