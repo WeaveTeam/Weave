@@ -548,13 +548,13 @@ weave.WeavePath.prototype.getNames = function(/*...relativePath*/)
  * Gets an Array of child WeavePath objects under the object at the current path or relative to the current path.
  * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
  *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
- * @return An Array of child WeavePath objects. For each child, child.pop() will return the WeavePath object from which getChildren() was called.
+ * @return An Array of child WeavePath objects.
  */
 weave.WeavePath.prototype.getChildren = function(/*...relativePath*/)
 {
 	var relativePath = this._A(arguments, 1);
 	return this.weave.getChildNames(this._path.concat(relativePath))
-		.map(function(name) { return this.push(relativePath.concat(name)); }, this);
+		.map(function(name) { return new this.weave.WeavePath(this._path.concat(relativePath, name)); }, this);
 };
 
 /**
