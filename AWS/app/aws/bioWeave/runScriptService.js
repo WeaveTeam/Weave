@@ -45,7 +45,7 @@ angular.module('aws.bioWeave')
 						}
 				
 				}
-			
+			//check
 			var deferred = $q.defer();
 			aws.queryService(computationURL, 'runScript', [scriptName, scriptInputs, null], function(result){
 				
