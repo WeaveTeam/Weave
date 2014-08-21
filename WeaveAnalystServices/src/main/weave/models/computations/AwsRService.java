@@ -16,28 +16,32 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import weave.servlets.RServiceUsingRserve.RserveConnectionException;
 import weave.utils.ListUtils;
 
 import com.google.gson.internal.StringMap;
 
-public class AwsRService implements IScriptEngine
+public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRserve()?
 {
 	
 	public AwsRService() throws Exception
 	{
-		try{
-			rConnection = new RConnection();
-		} catch (Exception e) {
-			throw new Exception("Cannot get connection to Rserve. Make sure Rserve is running.");
-		}
+		
 	}
-	
-	public void destroy()
+	protected static RConnection getRConnection() throws RemoteException
 	{
-		rConnection.close();
+		RConnection rConnection = null; // establishing R connection		
+		try
+		{
+			rConnection = new RConnection();
+		}
+		catch (RserveException e)
+		{
+			//e.printStackTrace();
+			throw new RserveConnectionException(e);
+		}
+		return rConnection;
 	}
-	private RConnection rConnection = null;
-	
 	// this functions intends to run a script with filtered.
 	// essentially this function should eventually be our main run script function.
 	// in the request object, there will be: the script name
@@ -45,42 +49,43 @@ public class AwsRService implements IScriptEngine
 	// TODO not completed
 	public Object runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception
 	{
-
-		if(rConnection != null) {
+		RConnection rConnection = null;
+		Object results = null;
+		String [] columnNames;
+		try
+		{
+			 rConnection = getRConnection();
+	
 			rConnection.assign("scriptPath", scriptAbsPath);
 			
 			for(String key : scriptInputs.keySet()) {
 				rConnection.assign(key, getREXP(scriptInputs.get(key)));
 			}
 			
-			Object results = null;
 			Vector<String> names = null;
-			String [] columnNames;
+			
 			String script = "scriptFromFile <- source(scriptPath)\n" +
 					"scriptFromFile$value"; 
-			
-			try
-			{
-				REXP evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
-				names = evalValue.asList().names;
-				columnNames = new String[names.size()];
-				names.toArray(columnNames);
-				results = rexp2javaObj(evalValue);
-				// clear R Objects
-				rConnection.eval("rm(list=ls())");
-			}
-			catch (Exception e)	{
-				e.printStackTrace();
-				// System.out.println("printing error");
-				// System.out.println(e.getMessage());
-				throw new RemoteException("Unable to run script", e);
-			}
-			
-			results = convertToRowResults(results, columnNames);
-			return results;
-		} else {
-			return new Object();
+		
+			REXP evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+			names = evalValue.asList().names;
+			columnNames = new String[names.size()];
+			names.toArray(columnNames);
+			results = rexp2javaObj(evalValue);
+			// clear R Objects
+			rConnection.eval("rm(list=ls())");
 		}
+		catch (Exception e)	{
+			e.printStackTrace();
+			throw new RemoteException("Unable to run script", e);
+		}
+		finally {
+			if (rConnection != null)
+				rConnection.close();
+		}
+		results = convertToRowResults(results, columnNames);
+		return results;
+		
 	}
 
 	/**
