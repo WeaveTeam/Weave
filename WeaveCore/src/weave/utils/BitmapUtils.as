@@ -22,6 +22,7 @@ package weave.utils
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.IBitmapDrawable;
+	import flash.external.ExternalInterface;
 	import flash.geom.Matrix;
 	import flash.utils.ByteArray;
 	
@@ -211,6 +212,15 @@ package weave.utils
 		{		
 			var bitmap:BitmapData = getBitmapDataFromComponent(component);
 			return new PNGEncoder().encode(bitmap);
+		}
+		
+		public static function setHtmlImgSource(imgId:String, bitmapData:BitmapData):void
+		{
+			ExternalInterface.call(
+				"function(id, ascii){ document.getElementById(id).src = 'data:image/png;base64,'+ascii; }",
+				imgId,
+				StandardLib.btoa(new PNGEncoder().encode(bitmapData))
+			);
 		}
 	}
 }
