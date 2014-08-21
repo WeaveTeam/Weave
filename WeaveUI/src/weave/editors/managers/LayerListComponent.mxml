@@ -51,13 +51,13 @@
 						</mx:HBox>
 						<ui:CustomCheckBox label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
 						<ui:Paragraph id="lbl" textAlign="center"/>
-						<ui:MenuButton label="{lang('Edit...')}" data="{[
+						<ui:MenuButton label="{lang('Edit...')}" initialize="event.target.data = [
 							{label: lang('Edit properties'), click: openSettingsPanel},
 							{label: lang('Edit session state'), click: openSessionEditor},
 							{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
 							WeaveMenuItem.TYPE_SEPARATOR,
 							{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
-						]}"/>
+						];"/>
 						<mx:Script>
 							<![CDATA[
 								import mx.core.UIComponent;
