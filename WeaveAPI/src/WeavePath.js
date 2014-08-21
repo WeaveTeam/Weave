@@ -487,7 +487,7 @@ weave.WeavePath.prototype.forEachChild = function(/*...relativePath, visitorFunc
 		var pathcopy = this._path.concat(args);
 		var names = this.weave.getChildNames(pathcopy);
 		var items = {};
-		names.forEach(function(name) { items[name] = this.push(name); });
+		names.forEach(function(name) { items[name] = this.push(name); }, this);
 		return this.forEach(items, visitorFunction);
 	}
 	return this;
