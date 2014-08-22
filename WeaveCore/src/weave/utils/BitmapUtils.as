@@ -224,11 +224,10 @@ package weave.utils
 			var base64data:String = bitmapData ? StandardLib.btoa(new PNGEncoder().encode(bitmapData)) : '';
 			ExternalInterface.marshallExceptions = false;
 			ExternalInterface.call(
-				"function(javaScriptImgExpression, base64data) {" +
+				"function(base64data) {" +
 				"  var weave = " + JavaScript.JS_this + ";" +
 				"  (" + javaScriptImgExpression + ").src = 'data:image/png;base64,' + base64data;" +
 				"}",
-				javaScriptImgExpression,
 				base64data
 			);
 		}
