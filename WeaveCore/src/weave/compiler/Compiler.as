@@ -1461,8 +1461,8 @@ package weave.compiler
 				}
 				
 				var compiledCall:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
-				// if there is a compiled token to the left, this is a function call (unless the token is a call to operator ';')
-				if (leftBracket == '(' && compiledToken && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
+				// if there is a compiled token to the left, this is a function call (unless the token is a function header or is a call to operator ';')
+				if (leftBracket == '(' && compiledToken && !isFunctionHeader(compiledToken) && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
 				{
 					if (open >= 2)
 					{
@@ -1491,6 +1491,9 @@ package weave.compiler
 				if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
 					separator = '('; // statement params
 				tokens.splice(open, 2, compileOperator(separator, compiledParams));
+				
+				if (token === FUNCTION && leftBracket == '(')
+					tokens.splice(open - 1, 2, compileFunctionHeader(FUNCTION, tokens[open]));
 			}
 		}
 		
