@@ -249,26 +249,26 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		double minValue = Double.NaN;
 		double maxValue = Double.NaN;
 		
-		// override config min,max with param values if given
-		if (!Double.isNaN(minParam))
-		{
-			minValue = minParam;
-		}
-		else
+		// server min,max values take priority over user-specified params
+		if (entity.publicMetadata.containsKey(PublicMetadata.MIN))
 		{
 			try {
 				minValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MIN));
 			} catch (Exception e) { }
 		}
-		if (!Double.isNaN(maxParam))
-		{
-			maxValue = maxParam;
-		}
 		else
+		{
+			minValue = minParam;
+		}
+		if (entity.publicMetadata.containsKey(PublicMetadata.MAX))
 		{
 			try {
 				maxValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MAX));
 			} catch (Exception e) { }
+		}
+		else
+		{
+			maxValue = maxParam;
 		}
 		
 		if (Double.isNaN(minValue))
