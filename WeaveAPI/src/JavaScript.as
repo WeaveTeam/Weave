@@ -151,7 +151,7 @@ package
 		/**
 		 * A JavaScript expression which gets a pointer to this Flash object.
 		 */
-		private static function get JS_this():String
+		public static function get JS_this():String
 		{
 			if (!_objectID)
 				_objectID = getExternalObjectID();
