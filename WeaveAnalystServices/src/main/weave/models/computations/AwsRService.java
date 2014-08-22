@@ -76,7 +76,7 @@ public class AwsRService implements IScriptEngine
 				throw new RemoteException("Unable to run script", e);
 			}
 			
-			results = convertToRowResults(results, columnNames);
+			//results = convertToRowResults(results, columnNames);
 			return results;
 		} else {
 			return new Object();
