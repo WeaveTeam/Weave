@@ -303,8 +303,6 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			Weave.properties.runStartupJavaScript();
-			WeaveAPI.callExternalWeaveReady();
 			while (_loadFileCallbacks.length)
 				(_loadFileCallbacks.shift() as Function)();
 		}
@@ -785,7 +783,10 @@ package weave.application
 
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
-			this.styleName = "application";	
+			this.styleName = "application";
+			
+			Weave.properties.runStartupJavaScript();
+			WeaveAPI.callExternalWeaveReady();
 		}
 		
 		private var fadeEffect:Fade = new Fade();
