@@ -214,12 +214,22 @@ package weave.utils
 			return new PNGEncoder().encode(bitmap);
 		}
 		
-		public static function setHtmlImgSource(imgId:String, bitmapData:BitmapData):void
+		/**
+		 * @param javaScriptImgExpression A JavaScript expression which gets a pointer to the img tag.
+		 *                                The expression can use a "weave" variable as a pointer to Weave.
+		 * @param bitmapData The BitmapData to use as the img source.
+		 */
+		public static function setHtmlImgSource(javaScriptImgExpression:String, bitmapData:BitmapData):void
 		{
+			var base64data:String = bitmapData ? StandardLib.btoa(new PNGEncoder().encode(bitmapData)) : '';
+			ExternalInterface.marshallExceptions = false;
 			ExternalInterface.call(
-				"function(id, ascii){ document.getElementById(id).src = 'data:image/png;base64,'+ascii; }",
-				imgId,
-				StandardLib.btoa(new PNGEncoder().encode(bitmapData))
+				"function(javaScriptImgExpression, base64data) {" +
+				"  var weave = " + JavaScript.JS_this + ";" +
+				"  (" + javaScriptImgExpression + ").src = 'data:image/png;base64,' + base64data;" +
+				"}",
+				javaScriptImgExpression,
+				base64data
 			);
 		}
 	}
