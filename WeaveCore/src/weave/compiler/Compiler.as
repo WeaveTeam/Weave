@@ -985,7 +985,7 @@ package weave.compiler
 			for (i = 0; i < tokens.length; i++)
 			{
 				call = tokens[i] as CompiledFunctionCall;
-				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject)
+				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject && !isFunctionHeader(tokens[i - 1]))
 					tokens.splice(i - 1, 2, new CompiledFunctionCall(tokens[i - 1], call.compiledParams));
 			}
 			
@@ -2178,6 +2178,11 @@ package weave.compiler
 			
 			var i:int;
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
+			
+			// function headers should not appear alone
+			if (isFunctionHeader(call))
+				compileFunctionDefinition(call, null); // this will throw an appropriate error
+				
 			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
 			if (!call.compiledMethod)
 				throw new Error("Misplaced variable declaration");
