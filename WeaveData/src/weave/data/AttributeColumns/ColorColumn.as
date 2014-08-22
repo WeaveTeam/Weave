@@ -98,7 +98,7 @@ package weave.data.AttributeColumns
 				var value:Number = internalDynamicColumn.getValueFromKey(key, Number);
 				var norm:Number;
 				if (dataMin == dataMax)
-					norm = 0;
+					norm = isFinite(value) ? 0 : NaN;
 				else
 					norm = (value - dataMin) / (dataMax - dataMin);
 				color = ramp.getColorFromNorm(norm);
