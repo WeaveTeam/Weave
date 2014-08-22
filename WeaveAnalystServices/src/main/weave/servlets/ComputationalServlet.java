@@ -37,6 +37,7 @@ public class ComputationalServlet extends WeaveServlet
 	private String tempDirPath = "";
 	private String stataScriptsPath = "";
 	private String rScriptsPath = "";
+	private String algorithmScriptsPath = "";
 	private AwsRService rService = null;
 	public void init(ServletConfig config) throws ServletException
 	{
@@ -47,6 +48,7 @@ public class ComputationalServlet extends WeaveServlet
 		
 		stataScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getStataScriptsPath();
 		rScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getRScriptsPath();
+		algorithmScriptsPath = AwsContextParams.getInstance(config.getServletContext()).getAlgorithmsDirectoryPath();
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -79,7 +81,7 @@ public class ComputationalServlet extends WeaveServlet
 				input.put(key, value);
 			} else if (value instanceof StringMap<?>){
 				// collect the names and id for single query below
-				colNames.add(key);
+			//	colNames.add(key);
 				colIds.add((Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
 			} else if (value instanceof ArrayList) {
 				
@@ -103,10 +105,12 @@ public class ComputationalServlet extends WeaveServlet
 			// transpose the data to obtain the column form
 			Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 			
+			input.put("data", columnData);
+			//TODO use a flag to distinguish between use of columns vs use of data matrix
 			// assign each columns to proper column name
-			for(int i =  0; i < colNames.size(); i++) {
-				input.put(colNames.get(i), columnData[i]);
-			}
+//			for(int i =  0; i < colNames.size(); i++) {
+//				input.put(colNames.get(i), columnData[i]);
+//			}
 		}
 		
 		endTime = System.currentTimeMillis();
@@ -118,7 +122,7 @@ public class ComputationalServlet extends WeaveServlet
 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R) 
 		{
 			try {
-				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), input);
+				resultData = rService.runScript(FilenameUtils.concat(algorithmScriptsPath, scriptName), input);
 			} catch(Exception e) 
 			{
 				
