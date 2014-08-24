@@ -59,6 +59,8 @@ void atob()
 		"var output:ByteArray = new ByteArray();"
 		"output.position = 0;"
 		"output.writeUTFBytes(input);"
+		"while (output.position %% 4)"
+		"    output.writeUTFBytes('=');"
 		"%0 = output.position;"
 		: "=r"(input_len)
 	);
