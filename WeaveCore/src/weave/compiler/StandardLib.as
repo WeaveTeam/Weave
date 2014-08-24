@@ -29,6 +29,7 @@ package weave.compiler
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
+	import weave.flascc.FlasCC;
 	import weave.utils.AsyncSort;
 	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
@@ -822,14 +823,24 @@ package weave.compiler
 		}
 		
 		/**
-		 * Binary to Ascii (Base64): function(input:ByteArray):String
+		 * Binary to Ascii (Base64)
+		 * @param input Binary data
+		 * @return Base64-encoded data
 		 */
-		public static const btoa:Function = weave.utils.btoa;
+		public static function btoa(input:ByteArray):String
+		{
+			return FlasCC.call(weave.flascc.btoa, input);
+		}
 		
 		/**
-		 * Ascii (Base64) to Binary: function(input:String):ByteArray
+		 * Ascii (Base64) to Binary
+		 * @param input Base64-encoded data
+		 * @return Decoded binary data
 		 */
-		public static const atob:Function = weave.utils.btoa;
+		public static function atob(input:String):ByteArray
+		{
+			return FlasCC.call(weave.flascc.atob, input);
+		}
 		
 		/**
 		 * @see https://github.com/bestiejs/punycode.js

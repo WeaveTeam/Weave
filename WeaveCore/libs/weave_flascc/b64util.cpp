@@ -20,7 +20,7 @@
 
 void btoa() __attribute__((used,
 	annotate("as3sig:public function btoa(input:ByteArray):String"),
-	annotate("as3package:weave.utils"),
+	annotate("as3package:weave.flascc"),
 	annotate("as3import:flash.utils.ByteArray")));
 void btoa()
 {
@@ -48,7 +48,7 @@ void btoa()
 
 void atob() __attribute__((used,
 	annotate("as3sig:public function atob(input:String):ByteArray"),
-	annotate("as3package:weave.utils"),
+	annotate("as3package:weave.flascc"),
 	annotate("as3import:flash.utils.ByteArray")));
 void atob()
 {
