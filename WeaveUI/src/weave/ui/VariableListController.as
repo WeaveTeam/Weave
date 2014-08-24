@@ -133,7 +133,7 @@ package weave.ui
 			if (!_nameColumn)
 				return;
 			if (hashMap && hashMap.getNames().length)
-				_nameColumn.headerText = lang("Name (Click to edit)")
+				_nameColumn.headerText = lang("Name (Click below to edit)")
 			else
 				_nameColumn.headerText = lang("Name");
 		}
