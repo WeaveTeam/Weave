@@ -26,20 +26,21 @@ void btoa()
 {
 	char *input_ptr;
 	size_t input_len;
-	inline_nonreentrant_as3("%0 = input.length;" : "=r"(input_len));
+	AS3_GetScalarFromVar(input_len, input.length);
 	input_ptr = (char*)malloc(input_len);
-	inline_as3(
+	inline_nonreentrant_as3(
 		"ram_init.position = %0;"
 		"ram_init.writeBytes(input);"
 			: : "r"(input_ptr)
 	);
 
 	size_t output_len = modp_b64_encode_len(input_len);
-	char *output_ptr = (char*)malloc(input_len);
+	char *output_ptr = (char*)malloc(output_len);
 
 	AS3_DeclareVar(output, String);
-	if (modp_b64_encode(output_ptr, input_ptr, input_len) != -1)
-		AS3_CopyCStringToVar(output, output_ptr, output_len);
+	int len = modp_b64_encode(output_ptr, input_ptr, input_len);
+	if (len != -1)
+		AS3_CopyCStringToVar(output, output_ptr, len);
 
 	free(input_ptr);
 	free(output_ptr);
@@ -52,24 +53,43 @@ void atob() __attribute__((used,
 	annotate("as3import:flash.utils.ByteArray")));
 void atob()
 {
+	// copy input string to scratch buffer to get byte length
 	size_t input_len;
-	char *input_ptr;
-	AS3_StringLength(input_len, input);
-	AS3_MallocString(input_ptr, input);
+	inline_nonreentrant_as3(
+		"var output:ByteArray = new ByteArray();"
+		"output.position = 0;"
+		"output.writeUTFBytes(input);"
+		"%0 = output.position;"
+		: "=r"(input_len)
+	);
 
+	// allocate memory and copy from scratch buffer
+	// also make sure scratch buffer doesn't stay too large
+	char *input_ptr = (char*)malloc(input_len);
+	inline_nonreentrant_as3(
+		"ram_init.position = %0;"
+		"ram_init.writeBytes(output, 0, %1);"
+		: : "r"(input_ptr), "r"(input_len)
+	);
+
+	// allocate output buffer
 	size_t output_len = modp_b64_decode_len(input_len);
 	char *output_ptr = (char*)malloc(output_len);
 
-	AS3_DeclareVar(output, ByteArray);
+	// decode input string and copy to scratch ByteArray
 	int len = modp_b64_decode(output_ptr, input_ptr, input_len);
-	if (len != 1)
-		inline_as3(
-			"output = new ByteArray();"
+	if (len != -1)
+		inline_nonreentrant_as3(
+			"output.position = 0;"
 			"ram_init.position = %0;"
 			"ram_init.readBytes(output, 0, %1);"
+			"output.length = %1;"
 				 : : "r"(output_ptr), "r"(len)
 		);
+	else
+		inline_nonreentrant_as3("output = null;");
 
+	// free memory and return output
 	free(input_ptr);
 	free(output_ptr);
 	AS3_ReturnAS3Var(output);

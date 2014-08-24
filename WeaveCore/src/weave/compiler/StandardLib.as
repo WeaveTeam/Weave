@@ -829,12 +829,6 @@ package weave.compiler
 		 */
 		public static function btoa(input:ByteArray):String
 		{
-			var encoder:Base64Encoder = new Base64Encoder();
-			encoder.insertNewLines = false;
-			if (input)
-				encoder.encodeBytes(input);
-			return encoder.drain();
-			
 			return FlasCC.call(weave.flascc.btoa, input);
 		}
 		
@@ -845,10 +839,6 @@ package weave.compiler
 		 */
 		public static function atob(input:String):ByteArray
 		{
-			var decoder:Base64Decoder = new Base64Decoder();
-			decoder.decode(input);
-			return decoder.drain();
-			
 			return FlasCC.call(weave.flascc.atob, input);
 		}
 		
