@@ -31,6 +31,7 @@ package weave.data.AttributeColumns
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
@@ -40,6 +41,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
+	import weave.core.LinkableBoolean;
 	import weave.core.UntypedLinkableVariable;
 	import weave.utils.ColumnUtils;
 	import weave.utils.Dictionary2D;
@@ -145,6 +147,12 @@ package weave.data.AttributeColumns
 		 * This holds the metadata for the column.
 		 */
 		public const metadata:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
+
+
+		/**
+		 * Specify whether or not we should filter the keys by the column's keyType.
+		 */
+		public const filterByKeyType:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		/**
 		 * This function intercepts requests for dataType and title metadata and uses the corresponding linkable variables.
@@ -265,8 +273,16 @@ package weave.data.AttributeColumns
 			{
 				_allKeys = null;
 				_allKeysTriggerCount = variables.triggerCounter; // prevent infinite recursion
-				
-				_allKeys = ColumnUtils.getAllKeys(variables.getObjects(IAttributeColumn));
+
+				var variableColumns:Array = variables.getObjects(IAttributeColumn);
+
+				_allKeys = ColumnUtils.getAllKeys(variableColumns);
+
+				if (filterByKeyType.value && (_allKeys.length > 0))
+				{
+					var keyType:String = this.getMetadata(ColumnMetadata.KEY_TYPE);
+					_allKeys = _allKeys.filter(function(d:IQualifiedKey, i:int, a:Array):Boolean { return d.keyType == keyType; });
+				}
 			}
 			return _allKeys || [];
 		}
