@@ -3,5 +3,6 @@ bin/build/
 .tern-project
 .externalToolBuilders/
 nbproject/
+lib/cachedir/
 /bin
 /build
