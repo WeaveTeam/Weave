@@ -5,6 +5,7 @@ package weave.services
 	
 	
 	
+	
 
 	public class GoogleDrive
 	{
@@ -25,6 +26,8 @@ package weave.services
 			
 			return false;
 		}
+		
+		
 		
 		public static var isAuthorized:Boolean ;
 		public static var busy:Boolean;
@@ -48,6 +51,10 @@ package weave.services
 			if(!busy && !isAuthorized){
 				busy = true;
 				WeaveAPI.initializeJavaScript(GoogleDrive_js);
+				JavaScript.registerMethod( "windowClosed", windowClosed );
+				JavaScript.registerMethod( "windowError", windowError );
+				JavaScript.registerMethod( "setResponse", setResponse );
+				
 				JavaScript.exec('this.GoogleDrive.init()');
 			}
 			
@@ -57,6 +64,52 @@ package weave.services
 			if(isAuthorized){
 				JavaScript.exec('this.GoogleDrive.updateWeaveFile()');
 			}
+		}
+		
+		
+		
+		
+		public static function openOauthWindow(queryStr:String, width:Number,height:Number):void{
+					
+			JavaScript.exec({"args": [queryStr, width, height]},
+			"this.GoogleDrive.openAuth.apply(this, args);"
+			);
+			
+		}
+		
+		
+		private static function setResponse( url:String ):void
+		{
+			var params : Object = extractQueryParams( url );
+			//trace(params);
+		}
+		
+		
+		private static function windowClosed():void
+		{
+			trace("window closed");
+		}
+		
+		
+		private static function windowError():void
+		{
+			trace("window error");
+		}
+		
+		protected static function extractQueryParams( url:String ):Object
+		{
+			var delimiter:String = ( url.indexOf( "?" ) > 0 ) ? "?" : "#";
+			var queryParamsString:String = url.split( delimiter )[ 1 ];
+			var queryParamsArray:Array = queryParamsString.split( "&" );
+			var queryParams:Object = new Object();
+			
+			for each( var queryParam:String in queryParamsArray )
+			{
+				var keyValue:Array = queryParam.split( "=" );
+				queryParams[ keyValue[ 0 ] ] = keyValue[ 1 ];	
+			}
+			
+			return queryParams;
 		}
 	
 		

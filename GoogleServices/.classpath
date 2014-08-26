@@ -58,5 +58,7 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/httpclient-4.3.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/httpcore-4.3.2.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

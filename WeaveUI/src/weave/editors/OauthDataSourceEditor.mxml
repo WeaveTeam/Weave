@@ -31,47 +31,57 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<ui:Indent label="{lang('Source Name *')}">
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Client ID *')}">
-		<ui:TextInputWithPrompt id="clientID" width="100%"/>
-	</ui:Indent>
-	<ui:Indent label="{lang('Client Secret *')}">
-		<ui:TextInputWithPrompt id="clientSecret" width="100%"/>
-	</ui:Indent>
-	<ui:Indent label="{lang('Authorization URI *')}">
-		<ui:TextInputWithPrompt id="authUri" width="100%"/>
-	</ui:Indent>
-	<ui:Indent label="{lang('Token URI *')}">
-		<ui:TextInputWithPrompt id="tokenUri" width="100%"/>
-	</ui:Indent>
-	<ui:Indent label="{lang('Code *')}">
-		<ui:TextInputWithPrompt id="code" width="100%"/>
-		<s:Button id="codeBtn" label="Get Code" click="button1_clickHandler(event)"/>
-	</ui:Indent>
+	<mx:Label fontWeight="bold" text="App Information"/>
+	<s:HGroup width="100%">
+		<s:VGroup width="50%">
+			<ui:Indent label="{lang('Authorization URI *')}">
+				<ui:TextInputWithPrompt id="authUri" width="100%"/>
+			</ui:Indent>
+			<ui:Indent label="{lang('Redirect URI *')}">
+				<ui:TextInputWithPrompt id="redirectUri" width="100%"/>
+			</ui:Indent>
+			<ui:Indent label="{lang('Token URI *')}">
+				<ui:TextInputWithPrompt id="tokenUri" width="100%"/>
+			</ui:Indent>
+		</s:VGroup>
+		<s:VGroup width="50%">
+			<ui:Indent label="{lang('Client ID *')}">
+				<ui:TextInputWithPrompt id="clientID" width="100%"/>
+			</ui:Indent>
+			<ui:Indent label="{lang('Client Secret *')}">
+				<ui:TextInputWithPrompt id="clientSecret" width="100%"/>
+			</ui:Indent>
+		</s:VGroup>
+	</s:HGroup>
 	
-	<ui:Indent id="tokenContainer" includeInLayout="false" visible="false" label="{lang('AuthToken *')}">
+	
+	
+	<mx:Label fontWeight="bold" text="API Information"/>
+	<ui:Indent id="tokenContainer" label="{lang('AuthToken *')}">
 		<ui:TextInputWithPrompt id="token" width="100%"/>
 		<ui:TextInputWithPrompt id="tokenContentType" width="100%" />
 		<s:Button id="tokenBtn" label="Get Token" click="button1_clickHandler(event)"/>
 	</ui:Indent>
-	<ui:Indent id="apiContainer"  includeInLayout="false" visible="false" label="{lang('ApiUrl *')}">
+	<ui:Indent id="apiContainer"   label="{lang('Api Url *')}">
 		<ui:TextInputWithPrompt id="apiURL" width="100%"/>
 		<ui:TextInputWithPrompt id="apiContentType" width="100%" />
 	</ui:Indent>
 	
-	<ui:Indent id="jsonDataContainer"  includeInLayout="false" visible="false" label="{lang('Json to Table *')}">
-		<ui:Indent label="{lang('Table *')}">
-			<ui:TextInputWithPrompt id="tableName" width="100%"/>
-		</ui:Indent>
-		<ui:Indent label="{lang('Key Column *')}">
-			<ui:TextInputWithPrompt id="keyColumnName" width="100%"/>
-		</ui:Indent>
-		<ui:Indent label="{lang('Columns *')}">
-			<ui:TextInputWithPrompt id="columnNames" width="100%"/>
-		</ui:Indent>
+	
+	<mx:Label fontWeight="bold" text="Table Information"/>	
+	<ui:Indent label="{lang('Table *')}">
+		<ui:TextInputWithPrompt id="tableName" width="100%"/>
 	</ui:Indent>
+	<ui:Indent label="{lang('Key Column Name*')}">
+		<ui:TextInputWithPrompt id="keyColumnName" width="100%"/>
+	</ui:Indent>
+		
+	
 	
 	<mx:Script>
 		<![CDATA[
+			import flash.net.navigateToURL;
+			
 			import mx.controls.Alert;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -79,6 +89,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
+			import weave.core.LinkableString;
 			import weave.data.DataSources.OauthDataSource;
 			
 			override protected function createChildren():void
@@ -90,12 +101,134 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				  clientID.text = "20a867dd3176481f9d64f409bfbe3df3";
 				  clientSecret.text = "c624be931e554d25b71095e0b69fd6c6";
 				  authUri.text = "https://runkeeper.com/apps/authorize";
+				  redirectUri.text ="http://localhost:8080/oauth2callback.html";
 				  tokenUri.text = "https://runkeeper.com/apps/token";
 				  
 				  tokenContentType.text = "application/x-www-form-urlencoded";
 				  apiContentType.text = "application/vnd.com.runkeeper.FitnessActivityFeed+json";
 				  apiURL.text = 'http://api.runkeeper.com/fitnessActivities';
+				  
+				  code.addImmediateCallback(this,exchanceCodeForToken);
+				  
+				  WeaveAPI.initializeJavaScript(Oauth_js);
+				  JavaScript.registerMethod( "windowClosed", windowClosed );
+				  JavaScript.registerMethod( "windowError", windowError );
+				  JavaScript.registerMethod( "setResponse", setResponse );
 			}
+			
+			
+			[Embed(source="Oauth.js", mimeType="application/octet-stream")]
+			public static const Oauth_js:Class;	
+			private function processRequest( url : String ) : void
+			{
+				JavaScript.exec({"args": [url, 750, 800]},
+					"this.Oauth.openAuth.apply(this, args);"
+				);
+				
+			}
+			
+			
+			private function setResponse( url:String ):void
+			{
+				var params: Object = extractQueryParams( url );			
+				if( params.error ||	params.error_description )
+				{
+					reportError(params.error,params.error_description );				
+				}else{				
+					processParam( params );
+				}
+			}
+			
+			
+			
+			
+			private function processParam(authParams:Object):void{
+				if( authParams )
+				{
+					if( authParams.code != null )
+					{
+						code.value = authParams.code;					
+					}else{					
+						var error : String = authParams.error ? authParams.error : "No Code";
+						var errorMessage : String = authParams.error_description ? authParams.error_description : "The code was not returned";					
+						reportError(error,errorMessage);
+					}				
+				}else{				
+					reportError( "AuthCodeGrant::YOU NEED TO SUPPLY PARAMS FROM AN AUTH RESPONSE OBJECT" );
+				}
+			}
+			
+			
+			private  function extractQueryParams( url:String ):Object
+			{
+				var delimiter:String = ( url.indexOf( "?" ) > 0 ) ? "?" : "#";
+				var queryParamsString:String = url.split( delimiter )[ 1 ];
+				var queryParamsArray:Array = queryParamsString.split( "&" );
+				var queryParams:Object = new Object();
+				
+				for each( var queryParam:String in queryParamsArray )
+				{
+					var keyValue:Array = queryParam.split( "=" );
+					queryParams[ keyValue[ 0 ] ] = keyValue[ 1 ];	
+				}
+				
+				return queryParams;
+			}
+			
+			
+			private function windowClosed():void
+			{
+				reportError("Declined");
+			}
+			
+			
+			private function windowError():void
+			{
+				reportError("Authorisation window error",
+					"An error occurred whilst attempting to connect to the Authorisation window. This may be due to a popup blocker. Please allow popups for the auth domain and try again" );
+			}
+			
+			private const code:LinkableString = new LinkableString();
+			
+			public function getCode() : void
+			{
+				var queryStr:String = authUri.text + '?client_id='+clientID.text+'&redirect_uri='+ redirectUri.text + '&response_type=code';
+				processRequest( queryStr );
+			}
+			
+			private function exchanceCodeForToken():void{
+				var vars : URLVariables = new URLVariables();  
+				vars.code = code.value;
+				vars.grant_type = "authorization_code";
+				vars.client_id = clientID.text;
+				vars.client_secret = clientSecret.text;
+				if( redirectUri.text ) vars.redirect_uri = redirectUri.text;
+				
+				makeTokenRequest( vars );
+			}
+			
+			
+			private function makeTokenRequest(  vars:URLVariables ):void
+			{			
+				var request:URLRequest = new URLRequest( tokenUri.text );
+				if(vars){
+					request.method = URLRequestMethod.POST;
+					request.data = vars;
+				}
+				else{
+					request.method = URLRequestMethod.GET;
+				}
+				
+				//temp solution
+				navigateToURL(request,'_blank');
+				// to - do need to create proxy server script to do this, 
+				/*_urlLoader = new URLLoader();
+				_urlLoader.addEventListener( Event.COMPLETE, accessTokenResponseHandler, false, 0, true );
+				_urlLoader.addEventListener( IOErrorEvent.IO_ERROR, accessTokenErrorHandler, false, 0, true );
+				_urlLoader.addEventListener( SecurityErrorEvent.SECURITY_ERROR, accessTokenErrorHandler, false, 0, true );
+				_urlLoader.load( request );*/
+			}
+			
 			
 			[Bindable] private var target:OauthDataSource = null;
 			public function setTarget(object:ILinkableObject):void
@@ -113,21 +246,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					sourceName.text = WeaveAPI.globalHashMap.getName(target);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");					
-					clientID.text = target.clientID.value;
-					clientSecret.text = target.clientSecret.value;
-					authUri.text = target.authUri.value;
-					tokenUri.text = target.tokenUri.value;				
+					clientID.text = target.oauth2Client.clientID.value;
+					clientSecret.text = target.oauth2Client.clientSecret.value;
+					authUri.text = target.oauth2Client.authEndPoint.value;
+					tokenUri.text = target.oauth2Client.tokenEndPoint.value;				
 				}
 			}
 			
+			
+			
 			public function hasPendingChanges():Boolean
 			{
-				return (target.clientID.value || '') != (clientID.text || '')
-					|| target.clientSecret.value != clientSecret.text
-					|| target.authUri.value != authUri.text
-					|| target.tokenUri.value != tokenUri.text
-					|| target.code.value != code.text
-					|| target.authToken.value != token.text
+				return (target.oauth2Client.clientID.value || '') != (clientID.text || '')
+					|| target.oauth2Client.clientSecret.value != clientSecret.text
+					|| target.oauth2Client.authEndPoint.value != authUri.text
+					|| target.oauth2Client.tokenEndPoint.value != tokenUri.text
+					|| target.oauth2Client.accessToken.value != token.text
 					|| target.apiURL.value != apiURL.text
 					|| target.apiDataContentType.value != apiContentType.text
 					|| target.tableName.value != tableName.text
@@ -136,24 +270,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function applyChanges():void
 			{
-				target.clientID.value = clientID.text;
-				target.clientSecret.value = clientSecret.text;
-				target.authUri.value = authUri.text;
-				target.tokenUri.value = tokenUri.text;
-				target.code.value = code.text;
-				target.authToken.value = token.text;
+				target.oauth2Client.clientID.value = clientID.text;
+				target.oauth2Client.clientSecret.value = clientSecret.text;
+				target.oauth2Client.authEndPoint.value = authUri.text;
+				target.oauth2Client.tokenEndPoint.value = tokenUri.text;
+				target.oauth2Client.tokenContentType.value = tokenContentType.text;
+				target.oauth2Client.accessToken.value = token.text;
+				target.oauth2Client.redirectURI.value = redirectUri.text;
 				target.apiURL.value = apiURL.text;
 				target.apiDataContentType.value = apiContentType.text;
 				
 				target.tableName.value = tableName.text;
 				target.keyColumnName.value = keyColumnName.text;
-				target.columns.setSessionState(  (columnNames.text).split(','));
 				
 			}
 			
 			public function createDataSource():IDataSource
 			{
-				if (!sourceName.text || (!clientID.text) || (!clientSecret.text) || (!authUri.text)|| (!tokenUri.text) || (!code.text) || (!tableName.text)|| (!keyColumnName.text) || (!columnNames.text))
+				if (!sourceName.text || (!clientID.text) || (!clientSecret.text) || (!authUri.text)|| (!tokenUri.text) ||  (!tableName.text)|| (!keyColumnName.text) )
 				{
 					Alert.show(lang("Please fill all required fields"), lang("Error"));
 					return null;
@@ -174,29 +308,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return target;
 			}
 			
+			
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
-				if(event.target == codeBtn){
-					if (authUri.text && clientID.text){
-						var queryStr:String = authUri.text + '?client_id='+clientID.text+'&redirect_uri='+ 'http://localhost:8080/oauth2callback.html' + '&response_type=code';
-						navigateToURL(new URLRequest(queryStr),'_blank');
-						tokenContainer.visible = tokenContainer.includeInLayout = true;
-					}
-				}
-				else if(event.target ==  tokenBtn){
-					var request:URLRequest = new URLRequest(tokenUri.text);
-					request.method = URLRequestMethod.POST;
-					var contentTypeHeader:URLRequestHeader = new URLRequestHeader("Content-Type", tokenContentType.text);
-					request.requestHeaders.push(contentTypeHeader);					
-					request.data = new URLVariables("grant_type=authorization_code" + "&code=" + code.text + "&client_id=" +clientID.text+ "&client_secret=" +clientSecret.text+ "&redirect_uri=" +  'http://localhost:8080/oauth2callback.html' );
+				if(event.target ==  tokenBtn){
+					
+					/*var urlvariables:URLVariables = new URLVariables();
+					urlvariables.code = code.text;
+					urlvariables.grant_type = 'authorization_code';
+					urlvariables.client_id = clientID.text;
+					urlvariables.client_secret = clientSecret.text;
+					urlvariables.redirect_uri = 'http://localhost:8080/oauth2callback.html';
+					request.data = urlvariables;*/
+					/*var postData:String = "grant_type=authorization_code" + "&code=" + code.text + "&client_id=" +clientID.text+ "&client_secret=" +clientSecret.text+ "&redirect_uri=" +  'http://localhost:8080/oauth2callback.html';
+					request.data = new URLVariables(postData);
 					trace('Content-type');
-					navigateToURL(request,'_blank');
-					//var asyntoke:AsyncToken = new AsyncToken();
-					//addAsyncResponder(asyntoke,handleTokenResult,handleTokenFault);
-					//ExternalDownloader.download(request,"request",asyntoke);
-					//WeaveAPI.URLRequestUtils.getURL(null, request, handleTokenResult, handleTokenFault, code.text);
-					apiContainer.visible = apiContainer.includeInLayout = true;
-					jsonDataContainer.visible = jsonDataContainer.includeInLayout = true;
+					navigateToURL(request,'_blank');*/
+					/*var asyntoke:AsyncToken = new AsyncToken();
+					addAsyncResponder(asyntoke,handleTokenResult,handleTokenFault);
+					ExternalDownloader.download(request,"request",asyntoke);
+					WeaveAPI.URLRequestUtils.getURL(null, request, handleTokenResult, handleTokenFault, code.text);*/
+					
+					
+					getCode();
+					
+					
 				}
 			}
 			
