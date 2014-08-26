@@ -299,8 +299,9 @@ package weave.visualization.plotters
 			var value:Number = column.getValueFromKey(key, Number);
 			var statsMin:Number = stats.getMin();
 			var statsMax:Number = stats.getMax();
-			var min:Number = Math.min(statsMin, statsMax);
-			var max:Number = Math.max(statsMin, statsMax);
+			var absMax:Number = Math.max(Math.abs(statsMin), Math.abs(statsMax));
+			var min:Number = _absNorm ? -absMax : statsMin;
+			var max:Number = _absNorm ? absMax : statsMax;
 			
 			return StandardLib.scale(value, min, max, _normMin, _normMax);
 		}
