@@ -121,36 +121,59 @@ package weave.data.KeySets
 		 */
 		public static function generateCompareFunction(columns:Array, descendingFlags:Array = null):Function
 		{
-			var i:int;
-			var column:IAttributeColumn;
-			var result:int;
-			var n:int = columns.length;
-			var desc:Array = descendingFlags ? descendingFlags.concat() : [];
-			desc.length = n;
-			
-			// when any of the columns are disposed, disable the compare function
-			for each (column in columns)
-				column.addDisposeCallback(null, function():void { n = 0; });
-			
-			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
+			return new KeyComparator(columns, descendingFlags).compare;
+		}
+	}
+}
+
+import mx.utils.ObjectUtil;
+
+import weave.api.data.IAttributeColumn;
+import weave.api.data.IQualifiedKey;
+import weave.data.QKeyManager;
+
+internal class KeyComparator
+{
+	public function KeyComparator(columns:Array, descendingFlags:Array)
+	{
+		this.columns = columns.concat();
+		this.n = columns.length;
+		this.desc = descendingFlags ? descendingFlags.concat() : [];
+		this.desc.length = columns.length;
+		
+		// when any of the columns are disposed, disable the compare function
+		for each (var column:IAttributeColumn in columns)
+			column.addDisposeCallback(null, dispose);
+	}
+	
+	private var columns:Array;
+	private var desc:Array;
+	private var n:int;
+	
+	public function compare(key1:IQualifiedKey, key2:IQualifiedKey):int
+	{
+		for (var i:int = 0; i < n; i++)
+		{
+			var column:IAttributeColumn = columns[i] as IAttributeColumn;
+			if (!column)
+				continue;
+			var value1:* = column.getValueFromKey(key1, Number);
+			var value2:* = column.getValueFromKey(key2, Number);
+			var result:int = ObjectUtil.numericCompare(value1, value2);
+			if (result != 0)
 			{
-				for (i = 0; i < n; i++)
-				{
-					column = columns[i] as IAttributeColumn;
-					if (!column)
-						continue;
-					var value1:* = column.getValueFromKey(key1, Number);
-					var value2:* = column.getValueFromKey(key2, Number);
-					result = ObjectUtil.numericCompare(value1, value2);
-					if (result != 0)
-					{
-						if (desc[i])
-							return -result;
-						return result;
-					}
-				}
-				return QKeyManager.keyCompare(key1, key2);
+				if (desc[i])
+					return -result;
+				return result;
 			}
 		}
+		return QKeyManager.keyCompare(key1, key2);
+	}
+	
+	public function dispose():void
+	{
+		columns = null;
+		desc = null;
+		n = 0;
 	}
 }

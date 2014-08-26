@@ -9,6 +9,8 @@ package weave.visualization.tools
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IKeySet;
     import weave.api.data.IQualifiedKey;
+    import weave.compiler.StandardLib;
+    import weave.data.KeySets.SortedKeySet;
 
 
     public class ParentColumnTreeDescriptor implements ITreeDataDescriptor
@@ -16,14 +18,19 @@ package weave.visualization.tools
         private var cachedTreeInfo:Dictionary = null;
         private var rootNodes:ArrayCollection = null;
 
+		/**
+		 * @param parentColumn
+		 * @param allKeys Note: This function modifies the keys in place
+		 * @param sortColumn
+		 */
         public function updateCache(parentColumn:IAttributeColumn, allKeys:IKeySet, sortColumn:IAttributeColumn):void
         {
             cachedTreeInfo = new Dictionary();
 
             rootNodes = new ArrayCollection([]);
-            var orderedKeys:Array = allKeys.keys.sort(function (a:IQualifiedKey, b:IQualifiedKey) {
-                return sortColumn.getValueFromKey(a, Number) - sortColumn.getValueFromKey(b, Number);
-            });
+			
+            var orderedKeys:Array = allKeys.keys;
+			StandardLib.sort(orderedKeys, SortedKeySet.generateCompareFunction([sortColumn]));
 
             for (var index:String in orderedKeys)
             {

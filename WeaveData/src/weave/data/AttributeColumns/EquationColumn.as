@@ -38,10 +38,10 @@ package weave.data.AttributeColumns
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.ProxyObject;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
-	import weave.core.LinkableBoolean;
 	import weave.core.UntypedLinkableVariable;
 	import weave.utils.ColumnUtils;
 	import weave.utils.Dictionary2D;
@@ -281,7 +281,7 @@ package weave.data.AttributeColumns
 				if (filterByKeyType.value && (_allKeys.length > 0))
 				{
 					var keyType:String = this.getMetadata(ColumnMetadata.KEY_TYPE);
-					_allKeys = _allKeys.filter(function(d:IQualifiedKey, i:int, a:Array):Boolean { return d.keyType == keyType; });
+					_allKeys = _allKeys.filter(new KeyFilterFunction(keyType).filter);
 				}
 			}
 			return _allKeys || [];
@@ -476,5 +476,22 @@ package weave.data.AttributeColumns
 		//---------------------------------
 		// backwards compatibility
 		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadataProperty(ColumnMetadata.TITLE, value); }
+	}
+}
+
+import weave.api.data.IQualifiedKey;
+
+internal class KeyFilterFunction
+{
+	public function KeyFilterFunction(keyType:String)
+	{
+		this.keyType = keyType;
+	}
+	
+	public var keyType:String;
+	
+	public function filter(key:IQualifiedKey, i:int, a:Array):Boolean
+	{
+		return key.keyType == this.keyType;
 	}
 }
