@@ -78,7 +78,7 @@ public class PythonTest {
 		Object[][]dataset = new Object[][]{array1, array2};
 		String scriptAbsPath = "testpython.py";
 		//aps.checking(dataset);
-		Object d = aps.runScript(scriptAbsPath, dataset);
+		//Object d = aps.runScript(scriptAbsPath, dataset);
 	}
 
 }

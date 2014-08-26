@@ -20,7 +20,7 @@ angular.module('aws.bioWeave')
 		{
 			var scriptName = scriptNames[r];
 			var inputParams = algorithmObjects[r].inputParams;
-			var scriptInputs = {};
+			var scriptInputs = [];
 			var columns = [];
 			for(var key in inputParams)
 				{	//handling the data
@@ -29,25 +29,39 @@ angular.module('aws.bioWeave')
 						switch(typeof input)
 						{
 							case  'object' :
+								var ids = [];
 								for (var x in input){
 									var column = JSON.parse(input[x]);
-									scriptInputs[column.title] = {
-											id : column.id
-									};
+									ids.push(column.id);//got all the ids
 								}
+								scriptInputs.push({
+									type : 'FilteredRows',
+									name : inputParams[key].param_name,
+									value : ids
+								});
+								
 							break;	
 							case 'string' :
 								if(inputParams[key].param_type == 'number')
-									scriptInputs[inputParams[key].param_name] = parseFloat(input);
+									scriptInputs.push({
+										type : inputParams[key].param_type,
+										name : inputParams[key].param_name,
+										value : parseFloat(input)
+									});
+									//scriptInputs[inputParams[key].param_name] = parseFloat(input);
 								else
-									scriptInputs[inputParams[key].param_name] = input;
+									scriptInputs.push({
+										type : inputParams[key].param_type,
+										name : inputParams[key].param_name,
+										value : input
+									});
+									//scriptInputs[inputParams[key].param_name] = input;
 							break;
 						}
 				
 				}
-			//check
 			var deferred = $q.defer();
-			aws.queryService(computationURL, 'runScript', [scriptName, scriptInputs, null], function(result){
+			aws.queryService(computationURL, 'runScript', [scriptName, scriptInputs], function(result){
 				
 				console.log("script result returned", result);
 				

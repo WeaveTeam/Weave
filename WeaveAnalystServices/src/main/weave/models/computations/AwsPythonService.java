@@ -9,25 +9,30 @@ import org.python.util.PythonInterpreter;
 import weave.models.ScriptManagerService;
 import weave.servlets.WeaveServlet;
 
+import com.google.gson.internal.StringMap;
 import com.xhaus.jyson.JSONEncodeError;
 import com.xhaus.jyson.JysonCodec;
 
 public class AwsPythonService {
 
-	public Object runScript(String scriptAbspath, Object[][] dataset) throws JSONEncodeError {
+	public Object runScript(String scriptAbspath, StringMap<Object> inputs) throws JSONEncodeError {
 		
 		PythonInterpreter pythonI = new PythonInterpreter();
 		PyObject pyResult = new PyObject();
 		Object finalResult = new Object();
 		// #1 assign the variables
-		pythonI.set("dataset", dataset);
+		//pythonI.set("dataset", dataset);
+		for(String variable:  inputs.keySet() )
+		{
+			pythonI.set(variable, inputs.get(variable));
+		}
 		pythonI.execfile(scriptAbspath);
 		
 		pyResult = pythonI.get("result");//TODO hardcoded for now as a result all scripts will return contents as 'result'
 		
 		/* we do the next step to convert the PyArray Object into a json string which can then be used to generate a java Object
 		 * Java object is converted by GSON in the Weave Servlet into a json string 
-		 * Python Object .........> Json string ........> JavaObject ...........> Json string*/
+		 * Python Object .........> Json string(required by GSON) ........> JavaObject(required by WeaveServlet) ...........> Json string*/
 		String tempJsonString = JysonCodec.dumps(new PyObject[]{pyResult}, new String[]{""});//produces the string
 		
 		finalResult = WeaveServlet.GSON.fromJson(tempJsonString, Object.class);//produces a java object
