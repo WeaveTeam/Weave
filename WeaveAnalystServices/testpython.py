@@ -1,5 +1,5 @@
-def addition(myinput):
-		output = input + 10
+def addition(dataset):
+		output = dataset[0]
 		return output
 
-result = addition(input)				
+result = addition(dataset)				
