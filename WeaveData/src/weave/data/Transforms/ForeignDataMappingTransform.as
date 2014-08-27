@@ -105,6 +105,12 @@ package weave.data.Transforms
             var metadata:Object = proxyColumn.getProxyMetadata();
             var dataColumnName:String = metadata[DATA_COLUMNNAME_META];
             var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
+			if (!dataColumn)
+			{
+				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				return;
+			}
+			
             var equationColumn:EquationColumn = new EquationColumn();
 
             equationColumn.variables.requestObjectCopy("keyColumn", keyColumn);
