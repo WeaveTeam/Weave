@@ -25,7 +25,7 @@
     verticalScrollPolicy="off"
     horizontalScrollPolicy="off"
     creationPolicy="all"
-    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
+    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor, weave.api.ui.IObjectWithSelectableAttributes" xmlns:ui="weave.ui.*"
     >
     <mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
     <ui:Indent label="{lang('Source Name')}" visible="{!target}" includeInLayout="{!target}">
@@ -34,13 +34,12 @@
                                 prompt="{lang('Enter a name')}"
                                 errorString="{sourceName.text ? null : lang('Required')}"/>
     </ui:Indent>
-    <ui:DynamicColumnComponent 
-        label="Key mapping column" id="keyColumnEditor">
+    <ui:DynamicColumnComponent id="keyColumnEditor">
         <ui:helpContent>
             Each value in this column will be used as the key to look up records in the data columns.
         </ui:helpContent>
     </ui:DynamicColumnComponent>
-    <ui:ColumnListComponent id="dataColumnsEditor" showVariableNames="false" label="{lang('Columns to access using the key mapping')}">
+    <ui:ColumnListComponent id="dataColumnsEditor" showVariableNames="false">
         <ui:helpContent>
             Each column here will be reproduced in the data source, using the key mapping column's keys.
         </ui:helpContent>
@@ -57,13 +56,21 @@
             import weave.api.getSessionState;
             import weave.api.newLinkableChild;
             import weave.api.registerLinkableChild;
-            import weave.api.linkBindableProperty;
             import weave.core.LinkableHashMap;
             import weave.data.AttributeColumns.DynamicColumn;
             import weave.data.Transforms.ForeignDataMappingTransform;
 
             private const keyColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
             private const dataColumns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			
+			public function getSelectableAttributeNames():Array
+			{
+				return ["Key mapping column", "Columns to access using the key mapping"];
+			}
+			public function getSelectableAttributes():Array
+			{
+				return [keyColumn, dataColumns];
+			}
             
             [Bindable] private var target:ForeignDataMappingTransform = null;
             
@@ -75,7 +82,7 @@
 
                 dataColumnsEditor.hashMap = dataColumns;
                 
-                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("ForeignDataMappingTransform");
+                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(ForeignDataMappingTransform));
             }
             
             public function setTarget(object:ILinkableObject):void

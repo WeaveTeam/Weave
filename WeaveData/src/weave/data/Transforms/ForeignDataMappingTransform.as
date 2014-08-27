@@ -23,7 +23,6 @@ package weave.data.Transforms
     import weave.api.data.ColumnMetadata;
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IDataSource;
-    import weave.api.data.IQualifiedKey;
     import weave.api.data.IWeaveTreeNode;
     import weave.api.detectLinkableObjectChange;
     import weave.api.newLinkableChild;
@@ -33,13 +32,11 @@ package weave.data.Transforms
     import weave.data.AttributeColumns.EquationColumn;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.DataSources.AbstractDataSource;
-    import weave.data.KeySets.StringDataFilter;
     import weave.data.hierarchy.ColumnTreeNode;
-    import weave.utils.VectorUtils;
 
     public class ForeignDataMappingTransform extends AbstractDataSource
     {
-        WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign Data Mapping Transform");
+        WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign Data Mapping");
 
         public static const DATA_COLUMNNAME_META:String = "__DataColumnName__";
 
@@ -101,7 +98,6 @@ package weave.data.Transforms
         
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
         {
-
             var metadata:Object = proxyColumn.getProxyMetadata();
             var dataColumnName:String = metadata[DATA_COLUMNNAME_META];
             var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
@@ -113,11 +109,20 @@ package weave.data.Transforms
 			
             var equationColumn:EquationColumn = new EquationColumn();
 
+			metadata[ColumnMetadata.DATA_TYPE] = "{dataColumn.getMetadata('dataType')}";
             equationColumn.variables.requestObjectCopy("keyColumn", keyColumn);
             equationColumn.variables.requestObjectCopy("dataColumn", dataColumn);
             equationColumn.metadata.value = metadata;
             equationColumn.filterByKeyType.value = true;
-            equationColumn.equation.value = "return getValueFromKey(dataColumn, getKey(keyColumn));"
+            equationColumn.equation.value = "\
+				function(key, dataType) {\
+					var kt = keyColumn.getMetadata('dataType');\
+					if (kt == 'string')\
+						kt = dataColumn.getMetadata('keyType');\
+					var ln = keyColumn.getValueFromKey(key, String);\
+					return dataColumn.getValueFromKey(getQKey(kt, ln), dataType);\
+				}\
+			";
 
             proxyColumn.setInternalColumn(equationColumn);
         }
