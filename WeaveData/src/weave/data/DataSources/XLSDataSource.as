@@ -128,9 +128,15 @@ package weave.data.DataSources
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			var colName:String = String(proxyColumn.getMetadata("name"));
-			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],colName);
-			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],keyColName.value);
+			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0], colName);
+			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0], keyColName.value);
 
+			if (colIndex < 0)
+			{
+				proxyColumn.dataUnavailable(lang("No such column: {0}", colName));
+				return;
+			}
+			
 			var xlsDataColumn:Vector.<String> = getColumnValues(colIndex);
 			var keyStringsArray:Array = VectorUtils.copy(getColumnValues(keyColIndex), []);
 			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, keyStringsArray);

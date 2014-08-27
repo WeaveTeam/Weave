@@ -139,7 +139,7 @@ package weave.data.DataSources
 				proxyColumn.setInternalColumn(dataSource.getAttributeColumn(metadata));
 			}
 			else
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				proxyColumn.dataUnavailable();
 		}
 		
 		public static const PARAMS_CKAN_ID:String = 'ckan_id';

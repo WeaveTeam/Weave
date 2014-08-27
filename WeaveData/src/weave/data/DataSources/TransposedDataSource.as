@@ -186,7 +186,7 @@ package weave.data.DataSources
 				proxyColumn.setInternalColumn(new TransposedRecord(this, internalData, null, propertyName));
 			}
 			else
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				proxyColumn.dataUnavailable();
 		}
 	}
 }

@@ -4,7 +4,6 @@ package weave.data.DataSources
     
     import flash.net.URLLoaderDataFormat;
     import flash.net.URLRequest;
-    import flash.utils.Dictionary;
     
     import mx.rpc.events.FaultEvent;
     import mx.rpc.events.ResultEvent;
@@ -165,7 +164,7 @@ package weave.data.DataSources
             metadata = getColumnMetadata(metadata[GRAPH_GROUP_META], metadata[GRAPH_ID_META]);
 			if (!metadata)
 			{
-				proxyColumn.setInternalColumn(null);
+				proxyColumn.dataUnavailable();
 				return;
 			}
 

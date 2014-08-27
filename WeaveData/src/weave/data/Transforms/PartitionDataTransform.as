@@ -135,7 +135,8 @@ package weave.data.Transforms
 
 			if (!column)
 			{
-				disposeObject(proxyColumn);
+				proxyColumn.dataUnavailable();
+				return;
 			}
 
 			if (!filteredColumn)

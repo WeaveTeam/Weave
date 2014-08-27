@@ -171,13 +171,20 @@ package weave.data.DataSources
 			if (initializationComplete)
 			{
 				_proxyColumns[column] = false; // no longer pending
-				WeaveAPI.StageUtils.callLater(column, requestColumnFromSource, [column]);
-				WeaveAPI.StageUtils.callLater(column, WeaveAPI.ProgressIndicator.removeTask, [column]);
+				WeaveAPI.StageUtils.callLater(column, requestColumnFromSourceLater, [column]);
 			}
 			else
 			{
 				_proxyColumns[column] = true; // pending
 			}
+		}
+		
+		private function requestColumnFromSourceLater(column:ProxyColumn):void
+		{
+			column.delayCallbacks();
+			requestColumnFromSource(column);
+			WeaveAPI.ProgressIndicator.removeTask(column);
+			column.resumeCallbacks();
 		}
 		
 		/**

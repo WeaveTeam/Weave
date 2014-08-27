@@ -35,7 +35,6 @@ package weave.data.DataSources
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.services.JsonCache;
 	

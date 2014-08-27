@@ -225,7 +225,7 @@ package weave.data.DataSources
 			var metadata:Object = getMetadataForProperty(propertyName);
 			if (!metadata || !jsonData || (propertyName && jsonData.propertyNames.indexOf(propertyName) < 0))
 			{
-				proxyColumn.setInternalColumn(null);
+				proxyColumn.dataUnavailable();
 				return;
 			}
 			proxyColumn.setMetadata(metadata);

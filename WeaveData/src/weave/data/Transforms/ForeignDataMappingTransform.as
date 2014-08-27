@@ -103,7 +103,7 @@ package weave.data.Transforms
             var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
 			if (!dataColumn)
 			{
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				proxyColumn.dataUnavailable();
 				return;
 			}
 			

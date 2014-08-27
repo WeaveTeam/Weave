@@ -514,7 +514,7 @@ package weave.data.DataSources
 			var msg:String = "Error retrieving column: " + Compiler.stringify(column.getProxyMetadata()) + ' (' + event.fault.faultString + ')';
 			reportError(event.fault, msg, column);
 			
-			column.setInternalColumn(ProxyColumn.undefinedColumn);
+			column.dataUnavailable();
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{
@@ -560,7 +560,7 @@ package weave.data.DataSources
 				// stop if no data
 				if (result.data == null)
 				{
-					proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+					proxyColumn.dataUnavailable();
 					return;
 				}
 				

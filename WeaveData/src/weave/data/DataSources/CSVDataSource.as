@@ -521,7 +521,7 @@ package weave.data.DataSources
 			}
 			if (colIndex < 0)
 			{
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				proxyColumn.dataUnavailable(lang("No such column: {0}", columnId));
 				return;
 			}
 			
