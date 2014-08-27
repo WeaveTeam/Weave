@@ -20,6 +20,7 @@
 package weave.data.Transforms
 {
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.disposeObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
@@ -129,17 +130,28 @@ package weave.data.Transforms
 			var columnName:String = metadata[PARTITION_COLUMNNAME_META];
 			var value:String = metadata[PARTITION_VALUE_META];
 			
+			var filteredColumn:FilteredColumn = proxyColumn.getInternalColumn() as FilteredColumn;
 			var column:IAttributeColumn = inputColumns.getObject(columnName) as IAttributeColumn;
 
-			var newFilteredColumn:FilteredColumn = new FilteredColumn();
-			var filter:StringDataFilter = newFilteredColumn.filter.requestLocalObject(StringDataFilter, false);
+			if (!column)
+			{
+				disposeObject(proxyColumn);
+			}
 
-			filter.column.requestLocalObjectCopy(partitionColumn);
-			filter.stringValue.value = value;
+			if (!filteredColumn)
+			{
+				filteredColumn = new FilteredColumn();
+				
+				var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
 
-			newFilteredColumn.internalDynamicColumn.requestLocalObjectCopy(column);
+				filter.column.requestLocalObjectCopy(partitionColumn);
+				filter.stringValue.value = value;
+				filteredColumn.internalDynamicColumn.requestLocalObjectCopy(column);
+				
+				proxyColumn.setInternalColumn(filteredColumn);
 
-			proxyColumn.setInternalColumn(newFilteredColumn);
+				return;
+			}
 		}
 	}
 }
