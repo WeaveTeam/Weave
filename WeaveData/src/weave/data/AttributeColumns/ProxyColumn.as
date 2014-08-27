@@ -28,7 +28,6 @@ package weave.data.AttributeColumns
 	import weave.utils.VectorUtils;
 
 	/**
-	 * ProxyColumn
 	 * This class is a proxy (a wrapper) for another attribute column.
 	 * 
 	 * @author adufilie
@@ -160,9 +159,7 @@ package weave.data.AttributeColumns
 		}
 
 		/**
-		 * dispose
-		 * This function should be called when the ProxyColumn is no longer in use.
-		 * All existing pointers to objects should be set to null so they can be garbage collected.
+		 * @inheritDoc
 		 */
 		override public function dispose():void
 		{
@@ -176,7 +173,6 @@ package weave.data.AttributeColumns
 		}
 		
 		/**
-		 * undefinedColumn
 		 * This object can be used as an alternative to a null
 		 * return value for a function returning a ProxyColumn.
 		 */
