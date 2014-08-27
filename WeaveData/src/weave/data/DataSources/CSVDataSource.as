@@ -414,7 +414,11 @@ package weave.data.DataSources
 			if (metadata.hasOwnProperty(METADATA_COLUMN_INDEX))
 				return new CSVColumnNode(this, metadata[METADATA_COLUMN_INDEX]);
 			if (metadata.hasOwnProperty(METADATA_COLUMN_NAME))
-				return new CSVColumnNode(this, getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]));
+			{
+				var index:int = getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]);
+				if (index >= 0)
+					return new CSVColumnNode(this, index);
+			}
 			
 			return null;
 		}
@@ -515,6 +519,12 @@ package weave.data.DataSources
 				colIndex = colNames.indexOf(columnId);
 				colName = String(columnId);
 			}
+			if (colIndex < 0)
+			{
+				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				return;
+			}
+			
 			if (!metadata[ColumnMetadata.TITLE])
 				metadata[ColumnMetadata.TITLE] = colName;
 			
@@ -597,7 +607,7 @@ package weave.data.DataSources
 		/**
 		 * @param rows The rows to get values from.
 		 * @param columnIndex If this is -1, record index values will be returned.  Otherwise, this specifies which column to get values from.
-		 * @return A list of values from the specified column, excluding the first row, which is the header.
+		 * @param outputArrayOrVector Output Array or Vector to store the values from the specified column, excluding the first row, which is the header.
 		 */		
 		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):void
 		{
