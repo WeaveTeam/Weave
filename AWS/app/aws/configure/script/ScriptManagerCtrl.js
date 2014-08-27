@@ -10,11 +10,6 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
         	 // console.log($scope.scriptMetadata);
           }, true);
           
-          $scope.$watch('editMode', function () {
-        	  $scope.scriptMetadataGridOptions.enableCellEdit = $scope.editMode;
-        	  console.log($scope.scriptMetadataGridOptions);
-          });
-          
           var refreshScripts = function () {
         	  scriptManagerService.getListOfRScripts().then(function(result) {
         		  $scope.rScripts = $.map(result, function(item) {
@@ -66,13 +61,13 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           $scope.scriptMetadataGridOptions = {
         		  data: 'scriptMetadata',
         		  columnDefs : [{field : "param", displayName : "Parameter"},
-        		               {field :"type", displayName : "Type", editableCellTemplate : '<select  ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
-        		               {field : "columnType", displayName : "Column Type", editableCellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="input for input in columnTypes" style="align:center"></select>'},
+        		               {field :"type", displayName : "Type", cellTemplate : '<select  ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
+        		               {field : "columnType", displayName : "Column Type", cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="input for input in columnTypes" style="align:center"></select>'},
         		               {field : "options", displayName : "Options"},
         		               {field : "description", displayName : "Description"}],
         		  multiSelect: false,
         		  enableRowSelection: true,
-        		  enableCellEdit : false,
+        		  enableCellEdit : true,
         		  selectedItems : $scope.selectedRow
           };
           
@@ -80,7 +75,7 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
           $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
           
           $scope.addNewRow = function () {
-     		 $scope.scriptMetadata.push({param: '...', type: ' ', columnType : ' ', options : '...', description : '...'});
+     		 $scope.scriptMetadata.push({param: '...', type: ' ', columnType : ' ', options : ' ', description : '...'});
      	 };
 
      	 $scope.removeRow = function() {
@@ -95,6 +90,12 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller
      			scriptManagerService.deleteScript($scope.selectedScript[0]);
      			refreshScripts();
  			 }
+     	 };
+     	 
+     	 $scope.saveChanges = function () {
+     		 if($scope.selectedScript.length) {
+     			scriptManagerService.saveScriptMetadata($scope.selectedScript[0], angular.toJson($scope.scriptMetadata)).then(refreshScripts);
+  			 }
      	 };
 //          $scope.uploadScript = false;
 //          $scope.textScript = false;
