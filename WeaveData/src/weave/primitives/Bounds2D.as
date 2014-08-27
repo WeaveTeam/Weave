@@ -188,7 +188,7 @@ package weave.primitives
 				return isUndefined();
 			var o:Bounds2D = other as Bounds2D;
 			if (!o)
-				return other.equals(this);
+				(o = staticBounds2D_A).copyFrom(other);
 			return (xMin == o.xMin || (isNaN(xMin) && isNaN(o.xMin)))
 				&& (yMin == o.yMin || (isNaN(yMin) && isNaN(o.yMin)))
 				&& (xMax == o.xMax || (isNaN(xMax) && isNaN(o.xMax)))

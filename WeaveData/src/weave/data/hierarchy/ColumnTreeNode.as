@@ -110,7 +110,7 @@ package weave.data.hierarchy
 		{
 			var that:ColumnTreeNode = other as ColumnTreeNode;
 			if (!that)
-				return other.equals(this);
+				return false;
 			
 			// compare constructor
 			if (Object(this).constructor != Object(that).constructor)
