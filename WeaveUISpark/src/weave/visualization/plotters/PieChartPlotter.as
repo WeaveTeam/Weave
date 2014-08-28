@@ -139,7 +139,7 @@ package weave.visualization.plotters
 			_tempPoint.x += cos * 10 * screenBounds.getXDirection();
 			_tempPoint.y += sin * 10 * screenBounds.getYDirection();
 			
-			_bitmapText.text = label.getValueFromKey(recordKey);
+			_bitmapText.text = label.getValueFromKey(recordKey, String);
 			
 			_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			

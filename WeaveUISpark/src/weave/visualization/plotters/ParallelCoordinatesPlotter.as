@@ -440,24 +440,24 @@ package weave.visualization.plotters
 					{								
 						// solid circle
 						case SOLID_CIRCLE:
-							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey));
+							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey, Number));
 							// circle uses radius, so size/2
 							graphics.drawCircle(x, y, shapeSize/2);
 							break;
 						// empty circle
 						case EMPTY_CIRCLE:
-							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey), shapeLineThickness == 0 ? 0 : 1);
+							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey, Number), shapeLineThickness == 0 ? 0 : 1);
 							graphics.drawCircle(x, y, shapeSize/2);
 							
 							break;
 						// solid square
 						case SOLID_SQUARE:
-							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey));
+							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey, Number));
 							graphics.drawRect(x-_shapeSize/2, y-_shapeSize/2, _shapeSize, _shapeSize);
 							break;
 						// empty square
 						case EMPTY_SQUARE:
-							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey), shapeLineThickness == 0 ? 0 : 1);
+							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey, Number), shapeLineThickness == 0 ? 0 : 1);
 							graphics.drawRect(x-_shapeSize/2, y-_shapeSize/2, _shapeSize, _shapeSize);
 							break;
 					}

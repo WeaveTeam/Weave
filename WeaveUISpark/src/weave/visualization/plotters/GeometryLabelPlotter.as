@@ -73,8 +73,8 @@ package weave.visualization.plotters
 			try
 			{
 				// get the first geom in each list
-				var geom1:GeneralizedGeometry = (geometryColumn.getValueFromKey(key1) as Array)[0] as GeneralizedGeometry;
-				var geom2:GeneralizedGeometry = (geometryColumn.getValueFromKey(key2) as Array)[0] as GeneralizedGeometry;
+				var geom1:GeneralizedGeometry = geometryColumn.getValueFromKey(key1, Array)[0] as GeneralizedGeometry;
+				var geom2:GeneralizedGeometry = geometryColumn.getValueFromKey(key2, Array)[0] as GeneralizedGeometry;
 				
 				// sort descending by bounding box area
 				var result:int = -ObjectUtil.numericCompare(geom1.bounds.getArea(), geom2.bounds.getArea());

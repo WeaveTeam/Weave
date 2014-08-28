@@ -289,7 +289,7 @@ package weave.utils
 		{
 			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return StandardLib.asBoolean( column.getValueFromKey(qkey) );
+				return StandardLib.asBoolean( column.getValueFromKey(qkey, Number) );
 			return false;
 		}
 		/**
@@ -316,7 +316,7 @@ package weave.utils
 		public static function getGeometry(geometryColumn:IAttributeColumn, key:Object):Array
 		{
 			var qkey:IQualifiedKey = getQKey(key);
-			var genGeoms:Array = geometryColumn.getValueFromKey(qkey) as Array;
+			var genGeoms:Array = geometryColumn.getValueFromKey(qkey, Array) as Array;
 			
 			if (genGeoms == null)
 				return null;

@@ -136,7 +136,7 @@ package weave.visualization.plotters
 			var dataCol:IAttributeColumn = trueXfalseY ? xData : yData;
 			if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY)
 			{
-				var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
+				var geoms:Array = dataCol.getValueFromKey(recordKey, Array) as Array;
 				var geom:GeneralizedGeometry;
 				if (geoms && geoms.length)
 					geom = geoms[0] as GeneralizedGeometry;

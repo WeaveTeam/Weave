@@ -23,6 +23,8 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import weave.api.core.ILinkableVariable;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -59,6 +61,14 @@ package weave.utils
 			return currentRecordKey;
 		}
 		
+		// dataType metadata value -> Class
+		private static const dataTypeClasses:Object = {
+			'number': Number,
+			'string': String,
+			'date': Date,
+			'geometry': Array
+		};
+		
 		/**
 		 * This function uses currentRecordKey when retrieving a value from a column.
 		 * @param object An IAttributeColumn or an ILinkableVariable to get a value from.
@@ -79,6 +89,13 @@ package weave.utils
 			var column:IAttributeColumn = object as IAttributeColumn;
 			if (column != null)
 			{
+				if (dataType == null)
+				{
+					var dataTypeMetadata:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
+					dataType = dataTypeClasses[dataTypeMetadata];
+					if (!dataType && dataTypeMetadata)
+						dataType = IQualifiedKey;
+				}
 				value = column.getValueFromKey(key, dataType as Class);
 			}
 			else if (object is ILinkableVariable)
@@ -261,7 +278,7 @@ package weave.utils
 			var column:IAttributeColumn = object as IAttributeColumn;
 			if (column != null)
 			{
-				result = column.getValueFromKey(key, Boolean);
+				result = StandardLib.asBoolean(column.getValueFromKey(key, Number));
 			}
 			else if (object is ILinkableVariable)
 			{
