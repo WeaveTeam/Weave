@@ -231,8 +231,11 @@
 					function onClick(item:WeaveMenuItem):void
 					{
 						// prioritize input columns
+						var selectedItems:Array = browser.explorer.fileView.selectedItems;
+						if (selectedItems)
+							selectedItems = selectedItems.concat().reverse();
 						var input:Array = VectorUtils.union(
-							browser.explorer.fileView.selectedItems,
+							selectedItems,
 							browser.explorer.selectedFolder.getChildren()
 						);
 						
