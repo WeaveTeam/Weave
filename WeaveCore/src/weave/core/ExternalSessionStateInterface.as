@@ -122,7 +122,7 @@ package weave.core
 				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 			}
 			
-			externalWarning("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
+			externalError("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
 			return null;
 		}
 		
@@ -328,6 +328,12 @@ package weave.core
 				if (assignVariableName && !_compiler.isValidSymbolName(assignVariableName))
 					throw new Error("Invalid variable name: " + Compiler.encodeString(assignVariableName));
 				
+				// To avoid "variable is undefined" errors, treat variables[''] as an Array of keys and set any missing properties to undefined
+				if (variables)
+					for each (var key:String in variables[''])
+						if (!variables.hasOwnProperty(key))
+							variables[key] = undefined;
+				
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				if (getObjectFromPathOrVariableName_error)
 					throw new Error(getObjectFromPathOrVariableName_error);
@@ -338,19 +344,13 @@ package weave.core
 					compiledObject,
 					[variables, _variables],
 					WeaveAPI.ErrorManager.reportError,
-					thisObject != null
+					thisObject != null,
+					null,
+					null,
+					true,
+					thisObject
 				);
-				var result:*;
-				if (isAssignment && isFuncDef)
-				{
-					// bind 'this' scope
-					result = Compiler.bind(compiledMethod, thisObject);
-				}
-				else
-				{
-					result = compiledMethod.apply(thisObject);
-				}
-				
+				var result:* = isFuncDef ? compiledMethod : compiledMethod.apply(thisObject);
 				if (isAssignment)
 					_variables[assignVariableName] = result;
 				else
@@ -466,10 +466,7 @@ package weave.core
 		
 		private static function externalError(format:String, ...args):void
 		{
-			var prefix:String = "Error: ";
-			if (format.indexOf(prefix) != 0)
-				format = prefix + format;
-			WeaveAPI.externalError(StandardLib.substitute(format, args));
+			throw new Error(StandardLib.substitute(format, args));
 		}
 		
 		private static function externalWarning(format:String, ...args):void

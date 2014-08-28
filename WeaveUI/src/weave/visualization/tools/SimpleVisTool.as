@@ -91,7 +91,7 @@ package weave.visualization.tools
 		}
 		override protected function afterConstructor():void
 		{
-			initSelectableAttributes(ProbeTextUtils.getColumnsOfMostCommonKeyType());
+			initSelectableAttributes(ProbeTextUtils.getColumnsWithCommonKeyType());
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);

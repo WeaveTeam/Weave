@@ -19,6 +19,7 @@
 
 package weave.data.AttributeColumns
 {
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
@@ -28,7 +29,6 @@ package weave.data.AttributeColumns
 	import weave.utils.VectorUtils;
 
 	/**
-	 * ProxyColumn
 	 * This class is a proxy (a wrapper) for another attribute column.
 	 * 
 	 * @author adufilie
@@ -149,37 +149,38 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			var value:*
-
-			if (_internalColumn == null)
-				value = NaN;
-			else
-				value = _internalColumn.getValueFromKey(key, dataType);
-
-			return value;
+			if (_internalColumn)
+				return _internalColumn.getValueFromKey(key, dataType);
+			return undefined;
 		}
 
 		/**
-		 * dispose
-		 * This function should be called when the ProxyColumn is no longer in use.
-		 * All existing pointers to objects should be set to null so they can be garbage collected.
+		 * @inheritDoc
 		 */
 		override public function dispose():void
 		{
 			super.dispose();
+			_metadata = null;
 			setInternalColumn(null); // this will remove the callback that was added to the internal column
 		}
-
+		
+		/**
+		 * Call this function when the ProxyColumn should indicate that the requested data is unavailable.
+		 * @param message The message to display in the title of the ProxyColumn. Default is "Data unavailable."
+		 */
+		public function dataUnavailable(message:String = null):void
+		{
+			delayCallbacks();
+			var meta:Object = {};
+			meta[ColumnMetadata.TITLE] = message || lang("Data unavailable");
+			setMetadata(meta);
+			setInternalColumn(null);
+			resumeCallbacks();
+		}
+			
 		override public function toString():String
 		{
 			return debugId(this) + '( ' + (getInternalColumn() ? getInternalColumn() : super.toString()) + ' )';
 		}
-		
-		/**
-		 * undefinedColumn
-		 * This object can be used as an alternative to a null
-		 * return value for a function returning a ProxyColumn.
-		 */
-		public static const undefinedColumn:ProxyColumn = registerDisposableChild(ProxyColumn, new ProxyColumn(<attribute title="Undefined"/>));
 	}
 }

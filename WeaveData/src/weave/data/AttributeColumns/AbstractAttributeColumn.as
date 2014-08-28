@@ -56,6 +56,7 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * Copies key/value pairs from an Object or XML attributes.
+		 * Converts Array values to Strings using WeaveAPI.CSVParser.createCSVRow().
 		 */
 		protected static function copyValues(obj_or_xml:Object):Object
 		{
@@ -64,7 +65,13 @@ package weave.data.AttributeColumns
 			
 			var obj:Object = {};
 			for (var key:String in obj_or_xml)
-				obj[key] = obj_or_xml[key];
+			{
+				var value:* = obj_or_xml[key];
+				if (value is Array)
+					obj[key] = WeaveAPI.CSVParser.createCSVRow(value as Array);
+				else
+					obj[key] = value;
+			}
 			return obj;
 		}
 		

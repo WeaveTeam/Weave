@@ -203,7 +203,7 @@ package weave.visualization.plotters
 					graphics.beginFill(anchorColorMap[key.localName]);
 				else if (doCDLayout)
 				{
-					//color the dimensional anchors according to the class hey belong to
+					//color the dimensional anchors according to the class they belong to
 					var classStr:String = getClassFromAnchor(key.localName);
 					var cc:ColorColumn = Weave.defaultColorColumn;
 					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;

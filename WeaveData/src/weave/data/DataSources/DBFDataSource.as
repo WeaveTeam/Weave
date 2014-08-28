@@ -253,6 +253,11 @@ package weave.data.DataSources
 			
 			// override proxy metadata
 			metadata = getColumnMetadata(columnName);
+			if (!metadata)
+			{
+				proxyColumn.dataUnavailable();
+				return;
+			}
 			proxyColumn.setMetadata(metadata);
 
 			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value)));
@@ -309,6 +314,7 @@ package weave.data.DataSources
 			if (columnName == THE_GEOM_COLUMN)
 			{
 				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
+				return meta;
 			}
 			else
 			{
@@ -322,11 +328,11 @@ package weave.data.DataSources
 							meta[ColumnMetadata.DATA_TYPE] = dataType;
 						if (dataType == DataType.DATE)
 							meta[ColumnMetadata.DATE_FORMAT] = "YYYYMMDD";
-						break;
+						return meta;
 					}
 				}
 			}
-			return meta;
+			return null;
 		}
 		private function getColumnValues(columnName:String):Array
 		{

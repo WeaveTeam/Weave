@@ -29,7 +29,6 @@ package weave
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.Base64Encoder;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.core.ILinkableHashMap;
@@ -105,13 +104,17 @@ package weave
 			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
 			{
 				var bytes:ByteArray = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
+				var ascii:String = StandardLib.btoa(bytes);
 				
-				// use Base64Encoder here instead of StandardLib.btoa() because we want the line breaks in the XML.
-				var encoder:Base64Encoder = new Base64Encoder();
-				encoder.encodeBytes(bytes);
-				var ascii:String = encoder.flush();
-				
-				xml.appendChild(<ByteArray name={ fileName } encoding="base64">{ ascii }</ByteArray>);
+				var str:String = '';
+				var lineLength:int = 76;
+				for (var i:int = 0; i < ascii.length; i += lineLength)
+				{
+					if (i > 0)
+						str += '\n';
+					str += ascii.substr(i, lineLength);
+				}
+				xml.appendChild(<ByteArray name={ fileName } encoding="base64">{ str }</ByteArray>);
 			}
 			
 			return xml;
@@ -361,7 +364,10 @@ package weave
 					for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 						WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
 					for each (var node:XML in xml.ByteArray)
-						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(node.text()));
+					{
+						var ascii:String = StandardLib.replace(node.text(), '\n', '', '\r', '');
+						WeaveAPI.URLRequestUtils.saveLocalFile(node.attribute('name'), StandardLib.atob(ascii));
+					}
 				}
 			}
 			else if (content)
@@ -408,12 +414,6 @@ package weave
 			
 			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
-			
-			if (WeaveAPI.javaScriptInitialized)
-			{
-				Weave.initExternalDragDrop();
-				properties.runStartupJavaScript();
-			}
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
@@ -552,25 +552,6 @@ package weave
 			obj.close();
 			
 			return saved != null;
-		}
-		
-		
-		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
-		private static const WeaveStartup:Class;
-		private static var _startupComplete:Boolean = false;
-		public static function initExternalDragDrop():void
-		{
-			if (_startupComplete || !JavaScript.available)
-				return;
-			try
-			{
-				WeaveAPI.initializeJavaScript(WeaveStartup);
-				_startupComplete = true;
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
 		}
 	}
 }

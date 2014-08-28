@@ -48,9 +48,10 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == ColumnMetadata.DATA_TYPE)
+			var value:String = super.getMetadata(propertyName);
+			if (!value && propertyName == ColumnMetadata.DATA_TYPE)
 				return DataType.STRING;
-			return super.getMetadata(propertyName);
+			return value;
 		}
 
 		/**

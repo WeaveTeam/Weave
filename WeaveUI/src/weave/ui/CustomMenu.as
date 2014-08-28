@@ -72,6 +72,7 @@ package weave.ui
 				// init auto scroll
 				menu.addEventListener(MouseEvent.MOUSE_MOVE, autoScroll);
 				menu.addEventListener(MenuEvent.MENU_SHOW, handleMenuShow);
+				menu.addEventListener(MouseEvent.MOUSE_OVER, handleMouseOver, false, 1);
 				
 				// add a sprite for a shadow to indicate when there are more menu items below or above
 				shadowSprites[menu] = shadowSprite = new Sprite();
@@ -80,6 +81,13 @@ package weave.ui
 			}
 			menu.scrollRect = null;
 			menu.callLater(autoScroll, [menu]);
+		}
+		
+		private static function handleMouseOver(event:MouseEvent):void
+		{
+			// fixes display bug when dragging mouse over menu item but not over item label
+			if (!(event.target is Menu))
+				event.buttonDown = false;
 		}
 		
 		private static function handleMenuShow(event:MenuEvent):void

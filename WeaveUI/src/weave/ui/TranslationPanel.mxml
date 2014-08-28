@@ -77,7 +77,7 @@
 			{
 				super.constructor();
 				enableSubMenu.value = true;
-				subMenu.dataProvider = [
+				subMenuButton.data = [
 					{
 						label: lang("Switch to developer testing mode"),
 						click: switchToDeveloperMode

@@ -440,9 +440,11 @@ package weave.data.DataSources
 			return vector;
 		}
 		
-		private function handleColumnDownloadFail(event:FaultEvent, token:Object = null):void
+		private function handleColumnDownloadFail(event:FaultEvent, proxyColumn:ProxyColumn):void
 		{
 			reportError(event);
+			if (!proxyColumn.wasDisposed)
+				proxyColumn.dataUnavailable();
 		}
 	}
 }

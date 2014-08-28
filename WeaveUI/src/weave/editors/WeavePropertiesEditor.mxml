@@ -96,7 +96,6 @@
 			</ui:HelpComponent>
 			<mx:Spacer width="100%"/>
 			<mx:Button label="{lang('View documentation')}" click="navigateToURL(new URLRequest('http://info.oicweave.org/projects/weave/wiki/JavaScript_API'), '_blank')"/>
-			<!-- <mx:Button label="{lang('Run now')}" click="Weave.properties.runStartupJavaScript()"/> -->
 			<mx:Button label="{lang('Restart Weave')}" click="Weave.externalReload()"/>
 		</mx:HBox>
 		<ui:CodeEditor creationComplete="linkBindableProperty(Weave.properties.startupJavaScript, event.target, 'text', 500)"/>

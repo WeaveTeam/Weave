@@ -20,6 +20,7 @@
 package
 {
 	import weave.api.ui.IEditorManager;
+	import weave.core.ClassUtils;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -36,11 +37,13 @@ package
 	import weave.data.KeySets.NumberDataFilter;
 	import weave.data.KeySets.StringDataFilter;
 	import weave.data.Transforms.PartitionDataTransform;
+	import weave.data.Transforms.ForeignDataMappingTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
 	import weave.editors.DynamicColumnEditor;
+	import weave.editors.ForeignDataMappingTransformEditor;
 	import weave.editors.GeoJSONDataSourceEditor;
 	import weave.editors.GeometryLabelPlotterEditor;
 	import weave.editors.GeometryPlotterEditor;
@@ -67,6 +70,7 @@ package
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.SessionStateEditor;
+	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
@@ -138,6 +142,7 @@ package
 			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
 			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
 			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
+			em.registerEditor(ForeignDataMappingTransform, ForeignDataMappingTransformEditor);
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
@@ -217,6 +222,10 @@ package
 				"weave.visualization.plotters",
 				"weave.visualization.plotters.styles"
 			);
+			
+			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
+			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
+			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
 		}();
 	}
 }

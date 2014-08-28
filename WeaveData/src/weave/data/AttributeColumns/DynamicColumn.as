@@ -19,6 +19,7 @@
 
 package weave.data.AttributeColumns
 {
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.data.IAttributeColumn;
@@ -97,21 +98,48 @@ package weave.data.AttributeColumns
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (internalObject)
-				return (internalObject as IAttributeColumn).containsKey(key);
-			return false;
+			var col:IAttributeColumn = internalObject as IAttributeColumn;
+			return col ? col.containsKey(key) : false;
 		}
 
+		// TEMPORARY PERFORMANCE IMPROVEMENT SOLUTION
+		public static var cache:Boolean = true;
+		private var _cache_type_key:Dictionary = new Dictionary(true);
+		private var _cacheCounter:int = 0;
+		
 		/**
 		 * @param key A key of the type specified by keyType.
 		 * @return The value associated with the given key.
 		 */
 		public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (internalObject)
-				return (internalObject as IAttributeColumn).getValueFromKey(key, dataType);
-			return undefined;
+			if (!cache)
+			{
+				var col:IAttributeColumn = internalObject as IAttributeColumn;
+				return col ? col.getValueFromKey(key, dataType) : undefined;
+			}
+			
+			if (triggerCounter != _cacheCounter)
+			{
+				_cacheCounter = triggerCounter;
+				_cache_type_key = new Dictionary(true);
+			}
+			var _cache:Dictionary = _cache_type_key[dataType];
+			if (!_cache)
+				_cache_type_key[dataType] = _cache = new Dictionary(true);
+			
+			var value:* = _cache[key];
+			if (value === undefined)
+			{
+				col = internalObject as IAttributeColumn;
+				if (col)
+					value = col.getValueFromKey(key, dataType);
+				_cache[key] = value === undefined ? UNDEFINED : value;
+			}
+			return value === UNDEFINED ? undefined : value;
 		}
+		
+		private static const UNDEFINED:Object = {};
 		
 		public function toString():String
 		{

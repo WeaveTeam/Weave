@@ -33,8 +33,9 @@ package
 	 * ExternalInterface generates the following invalid code: <code>{Content-Type: "foo\"}</code>.
 	 * The same problem occurs when returning an Object from an ActionScript function that was invoked
 	 * from JavaScript. This class works around the limitation by using JSON.stringify() and JSON.parse()
-	 * and escaping backslashes in resulting JSON strings. The values <code>undefined, NaN, Infinity, -Infinity</code>
-	 * are preserved.
+	 * and escaping backslashes in resulting JSON strings. The values <code>NaN, Infinity, -Infinity</code>
+	 * are preserved, as well as function pointers. When a JavaScript function is called from ActionScript,
+	 * it uses a property called "this" as the <code>this</code> argument for the function.
 	 * 
 	 * This class also provides an objectID accessor which is more reliable than ExternalInterface.objectID,
 	 * which may be null if the Flash object was created using jQuery.flash() even if the Flash object
@@ -72,6 +73,12 @@ package
 		private static const JSON_CALL:String = "_jsonCall";
 		
 		/**
+		 * The name of a JavaScript property of this flash instance which contains an Array of JSON replacer/reviver extensions.
+		 * Each object in the Array can contain "replacer" and "reviver" properties containing the extension functions.
+		 */
+		public static const JSON_EXTENSIONS:String = "_jsonExtensions";
+		
+		/**
 		 * Used as the second parameter to JSON.stringify
 		 */
 		private static const JSON_REPLACER:String = "_jsonReplacer";
@@ -82,12 +89,17 @@ package
 		private static const JSON_REVIVER:String = "_jsonReviver";
 		
 		/**
+		 * JSON extension property name for the needsReviving function.
+		 */
+		private static const NEEDS_REVIVING:String = "_needsReviving";
+		
+		/**
 		 * The name of the property used to store a lookup from JSON IDs to values.
 		 */
 		private static const JSON_LOOKUP:String = "_jsonLookup";
 		
 		/**
-		 * A random String which is highly unlikely to appear in any String value.  Used as a suffix for <code>undefined, NaN, -Infinity, Infinity</code>.
+		 * A random String which is highly unlikely to appear in any String value.  Used as a suffix for <code>NaN, -Infinity, Infinity</code>.
 		 */
 		private static const JSON_SUFFIX:String = ';' + Math.random() + ';' + new Date();
 		
@@ -110,6 +122,16 @@ package
 		private static var _functionCounter:int = 0;
 		
 		/**
+		 * This flag will be set to true whenever _jsonReplacer makes a replacement that requires _jsonReviver to interpret.
+		 */
+		private static var _needsReviving:Boolean = false;
+		
+		/**
+		 * Extensions to _jsonReplacer/_jsonReviver.
+		 */
+		private static const _jsonExtensions:Array = [];
+		
+		/**
 		 * Alias for ExternalInterface.available
 		 * @see flash.external.ExternalInterface#available
 		 */
@@ -129,22 +151,11 @@ package
 		/**
 		 * A JavaScript expression which gets a pointer to this Flash object.
 		 */
-		private static function get JS_this():String
+		public static function get JS_this():String
 		{
 			if (!_objectID)
 				_objectID = getExternalObjectID();
 			return 'document.getElementById("' + _objectID + '")';
-		}
-		
-		/**
-		 * Generates a line of JavaScript which intializes a variable equal to this Flash object using document.getElementById().
-		 * @param variableName The variable name, which must be a valid JavaScript identifier.
-		 */
-		private static function JS_var_this(variableName:String):String
-		{
-			if (!_objectID)
-				_objectID = getExternalObjectID(variableName);
-			return 'var ' + variableName + ' = ' + JS_this + ';';
 		}
 		
 		/**
@@ -155,13 +166,14 @@ package
 		 */
 		private static function getExternalObjectID(desiredId:String = "flash"):String
 		{
-			var id:String = ExternalInterface.objectID;
-			if (!id) // if we don't know our ID
+			if (!_objectID)
+				_objectID = ExternalInterface.objectID;
+			if (!_objectID) // if we don't know our ID
 			{
 				// use addCallback() to add a property to the flash component that will allow us to be found 
 				ExternalInterface.addCallback(JSON_SUFFIX, trace);
 				// find the element with the unique property name and get its ID (or set the ID if it doesn't have one)
-				id = ExternalInterface.call(
+				_objectID = ExternalInterface.call(
 					"function(uid, newId){\
 						while (document.getElementById(newId))\
 							newId += '_';\
@@ -174,7 +186,7 @@ package
 					desiredId
 				);
 			}
-			return id;
+			return _objectID;
 		}
 		
 		/**
@@ -185,7 +197,8 @@ package
 			// one-time initialization attempt
 			initialized = true;
 			
-			for each (var symbol:* in [undefined, NaN, Infinity, -Infinity])
+			// save special IDs for values not supported by JSON
+			for each (var symbol:Object in [NaN, Infinity, -Infinity])
 				_jsonLookup[symbol + JSON_SUFFIX] = symbol;
 			
 			// determine if backslashes need to be escaped
@@ -207,6 +220,7 @@ package
 				exec(
 					{
 						"JSON_FUNCTION_PREFIX": JSON_FUNCTION_PREFIX,
+						"JSON_EXTENSIONS": JSON_EXTENSIONS,
 						"JSON_REPLACER": JSON_REPLACER,
 						"JSON_REVIVER": JSON_REVIVER,
 						"JSON_SUFFIX": JSON_SUFFIX,
@@ -216,9 +230,25 @@ package
 					"var flash = this;",
 					"var functionCounter = 0;",
 					"var lookup = flash[JSON_LOOKUP] = {};",
-					"var symbols = [undefined, NaN, Infinity, -Infinity];",
+					"var extensions = flash[JSON_EXTENSIONS] = [];",
+					"var symbols = [NaN, Infinity, -Infinity];",
 					"for (var i in symbols)",
 					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
+					
+					"function cacheProxyFunction(id) {",
+					"    var func = function() {",
+					"        var params = Array.prototype.slice.call(arguments);",
+					"        var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
+					"        try {",
+					"            var resultJson = flash[JSON_CALL](id, paramsJson);",
+					"        } catch (e) {",
+					"            throw new Error(e);",
+					"        }",
+					"        return JSON.parse(resultJson, flash[JSON_REVIVER]);",
+					"    };",
+					"    func[JSON_FUNCTION_PREFIX] = id;",
+					"    return lookup[id] = func;",
+					"}",
 
 					"flash[JSON_REPLACER] = function(key, value) {",
 					"    if (typeof value === 'function') {",
@@ -227,28 +257,28 @@ package
 					"            value[JSON_FUNCTION_PREFIX] = id;",
 					"            lookup[id] = value;",
 					"        }",
-					"        return value[JSON_FUNCTION_PREFIX];",
+					"        value = value[JSON_FUNCTION_PREFIX];",
 					"    }",
-					"    if (value === undefined || (typeof value === 'number' && !isFinite(value)))",
-					"        return value + JSON_SUFFIX;",
-					"    return Array.isArray(value) ? [].concat(value) : value;",
+					"    else if (typeof value === 'number' && !isFinite(value))",
+					"        value = value + JSON_SUFFIX;",
+					"    else if (Array.isArray(value) && !(value instanceof Array))",
+					"        value = Array.prototype.slice.call(value);",
+					"    for (var i in extensions)",
+					"        if (typeof extensions[i] === 'object' && typeof extensions[i].replacer === 'function')",
+					"            value = extensions[i].replacer.call(flash, key, value);",
+					"    return value;",
 					"};",
 					
 					"flash[JSON_REVIVER] = function(key, value) {",
 					"    if (typeof value === 'string') {",
 					"        if (lookup.hasOwnProperty(value))",
-					"            return lookup[value];",
-					"        if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX) {",
-					"            lookup[value] = function() {",
-					"                var params = Array.prototype.slice.call(arguments);",
-					"                var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
-					"                var resultJson = flash[JSON_CALL](value, paramsJson);",
-					"                return JSON.parse(resultJson, flash[JSON_REVIVER]);",
-					"            };",
-					"            lookup[value][JSON_FUNCTION_PREFIX] = value;",
-					"            return lookup[value];",
-					"        }",
+					"            value = lookup[value];",
+					"        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)",
+					"            value = cacheProxyFunction(value);",
 					"    }",
+					"    for (var i in extensions)",
+					"        if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')",
+					"            value = extensions[i].reviver.call(flash, key, value);",
 					"    return value;",
 					"};"
 				);
@@ -263,16 +293,14 @@ package
 		 */
 		private static function _jsonCall(methodId:String, paramsJson:String):String
 		{
+			ExternalInterface.marshallExceptions = true; // let the external code handle errors
+			
 			var method:Function = _jsonReviver('', methodId) as Function;
 			if (method == null)
 				throw new Error('No method with id="' + methodId + '"');
 			
 			var params:Array = json.parse(paramsJson, _jsonReviver);
-			
-			ExternalInterface.marshallExceptions = true; // let the external code handle errors from the method
 			var result:* = method.apply(null, params);
-			ExternalInterface.marshallExceptions = false; // any other errors should be handled by flash
-			
 			var resultJson:String = json.stringify(result, _jsonReplacer) || 'undefined';
 			
 			// work around unescaped backslash bug
@@ -283,7 +311,7 @@ package
 		}
 		
 		/**
-		 * Preserves primitive values not supported by JSON: undefined, NaN, Infinity, -Infinity
+		 * Preserves primitive values not supported by JSON: NaN, Infinity, -Infinity
 		 * Also looks up or generates an ID corresponding to a Function value.
 		 */
 		private static function _jsonReplacer(key:String, value:*):*
@@ -298,10 +326,21 @@ package
 					_jsonLookup[value] = id;
 					_jsonLookup[id] = value;
 				}
-				return id;
+				_needsReviving = true;
+				value = id;
 			}
-			if (value === undefined || (typeof value === 'number' && !isFinite(value)))
-				return value + JSON_SUFFIX;
+			else if (value is Number && !isFinite(value as Number))
+			{
+				_needsReviving = true;
+				value = value + JSON_SUFFIX;
+			}
+			for each (var extension:Object in _jsonExtensions)
+			{
+				if (extension[NEEDS_REVIVING] is Function && extension[NEEDS_REVIVING](key, value))
+					_needsReviving = true;
+				if (extension[JSON_REPLACER] is Function)
+					value = extension[JSON_REPLACER](key, value);
+			}
 			return value;
 		}
 		
@@ -314,27 +353,63 @@ package
 			if (value is String)
 			{
 				if (_jsonLookup.hasOwnProperty(value))
-					return _jsonLookup[value];
-				// ID -> Function
-				if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
-				{
-					var func:Function = function():*{
-						return exec(
-							{
-								"JSON_REVIVER": JSON_REVIVER,
-								"id": value,
-								"args": arguments
-							},
-							"var func = this[JSON_REVIVER]('', id);",
-							"return func.apply(func['this'], args);"
-						);
-					} as Function;
-					_jsonLookup[func] = value;
-					_jsonLookup[value] = func;
-					return func as Function;
-				}
+					value = _jsonLookup[value];
+				else if ((value as String).substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
+					value = _cacheProxyFunction(value as String); // ID -> Function
 			}
+			for each (var extension:Object in _jsonExtensions)
+				if (extension[JSON_REVIVER] is Function)
+					value = extension[JSON_REVIVER](key, value);
 			return value;
+		}
+		
+		/**
+		 * Caches a new proxy function for a JavaScript function in _jsonLookup.
+		 * @param id The ID of the JavaScript function.
+		 * @return The proxy function.
+		 */
+		private static function _cacheProxyFunction(id:String):Function
+		{
+			var params:Object = {"id": id, "catch": false };
+			var script:String = [
+				"var func = this." + JSON_REVIVER + "('', id);",
+				"return func.apply(func['this'], args);"
+			].join('\n');
+			
+			var func:Function = function():*{
+				params['args'] = arguments;
+				return exec(params, script);
+			} as Function;
+			
+			_jsonLookup[func] = id;
+			_jsonLookup[id] = func;
+			
+			return func;
+		}
+		
+		/**
+		 * Extends JavaScript JSON communication to support new types of objects passed between ActionScript and JavaScript.
+		 * This only extends the ActionScript side. Corresponding JavaScript code must written if specialized JavaScript
+		 * Objects are to be supported.
+		 * @param replacer function(key:String, value:*):* ; Replaces an Object with a JSON-serializable representation. 
+		 * @param reviver function(key:String, value:*):* ; Revives an Object from its JSON representation.
+		 * @param needsReviving function(key:String, value:*):Boolean ; Determines if a value requires reviving in JavaScript once replaced in ActionScript.
+		 * 
+		 * @example Example JavaScript code (func1 and func2 should be function definitions)
+		 * <listing version="3.0">
+		 * JavaScript.exec(
+		 *     {"JSON_EXTENSIONS": JavaScript.JSON_EXTENSIONS},
+		 *     'this[JSON_EXTENSIONS].push({"replacer": func1, "reviver": func2});'
+		 * );
+		 * </listing>
+		 */
+		public static function extendJson(replacer:Function, reviver:Function, needsReviving:Function):void
+		{
+			var extension:Object = {};
+			extension[JSON_REPLACER] = replacer;
+			extension[JSON_REVIVER] = reviver;
+			extension[NEEDS_REVIVING] = needsReviving;
+			_jsonExtensions.push(extension);
 		}
 		
 		/**
@@ -421,9 +496,13 @@ package
 						if (key == 'this')
 						{
 							// put a variable declaration at the beginning of the code
-							var thisVar:String = String(value);
+							var thisVar:String = value as String;
 							if (thisVar)
-								code.unshift(JS_var_this(thisVar));
+							{
+								if (!_objectID)
+									getExternalObjectID(thisVar);
+								code.unshift("var " + thisVar + " = this;");
+							}
 						}
 						else if (key == 'catch')
 						{
@@ -434,12 +513,17 @@ package
 						{
 							// put a variable declaration at the beginning of the code
 							var jsValue:String;
-							if (value === null || value === undefined || (value is Number && !isFinite(value)))
+							if (value === null || value === undefined || value is Number || value is Boolean)
 								jsValue = String(value);
-							else if (typeof value === 'object')
-								jsValue = "JSON.parse(" + json.stringify(json.stringify(value, _jsonReplacer)) + ", this[" + json.stringify(JSON_REVIVER) + "])";
 							else if (value is Function)
-								jsValue = "this[" + json.stringify(JSON_REVIVER) + "]('', " + json.stringify(value, _jsonReplacer) + ")";
+								jsValue = 'this.' + JSON_REVIVER + '("", ' + json.stringify(value, _jsonReplacer) + ')';
+							else if (typeof value === 'object')
+							{
+								_needsReviving = false;
+								jsValue = json.stringify(value, _jsonReplacer);
+								if (_needsReviving)
+									jsValue = 'JSON.parse(' + json.stringify(jsValue) + ', this.' + JSON_REVIVER + ')';
+							}
 							else
 								jsValue = json.stringify(value);
 							
@@ -476,7 +560,7 @@ package
 				if (json)
 				{
 					// stringify results
-					appliedCode = "JSON.stringify(" + appliedCode + ", " + JS_this + "[" + json.stringify(JSON_REPLACER) + "])";
+					appliedCode = 'JSON.stringify(' + appliedCode + ', ' + JS_this + '.' + JSON_REPLACER + ')';
 					
 					// work around unescaped backslash bug
 					if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)

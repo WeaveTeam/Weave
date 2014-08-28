@@ -161,17 +161,7 @@ package weave.menus
 		public function runClickFunction():void
 		{
 			if (click is Function)
-			{
-				try
-				{
-					click.call(this);
-				}
-				catch (e:*)
-				{
-					if (e is ArgumentError)
-						click.call(this, this);
-				}
-			}
+				evalFunction(click as Function);
 			
 			var lb:LinkableBoolean = click as LinkableBoolean;
 			if (lb)

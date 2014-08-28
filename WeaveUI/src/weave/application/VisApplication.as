@@ -63,7 +63,6 @@ package weave.application
 	import weave.api.reportError;
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveArchive;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -168,12 +167,6 @@ package weave.application
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, refreshMenu);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
-			if (JavaScript.available)
-			{
-				JavaScript.registerMethod('loadFile', loadFile);
-				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
-			}
-
 			getFlashVars();
 			handleFlashVarPresentation();
 			handleFlashVarAllowDomain();
@@ -224,7 +217,14 @@ package weave.application
 		}
 		
 		private var _requestedConfigFile:String;
-		private var _loadFileCallback:Function;
+		private function setRequestedConfigFile(value:String):void
+		{
+			if (_requestedConfigFile == value)
+				return;
+			_requestedConfigFile = value;
+			_loadFileCallbacks.length = 0;
+		}
+		private var _loadFileCallbacks:Array = [];
 		/**
 		 * Loads a session state file from a URL.
 		 * @param url The URL to the session state file (.weave or .xml) specified as a String, a URLRequest, or an Object containing properties "url", "requestHeaders", "method".
@@ -238,11 +238,11 @@ package weave.application
 			if (url is URLRequest)
 			{
 				request = url as URLRequest;
-				_requestedConfigFile = request.url;
+				setRequestedConfigFile(request.url);
 			}
 			else if (url is String)
 			{
-				_requestedConfigFile = String(url);
+				setRequestedConfigFile(String(url));
 				if (noCacheHack)
 					url = String(url) + "?" + (new Date()).getTime(); // prevent flex from using cache
 				request = new URLRequest(String(url));
@@ -254,17 +254,23 @@ package weave.application
 				var headers:Object = url['requestHeaders'];
 				for (var k:String in headers)
 					request.requestHeaders.push(new URLRequestHeader(k, headers[k]));
-				_requestedConfigFile = request.url;
+				setRequestedConfigFile(request.url);
 			}
 			
-			_loadFileCallback = callback as Function;
+			if (callback != null)
+				_loadFileCallbacks.push(callback);
 			
 			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
 		}
 		
 		private function downloadConfigFile():void
 		{
-			_loadFileCallback = null;
+			if (JavaScript.available)
+			{
+				JavaScript.registerMethod('loadFile', loadFile);
+				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
+			}
+
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
 			{
 				handleConfigFileDownloaded();
@@ -297,9 +303,8 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			if (_loadFileCallback != null)
-				_loadFileCallback();
-			WeaveAPI.callExternalWeaveReady();
+			while (_loadFileCallbacks.length)
+				(_loadFileCallbacks.shift() as Function)();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
@@ -713,6 +718,8 @@ package weave.application
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
+			if (fileName)
+				Weave.fileName = fileName.split('/').pop();
 			try
 			{
 				if (getFlashVarRecover())
@@ -724,16 +731,14 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
-				if (fileName)
-					Weave.fileName = fileName.split('/').pop();
 			}
 			catch (error:Error)
 			{
 				// attempt to parse as xml
-				var xml:XML = null;
 				// check the first character because a non-xml string may still parse as a single xml text node.
 				if (String(fileContent).charAt(0) == '<')
 				{
+					var xml:XML = null;
 					try
 					{
 						xml = XML(fileContent);
@@ -743,64 +748,13 @@ package weave.application
 						// invalid xml
 						reportError(xmlError);
 					}
+					if (xml)
+						Weave.loadWeaveFileContent(xml);
 				}
 				else
 				{
 					// not an xml, so report the original error
 					reportError(error);
-				}
-				
-				if (xml)
-				{
-					// backwards compatibility:
-					var stateStr:String = xml.toXMLString();
-					while (stateStr.indexOf("org.openindicators") >= 0)
-					{
-						stateStr = stateStr.replace("org.openindicators", "weave");
-						xml = XML(stateStr);
-					}
-					var tag:XML;
-					for each (tag in xml.descendants("OpenIndicatorsServletDataSource"))
-						tag.setLocalName("WeaveDataSource");
-					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
-						tag.setLocalName("WeaveDataSource");
-					for each (tag in xml.descendants("EmptyTool"))
-						tag.setLocalName("CustomTool");
-					for each (tag in xml.descendants("WMSPlotter2"))
-						tag.setLocalName("WMSPlotter");
-					for each (tag in xml.descendants("SessionedTextArea"))
-					{
-						tag.setLocalName("SessionedTextBox");
-						tag.appendChild(<enableBorders>true</enableBorders>);
-						tag.appendChild(<htmlText>{tag.textAreaString.text()}</htmlText>);
-						tag.appendChild(<panelX>{tag.textAreaWindowX.text()}</panelX>);
-						tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
-					}
-					
-					// add missing attribute titles
-					for each (var hierarchy:XML in xml.descendants('hierarchy'))
-					{
-						for each (tag in hierarchy.descendants("attribute"))
-						{
-							if (!String(tag.@title))
-							{
-								var newTitle:String = String(tag.@csvColumn);
-								if (!newTitle && String(tag.@name) && String(tag.@year))
-									newTitle = String(tag.@name) + ' (' + tag.@year + ')';
-								else if (String(tag.@name))
-									newTitle = String(tag.@name);
-								tag.@title = newTitle || 'untitled';
-							}
-						}
-					}
-					
-					Weave.loadWeaveFileContent(xml);
-					Weave.fileName = fileName;
-					
-//					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
-//					var subset:KeyFilter = Weave.defaultSubsetKeyFilter;
-//					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
-//						subset.includeMissingKeys.value = true;
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);
@@ -831,7 +785,10 @@ package weave.application
 
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
-			this.styleName = "application";	
+			this.styleName = "application";
+			
+			Weave.properties.runStartupJavaScript();
+			WeaveAPI.callExternalWeaveReady();
 		}
 		
 		private var fadeEffect:Fade = new Fade();

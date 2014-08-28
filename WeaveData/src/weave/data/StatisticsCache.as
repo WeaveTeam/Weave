@@ -86,6 +86,8 @@ package weave.data
 		private var _ReferencedColumn:String = getQualifiedClassName(ReferencedColumn);
 		private function isSpecialCase(column:IAttributeColumn):Boolean
 		{
+			if (DynamicColumn.cache)
+				return false;
 			return (column is DynamicColumn && getQualifiedClassName(column) == _DynamicColumn)
 				|| (column is ReferencedColumn && getQualifiedClassName(column) == _ReferencedColumn);
 		}

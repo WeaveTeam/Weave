@@ -149,7 +149,7 @@ SchafersMissingDataImputation
 			override protected function constructor():void
 			{
 				super.constructor();				
-				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
+				var columns:Array = ProbeTextUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 			}

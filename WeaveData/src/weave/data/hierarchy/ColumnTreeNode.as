@@ -18,12 +18,10 @@
 */
 package weave.data.hierarchy
 {
-    import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.getCallbackCollection;
     import weave.compiler.StandardLib;
     import weave.primitives.WeaveTreeItem;
 
@@ -62,11 +60,6 @@ package weave.data.hierarchy
 		}
 		
 		/**
-		 * A pointer to the ILinkableObject that created this node.  This is most often an IDataSource.
-		 */
-		public var source:ILinkableObject = null;
-		
-		/**
 		 * Column metadata for this node.
 		 */
 		public var columnMetadata:Object = null;
@@ -80,45 +73,24 @@ package weave.data.hierarchy
 		 * Set this to true if this node is a branch, or false if it is not.
 		 * Otherwise, isBranch() will check getChildren().
 		 */
-		public var _isBranch:* = null;
+		public function set _isBranch(value:*):void
+		{
+			_counter['isBranch'] = undefined;
+			__isBranch = value;
+		}
+		private var __isBranch:* = null;
 		
 		/**
 		 * Set this to true if this node is a branch, or false if it is not.
 		 * Otherwise, hasChildBranches() will check isBranch() on each child returned by getChildren().
 		 */
-		public var _hasChildBranches:* = null;
+		public function set _hasChildBranches(value:*):void
+		{
+			_counter['hasChildBranches'] = undefined;
+			__hasChildBranches = value;
+		}
+		private var __hasChildBranches:* = null;
 
-		/**
-		 * Cached values that get invalidated when the source triggers callbacks.
-		 */
-		private var _cache:Object = {};
-		
-		/**
-		 * Cached values of getCallbackCollection(source).triggerCounter.
-		 */
-		private var _counter:Object = {};
-		
-		/**
-		 * Checks if cached value is valid.
-		 */
-		private function isCached(id:String):Boolean
-		{
-			return source && _counter[id] == getCallbackCollection(source).triggerCounter;
-		}
-		
-		/**
-		 * Updates _cache[id] and _counter[id] and returns the value.
-		 */
-		private function cache(id:String, value:Object):*
-		{
-			if (source)
-			{
-				_counter[id] = getCallbackCollection(source).triggerCounter;
-				_cache[id] = value;
-			}
-			return value;
-		}
-		
 		/**
 		 * If there is no label, this will use columnMetadata['title'] if defined.
 		 */
@@ -138,7 +110,7 @@ package weave.data.hierarchy
 		{
 			var that:ColumnTreeNode = other as ColumnTreeNode;
 			if (!that)
-				return other.equals(this);
+				return false;
 			
 			// compare constructor
 			if (Object(this).constructor != Object(that).constructor)
@@ -177,11 +149,7 @@ package weave.data.hierarchy
 		 */
 		public function getLabel():String
 		{
-			const id:String = 'getLabel';
-			if (isCached(id))
-				return _cache[id];
-			
-			return cache(id, label);
+			return label;
 		}
 		
 		/**
@@ -191,10 +159,10 @@ package weave.data.hierarchy
 		{
 			const id:String = 'isBranch';
 			if (isCached(id))
-				return _cache[id];
+				return cache(id);
 			
-			if (_isBranch != null)
-				return cache(id, getBoolean(_isBranch, '_isBranch'));
+			if (__isBranch != null)
+				return cache(id, getBoolean(__isBranch, id));
 			else
 				return cache(id, getChildren() != null);
 		}
@@ -206,10 +174,10 @@ package weave.data.hierarchy
 		{
 			const id:String = 'hasChildBranches';
 			if (isCached(id))
-				return _cache[id];
+				return cache(id);
 			
-			if (_hasChildBranches != null)
-				return cache(id, getBoolean(_hasChildBranches, '_hasChildBranches'));
+			if (__hasChildBranches != null)
+				return cache(id, getBoolean(__hasChildBranches, id));
 			
 			var children:Array = getChildren();
 			for each (var child:IWeaveTreeNode in children)
@@ -223,11 +191,7 @@ package weave.data.hierarchy
 		 */
 		public function getChildren():Array
 		{
-			const id:String = 'getChildren';
-			if (isCached(id))
-				return _cache[id];
-			
-			return cache(id, children);
+			return children;
 		}
 		
 		/**

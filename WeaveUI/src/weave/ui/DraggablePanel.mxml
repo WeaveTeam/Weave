@@ -120,12 +120,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
 			
 			public const userControlButton:Button = new Button();
-			protected const subMenuButton:Button = new Button();
+			protected const subMenuButton:MenuButton = new MenuButton();
 			protected const attributeButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
-			protected const zOrderButton:Button = new Button();
+			protected const zOrderButton:MenuButton = new MenuButton();
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
@@ -169,8 +169,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
 			private var minimizedComponentVersion:MinimizedComponent = null;
-			public const subMenu:SubMenu = new SubMenu(subMenuButton);
-			protected const zOrderSubMenu:SubMenu = new SubMenu(zOrderButton);
 			
 			public function get controlPanel():ControlPanel { return _controlPanel; }
 
@@ -248,14 +246,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				UIUtils.pad(this, 0);
 				
 				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, TOOLTIP_CONTROLS);
-				setupControlButton(subMenuButton, _subMenuIcon, null, TOOLTIP_SUBMENU);
+				setupControlButton(subMenuButton, null, null, TOOLTIP_SUBMENU);
 				setupControlButton(attributeButton, _attributeIcon, handleAttributeButtonClick, TOOLTIP_ATTRIBUTES);
 				setupControlButton(zOrderButton, [icon_zOrder, icon_zOrderReverse, icon_zOrder], null);
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, TOOLTIP_MINIMIZE);
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, TOOLTIP_MAXIMIZE);
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
-				zOrderSubMenu.dataProvider = [
+				subMenuButton.smallIcon = true;
+				zOrderButton.data = [
 					{
 						label: lang('Reset'),
 						click: function():void { zOrder.value = 0; },
@@ -1234,7 +1233,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function setupControlButton(button:Button, iconClassOrArray_0icon_1over_2down:Object, clickHandler:Function, tooltip:String = null):void
 			{
-				setupButtonIcons(button, iconClassOrArray_0icon_1over_2down);
+				if (iconClassOrArray_0icon_1over_2down)
+					setupButtonIcons(button, iconClassOrArray_0icon_1over_2down);
 				
 				button.toolTip = lang(tooltip);
 				
@@ -1292,7 +1292,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var w:int = buttonOffsetFromSide;
 				for each (var button:Button in [zOrderButton, minimizeButton, maximizeButton, closePanelButton])
 					if (button.parent)
-						w+= buttonSize + spaceBetweenButtons;
+						w += buttonSize + spaceBetweenButtons;
 				return w;
 			}
 			
@@ -1795,7 +1795,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Embed(source="/weave/resources/images/gear6_13x13_h.png")] private static var _userControlIcon:Class;
 			[Embed(source="/weave/resources/images/gear6_13x13_v.png")] private static var _userControlIcon2:Class;
-			[Embed(source="/weave/resources/images/menu_9x7.png")] private static var _subMenuIcon:Class;
 			[Embed(source="/weave/resources/images/alpha_11x11.png")] private static var _attributeIcon:Class;
 			
 			[Embed(source="/weave/resources/images/z-order.png")] private static var icon_zOrder:Class;

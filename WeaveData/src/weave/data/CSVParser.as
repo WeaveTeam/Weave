@@ -26,6 +26,7 @@ package weave.data
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
 	import weave.api.getCallbackCollection;
+	import weave.flascc.FlasCC;
 	import weave.utils.AsyncSort;
 
 	/**
@@ -37,6 +38,15 @@ package weave.data
 		private static const LF:String = '\n';
 		private static const CRLF:String = '\r\n';
 		private static const tempBuffer:ByteArray = new ByteArray();
+		
+		private static function flascc_parseCSV(input:Object, delimiter:String=",", quote:String='"', removeBlankLines:Boolean=true, parseTokens:Boolean=true, output:Array=null):Array
+		{
+			return FlasCC.call(weave.flascc.parseCSV, input, delimiter, quote, removeBlankLines, parseTokens, output);
+		}
+		private static function flascc_createCSV(rows:*, delimiter:String=",", quote:String='"', tempBuffer:ByteArray=null):String
+		{
+			return FlasCC.call(weave.flascc.createCSV, rows, delimiter, quote, tempBuffer);
+		}
 		
 		/**
 		 * @param delimiter
@@ -85,7 +95,7 @@ package weave.data
 			}
 			else
 			{
-				csvDataArray = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
+				csvDataArray = flascc_parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
 			}
 			
 			return csvDataArray;
@@ -96,7 +106,7 @@ package weave.data
 			// This isn't actually asynchronous at the moment, but moving the code to
 			// FlasCC made it so much faster that it won't matter most of the time.
 			// The async code structure is kept in case we want to make it asynchronous again in the future.
-			weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
+			flascc_parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
 			csvData = null;
 			return 1;
 		}
@@ -115,7 +125,7 @@ package weave.data
 			if (csvData == null)
 				return null;
 			
-			var rows:Array = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
+			var rows:Array = flascc_parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
 			if (rows.length == 0)
 				return rows;
 			if (rows.length == 1)
@@ -129,7 +139,7 @@ package weave.data
 		 */
 		public function createCSV(rows:Array):String
 		{
-			return weave.utils.createCSV(rows, delimiter, quote, tempBuffer);
+			return flascc_createCSV(rows, delimiter, quote, tempBuffer);
 		}
 		
 		/**
@@ -137,7 +147,7 @@ package weave.data
 		 */
 		public function createCSVRow(row:Array):String
 		{
-			return weave.utils.createCSV([row], delimiter, quote, tempBuffer);
+			return flascc_createCSV([row], delimiter, quote, tempBuffer);
 		}
 		
 		/**

@@ -520,7 +520,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 				<mx:VBox>
 					<mx:HBox paddingLeft="10">
-						<mx:Button id="DOcd" label="Do Class Discrimiation" click="DOcdButton_clickHandler(event)"/>
+						<mx:Button id="DOcd" label="Do Class Discrimination" click="DOcdButton_clickHandler(event)"/>
 						<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
 					</mx:HBox>
 					

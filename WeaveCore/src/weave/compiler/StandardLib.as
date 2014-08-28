@@ -29,6 +29,7 @@ package weave.compiler
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
+	import weave.flascc.FlasCC;
 	import weave.utils.AsyncSort;
 	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
@@ -823,24 +824,22 @@ package weave.compiler
 		
 		/**
 		 * Binary to Ascii (Base64)
+		 * @param input Binary data
+		 * @return Base64-encoded data
 		 */
-		public static function btoa(binary:ByteArray):String
+		public static function btoa(input:ByteArray):String
 		{
-			var encoder:Base64Encoder = new Base64Encoder();
-			encoder.insertNewLines = false;
-			if (binary)
-				encoder.encodeBytes(binary);
-			return encoder.drain();
+			return FlasCC.call(weave.flascc.btoa, input);
 		}
 		
 		/**
 		 * Ascii (Base64) to Binary
+		 * @param input Base64-encoded data
+		 * @return Decoded binary data
 		 */
-		public static function atob(ascii:String):ByteArray
+		public static function atob(input:String):ByteArray
 		{
-			var decoder:Base64Decoder = new Base64Decoder();
-			decoder.decode(ascii);
-			return decoder.drain();
+			return FlasCC.call(weave.flascc.atob, input);
 		}
 		
 		/**

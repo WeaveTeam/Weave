@@ -97,7 +97,7 @@
 			
 			 protected function constructor():*
 			{
-				 var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
+				 var columns:Array = ProbeTextUtils.getColumnsWithCommonKeyType();
 				 for (var i:int = 0; i < columns.length; i++)
 					 inputColumns.requestObjectCopy(null, columns[i]);
 				 

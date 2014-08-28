@@ -138,9 +138,9 @@ weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, prop
         var immediate = property_descriptor["immediate"];
         if (callback)
             new_prop.addCallback(
-            	callback,
-            	triggerNow !== undefined ? triggerNow : true,
-            	immediate !== undefined ? immediate : false
+                callback,
+                triggerNow !== undefined ? triggerNow : true,
+                immediate !== undefined ? immediate : false
             );
     }
     else
@@ -164,7 +164,8 @@ weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, prop
 
     if (children)
     {
-        if (!callback_pass) manifest[name] = {};
+        if (!callback_pass)
+            manifest[name] = {};
         children.forEach(this._initProperty.bind(new_prop, manifest[name], callback_pass));
     }
 
@@ -190,7 +191,8 @@ weave.WeavePath.prototype.initProperties = function(property_descriptor_array, m
     if (this.getType() == null) 
         this.request("ExternalTool");
 
-    if (!manifest) manifest = {};
+    if (!manifest)
+        manifest = {};
 
     /* Creation and default-setting pass */
     property_descriptor_array.forEach(this._initProperty.bind(this, manifest, false));
@@ -200,22 +202,20 @@ weave.WeavePath.prototype.initProperties = function(property_descriptor_array, m
     return manifest;
 };
 
+/**
+ * Gets a mapping from child name to a WeavePath for that child.
+ */
 weave.WeavePath.prototype.getProperties = function(/*...relativePath*/)
 {
-    var names = this.getNames.apply(this, arguments);
     var result = {};
-    for (var idx = 0; idx < names.length; idx++)
-    {
-        name = names[idx];
-        result[name] = this.push(name);
-    }
+    this.getNames.apply(this, arguments).forEach(function(name) { result[name] = this.push(name); }, this);
     return result;
 };
 
 weave.WeavePath.prototype.getKeys = function(/*...relativePath*/)
 {
-	var args = this._A(arguments, 1);
-	var path = this._path.concat(args);
+    var args = this._A(arguments, 1);
+    var path = this._path.concat(args);
     var raw_keys = this.weave.evaluateExpression(path, "this.keys");
     return raw_keys.map(this.qkeyToString);
 };
@@ -277,8 +277,8 @@ weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbac
     if (triggerCallbackNow)
     {
         var key_event = {
-        	added: this.getKeys(),
-        	removed: []
+            added: this.getKeys(),
+            removed: []
         };
 
         callback.call(this, key_event);
@@ -311,8 +311,8 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
         var keyObjects = keyStringArray.map(this.stringToQKey);
         var path = this._path.concat(args);
         var resultArray = this.weave.evaluateExpression(
-        	path,
-            'WeaveAPI.QKeyManager.convertToQKeys(keys).filter(key => this.containsKey(key), this)',
+            path,
+            'WeaveAPI.QKeyManager.convertToQKeys(keys).filter(key => this.containsKey(key))',
             {keys: keyObjects}
         );
         return resultArray.map(this.qkeyToString, this);
@@ -320,118 +320,135 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
 };
 
 /**
- * Retrieve a list of records defined by a mapping of property names to column paths or by an array of column names.
- 
+ * Retrieves a list of records defined by a mapping of property names to column paths or by an array of column names.
  * @param pathMapping An object containing a mapping of desired property names to column paths or an array of child names.
  * pathMapping can be one of three different forms:
  * An array of column names corresponding to children of the WeavePath this method is called from, e.g., path.retrieveRecords(["x", "y"]);
  * the column names will also be used as the corresponding property names in the resultant records.
  * An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, e.g.,
  * path.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
- * If it is omitted, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
+ * If it is null, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
  * The alphanumeric QualifiedKey for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
- * @param keySetPath A path object pointing to an IKeySet (columns are also IKeySets.)
+ * @param keySetPath A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
  * @return An array of record objects.
  */
-
-weave.WeavePath.prototype.retrieveRecords = function()
+weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 {
-    /* top-level retrieveRecords handles checking the types and length of the arguments before calling _retrieveRecords */
+	// if only one argument given and it's a WeavePath object, assume it's supposed to be keySetPath.
+	if (arguments.length == 1 && pathMapping instanceof weave.WeavePath)
+	{
+		keySetPath = pathMapping;
+		pathMapping = null;
+	}
+	
+	if (!pathMapping)
+		pathMapping = this.getNames();
 
-    var path_spec = null;
-    var filter_keyset = null;
-
-    if (arguments.length == 0)
-        path_spec = this.getNames();
-
-    if (arguments.length == 1)
+    if (Array.isArray(pathMapping)) // array of child names
     {
-        if (arguments[0] instanceof weave.WeavePath)
+        var names = pathMapping;
+        pathMapping = {};
+        names.forEach(function(name){ pathMapping[name] = this.push(name); }, this);
+    }
+    
+    // pathMapping is a nested object mapping property chains to WeavePath objects
+    var obj = listChainsAndPaths(pathMapping);
+    
+    /* Perform the actual retrieval of records */
+    var results = joinColumns(obj.paths, null, true, keySetPath);
+    return results[0]
+        .map(this.qkeyToString)
+        .map(function(key, iRow) {
+            var record = {id: key};
+            obj.chains.forEach(function(chain, iChain){
+                setChain(record, chain, results[iChain + 1][iRow])
+            });
+            return record;
+        });
+};
+
+/**
+ * @private
+ * A function that tests if a WeavePath references an IAttributeColumn
+ */
+var isColumn = weave.evaluateExpression(null, "o => o is IAttributeColumn", null, ['weave.api.data.IAttributeColumn']);
+
+/**
+ * @private
+ * A pointer to ColumnUtils.joinColumns.
+ */
+var joinColumns = weave.evaluateExpression(null, "ColumnUtils.joinColumns", null, ['weave.utils.ColumnUtils']);
+
+/**
+ * @private
+ * Walk down a property chain of a given object and set the value of the final node.
+ * @param root The object to navigate through.
+ * @param property_chain An array of property names defining a path.
+ * @param value The value to which to set the final node.
+ * @return The value that was set, or the current value if no value was given.
+ */
+var setChain = function(root, property_chain, value)
+{
+    property_chain = [].concat(property_chain); // makes a copy and converts a single string into an array
+    var last_property = property_chain.pop();
+    property_chain.forEach(function(prop) {
+    	root = root[prop] || (root[prop] = {});
+    });
+    // if value not given, return current value
+    if (arguments.length == 2)
+    	return root[last_property];
+    // set the value and return it
+    return root[last_property] = value;
+};
+
+/**
+ * @private
+ * Walk down a property chain of a given object and return the final node.
+ * @param root The object to navigate through.
+ * @param property_chain An array of property names defining a path.
+ * @return The value of the final property in the chain.
+ */
+var getChain = function(root, property_chain)
+{
+	return setChain(root, property_chain);
+};
+
+/**
+ * @private
+ * Recursively builds a mapping of property chains to WeavePath objects from a path specification as used in retrieveRecords
+ * @param obj A path spec object
+ * @param prefix A property chain prefix (optional)
+ * @param output Output object with "chains" and "paths" properties (optional)
+ * @return An object like {"chains": [], "paths": []}, where "chains" contains property name chains and "paths" contains WeavePath objects
+ */
+var listChainsAndPaths = function(obj, prefix, output)
+{
+    if (!prefix)
+        prefix = [];
+    if (!output)
+        output = {chains: [], paths: []};
+    
+    for (var key in obj)
+    {
+        var item = obj[key];
+        if (item instanceof weave.WeavePath)
         {
-            path_spec = this.getNames();
-            filter_keyset = arguments[0];
+            if (isColumn(item))
+            {
+                output.chains.push(prefix.concat(key));
+                output.paths.push(item);
+            }
         }
         else
-            path_spec = arguments[0];
-    }
-    
-    if (arguments.length == 2)
-    {
-        path_spec = arguments[0];
-        filter_keyset = arguments[1];
-    }
-
-    return this._retrieveRecords(path_spec, filter_keyset);
-}
-
-
-
-weave.WeavePath.prototype._retrieveRecords = function(path_spec, filter_keyset)
-{
-    /* _retrieveRecords converts array arguments to path_spec arguments before calling __retrieveRecords */
-
-    var full_path_spec;
-    var idx;
-    if (Array.isArray(path_spec))
-    {
-        final_spec = {};
-        for (idx = 0; idx < path_spec.length; idx++)
         {
-            final_spec[path_spec[idx]] = this.push(path_spec[idx]);
+            listChainsAndPaths(item, prefix.concat(key), output);
         }
-        return this.__retrieveRecords(final_spec, filter_keyset);
     }
-    else
-    {
-        return this.__retrieveRecords(path_spec, filter_keyset);
-    }
-}
+    return output;
+};
 
-weave.WeavePath.prototype.__retrieveRecords = function(path_spec, keyset_path)
-{
-    /* Performs the actual retrieval of records */
-    var flat_path_spec = this._listChains(path_spec);
-
-    var raw_chains = flat_path_spec.map(function(d) {return d.chain;});
-
-    var raw_paths = flat_path_spec.map(function(d) {return d.path;});
-
-    var keyset_path = keyset_path ? keyset_path.getPath() : null;
-
-    var results = this.weave.evaluateExpression(
-    	this._path,
-        '\
-    		var getObject = WeaveAPI.SessionManager.getObject;\
-        	var root = WeaveAPI.globalHashMap;\
-        	var keySet = keySetPath ? getObject(root, keySetPath) : null;\
-        	var columns = paths.map(path => getObject(root, path));\
-        	return ColumnUtils.joinColumns(columns, null, true, keySet);\
-    	',
-    	{
-    		paths: raw_paths,
-    		keySetPath: keyset_path
-    	},
-    	['weave.utils.ColumnUtils']
-    );
-    
-    results[0] = results[0].map(this.qkeyToString);
-
-    var records = new Array(results[0].length);
-    for (var record_idx = 0; record_idx < results[0].length; record_idx++)
-    {
-        var new_record = {};
-
-        new_record.id = results[0][record_idx];
-
-        for (var column_idx = 0; column_idx < raw_chains.length; column_idx++)
-        {
-            this._setChain(new_record, raw_chains[column_idx], results[column_idx+1][record_idx]);
-        }
-
-        records[record_idx] = new_record;
-    }
-    return records;
-}
+var getLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.getLabel");
+var setLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.setLabel");
 
 /**
  * Sets a human-readable label for an ILinkableObject to be used in editors.
@@ -442,15 +459,14 @@ weave.WeavePath.prototype.__retrieveRecords = function(path_spec, keyset_path)
  */
 weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
 {
-	var args = this._A(arguments, 2);
-	if (this._assertParams('setLabel', args))
-	{
-		var label = args.pop();
-		var path = this._path.concat(args);
-		this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label}, null, "");
-	}
-	return this;
-}
+    var args = this._A(arguments, 2);
+    if (this._assertParams('setLabel', args))
+    {
+        var label = args.pop();
+        setLabel(this.push(args), label);
+    }
+    return this;
+};
 
 /**
  * Gets the previously-stored human-readable label for an ILinkableObject.
@@ -460,82 +476,43 @@ weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
  */
 weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
 {
-	var args = this._A(arguments, 1);
-	var path = this._path.concat(args);
-	return this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.getLabel(this)");
+    var args = this._A(arguments, 1);
+    return getLabel(this.push(args));
 };
 
-/* Functions used by retrieveRecords */
+var EDC = 'weave.data.AttributeColumns::ExtendedDynamicColumn';
+var DC = 'weave.data.AttributeColumns::DynamicColumn';
+var RC = 'weave.data.AttributeColumns::ReferencedColumn';
+var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {types: [EDC, DC, RC]});
+var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]', null, ['weave.api.data.IDataSource']);
 
 /**
- * @private
- * Walk down a property chain of a given object and set the value of the final node.
- * @param root The object to navigate through.
- * @param property_chain An array of property names defining a path.
- * @param value The value to which to set the final node.
- * @return The value that was set.
+ * Sets the metadata for a column at the current path.
+ * @param metadata The metadata identifying the column. The format depends on the data source.
+ * @param dataSourceName (Optional) The name of the data source in the session state.
+ *                       If ommitted, the first data source in the session state will be used.
+ * @return The current WeavePath object.
  */
-weave.WeavePath.prototype._setChain = function(root, property_chain, value)
+weave.WeavePath.prototype.setColumn = function(metadata, dataSourceName)
 {
-    property_chain = property_chain.concat([]); /* Make a copy so we don't modify it */
-    last_property = property_chain.pop();
-    last_node = this._getChain(root, property_chain);
-    last_node[last_property] = value;
-    return value;
-}
-/**
- * @private
- * Walk down a property chain of a given object and return the final node.
- * @param root The object to navigate through.
- * @param property_chain An array of property names defining a path.
- * @return The value of the final property in the chain.
- */
-
-weave.WeavePath.prototype._getChain = function(root, property_chain)
-{
-    var node = root;
-    var idx;
-
-    for (idx = 0; idx < property_chain.length; idx++)
-    {
-        if (node[property_chain[idx]] === undefined) node[property_chain[idx]] = {};
-        node = node[property_chain[idx]];
-    }
-
-    return node;
-}
-
-
-/**
- * @private
- * Recursively builds a mapping of property chains to WeavePath objects from a path specification as used in retrieveRecords
- * @param obj A path spec object
- * @param prefix A property chain prefix
- * @return A list of objects of the format {chain: ..., path: ...}
- */
-
-weave.WeavePath.prototype._listChains = function(obj, prefix)
-{
-    var chains = [];
-    var idx = 0;
-
-    if (prefix == undefined)
-        prefix = [];
-
-    var keys = Object.keys(obj);
-
-    for (idx = 0; idx < keys.length; idx++)
-    {
-        var item = obj[keys[idx]];
-        if (item instanceof weave.WeavePath)
-        {
-            if (this.weave.evaluateExpression(item.getPath(), "this is IAttributeColumn", null, ['weave.api.data.IAttributeColumn']))
-                chains.push({chain: prefix.concat([keys[idx]]), path: item.getPath()});
-        }
-        else
-        {
-            chains = chains.concat(this._listChains(item, prefix.concat([keys[idx]])));
-        }
-    }
-    return chains;
-}
+	var type = this.getType();
+	if (!type)
+		this.request(type = RC);
+	else
+		type = getColumnType(this);
+	
+	if (!type)
+		this._failMessage('setColumn', 'Not a compatible column object', this._path);
+	
+	var path = this;
+	if (type == EDC)
+		path = path.push('internalDynamicColumn', null).request(RC);
+	else if (type == DC)
+		path = path.push(null).request(RC);
+	path.state({
+		"metadata": metadata,
+		"dataSourceName": arguments.length > 1 ? dataSourceName : getFirstDataSourceName()
+	});
+	
+	return this;
+};

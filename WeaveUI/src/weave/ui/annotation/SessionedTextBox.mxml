@@ -570,6 +570,10 @@
 					textArea.toggleControlPanel();
 				}
 			}
+			
+			[Deprecated(replacement="htmlText")] public function set textAreaString(value:String):void { htmlText.value = value; }
+			[Deprecated(replacement="panelX")] public function set textAreaWindowX(value:String):void { panelX.value = value; }
+			[Deprecated(replacement="panelY")] public function set textAreaWindowY(value:String):void { panelY.value = value; }
 		]]>
 	</mx:Script>
 </ui:DraggablePanel>

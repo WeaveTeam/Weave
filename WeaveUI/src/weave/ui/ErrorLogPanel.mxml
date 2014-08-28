@@ -74,7 +74,7 @@
 					Weave.properties.enableSessionHistoryControls
 				];
 				enableSubMenu.value = true;
-				subMenu.dataProvider = [
+				subMenuButton.data = [
 					{
 						label: function():String {
 							return Identify.enabled

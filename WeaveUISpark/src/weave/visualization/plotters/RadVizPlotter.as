@@ -91,6 +91,9 @@ package weave.visualization.plotters
 			getCallbackCollection(filteredKeySet).addGroupedCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 			columns.addGroupedCallback(this, handleColumnsChange);
+			absNorm.addGroupedCallback(this, handleColumnsChange);
+			normMin.addGroupedCallback(this, handleColumnsChange);
+			normMax.addGroupedCallback(this, handleColumnsChange);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -135,6 +138,10 @@ package weave.visualization.plotters
 		private var pointSensitivityColumns:Array = [];
 		private var annCenterColumns:Array = [];
 		public const showAnnulusCenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
+		public const absNorm:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const normMin:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
+		public const normMax:LinkableNumber = registerSpatialProperty(new LinkableNumber(1));
 		
 		private function verifyThresholdValue(value:*):Boolean
 		{
@@ -240,8 +247,7 @@ package weave.visualization.plotters
 					sum = 0;
 					for each( var column:IAttributeColumn in columns.getObjects())
 					{
-						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-						columnNormArray.push(stats.getNorm(key));
+						columnNormArray.push(getNorm(column, key));
 						columnNumberMap[column] = column.getValueFromKey(key, Number);
 						columnNumberArray.push(columnNumberMap[column]);
 					}
@@ -280,6 +286,25 @@ package weave.visualization.plotters
 			if (doCDLayoutFlag) setClassDiscriminationAnchorsLocations();
 		}
 		
+		private function getNorm(column:IAttributeColumn, key:IQualifiedKey):Number
+		{
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			var _absNorm:Boolean = absNorm.value;
+			var _normMin:Number = normMin.value;
+			var _normMax:Number = normMax.value;
+			
+			if (!_absNorm && _normMin == 0 && _normMax == 1)
+				return stats.getNorm(key);
+			
+			var value:Number = column.getValueFromKey(key, Number);
+			var statsMin:Number = stats.getMin();
+			var statsMax:Number = stats.getMax();
+			var absMax:Number = Math.max(Math.abs(statsMin), Math.abs(statsMax));
+			var min:Number = _absNorm ? -absMax : statsMin;
+			var max:Number = _absNorm ? absMax : statsMax;
+			
+			return StandardLib.scale(value, min, max, _normMin, _normMax);
+		}
 		
 		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
 		{
@@ -400,8 +425,7 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < _cols.length; i++)
 			{
 				var column:IAttributeColumn = _cols[i];
-				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-				value = normArray ? normArray[i] : stats.getNorm(recordKey);
+				value = normArray ? normArray[i] : getNorm(column, recordKey);
 				if (isNaN(value))
 					continue;
 				
@@ -644,8 +668,7 @@ package weave.visualization.plotters
 				for (var i:int = 0; i < _cols.length; i++)
 				{
 					var column:IAttributeColumn = _cols[i];
-					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-					value = normArray ? normArray[i] : stats.getNorm(key);
+					value = normArray ? normArray[i] : getNorm(column, key);
 					
 					/*only draw probe line if higher than threshold value*/
 					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
@@ -723,8 +746,7 @@ package weave.visualization.plotters
 					var value:Number;
 					var anchor:AnchorPoint;
 					var column:IAttributeColumn = columns.getObject(anchorKey.localName) as IAttributeColumn;
-					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-					value = stats.getNorm(key);
+					value = getNorm(column, key);
 					
 					/*only draw probe line if higher than threshold value*/
 					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
@@ -821,8 +843,7 @@ package weave.visualization.plotters
 				for (i = 0; i < cols.length; i++)
 				{
 					var column:IAttributeColumn = cols[i];
-					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-					var value:Number = normArray ? normArray[i] : stats.getNorm(key);
+					var value:Number = normArray ? normArray[i] : getNorm(column, key);
 					if (isNaN(value))
 					{
 						value = 0;
@@ -834,8 +855,7 @@ package weave.visualization.plotters
 				for (i = 0; i < psCols.length; i++)
 				{
 					column = psCols[i];
-					stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-					value = normArray ? normArray[i] : stats.getNorm(key);
+					value = normArray ? normArray[i] : getNorm(column, key);
 					if(isNaN(value))
 					{
 						value = 0;	
@@ -848,8 +868,7 @@ package weave.visualization.plotters
 				for (i = 0; i < annCols.length; i++)
 				{
 					column = annCols[i];
-					stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-					value = normArray ? normArray[i] : stats.getNorm(key);
+					value = normArray ? normArray[i] : getNorm(column, key);
 					if(isNaN(value))
 					{
 						value = 0

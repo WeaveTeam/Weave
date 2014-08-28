@@ -971,31 +971,35 @@ package weave.compiler
 			if (Math.max(tokens.indexOf('?')) >= 0)
 				throw new Error('Invalid conditional branch');
 			
-			// next step: inline functions, right to left
+			// next step: inline functions (headers only), right to left
 			i = tokens.length;
 			while (i--)
 			{
 				if (tokens[i] == FUNCTION)
-					tokens.splice(i, 3, compileOperator(FUNCTION, [tokens[i + 1], tokens[i + 2]]));
+					tokens.splice(i, 2, compileFunctionHeader(FUNCTION, tokens[i + 1]));
 				if (tokens[i] == '=>')
-					tokens.splice(i - 1, 3, compileOperator('=>', [tokens[i - 1], tokens[i + 1]]));
+					tokens.splice(i - 1, 2, compileFunctionHeader('=>', tokens[i - 1]));
 			}
 			
 			// next step: function applications
 			for (i = 0; i < tokens.length; i++)
 			{
 				call = tokens[i] as CompiledFunctionCall;
-				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject)
+				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject && !isFunctionHeader(tokens[i - 1]))
 					tokens.splice(i - 1, 2, new CompiledFunctionCall(tokens[i - 1], call.compiledParams));
 			}
 			
-			// next step: variable assignment, right to left
+			// next step: variable assignment and inline function definitions, right to left
 			while (true)
 			{
 				i = tokens.length;
 				while (i--)
-					if (assignmentOperators.hasOwnProperty(tokens[i]))
+				{
+					if (isFunctionHeader(tokens[i]))
+						tokens.splice(i, 2, compileFunctionDefinition(tokens[i], tokens[i + 1]));
+					else if (assignmentOperators.hasOwnProperty(tokens[i]))
 						break;
+				}
 				if (i < 0)
 					break;
 				if (i == 0 || i + 1 == tokens.length)
@@ -1114,7 +1118,7 @@ package weave.compiler
 		\x00 .. \xFF        a byte specified in hexadecimal
 		\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
 		*/
-		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\', '{':'{'};
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
 		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
 		
 		/**
@@ -1457,8 +1461,8 @@ package weave.compiler
 				}
 				
 				var compiledCall:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
-				// if there is a compiled token to the left, this is a function call (unless the token is a call to operator ';')
-				if (leftBracket == '(' && compiledToken && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
+				// if there is a compiled token to the left, this is a function call (unless the token is a function header or is a call to operator ';')
+				if (leftBracket == '(' && compiledToken && !isFunctionHeader(compiledToken) && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
 				{
 					if (open >= 2)
 					{
@@ -1487,6 +1491,9 @@ package weave.compiler
 				if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
 					separator = '('; // statement params
 				tokens.splice(open, 2, compileOperator(separator, compiledParams));
+				
+				if (token === FUNCTION && leftBracket == '(')
+					tokens.splice(open - 1, 2, compileFunctionHeader(FUNCTION, tokens[open]));
 			}
 		}
 		
@@ -1710,63 +1717,75 @@ package weave.compiler
 			}
 		}
 		
-		/**
-		 * @param operatorName
-		 * @param compiledParams
-		 * @return 
-		 */
 		private function compileOperator(operatorName:String, compiledParams:Array):CompiledFunctionCall
 		{
-			// special case for inline functions
-			if (operatorName == FUNCTION || operatorName == '=>')
-			{
-				// compiledParams should have two parameters: argument list and function body
-				var args:CompiledFunctionCall = compiledParams[0] as CompiledFunctionCall;
-				var body:ICompiledObject = compiledParams[1] as ICompiledObject;
-				if (compiledParams.length != 2 || !args || !body)
-					throwInvalidSyntax(operatorName);
-				
-				// if there is only a single variable name, wrap it in an operator ',' call
-				if (!args.compiledParams)
-					args = compileOperator(',', [args]);
-				
-				if (args.evaluatedMethod != operators[','])
-					throwInvalidSyntax(operatorName);
-				
-				// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
-				var variableNames:Array = [];
-				var variableValues:Array = [];
-				for each (var token:Object in args.compiledParams)
-				{
-					var variable:CompiledFunctionCall = token as CompiledFunctionCall;
-					if (!variable)
-						throwInvalidSyntax(operatorName);
-					
-					if (!variable.compiledParams)
-					{
-						// local variable
-						variableNames.push(variable.evaluatedMethod);
-						variableValues.push(undefined);
-					}
-					else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
-					{
-						// local variable assignment
-						variableNames.push(variable.evaluatedParams[0]);
-						variableValues.push(variable.evaluatedParams[1]);
-					}
-					else
-						throwInvalidSyntax(operatorName);
-				}
-				var functionParams:Object = {};
-				functionParams[FUNCTION_PARAM_NAMES] = variableNames;
-				functionParams[FUNCTION_PARAM_VALUES] = variableValues;
-				functionParams[FUNCTION_CODE] = finalize(body);
-				
-				compiledParams = [new CompiledConstant(null, functionParams)];
-			}
-			
 			operatorName = OPERATOR_ESCAPE + operatorName;
-			return new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			var op:CompiledFunctionCall = new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			//op.originalTokens = originalTokensForDecompiling;
+			return op;
+		}
+		
+		private function compileFunctionHeader(functionOperator:String, paramsToken:Object):ICompiledObject
+		{
+			if (functionOperator != FUNCTION && functionOperator != '=>')
+				throw new Error("compileFunctionHeader called with unsupported operator: " + functionOperator);
+			
+			// when compiling a function operator, only the argument list should be provided
+			var args:CompiledFunctionCall = paramsToken as CompiledFunctionCall;
+			if (!args)
+				throwInvalidSyntax(functionOperator);
+			
+			// if there is only a single variable name, wrap it in an operator ',' call
+			if (!args.compiledParams)
+				args = compileOperator(',', [args]);
+			
+			if (args.evaluatedMethod != operators[','])
+				throwInvalidSyntax(functionOperator);
+			
+			// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
+			var variableNames:Array = [];
+			var variableValues:Array = [];
+			for each (var token:Object in args.compiledParams)
+			{
+				var variable:CompiledFunctionCall = token as CompiledFunctionCall;
+				if (!variable)
+					throwInvalidSyntax(functionOperator);
+				
+				if (!variable.compiledParams)
+				{
+					// local variable
+					variableNames.push(variable.evaluatedMethod);
+					variableValues.push(undefined);
+				}
+				else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
+				{
+					// local variable assignment
+					variableNames.push(variable.evaluatedParams[0]);
+					variableValues.push(variable.evaluatedParams[1]);
+				}
+				else
+					throwInvalidSyntax(functionOperator);
+			}
+			var functionParams:Object = {};
+			functionParams[FUNCTION_PARAM_NAMES] = variableNames;
+			functionParams[FUNCTION_PARAM_VALUES] = variableValues;
+			
+			var op:CompiledFunctionCall = compileOperator(functionOperator, [new CompiledConstant(null, functionParams)]);
+			op.originalTokens = functionOperator == FUNCTION ? [FUNCTION, paramsToken] : [paramsToken, '=>'];
+			return op;
+		}
+		
+		private function compileFunctionDefinition(functionHeader:CompiledFunctionCall, body:ICompiledObject):ICompiledObject
+		{
+			if (!body)
+				throwInvalidSyntax((functionHeader.compiledMethod as CompiledConstant).name.substr(OPERATOR_ESCAPE.length));
+			var cc:CompiledConstant = functionHeader.compiledParams[0];
+			if (cc.value[FUNCTION_CODE] != null)
+				throw new Error("Unexpected error: attempting to overwrite function body");
+			cc.value[FUNCTION_CODE] = finalize(body);
+			functionHeader.evaluateConstants();
+			functionHeader.originalTokens.push(body);
+			return functionHeader;
 		}
 		
 		private function compileVariableAssignment(variableToken:*, assignmentOperator:String, valueToken:*):CompiledFunctionCall
@@ -2162,6 +2181,11 @@ package weave.compiler
 			
 			var i:int;
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
+			
+			// function headers should not appear alone
+			if (isFunctionHeader(call))
+				compileFunctionDefinition(call, null); // this will throw an appropriate error
+				
 			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
 			if (!call.compiledMethod)
 				throw new Error("Misplaced variable declaration");
@@ -2355,6 +2379,18 @@ package weave.compiler
 				
 				if (op == '(' && n > 0) // zero params not allowed for this syntax
 					return '(' + params.join('; ') + ')';
+				
+				if (op == '{')
+				{
+					var str:String = '';
+					for (i = 0; i < params.length - 1; i += 2)
+					{
+						if (str)
+							str += ', ';
+						str += params[i] + ': ' + params[i + 1];
+					}
+					return '{' + str + '}';
+				}
 				
 				if (PURE_OP_LOOKUP[cMethod.value as Function] || op == 'in')
 				{
@@ -2720,7 +2756,7 @@ package weave.compiler
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES],
 								false,
-								method == operators['=>'] ? builtInSymbolTable['this'] : null
+								method == operators['=>'] || (cascadeThisScope && bindThis !== null) ? builtInSymbolTable['this'] : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
@@ -2818,6 +2854,13 @@ package weave.compiler
 		{
 			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
 			return cfc && !cfc.compiledParams;
+		}
+		
+		private function isFunctionHeader(token:Object):Boolean
+		{
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
+			return cfc && (cfc.evaluatedMethod == operators[FUNCTION] || cfc.evaluatedMethod == operators['=>'])
+				&& cfc.evaluatedParams[0][FUNCTION_CODE] === undefined;
 		}
 		
 		/**

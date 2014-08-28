@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -34,6 +35,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	
 	/**
@@ -41,7 +43,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class AxisLabelPlotter extends AbstractPlotter
+	public class AxisLabelPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, AxisLabelPlotter, "Axis labels");
 		
@@ -49,6 +51,16 @@ package weave.visualization.plotters
 		{
 			setSingleKeySource(text);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [text];
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ['Label text'];
 		}
 				
 		private const bitmapText:BitmapText = new BitmapText();
@@ -75,7 +87,7 @@ package weave.visualization.plotters
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
 		public const alignToDataMax:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));
+		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string', 'column']));
 
 		/**
 		 * Draws the graphics onto BitmapData.
@@ -123,11 +135,11 @@ package weave.visualization.plotters
 		
 		private function drawLabel(number:Number, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			bitmapText.text = StandardLib.formatNumber(number);
+			bitmapText.text = ColumnUtils.deriveStringFromNumber(text, number) || StandardLib.formatNumber(number);
 			try
 			{
 				if (labelFunction.value)
-					bitmapText.text = labelFunction.apply(null, [number, bitmapText.text]);
+					bitmapText.text = labelFunction.apply(null, [number, bitmapText.text, text]);
 			}
 			catch (e:Error)
 			{
