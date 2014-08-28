@@ -33,6 +33,8 @@ package weave.data.Transforms
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.DataSources.AbstractDataSource;
     import weave.data.hierarchy.ColumnTreeNode;
+    import weave.utils.ColumnUtils;
+    import weave.utils.EquationColumnLib;
 
     public class ForeignDataMappingTransform extends AbstractDataSource
     {
@@ -70,7 +72,8 @@ package weave.data.Transforms
                     isBranch: true,
                     hasChildBranches: false,
                     children: function():Array {
-                        if (detectLinkableObjectChange(_rootNode, dataColumns)) dataColumnNames = dataColumns.getNames();
+                        if (detectLinkableObjectChange(_rootNode, dataColumns))
+							dataColumnNames = dataColumns.getNames();
                         return dataColumnNames.map(
                             function(dataColumnName:String, ..._):* {
                                 var column:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
@@ -89,25 +92,47 @@ package weave.data.Transforms
 
         override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
         {
+			if (!metadata)
+				return null;
+			
+			var name:String = metadata[DATA_COLUMNNAME_META];
+			metadata = getColumnMetadata(name);
+			if (!metadata)
+				return null;
+			
             return new ColumnTreeNode({
                 source: this,
                 idFields: [DATA_COLUMNNAME_META],
                 columnMetadata: metadata
             });
         }
+		
+		private function getColumnMetadata(dataColumnName:String):Object
+		{
+			var column:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
+			if (!column)
+				return null;
+			
+			var metadata:Object = {};
+			for each (var prop:String in column.getMetadataPropertyNames())
+				metadata[prop] = column.getMetadata(prop);
+			metadata[ColumnMetadata.KEY_TYPE] = keyColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+			metadata[DATA_COLUMNNAME_META] = dataColumnName;
+			return metadata;
+		}
         
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
         {
-            var metadata:Object = proxyColumn.getProxyMetadata();
-            var dataColumnName:String = metadata[DATA_COLUMNNAME_META];
-            var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
-			if (!dataColumn)
+            var dataColumnName:String = proxyColumn.getMetadata(DATA_COLUMNNAME_META);
+			var metadata:Object = getColumnMetadata(dataColumnName);
+			if (!metadata)
 			{
 				proxyColumn.dataUnavailable();
 				return;
 			}
 			
-            var equationColumn:EquationColumn = new EquationColumn();
+            var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
+            var equationColumn:EquationColumn = proxyColumn.getInternalColumn() as EquationColumn || new EquationColumn();
 
 			metadata[ColumnMetadata.DATA_TYPE] = "{dataColumn.getMetadata('dataType')}";
             equationColumn.variables.requestObjectCopy("keyColumn", keyColumn);
