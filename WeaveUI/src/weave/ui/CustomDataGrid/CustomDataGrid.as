@@ -57,6 +57,7 @@ package weave.ui.CustomDataGrid
 			headerClass = CustomDataGridHeader;
 			// add this event listener before the one in super()
 			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
+			setStyle('defaultDataGridItemRenderer', CustomDataGridItemRenderer);
 			super();
 		}
 		private var in_destroyItemEditor:Boolean = false;
