@@ -127,7 +127,7 @@ package weave.utils
 		 * The given Array (or Vector) will be modified in-place.
 		 * @param arrayToSort The Array (or Vector) to sort.
 		 * @param compareFunction A function that compares two items and returns -1, 0, or 1.
-		 * @see mx.utils.ObjectUtil#compare
+		 * @see mx.utils.ObjectUtil#compare()
 		 */
 		public function beginSort(arrayToSort:*, compareFunction:Function = null):void
 		{
@@ -158,6 +158,16 @@ package weave.utils
 			{
 				WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_2_BUILDING, done);
 			}
+		}
+		
+		/**
+		 * Aborts the current async sort operation.
+		 */
+		public function abort():void
+		{
+			compare = null;
+			source = original = destination = null;
+			length = subArraySize = iLeft = iRight = middle = end = elapsed = 0;
 		}
 		
 		private function iterate(stopTime:int):Number
