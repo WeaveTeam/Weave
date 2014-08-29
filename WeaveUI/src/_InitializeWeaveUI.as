@@ -71,7 +71,7 @@ package
 	import weave.ui.RTextEditor;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.annotation.SessionedTextBox;
-	import weave.ui.userControls.SchafersMissingDataTool;
+	import weave.ui.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
