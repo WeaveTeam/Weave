@@ -45,6 +45,7 @@ package weave.core
 			this.delay = delay;
 			this.onlyWhenFocused = onlyWhenFocused;
 			this.callbackCollection = sm.getCallbackCollection(linkableVariable);
+			this.uiComponent = bindableParent as UIComponent;
 			
 			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
 			// because that will copy from the bindable property to the sessioned property.
@@ -76,9 +77,9 @@ package weave.core
 		private var delay:uint;
 		private var onlyWhenFocused:Boolean;
 		private var watcher:ChangeWatcher;
+		private var uiComponent:UIComponent;
 		private var useLinkableValue:Boolean = true;
 		private var callLaterTime:int = 0;
-		private var uiComponent:UIComponent = bindableParent as UIComponent;
 		private var recursiveCall:Boolean = false;
 		
 		// When given zero parameters, this function copies the linkable value to the bindable value.
