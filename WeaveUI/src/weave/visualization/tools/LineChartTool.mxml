@@ -28,6 +28,7 @@
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.detectLinkableObjectChange;
@@ -456,6 +457,9 @@
 						var ktC:String = _plotter.lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
 						var ktL:String = labelPlotter.text.getMetadata(ColumnMetadata.KEY_TYPE);
 						
+						if (!dtGB || dtGB == DataType.STRING)
+							dtGB = ktC;
+						
 						for each (var dcc:DynamicColumnComponent in [xDataSelector, yDataSelector, groupBySelector])
 						{
 							_groupByErrorStrings[dcc] = ktX == ktY && ktY == ktGB ? '' : lang(HELP_KT_XYGB);
@@ -480,7 +484,7 @@
 			private function langWrapper(str:String):String { return lang(str); }
 			
 			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
-			private static const HELP_DT_GROUP:String = HELP_KT_XYGB + " The values in the 'Group by' column are used as foreign keys. The dataType of the 'Group by' column specifies the foreign keyType used by the 'Group color' and 'Group label' columns.";
+			private static const HELP_DT_GROUP:String = HELP_KT_XYGB + " The values in the 'Group by' column should be foreign keys used by the 'Group color' and 'Group label' columns.";
 			private static const HELP_KT_COLOR:String = "The keyType of the color column must equal the dataType of the 'Group by' column.";
 			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the dataType of the 'Group by' column.";
 		]]>

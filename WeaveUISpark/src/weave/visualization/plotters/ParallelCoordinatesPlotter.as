@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -207,9 +208,13 @@ package weave.visualization.plotters
 			_keySet_groupBy.delayCallbacks();
 			var reverseKeys:Array = []; // a list of the keys returned as values from keyColumn
 			var lookup:Dictionary = new Dictionary(); // keeps track of what keys were already seen
+			var foreignKeyType:String = groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
+			if (!foreignKeyType || foreignKeyType == DataType.STRING)
+				foreignKeyType = lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
 			for each (var key:IQualifiedKey in groupBy.keys)
 			{
-				var filterKey:IQualifiedKey = groupBy.getValueFromKey(key, IQualifiedKey) as IQualifiedKey;
+				var localName:String = groupBy.getValueFromKey(key, String) as String;
+				var filterKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(foreignKeyType, localName);
 				if (filterKey && !lookup[filterKey])
 				{
 					lookup[filterKey] = true;
@@ -255,12 +260,14 @@ package weave.visualization.plotters
 				col.variables.requestObjectCopy("keyCol", groupBy);
 				col.variables.requestObjectCopy("filterCol", _filteredXData);
 				col.variables.requestObjectCopy("dataCol", _filteredYData);
+				var filterValue:LinkableString = col.variables.requestObject('filterValue', LinkableString, false);
+				filterValue.value = value;
 				
 				col.setMetadataProperty(ColumnMetadata.TITLE, value);
 				col.setMetadataProperty(ColumnMetadata.MIN, '{ getMin(dataCol) }');
 				col.setMetadataProperty(ColumnMetadata.MAX, '{ getMax(dataCol) }');
 				
-				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, "'+value+'", Number)';
+				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, filterValue.value, Number)';
 				col.resumeCallbacks();
 			}				
 			

@@ -69,7 +69,6 @@ package weave.data.AttributeColumns
 		public function setRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>):void
 		{
 			dataTask.begin(keys, stringData);
-			dataCache = new Dictionary2D();
 			_asyncSort.abort();
 			
 			_uniqueStrings.length = 0;
@@ -155,7 +154,7 @@ package weave.data.AttributeColumns
 			
 			_i = 0;
 			_numberToString = {};
-			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, triggerCallbacks);
+			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncComplete);
 		}
 		
 		private var _i:int;
@@ -180,6 +179,13 @@ package weave.data.AttributeColumns
 				}
 			}
 			return 1;
+		}
+		
+		private function asyncComplete():void
+		{
+			// cache needs to be cleared after async task completes because some values may have been cached while the task was busy
+			dataCache = new Dictionary2D();
+			triggerCallbacks();
 		}
 
 		// find the closest string value at a given normalized value
