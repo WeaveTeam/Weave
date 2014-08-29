@@ -38,7 +38,7 @@ package weave.data.AttributeColumns
 		{
 			super(metadata);
 			
-			dataTask = new ColumnDataTask(this, isFinite);
+			dataTask = new ColumnDataTask(this, isFinite, asyncComplete);
 			dataCache = new Dictionary2D();
 		}
 		
@@ -52,7 +52,6 @@ package weave.data.AttributeColumns
 		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
 		{
 			dataTask.begin(keys, numericData);
-			dataCache = new Dictionary2D();
 
 			numberToStringFunction = null;
 			// compile the string format function from the metadata
@@ -68,6 +67,13 @@ package weave.data.AttributeColumns
 					errorHandler(e);
 				}
 			}
+		}
+		
+		private function asyncComplete():void
+		{
+			// cache needs to be cleared after async task completes because some values may have been cached while the task was busy
+			dataCache = new Dictionary2D();
+			triggerCallbacks();
 		}
 		
 		private function errorHandler(e:*):void
