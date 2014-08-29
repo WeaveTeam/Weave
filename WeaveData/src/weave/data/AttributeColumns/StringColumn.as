@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.getTimer;
 	
+	import weave.api.data.Aggregation;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IPrimitiveColumn;
@@ -205,8 +206,17 @@ package weave.data.AttributeColumns
 			
 			if (dataType === String)
 			{
-				// TODO: different aggregation methods based on a metadata field?
-				return array ? array[0] : '';
+				if (!array)
+					return '';
+				
+				switch (_metadata ? _metadata[ColumnMetadata.AGGREGATION] : null)
+				{
+					default:
+					case Aggregation.FIRST:
+						return array[0];
+					case Aggregation.LAST:
+						return array[array.length - 1];
+				}
 			}
 			
 			var string:String = getValueFromKey(key, String);

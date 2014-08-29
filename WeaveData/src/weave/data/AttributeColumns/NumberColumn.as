@@ -19,6 +19,7 @@
 
 package weave.data.AttributeColumns
 {
+	import weave.api.data.Aggregation;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IPrimitiveColumn;
@@ -101,8 +102,27 @@ package weave.data.AttributeColumns
 			
 			if (dataType === Number)
 			{
-				// TODO: different aggregation methods based on a metadata field?
-				return array ? array[0] : NaN;
+				if (!array)
+					return NaN;
+				
+				switch (_metadata ? _metadata[ColumnMetadata.AGGREGATION] : null)
+				{
+					default:
+					case Aggregation.FIRST:
+						return array[0];
+					case Aggregation.LAST:
+						return array[array.length - 1];
+					case Aggregation.COUNT:
+						return array.length;
+					case Aggregation.MEAN:
+						return StandardLib.mean(array);
+					case Aggregation.SUM:
+						return StandardLib.sum(array);
+					case Aggregation.MIN:
+						return Math.min.apply(null, array);
+					case Aggregation.MAX:
+						return Math.max.apply(null, array);
+				}
 			}
 			
 			if (dataType === String)

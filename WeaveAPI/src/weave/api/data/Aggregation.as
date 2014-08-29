@@ -16,13 +16,16 @@
 package weave.api.data
 {
 	/**
-	 * Constants associated with different data types.
+	 * Constants associated with different aggregation methods.
 	 */
-	public class DataType
+	public class Aggregation
 	{
-		public static const NUMBER:String = "number";
-		public static const STRING:String = "string";
-		public static const DATE:String = "date";
-		public static const GEOMETRY:String = "geometry";
+		public static const FIRST:String = "first";
+		public static const LAST:String = "last";
+		public static const MEAN:String = "mean";
+		public static const SUM:String = "sum";
+		public static const COUNT:String = "count";
+		public static const MIN:String = "min";
+		public static const MAX:String = "max";
 	}
 }

@@ -25,6 +25,7 @@ package weave.services
 	import mx.utils.UIDUtil;
 	import mx.utils.URLUtil;
 	
+	import weave.api.data.Aggregation;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.EntityType;
@@ -107,8 +108,6 @@ package weave.services
 		[Bindable] public var weaveFileNames:Array = [];
 		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
-		[Bindable] private var entityTypes:Array = [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
-		[Bindable] private var dataTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo();
 		/**
 		 * An Array of WeaveFileInfo objects.
@@ -318,11 +317,7 @@ package weave.services
 				{
 					// save list
 					if (userHasAuthenticated)
-					{
 						keyTypes = event.result as Array || [];
-						dataTypes = keyTypes.concat();
-						dataTypes.unshift(DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY);
-					}
 				}
 			);
 			service.addHook(
@@ -390,7 +385,6 @@ package weave.services
 			weaveFileNames = [];
 			privateWeaveFileNames = [];
 			keyTypes = [];
-			dataTypes = [];
 			databaseConfigInfo = new DatabaseConfigInfo();
 		}
 		[Bindable] public function get activePassword():String
@@ -467,16 +461,19 @@ package weave.services
 					return connectionNames;
 					
 				case ColumnMetadata.ENTITY_TYPE:
-					return entityTypes;
+					return [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
 				
 				case ColumnMetadata.KEY_TYPE:
 					return keyTypes;
 				
 				case ColumnMetadata.DATA_TYPE:
-					return dataTypes;
+					return [DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY].concat(keyTypes);
 				
 				case ColumnMetadata.DATE_FORMAT:
 					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
+				
+				case ColumnMetadata.AGGREGATION:
+					return [Aggregation.FIRST, Aggregation.LAST, Aggregation.MEAN, Aggregation.SUM, Aggregation.COUNT, Aggregation.MIN, Aggregation.MAX];
 				
 				default:
 					return null;

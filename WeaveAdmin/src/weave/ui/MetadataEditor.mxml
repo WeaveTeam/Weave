@@ -82,7 +82,7 @@
 	private static const PRIVATE_META_GRID_LABEL_FORMAT:String = 'Private ({0}){1}';
 	
 	// namespaces, public metadata names, and private metadata names are all in this same Array because it's convenient and it doesn't matter much.
-	private const preferredMetadataOrder:Array = 'internal,public,private,id,parent,type,title,keyType,dataType,number,string,dateFormat,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
+	private const preferredMetadataOrder:Array = 'internal,public,private,id,parent,type,title,keyType,dataType,number,string,aggregation,dateFormat,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
 	private function sortFieldChains(chain1:Array, chain2:Array):int
 	{
 		var level:int = (chain1[0] != chain2[0]) ? 0 : 1;

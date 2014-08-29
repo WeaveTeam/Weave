@@ -29,6 +29,7 @@ package weave.api.data
 		public static const KEY_TYPE:String = "keyType";
 		public static const DATA_TYPE:String = "dataType";
 		public static const PROJECTION:String = "projection";
+		public static const AGGREGATION:String = "aggregation";
 		public static const DATE_FORMAT:String = "dateFormat";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
