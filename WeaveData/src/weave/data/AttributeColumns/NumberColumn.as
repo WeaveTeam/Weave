@@ -111,24 +111,7 @@ package weave.data.AttributeColumns
 				if (!array)
 					return NaN;
 				
-				switch (_metadata ? _metadata[ColumnMetadata.AGGREGATION] : null)
-				{
-					default:
-					case Aggregation.FIRST:
-						return array[0];
-					case Aggregation.LAST:
-						return array[array.length - 1];
-					case Aggregation.COUNT:
-						return array.length;
-					case Aggregation.MEAN:
-						return StandardLib.mean(array);
-					case Aggregation.SUM:
-						return StandardLib.sum(array);
-					case Aggregation.MIN:
-						return Math.min.apply(null, array);
-					case Aggregation.MAX:
-						return Math.max.apply(null, array);
-				}
+				return aggregate(array, _metadata);
 			}
 			
 			if (dataType === String)
@@ -145,6 +128,29 @@ package weave.data.AttributeColumns
 		override public function toString():String
 		{
 			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
+		}
+
+		public static function aggregate(array:Array, metadata:Object):Number
+		{
+
+			switch (metadata ? metadata[ColumnMetadata.AGGREGATION] : null)
+			{
+				default:
+				case Aggregation.FIRST:
+					return array[0];
+				case Aggregation.LAST:
+					return array[array.length - 1];
+				case Aggregation.COUNT:
+					return array.length;
+				case Aggregation.MEAN:
+					return StandardLib.mean(array);
+				case Aggregation.SUM:
+					return StandardLib.sum(array);
+				case Aggregation.MIN:
+					return Math.min.apply(null, array);
+				case Aggregation.MAX:
+					return Math.max.apply(null, array);
+			}
 		}
 	}
 }
