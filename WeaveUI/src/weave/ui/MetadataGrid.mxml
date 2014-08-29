@@ -1,3 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
@@ -21,15 +42,24 @@
 	import mx.events.DataGridEvent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.data.ColumnMetadata;
 	import weave.core.UIUtils;
-	import weave.services.Admin;
 	import weave.utils.AsyncSort;
 	
 	/**
 	 * Set this to the list of property names you want to display in the drop-down box for adding a new property. 
 	 */
 	[Bindable] public var selectablePropertyNames:Array = [];
+	
+	/**
+	 * The name of a metadata property that should always be included in the list.
+	 */
 	public var defaultPropertyName:String;
+	
+	/**
+	 * A Function like function(propName:String):Array returning an Array of suggested String values for the specified metadata property.
+	 */
+	public var getSuggestedPropertyValues:Function = ColumnMetadata.getSuggestedPropertyValues;
 	
 	private var textEditFactory:ClassFactory;
 	private var comboEditFactory:ClassFactory;
@@ -54,7 +84,7 @@
 			return;
 		
 		var item:MetadataGridItem = gridItems.getItemAt(event.rowIndex) as MetadataGridItem;
-		var values:Array = Admin.instance.getSuggestedPropertyValues(item.property);
+		var values:Array = getSuggestedPropertyValues != null ? getSuggestedPropertyValues(item.property) : null;
 		if (values && values.length > 0)
 		{
 			valueCol.itemEditor = comboEditFactory;

@@ -455,28 +455,20 @@ package weave.services
 		
 		public function getSuggestedPropertyValues(propertyName:String):Array
 		{
+			var suggestions:Array = ColumnMetadata.getSuggestedPropertyValues(propertyName);
 			switch (propertyName)
 			{
 				case 'connection':
 					return connectionNames;
-					
-				case ColumnMetadata.ENTITY_TYPE:
-					return [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
 				
 				case ColumnMetadata.KEY_TYPE:
 					return keyTypes;
 				
 				case ColumnMetadata.DATA_TYPE:
-					return [DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY].concat(keyTypes);
-				
-				case ColumnMetadata.DATE_FORMAT:
-					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
-				
-				case ColumnMetadata.AGGREGATION:
-					return [Aggregation.FIRST, Aggregation.LAST, Aggregation.MEAN, Aggregation.SUM, Aggregation.COUNT, Aggregation.MIN, Aggregation.MAX];
+					return suggestions.concat(keyTypes);
 				
 				default:
-					return null;
+					return suggestions;
 			}
 		}
 	}

@@ -41,5 +41,30 @@ package weave.api.data
 				meta[name] = column.getMetadata(name);
 			return meta;
 		}
+		
+		/**
+		 * @param propertyName The name of a metadata property.
+		 * @return An Array of suggested String values for the specified metadata property.
+		 */
+		public static function getSuggestedPropertyValues(propertyName:String):Array
+		{
+			switch (propertyName)
+			{
+				case ColumnMetadata.ENTITY_TYPE:
+					return [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
+				
+				case ColumnMetadata.DATA_TYPE:
+					return [DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY];
+				
+				case ColumnMetadata.DATE_FORMAT:
+					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
+				
+				case ColumnMetadata.AGGREGATION:
+					return [Aggregation.FIRST, Aggregation.LAST, Aggregation.MEAN, Aggregation.SUM, Aggregation.COUNT, Aggregation.MIN, Aggregation.MAX];
+				
+				default:
+					return [];
+			}
+		}
 	}
 }
