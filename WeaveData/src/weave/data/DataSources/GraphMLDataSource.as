@@ -265,7 +265,6 @@ package weave.data.DataSources
                                     hasChildBranches: false,
                                     children: function ():Array {
                                         var groupProperties:Array = group == GraphMLConverter.NODE ? nodeProperties : edgeProperties;
-                                        weaveTrace(groupProperties);
                                         return groupProperties.map(
                                             function(field:String, ..._):* {
                                                 var metadata:Object = {};
