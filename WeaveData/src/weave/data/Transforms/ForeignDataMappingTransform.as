@@ -113,9 +113,7 @@ package weave.data.Transforms
 			if (!column)
 				return null;
 			
-			var metadata:Object = {};
-			for each (var prop:String in column.getMetadataPropertyNames())
-				metadata[prop] = column.getMetadata(prop);
+			var metadata:Object = ColumnMetadata.getAllMetadata(column);
 			metadata[ColumnMetadata.KEY_TYPE] = keyColumn.getMetadata(ColumnMetadata.KEY_TYPE);
 			metadata[DATA_COLUMNNAME_META] = dataColumnName;
 			return metadata;
