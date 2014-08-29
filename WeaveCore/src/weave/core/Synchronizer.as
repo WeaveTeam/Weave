@@ -155,7 +155,8 @@ package weave.core
 						// if we haven't reached the target time yet or callbacks are delayed, call later
 						if (currentTime < callLaterTime)
 						{
-							uiComponent.callLater(synchronize, [firstParam, true]); // callingLater = true
+							// firstParam is ignored when callingLater=true
+							uiComponent.callLater(synchronize, [firstParam, true]);
 							return;
 						}
 					}
@@ -174,6 +175,7 @@ package weave.core
 			// if the linkable variable's callbacks are delayed, delay synchronization
 			if (sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
 			{
+				// firstParam is ignored when callingLater=true
 				WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 				return;
 			}
