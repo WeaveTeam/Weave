@@ -40,13 +40,13 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * Asynchronous output.
-		 * recordKey:IQualifiedKey -> Array<Number>
+		 * recordKey:IQualifiedKey -&gt; Array&lt;Number&gt;
 		 */
 		public var uniqueKeys:Array = [];
 		
 		/**
 		 * Asynchronous output.
-		 * (dataType:Class, recordKey:IQualifiedKey) -> value
+		 * (dataType:Class, recordKey:IQualifiedKey) -&gt; value
 		 */
 		public var arrayData:Dictionary = new Dictionary();
 		
