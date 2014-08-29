@@ -12,11 +12,10 @@ import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
-import weave.servlets.WeaveServlet;
-import weave.utils.AWSUtils;
-
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.internal.StringMap;
+
+import weave.utils.AWSUtils;
 
 public class ScriptManagerService{
 
@@ -107,7 +106,7 @@ public class ScriptManagerService{
  	 * @return Returns true if the metadata was saved.
  	 * @throws Exception
  	 */
- 	public static boolean saveScriptMetadata(File directory, String scriptName, JsonObject scriptMetadata) throws Exception {
+ 	public static boolean saveScriptMetadata(File directory, String scriptName, String scriptMetadata) throws Exception {
  
  		// create json file name
  		String jsonFileName = FilenameUtils.removeExtension(scriptName).concat(".json");
@@ -120,14 +119,64 @@ public class ScriptManagerService{
 		
 		FileWriter fw = new FileWriter(file.getAbsolutePath());
 		BufferedWriter bw = new BufferedWriter(fw);
-		Gson gson = new Gson();
-		gson.toJson(scriptMetadata, bw);
+		bw.write(scriptMetadata);
+		bw.flush();
 		bw.close();
 		
 		return true;
 	}
+ 	
+ 	/**
+	 * 
+	 * This function saves the script content, overwriting the current script content.
+	 * 
+ 	 * @param directory The location of the script
+ 	 * @param scriptName The script name
+ 	 * @param content The new content to be saved
+ 	 * 
+ 	 * @return Returns true if the content was saved.
+ 	 * @throws Exception
+ 	 */
+ 	public static boolean saveScriptContent(File directory, String scriptName, String content) throws Exception {
+ 
+ 		// create json file name
+ 		File file = new File(directory, scriptName);
+ 
+		if (!file.exists()){
+			file.createNewFile();
+		}
+		
+		FileWriter fw = new FileWriter(file.getAbsolutePath());
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write(content);
+		bw.flush();
+		bw.close();
+		
+		return true;
+	}
+ 	
+ 	/**
+	 * 
+	 * This function renames a script, and update the content and metadata.
+	 *  
+ 	 * @param directory The location of the script
+ 	 * @param oldScriptName The old script name to be modified.
+ 	 * @param newScriptName The new script name to be used.
+ 	 * @param content The new content to be saved.
+ 	 * @param metadata The new metadata to be saved.
+ 	 * 
+ 	 * @return Returns true if the content was saved.
+ 	 * @throws Exception
+ 	 */
+ 	public static boolean renameScript(File directory, String oldScriptName, String newScriptName, String content, String metadata) throws Exception {
+ 
+		if(!deleteScript(directory, oldScriptName))
+			return false;
+		
+		return uploadNewScript(directory, newScriptName, content, metadata);
+	}
 
-	/**
+ 	/**
 	 * 
 	 * @param directory The directory where the script is located
 	 * @param scriptName The script name relative
@@ -135,22 +184,21 @@ public class ScriptManagerService{
 	 * @return The script metadata as a Json object
 	 * @throws Exception
 	 */
- 	public static Object getScriptMetadata(File directory, String scriptName) throws Exception {
+ 	public static StringMap<Object> getScriptMetadata(File directory, String scriptName) throws RemoteException {
 	// this object will get the metadata from the json file
- 		Object scriptMetadata;
  		Gson gson = new Gson();
  		String jsonFileName = FilenameUtils.removeExtension(scriptName).concat(".json");
  		File metadataFile = new File(directory, jsonFileName);
- 		if(metadataFile.exists())
- 		{
- 			BufferedReader br = new BufferedReader(new FileReader(new File(directory, jsonFileName)));
- 			scriptMetadata = gson.fromJson(br, Object.class);
- 			return scriptMetadata;
- 		}
  		
- 		else
- 		{
- 				throw new RemoteException("Could not find script metadata");
+ 		try {
+ 			if(!metadataFile.exists())
+ 			{
+ 				throw new RemoteException("Cannot find script metadata file.");
+ 			}
+ 			BufferedReader br = new BufferedReader(new FileReader(new File(directory, jsonFileName)));
+ 			return gson.fromJson(br, StringMap.class);
+ 		} catch(Exception e) {
+ 			throw new RemoteException("Error reading script metadata file.");
  		}
 	}
 	
@@ -166,7 +214,7 @@ public class ScriptManagerService{
 	 */
 	public static Boolean uploadNewScript(File directory, String scriptName, String content) throws Exception
 	{
-		JsonObject metadata = new JsonObject();
+		String metadata = "";
 		return uploadNewScript(directory, scriptName, content, metadata);
 	}
 
@@ -182,7 +230,7 @@ public class ScriptManagerService{
 	 * @return
 	 * @throws Exception
 	 */
-	public static Boolean uploadNewScript(File directory, String scriptName, String content, JsonObject metadata) throws Exception
+	public static Boolean uploadNewScript(File directory, String scriptName, String content, String metadata) throws Exception
 	{
 		File file = new File(directory, scriptName);
 

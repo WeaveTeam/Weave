@@ -15,6 +15,19 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 	  };
 	  
+	  this.deleteScript = function(scriptName) {
+		  
+		  var deferred = $q.defer();
+		  
+		  aws.queryService(scriptServiceURL, 'deleteScript', [scriptName], function(result) {
+	          scope.$apply(function() {
+	            deferred.resolve(result);
+	          });
+	      });
+	      return deferred.promise;
+		  
+	  };
+	  
 	  this.getListOfScripts = function () {
 		  
 		  var deferred = $q.defer();
@@ -70,7 +83,6 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	  this.saveScriptMetadata = function (scriptName, metadata) {
 		  
 		  var deferred = $q.defer();
-		  
 		  aws.queryService(scriptServiceURL, 'saveScriptMetadata', [scriptName, metadata], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
@@ -80,6 +92,26 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 	  };
 	  
+	  this.saveScriptContent = function (scriptName, content) {
+		  
+		  var deferred = $q.defer();
+		  aws.queryService(scriptServiceURL, 'saveScriptContent', [scriptName, content], function(result) {
+	          scope.$apply(function() {
+	            deferred.resolve(result);
+	          });
+	      });
+	      return deferred.promise;	
+	  };
+	  
+	  this.renameScript = function(oldScriptName, newScriptName, content, metadata) {
+		  var deferred = $q.defer();
+		  aws.queryService(scriptServiceURL, 'renameScript', [oldScriptName, newScriptName, content, metadata], function(result) {
+	          scope.$apply(function() {
+	            deferred.resolve(result);
+	          });
+	      });
+	      return deferred.promise;
+	  };
 	  
 	  this.uploadNewScript = function (script, metadata) {
 		  

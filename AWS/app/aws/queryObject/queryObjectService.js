@@ -92,7 +92,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	this.queryObject = angular.fromJson(sessionStorage.queryObject);
     };
 
-
+    this.authenticated = false;
+    
+	this.logout = function() {
+		this.authenticated = false;
+	};
 	var that = this; // point to this for async responses
 
 	this.queryObject = {
@@ -433,16 +437,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         
         this.authenticate = function(user, password) {
 
-        	var deferred = $q.defer();
-            
         	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
-                
-            	scope.$apply(function(){
-                    deferred.resolve(result);
-                });
-            });
-            
-            return deferred.promise;
+                this.authenticated = result;
+                scope.$apply();
+            }.bind(this));
         };
         
         

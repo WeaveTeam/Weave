@@ -1,9 +1,47 @@
 <div class='script-manager-container' ng-controller="ScriptManagerCtrl" style="padding-top:20px" >
+	
+	<div ng-if="!queryService.authenticated" style="padding-top: 20px; 
+		 position:absolute;
+	     width:300px;
+	     height:200px;
+	     z-index:15;
+	     top:50%;
+	     left:50%;
+	     margin:-100px 0 0 -150px;">	
+		 <table>
+		 	<tr>
+		 		<td>
+					 User Name: 
+				</td>
+		 		<td>
+		 			<input ng-model="user" type="text" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
+		 		</td>
+		 	</tr>
+		 	<tr>
+		 		<td>
+		 			Password:
+		 		</td>
+		 		<td>
+			 		<input ng-model="password" type="password" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
+		 		</td>
+		 	</tr>
+		 	<tr>
+			 	<td>
+		 		</td>
+		 		<td>
+			 		<div align="right" style="padding-top: 5px">
+					 <input type="button" ng-click="queryService.authenticate(user, password)" value="Login" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
+			 		</div>
+		 		</td>
+		 	</tr>
+		 </table>
+	</div> 
 
-	<div class="container" contenteditable="false">
+	<div class="container" contenteditable="false"  ng-if="queryService.authenticated">
 		<div class="row">
-
+			<input type="button" value="Logout" style="float:right;" ng-click="queryService.logout()">
 		</div>
+		<br>
 		<div class="row" contenteditable="false">
 			<div class="col-md-3" contenteditable="false">
 				<div class="gridStyle" ng-grid="rScriptListOptions"></div>
@@ -18,6 +56,7 @@
 			<div class="col-md-9" contenteditable="false">
 				<div class="well">
 					<table style="display:block">
+						<button class="file-nput-btn" style="float:left; width:25%" ng-click="refreshScripts()">Refresh</button>
 						<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
 						<button class="file-nput-btn" style="float:right; width:25%" ng-click="saveChanges()">Save Changes</button>
 						<tr>
@@ -25,7 +64,7 @@
 								<b>Script:</b>
 							</td>
 							<td width="100%">
-								<input type="text" ng-model='selectedScript[0].Script' style="width:100%"/>
+								<input type="text" ng-model='newScriptName' style="width:100%"/>
 							</td>
 						</tr>
 						<tr>
@@ -34,8 +73,8 @@
 							</td>
 							<br><br>
 							<td width="100%">
-								<textarea rows="4" cols="50" ng-model="scriptDescription" style="width: 100%;">
-									{{scriptDescription}}
+								<textarea rows="4" cols="50" ng-model="scriptMetadata.description" style="width: 100%; resize:none">
+									{{scriptMetadata.description}}
 								</textarea>
 							</td>
 						</tr>

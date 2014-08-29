@@ -6,30 +6,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	$scope.progressValue = 0;
 	$scope.selectedColumnId;
     $scope.fileUpload;
-
-    $scope.authenticate = function(user, password)
-	{
-    	$scope.user = user;
-    	$scope.password = password;
-		queryService.authenticate(user, password).then(function(result) {
-			if(result)
-			{
-				$scope.authenticated = true;
-			}
-			else 
-			{
-				$scope.authenticated = false;
-			}
-
-		});
-		
-		
-	};
-
-	$scope.logout = function()
-	{
-		$scope.authenticated = false;
-	};
+    
+    $scope.queryService = queryService;
     
 	$scope.generateTree = function(element) {
 		queryService.getDataTableList(true).then(function(dataTableList) {

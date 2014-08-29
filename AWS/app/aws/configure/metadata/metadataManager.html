@@ -1,6 +1,6 @@
 <div style="padding-left: 25px" ng-controller = "MetadataManagerCtrl" >
 
-<div ng-if="!authenticated" style="padding-top: 20px; 
+<div ng-if="!queryService.authenticated" style="padding-top: 20px; 
 	 position:absolute;
      width:300px;
      height:200px;
@@ -14,7 +14,7 @@
 				 User Name: 
 			</td>
 	 		<td>
-	 			<input ng-model="user" type="text" />
+	 			<input ng-model="user" type="text" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
 	 		</td>
 	 	</tr>
 	 	<tr>
@@ -22,7 +22,7 @@
 	 			Password:
 	 		</td>
 	 		<td>
-		 		<input ng-model="password" type="password" />
+		 		<input ng-model="password" type="password" ui-keypress="{'enter':'queryService.authenticate(user, password)'}" />
 	 		</td>
 	 	</tr>
 	 	<tr>
@@ -30,13 +30,13 @@
 	 		</td>
 	 		<td>
 		 		<div align="right" style="padding-top: 5px">
-				 <input type="button" ng-click="authenticate(user, password)" value="Login" ui-keypress="{'enter':'authenticate(user, password)'}"/>
+				 <input type="button" ng-click="queryService.authenticate(user, password)" value="Login" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
 		 		</div>
 	 		</td>
 	 	</tr>
 	 </table>
 </div> 
-<table ng-if="authenticated">
+<table ng-if="queryService.authenticated">
   <colgroup width="100%">
     <col width="50%" valign="top">
     <col width="50%">
