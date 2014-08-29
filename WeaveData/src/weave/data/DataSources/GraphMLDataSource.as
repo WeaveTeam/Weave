@@ -22,6 +22,7 @@ package weave.data.DataSources
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.AttributeColumns.StringColumn;
     import weave.data.QKeyManager;
+    import weave.data.hierarchy.ColumnTreeNode;
     import weave.utils.VectorUtils;
 
     public class GraphMLDataSource extends AbstractDataSource
@@ -65,23 +66,11 @@ package weave.data.DataSources
 
         override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
         {
-            var graphNode:GraphMLGraphNode;
-            var groupNode:GraphMLGroupNode;
-            var columnNode:GraphMLColumnNode;
-
-            graphNode = new GraphMLGraphNode(this);
-            
-            if (metadata[GRAPH_GROUP_META] === undefined)
-                return graphNode;
-
-            groupNode = new GraphMLGroupNode(graphNode, metadata[GRAPH_GROUP_META]);
-
-            if (metadata[GRAPH_ID_META] === undefined)
-                return groupNode;
-
-            columnNode = new GraphMLColumnNode(groupNode, metadata[GRAPH_ID_META]);
-            
-            return columnNode;
+            return new ColumnTreeNode({
+                source: this,
+                idFields: [GRAPH_GROUP_META, GRAPH_ID_META],
+                columnMetadata: metadata
+            });
         }
 
         private function handleURLChange():void
@@ -255,9 +244,43 @@ package weave.data.DataSources
 
         override public function getHierarchyRoot():IWeaveTreeNode
         {
-            if (!(_rootNode is GraphMLGraphNode))
+            if (!_rootNode)
             {
-                _rootNode = new GraphMLGraphNode(this);
+                var source:GraphMLDataSource = this;
+
+                _rootNode = new ColumnTreeNode({
+                    source: source,
+                    data: source,
+                    label: WeaveAPI.globalHashMap.getName(this),
+                    isBranch: true,
+                    hasChildBranches: true,
+                    children: function():Array {
+                        return [GraphMLConverter.NODE, GraphMLConverter.EDGE].map(
+                            function(group:String, ..._):Object {
+                                return {
+                                    source: source,
+                                    data: group,
+                                    label: group == GraphMLConverter.NODE ? "Nodes" : "Edges",
+                                    isBranch: true,
+                                    hasChildBranches: false,
+                                    children: function ():Array {
+                                        var groupProperties:Array = group == GraphMLConverter.NODE ? nodeProperties : edgeProperties;
+                                        weaveTrace(groupProperties);
+                                        return groupProperties.map(
+                                            function(field:String, ..._):* {
+                                                var metadata:Object = {};
+                                                metadata[ColumnMetadata.TITLE] = field;
+                                                metadata[GRAPH_ID_META] = field;
+                                                metadata[GRAPH_GROUP_META] = group;
+                                                return generateHierarchyNode(metadata);
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+                        );
+                    }
+                });
             }
 
             return _rootNode;
@@ -332,176 +355,5 @@ package weave.data.DataSources
             }            
             return true;
         }
-    }
-}
-
-import flare.data.converters.GraphMLConverter;
-
-import weave.api.data.ColumnMetadata;
-import weave.api.data.IColumnReference;
-import weave.api.data.IDataSource;
-import weave.api.data.IWeaveTreeNode;
-import weave.data.DataSources.GraphMLDataSource;
-
-internal class GraphMLGraphNode implements IWeaveTreeNode
-{
-    private var _source:GraphMLDataSource;
-    private var children:Array = null;
-
-    public function get source():GraphMLDataSource
-    {
-        return _source;
-    }
-    public function GraphMLGraphNode(source:GraphMLDataSource)
-    {
-        this._source = source;
-    }
-
-    public function equals(other:IWeaveTreeNode):Boolean
-    {
-        var that:GraphMLGraphNode = other as GraphMLGraphNode;
-        return !!that && this.source == that.source;
-    }
-    
-    public function hasChildBranches():Boolean {return true;}
-
-    public function isBranch():Boolean {return true;}
-    
-    public function getChildren():Array
-    {
-        if (children == null)
-        {
-            children = 
-            [
-                new GraphMLGroupNode(this, GraphMLConverter.NODE),
-                new GraphMLGroupNode(this, GraphMLConverter.EDGE)
-            ];
-        }
-        return children;
-    }
-
-    public function getLabel():String
-    {
-        return WeaveAPI.globalHashMap.getName(source);
-    }
-}
-
-internal class GraphMLGroupNode implements IWeaveTreeNode 
-{
-    private var _graph:GraphMLGraphNode;
-    private var _group:String;
-    private var children:Array = null;
-
-    public function get columnSchema():Object
-    {
-        return isNodeGroup() ? graph.source.nodeSchema : graph.source.edgeSchema;
-    }
-    
-    public function get group():String
-    {
-        return _group;
-    }
-
-    public function get graph():GraphMLGraphNode
-    {
-        return _graph;
-    }
-
-    public function GraphMLGroupNode(graph:GraphMLGraphNode, group:String)
-    {
-        _graph = graph;
-        _group = group;
-    }
-
-    public function isNodeGroup():Boolean
-    {
-        return GraphMLConverter.NODE == group; 
-    }
-
-    public function equals(other:IWeaveTreeNode):Boolean
-    {
-        var that:GraphMLGroupNode = other as GraphMLGroupNode;
-        return !!that && 
-                this.graph.equals(that.graph) &&
-                this.group == that.group;
-    }
-
-    public function isBranch():Boolean { return true; }
-
-    public function hasChildBranches():Boolean { return false; }
-
-    public function getChildren():Array 
-    {
-        if (children == null)
-        {
-            children = [];
-
-            var columns:Array = isNodeGroup() ? 
-                    graph.source.nodeProperties :
-                    graph.source.edgeProperties;
-			
-			for each (var id:String in columns)
-                children.push(new GraphMLColumnNode(this, id));
-        }
-        return children;
-    }
-    public function getLabel():String
-    {
-        return isNodeGroup() ? lang("Nodes") : lang("Edges");
-    }
-}
-
-internal class GraphMLColumnNode implements IWeaveTreeNode, IColumnReference {
-    private var _parent:GraphMLGroupNode;
-    private var _id:String;
-
-    public function get parent():GraphMLGroupNode
-    {
-        return _parent;
-    }
-
-    public function get group():GraphMLGroupNode
-    {
-        return _parent as GraphMLGroupNode;
-    }
-    public function get id():String
-    {
-        return _id;
-    }
-
-    public function GraphMLColumnNode(parent:GraphMLGroupNode, id:String)
-    {
-        this._parent = parent;
-        this._id = id;
-    }
-
-    public function equals(other:IWeaveTreeNode):Boolean
-    {
-        var that:GraphMLColumnNode = other as GraphMLColumnNode;
-        return !!that &&
-                 this.parent.equals(that.parent) &&
-                 this.id == that.id;
-    }
-
-    public function isBranch():Boolean { return false; }
-    public function hasChildBranches():Boolean { return false; }
-    public function getChildren():Array { return null; }
-
-    public function getLabel():String
-    {
-        if (id == GraphMLConverter.ID)
-            return "GraphML Element ID";
-        else
-            return parent.columnSchema[id].name + " (" + id + ")";
-    }
-
-    public function getDataSource():IDataSource 
-    {
-        return parent.graph.source;
-    }
-    
-    public function getColumnMetadata():Object 
-    {   
-        return parent.graph.source.getColumnMetadata(group.group, id);
     }
 }
