@@ -61,7 +61,7 @@ package weave.utils
 		 */		
 		public static function getTitle(column:IAttributeColumn):String
 		{
-			var title:String = column.getMetadata(ColumnMetadata.TITLE) || 'Undefined';
+			var title:String = column.getMetadata(ColumnMetadata.TITLE) || lang('No data');
 			
 			// debug code
 			if (false)

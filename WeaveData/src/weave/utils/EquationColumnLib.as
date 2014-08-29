@@ -152,7 +152,9 @@ package weave.utils
 		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:String, dataType:* = null):Object
 		{
 			var key:IQualifiedKey = getKey();
-			var cubekeys:Array = getAssociatedKeys(keyColumn, key);
+			var foreignKeyType:String = keyColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+			var ignoreKeyType:Boolean = !foreignKeyType || foreignKeyType == DataType.STRING;
+			var cubekeys:Array = getAssociatedKeys(keyColumn, key, ignoreKeyType);
 			
 			for each (var cubekey:IQualifiedKey in cubekeys)
 			{
@@ -162,7 +164,7 @@ package weave.utils
 					return val;
 				}
 			}
-			return cast(NaN, dataType);
+			return cast(undefined, dataType);
 		}
 		
 		private static var _reverseKeyLookupTriggerCounter:Dictionary = new Dictionary(true);
