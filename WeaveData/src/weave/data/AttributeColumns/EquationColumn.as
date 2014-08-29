@@ -28,6 +28,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.data.IKeySet;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -274,7 +275,7 @@ package weave.data.AttributeColumns
 				_allKeys = null;
 				_allKeysTriggerCount = variables.triggerCounter; // prevent infinite recursion
 
-				var variableColumns:Array = variables.getObjects(IAttributeColumn);
+				var variableColumns:Array = variables.getObjects(IKeySet);
 
 				_allKeys = ColumnUtils.getAllKeys(variableColumns);
 
