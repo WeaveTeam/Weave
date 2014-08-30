@@ -145,7 +145,7 @@ package weave.utils
 		 * @param data An IAttributeColumn to get a value from
 		 * @param filterValue value in filtercolumn to use to filter data
 		 * @param filterDataType Class object of the desired filter value type
-		 * @param dataType Class object of the desired value type 
+		 * @param dataType Class object of the desired value type. If IQualifiedKey, this acts as a reverse lookup for the filter column, returning the key given a filterValue String.
 		 * @return the correct filtered value from the data column
 		 * @author kmanohar
 		 */		
@@ -160,6 +160,8 @@ package weave.utils
 			{
 				if (filter.getValueFromKey(cubekey, String) == filterValue)
 				{
+					if (dataType === IQualifiedKey)
+						return cubekey;
 					var val:Object = getValueFromKey(data, cubekey, dataType);
 					return val;
 				}

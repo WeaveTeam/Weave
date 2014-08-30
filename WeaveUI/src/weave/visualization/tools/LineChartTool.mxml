@@ -260,6 +260,7 @@
 				linkBindableProperty(labelPlotter.size.defaultValue,labelSizeSlider,"value");
 				linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor");
 
+				linkBindableProperty(_plotter.shapeBorderAlpha, shapeBorderAlphaSlider, "value");
 				linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.shapeSize, shapeSizeSlider, "value");
 				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, "value");
@@ -525,41 +526,45 @@
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
-			<mx:HBox verticalAlign="middle">
+			<mx:HBox verticalAlign="middle" width="100%">
 				<mx:Label text="{lang('Shape:')}" color="0x000000" fontSize="{controlsFontSize}" 
 						  toolTip="{lang('This controls what shape is used to indicate the data points on the axes.')}"/>
 				<ui:CustomComboBox id="shapeCombo" labelFunction="{langWrapper}" dataProvider="{ParallelCoordinatesPlotter.shapesAvailable}"/>
-				<mx:HBox enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}" verticalAlign="middle">
+				<mx:HBox enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}" verticalAlign="middle" width="100%">
 					<mx:Label text="{lang('Size:')}"
 							  color="0x000000" fontSize="{controlsFontSize}" 
 							  toolTip="{lang('This controls the size of the shapes indicating the data points on the axes.')}"/>
 					<mx:HSlider id="shapeSizeSlider"
-								width="100%" 
+								width="100%" minWidth="0" 
 								snapInterval="1"
 								tickInterval="5"
-								labels="{['0','5','10','15','20']}"
-								minimum="0" maximum="20" 
+								labels="{['0','10','20','30','40']}"
+								minimum="0" maximum="40"
 								liveDragging="true"/>
 				</mx:HBox>
 			</mx:HBox>
 			
-			<mx:HBox verticalAlign="middle">
-				<mx:HBox
-						enabled="{!(shapeCombo.selectedItem == ParallelCoordinatesPlotter.NO_SHAPE || 
-						shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_CIRCLE ||
-						shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_SQUARE ||
-						shapeBorderSizeSlider.value == 0) }">
+			<mx:HBox verticalAlign="middle" width="100%">
+				<mx:HBox enabled="{shapeBorderSizeSlider.value != 0}">
 					<mx:Label text="{lang('Shape border color:')}" color="0x000000" fontSize="{controlsFontSize}"/>
 					<ui:CustomColorPicker id="shapeBorderColorPicker"
 									toolTip="{lang('This controls color of the border around the shape at each point.')}"/>
 				</mx:HBox>
-				
-				<mx:HBox width="100%" verticalAlign="middle"
-						enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}">
+				<mx:HBox verticalAlign="middle">
+					<mx:Label text="{lang('Opacity:')}" toolTip="{lang('Use this control to see how transparent lines are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
+					<mx:HSlider id="shapeBorderAlphaSlider" 
+								width="100%" minWidth="0" 
+								snapInterval="0.1"
+								tickInterval="0.5" labels="{['0%', '50%', '100%']}"
+								dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
+								minimum="0.0" maximum="1.0" 
+								liveDragging="true"/>
+				</mx:HBox>
+				<mx:HBox width="100%" verticalAlign="middle">
 					<mx:Label text="{lang('Thickness:')}" color="0x000000" fontSize="{controlsFontSize}" 
 							  toolTip="{lang('This controls the border size of the shapes indicating the data points on the axes.')}"/>
 					<mx:HSlider id="shapeBorderSizeSlider" 
-								width="100%" 
+								width="100%"  minWidth="0"
 								snapInterval="1"
 								tickInterval="1" 
 								labels="{['0', '1', '2', '3', '4', '5']}"
@@ -570,24 +575,24 @@
 			
 			<mx:HBox verticalAlign="middle">
 				<mx:Label text="{lang('Line Opacity:')}" toolTip="{lang('Use this control to see how transparent lines are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
-				<mx:HSlider id="alphaSlider" 
-							width="100%" 
+				<mx:HSlider id="alphaSlider"
+							width="100%" minWidth="0"
 							snapInterval="0.1"
 							tickInterval="0.5" labels="{['0%', '50%', '100%']}"
 							dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
 							minimum="0.0" maximum="1.0" 
 							liveDragging="true"/>
 				<mx:Label text="{lang('Thickness:')}"/>
-				<mx:HSlider id="thicknessSlider" minimum="1" maximum="4" labels="{['1','2','3','4']}" snapInterval="1" liveDragging="true" tickInterval="1"/>
-				
+				<mx:HSlider id="thicknessSlider" minimum="1" maximum="5" labels="{['1','2','3','4','5']}" snapInterval="1" liveDragging="true" tickInterval="1"/>
 			</mx:HBox>
+			
 			<mx:CheckBox id="curveCheckBox" label="{lang('Curved lines')}"
 						 change="_plotter.curveType.value = curveCheckBox.selected ? ParallelCoordinatesPlotter.CURVE_DOUBLE : ParallelCoordinatesPlotter.CURVE_NONE"/>
 			
 			<mx:HBox verticalAlign="middle">
 				<mx:Label text="{lang('Label Text Size: ')}"/>
 				<mx:HSlider id="labelSizeSlider"
-							width="100%"
+							width="100%" minWidth="0"
 							alpha="1.0"
 							snapInterval="1"
 							tickInterval="5" labels="{['5','10','15','20']}"

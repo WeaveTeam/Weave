@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
@@ -56,6 +57,7 @@ package weave.visualization.plotters
 	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
+	import weave.utils.EventUtils;
 	import weave.utils.ObjectPool;
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
@@ -165,21 +167,22 @@ package weave.visualization.plotters
 		
 		public function getXValues():Array
 		{
+			var values:Array;
 			// if session state is defined, use that. otherwise, get the values from xData
 			if (xValues.value)
 			{
-				return WeaveAPI.CSVParser.parseCSVRow(xValues.value) || [];
+				values = WeaveAPI.CSVParser.parseCSVRow(xValues.value) || [];
 			}
 			else
 			{
 				// calculate from column
-				var values:Array = [];
+				values = [];
 				for each (var key:IQualifiedKey in xData.keys)
 					values.push(xData.getValueFromKey(key, String));
 				AsyncSort.sortImmediately(values);
 				VectorUtils.removeDuplicatesFromSortedArray(values);
-				return values;
 			}
+			return values.filter(function(value:String, ..._):Boolean { return value ? true : false; });
 		}
 		
 		private var _in_updateFilterEquationColumns:Boolean = false;
@@ -209,8 +212,10 @@ package weave.visualization.plotters
 			var reverseKeys:Array = []; // a list of the keys returned as values from keyColumn
 			var lookup:Dictionary = new Dictionary(); // keeps track of what keys were already seen
 			var foreignKeyType:String = groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
-			if (!foreignKeyType || foreignKeyType == DataType.STRING)
-				foreignKeyType = lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
+			var groupByKeyType:String = groupBy.getMetadata(ColumnMetadata.KEY_TYPE);
+			var lineColorKeyType:String = lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
+			if ((!foreignKeyType || foreignKeyType == DataType.STRING) && groupByKeyType != lineColorKeyType)
+				foreignKeyType = lineColorKeyType;
 			for each (var key:IQualifiedKey in groupBy.keys)
 			{
 				var localName:String = groupBy.getValueFromKey(key, String) as String;
@@ -245,17 +250,19 @@ package weave.visualization.plotters
 			}
 			
 			columns.delayCallbacks();
-			columns.removeAllObjects();
 
-			var keyCol:DynamicColumn;
-			var filterCol:DynamicColumn;
-			var dataCol:DynamicColumn;
-			
 			var values:Array = getXValues();
+			
+			// remove columns with names not appearing in values list
+			for each (var name:String in columns.getNames())
+				if (values.indexOf(name) < 0)
+					columns.removeObject(name);
+			
+			// create an equation column for each filter value
 			for (var i:int = 0; i < values.length; i++)
 			{
 				var value:String = values[i];
-				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
+				var col:EquationColumn = columns.requestObject(value, EquationColumn, false);
 				col.delayCallbacks();
 				col.variables.requestObjectCopy("keyCol", groupBy);
 				col.variables.requestObjectCopy("filterCol", _filteredXData);
@@ -267,11 +274,13 @@ package weave.visualization.plotters
 				col.setMetadataProperty(ColumnMetadata.MIN, '{ getMin(dataCol) }');
 				col.setMetadataProperty(ColumnMetadata.MAX, '{ getMax(dataCol) }');
 				
-				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, filterValue.value, Number)';
+				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, filterValue.value, dataType)';
 				col.resumeCallbacks();
-			}				
+			}
+			columns.setNameOrder(values);
 			
 			columns.resumeCallbacks();
+			
 			_in_updateFilterEquationColumns = false;
 		}
 		
@@ -283,7 +292,7 @@ package weave.visualization.plotters
 		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
 		public const shapeBorderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		public const shapeBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
-		public const shapeBorderAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1.0));
+		public const shapeBorderAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.5));
 		
 		public static const CURVE_NONE:String = 'none';
 		public static const CURVE_TOWARDS:String = 'towards';
@@ -306,7 +315,7 @@ package weave.visualization.plotters
 			return types.indexOf(type) >= 0;
 		}
 
-		public static const shapesAvailable:Array = [NO_SHAPE, SOLID_CIRCLE, EMPTY_CIRCLE, SOLID_SQUARE, EMPTY_SQUARE];
+		public static const shapesAvailable:Array = [NO_SHAPE, SOLID_CIRCLE, SOLID_SQUARE, EMPTY_CIRCLE, EMPTY_SQUARE];
 		
 		public static const NO_SHAPE:String 	  = "No Shape";
 		public static const SOLID_CIRCLE:String   = "Solid Circle";
@@ -434,37 +443,50 @@ package weave.visualization.plotters
 				var x:Number = tempPoint.x;
 				var y:Number = tempPoint.y;
 				
+				var recordColor:Number = lineStyle.color.getValueFromKey(recordKey, Number);
+				
 				// thickness of the line around each shape
 				var shapeLineThickness:int = shapeBorderThickness.value;
+				// use a border around each shape
+				graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : shapeBorderAlpha.value);
 				if (_shapeSize > 0)
 				{
 					var shapeSize:Number = _shapeSize;
 					
-					// use a border around each shape
-					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : shapeBorderAlpha.value);
+					var shapeColor:Number = recordColor;
+					if (isNaN(shapeColor) && enableGroupBy.value)
+					{
+						var shapeKey:IQualifiedKey = (_yColumns[i] as IAttributeColumn).getValueFromKey(recordKey, IQualifiedKey);
+						shapeColor = lineStyle.color.getValueFromKey(shapeKey, Number);
+					}
 					// draw a different shape for each option
 					switch (shapeToDraw.value)
-					{								
+					{
 						// solid circle
 						case SOLID_CIRCLE:
-							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey, Number));
+							if (isFinite(shapeColor))
+								graphics.beginFill(shapeColor);
+							else
+								graphics.endFill();
 							// circle uses radius, so size/2
 							graphics.drawCircle(x, y, shapeSize/2);
 							break;
 						// empty circle
 						case EMPTY_CIRCLE:
-							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey, Number), shapeLineThickness == 0 ? 0 : 1);
+							graphics.lineStyle(shapeLineThickness, shapeColor, shapeLineThickness == 0 ? 0 : 1);
 							graphics.drawCircle(x, y, shapeSize/2);
-							
 							break;
 						// solid square
 						case SOLID_SQUARE:
-							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey, Number));
+							if (isFinite(shapeColor))
+								graphics.beginFill(shapeColor);
+							else
+								graphics.endFill();
 							graphics.drawRect(x-_shapeSize/2, y-_shapeSize/2, _shapeSize, _shapeSize);
 							break;
 						// empty square
 						case EMPTY_SQUARE:
-							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey, Number), shapeLineThickness == 0 ? 0 : 1);
+							graphics.lineStyle(shapeLineThickness, shapeColor, shapeLineThickness == 0 ? 0 : 1);
 							graphics.drawRect(x-_shapeSize/2, y-_shapeSize/2, _shapeSize, _shapeSize);
 							break;
 					}
@@ -472,10 +494,17 @@ package weave.visualization.plotters
 					graphics.endFill();
 				}
 				
-				// begin the line style for the parallel coordinates line
-				// we want to use the missing data line style since the line is the shape we are showing 
-				// (rather than just a border of another shape)
-				lineStyle.beginLineStyle(recordKey, graphics);				
+				if (isFinite(recordColor))
+				{
+					// begin the line style for the parallel coordinates line
+					// we want to use the missing data line style since the line is the shape we are showing 
+					// (rather than just a border of another shape)
+					lineStyle.beginLineStyle(recordKey, graphics);
+				}
+				else
+				{
+					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : shapeBorderAlpha.value);
+				}
 				
 				// if we aren't continuing a new line (it is a new line segment)	
 				if (!continueLine)
@@ -595,7 +624,7 @@ package weave.visualization.plotters
 			if (!yCol)
 				output.y = NaN;
 			if (normalize.value)
-				output.y = WeaveAPI.StatisticsCache.getColumnStatistics(yCol).getNorm(recordKey)
+				output.y = WeaveAPI.StatisticsCache.getColumnStatistics(yCol).getNorm(recordKey);
 			else
 				output.y = yCol.getValueFromKey(recordKey, Number);
 		}
