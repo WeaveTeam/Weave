@@ -94,7 +94,7 @@ package weave.editors
 				var input:IndentTextInput = new IndentTextInput();
 				input.translate = true;
 				input.label = label;
-				linkBindableProperty(ln, input, 'text', 250);
+				linkBindableProperty(ln, input, 'text', 250, true);
 				return input;
 			}
 			
@@ -103,7 +103,7 @@ package weave.editors
 			{
 				var codeEditor:CodeEditor = new CodeEditor();
 				codeEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(event:Event):void {
-					linkBindableProperty(lv, event.target, 'text', 500)
+					linkBindableProperty(lv, event.target, 'text', 500, true)
 					
 					var eb:ExpandButton = ExpandButton.makeExpandable(codeEditor, false, 24);
 					eb.addEventListener(MouseEvent.CLICK, function(e:Event):void {

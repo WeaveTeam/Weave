@@ -127,53 +127,50 @@ package weave.core
 			
 			// if the bindable value is not a boolean and the bindable parent has focus, delay synchronization
 			var bindableValue:Object = bindableParent[bindablePropertyName];
-			if (!(bindableValue is Boolean))
+			if (!useLinkableValue && uiComponent && !(bindableValue is Boolean))
 			{
-				if (uiComponent)
+				var obj:DisplayObject = uiComponent.getFocus();
+				if (obj && uiComponent.contains(obj)) // has focus
 				{
-					var obj:DisplayObject = uiComponent.getFocus();
-					if (obj && uiComponent.contains(obj)) // has focus
+					if (linkableVariable is LinkableVariable)
 					{
-						if (linkableVariable is LinkableVariable)
+						if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
 						{
-							if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
-							{
-								// clear previous error string
-								if (uiComponent.errorString == VALUE_NOT_ACCEPTED)
-									uiComponent.errorString = '';
-							}
-							else
-							{
-								// show error string if not already shown
-								if (!uiComponent.errorString)
-									uiComponent.errorString = VALUE_NOT_ACCEPTED;
-							}
+							// clear previous error string
+							if (uiComponent.errorString == VALUE_NOT_ACCEPTED)
+								uiComponent.errorString = '';
 						}
-						
-						var currentTime:int = getTimer();
-						
-						// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
-						if (!callingLater)
-							callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
-						
-						// if we haven't reached the target time yet or callbacks are delayed, call later
-						if (currentTime < callLaterTime)
+						else
 						{
-							// firstParam is ignored when callingLater=true
-							uiComponent.callLater(synchronize, [firstParam, true]);
-							return;
+							// show error string if not already shown
+							if (!uiComponent.errorString)
+								uiComponent.errorString = VALUE_NOT_ACCEPTED;
 						}
-					}
-					else if (onlyWhenFocused && !callingLater)
-					{
-						// component does not have focus, so ignore the bindableValue.
-						return;
 					}
 					
-					// otherwise, synchronize now
-					// clear saved time stamp when we are about to synchronize
-					callLaterTime = 0;
+					var currentTime:int = getTimer();
+					
+					// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
+					if (!callingLater)
+						callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
+					
+					// if we haven't reached the target time yet or callbacks are delayed, call later
+					if (currentTime < callLaterTime)
+					{
+						// firstParam is ignored when callingLater=true
+						uiComponent.callLater(synchronize, [firstParam, true]);
+						return;
+					}
 				}
+				else if (onlyWhenFocused && !callingLater)
+				{
+					// component does not have focus, so ignore the bindableValue.
+					return;
+				}
+				
+				// otherwise, synchronize now
+				// clear saved time stamp when we are about to synchronize
+				callLaterTime = 0;
 			}
 			
 			// if the linkable variable's callbacks are delayed, delay synchronization
