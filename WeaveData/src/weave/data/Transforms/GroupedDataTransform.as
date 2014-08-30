@@ -66,24 +66,20 @@ package weave.data.Transforms
 
 		}
 
-		public function updateUniqueValues()
+		public function updateUniqueValues():void
 		{
-			var values:Array = groupByColumn.keys.map(function(key:IQualifiedKey, ..._):String
-				{ return groupByColumn.getValueFromKey(key, String);});
+			var values:Array = groupByColumn.keys.map(function(key:IQualifiedKey, ..._):String {
+				return groupByColumn.getValueFromKey(key, String);
+			});
 
 			var keyType:String = userKeyType.value ? userKeyType.value : groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE);
 
 			_cachedUniqueValues = VectorUtils.union(values).map(
-
 				function(s:String, ..._):IQualifiedKey
 				{
 					return WeaveAPI.QKeyManager.getQKey(keyType, s);
 				}
 			);
-
-
-
-			return;
 		}
 
 		override protected function initialize():void
