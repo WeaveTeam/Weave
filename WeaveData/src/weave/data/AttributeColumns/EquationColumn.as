@@ -26,9 +26,9 @@ package weave.data.AttributeColumns
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.IKeySet;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -147,8 +147,12 @@ package weave.data.AttributeColumns
 		/**
 		 * This holds the metadata for the column.
 		 */
-		public const metadata:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
-
+		public const metadata:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyMetadata));
+		
+		private function verifyMetadata(value:Object):Boolean
+		{
+			return typeof value == 'object';
+		}
 
 		/**
 		 * Specify whether or not we should filter the keys by the column's keyType.
