@@ -239,3 +239,46 @@ package weave.editors
 		}
 	}
 }
+
+import flash.display.DisplayObject;
+
+import mx.binding.utils.BindingUtils;
+
+import weave.api.core.ILinkableVariable;
+import weave.api.getCallbackCollection;
+import weave.core.ClassUtils;
+import weave.core.UIUtils;
+import weave.utils.EventUtils;
+
+internal class JsonSynchronizer
+{
+	public static function available():Boolean
+	{
+		return ClassUtils.getClassDefinition('JSON') != null;
+	}
+	
+	public function JsonSynchronizer(linkableVariable:ILinkableVariable, host:DisplayObject, prop:String)
+	{
+		this.lv = linkableVariable;
+		this.host = host;
+		this.prop = prop;
+		
+		getCallbackCollection(lv).addImmediateCallback(host, handleObject, true);
+		BindingUtils.bindSetter(EventUtils.generateDelayedCallback(linkableVariable, handleJson, 500, true), this.host, this.prop);
+	}
+	
+	public var JSON:Object = ClassUtils.getClassDefinition('JSON');
+	public var lv:ILinkableVariable;
+	public var host:Object;
+	public var prop:String;
+	
+	private function handleObject():void
+	{
+		host[prop] = JSON.stringify(lv.getSessionState());
+	}
+	
+	private function handleJson(value:* = null):void
+	{
+		lv.setSessionState(JSON.parse(value));
+	}
+}
