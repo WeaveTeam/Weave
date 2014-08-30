@@ -86,6 +86,10 @@ package weave.core
 		// When given one or more parameters, this function copies the bindable value to the linkable value.
 		private function synchronize(firstParam:* = undefined, callingLater:Boolean = false):void
 		{
+			// stop if already disposed
+			if (!linkableVariable)
+				return;
+			
 			// unlink if linkableVariable was disposed
 			if (sm.objectWasDisposed(linkableVariable))
 			{
@@ -176,7 +180,7 @@ package weave.core
 			if (sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
 			{
 				// firstParam is ignored when callingLater=true
-				WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+				WeaveAPI.StageUtils.callLater(this, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
 				return;
 			}
 			
