@@ -200,7 +200,7 @@
 			 */
 			private function generateReverseLookup():void
 			{
-				if(!_plotter.enableGroupBy.value) 
+				if (!_plotter.enableGroupBy.value)
 					return;
 				
 				var col:IColumnWrapper = labelPlotter.text;
@@ -217,6 +217,7 @@
 				if (dataColumn.getInternalColumn() is EquationColumn)
 					return;
 				
+				var foreignKeyType:String = _plotter.getForeignKeyType();
 				var dataTitle:String = ColumnUtils.getTitle(dataColumn);
 				var dataType:String = ColumnUtils.getDataType(dataColumn);
 				var dataState:Object = getSessionState(dataColumn);
@@ -226,9 +227,9 @@
 				setSessionState(dataVariable, dataState);
 				dataEquation.variables.requestObjectCopy("groupBy", _plotter.groupBy);
 				dataEquation.setMetadataProperty(ColumnMetadata.TITLE, lang("{0} (reverse lookup)", dataTitle));
-				dataEquation.setMetadataProperty(ColumnMetadata.KEY_TYPE, ColumnUtils.getDataType(_plotter.groupBy));
+				dataEquation.setMetadataProperty(ColumnMetadata.KEY_TYPE, foreignKeyType);
 				dataEquation.setMetadataProperty(ColumnMetadata.DATA_TYPE, dataType);
-				dataEquation.equation.value = 'var associatedKeys = getAssociatedKeys(groupBy, key);\n' +
+				dataEquation.equation.value = 'var associatedKeys = getAssociatedKeys(groupBy, key, true);\n' +
 					'return associatedKeys ? data.getValueFromKey(associatedKeys[0], dataType) : cast(undefined, dataType);';
 				dataEquation.resumeCallbacks();
 			}
@@ -463,6 +464,7 @@
 						var dtGB:String = _plotter.groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
 						var ktC:String = _plotter.lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
 						var ktL:String = labelPlotter.text.getMetadata(ColumnMetadata.KEY_TYPE);
+						var fkt:String = _plotter.getForeignKeyType();
 						
 						if (!dtGB || dtGB == DataType.STRING)
 							dtGB = ktC;
@@ -474,7 +476,7 @@
 						}
 						
 						_groupByErrorStrings[groupColorSelector] = dtGB == ktC ? '' : lang(HELP_KT_COLOR);
-						_groupByErrorStrings[groupLabelSelector] = dtGB == ktL ? '' : lang(HELP_KT_LABEL);
+						_groupByErrorStrings[groupLabelSelector] = fkt == ktL ? '' : lang(HELP_KT_LABEL);
 						
 						groupColorSelector.updateError();
 						groupLabelSelector.updateError();
@@ -493,7 +495,7 @@
 			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
 			private static const HELP_DT_GROUP:String = HELP_KT_XYGB + " The values in the 'Group by' column should be foreign keys used by the 'Group color' and 'Group label' columns.";
 			private static const HELP_KT_COLOR:String = "The keyType of the color column should match either the dataType or the keyType of the 'Group by' column.";
-			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the dataType of the 'Group by' column.";
+			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the 'Group keyType.'";
 		]]>
 	</mx:Script>
 	<mx:Number id="controlsFontSize">10</mx:Number>

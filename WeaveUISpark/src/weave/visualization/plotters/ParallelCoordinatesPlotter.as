@@ -190,7 +190,7 @@ package weave.visualization.plotters
 			return _xValues = values.filter(function(value:String, ..._):Boolean { return value ? true : false; });
 		}
 		
-		private function getForeignKeyType():String
+		public function getForeignKeyType():String
 		{
 			var foreignKeyType:String = groupKeyType.value;
 			if (foreignKeyType)
