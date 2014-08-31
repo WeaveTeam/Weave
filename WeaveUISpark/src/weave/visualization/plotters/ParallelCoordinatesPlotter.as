@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -57,7 +58,6 @@ package weave.visualization.plotters
 	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
-	import weave.utils.EventUtils;
 	import weave.utils.ObjectPool;
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
@@ -144,6 +144,7 @@ package weave.visualization.plotters
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public const groupKeyType:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		public function get xData():DynamicColumn { return _filteredXData.internalDynamicColumn; }
 		public function get yData():DynamicColumn { return _filteredYData.internalDynamicColumn; }
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
@@ -165,8 +166,12 @@ package weave.visualization.plotters
 			colorDataWatcher.target = dc || fc || bc || cc;
 		}
 		
+		private var _xValues:Array;
 		public function getXValues():Array
 		{
+			if (!detectLinkableObjectChange(getXValues, xValues, xData))
+				return _xValues;
+			
 			var values:Array;
 			// if session state is defined, use that. otherwise, get the values from xData
 			if (xValues.value)
@@ -182,7 +187,20 @@ package weave.visualization.plotters
 				AsyncSort.sortImmediately(values);
 				VectorUtils.removeDuplicatesFromSortedArray(values);
 			}
-			return values.filter(function(value:String, ..._):Boolean { return value ? true : false; });
+			return _xValues = values.filter(function(value:String, ..._):Boolean { return value ? true : false; });
+		}
+		
+		private function getForeignKeyType():String
+		{
+			var foreignKeyType:String = groupKeyType.value;
+			if (foreignKeyType)
+				return foreignKeyType;
+			foreignKeyType = groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
+			var groupByKeyType:String = groupBy.getMetadata(ColumnMetadata.KEY_TYPE);
+			var lineColorKeyType:String = lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
+			if ((!foreignKeyType || foreignKeyType == DataType.STRING) && groupByKeyType != lineColorKeyType)
+				foreignKeyType = lineColorKeyType;
+			return foreignKeyType;
 		}
 		
 		private var _in_updateFilterEquationColumns:Boolean = false;
@@ -194,7 +212,7 @@ package weave.visualization.plotters
 			
 			if (enableGroupBy.value)
 			{
-				setSingleKeySource(_keySet_groupBy);
+				setColumnKeySources([_keySet_groupBy, groupBy]);
 			}
 			else
 			{
@@ -211,11 +229,7 @@ package weave.visualization.plotters
 			_keySet_groupBy.delayCallbacks();
 			var reverseKeys:Array = []; // a list of the keys returned as values from keyColumn
 			var lookup:Dictionary = new Dictionary(); // keeps track of what keys were already seen
-			var foreignKeyType:String = groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
-			var groupByKeyType:String = groupBy.getMetadata(ColumnMetadata.KEY_TYPE);
-			var lineColorKeyType:String = lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
-			if ((!foreignKeyType || foreignKeyType == DataType.STRING) && groupByKeyType != lineColorKeyType)
-				foreignKeyType = lineColorKeyType;
+			var foreignKeyType:String = getForeignKeyType();
 			for each (var key:IQualifiedKey in groupBy.keys)
 			{
 				var localName:String = groupBy.getValueFromKey(key, String) as String;
@@ -413,6 +427,52 @@ package weave.visualization.plotters
 			return [];
 		}
 		
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			// this template will draw one record per iteration
+			if (task.iteration < task.recordKeys.length)
+			{
+				//------------------------
+				// draw one record
+				var key:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+				if (enableGroupBy.value)
+				{
+					// reset lookup on first iteration
+					if (task.iteration == 0)
+						task.asyncState = new Dictionary();
+						
+					// replace groupBy keys with foreign keys so we only render lines for foreign keys
+					var foreignKeyType:String = getForeignKeyType();
+					if (key.keyType != foreignKeyType)
+						key = WeaveAPI.QKeyManager.getQKey(foreignKeyType, groupBy.getValueFromKey(key, String));
+					
+					// avoid rendering duplicate lines
+					if (task.asyncState[key])
+						return task.iteration / task.recordKeys.length;
+					task.asyncState[key] = true;
+				}
+				
+				tempShape.graphics.clear();
+				addRecordGraphicsToTempShape(key, task.dataBounds, task.screenBounds, tempShape);
+				if (clipDrawing)
+				{
+					// get clipRectangle
+					task.screenBounds.getRectangle(clipRectangle);
+					// increase width and height by 1 to avoid clipping rectangle borders drawn with vector graphics.
+					clipRectangle.width++;
+					clipRectangle.height++;
+				}
+				task.buffer.draw(tempShape, null, null, null, clipDrawing ? clipRectangle : null);
+				//------------------------
+				
+				// report progress
+				return task.iteration / task.recordKeys.length;
+			}
+			
+			// report progress
+			return 1; // avoids division by zero in case task.recordKeys.length == 0
+		}
+		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
@@ -426,6 +486,7 @@ package weave.visualization.plotters
 			var _prevX:Number = 0;
 			var _prevY:Number = 0;
 			var continueLine:Boolean = false;
+			var skipLines:Boolean = enableGroupBy.value && groupBy.containsKey(recordKey);
 			
 			for (i = 0; i < _yColumns.length; i++)
 			{
@@ -493,6 +554,9 @@ package weave.visualization.plotters
 					
 					graphics.endFill();
 				}
+				
+				if (skipLines)
+					continue;
 				
 				if (isFinite(recordColor))
 				{
@@ -612,20 +676,28 @@ package weave.visualization.plotters
 		 */
 		public function getCoords(recordKey:IQualifiedKey, columnIndex:int, output:Point):void
 		{
+			output.x = NaN;
+			output.y = NaN;
+			
+			if (enableGroupBy.value && groupBy.containsKey(recordKey))
+			{
+				if (xData.getValueFromKey(recordKey, String) != getXValues()[columnIndex])
+					return;
+				recordKey = WeaveAPI.QKeyManager.getQKey(getForeignKeyType(), groupBy.getValueFromKey(recordKey, String));
+			}
+			
 			// X
-			if (columnIndex < _xColumns.length)
-				output.x = (_xColumns[columnIndex] as IAttributeColumn).getValueFromKey(recordKey, Number);
-			else if (_xColumns.length > 0)
-				output.x = NaN;
-			else
+			var xCol:IAttributeColumn = _xColumns[columnIndex] as IAttributeColumn;
+			if (xCol)
+				output.x = xCol.getValueFromKey(recordKey, Number);
+			else if (_xColumns.length == 0)
 				output.x = columnIndex;
+			
 			// Y
 			var yCol:IAttributeColumn = _yColumns[columnIndex] as IAttributeColumn;
-			if (!yCol)
-				output.y = NaN;
-			if (normalize.value)
+			if (yCol && normalize.value)
 				output.y = WeaveAPI.StatisticsCache.getColumnStatistics(yCol).getNorm(recordKey);
-			else
+			else if (yCol)
 				output.y = yCol.getValueFromKey(recordKey, Number);
 		}
 		

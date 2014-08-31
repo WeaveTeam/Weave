@@ -256,6 +256,7 @@
 				groupBySelector.dynamicObject = _plotter.groupBy;
 				groupLabelSelector.dynamicObject = labelPlotter.text;
 				groupColorSelector.columnWrapper = _plotter.lineStyle.color;
+				_plotter.groupBy.addGroupedCallback(this, updateGroupKeyTypePrompt, true);
 				
 				linkBindableProperty(labelPlotter.size.defaultValue,labelSizeSlider,"value");
 				linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor");
@@ -273,6 +274,11 @@
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
+			}
+			
+			private function updateGroupKeyTypePrompt():void
+			{
+				groupKeyType.prompt = _plotter.groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -428,8 +434,8 @@
 	
 					lastColumn= _columns.pop();
 					labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
-					repeat = ( labelPlotter.dataY.keys.length == 0);
-				} while (repeat );
+					repeat = (labelPlotter.dataY.keys.length == 0);
+				} while (repeat);
 
 				if (labelPlotter.text.getInternalColumn() == null)
 				{
@@ -498,6 +504,13 @@
 				<ui:DynamicColumnComponent id="xDataSelector" creationComplete="initDynamicColumnComponent(xDataSelector, HELP_KT_XYGB)"/>
 				<ui:DynamicColumnComponent id="yDataSelector" creationComplete="initDynamicColumnComponent(yDataSelector, HELP_KT_XYGB)"/>
 				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_DT_GROUP)"/>
+				<ui:Indent label="{lang('Group keyType')}">
+					<ui:helpContent>
+						Specifies the keyType of the foreign keys referenced by the "Group by" column.
+						By default, the dataType of the "Group by" column is used as the foreign keyType.
+					</ui:helpContent>
+					<ui:TextInputWithPrompt id="groupKeyType" creationComplete="linkBindableProperty(_plotter.groupKeyType, groupKeyType, 'text', 500)"/>
+				</ui:Indent>
 				<ui:DynamicColumnComponent id="groupColorSelector" showLinkControl="false" creationComplete="initDynamicColumnComponent(groupColorSelector, HELP_KT_COLOR)"/>
 				<ui:DynamicColumnComponent id="groupLabelSelector" creationComplete="initDynamicColumnComponent(groupLabelSelector, HELP_KT_LABEL)"/>
 				<ui:Indent id="generateReverseLookupControls">
