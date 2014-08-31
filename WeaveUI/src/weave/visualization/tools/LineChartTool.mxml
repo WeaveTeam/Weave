@@ -475,8 +475,8 @@
 							dcc.updateError();
 						}
 						
-						_groupByErrorStrings[groupColorSelector] = dtGB == ktC ? '' : lang(HELP_KT_COLOR);
-						_groupByErrorStrings[groupLabelSelector] = fkt == ktL ? '' : lang(HELP_KT_LABEL);
+						_groupByErrorStrings[groupColorSelector] = ktC == ktGB || ktC == fkt ? '' : lang(HELP_KT_COLOR);
+						_groupByErrorStrings[groupLabelSelector] = ktL == fkt ? '' : lang(HELP_KT_LABEL);
 						
 						groupColorSelector.updateError();
 						groupLabelSelector.updateError();
@@ -494,7 +494,7 @@
 			
 			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
 			private static const HELP_DT_GROUP:String = HELP_KT_XYGB + " The values in the 'Group by' column should be foreign keys used by the 'Group color' and 'Group label' columns.";
-			private static const HELP_KT_COLOR:String = "The keyType of the color column should match either the dataType or the keyType of the 'Group by' column.";
+			private static const HELP_KT_COLOR:String = "The keyType of the color column should match either the keyType of the 'Group by' column or the 'Group keyType.'";
 			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the 'Group keyType.'";
 		]]>
 	</mx:Script>
@@ -502,7 +502,7 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Data')}">
 			<ui:CheckBoxWithNestedOptions id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
-										  label="{lang('Group records by column values (Advanced)')}">
+										  label="{lang('Group records by column values')}">
 				<ui:DynamicColumnComponent id="xDataSelector" creationComplete="initDynamicColumnComponent(xDataSelector, HELP_KT_XYGB)"/>
 				<ui:DynamicColumnComponent id="yDataSelector" creationComplete="initDynamicColumnComponent(yDataSelector, HELP_KT_XYGB)"/>
 				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_DT_GROUP)"/>
