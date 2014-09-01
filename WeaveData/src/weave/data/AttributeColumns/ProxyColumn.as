@@ -77,6 +77,9 @@ package weave.data.AttributeColumns
 		 */
 		override public function getMetadata(propertyName:String):String
 		{
+			if (propertyName === ColumnMetadata.TITLE && _overrideTitle)
+				return _overrideTitle;
+			
 			var overrideValue:String = super.getMetadata(propertyName);
 			if (overrideValue == null && _internalColumn != null)
 				return _internalColumn.getMetadata(propertyName);
@@ -121,6 +124,8 @@ package weave.data.AttributeColumns
 		}
 		public function setInternalColumn(newColumn:IAttributeColumn):void
 		{
+			_overrideTitle = null;
+			
 			if (newColumn == this)
 			{
 				trace("WARNING! Attempted to set ProxyColumn.internalAttributeColumn to self: " + this);
@@ -164,6 +169,8 @@ package weave.data.AttributeColumns
 			setInternalColumn(null); // this will remove the callback that was added to the internal column
 		}
 		
+		private var _overrideTitle:String;
+		
 		/**
 		 * Call this function when the ProxyColumn should indicate that the requested data is unavailable.
 		 * @param message The message to display in the title of the ProxyColumn. Default is "Data unavailable."
@@ -171,10 +178,9 @@ package weave.data.AttributeColumns
 		public function dataUnavailable(message:String = null):void
 		{
 			delayCallbacks();
-			var meta:Object = {};
-			meta[ColumnMetadata.TITLE] = message || lang("Data unavailable");
-			setMetadata(meta);
 			setInternalColumn(null);
+			_overrideTitle = message || lang("Data unavailable");
+			triggerCallbacks();
 			resumeCallbacks();
 		}
 			
