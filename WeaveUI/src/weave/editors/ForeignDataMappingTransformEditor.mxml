@@ -65,7 +65,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return ["Key mapping column", "Columns to access using the key mapping"];
+				return ["Foreign key mapping", "Data to transform"];
 			}
 			public function getSelectableAttributes():Array
 			{
