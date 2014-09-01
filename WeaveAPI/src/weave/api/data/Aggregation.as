@@ -17,11 +17,13 @@ package weave.api.data
 {
 	/**
 	 * Constants associated with different aggregation methods.
+	 * @see weave.api.data.ColumnMetadata
 	 */
 	public class Aggregation
 	{
 		public static const FIRST:String = "first";
 		public static const LAST:String = "last";
+		public static const COMMON:String = "common";
 		public static const MEAN:String = "mean";
 		public static const SUM:String = "sum";
 		public static const COUNT:String = "count";

@@ -107,12 +107,7 @@ package weave.data.AttributeColumns
 			var array:Array = dataTask.arrayData[key];
 			
 			if (dataType === Number)
-			{
-				if (!array)
-					return NaN;
-				
-				return aggregate(array, _metadata);
-			}
+				return aggregate(array, _metadata ? _metadata[ColumnMetadata.AGGREGATION] : null);
 			
 			if (dataType === String)
 			{
@@ -130,26 +125,43 @@ package weave.data.AttributeColumns
 			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
 		}
 
-		public static function aggregate(array:Array, metadata:Object):Number
+		/**
+		 * Aggregates an Array of Numbers into a single Number.
+		 * @param numbers An Array of Numbers.
+		 * @param aggregation One of the constants in weave.api.data.Aggregation.
+		 * @return An aggregated Number.
+		 * @see weave.api.data.Aggregation
+		 */		
+		public static function aggregate(numbers:Array, aggregation:String):Number
 		{
-
-			switch (metadata ? metadata[ColumnMetadata.AGGREGATION] : null)
+			if (!numbers)
+				return NaN;
+			
+			switch (aggregation)
 			{
 				default:
 				case Aggregation.FIRST:
-					return array[0];
+					return numbers[0];
 				case Aggregation.LAST:
-					return array[array.length - 1];
+					return numbers[numbers.length - 1];
 				case Aggregation.COUNT:
-					return array.length;
+					return numbers.length;
 				case Aggregation.MEAN:
-					return StandardLib.mean(array);
+					return StandardLib.mean(numbers);
 				case Aggregation.SUM:
-					return StandardLib.sum(array);
+					return StandardLib.sum(numbers);
 				case Aggregation.MIN:
-					return Math.min.apply(null, array);
+					return Math.min.apply(null, numbers);
 				case Aggregation.MAX:
-					return Math.max.apply(null, array);
+					return Math.max.apply(null, numbers);
+				case Aggregation.COMMON:
+				{
+					var first:Number = numbers[0];
+					for each (var value:Number in numbers)
+						if (value != first)
+							return NaN;
+					return first;
+				}
 			}
 		}
 	}

@@ -17,6 +17,7 @@ package weave.api.data
 {
 	/**
 	 * Constants associated with different data types.
+	 * @see weave.api.data.ColumnMetadata
 	 */
 	public class DataType
 	{
@@ -24,5 +25,27 @@ package weave.api.data
 		public static const STRING:String = "string";
 		public static const DATE:String = "date";
 		public static const GEOMETRY:String = "geometry";
+		
+		/**
+		 * Gets the Class associated with a dataType metadata value.
+		 * This Class indicates the type of values stored in a column with given dataType metadata value.
+		 * @param dataType A dataType metadata value.
+		 * @return The associated Class, which can be used to pass to IAttributeColumn.getValueFromKey().
+		 * @see weave.api.data.IAttributeColumn#getValueFromKey()
+		 */
+		public static function getClass(dataType:String):Class
+		{
+			switch (dataType)
+			{
+				case NUMBER:
+					return Number;
+				case DATE:
+					return Date;
+				case GEOMETRY:
+					return Array;
+				default:
+					return String;
+			}
+		}
 	}
 }

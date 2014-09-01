@@ -211,19 +211,7 @@ package weave.data.AttributeColumns
 			var array:Array = dataTask.arrayData[key];
 			
 			if (dataType === String)
-			{
-				if (!array)
-					return '';
-				
-				switch (_metadata ? _metadata[ColumnMetadata.AGGREGATION] : null)
-				{
-					default:
-					case Aggregation.FIRST:
-						return array[0];
-					case Aggregation.LAST:
-						return array[array.length - 1];
-				}
-			}
+				return aggregate(array, _metadata ? _metadata[ColumnMetadata.AGGREGATION] : null) || '';
 			
 			var string:String = getValueFromKey(key, String);
 			
@@ -249,6 +237,42 @@ package weave.data.AttributeColumns
 		override public function toString():String
 		{
 			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
+		}
+		
+		/**
+		 * Aggregates an Array of Strings into a single String.
+		 * @param strings An Array of Strings.
+		 * @param aggregation One of the constants in weave.api.data.Aggregation.
+		 * @return An aggregated String.
+		 * @see weave.api.data.Aggregation
+		 */		
+		public static function aggregate(strings:Array, aggregation:String):String
+		{
+			if (!strings)
+				return undefined;
+			
+			if (!aggregation)
+				aggregation = Aggregation.FIRST;
+			
+			switch (aggregation)
+			{
+				case Aggregation.FIRST:
+					return strings[0];
+				
+				case Aggregation.LAST:
+					return strings[strings.length - 1];
+				
+				case Aggregation.MEAN:
+				case Aggregation.COMMON:
+					var first:String = strings[0];
+					for each (var value:String in strings)
+						if (value != first)
+							return undefined;
+					return first;
+				
+				default:
+					return undefined;
+			}
 		}
 	}
 }
