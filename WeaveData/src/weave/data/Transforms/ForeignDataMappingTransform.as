@@ -33,8 +33,6 @@ package weave.data.Transforms
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.DataSources.AbstractDataSource;
     import weave.data.hierarchy.ColumnTreeNode;
-    import weave.utils.ColumnUtils;
-    import weave.utils.EquationColumnLib;
 
     public class ForeignDataMappingTransform extends AbstractDataSource
     {
@@ -137,15 +135,16 @@ package weave.data.Transforms
             equationColumn.variables.requestObjectCopy("dataColumn", dataColumn);
             equationColumn.metadata.value = metadata;
             equationColumn.filterByKeyType.value = true;
-            equationColumn.equation.value = "\
-				function(key, dataType) {\
-					var kt = keyColumn.getMetadata('dataType');\
-					if (kt == 'string')\
-						kt = dataColumn.getMetadata('keyType');\
-					var ln = keyColumn.getValueFromKey(key, String);\
-					return dataColumn.getValueFromKey(getQKey(kt, ln), dataType);\
-				}\
-			";
+            equationColumn.equation.value = <![CDATA[
+				function(key, dataType)
+				{
+					var kt = keyColumn.getMetadata('dataType');
+					if (kt == 'string')
+						kt = dataColumn.getMetadata('keyType');
+					var ln = keyColumn.getValueFromKey(key, String);
+					return dataColumn.getValueFromKey(getQKey(kt, ln), dataType);
+				}
+			]]>;
 
             proxyColumn.setInternalColumn(equationColumn);
         }
