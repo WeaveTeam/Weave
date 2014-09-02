@@ -24,7 +24,6 @@ package weave.data.AttributeColumns
 	import mx.utils.StringUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
@@ -236,26 +235,6 @@ package weave.data.AttributeColumns
 		}
 		
 		/**
-		 * This function gets called when dataType changes and sets _defaultDataType.
-		 */
-		private function cacheDefaultDataType():void
-		{
-			var _dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
-			if (_dataType == DataType.GEOMETRY)
-				_defaultDataType = null;
-			else if (_dataType == DataType.NUMBER)
-				_defaultDataType = Number;
-			else if (_dataType == DataType.STRING)
-				_defaultDataType = String;
-			else if (_dataType == DataType.DATE)
-				_defaultDataType = Date;
-			else if (_dataType) // any other data type is treated as a foreign keyType
-				_defaultDataType = IQualifiedKey;
-			else
-				_defaultDataType = null;
-		}
-		
-		/**
 		 * This function creates an object in the variables LinkableHashMap if it doesn't already exist.
 		 * If there is an existing object associated with the specified name, it will be kept if it
 		 * is the specified type, or replaced with a new instance of the specified type if it is not.
@@ -329,8 +308,6 @@ package weave.data.AttributeColumns
 			_cacheTriggerCount = triggerCounter;
 			_compileError = null;
 			
-			cacheDefaultDataType();
-			
 			try
 			{
 				// check if the equation evaluates to a constant
@@ -377,7 +354,7 @@ package weave.data.AttributeColumns
 			
 			// if dataType not specified, use default type specified in metadata
 			if (dataType == null)
-				dataType = _defaultDataType;
+				dataType = Array;
 			
 			var value:* = _constantResult;
 			if (!_equationIsConstant)
@@ -391,6 +368,7 @@ package weave.data.AttributeColumns
 					_equationResultCache.set(key, dataType, UNDEFINED);
 					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
+					var prevKey:IQualifiedKey = EquationColumnLib.currentRecordKey;
 					EquationColumnLib.currentRecordKey = key;
 					try
 					{
@@ -406,6 +384,10 @@ package weave.data.AttributeColumns
 							reportError(e);
 						}
 						//value = e;
+					}
+					finally
+					{
+						EquationColumnLib.currentRecordKey = prevKey;
 					}
 					
 					// save value in cache
