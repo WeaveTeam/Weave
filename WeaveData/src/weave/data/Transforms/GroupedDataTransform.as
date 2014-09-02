@@ -130,9 +130,13 @@ package weave.data.Transforms
 			metadata[ColumnMetadata.KEY_TYPE] = groupKeyType.value || groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE);
 			metadata[DATA_COLUMNNAME_META] = dataColumnName;
 			
-			var agg:Object = aggregationModes.getSessionState();
-			if (agg && agg[dataColumnName])
-				metadata[ColumnMetadata.AGGREGATION] = agg[dataColumnName];
+			var aggState:Object = aggregationModes.getSessionState();
+			var aggregation:String = aggState ? aggState[dataColumnName] : null;
+			aggregation = aggregation || Aggregation.DEFAULT;
+			metadata[ColumnMetadata.AGGREGATION] = aggregation;
+			
+			if (aggregation != Aggregation.SAME)
+				metadata[ColumnMetadata.TITLE] = lang("{0} ({1})", metadata[ColumnMetadata.TITLE], aggregation);
 
 			return metadata;
 		}
