@@ -62,11 +62,6 @@ package weave.visualization.plotters
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
-	/**	
-	 * @author heather byrne
-	 * @author adufilie
-	 * @author abaumann
-	 */
 	public class ParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
 	{
 		public function ParallelCoordinatesPlotter()
@@ -122,7 +117,7 @@ package weave.visualization.plotters
 		public function getSelectableAttributeNames():Array
 		{
 			if (enableGroupBy.value)
-				return ["X values", "Y values", "Group by", "Group color"];
+				return ["X values", "Y values", "Group by", "Color"];
 			else
 				return ["Color", "Y Columns"];
 		}
