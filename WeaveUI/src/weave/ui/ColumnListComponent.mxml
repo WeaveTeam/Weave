@@ -85,7 +85,7 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				showVariableNames = showVariableNames;
+				internalList = _internalList || new List();
 				controller.labelFunction = getItemLabel;
 				getCallbackCollection(controller).addGroupedCallback(this, function():void {
 					reverseButton.buttonMode = reverseButton.enabled = (
@@ -133,10 +133,14 @@
 			
 			public function set showVariableNames(value:Boolean):void
 			{
-				_internalList = value
+				internalList = value
 					? controller.view as DataGrid || new CustomDataGrid()
 					: controller.view as List || new List();
-				
+			}
+			
+			public function set internalList(value:ListBase):void
+			{
+				_internalList = value;
 				if (controller.view != _internalList)
 				{
 					if (controller.view && controller.view.parent == this)

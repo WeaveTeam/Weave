@@ -61,6 +61,7 @@ package weave.ui
 		}
 		
 		/**
+		 * 
 		 * @param editor This can be either a List or a DataGrid.
 		 */
 		public function set view(editor:ListBase):void
@@ -98,25 +99,30 @@ package weave.ui
 			var dataGrid:DataGrid = _editor as DataGrid;
 			if (dataGrid)
 			{
-				dataGrid.editable = true;
-				dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
-				dataGrid.draggableColumns = false;
-				
-				_nameColumn = new DataGridColumn();
-				_nameColumn.sortable = false;
-				_nameColumn.editable = true;
-				_nameColumn.labelFunction = getObjectName;
-				_nameColumn.showDataTips = true;
-				_nameColumn.dataTipFunction = nameColumnDataTip;
-				setNameColumnHeader();
-				
-				_valueColumn = new DataGridColumn();
-				_valueColumn.sortable = false;
-				_valueColumn.editable = false;
-				_valueColumn.headerText = lang("Value");
-				_valueColumn.labelFunction = getItemLabel;
-				
-				dataGrid.columns = [_nameColumn, _valueColumn];
+				dataGrid.sortableColumns = false;
+				// keep existing columns if there are any
+				if (!dataGrid.columns.length)
+				{
+					dataGrid.editable = true;
+					dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
+					dataGrid.draggableColumns = false;
+					
+					_nameColumn = new DataGridColumn();
+					_nameColumn.sortable = false;
+					_nameColumn.editable = true;
+					_nameColumn.labelFunction = getObjectName;
+					_nameColumn.showDataTips = true;
+					_nameColumn.dataTipFunction = nameColumnDataTip;
+					setNameColumnHeader();
+					
+					_valueColumn = new DataGridColumn();
+					_valueColumn.sortable = false;
+					_valueColumn.editable = false;
+					_valueColumn.headerText = lang("Value");
+					_valueColumn.labelFunction = getItemLabel;
+					
+					dataGrid.columns = [_nameColumn, _valueColumn];
+				}
 			}
 			else if (_editor)
 			{
