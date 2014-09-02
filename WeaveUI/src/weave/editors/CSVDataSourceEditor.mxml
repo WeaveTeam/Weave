@@ -26,6 +26,7 @@
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
 	implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
+	xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
 	<ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
@@ -33,25 +34,28 @@
 	</ui:Indent>
 	<ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
 		<ui:TextInputWithPrompt change="handleURLTextChange()" id="url" width="100%" prompt="http://www.example.com/example.csv"/>
+		<mx:Button label="{lang('Open file')}" click="append = false; browseForFiles()"/>
+		<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
+		<mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false" includeInLayout="{uploadMessage.text?true:false}"/>
 	</ui:Indent>
-	<mx:VBox width="100%" enabled="{url.text?false:true}">
-		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
-		<ui:Indent group="{indentGroup}" label="{lang('Open local CSV file')}">
-			<mx:Button label="{lang('Open file')}" click="append = false; browseForFiles()"/>
-			<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
-			<mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
-		</ui:Indent>
-		<mx:Label width="100%" textAlign="center" text="{lang('OR')}" fontWeight="bold"/>
-		<ui:Indent group="{indentGroup}" label="{lang('Paste/Edit CSV Data')}">
-			<mx:TextArea id="csvTextArea" change="csvParser.parseCSV(csvTextArea.text)" width="100%" height="100"/>
-		</ui:Indent>
-		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!arrayIsEmpty(csvRows)}"/>
-	</mx:VBox>
-	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
+		<ui:CustomTabNavigator id="editorTabNavigator" width="100%" height="100%" change="editorTabChanged(event)" enabled="{!url.text}">
+			<mx:VBox id="tableEditorBox" label="{lang('Table')}">
+				<CustomDataGrid:CustomDataGrid id="tableEditor" width="100%" height="100%" editable="true" itemEditEnd="setCSVRows(tableEditor.getRows())"/>
+			</mx:VBox>
+			<mx:VBox  id="rawEditorBox" label="{lang('Text')}">
+				<ui:CodeEditor id="rawEditor" width="100%" height="100%" change="csvParser.parseCSV(rawEditor.text)"/>
+			</mx:VBox>
+		</ui:CustomTabNavigator>
+
+	<ui:Indent label="{lang('Key Column')}">
+		<mx:TextInput id="keyColumnName" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Type *')}">
 		<ui:KeyTypesMenu id="keyTypeSelector"/>
+
+	</ui:Indent>
+	<ui:Indent label="{lang('Delimiter')}">
+		<ui:CustomComboBox id="delimiterComboBox" dataProvider="{delimiters}" change="delimiterChanged()"/>
 	</ui:Indent>
 	<mx:Spacer/>
 	<mx:Label text="{lang('* = required')}"/>
@@ -66,6 +70,7 @@
 			import weave.api.getSessionState;
 			import weave.api.registerDisposableChild;
 			import weave.api.reportError;
+			import weave.core.LinkableWatcher;
 			import weave.compiler.StandardLib;
 			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
@@ -77,24 +82,36 @@
 			[Bindable] private var indentGroup:IndentGroup = new IndentGroup();
 			
 			private var busyIndicator:BusyIndicator = new BusyIndicator();
-			private const csvParser:CSVParser = registerDisposableChild(this, new CSVParser(true));
-			[Bindable] private var csvRows:Array = [];
+			private const csvParserWatcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(CSVParser, handleCSVParser));
+
+
 			//this will hold the header columns as was loaded when the data is initially loaded.
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
 			private var headerArray:Array = [];
+			[Bindable] private var csvRows:Array = [];
+			[Bindable] private var csvData:String = "";
 			[Bindable] private var target:CSVDataSource = null;
+
+			private const delimiters:Array = [
+				{label: "Comma", data: ','}, 
+				{label: "Semicolon", data: ';'},
+				{label: "Space", data: ' '},
+				{label: "Tab", data: '\t'}
+			];
 			
 			private var append:Boolean = false;
 			private var _fileLoader:FileReference = null;
+
+			private function get csvParser():CSVParser {return csvParserWatcher.target as CSVParser;}
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				addChild(busyIndicator);
 				busyIndicator.visible = false;
+				csvParserWatcher.target = new CSVParser(true);
 				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("CSVDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
-				getCallbackCollection(csvParser).addImmediateCallback(this, handleCSVParser);
 			}
 			
 			
@@ -124,6 +141,29 @@
 						setCSVRows(rows);
 					}
 				}
+			}
+
+			private function editorTabChanged(evt:Event):void
+			{
+				if (evt.currentTarget.selectedChild === tableEditorBox)
+				{
+					tableEditor.setRows(getCSVRows());
+				}
+				else if (evt.currentTarget.selectedChild === rawEditorBox)
+				{
+					rawEditor.text = csvParser.createCSV(getCSVRows());
+				}
+			}
+
+			private function delimiterChanged():void
+			{
+				var delimiter:Object = delimiterComboBox.selectedItem as Object;
+				if (!delimiter || !delimiter.data) 
+					csvParserWatcher.target = new CSVParser(true);
+				else
+					csvParserWatcher.target = new CSVParser(true, delimiter.data);
+
+				csvParser.parseCSV(rawEditor.text);
 			}
 			
 			public function hasPendingChanges():Boolean
@@ -203,21 +243,12 @@
 			
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
-				if (true)
-				{
-					url.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
-					handleURLTextChange();
-					busyIndicator.visible = false;
-				}
-				else
-				{
-					url.text = "";
-					handleURLTextChange();
-					csvParser.parseCSV(_fileLoader.data.toString());
-				}
+				url.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
+				handleURLTextChange();
+				busyIndicator.visible = false;
+
 				uploadMessage.visible = true;
 				
-				csvTextArea.text = "";
 				WeaveAPI.ProgressIndicator.removeTask(_fileLoader);
 				
 				if (_fileLoader.data == null)
@@ -280,36 +311,11 @@
 				return !array || !array.length;
 			}
 			
-			private function showGrid():void
-			{
-				if (arrayIsEmpty(csvRows))
-					return;
-				
-				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;
-				
-				//Listen for save changes in Data Grid Editor
-				grid.saveButton.addEventListener(MouseEvent.CLICK, handleSaveButtonClick);
-				
-				grid.setRows(csvRows, true);
-				
-				PopUpManager.bringToFront(grid);
-				
-				function handleSaveButtonClick(event:MouseEvent):void
-				{
-					setCSVRows(grid.getRows());
-					
-					//if the data entered through the text area, clear the text area
-					if (csvTextArea.text != "")
-						csvTextArea.text = '';
-				}
-			}
-			
 			private function handleURLTextChange():void
 			{
 				var hasURL:Boolean = url.text ? true : false;
 				uploadMessage.visible = !hasURL;
 				csvRows = null;
-				csvTextArea.text = '';
 			}
 		]]>
 	</mx:Script>
