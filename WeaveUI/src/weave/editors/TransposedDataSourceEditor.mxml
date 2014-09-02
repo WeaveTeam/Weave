@@ -124,10 +124,15 @@
 				}
 			}
 			
+			private function hasDiff(a:ILinkableObject, b:ILinkableObject):Boolean
+			{
+				return WeaveAPI.SessionManager.computeDiff(getSessionState(a), getSessionState(b)) !== undefined;
+			}
+			
 			public function hasPendingChanges():Boolean
 			{
-				return !!WeaveAPI.SessionManager.computeDiff(getSessionState(metadata), getSessionState(target.metadata))
-					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(columns), getSessionState(target.columns));
+				return hasDiff(metadata, target.metadata)
+					|| hasDiff(columns, target.columns);
 			}
 			
 			public function applyChanges():void

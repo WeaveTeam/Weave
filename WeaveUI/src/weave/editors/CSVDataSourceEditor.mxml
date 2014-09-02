@@ -131,7 +131,7 @@
 				return StandardLib.asString(target.url.value) != StandardLib.asString(url.text)
 					|| StandardLib.asString(target.keyColName.value) != StandardLib.asString(keyColumnName.text)
 					|| StandardLib.asString(target.keyType.value) != StandardLib.asString(keyTypeSelector.selectedKeyType)
-					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(target.csvData), csvRows);
+					|| WeaveAPI.SessionManager.computeDiff(getSessionState(target.csvData), csvRows) !== undefined;
 			}
 
 			public function applyChanges():void

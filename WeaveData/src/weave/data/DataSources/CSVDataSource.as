@@ -351,7 +351,7 @@ package weave.data.DataSources
 		
 		private function handleServletResponse(event:ResultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			var data:Array = event.result as Array;
 			if (!data)
@@ -367,7 +367,7 @@ package weave.data.DataSources
 		}
 		private function handleServletError(event:FaultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			reportError(event);
 		}
