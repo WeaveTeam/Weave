@@ -252,27 +252,36 @@ package weave.data.AttributeColumns
 				return undefined;
 			
 			if (!aggregation)
-				aggregation = Aggregation.FIRST;
+				aggregation = Aggregation.DEFAULT;
 			
 			switch (aggregation)
 			{
+				case Aggregation.SAME:
+					var first:String = strings[0];
+					for each (var value:String in strings)
+						if (value != first)
+							return AMBIGUOUS_DATA;
+					return first;
+				
 				case Aggregation.FIRST:
 					return strings[0];
 				
 				case Aggregation.LAST:
 					return strings[strings.length - 1];
 				
-				case Aggregation.MEAN:
-				case Aggregation.COMMON:
-					var first:String = strings[0];
-					for each (var value:String in strings)
-						if (value != first)
-							return undefined;
-					return first;
-				
 				default:
 					return undefined;
 			}
 		}
+		
+		public static function getSupportedAggregationModes():Array
+		{
+			return [Aggregation.SAME, Aggregation.FIRST, Aggregation.LAST];
+		}
+		
+		/**
+		 * The string displayed when data for a record is ambiguous.
+		 */
+		public static const AMBIGUOUS_DATA:String = lang("Ambiguous data");
 	}
 }
