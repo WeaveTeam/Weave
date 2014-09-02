@@ -311,7 +311,7 @@ package weave.data.DataSources
 		
 		private function getGeomColumnTitle():String
 		{
-			return lang("{0} geometry", getHierarchyRoot().getLabel());
+			return lang("{0} geometry", WeaveAPI.globalHashMap.getName(this));
 		}
 	}
 }
