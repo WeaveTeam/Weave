@@ -137,9 +137,17 @@ package weave.data.AttributeColumns
 			if (!numbers)
 				return NaN;
 			
+			if (!aggregation)
+				aggregation = Aggregation.DEFAULT;
+			
 			switch (aggregation)
 			{
-				default:
+				case Aggregation.SAME:
+					var first:Number = numbers[0];
+					for each (var value:Number in numbers)
+						if (value != first)
+							return NaN;
+					return first;
 				case Aggregation.FIRST:
 					return numbers[0];
 				case Aggregation.LAST:
@@ -154,14 +162,8 @@ package weave.data.AttributeColumns
 					return Math.min.apply(null, numbers);
 				case Aggregation.MAX:
 					return Math.max.apply(null, numbers);
-				case Aggregation.COMMON:
-				{
-					var first:Number = numbers[0];
-					for each (var value:Number in numbers)
-						if (value != first)
-							return NaN;
-					return first;
-				}
+				default:
+					return NaN;
 			}
 		}
 	}

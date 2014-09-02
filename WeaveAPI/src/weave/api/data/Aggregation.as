@@ -21,13 +21,18 @@ package weave.api.data
 	 */
 	public class Aggregation
 	{
+		public static const SAME:String = "same";
 		public static const FIRST:String = "first";
 		public static const LAST:String = "last";
-		public static const COMMON:String = "common";
 		public static const MEAN:String = "mean";
 		public static const SUM:String = "sum";
 		public static const COUNT:String = "count";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
+		
+		/**
+		 * The default aggregation mode.
+		 */
+		public static const DEFAULT:String = SAME;
 	}
 }
