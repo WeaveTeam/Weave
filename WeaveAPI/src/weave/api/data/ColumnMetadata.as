@@ -60,7 +60,7 @@ package weave.api.data
 					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
 				
 				case ColumnMetadata.AGGREGATION:
-					return [Aggregation.FIRST, Aggregation.LAST, Aggregation.MEAN, Aggregation.SUM, Aggregation.COUNT, Aggregation.MIN, Aggregation.MAX];
+					return [Aggregation.FIRST, Aggregation.LAST, Aggregation.COMMON, Aggregation.MEAN, Aggregation.SUM, Aggregation.COUNT, Aggregation.MIN, Aggregation.MAX];
 				
 				default:
 					return [];
