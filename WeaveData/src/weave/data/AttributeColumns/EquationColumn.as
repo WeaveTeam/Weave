@@ -90,6 +90,7 @@ package weave.data.AttributeColumns
 		 * This is all the keys in all the variables columns
 		 */
 		private var _allKeys:Array = null;
+		private var _allKeysLookup:Dictionary;
 		private var _allKeysTriggerCount:uint = 0;
 		/**
 		 * This is a cache of metadata values derived from the metadata session state.
@@ -256,6 +257,7 @@ package weave.data.AttributeColumns
 			if (_allKeysTriggerCount != variables.triggerCounter)
 			{
 				_allKeys = null;
+				_allKeysLookup = new Dictionary(true);
 				_allKeysTriggerCount = variables.triggerCounter; // prevent infinite recursion
 
 				var variableColumns:Array = variables.getObjects(IKeySet);
@@ -267,6 +269,7 @@ package weave.data.AttributeColumns
 					var keyType:String = this.getMetadata(ColumnMetadata.KEY_TYPE);
 					_allKeys = _allKeys.filter(new KeyFilterFunction(keyType).filter);
 				}
+				VectorUtils.fillKeys(_allKeysLookup, _allKeys);
 			}
 			return _allKeys || [];
 		}
@@ -277,7 +280,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return !StandardLib.isUndefined(getValueFromKey(key));
+			return keys && _allKeysLookup[key];
 		}
 
 		private function variableGetter(name:String):*
