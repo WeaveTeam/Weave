@@ -40,7 +40,7 @@
 	</ui:Indent>
 		<ui:CustomTabNavigator id="editorTabNavigator" width="100%" height="100%" change="editorTabChanged(event)" enabled="{!url.text}">
 			<mx:VBox id="tableEditorBox" label="{lang('Table')}">
-				<CustomDataGrid:CustomDataGrid id="tableEditor" width="100%" height="100%" editable="true" itemEditEnd="setCSVRows(tableEditor.getRows())"/>
+				<CustomDataGrid:CustomDataGrid id="tableEditor" width="100%" height="100%" editable="true" itemEditEnd="callLater(tableEditFinished)"/>
 			</mx:VBox>
 			<mx:VBox  id="rawEditorBox" label="{lang('Text')}">
 				<ui:CodeEditor id="rawEditor" width="100%" height="100%" change="csvParser.parseCSV(rawEditor.text)"/>
@@ -55,7 +55,7 @@
 
 	</ui:Indent>
 	<ui:Indent label="{lang('Delimiter')}">
-		<ui:CustomComboBox id="delimiterComboBox" dataProvider="{delimiters}" change="delimiterChanged()"/>
+		<ui:CustomComboBox id="delimiterComboBox" dataProvider="{delimiters}" enabled="{!url.text}" change="delimiterChanged()"/>
 	</ui:Indent>
 	<mx:Spacer/>
 	<mx:Label text="{lang('* = required')}"/>
@@ -91,6 +91,7 @@
 			[Bindable] private var csvRows:Array = [];
 			[Bindable] private var csvData:String = "";
 			[Bindable] private var target:CSVDataSource = null;
+			private var tableEdited:Boolean = false;
 
 			private const delimiters:Array = [
 				{label: "Comma", data: ','}, 
@@ -151,7 +152,9 @@
 				}
 				else if (evt.currentTarget.selectedChild === rawEditorBox)
 				{
-					rawEditor.text = csvParser.createCSV(getCSVRows());
+					if (tableEdited)
+						rawEditor.text = csvParser.createCSV(getCSVRows());
+					tableEdited = false;
 				}
 			}
 
@@ -163,7 +166,20 @@
 				else
 					csvParserWatcher.target = new CSVParser(true, delimiter.data);
 
+				getCallbackCollection(csvParserWatcher).addImmediateCallback(this, updateTableOnce);
 				csvParser.parseCSV(rawEditor.text);
+			}
+
+			private function updateTableOnce():void
+			{
+				tableEditor.setRows(getCSVRows());
+				getCallbackCollection(csvParserWatcher).removeCallback(updateTableOnce);
+			}
+
+			private function tableEditFinished():void
+			{
+				tableEdited = true;
+				setCSVRows(tableEditor.getRows());
 			}
 			
 			public function hasPendingChanges():Boolean
