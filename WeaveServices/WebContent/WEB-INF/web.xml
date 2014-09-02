@@ -15,9 +15,13 @@
 		configPath
 		This is the location where the AdminService looks for sqlconfig.xml.
 		Relative paths will be resolved from the folder above WEB-INF, where the web application was extracted to.
+		
+		../../../webapps/weave-config/ is the relative path for a typical Jetty installation
+		
+		../weave-config/ is the relative path for a typical Tomcat installation as well as the default fail-safe path
 	-->
     <param-name>configPath</param-name>
-    <param-value>../weave-config/|../../../webapps/weave-config/</param-value>
+    <param-value>../../../webapps/weave-config/|../weave-config/</param-value>
   </context-param>
   <context-param>
 	<!--

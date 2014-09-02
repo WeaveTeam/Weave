@@ -59,7 +59,7 @@ public class WeaveContextParams
 	 */
 	private WeaveContextParams(ServletContext context) throws ServletException
 	{
-		String contextPath = context.getRealPath(".");
+		String contextPath = context.getRealPath("");
 		String[] paths = context.getInitParameter("docrootPath").split("\\|");
 		for (int i = 0; i < paths.length; i++)
 		{
@@ -80,10 +80,7 @@ public class WeaveContextParams
 			configPath = weaveConfigFile.getAbsolutePath().replace('\\', '/') + "/";
 			if (weaveConfigFile.isDirectory())
 				break;
-			configPath = null;
 		}
-		if( configPath == null )
-			throw new ServletException("ERROR: configPath unable to be determined from servlet context path: " + context.getRealPath(""));
 		System.out.println("configPath set to " + configPath);
 
 		uploadPath = configPath + "/upload/";
