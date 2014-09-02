@@ -420,9 +420,17 @@ package weave.data.AttributeColumns
 			return value;
 		}
 		
+		/**
+		 * Set this to another column to make this.deriveStringFromNumber() work as if this was the other column.
+		 */
+		public var hack_internalColumn:IAttributeColumn;
+		
 		private var _numberToStringFunction:Function = null;
 		public function deriveStringFromNumber(number:Number):String
 		{
+			if (hack_internalColumn)
+				return ColumnUtils.deriveStringFromNumber(hack_internalColumn, number);
+			
 			if (detectLinkableObjectChange(deriveStringFromNumber, metadata))
 			{
 				try

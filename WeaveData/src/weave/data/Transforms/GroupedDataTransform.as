@@ -21,6 +21,7 @@ package weave.data.Transforms
 {
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableVariable;
+	import weave.api.data.Aggregation;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
@@ -152,7 +153,7 @@ package weave.data.Transforms
 			
 			var uniqueValues:KeySet = equationColumn.variables.requestObject("foreignKeys", KeySet, false) as KeySet;
 
-			equationColumn.variables.requestObjectCopy(AggregateColumn.DATA_COLUMN, dataColumn);
+			equationColumn.hack_internalColumn = equationColumn.variables.requestObjectCopy(AggregateColumn.DATA_COLUMN, dataColumn) as IAttributeColumn;
 			equationColumn.variables.requestObjectCopy(AggregateColumn.GROUP_BY_COLUMN, groupByColumn);
 			equationColumn.filterByKeyType.value = true;
 			
@@ -188,10 +189,13 @@ package weave.data.Transforms
 	}
 }
 
+import avmplus.getQualifiedClassName;
+
 import weave.api.data.ColumnMetadata;
 import weave.api.data.DataType;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IQualifiedKey;
+import weave.compiler.Compiler;
 import weave.compiler.StandardLib;
 import weave.data.AttributeColumns.EquationColumn;
 import weave.data.AttributeColumns.NumberColumn;
@@ -255,6 +259,7 @@ internal class AggregateColumn extends EquationColumn
 		{
 			// get a list of values of the requested type, then treat them as Strings and aggregate the Strings
 			var values:Array = getValues(dataColumn, keys, dataType);
+
 			var string:String = StringColumn.aggregate(values, meta_aggregation);
 			
 			if (dataType === Number)
