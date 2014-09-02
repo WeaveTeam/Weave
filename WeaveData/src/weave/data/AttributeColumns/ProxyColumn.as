@@ -179,10 +179,12 @@ package weave.data.AttributeColumns
 		{
 			delayCallbacks();
 			setInternalColumn(null);
-			_overrideTitle = message || lang("Data unavailable");
+			_overrideTitle = message || DATA_UNAVAILABLE;
 			triggerCallbacks();
 			resumeCallbacks();
 		}
+		
+		public static const DATA_UNAVAILABLE:String = lang('Data unavailable');
 			
 		override public function toString():String
 		{

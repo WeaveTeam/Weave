@@ -42,6 +42,7 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ExtendedDynamicColumn;
+	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
@@ -61,7 +62,7 @@ package weave.utils
 		 */		
 		public static function getTitle(column:IAttributeColumn):String
 		{
-			var title:String = column.getMetadata(ColumnMetadata.TITLE) || lang('No data');
+			var title:String = column.getMetadata(ColumnMetadata.TITLE) || ProxyColumn.DATA_UNAVAILABLE;
 			
 			// debug code
 			if (false)
