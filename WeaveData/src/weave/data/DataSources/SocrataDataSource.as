@@ -24,6 +24,7 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
@@ -38,9 +39,9 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.services.JsonCache;
 	
-	public class SocrataDataSource extends AbstractDataSource
+	public class SocrataDataSource extends AbstractDataSource implements IDataSource_Service
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, SocrataDataSource, "Socrata Open Data Portal");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, SocrataDataSource, "Socrata server");
 		
 		public function SocrataDataSource()
 		{

@@ -19,11 +19,17 @@
 
 package weave.menus
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.display.DisplayObject;
 	
 	import weave.Weave;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
+	import weave.api.data.IDataSource_Service;
+	import weave.api.data.IDataSource_Transform;
 	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.core.ClassUtils;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
 	import weave.ui.AttributeSelectorPanel;
@@ -84,17 +90,46 @@ package weave.menus
 				adsp.dataSourceType = item.data as Class;
 			}
 			return createItems(
-				WeaveAPI.ClassRegistry.getImplementations(IDataSource).map(
+				partitionClassList(
+					WeaveAPI.ClassRegistry.getImplementations(IDataSource),
+					IDataSource_File,
+					IDataSource_Service,
+					IDataSource_Transform
+				).map(
 					function(impl:Class, ..._):* {
-						return {
+						return impl ? {
 							shown: Weave.properties.enableManageDataSources,
 							label: getLabel,
 							click: onClick,
 							data: impl
-						};
+						} : WeaveMenuItem.TYPE_SEPARATOR;
 					}
 				)
 			);
+		}
+		
+		/**
+		 * Partitions a list of classes based on which interfaces they implement.
+		 * Inserts null values between the partitions, and places any remaining classes in a final partition.
+		 */
+		private static function partitionClassList(classes:Array, ...interfaces):Array
+		{
+			var result:Array = [];
+			for each (var interfaceClass:Class in interfaces)
+			{
+				if (result.length)
+					result.push(null);
+				classes = classes.filter(function(impl:Class, i:int, a:Array):Boolean {
+					if (ClassUtils.classImplements(getQualifiedClassName(impl), getQualifiedClassName(interfaceClass)))
+					{
+						// include in result, remove from from classes
+						result.push(impl);
+						return false;
+					}
+					return true;
+				});
+			}
+			return classes.length ? result.concat(null, classes) : result;
 		}
 		
 		public function DataMenu()

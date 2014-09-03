@@ -31,6 +31,7 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -47,9 +48,9 @@ package weave.data.DataSources
 	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
 	
-	public class GeoJSONDataSource extends AbstractDataSource
+	public class GeoJSONDataSource extends AbstractDataSource implements IDataSource_File
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON file");
  		
 		public function GeoJSONDataSource()
 		{
