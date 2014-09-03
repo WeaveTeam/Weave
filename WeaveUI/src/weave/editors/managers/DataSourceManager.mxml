@@ -237,7 +237,9 @@
 						var input:Array = VectorUtils.union(
 							selectedItems,
 							browser.explorer.selectedFolder.getChildren()
-						);
+						).filter(function(item:Object, i:*, a:*):Boolean {
+							return item is IColumnReference && (item as IColumnReference).getColumnMetadata() != null;
+						});
 						
 						// limit the number of input columns
 						const max_input:int = 10;
@@ -263,6 +265,8 @@
 					createVis.data = function():Array {
 						return ToolsMenu.getDynamicItems().filter(
 							function(item:WeaveMenuItem, ..._):Boolean {
+								if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
+									return true;
 								item.click = onClick;
 								var qname:String = getQualifiedClassName(item.data);
 								var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
