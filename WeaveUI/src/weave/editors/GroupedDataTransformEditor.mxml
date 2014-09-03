@@ -77,7 +77,9 @@
 												super.data = value;
 												
 												var column:IAttributeColumn = data as IAttributeColumn;
-												if (DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE)) === String)
+												var dataType:Class = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
+												combo.visible = dataType !== Array;
+												if (dataType === String)
 													combo.dataProvider = StringColumn.getSupportedAggregationModes();
 												else
 													combo.dataProvider = ColumnMetadata.getSuggestedPropertyValues(ColumnMetadata.AGGREGATION);
@@ -92,13 +94,21 @@
 				</CustomDataGrid:columns>
 			</CustomDataGrid:CustomDataGrid>
 		</ui:internalList>
-        <ui:helpContent>
-			The data in these columns will be grouped and aggregated.
-			The keyType of each column should match the keyType of the "Group by" column.
-        </ui:helpContent>
+		<ui:initialize>
+			<![CDATA[
+				dataColumnsEditor.helpContentHtml = 'The data in these columns will be grouped and aggregated. ' +
+					'The keyType of each column should match the keyType of the "Group by" column.<br>' +
+					'<br>' +
+					'Aggregation types:<br>' +
+					ColumnMetadata.getSuggestedPropertyValues(ColumnMetadata.AGGREGATION).map(function(type:String, i:*, a:*):String {
+						return StandardLib.substitute("<b>{0}</b> - {1}", type, Aggregation.HELP[type]);
+					}).join('<br>');
+			]]>
+		</ui:initialize>
     </ui:ColumnListComponent>
     <mx:Script>
         <![CDATA[
+			import weave.compiler.StandardLib;
 			import weave.api.core.ILinkableVariable;
 			import weave.core.LinkableVariable;
 			import mx.controls.Alert;
@@ -168,7 +178,7 @@
 
                 dataColumnsEditor.hashMap = dataColumns;
                 
-                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GroupedDataTransform");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(GroupedDataTransform));
             }
             
             public function setTarget(object:ILinkableObject):void
