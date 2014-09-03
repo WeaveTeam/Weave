@@ -185,10 +185,6 @@ package weave.menus
 				})
 			);
 		}
-		private static function sortToolImplementations(a:Class, b:Class):int
-		{
-			return AsyncSort.defaultCompare(toolLookup[a] || int.MAX_VALUE, toolLookup[b] || int.MAX_VALUE);
-		}
 		
 		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
 			label: function():String {
