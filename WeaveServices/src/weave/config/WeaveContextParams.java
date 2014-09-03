@@ -74,13 +74,11 @@ public class WeaveContextParams
 		System.out.println("Docroot set to "+docrootPath);
 		
 		String configPathParam = context.getInitParameter("configPath");
-		String configPathParamJetty = context.getInitParameter("configPathJetty");
-		String tempPath = context.getRealPath(configPathParam);
-		
-		if( tempPath == null )
-			tempPath = (new File(contextPath, configPathParamJetty)).getAbsolutePath();
-
-		configPath = tempPath.replace('\\', '/') + "/";
+		String configPathJettyParam = context.getInitParameter("configPathJetty");
+		configPath = context.getRealPath(configPathParam);
+		if (configPath == null)
+			configPath = (new File(contextPath, configPathJettyParam)).getAbsolutePath();
+		configPath = configPath.replace('\\', '/');
 		System.out.println("configPath set to " + configPath);
 		
 		uploadPath = configPath + "/upload/";
