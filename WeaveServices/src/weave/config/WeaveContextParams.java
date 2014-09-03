@@ -59,11 +59,13 @@ public class WeaveContextParams
 	 */
 	private WeaveContextParams(ServletContext context) throws ServletException
 	{
+		String contextPath = context.getRealPath("");
 		String[] paths = context.getInitParameter("docrootPath").split("\\|");
 		for (int i = 0; i < paths.length; i++)
 		{
-			docrootPath = context.getRealPath(paths[i]).replace('\\', '/') + "/";
-			if (new File(docrootPath).isDirectory())
+			File docrootFile = new File(contextPath, paths[i]);
+			docrootPath = docrootFile.getAbsolutePath().replace('\\', '/') + "/";
+			if (docrootFile.isDirectory())
 				break;
 			docrootPath = null;
 		}
@@ -71,7 +73,16 @@ public class WeaveContextParams
 			throw new ServletException("ERROR: Docroot unable to be determined from servlet context path: " + context.getRealPath(""));
 		System.out.println("Docroot set to "+docrootPath);
 		
-		configPath = context.getRealPath(context.getInitParameter("configPath")).replace('\\', '/');
+		String configPathParam = context.getInitParameter("configPath");
+		String configPathParamJetty = context.getInitParameter("configPathJetty");
+		String tempPath = context.getRealPath(configPathParam);
+		
+		if( tempPath == null )
+			tempPath = (new File(contextPath, configPathParamJetty)).getAbsolutePath();
+
+		configPath = tempPath.replace('\\', '/') + "/";
+		System.out.println("configPath set to " + configPath);
+		
 		uploadPath = configPath + "/upload/";
 		rServePath = context.getInitParameter("RServePath");
 		
