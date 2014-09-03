@@ -41,6 +41,10 @@
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
+				<mx:Button
+					label="{lang('Select all')}"
+					click="editor.explorer.fileView.selectedItems = VectorUtils.getArrayFromCollection(editor.explorer.fileView.dataProvider as ICollectionView)"
+					enabled="{editor.explorer.fileView.dataProvider.length > 0}"/>
 				<mx:Button label="{lang('Add selected')}" click="addSelected()" enabled="{editor.explorer.fileView.selectedItem}"/>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
@@ -48,6 +52,7 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ICollectionView;
 			import mx.controls.Label;
 			
 			import weave.api.copySessionState;
@@ -65,6 +70,7 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
 			
 			override protected function constructor():void
 			{
