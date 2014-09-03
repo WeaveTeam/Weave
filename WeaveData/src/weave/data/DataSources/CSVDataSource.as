@@ -65,7 +65,7 @@ package weave.data.DataSources
 	 */
 	public class CSVDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
 
 		public function CSVDataSource()
 		{
@@ -82,7 +82,7 @@ package weave.data.DataSources
 		/**
 		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
 		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
-		 */		
+		 */
 		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
 		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
 		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
