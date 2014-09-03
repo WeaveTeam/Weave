@@ -125,29 +125,34 @@ package weave.primitives
 		{
 			if (!_recursion[recursionName])
 			{
-				_recursion[recursionName] = true;
-				
-				if (isSimpleObject(param, 'not'))
-					param = !getBoolean(param['not'], "not_" + recursionName);
-				if (isSimpleObject(param, 'or'))
-					param = getBoolean(param['or'], "or_" + recursionName);
-				if (param is Function)
-					param = evalFunction(param as Function);
-				if (param is ILinkableVariable)
-					param = (param as ILinkableVariable).getSessionState();
-				if (param is Array)
+				try
 				{
-					var breakValue:Boolean = recursionName.indexOf("or_") == 0;
-					for each (param in param)
+					_recursion[recursionName] = true;
+					
+					if (isSimpleObject(param, 'not'))
+						param = !getBoolean(param['not'], "not_" + recursionName);
+					if (isSimpleObject(param, 'or'))
+						param = getBoolean(param['or'], "or_" + recursionName);
+					if (param is Function)
+						param = evalFunction(param as Function);
+					if (param is ILinkableVariable)
+						param = (param as ILinkableVariable).getSessionState();
+					if (param is Array)
 					{
-						param = getBoolean(param, "item_" + recursionName);
-						if (param ? breakValue : !breakValue)
-							break;
+						var breakValue:Boolean = recursionName.indexOf("or_") == 0;
+						for each (param in param)
+						{
+							param = getBoolean(param, "item_" + recursionName);
+							if (param ? breakValue : !breakValue)
+								break;
+						}
 					}
+					param = param ? true : false;
 				}
-				param = param ? true : false;
-				
-				_recursion[recursionName] = false;
+				finally
+				{
+					_recursion[recursionName] = false;
+				}
 			}
 			return param;
 		}
@@ -184,14 +189,19 @@ package weave.primitives
 		{
 			if (!_recursion[recursionName])
 			{
-				_recursion[recursionName] = true;
-				
-				if (param is Function)
-					param = evalFunction(param as Function);
-				else
-					param = param || '';
-				
-				_recursion[recursionName] = false;
+				try
+				{
+					_recursion[recursionName] = true;
+					
+					if (param is Function)
+						param = evalFunction(param as Function);
+					else
+						param = param || '';
+				}
+				finally
+				{
+					_recursion[recursionName] = false;
+				}
 			}
 			return param;
 		}
@@ -206,12 +216,17 @@ package weave.primitives
 		{
 			if (!_recursion[recursionName])
 			{
-				_recursion[recursionName] = true;
-				
-				if (param is Function)
-					param = evalFunction(param as Function);
-				
-				_recursion[recursionName] = false;
+				try
+				{
+					_recursion[recursionName] = true;
+					
+					if (param is Function)
+						param = evalFunction(param as Function);
+				}
+				finally
+				{
+					_recursion[recursionName] = false;
+				}
 			}
 			return param;
 		}
