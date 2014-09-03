@@ -236,7 +236,7 @@
 						_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 					}
 					
-					_fileLoader.browse([new FileFilter("CSV", "*.csv")]);
+					_fileLoader.browse([new FileFilter("CSV", "*.csv"), new FileFilter("TSV", "*.tsv"), new FileFilter("All files", "*")]);
 				}
 				catch (e:Error)
 				{
