@@ -141,7 +141,6 @@ AnalysisModule.service("WeaveService", function(queryService) {
 	
 	
 	this.ColorColumn = function(state){
-		console.log("color", state);
 		if(state.column)
 			{
 				ws.weave.path('defaultColorDataColumn').setColumn(state.column, ws.dataSourceName);
@@ -149,8 +148,14 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			}
 	};
 	
-	this.keyColName = function(keyColName) {
-		if(keyColName) {
+	this.keyColumnName = function(keyColumn) {
+		if(keyColumn.name) {
+			console.log("before making weave call", keyColumn.name);
+			ws.weave.setSessionState(['CSVDataSource'], {keyColName : keyColumn.name});
+		}
+		else
+		{
+			if(! angular.isUndefined(ws.weave))
 			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
 		}
 	};

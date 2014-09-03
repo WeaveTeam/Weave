@@ -208,11 +208,8 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 			}
 			waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
 				WeaveService.weave = weave;
-				console.log("weave", WeaveService.weave);
 				WeaveService.addCSVData(resultData.data);
-				console.log("resultData.data", resultData.data);
 				WeaveService.columnNames = resultData.data[0];
-				console.log("columns inweave", WeaveService.columnNames);
 				$scope.$apply();
 			});
 			
