@@ -73,10 +73,10 @@ public class PythonTest {
 	public static void main(String a[]) throws Exception{
 		AwsPythonService aps = new AwsPythonService();
 		//PyInteger dataset = new PyInteger(1098);
-		Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
-		Object[] array2 = {1,2,3,4,5,6,7,8,9,10,11,12,13};
+		Object[] array1 = {10.39573495,1020.56530,22.67645,5.34567456,60.4574567,55.7897043568,89.787969,33.56767,-0.67676868544,5.8888884,21.89897,343.43,234343.34};
+		Object[] array2 = {33.56767,-0.67676868544,5.8888884,21.89897,5,6,7,8,9,10,11,12,13};
 		Object[][]dataset = new Object[][]{array1, array2};
-		String scriptAbsPath = "testpython.py";
+		String scriptAbsPath = "BioTest.py";
 		//aps.checking(dataset);
 		//Object d = aps.runScript(scriptAbsPath, dataset);
 	}

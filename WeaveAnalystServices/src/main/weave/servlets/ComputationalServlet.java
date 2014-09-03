@@ -132,6 +132,7 @@ public class ComputationalServlet extends WeaveServlet
 		//Python	
 		} else if (AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.PYTHON)
 		{
+			pyService = new AwsPythonService();
 			resultData = pyService.runScript(FilenameUtils.concat(algorithmScriptsPath, scriptName), input);
 
 		}
