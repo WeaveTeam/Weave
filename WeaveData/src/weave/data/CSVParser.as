@@ -49,10 +49,14 @@ package weave.data
 		}
 		
 		/**
+		 * Creates a CSVParser.
+		 * @param asyncMode If this is set to true, parseCSV() will work asynchronously
+		 *                  and trigger callbacks when it finishes.
+		 *                  If this is set to false, no callback collection will be generated
+		 *                  for this instance of CSVParser as a result of calling its methods.
+		 *                  Note that if asyncMode is enabled, you can only parse one CSV string at a time.
 		 * @param delimiter
 		 * @param quote
-		 * @param asyncMode If this is set to true, parseCSV() will work asynchronously and trigger callbacks when it finishes.
-		 *                  Note that if asyncMode is enabled, you can only parse one CSV string at a time. 
 		 */		
 		public function CSVParser(asyncMode:Boolean = false, delimiter:String = ',', quote:String = '"')
 		{
