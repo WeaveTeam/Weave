@@ -38,10 +38,12 @@
 			import weave.core.LinkableWatcher;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
+			import weave.menus.ToolsMenu;
 			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
+			ToolsMenu.registerUtilityToolImplementation(DataFilter);
 
 			private var _editor:ILinkableObjectEditor;
 			private var _globalName:String;

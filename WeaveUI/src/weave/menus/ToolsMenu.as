@@ -22,6 +22,7 @@ package weave.menus
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
@@ -29,6 +30,7 @@ package weave.menus
 	import mx.core.IToolTip;
 	import mx.core.UIComponent;
 	import mx.managers.ToolTipManager;
+	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.core.ICallbackCollection;
@@ -37,6 +39,7 @@ package weave.menus
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.IVisTool;
+	import weave.compiler.StandardLib;
 	import weave.ui.AddExternalTool;
 	import weave.ui.ColorController;
 	import weave.ui.DraggablePanel;
@@ -44,6 +47,7 @@ package weave.menus
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.collaboration.CollaborationEditor;
+	import weave.utils.AsyncSort;
 
 	public class ToolsMenu extends WeaveMenuItem
 	{
@@ -144,6 +148,10 @@ package weave.menus
 			}
 		);
 		
+		private static const toolLookup:Dictionary = new Dictionary(); // class -> group number
+		public static function registerBasicToolImplementation(classDef:Class):void { toolLookup[classDef] = 1; }
+		public static function registerUtilityToolImplementation(classDef:Class):void { toolLookup[classDef] = 2; }
+		
 		public static function getDynamicItems(labelFormat:String = null):Array
 		{
 			function getToolItemLabel(item:WeaveMenuItem):String
@@ -153,16 +161,33 @@ package weave.menus
 					return lang(labelFormat, displayName);
 				return displayName;
 			}
+			
+			var implementations:Array = WeaveAPI.ClassRegistry.getImplementations(IVisTool);
+			var partitioned:Array = [];
+			var numGroups:int = 3;
+			for (var i:int = 0; i <= numGroups; i++)
+			{
+				if (partitioned.length)
+					partitioned.push(null);
+				for each (var impl:Class in implementations)
+					if ((toolLookup[impl] || numGroups) == i)
+						partitioned.push(impl);
+			}
+			
 			return createItems(
-				WeaveAPI.ClassRegistry.getImplementations(IVisTool).map(function(impl:Class, ..._):* {
-					return {
+				partitioned.map(function(impl:Class, ..._):* {
+					return impl ? {
 						shown: [notDash, Weave.properties.getToolToggle(impl)],
 						label: getToolItemLabel,
 						click: createGlobalObject,
 						data: impl
-					};
+					} : WeaveMenuItem.TYPE_SEPARATOR;
 				})
 			);
+		}
+		private static function sortToolImplementations(a:Class, b:Class):int
+		{
+			return AsyncSort.defaultCompare(toolLookup[a] || int.MAX_VALUE, toolLookup[b] || int.MAX_VALUE);
 		}
 		
 		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({

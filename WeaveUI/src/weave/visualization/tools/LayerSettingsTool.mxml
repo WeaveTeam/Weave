@@ -160,6 +160,7 @@
 	</mx:List>
 	<mx:Script>
 		<![CDATA[
+			import weave.menus.ToolsMenu;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.detectLinkableObjectChange;
 			import weave.visualization.layers.LayerSettings;
@@ -186,6 +187,7 @@
 			import weave.api.ui.IVisTool;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, LayerSettingsTool, "Layer Settings Tool");
+			ToolsMenu.registerUtilityToolImplementation(LayerSettingsTool);
 			
 			override protected function constructor():void
 			{
