@@ -124,7 +124,7 @@
             
             public function createDataSource():IDataSource
             {
-                if (!sourceName.text)
+                if (!sourceName.text || !keyColumn.getInternalColumn() || !dataColumns.getNames().length)
                 {
                     Alert.show(lang("Please fill all required fields"), lang("Error"));
                     return null;
