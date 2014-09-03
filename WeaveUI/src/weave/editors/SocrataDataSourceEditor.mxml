@@ -50,7 +50,7 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("SocrataDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(SocrataDataSource));
 			}
 			
 			[Bindable] private var target:SocrataDataSource = null;

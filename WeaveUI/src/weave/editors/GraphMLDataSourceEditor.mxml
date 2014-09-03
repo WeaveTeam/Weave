@@ -94,7 +94,7 @@
                 super.createChildren();
 				
                 addChild(busyIndicator);
-                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GraphMLDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(GraphMLDataSource));
 
                 nodeKeyPropertyInput.labelFunction = nodeKeyLabelFunction;
                 edgeKeyPropertyInput.labelFunction = edgeKeyLabelFunction;

@@ -74,7 +74,7 @@
 
                 inputColumnsEditor.hashMap = inputColumns;
                 
-                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("PartitionDataTransform");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(PartitionDataTransform));
             }
             
             public function setTarget(object:ILinkableObject):void

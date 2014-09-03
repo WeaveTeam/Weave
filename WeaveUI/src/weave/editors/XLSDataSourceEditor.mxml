@@ -77,7 +77,7 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("XLSDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(XLSDataSource));
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			

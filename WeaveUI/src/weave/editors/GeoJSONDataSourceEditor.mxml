@@ -78,7 +78,7 @@
 				super.createChildren();
 				addChild(busyIndicator);
 				busyIndicator.visible = false;
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GeoJSONDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(GeoJSONDataSource));
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			

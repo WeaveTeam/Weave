@@ -101,7 +101,7 @@
 					}
 				});
 				
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("TransposedDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(TransposedDataSource));
 			}
 			
 			public function setTarget(object:ILinkableObject):void

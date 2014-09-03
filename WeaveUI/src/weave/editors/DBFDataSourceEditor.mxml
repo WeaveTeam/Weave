@@ -72,7 +72,7 @@
 				super.createChildren();
 				addChild(busyIndicator);
 				busyIndicator.visible = false;
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("DBFDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(DBFDataSource));
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
