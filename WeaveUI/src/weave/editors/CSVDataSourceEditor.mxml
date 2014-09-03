@@ -29,6 +29,30 @@
 	creationPolicy="all"
 	implements="weave.api.ui.IDataSourceEditor"
 	>
+	<ui:HelpComponent id="helpComponent" visible="false" includeInLayout="false">
+		<ui:htmlText>
+			<![CDATA[
+			<b>Check your data!</b>
+			<p>The Grid shows you how we interpret your data.
+				Check the rows and columns to confirm that they are in the correct format.
+				Check the Unique Identifier Column and the Delimiter Combo Box.
+				Click next if your data is in the right format.</p>
+			<b>Key Column</b>
+			<p>This is the name of the column header that uniquely identifies each row of your dataset.
+				We have computed the columns that contain unique values and set the Unique Column Identifier to the first option.
+				You can set it any other available option within the Combo Box.
+				If you are not sure which column to select or if you don't see this combo box you can ignore for now.</p>
+			<b>Delimiter</b>
+			<p>We assume that your data is delimited so that we can correctly identify the columns within the dataset.
+				When you load the data, we do a quick check to compute the delmiter and then parse the data.
+				Use the grid to check if the data has been parsed correctly.
+				If the wrong delimiter is used you can select from the combo box the commonly used delimiters (Comma, Semi Colon, Tab, Space).
+				You can also type a single character delimiter.
+				The grid displays the parsed data every time you change the delimiter</p>
+			]]>
+		</ui:htmlText>
+	</ui:HelpComponent>
+	
 	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
 	<ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
@@ -37,28 +61,38 @@
 		<ui:TextInputWithPrompt change="handleURLTextChange()" id="url" width="100%" prompt="http://www.example.com/example.csv"/>
 		<mx:Button label="{lang('Open file')}" click="append = false; browseForFiles()"/>
 	</ui:Indent>
-	<ui:CustomTabNavigator id="editorTabNavigator" width="100%" height="100%"
+	<ui:CustomTabNavigator id="tabNav" width="100%" height="100%"
 						   initialize="UIUtils.pad(event, 5);"
 						   change="editorTabChanged(event)" enabled="{!url.text}">
-		<mx:VBox id="tableEditorBox" label="{lang('Table')}">
+		<mx:VBox id="tableTab" label="{lang('Table')}">
 			<CustomDataGrid:CustomDataGrid id="tableEditor" width="100%" height="100%" editable="true" itemEditEnd="handleItemEditEnd(event)"/>
 		</mx:VBox>
-		<mx:VBox  id="rawEditorBox" label="{lang('Text')}">
-			<ui:CodeEditor id="rawEditor" width="100%" height="100%"/>
+		<mx:VBox id="textTab" label="{lang('Text')}">
+			<ui:CodeEditor id="textEditor" width="100%" height="100%"/>
 		</mx:VBox>
 	</ui:CustomTabNavigator>
-	<ui:Indent label="{lang('Delimiter')}">
+	<ui:Indent label="{lang('Delimiter')}" enabled="{!url.text}">
 		<ui:CustomComboBox id="delimiterComboBox"
+						   editable="true"
 						   openDuration="0"
 						   closeDuration="0"
-						   enabled="{!url.text &amp;&amp; !tableEdited}"
+						   enabled="{!tableEdited}"
 						   dataProvider="{delimiters}"
 						   change="delimiterChanged()"/>
 		<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
 	</ui:Indent>
 
 	<ui:Indent label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
+		<mx:HBox horizontalGap="0">
+			<mx:TextInput id="keyColumnName" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
+			<ui:MenuButton id="keyColumnMenu"
+						   alignRight="true"
+						   data="{getKeyColumnMenuItems as Function}"
+						   toolTip="{lang('Select a key column')}"
+						   width="22" cornerRadius="0"
+						   enabled="{textEditor.text || tableEdited}"
+						   visible="{!url.text}"/>
+		</mx:HBox>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Type *')}">
 		<ui:KeyTypesMenu id="keyTypeSelector"/>
@@ -68,6 +102,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
 			
 			import weave.api.core.ILinkableObject;
@@ -78,6 +113,7 @@
 			import weave.core.UIUtils;
 			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.menus.WeaveMenuItem;
 			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
 			import weave.utils.VectorUtils;
@@ -90,12 +126,12 @@
 			
 			[Bindable] private var tableEdited:Boolean = false;
 			private var append:Boolean = false;
-
+			
 			private const delimiters:Array = [
-				{label: "Comma", data: ','}, 
-				{label: "Semicolon", data: ';'},
-				{label: "Space", data: ' '},
-				{label: "Tab", data: '\t'}
+				{label: lang("Comma"), data: ','}, 
+				{label: lang("Semicolon"), data: ';'},
+				{label: lang("Space"), data: ' '},
+				{label: lang("Tab"), data: '\t'}
 			];
 			
 			private var _fileLoader:FileReference = null;
@@ -103,21 +139,41 @@
 			private function get parser():CSVParser
 			{
 				var item:Object = delimiterComboBox.selectedItem;
-				var delim:String = item ? item.data : ',';
+				var delim:String = item ? item.data : delimiterComboBox.text || ',';
 				return new CSVParser(false, delim);
 			}
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
+				delimiterComboBox.addEventListener(KeyboardEvent.KEY_DOWN, handleComboKeyDown, true);
 				addChild(busyIndicator);
 				busyIndicator.visible = false;
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("CSVDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(CSVDataSource));
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 				tableEditor.setRows(null);
-				editorTabNavigator.selectedChild = rawEditorBox;
+				tabNav.selectedChild = textTab;
+				textEditor.setFocus();
 			}
 			
+			private function getKeyColumnMenuItems():Array
+			{
+				function setKeyColumnName(item:WeaveMenuItem):void {
+					keyColumnName.text = item.label;
+					keyTypeSelector.addKeyTypeToMenu(item.label);
+				}
+				var rows:Array = getRows();
+				if (rows && rows.length)
+					return (rows[0] as Array).map(function(name:String, i:*, a:*):* {
+						return {label: name, click: setKeyColumnName};
+					});
+				return null;
+			}
+
+			private function handleComboKeyDown(event:Event):void
+			{
+				delimiterComboBox.mx_internal::getTextInput().selectRange(0, int.MAX_VALUE);
+			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{
@@ -142,7 +198,7 @@
 					if (!url.text)
 					{
 						var rows:Array = target.csvData.getSessionState() as Array;
-						editorTabNavigator.selectedChild = tableEditorBox;
+						tabNav.selectedChild = tableTab;
 						tableEditor.setRows(rows);
 						tableEdited = true;
 						busyIndicator.visible = false;
@@ -150,31 +206,33 @@
 				}
 			}
 
-			private function editorTabChanged(evt:Event):void
+			private function editorTabChanged(event:Event):void
 			{
-				if (editorTabNavigator.selectedChild === tableEditorBox)
+				if (tabNav.selectedChild === tableTab)
 					textToTable();
-				else if (editorTabNavigator.selectedChild === rawEditorBox)
+				else if (tabNav.selectedChild === textTab)
 					tableToText();
 			}
 			
 			private function tableToText():void
 			{
-				rawEditor.text = parser.createCSV(tableEditor.getRows());
+				textEditor.text = parser.createCSV(tableEditor.getRows());
 				tableEdited = false;
 			}
 			
 			private function textToTable():void
 			{
-				tableEditor.setRows(parser.parseCSV(rawEditor.text));
+				tableEditor.setRows(parser.parseCSV(textEditor.text));
 			}
 
 			private function delimiterChanged():void
 			{
-				if (rawEditor.text)
+				if (!delimiterComboBox.text || delimiterComboBox.text == '"')
+					delimiterComboBox.selectedItem = delimiters[0]
+				if (textEditor.text)
 				{
 					textToTable();
-					editorTabNavigator.selectedChild = tableEditorBox;
+					tabNav.selectedChild = tableTab;
 				}
 			}
 
@@ -205,7 +263,7 @@
 			
 			public function createDataSource():IDataSource
 			{
-				if (!sourceName.text || (!url.text && !(rawEditor.text || tableEdited)) || !keyTypeSelector.selectedKeyType)
+				if (!sourceName.text || (!url.text && !(textEditor.text || tableEdited)) || !keyTypeSelector.selectedKeyType)
 				{
 					Alert.show(lang("Please fill all required fields"), lang("Error"));
 					return null;
@@ -253,6 +311,9 @@
 			{
 				// Show busy indicator until parser finishes (handleCSVParser)
 				busyIndicator.visible = true;
+				if (sourceName.editable && (!append || !textEditor.text))
+					sourceName.text = _fileLoader.name;
+				keyTypeSelector.addKeyTypeToMenu(_fileLoader.name);
 				_fileLoader.load();
 				WeaveAPI.ProgressIndicator.addTask(_fileLoader);
 			}
@@ -291,26 +352,35 @@
 
 			private function appendRows(rowsToAppend:Array):void
 			{
-				var currentRows:Array = getRows();
-				var headerRow:Array = currentRows[0];
+				tabNav.selectedChild = tableTab;
+				tabNav.validateProperties();
+				
+				var rows:Array = getRows();
+				if (!rows || !rows.length)
+					rows = [[]];
+				var headerRow:Array = rows[0];
 				var allRows:Array = WeaveAPI.CSVParser.convertRecordsToRows(
 					VectorUtils.flatten(
 						WeaveAPI.CSVParser.convertRowsToRecords(rowsToAppend),
-						WeaveAPI.CSVParser.convertRowsToRecords(currentRows)
+						WeaveAPI.CSVParser.convertRowsToRecords(rows)
 					),
 					VectorUtils.union(headerRow, rowsToAppend[0])
 				);
 				
-				tableEdited = true;
 				tableEditor.setRows(allRows);
+				tableEdited = false;
+				tableToText();
 			}
 			
 			private function getRows():Array
 			{
 				if (url.text)
 					return null;
-				editorTabNavigator.selectedChild = tableEditorBox;
-				editorTabNavigator.validateProperties();
+				if (tabNav.selectedChild == textTab && !textEditor.text)
+					return null;
+				
+				tabNav.selectedChild = tableTab;
+				tabNav.validateProperties();
 				return tableEditor.getRows();
 			}
 			
@@ -323,8 +393,8 @@
 			{
 				var hasURL:Boolean = url.text ? true : false;
 				tableEditor.setRows(null);
-				rawEditor.text = '';
-				editorTabNavigator.selectedChild = rawEditorBox;
+				textEditor.text = '';
+				tabNav.selectedChild = textTab;
 			}
 		]]>
 	</mx:Script>
