@@ -91,21 +91,13 @@ public class ComputationalServlet extends WeaveServlet
 			if (type.equalsIgnoreCase("FilteredRows"))
 			{
 				FilteredRows fRows = new FilteredRows();
-				ArrayList<Double> idValues = (ArrayList<Double>)scriptInputs[i].value;
-				int[] ids = new int [idValues.size()];
-				for(int t = 0; t < idValues.size(); t++ )
-				{
-					Double id = idValues.get(t);
-					ids[t] = id.intValue();
-				}
-				 fRows.ids = ids;
-			
-				//fRows = (FilteredRows) scriptInputs[i].value;
+				fRows.ids =  (int[]) cast(scriptInputs[i].value, int[].class);
+				//TODO handling filters still has to be done
+	
 				WeaveRecordList data = DataService.getFilteredRows(fRows.ids, fRows.filters, null);
 				Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				input.put(scriptInputs[i].name, columnData);
 				
-				//TODO handling filters still has to be done
 			}
 			
 			else 
