@@ -165,7 +165,7 @@
 			{
 				if (event.keyCode == Keyboard.SPACE)
 					event.stopImmediatePropagation();
-				updateEnabledSettings();
+				callLater(updateEnabledSettings);
 			}
 			
 			private static const REQUIRED:String = lang("Required");

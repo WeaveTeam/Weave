@@ -19,11 +19,17 @@
 
 package weave.menus
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.display.DisplayObject;
 	
 	import weave.Weave;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
+	import weave.api.data.IDataSource_Service;
+	import weave.api.data.IDataSource_Transform;
 	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.core.ClassUtils;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
 	import weave.ui.AttributeSelectorPanel;
@@ -83,18 +89,23 @@ package weave.menus
 				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
 				adsp.dataSourceType = item.data as Class;
 			}
-			return createItems(
-				WeaveAPI.ClassRegistry.getImplementations(IDataSource).map(
-					function(impl:Class, ..._):* {
-						return {
-							shown: Weave.properties.enableManageDataSources,
-							label: getLabel,
-							click: onClick,
-							data: impl
-						};
-					}
-				)
-			);
+			
+			var implementations:Array = WeaveAPI.ClassRegistry.getImplementations(IDataSource);
+			var partitions:Array = ClassUtils.partitionClassList(implementations, IDataSource_File, IDataSource_Service, IDataSource_Transform);
+			var items:Array = [];
+			for each (var list:Array in partitions)
+			{
+				if (items.length)
+					items.push(TYPE_SEPARATOR);
+				for each (var impl:Class in list)
+					items.push({
+						shown: Weave.properties.enableManageDataSources,
+						label: getLabel,
+						click: onClick,
+						data: impl
+					});
+			}
+			return createItems(items);
 		}
 		
 		public function DataMenu()

@@ -57,6 +57,7 @@ package weave.ui.CustomDataGrid
 			headerClass = CustomDataGridHeader;
 			// add this event listener before the one in super()
 			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
+			setStyle('defaultDataGridItemRenderer', CustomDataGridItemRenderer);
 			super();
 		}
 		private var in_destroyItemEditor:Boolean = false;
@@ -211,8 +212,20 @@ package weave.ui.CustomDataGrid
 		 */
 		public function setRows(tableWithHeader:Array):void
 		{
-			// make a copy of the data
-			var rows:Array = tableWithHeader.map(function(row:Array, i:int, a:Array):Array { return row.concat(); });
+			// make sure we have at least one row (for the header)
+			if (!tableWithHeader || !tableWithHeader.length)
+				tableWithHeader = [[]];
+			
+			// make a copy of the data and find the max row length
+			var rowLength:int = 0;
+			var rows:Array = tableWithHeader.map(function(row:Array, i:int, a:Array):Array {
+				rowLength = Math.max(rowLength, row.length);
+				return row.concat();
+			});
+			// expand rows to match max row length
+			rows.forEach(function(row:Array, i:int, a:Array):void {
+				row.length = rowLength;
+			});
 			var header:Array = rows.shift();
 			
 			dataProvider = null;

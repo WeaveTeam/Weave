@@ -107,7 +107,7 @@ package weave.ui.CustomDataGrid
 						addChild(img);
 					}
 					img.visible = true;
-					(img.source as Bitmap).bitmapData = column.attrColumn.getValueFromKey(key) as BitmapData;
+					(img.source as Bitmap).bitmapData = column.attrColumn.getValueFromKey(key, BitmapData) as BitmapData;
 				}
 				else
 				{

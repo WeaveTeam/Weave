@@ -150,7 +150,7 @@ package weave.visualization.plotters.styles
 					else
 					{
 						var lineAlpha:Number         = _alpha        !== undefined ? _alpha        :      alpha.getValueFromKey(recordKey, Number);
-						var linePixelHinting:Boolean = _pixelHinting !== undefined ? _pixelHinting : StandardLib.asBoolean(pixelHinting.getValueFromKey(recordKey));
+						var linePixelHinting:Boolean = _pixelHinting !== undefined ? _pixelHinting : StandardLib.asBoolean(pixelHinting.getValueFromKey(recordKey, Number));
 						var lineScaleMode:String     = _scaleMode    !== undefined ? _scaleMode    :  scaleMode.getValueFromKey(recordKey, String) as String;
 						var lineCaps:String          = _caps         !== undefined ? _caps         :       caps.getValueFromKey(recordKey, String) as String || null;
 						var lineJoints:String        = _joints       !== undefined ? _joints       :     joints.getValueFromKey(recordKey, String) as String || null;

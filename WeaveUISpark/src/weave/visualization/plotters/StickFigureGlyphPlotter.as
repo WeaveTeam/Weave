@@ -35,11 +35,6 @@ package weave.visualization.plotters
 	import weave.utils.DrawUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
-	/**
-	 * CirclePlotter
-	 * 
-	 * @heather byrne
-	 */
 	public class StickFigureGlyphPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
 	{
 		public function StickFigureGlyphPlotter()

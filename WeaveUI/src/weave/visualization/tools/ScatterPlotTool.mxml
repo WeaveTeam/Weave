@@ -23,6 +23,7 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" xmlns:editors="weave.editors.*" 
+			   implements="weave.api.ui.IVisTool_Basic"
 			   >
 	<mx:Script>
 		<![CDATA[
@@ -53,9 +54,9 @@
 			
 			[Bindable]
 			public var plotter:ScatterPlotPlotter = null;
-						
+			
 			public const REGRESSION_LAYER_NAME:String = "regressionLine";
-				
+			
 			public const isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			override protected function constructor():void
@@ -189,34 +190,9 @@
 				var plotter_undef_x:ScatterPlotPlotter = vis_undef_x.getMainPlotter() as ScatterPlotPlotter;
 				var plotter_undef_y:ScatterPlotPlotter = vis_undef_y.getMainPlotter() as ScatterPlotPlotter;
 				var plotter_undef_xy:ScatterPlotPlotter = vis_undef_xy.getMainPlotter() as ScatterPlotPlotter;
-				
-				plotter_undef_x.hack_setKeyInclusionLogic(
-					function(key:IQualifiedKey):Boolean
-					{
-						var x:Boolean = plotter.dataX.containsKey(key);
-						var y:Boolean = plotter.dataY.containsKey(key);
-						return !x && y;
-					},
-					[plotter.dataX, plotter.dataY]
-				);
-				plotter_undef_y.hack_setKeyInclusionLogic(
-					function(key:IQualifiedKey):Boolean
-					{
-						var x:Boolean = plotter.dataX.containsKey(key);
-						var y:Boolean = plotter.dataY.containsKey(key);
-						return x && !y;
-					},
-					[plotter.dataX, plotter.dataY]
-				);
-				plotter_undef_xy.hack_setKeyInclusionLogic(
-					function(key:IQualifiedKey):Boolean
-					{
-						var x:Boolean = plotter.dataX.containsKey(key);
-						var y:Boolean = plotter.dataY.containsKey(key);
-						return !x && !y;
-					},
-					[plotter.dataX, plotter.dataY]
-				);
+				hack_setKeyInclusionLogic(plotter_undef_x, true, false);
+				hack_setKeyInclusionLogic(plotter_undef_y, false, true);
+				hack_setKeyInclusionLogic(plotter_undef_xy, true, true);
 				
 				linkSessionState(plotter.dataX, plotter_undef_y.dataX);
 				linkSessionState(plotter.dataY, plotter_undef_x.dataY);
@@ -232,6 +208,18 @@
 				visualization.gridLineColor.addImmediateCallback(this, updateUndefLayerLines);
 				visualization.gridLineThickness.addImmediateCallback(this, updateUndefLayerLines, true);
 			}
+			private function hack_setKeyInclusionLogic(undef_plotter:ScatterPlotPlotter, undef_x:Boolean, undef_y:Boolean):void
+			{
+				undef_plotter.hack_setKeyInclusionLogic(
+					function(key:IQualifiedKey):Boolean
+					{
+						return !isFinite(plotter.dataX.getValueFromKey(key, Number)) == undef_x
+							&& !isFinite(plotter.dataY.getValueFromKey(key, Number)) == undef_y;
+					},
+					[plotter.dataX, plotter.dataY]
+				);
+			}
+			
 			private function updateUndefLayerLines():void
 			{
 				var args:Array = [visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value];
@@ -334,6 +322,9 @@
 					columns.push(plotter.sizeBy.getInternalColumn());
 				
 				visualization.additionalProbeColumns = columns;
+				vis_undef_x.additionalProbeColumns = columns;
+				vis_undef_y.additionalProbeColumns = columns;
+				vis_undef_xy.additionalProbeColumns = columns;
 			}
 			
 			override public function get defaultPanelTitle():String

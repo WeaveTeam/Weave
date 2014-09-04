@@ -32,6 +32,7 @@ package weave.data.DataSources
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
@@ -46,7 +47,7 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufile
 	 */
-	public class XLSDataSource extends AbstractDataSource_old
+	public class XLSDataSource extends AbstractDataSource_old implements IDataSource_File
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, XLSDataSource, "XLS file");
 

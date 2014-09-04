@@ -35,6 +35,8 @@
 					   width="100%" minWidth="22"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.ObjectUtil;
+			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -47,6 +49,7 @@
 			import weave.ui.ControlPanel;
 			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
 
 			[Bindable] private var columnTitle:String;
 			private function getEnableLabel(columnTitle:String):String
@@ -143,15 +146,12 @@
 					columnTitle = ColumnUtils.getTitle(column);
 					
 					//TODO - make this asynchronous
-					var valueMap:Object = {};
+					_valueMap = {};
 					for each (var key:IQualifiedKey in column.keys)
-						valueMap[column.getValueFromKey(key, String)] = true;
+						_valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
 					
-					var valueList:Array = [];
-					for (var string:String in valueMap)
-						valueList.push(string);
-					
-					AsyncSort.sortImmediately(valueList, AsyncSort.compareCaseInsensitive);
+					var valueList:Array = VectorUtils.getKeys(_valueMap);
+					AsyncSort.sortImmediately(valueList, sortNumerically);
 					
 					filterValue.dataProvider = valueList;
 				}
@@ -161,6 +161,12 @@
 					filterValue.dataProvider = null;
 				}
 				handleFilter();
+			}
+			
+			private var _valueMap:Object;
+			private function sortNumerically(a:String, b:String):int
+			{
+				return ObjectUtil.numericCompare(_valueMap[a], _valueMap[b]);
 			}
 		]]>
 	</mx:Script>

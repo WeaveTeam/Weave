@@ -22,6 +22,7 @@ package weave.menus
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
@@ -29,6 +30,7 @@ package weave.menus
 	import mx.core.IToolTip;
 	import mx.core.UIComponent;
 	import mx.managers.ToolTipManager;
+	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.core.ICallbackCollection;
@@ -37,6 +39,10 @@ package weave.menus
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.IVisTool;
+	import weave.api.ui.IVisTool_Basic;
+	import weave.api.ui.IVisTool_Utility;
+	import weave.compiler.StandardLib;
+	import weave.core.ClassUtils;
 	import weave.ui.AddExternalTool;
 	import weave.ui.ColorController;
 	import weave.ui.DraggablePanel;
@@ -44,6 +50,7 @@ package weave.menus
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.collaboration.CollaborationEditor;
+	import weave.utils.AsyncSort;
 
 	public class ToolsMenu extends WeaveMenuItem
 	{
@@ -153,16 +160,23 @@ package weave.menus
 					return lang(labelFormat, displayName);
 				return displayName;
 			}
-			return createItems(
-				WeaveAPI.ClassRegistry.getImplementations(IVisTool).map(function(impl:Class, ..._):* {
-					return {
+			
+			var implementations:Array = WeaveAPI.ClassRegistry.getImplementations(IVisTool);
+			var partitions:Array = ClassUtils.partitionClassList(implementations, IVisTool_Basic, IVisTool_Utility);
+			var items:Array = [];
+			for each (var list:Array in partitions)
+			{
+				if (items.length)
+					items.push(TYPE_SEPARATOR);
+				for each (var impl:Class in list)
+					items.push({
 						shown: [notDash, Weave.properties.getToolToggle(impl)],
 						label: getToolItemLabel,
 						click: createGlobalObject,
 						data: impl
-					};
-				})
-			);
+					});
+			}
+			return createItems(items);
 		}
 		
 		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({

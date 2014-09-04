@@ -33,6 +33,7 @@ package weave.data.DataSources
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -63,9 +64,9 @@ package weave.data.DataSources
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource_old
+	public class CSVDataSource extends AbstractDataSource_old implements IDataSource_File
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
 
 		public function CSVDataSource()
 		{
@@ -82,7 +83,7 @@ package weave.data.DataSources
 		/**
 		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
 		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
-		 */		
+		 */
 		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
 		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
 		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
@@ -351,7 +352,7 @@ package weave.data.DataSources
 		
 		private function handleServletResponse(event:ResultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			var data:Array = event.result as Array;
 			if (!data)
@@ -367,7 +368,7 @@ package weave.data.DataSources
 		}
 		private function handleServletError(event:FaultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			reportError(event);
 		}

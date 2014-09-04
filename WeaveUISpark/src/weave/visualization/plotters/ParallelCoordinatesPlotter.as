@@ -26,10 +26,12 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
@@ -38,6 +40,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -59,11 +62,6 @@ package weave.visualization.plotters
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
-	/**	
-	 * @author heather byrne
-	 * @author adufilie
-	 * @author abaumann
-	 */
 	public class ParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
 	{
 		public function ParallelCoordinatesPlotter()
@@ -119,7 +117,7 @@ package weave.visualization.plotters
 		public function getSelectableAttributeNames():Array
 		{
 			if (enableGroupBy.value)
-				return ["X values", "Y values", "Group by", "Group color"];
+				return ["X values", "Y values", "Group by", "Color"];
 			else
 				return ["Color", "Y Columns"];
 		}
@@ -141,6 +139,7 @@ package weave.visualization.plotters
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
+		public const groupKeyType:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		public function get xData():DynamicColumn { return _filteredXData.internalDynamicColumn; }
 		public function get yData():DynamicColumn { return _filteredYData.internalDynamicColumn; }
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
@@ -162,23 +161,41 @@ package weave.visualization.plotters
 			colorDataWatcher.target = dc || fc || bc || cc;
 		}
 		
+		private var _xValues:Array;
 		public function getXValues():Array
 		{
+			if (!detectLinkableObjectChange(getXValues, xValues, xData))
+				return _xValues;
+			
+			var values:Array;
 			// if session state is defined, use that. otherwise, get the values from xData
 			if (xValues.value)
 			{
-				return WeaveAPI.CSVParser.parseCSVRow(xValues.value) || [];
+				values = WeaveAPI.CSVParser.parseCSVRow(xValues.value) || [];
 			}
 			else
 			{
 				// calculate from column
-				var values:Array = [];
+				values = [];
 				for each (var key:IQualifiedKey in xData.keys)
 					values.push(xData.getValueFromKey(key, String));
 				AsyncSort.sortImmediately(values);
 				VectorUtils.removeDuplicatesFromSortedArray(values);
-				return values;
 			}
+			return _xValues = values.filter(function(value:String, ..._):Boolean { return value ? true : false; });
+		}
+		
+		public function getForeignKeyType():String
+		{
+			var foreignKeyType:String = groupKeyType.value;
+			if (foreignKeyType)
+				return foreignKeyType;
+			foreignKeyType = groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
+			var groupByKeyType:String = groupBy.getMetadata(ColumnMetadata.KEY_TYPE);
+			var lineColorKeyType:String = lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
+			if ((!foreignKeyType || foreignKeyType == DataType.STRING) && groupByKeyType != lineColorKeyType)
+				foreignKeyType = lineColorKeyType;
+			return foreignKeyType;
 		}
 		
 		private var _in_updateFilterEquationColumns:Boolean = false;
@@ -190,7 +207,7 @@ package weave.visualization.plotters
 			
 			if (enableGroupBy.value)
 			{
-				setSingleKeySource(_keySet_groupBy);
+				setColumnKeySources([_keySet_groupBy, groupBy]);
 			}
 			else
 			{
@@ -207,9 +224,11 @@ package weave.visualization.plotters
 			_keySet_groupBy.delayCallbacks();
 			var reverseKeys:Array = []; // a list of the keys returned as values from keyColumn
 			var lookup:Dictionary = new Dictionary(); // keeps track of what keys were already seen
+			var foreignKeyType:String = getForeignKeyType();
 			for each (var key:IQualifiedKey in groupBy.keys)
 			{
-				var filterKey:IQualifiedKey = groupBy.getValueFromKey(key, IQualifiedKey) as IQualifiedKey;
+				var localName:String = groupBy.getValueFromKey(key, String) as String;
+				var filterKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(foreignKeyType, localName);
 				if (filterKey && !lookup[filterKey])
 				{
 					lookup[filterKey] = true;
@@ -240,31 +259,37 @@ package weave.visualization.plotters
 			}
 			
 			columns.delayCallbacks();
-			columns.removeAllObjects();
 
-			var keyCol:DynamicColumn;
-			var filterCol:DynamicColumn;
-			var dataCol:DynamicColumn;
-			
 			var values:Array = getXValues();
+			
+			// remove columns with names not appearing in values list
+			for each (var name:String in columns.getNames())
+				if (values.indexOf(name) < 0)
+					columns.removeObject(name);
+			
+			// create an equation column for each filter value
 			for (var i:int = 0; i < values.length; i++)
 			{
 				var value:String = values[i];
-				var col:EquationColumn = columns.requestObject(columns.generateUniqueName("line"), EquationColumn, false);
+				var col:EquationColumn = columns.requestObject(value, EquationColumn, false);
 				col.delayCallbacks();
 				col.variables.requestObjectCopy("keyCol", groupBy);
 				col.variables.requestObjectCopy("filterCol", _filteredXData);
 				col.variables.requestObjectCopy("dataCol", _filteredYData);
+				var filterValue:LinkableString = col.variables.requestObject('filterValue', LinkableString, false);
+				filterValue.value = value;
 				
 				col.setMetadataProperty(ColumnMetadata.TITLE, value);
 				col.setMetadataProperty(ColumnMetadata.MIN, '{ getMin(dataCol) }');
 				col.setMetadataProperty(ColumnMetadata.MAX, '{ getMax(dataCol) }');
 				
-				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, "'+value+'", Number)';
+				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, filterValue.value, dataType)';
 				col.resumeCallbacks();
-			}				
+			}
+			columns.setNameOrder(values);
 			
 			columns.resumeCallbacks();
+			
 			_in_updateFilterEquationColumns = false;
 		}
 		
@@ -276,7 +301,7 @@ package weave.visualization.plotters
 		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
 		public const shapeBorderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		public const shapeBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
-		public const shapeBorderAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1.0));
+		public const shapeBorderAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.5));
 		
 		public static const CURVE_NONE:String = 'none';
 		public static const CURVE_TOWARDS:String = 'towards';
@@ -299,7 +324,7 @@ package weave.visualization.plotters
 			return types.indexOf(type) >= 0;
 		}
 
-		public static const shapesAvailable:Array = [NO_SHAPE, SOLID_CIRCLE, EMPTY_CIRCLE, SOLID_SQUARE, EMPTY_SQUARE];
+		public static const shapesAvailable:Array = [NO_SHAPE, SOLID_CIRCLE, SOLID_SQUARE, EMPTY_CIRCLE, EMPTY_SQUARE];
 		
 		public static const NO_SHAPE:String 	  = "No Shape";
 		public static const SOLID_CIRCLE:String   = "Solid Circle";
@@ -397,6 +422,52 @@ package weave.visualization.plotters
 			return [];
 		}
 		
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			// this template will draw one record per iteration
+			if (task.iteration < task.recordKeys.length)
+			{
+				//------------------------
+				// draw one record
+				var key:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+				if (enableGroupBy.value)
+				{
+					// reset lookup on first iteration
+					if (task.iteration == 0)
+						task.asyncState = new Dictionary();
+						
+					// replace groupBy keys with foreign keys so we only render lines for foreign keys
+					var foreignKeyType:String = getForeignKeyType();
+					if (key.keyType != foreignKeyType)
+						key = WeaveAPI.QKeyManager.getQKey(foreignKeyType, groupBy.getValueFromKey(key, String));
+					
+					// avoid rendering duplicate lines
+					if (task.asyncState[key])
+						return task.iteration / task.recordKeys.length;
+					task.asyncState[key] = true;
+				}
+				
+				tempShape.graphics.clear();
+				addRecordGraphicsToTempShape(key, task.dataBounds, task.screenBounds, tempShape);
+				if (clipDrawing)
+				{
+					// get clipRectangle
+					task.screenBounds.getRectangle(clipRectangle);
+					// increase width and height by 1 to avoid clipping rectangle borders drawn with vector graphics.
+					clipRectangle.width++;
+					clipRectangle.height++;
+				}
+				task.buffer.draw(tempShape, null, null, null, clipDrawing ? clipRectangle : null);
+				//------------------------
+				
+				// report progress
+				return task.iteration / task.recordKeys.length;
+			}
+			
+			// report progress
+			return 1; // avoids division by zero in case task.recordKeys.length == 0
+		}
+		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
@@ -410,6 +481,7 @@ package weave.visualization.plotters
 			var _prevX:Number = 0;
 			var _prevY:Number = 0;
 			var continueLine:Boolean = false;
+			var skipLines:Boolean = enableGroupBy.value && groupBy.containsKey(recordKey);
 			
 			for (i = 0; i < _yColumns.length; i++)
 			{
@@ -427,37 +499,50 @@ package weave.visualization.plotters
 				var x:Number = tempPoint.x;
 				var y:Number = tempPoint.y;
 				
+				var recordColor:Number = lineStyle.color.getValueFromKey(recordKey, Number);
+				
 				// thickness of the line around each shape
 				var shapeLineThickness:int = shapeBorderThickness.value;
+				// use a border around each shape
+				graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : shapeBorderAlpha.value);
 				if (_shapeSize > 0)
 				{
 					var shapeSize:Number = _shapeSize;
 					
-					// use a border around each shape
-					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : shapeBorderAlpha.value);
+					var shapeColor:Number = recordColor;
+					if (isNaN(shapeColor) && enableGroupBy.value)
+					{
+						var shapeKey:IQualifiedKey = (_yColumns[i] as IAttributeColumn).getValueFromKey(recordKey, IQualifiedKey);
+						shapeColor = lineStyle.color.getValueFromKey(shapeKey, Number);
+					}
 					// draw a different shape for each option
 					switch (shapeToDraw.value)
-					{								
+					{
 						// solid circle
 						case SOLID_CIRCLE:
-							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey));
+							if (isFinite(shapeColor))
+								graphics.beginFill(shapeColor);
+							else
+								graphics.endFill();
 							// circle uses radius, so size/2
 							graphics.drawCircle(x, y, shapeSize/2);
 							break;
 						// empty circle
 						case EMPTY_CIRCLE:
-							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey), shapeLineThickness == 0 ? 0 : 1);
+							graphics.lineStyle(shapeLineThickness, shapeColor, shapeLineThickness == 0 ? 0 : 1);
 							graphics.drawCircle(x, y, shapeSize/2);
-							
 							break;
 						// solid square
 						case SOLID_SQUARE:
-							graphics.beginFill(lineStyle.color.getValueFromKey(recordKey));
+							if (isFinite(shapeColor))
+								graphics.beginFill(shapeColor);
+							else
+								graphics.endFill();
 							graphics.drawRect(x-_shapeSize/2, y-_shapeSize/2, _shapeSize, _shapeSize);
 							break;
 						// empty square
 						case EMPTY_SQUARE:
-							graphics.lineStyle(shapeLineThickness, lineStyle.color.getValueFromKey(recordKey), shapeLineThickness == 0 ? 0 : 1);
+							graphics.lineStyle(shapeLineThickness, shapeColor, shapeLineThickness == 0 ? 0 : 1);
 							graphics.drawRect(x-_shapeSize/2, y-_shapeSize/2, _shapeSize, _shapeSize);
 							break;
 					}
@@ -465,10 +550,20 @@ package weave.visualization.plotters
 					graphics.endFill();
 				}
 				
-				// begin the line style for the parallel coordinates line
-				// we want to use the missing data line style since the line is the shape we are showing 
-				// (rather than just a border of another shape)
-				lineStyle.beginLineStyle(recordKey, graphics);				
+				if (skipLines)
+					continue;
+				
+				if (isFinite(recordColor))
+				{
+					// begin the line style for the parallel coordinates line
+					// we want to use the missing data line style since the line is the shape we are showing 
+					// (rather than just a border of another shape)
+					lineStyle.beginLineStyle(recordKey, graphics);
+				}
+				else
+				{
+					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : shapeBorderAlpha.value);
+				}
 				
 				// if we aren't continuing a new line (it is a new line segment)	
 				if (!continueLine)
@@ -576,20 +671,28 @@ package weave.visualization.plotters
 		 */
 		public function getCoords(recordKey:IQualifiedKey, columnIndex:int, output:Point):void
 		{
+			output.x = NaN;
+			output.y = NaN;
+			
+			if (enableGroupBy.value && groupBy.containsKey(recordKey))
+			{
+				if (xData.getValueFromKey(recordKey, String) != getXValues()[columnIndex])
+					return;
+				recordKey = WeaveAPI.QKeyManager.getQKey(getForeignKeyType(), groupBy.getValueFromKey(recordKey, String));
+			}
+			
 			// X
-			if (columnIndex < _xColumns.length)
-				output.x = (_xColumns[columnIndex] as IAttributeColumn).getValueFromKey(recordKey, Number);
-			else if (_xColumns.length > 0)
-				output.x = NaN;
-			else
+			var xCol:IAttributeColumn = _xColumns[columnIndex] as IAttributeColumn;
+			if (xCol)
+				output.x = xCol.getValueFromKey(recordKey, Number);
+			else if (_xColumns.length == 0)
 				output.x = columnIndex;
+			
 			// Y
 			var yCol:IAttributeColumn = _yColumns[columnIndex] as IAttributeColumn;
-			if (!yCol)
-				output.y = NaN;
-			if (normalize.value)
-				output.y = WeaveAPI.StatisticsCache.getColumnStatistics(yCol).getNorm(recordKey)
-			else
+			if (yCol && normalize.value)
+				output.y = WeaveAPI.StatisticsCache.getColumnStatistics(yCol).getNorm(recordKey);
+			else if (yCol)
 				output.y = yCol.getValueFromKey(recordKey, Number);
 		}
 		

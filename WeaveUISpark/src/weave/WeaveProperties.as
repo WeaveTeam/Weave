@@ -104,6 +104,7 @@ package weave
 			_toggleToolsMenuItem("CustomGraphicsTool", false);
 			_toggleToolsMenuItem("DataStatisticsTool", false);
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
+			_toggleToolsMenuItem("RTextEditor", false);
 			_toggleToolsMenuItem("SchafersMissingDataTool", false);
 			_toggleToolsMenuItem("DataFilter", false);
 			_toggleToolsMenuItem("KeyMappingTool", false);
@@ -290,7 +291,7 @@ package weave
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
 		
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
-		public const enableLoadMyData:LinkableBoolean = new LinkableBoolean(true); // enable/disable Load MyData option
+		public const enableLoadMyData:LinkableBoolean = new LinkableBoolean(false); // enable/disable Load My Data option
 		public const enableBrowseData:LinkableBoolean = new LinkableBoolean(false); // enable/disable Browse Data option
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(false);
 		public const enableManageDataSources:LinkableBoolean = new LinkableBoolean(true); // enable/disable Edit Datasources option

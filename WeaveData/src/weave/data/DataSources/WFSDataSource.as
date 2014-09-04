@@ -28,6 +28,7 @@ package weave.data.DataSources
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
@@ -54,7 +55,7 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufilie
 	 */
-	public class WFSDataSource extends AbstractDataSource_old
+	public class WFSDataSource extends AbstractDataSource_old implements IDataSource_Service
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WFSDataSource, "WFS server");
 		

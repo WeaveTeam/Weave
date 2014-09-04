@@ -24,8 +24,6 @@ package weave.compiler
 	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
-	import mx.utils.Base64Decoder;
-	import mx.utils.Base64Encoder;
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	

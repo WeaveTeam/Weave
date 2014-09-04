@@ -32,6 +32,7 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -69,7 +70,7 @@ package weave.data.DataSources
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveDataSource extends AbstractDataSource_old implements IDataRowSource
+	public class WeaveDataSource extends AbstractDataSource_old implements IDataSource_Service, IDataRowSource
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 		

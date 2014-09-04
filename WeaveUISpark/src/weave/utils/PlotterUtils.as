@@ -165,7 +165,7 @@ package weave.utils
 		
 		public static function alphaSliderFormatFunction(value:Number):String
 		{
-			return lang("{0}% Opaque", int(value * 100)) + "\n" + lang("{0}% Transparent", int(100 - value * 100));
+			return lang("{0}% Opaque", Math.round(value * 100)) + "\n" + lang("{0}% Transparent", Math.round(100 - value * 100));
 		}
 	}
 }

@@ -38,6 +38,7 @@ package
 	import weave.data.KeySets.StringDataFilter;
 	import weave.data.Transforms.PartitionDataTransform;
 	import weave.data.Transforms.ForeignDataMappingTransform;
+    import weave.data.Transforms.GroupedDataTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
@@ -49,6 +50,7 @@ package
 	import weave.editors.GeometryPlotterEditor;
 	import weave.editors.GeometryRelationPlotterEditor;
 	import weave.editors.GraphMLDataSourceEditor;
+    import weave.editors.GroupedDataTransformEditor;
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
@@ -71,7 +73,7 @@ package
 	import weave.ui.RTextEditor;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.annotation.SessionedTextBox;
-	import weave.ui.userControls.SchafersMissingDataTool;
+	import weave.ui.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -141,6 +143,7 @@ package
 			em.registerEditor(CSVDataSource, CSVDataSourceEditor);
 			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
 			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
+            em.registerEditor(GroupedDataTransform, GroupedDataTransformEditor);
 			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
 			em.registerEditor(ForeignDataMappingTransform, ForeignDataMappingTransformEditor);
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);

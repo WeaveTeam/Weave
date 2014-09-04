@@ -101,7 +101,7 @@
 					}
 				});
 				
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("TransposedDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(TransposedDataSource));
 			}
 			
 			public function setTarget(object:ILinkableObject):void
@@ -124,10 +124,15 @@
 				}
 			}
 			
+			private function hasDiff(a:ILinkableObject, b:ILinkableObject):Boolean
+			{
+				return WeaveAPI.SessionManager.computeDiff(getSessionState(a), getSessionState(b)) !== undefined;
+			}
+			
 			public function hasPendingChanges():Boolean
 			{
-				return !!WeaveAPI.SessionManager.computeDiff(getSessionState(metadata), getSessionState(target.metadata))
-					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(columns), getSessionState(target.columns));
+				return hasDiff(metadata, target.metadata)
+					|| hasDiff(columns, target.columns);
 			}
 			
 			public function applyChanges():void
@@ -138,7 +143,7 @@
 			
 			public function createDataSource():IDataSource
 			{
-				if (!sourceName.text)
+				if (!sourceName.text || !columns.getNames().length)
 				{
 					Alert.show(lang("Please fill all required fields"), lang("Error"));
 					return null;

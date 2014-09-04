@@ -74,7 +74,7 @@
 
                 inputColumnsEditor.hashMap = inputColumns;
                 
-                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("PartitionDataTransform");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(PartitionDataTransform));
             }
             
             public function setTarget(object:ILinkableObject):void
@@ -97,10 +97,15 @@
                 }
             }
             
+			private function hasDiff(a:ILinkableObject, b:ILinkableObject):Boolean
+			{
+				return WeaveAPI.SessionManager.computeDiff(getSessionState(a), getSessionState(b)) !== undefined;
+			}
+			
             public function hasPendingChanges():Boolean
             {
-                return !!WeaveAPI.SessionManager.computeDiff(getSessionState(inputColumns), getSessionState(target.inputColumns))
-                    || !!WeaveAPI.SessionManager.computeDiff(getSessionState(partitionColumn), getSessionState(target.partitionColumn));
+                return hasDiff(inputColumns, target.inputColumns)
+                    || hasDiff(partitionColumn, target.partitionColumn);
             }
             
             public function applyChanges():void
@@ -111,7 +116,7 @@
             
             public function createDataSource():IDataSource
             {
-                if (!sourceName.text)
+                if (!sourceName.text || !partitionColumn.getInternalColumn() || !inputColumns.getNames().length)
                 {
                     Alert.show(lang("Please fill all required fields"), lang("Error"));
                     return null;

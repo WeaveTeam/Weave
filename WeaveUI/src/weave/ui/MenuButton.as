@@ -48,6 +48,15 @@ package weave.ui
 		}
 		
 		/**
+		 * Sets menu.alignRight
+		 * @see weave.ui.SubMenu#alignRight
+		 */
+		public function set alignRight(value:Boolean):void
+		{
+			menu.alignRight = value;
+		}
+		
+		/**
 		 * Sets menu.dataProvider
 		 * @see #menu
 		 */

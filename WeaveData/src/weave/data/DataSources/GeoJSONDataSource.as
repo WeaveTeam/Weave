@@ -31,6 +31,7 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -47,9 +48,9 @@ package weave.data.DataSources
 	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
 	
-	public class GeoJSONDataSource extends AbstractDataSource
+	public class GeoJSONDataSource extends AbstractDataSource implements IDataSource_File
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON file");
  		
 		public function GeoJSONDataSource()
 		{
@@ -288,7 +289,7 @@ package weave.data.DataSources
 			{
 				meta = {};
 				meta[GEOJSON_PROPERTY_NAME] = '';
-				meta[ColumnMetadata.TITLE] = GEOM_COLUMN_TITLE;
+				meta[ColumnMetadata.TITLE] = getGeomColumnTitle();
 				meta[ColumnMetadata.KEY_TYPE] = getKeyType();
 				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
 				meta[ColumnMetadata.PROJECTION] = getProjection();
@@ -308,7 +309,11 @@ package weave.data.DataSources
 			return meta;
 		}
 		private static const GEOJSON_PROPERTY_NAME:String = 'geoJsonPropertyName';
-		private static const GEOM_COLUMN_TITLE:String = 'the_geom';
+		
+		private function getGeomColumnTitle():String
+		{
+			return lang("{0} geometry", WeaveAPI.globalHashMap.getName(this));
+		}
 	}
 }
 

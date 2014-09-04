@@ -20,7 +20,6 @@
 package weave.data.Transforms
 {
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.disposeObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
@@ -40,7 +39,7 @@ package weave.data.Transforms
 
 	public class PartitionDataTransform extends AbstractDataSource
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned Table");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned table");
 
 		public static const PARTITION_VALUE_META:String = "__PartitionValue__";
 		public static const PARTITION_COLUMNNAME_META:String = "__PartitionColumnName__";

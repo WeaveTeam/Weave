@@ -24,6 +24,7 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
@@ -34,9 +35,9 @@ package weave.data.DataSources
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
 	
-	public class CKANDataSource extends AbstractDataSource
+	public class CKANDataSource extends AbstractDataSource implements IDataSource_Service
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CKANDataSource, "CKAN server");
 		
 		public function CKANDataSource()
 		{

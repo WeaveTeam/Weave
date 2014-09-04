@@ -417,6 +417,11 @@ package weave
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
+		private static const WEAVE_RELOAD_FILENAME:String = 'fileName';
+		private static const WEAVE_RELOAD_DATE:String = 'date';
+		private static const WEAVE_RELOAD_CONTENT:String = 'content';
+		
+		private static const EXTERNAL_RELOAD_ERROR:String = lang("You must allow Weave to use local storage in order to use this feature.");
 		
 		/**
 		 * This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
@@ -449,7 +454,10 @@ package weave
 				weaveContent = (weaveContent as XML).toXMLString();
 			if (weaveContent is WeaveArchive)
 				weaveContent = (weaveContent as WeaveArchive).serialize();
-			obj.data[uid] = { date: new Date(), content: weaveContent };
+			obj.data[uid] = {};
+			obj.data[uid][WEAVE_RELOAD_FILENAME] = fileName;
+			obj.data[uid][WEAVE_RELOAD_DATE] = new Date();
+			obj.data[uid][WEAVE_RELOAD_CONTENT] = weaveContent;
 			
 			if (obj.flush() == SharedObjectFlushStatus.PENDING)
 				obj.addEventListener(NetStatusEvent.NET_STATUS, handleExternalReloadStatus);
@@ -486,8 +494,6 @@ package weave
 					JavaScript.exec("location.reload(false);");
 			}
 		}
-		
-		private static const EXTERNAL_RELOAD_ERROR:String = lang("You must allow Weave to use local storage in order to use this feature.");
 		
 		/**
 		 * This function should be called when the application starts to restore session history after reloading the application.
@@ -527,7 +533,8 @@ package weave
 				obj.setProperty(uid);
 				
 				// restore old session history
-				loadWeaveFileContent(saved.content);
+				fileName = saved[WEAVE_RELOAD_FILENAME];
+				loadWeaveFileContent(saved[WEAVE_RELOAD_CONTENT]);
 			}
 			
 			// delete all old saved data 
@@ -537,7 +544,7 @@ package weave
 			{
 				try
 				{
-					if (date.getTime() - obj.data[uid].date.getTime() < EXPIRATION_TIME)
+					if (date.getTime() - obj.data[uid][WEAVE_RELOAD_DATE].getTime() < EXPIRATION_TIME)
 						continue;
 				}
 				catch (e:Error)

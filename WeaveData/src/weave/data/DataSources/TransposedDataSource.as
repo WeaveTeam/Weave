@@ -41,7 +41,7 @@ package weave.data.DataSources
 	
 	public class TransposedDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, TransposedDataSource, "Transposed data");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, TransposedDataSource, "Transposed table");
 		
 		public function TransposedDataSource()
 		{

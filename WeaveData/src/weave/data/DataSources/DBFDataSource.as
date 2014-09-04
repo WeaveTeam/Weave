@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -59,7 +60,7 @@ package weave.data.DataSources
 	/**
 	 * @author adufilie
 	 */
-	public class DBFDataSource extends AbstractDataSource
+	public class DBFDataSource extends AbstractDataSource implements IDataSource_File
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
 		

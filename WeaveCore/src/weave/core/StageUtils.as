@@ -454,7 +454,7 @@ package weave.core
 		 * @return A single iterative task function that invokes the other tasks to completion in order.
 		 *         The function will accept a stopTime:int parameter which when set to -1 will
 		 *         reset the task counter to zero so the compound task will start from the first task again.
-		 * @see #startTask
+		 * @see #startTask()
 		 */
 		public static function generateCompoundIterativeTask(...iterativeTasks):Function
 		{

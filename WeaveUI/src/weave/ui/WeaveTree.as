@@ -138,6 +138,7 @@ package weave.ui
 		
 		private var _rootNode:IWeaveTreeNode;
 		
+		[Bindable("collectionChange")]
 		override public function set dataProvider(value:Object):void
 		{
 			_rootNode = value as IWeaveTreeNode;

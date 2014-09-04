@@ -42,6 +42,7 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ExtendedDynamicColumn;
+	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
@@ -61,7 +62,7 @@ package weave.utils
 		 */		
 		public static function getTitle(column:IAttributeColumn):String
 		{
-			var title:String = column.getMetadata(ColumnMetadata.TITLE) || 'Undefined';
+			var title:String = column.getMetadata(ColumnMetadata.TITLE) || ProxyColumn.DATA_UNAVAILABLE;
 			
 			// debug code
 			if (false)
@@ -289,7 +290,7 @@ package weave.utils
 		{
 			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return StandardLib.asBoolean( column.getValueFromKey(qkey) );
+				return StandardLib.asBoolean( column.getValueFromKey(qkey, Number) );
 			return false;
 		}
 		/**
@@ -316,7 +317,7 @@ package weave.utils
 		public static function getGeometry(geometryColumn:IAttributeColumn, key:Object):Array
 		{
 			var qkey:IQualifiedKey = getQKey(key);
-			var genGeoms:Array = geometryColumn.getValueFromKey(qkey) as Array;
+			var genGeoms:Array = geometryColumn.getValueFromKey(qkey, Array) as Array;
 			
 			if (genGeoms == null)
 				return null;

@@ -19,10 +19,10 @@
 
 package weave.data.BinningDefinitions
 {
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
@@ -58,22 +58,7 @@ package weave.data.BinningDefinitions
 			output.removeAllObjects();
 			
 			var nonWrapperColumn:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(column);
-			
-			var dataType:String = nonWrapperColumn ? ColumnUtils.getDataType(nonWrapperColumn) : null;
-			if (dataType == null)
-			{
-				// hack -- if we find a number, assume dataType is number
-				for each (var key:IQualifiedKey in column.keys)
-				{
-					if (column.getValueFromKey(key) is Number)
-					{
-						dataType = DataType.NUMBER;
-						break;
-					}
-				}
-			}
-			
-			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataType.NUMBER;
+			var integerValuesOnly:Boolean = nonWrapperColumn && nonWrapperColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataType.NUMBER;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();

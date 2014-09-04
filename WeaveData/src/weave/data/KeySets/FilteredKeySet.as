@@ -86,10 +86,12 @@ package weave.data.KeySets
 			if (StandardLib.arrayCompare(_setColumnKeySources_arguments, arguments) == 0)
 				return;
 			
+			var keySet:IKeySet;
+			
 			// unlink from the old key set
 			if (_generatedKeySets)
 			{
-				for each (var keySet:IKeySet in _generatedKeySets)
+				for each (keySet in _generatedKeySets)
 					disposeObject(keySet);
 				_generatedKeySets = null;
 			}
@@ -104,18 +106,15 @@ package weave.data.KeySets
 			{
 				// KeySetUnion should not trigger callbacks
 				var union:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
-				for each (var column:Object in sortColumns)
-				{
-					if (column is IAttributeColumn)
-						union.addKeySetDependency(column as IKeySet);
-					else
-						throw new Error("sortColumns must be an Array of IAttributeColumn objects");
-				}
-				// SortedKeySet should trigger callbacks
+				for each (keySet in sortColumns)
+					union.addKeySetDependency(keySet);
+				sortColumns = sortColumns.filter(includeColumnsOnly);
+				
 				if (debug && keyCompare == null)
 					trace(debugId(this), 'sort by [', sortColumns, ']');
 				
 				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(sortColumns, descendingFlags);
+				// SortedKeySet should trigger callbacks
 				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, sortColumns));
 				_generatedKeySets = [union, sorted];
 				
@@ -127,6 +126,11 @@ package weave.data.KeySets
 			}
 			
 			triggerCallbacks();
+		}
+		
+		private function includeColumnsOnly(obj:*, i:*, a:*):Boolean
+		{
+			return obj is IAttributeColumn;
 		}
 		
 		/**

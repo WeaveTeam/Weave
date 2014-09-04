@@ -231,10 +231,15 @@
 					function onClick(item:WeaveMenuItem):void
 					{
 						// prioritize input columns
+						var selectedItems:Array = browser.explorer.fileView.selectedItems;
+						if (selectedItems)
+							selectedItems = selectedItems.concat().reverse();
 						var input:Array = VectorUtils.union(
-							browser.explorer.fileView.selectedItems,
+							selectedItems,
 							browser.explorer.selectedFolder.getChildren()
-						);
+						).filter(function(item:Object, i:*, a:*):Boolean {
+							return item is IColumnReference && (item as IColumnReference).getColumnMetadata() != null;
+						});
 						
 						// limit the number of input columns
 						const max_input:int = 10;
@@ -260,6 +265,8 @@
 					createVis.data = function():Array {
 						return ToolsMenu.getDynamicItems().filter(
 							function(item:WeaveMenuItem, ..._):Boolean {
+								if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
+									return true;
 								item.click = onClick;
 								var qname:String = getQualifiedClassName(item.data);
 								var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);

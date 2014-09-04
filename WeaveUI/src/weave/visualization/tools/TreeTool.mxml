@@ -124,7 +124,7 @@ private function columnLabelFunction(item:Object):String
     var label:String;
     if (labelColumn.getInternalColumn())
     {
-        label = labelColumn.getValueFromKey(item as IQualifiedKey);
+        label = labelColumn.getValueFromKey(item as IQualifiedKey, String);
     }
     else
     {

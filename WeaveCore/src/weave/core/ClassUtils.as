@@ -216,5 +216,35 @@ package weave.core
 			
 			return true; // successfully cached
 		}
+		
+		
+		/**
+		 * Partitions a list of classes based on which interfaces they implement.
+		 * @param A list of interfaces.
+		 * @return An Array of filtered Arrays corresponding to the given interfaces, including a final
+		 *         Array containing the remaining classes that did not implement any of the given interfaces.
+		 */
+		public static function partitionClassList(classes:Array, ...interfaces):Array
+		{
+			if (interfaces.length == 1 && interfaces[0] is Array)
+				interfaces = interfaces[0];
+			var partitions:Array = [];
+			for each (var interfaceClass:Class in interfaces)
+			{
+				var partition:Array = [];
+				classes = classes.filter(function(impl:Class, i:int, a:Array):Boolean {
+					if (classImplements(getQualifiedClassName(impl), getQualifiedClassName(interfaceClass)))
+					{
+						// include in result, remove from from classes
+						partition.push(impl);
+						return false;
+					}
+					return true;
+				});
+				partitions.push(partition);
+			}
+			partitions.push(classes);
+			return partitions;
+		}
 	}
 }

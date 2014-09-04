@@ -65,7 +65,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return ["Key mapping column", "Columns to access using the key mapping"];
+				return ["Foreign key mapping", "Data to transform"];
 			}
 			public function getSelectableAttributes():Array
 			{
@@ -105,10 +105,15 @@
                 }
             }
             
+			private function hasDiff(a:ILinkableObject, b:ILinkableObject):Boolean
+			{
+				return WeaveAPI.SessionManager.computeDiff(getSessionState(a), getSessionState(b)) !== undefined;
+			}
+
             public function hasPendingChanges():Boolean
             {
-                return !!WeaveAPI.SessionManager.computeDiff(getSessionState(dataColumns), getSessionState(target.dataColumns))
-                    || !!WeaveAPI.SessionManager.computeDiff(getSessionState(keyColumn), getSessionState(target.keyColumn));
+                return hasDiff(dataColumns, target.dataColumns)
+                    || hasDiff(keyColumn, target.keyColumn);
             }
             
             public function applyChanges():void
@@ -119,7 +124,7 @@
             
             public function createDataSource():IDataSource
             {
-                if (!sourceName.text)
+                if (!sourceName.text || !keyColumn.getInternalColumn() || !dataColumns.getNames().length)
                 {
                     Alert.show(lang("Please fill all required fields"), lang("Error"));
                     return null;
