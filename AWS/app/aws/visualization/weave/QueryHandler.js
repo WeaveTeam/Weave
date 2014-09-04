@@ -202,16 +202,19 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 		scriptName = queryObject.scriptSelected;
 		
 		QueryHandlerService.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
-			if(!QueryHandlerService.weaveWindow || QueryHandlerService.weaveWindow.closed) {
-				QueryHandlerService.weaveWindow = $window.open("/weave.html?",
-						"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-			}
-			waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
-				WeaveService.weave = weave;
-				WeaveService.addCSVData(resultData.data);
-				WeaveService.columnNames = resultData.data[0];
-				$scope.$apply();
-			});
+			if(!angular.isUndefined(resultData.data))//only if something is returned open weave
+				{
+					if(!QueryHandlerService.weaveWindow || QueryHandlerService.weaveWindow.closed) {
+						QueryHandlerService.weaveWindow = $window.open("/weave.html?",
+								"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+					}
+					waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
+						WeaveService.weave = weave;
+						WeaveService.addCSVData(resultData.data);
+						WeaveService.columnNames = resultData.data[0];
+						$scope.$apply();
+					});
+				}
 			
 		});
 	};
