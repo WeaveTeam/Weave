@@ -33,7 +33,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
 		
 		});
     };
-
+    
     /**
      * This function wraps the async aws getQueryObjectsInProject function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
@@ -47,7 +47,6 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         			var countOfJsons = AWSQueryObjectCollection.length;
         			for(var i = 0; i < countOfJsons; i++)
         			{
-        				var singleObject = {};
         				singleObject.queryObject = JSON.parse(AWSQueryObjectCollection[i].finalQueryObject);
         				singleObject.queryObjectName = AWSQueryObjectCollection[i].queryObjectName;
         				singleObject.projectDescription = AWSQueryObjectCollection[i].projectDescription;
