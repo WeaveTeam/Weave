@@ -24,12 +24,15 @@ import com.google.gson.internal.StringMap;
 public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRserve()?
 {
 	
-	public AwsRService() throws Exception
+	public AwsRService()
 	{
 		
 	}
+	
+	public static ArrayList<String> logs = new ArrayList<String>();
+	
 	protected static RConnection getRConnection() throws RemoteException
-	{
+	{	
 		RConnection rConnection = null; // establishing R connection		
 		try
 		{
@@ -47,11 +50,16 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public Object runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception
+	public ScriptResult runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception
 	{
+		//empty logs before every run 
+		logs.clear();
+		
 		RConnection rConnection = null;
 		Object results = null;
-		String [] columnNames;
+		ScriptResult finalResult = new ScriptResult();
+		//ArrayList<String> logs = new ArrayList<String>();
+		String [] columnNames = null;
 		try
 		{
 			 rConnection = getRConnection();
@@ -77,14 +85,23 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 		}
 		catch (Exception e)	{
 			e.printStackTrace();
-			throw new RemoteException("Unable to run script", e);
+			logs.add("Unable to run Script " + e.getMessage());
+			finalResult.logs = logs.toArray(finalResult.logs);//if logs set the logs
+			//throw new RemoteException("Unable to run script", e);
+			
 		}
-		finally {
-			if (rConnection != null)
-				rConnection.close();
+		
+		if(logs.isEmpty())
+		{
+			results = convertToRowResults(results, columnNames);
+			finalResult.data = results;//setting the data(actual result)
 		}
-		results = convertToRowResults(results, columnNames);
-		return results;
+		
+		if (rConnection != null)
+			rConnection.close();
+
+		
+		return finalResult;
 		
 	}
 
