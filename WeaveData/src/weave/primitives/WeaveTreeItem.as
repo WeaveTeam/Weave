@@ -132,7 +132,7 @@ package weave.primitives
 				if (isSimpleObject(param, 'or'))
 					param = getBoolean(param['or'], "or_" + recursionName);
 				if (param is Function)
-					param = param.apply(this, param.length ? [this] : null);
+					param = evalFunction(param as Function);
 				if (param is ILinkableVariable)
 					param = (param as ILinkableVariable).getSessionState();
 				if (param is Array)
@@ -187,7 +187,7 @@ package weave.primitives
 				_recursion[recursionName] = true;
 				
 				if (param is Function)
-					param = param.apply(this, param.length ? [this] : null);
+					param = evalFunction(param as Function);
 				else
 					param = param || '';
 				
@@ -209,11 +209,32 @@ package weave.primitives
 				_recursion[recursionName] = true;
 				
 				if (param is Function)
-					param = param.apply(this, param.length ? [this] : null);
+					param = evalFunction(param as Function);
 				
 				_recursion[recursionName] = false;
 			}
 			return param;
+		}
+		
+		/**
+		 * First tries calling a function with no parameters.
+		 * If an ArgumentError is thrown, the function will called again, passing this WeaveTreeItem as the first parameter.
+		 */
+		protected function evalFunction(func:Function):*
+		{
+			try
+			{
+				// first try calling the function with no parameters
+				return func.call(this);
+			}
+			catch (e:*)
+			{
+				if (!(e is ArgumentError))
+					throw e;
+			}
+			
+			// on ArgumentError, pass in this WeaveTreeItem as the first parameter
+			return func.call(this, this);
 		}
 		
 		//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----

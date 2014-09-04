@@ -328,6 +328,12 @@ package weave.core
 				if (assignVariableName && !_compiler.isValidSymbolName(assignVariableName))
 					throw new Error("Invalid variable name: " + Compiler.encodeString(assignVariableName));
 				
+				// To avoid "variable is undefined" errors, treat variables[''] as an Array of keys and set any missing properties to undefined
+				if (variables)
+					for each (var key:String in variables[''])
+						if (!variables.hasOwnProperty(key))
+							variables[key] = undefined;
+				
 				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
 				if (getObjectFromPathOrVariableName_error)
 					throw new Error(getObjectFromPathOrVariableName_error);
@@ -460,10 +466,7 @@ package weave.core
 		
 		private static function externalError(format:String, ...args):void
 		{
-			var prefix:String = "Error: ";
-			if (format.indexOf(prefix) != 0)
-				format = prefix + format;
-			WeaveAPI.externalError(StandardLib.substitute(format, args));
+			throw new Error(StandardLib.substitute(format, args));
 		}
 		
 		private static function externalWarning(format:String, ...args):void

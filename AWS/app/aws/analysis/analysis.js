@@ -2,26 +2,101 @@
  * Handle all Analysis Tab related work - Controllers to handle Analysis Tab
  */
 'use strict';
+var tryParseJSON = function(jsonString){
+    try {
+        var o = JSON.parse(jsonString);
 
-var analysis_mod = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider','ui.bootstrap']);
+        // Handle non-exception-throwing cases:
+        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+        // but... JSON.parse(null) returns 'null', and typeof null === "object", 
+        // so we must check for that, too.
+        if (o && typeof o === "object" && o !== null) {
+            return o;
+        }
+    }
+    catch (e) { }
+    return false;
+};
 
-analysis_mod.controller('AnalysisFiltersControllers', function($scope, queryService) {
+var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
-	$scope.service = queryService;
+AnalysisModule.service('AnalysisService', function() {
+	
+	var AnalysisService = {
+			content_tools : [{
+				id : 'Indicator',
+				title : 'Indicator',
+				template_url : 'aws/analysis/indicator/indicator.tpl.html',
+				description : 'Choose an Indicator for the Analysis',
+				category : 'indicatorfilter'
+			},
+			{
+				id : 'GeographyFilter',
+				title : 'Geography Filter',
+				template_url : 'aws/analysis/data_filters/geography.tpl.html',
+				description : 'Filter data by States and Counties',
+				category : 'datafilter'
+			},
+			{
+				id : 'TimePeriodFilter',
+				title : 'Time Period Filter',
+				template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+				description : 'Filter data by Time Period',
+				category : 'datafilter'
+			},
+			{
+				id : 'ByVariableFilter',
+				title : 'By Variable Filter',
+				template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+				description : 'Filter data by Variables',
+				category : 'datafilter'
+			}],
+			
+			tool_list : [
+			         	{
+			        		id : 'BarChartTool',
+			        		title : 'Bar Chart Tool',
+			        		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
+			        		description : 'Display Bar Chart in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+
+			        	}, {
+			        		id : 'MapTool',
+			        		title : 'Map Tool',
+			        		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
+			        		description : 'Display Map in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+			        	}, {
+			        		id : 'DataTableTool',
+			        		title : 'Data Table Tool',
+			        		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
+			        		description : 'Display a Data Table in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+			        	}, {
+			        		id : 'ScatterPlotTool',
+			        		title : 'Scatter Plot Tool',
+			        		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+			        		description : 'Display a Scatter Plot in Weave',
+			        		category : 'visualization',
+			        		enabled : false
+			        	}]
+	};
+	
+	return AnalysisService;
 	
 });
 
-analysis_mod.controller('AnalysisMainCtrl', function($scope, $location, $anchorScroll, queryService){
-	$scope.service= queryService;
-  $scope.scrollTo = function(id) {
-    $location.hash(id);
-    $anchorScroll();
-  };
-});
+AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService) {
 
-analysis_mod.controller('WidgetsController', function($scope, queryService) {
-
-	$scope.service = queryService;
+	$scope.queryService = queryService;
+	$scope.AnalysisService = AnalysisService;
+	$scope.WeaveService = WeaveService;
+	
+	$scope.IndicDescription = "";
+	$scope.varValues = [];
 	
 	$scope.toggle_widget = function(tool) {
 		queryService.queryObject[tool.id].enabled = tool.enabled;
@@ -30,25 +105,45 @@ analysis_mod.controller('WidgetsController', function($scope, queryService) {
 	$scope.disable_widget = function(tool) {
 		tool.enabled = false;
 		queryService.queryObject[tool.id].enabled = false;
+		WeaveService[tool.id](queryService.queryObject[tool.id]); // temporary because the watch is not triggered
 	};
 	
-	$scope.$watch(function() {
-		return queryService.tool_list;
-	}, function(newVal, oldVal) {
-		if(newVal, oldVal) {
-			for(var i in newVal) {
-				var tool = newVal[i];
-				queryService.queryObject[tool.id].enabled = tool.enabled;
-			}
+	$scope.$watch('queryService.queryObject.Indicator', function() {
+		if(queryService.queryObject.Indicator) {
+			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
 		}
-	}, true);
+		
+		if(queryService.queryObject.Indicator) {
+			queryService.getEntitiesById([angular.fromJson(queryService.queryObject.Indicator).id], true).then(function (result) {
+				if(result.length) {
+					var resultMetadata = result[0];
+					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
+						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
+						if(metadata.hasOwnProperty("varValues")) {
+							$scope.varValues = metadata.varValues;
+						}
+					}
+				}
+			});
+		}
+	});
+	
+	$scope.$watchCollection(function() {
+		return $.map(AnalysisService.tool_list, function(tool) {
+			return tool.enabled;
+		});
+	}, function() {
+		$.map(AnalysisService.tool_list, function(tool) {
+			queryService.queryObject[tool.id].enabled = tool.enabled;
+		});
+	});
 	
 	$scope.$watch(function () {
 		return queryService.queryObject.BarChartTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "BarCharTool") {
 					tool.enabled = newVal;
 					break;
@@ -61,8 +156,8 @@ analysis_mod.controller('WidgetsController', function($scope, queryService) {
 		return queryService.queryObject.MapTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "MapTool") {
 					tool.enabled = newVal;
 					break;
@@ -75,8 +170,8 @@ analysis_mod.controller('WidgetsController', function($scope, queryService) {
 		return queryService.queryObject.ScatterPlotTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "ScatterPlotTool") {
 					tool.enabled = newVal;
 					break;
@@ -89,8 +184,8 @@ analysis_mod.controller('WidgetsController', function($scope, queryService) {
 		return queryService.queryObject.DataTableTool.enabled;
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
-			for(var i in queryService.tool_list) {
-				var tool = queryService.tool_list[i];
+			for(var i in AnalysisService.tool_list) {
+				var tool = AnalysisService.tool_list[i];
 				if(tool.id == "DataTableTool") {
 					tool.enabled = newVal;
 					break;
@@ -102,30 +197,13 @@ analysis_mod.controller('WidgetsController', function($scope, queryService) {
 });
 
 
-analysis_mod.config(function($selectProvider) {
+AnalysisModule.config(function($selectProvider) {
 	angular.extend($selectProvider.defaults, {
 		caretHTML : '&nbsp'
 	});
 });
 
-/*
- *
- * Clean up
- * TODO: Seperate the dtatable from scripts bar
- *
- */
-
-analysis_mod.controller("ColorColumnCtrl", function($scope, queryService) {
-
-	$scope.service = queryService;
-
-});
-
-//analysis_mod.controller('myModalCtrl', function($scope, $location, $anchorScroll, queryService){
-//	console.log("reached the modal controller");
-//});
-
-analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
+AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) {
 
 	// This sets the service variable to the queryService 
 	$scope.service = queryService;
@@ -133,17 +211,8 @@ analysis_mod.controller("ScriptsBarController", function($scope, queryService) {
 	queryService.getDataTableList(true);
 	queryService.getListOfScripts(true);
 
-	$scope.$watch(function() {
-		return queryService.queryObject.scriptSelected;
-	}, function () {
-		console.log(queryService.queryObject.scriptOptions);
-		queryService.queryObject.scriptOptions = {};
-		console.log(queryService.queryObject.scriptOptions);
-	});
-
 	//  clear script options when script changes
 	$scope.$watch('service.queryObject.scriptSelected', function(newVal, oldVal) {
-		
 		if(newVal != oldVal) {
 			queryService.queryObject.scriptOptions = {};
 		}

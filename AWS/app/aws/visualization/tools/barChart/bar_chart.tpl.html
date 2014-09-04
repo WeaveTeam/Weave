@@ -1,59 +1,114 @@
 <div class="panel-body" ng-controller="BarChartCtrl">
-	<ul class="input-controls">
 		
-		<div>
-			<p><b> BarChartTool Title</b></p>
-			<input  style = "width : 100%" type="text" placeholder="Default" ng-model="service.queryObject.BarChartTool.title"/>
-		</div>
+		<table>
+			<tr>
+				<td>
+					 Title:
+				</td>
+				<td style="padding-left: 5px;">
+					<input  style = "width : 100%" type="text"
+							placeholder="Default" 
+							ng-model="service.queryObject.BarChartTool.title"/>
+				</td>
+			</tr>
+			
+			<tr>
+			
+				<td>
+					Heights
+				</td>
+			
+				<td style="padding-left: 5px;">
+					<select style = "width : 100%" 
+							class="widget-ui-control" 
+							ui-select2  
+							ng-model="service.queryObject.BarChartTool.heights" 
+							multiple  
+							data-placeholder="Choose Height Column(s)">
+							<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+					</select>
+				</td>
+			</tr>
 		
-		<div>
-		<ul class="input-controls">
-<!-- 			<li class="tool-list-control-element"> -->
-<!-- 			<span class="tool-label">Height Column(s)</span> -->
-
-			Height Columns
-			<div >
-			<select style = "width : 100%" class="widget-ui-control" ui-select2  ng-model="service.queryObject.BarChartTool.heights" multiple  data-placeholder="Choose Height Column(s)">
-				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
-			</select>
-			</div>
-			<br>
+		<tr>
+			<td>
+				Positive Errors
+			</td>
 			
-<!-- 			</li> -->
-			
-<!-- 			<li class="tool-list-control-element"> -->
-<!-- 			<span>Sort Column</span> -->
-
-			Sort Column
-			<div>
-				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.sort" data-placeholder="Choose Sort Column">
-					<option></option>
-					<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
+			<td style="padding-left: 5px;">
+				<select style = "width : 100%" 
+							class="widget-ui-control" 
+							ui-select2  
+							ng-model="service.queryObject.BarChartTool.posErr" 
+							multiple  
+							data-placeholder="Choose Positive Error Column(s)">
+							<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 				</select>
-			</div>
+			</td>
+		</tr>
 			
-			<br>
+		<tr>
+			<td>
+				Negative Errors
+			</td>
 			
-			Label Column
-			<div>
-				<select  style = "width : 100%" class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column"> -->
-				<option></option>
-				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option>
-			</select>
-			</div>
+			<td style="padding-left: 5px;">
+				<select style = "width : 100%" 
+							class="widget-ui-control" 
+							ui-select2  
+							ng-model="service.queryObject.BarChartTool.negErr" 
+							multiple  
+							data-placeholder="Choose Negative Error Column(s)">
+							<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+				</select>
+			</td>
+		</tr>	
 			
-<!-- 			</li> -->
+		<tr>
+			<td>
+				Sort
+			</td>
 			
-<!-- 			<li class="tool-list-control-element"> -->
-<!-- 			<span>Label Column</span> -->
-<!-- 			<select class="widget-ui-control" ui-select2 ng-model="service.queryObject.BarChartTool.label" data-placeholder="Choose Label Column"> -->
-<!-- 				<option></option> -->
-<!-- 				<option value="{{output.param}}" ng-repeat="output in service.dataObject.scriptMetadata.outputs">{{output.param}}</option> -->
-<!-- 			</select> -->
-<!-- 			</li> -->
-		</ul>
-			
-		</div>
+			<td style="padding-left: 5px;">
+				<select  style = "width : 100%" 
+						 class="widget-ui-control" 
+						 ui-select2
+						 ng-model="service.queryObject.BarChartTool.sort" 
+						 data-placeholder="Choose Sort Column">
+					<option></option>
+					<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+				</select>
+			</td>
+		</tr>
 		
+		<tr>
+			<td>
+				Label
+			</td>
+			
+			<td style="padding-left: 5px;">
+				<select  style = "width : 100%" 
+						 class="widget-ui-control" 
+						 ui-select2 
+						 ng-model="service.queryObject.BarChartTool.label" 
+						 data-placeholder="Choose Label Column"
+						 >
+				<option></option>
+				<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+			</td>
+		</tr>
+		<tr>	
+			<td>
+				<input   type="checkbox"
+						 ng-model="service.queryObject.BarChartTool.showAllLabels" 
+						 data-placeholder="Choose Label Column"
+						 ng-init="service.queryObject.BarChartTool.showAllLabels = true"/>
+			</td>
+			
+			<td style="padding-left: 5px;">
+				Show All Axis Labels
+			</td>
+		</tr>
+	</table>
 </div>
 

@@ -6,30 +6,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	$scope.progressValue = 0;
 	$scope.selectedColumnId;
     $scope.fileUpload;
-
-    $scope.authenticate = function(user, password)
-	{
-    	$scope.user = user;
-    	$scope.password = password;
-		queryService.authenticate(user, password).then(function(result) {
-			if(result)
-			{
-				$scope.authenticated = true;
-			}
-			else 
-			{
-				$scope.authenticated = false;
-			}
-
-		});
-		
-		
-	};
-
-	$scope.logout = function()
-	{
-		$scope.authenticated = false;
-	};
+    
+    $scope.queryService = queryService;
     
 	$scope.generateTree = function(element) {
 		queryService.getDataTableList(true).then(function(dataTableList) {
@@ -78,7 +56,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	};
 
 	var getColumnMetadata = function (id) {
-		aws.DataClient.getDataColumnEntities(id, function(result) {
+		aws.queryService('/WeaveServices/DataService', "getEntitiesById", [id], function (result){
 			var metadata = result[0];
 			if(metadata.hasOwnProperty("publicMetadata")) {
 				if(metadata.publicMetadata.hasOwnProperty("aws_metadata")) {
@@ -240,18 +218,19 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
           $scope.fileUpload.then(function(result) {
             var metadataArray = queryService.CSVToArray(result.contents);
     	  if($scope.selectedColumnId) {
-    		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
-    			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
-        			  if(columns.length) {
+    		  queryService.getDataColumnsEntitiesFromId($scope.selectedColumnId, true).then(function(columns) {
+    			  if(columns.length) {
+    				  	  console.log(metadataArray);
         				  for (var i = 1; i < metadataArray.length; i++) {
         					  	var metadata = metadataArray[i][1];
         						var title = metadataArray[i][0];
+        						console.log("updating metadata", metadata);
         						$scope.progressValue = 0;
         						var end = columns.length;
         						$scope.maxTasks = end;
         						var id;
         						for(var j = 0; j < columns.length; j++) {
-        							if(columns[j].publicMetadata.title == title) {
+        							if(columns[j].title == title) {
         								id = columns[j].id;
         								break; // we assume there is only one match
         							}
@@ -272,11 +251,10 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
         			  } else {
         				  console.log("selected entity is not a table or table does not contain any columns.");
         			  }
-    			  });
-    		  });
+			  });
     	  } else {
 					console.log("no selected tables");
-    	  };
+    	  		};
           });
         }
 

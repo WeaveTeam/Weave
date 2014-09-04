@@ -1,136 +1,96 @@
 <div class='script-manager-container' ng-controller="ScriptManagerCtrl" style="padding-top:20px" >
+	
+	<div ng-if="!queryService.authenticated" style="padding-top: 20px; 
+		 position:absolute;
+	     width:300px;
+	     height:200px;
+	     z-index:15;
+	     top:50%;
+	     left:50%;
+	     margin:-100px 0 0 -150px;">	
+		 <table>
+		 	<tr>
+		 		<td>
+					 User Name: 
+				</td>
+		 		<td>
+		 			<input ng-model="user" type="text" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
+		 		</td>
+		 	</tr>
+		 	<tr>
+		 		<td>
+		 			Password:
+		 		</td>
+		 		<td>
+			 		<input ng-model="password" type="password" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
+		 		</td>
+		 	</tr>
+		 	<tr>
+			 	<td>
+		 		</td>
+		 		<td>
+			 		<div align="right" style="padding-top: 5px">
+					 <input type="button" ng-click="queryService.authenticate(user, password)" value="Login" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
+			 		</div>
+		 		</td>
+		 	</tr>
+		 </table>
+	</div> 
 
-	<div class="container" contenteditable="false">
+	<div class="container" contenteditable="false"  ng-if="queryService.authenticated">
 		<div class="row">
-
+			<input type="button" value="Logout" style="float:right;" ng-click="queryService.logout()">
 		</div>
+		<br>
 		<div class="row" contenteditable="false">
 			<div class="col-md-3" contenteditable="false">
-				<div class="gridStyle" ng-grid="gridOptions"></div>
-				<div>
-					<!-- <button class="file-nput-btn" ng-click="deleteSelectedScript()">
-					Delete Selected
-					</button> -->
-					<file-upload label="Upload"></file-upload>
-					<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
-				</div>
+				<div class="gridStyle" ng-grid="rScriptListOptions"></div>
+				<div class="gridStyle" ng-grid="stataScriptListOptions"></div>
+
+			<div>
+				<button class="file-nput-btn" style="float:left; width:48%" ng-click="deteleScript()">Delete Script</button>
+				<button class="file-nput-btn" style="float:left; width:50%">Add New Script...</button>
+			</div>
 
 			</div>
 			<div class="col-md-9" contenteditable="false">
 				<div class="well">
-					<div style="display:block">
-						<div>
-							<div>
-								<span>Script Name:</span>
-								<editablespan class= "editab-span-script" model='selectedScript[0].name'>
-									{{selectedScript[0].name}}
-								</editablespan>
-							</div>
-
-							<p class="text-right">
-								Edit Mode
-							</p>
-							<div class="btn-group btn-toggle pull-right" ng-click="editMode = !editMode">
-								<button ng-class="{'active btn-danger': editMode == true}" class="btn btn-default">
-									On
-								</button>
-								<button ng-class="{'active': editMode == false}" class="btn btn-default">
-									Off
-								</button>
-							</div>
-
-						</div>
-						<div>
-							<span>General description</span>
-							<editablespan model="selectedMetadata.description">
-								{{selectedMetadata.description}}
-							</editablespan>
-						</div>
-
-					</div>
+					<table style="display:block">
+						<button class="file-nput-btn" style="float:left; width:25%" ng-click="refreshScripts()">Refresh</button>
+						<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
+						<button class="file-nput-btn" style="float:right; width:25%" ng-click="saveChanges()">Save Changes</button>
+						<tr>
+							<td>
+								<b>Script:</b>
+							</td>
+							<td width="100%">
+								<input type="text" ng-model='newScriptName' style="width:100%"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<b>Description:</b>
+							</td>
+							<br><br>
+							<td width="100%">
+								<textarea rows="4" cols="50" ng-model="scriptMetadata.description" style="width: 100%; resize:none">
+									{{scriptMetadata.description}}
+								</textarea>
+							</td>
+						</tr>
+					</table>
 				</div>
-				<div class="well">
-					<h3 class="">Inputs</h3>
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<div style="width: 20%" class="col-md-2">
-							Name
-						</div>
-						<div style="width: 30%" class="col-md-2">
-							Description
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							Type
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							ColumnType
-						</div>
-					</div>
-					<div style="width: 100%; height: 40px; display: inline-block" ng-repeat="inpt in selectedMetadata.inputs">
-						<div style="width: 20%" class="col-md-2">
-							<editablespan model="inpt.param">
-								{{inpt.param}}
-							</editablespan>
-						</div>
-						<div style="width: 30%" class="col-md-2">
-							<editablespan model="inpt.description">
-								{{inpt.description}}
-							</editablespan>
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							<editablespan model="inpt.type">
-								{{inpt.type}}
-							</editablespan>
-						</div>
-						<div style="width: 15%" class="col-md-2">
-							<editablespan model="inpt.columnType">
-								{{inpt.columnType}}
-							</editablespan>
-						</div>
-						<div style="width: 10%" class="col-md-2">
-							<a class="btn" ng-click="deleteInput($index)" ng-show="editMode"><i class="glyphicon glyphicon-remove"></i></a>
-						</div>
-					</div>
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<a class="btn pull-right" ng-click="addInput()" ng-show="editMode"><i class="glyphicon glyphicon-plus"></i>Add</a>
-					</div>
+				
+				<div class="gridStyle" ng-grid="scriptMetadataGridOptions"></div>
+				
+				<br>
+				<br>
+				<input type="button" value="Add" ng-click="addNewRow()">
+    		    <input type="button" value="Delete" ng-click="removeRow()">
+				<br><br>
 
-				</div>
-
-				<div class="well">
-					<h3 class="">Outputs</h3>
-
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<div style="width: 30%; " class="col-md-2">
-							Name
-						</div>
-						<div style="width: 60%" class="col-md-2">
-							Description
-						</div>
-
-					</div>
-
-					<div style="width: 100%; height: 40px; display: inline-block" ng-repeat="out in selectedMetadata.outputs">
-						<div style="width: 30%" class="col-md-2 script-table-value">
-							<editablespan model="out.param">
-								{{out.param}}
-							</editablespan>
-						</div>
-						<div style="width: 60%" class="col-md-2 script-table-value">
-							<editablespan model="out.description">
-								{{out.description}}
-							</editablespan>
-						</div>
-						<div style="width: 10%" class="col-md-2 script-table-value">
-							<a class="btn" ng-click="deleteOutput($index)" ng-show="editMode"><i class="glyphicon glyphicon-remove"></i></a>
-						</div>
-					</div>
-					<div style="border-bottom: 1px solid #CCCCCC; border-top: 1px solid #CCCCCC; margin: 10px 0px; height: 35px; font-size: 15px; font-weight: 400; padding:5px;">
-						<a class="btn pull-right" ng-click="addOutput()" ng-show="editMode"><i class="glyphicon glyphicon-plus"></i>Add</a>
-					</div>
-
-				</div>
 				<div class ="well">
-					<h3> Script Contents </h3>
+					<h3> Script Content </h3>
 					<pre>{{scriptContent}}</pre>
 				</div>
 			</div>

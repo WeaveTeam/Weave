@@ -79,7 +79,7 @@
 				
 				function onClick(item:WeaveMenuItem):void { setFilterType(item.data as Class); }
 				function isToggled(item:WeaveMenuItem):Boolean { return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is (item.data as Class); }
-				subMenu.dataProvider = [
+				subMenuButton.data = [
 					{
 						data: StringDataFilter,
 						label: lang("String filter"),

@@ -23,8 +23,9 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'ngRoute',
                                  'ngGrid', // Angular UI library
                                  'mk.editablespan', // Directive for editing values. 
-                                 'aws.analysisService', 
-                                 'aws.AnalysisModule'
+                                 'aws.AnalysisModule',
+                                 'aws.WeaveModule',
+                                 'aws.QueryHandlerModule'
                                ]); 
 
 app.run(['$rootScope', function($rootScope){
@@ -47,7 +48,7 @@ app.run(['$rootScope', function($rootScope){
 	// Also from Amith's UI
 	$routeProvider.when('/analysis', {
 		templateUrl : 'aws/analysis/analysis.tpl.html',
-		controller : 'WidgetsController',
+		controller : 'AnalysisCtrl',
 		activetab : 'analysis'
 	}).when('/metadata', {
 		templateUrl : 'aws/configure/metadata/metadataManager.html',

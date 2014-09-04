@@ -13,7 +13,75 @@ var adminServiceURL = '/WeaveServices/AdminService';
 var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
 
 var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
-//angular.module("aws.queryObject", [])
+
+var aws = {};
+
+/**
+ * This function is a wrapper for making a request to a JSON RPC servlet
+ * 
+ * @param {string} url
+ * @param {string} method The method name to be passed to the servlet
+ * @param {?Array|Object} params An array of object to be passed as parameters to the method 
+ * @param {Function} resultHandler A callback function that handles the servlet result
+ * @param {string|number=}queryId
+ * @see aws.addBusyListener
+ */
+aws.queryService = function(url, method, params, resultHandler, queryId)
+{
+    var request = {
+        jsonrpc: "2.0",
+        id: queryId || "no_id",
+        method: method,
+        params: params
+    };
+    
+    $.post(url, JSON.stringify(request), handleResponse, "text");
+
+    function handleResponse(response)
+    {
+    	// parse result for target window to use correct Array implementation
+    	response = JSON.parse(response);
+    	
+        if (response.error)
+        {
+        	console.log(JSON.stringify(response, null, 3));
+        }
+        else if (resultHandler){
+            return resultHandler(response.result, queryId);
+        }
+    }
+};
+
+/**
+ * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
+ * @param {string} url The URL of the service.
+ * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
+ * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
+ * @param {function(Array|Object)} resultsHandler Receives a mapping from queryId to RPC result.
+ */
+aws.bulkQueryService = function(url, method, queryIdToParams, resultsHandler)
+{
+	var batch = [];
+	for (var queryId in queryIdToParams)
+		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
+	$.post(url, JSON.stringify(batch), handleBatch, "json");
+	function handleBatch(batchResponse)
+	{
+		var results = Array.isArray(queryIdToParams) ? [] : {};
+		for (var i in batchResponse)
+		{
+			var response = batchResponse[i];
+			if (response.error)
+				console.log(JSON.stringify(response, null, 3));
+			else
+				results[response.id] = response.result;
+		}
+		if (resultsHandler)
+			resultsHandler(results);
+	}
+};
+
+
 QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     
 	var SaveState =  function () {
@@ -24,7 +92,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	this.queryObject = angular.fromJson(sessionStorage.queryObject);
     };
 
-
+    this.authenticated = false;
+    
+	this.logout = function() {
+		this.authenticated = false;
+	};
 	var that = this; // point to this for async responses
 
 	this.queryObject = {
@@ -32,7 +104,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			date : new Date(),
     		author : "",
 			ComputationEngine : "R",
-			Indicator : {},
+			Indicator : "",
 			GeographyFilter : {},
 			scriptOptions : {},
 			TimePeriodFilter : {},
@@ -41,7 +113,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			BarChartTool : { enabled : false },
 			MapTool : { enabled : false },
 			ScatterPlotTool : { enabled : false },
-			DataTableTool : { enabled : false }
+			DataTableTool : { enabled : false },
+			ColorColumn : {column : ""},
+			keyColumn : {name : ""}
 	};    		
     
 	this.dataObject = {
@@ -49,68 +123,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			scriptList : []
 	};
 
-	this.content_tools = [{
-		id : 'Indicator',
-		title : 'Indicator',
-		template_url : 'aws/analysis/indicator/indicator.tpl.html',
-		description : 'Choose an Indicator for the Analysis',
-		category : 'indicatorfilter'
-	},
-	{
-		id : 'GeographyFilter',
-		title : 'Geography Filter',
-		template_url : 'aws/analysis/data_filters/geography.tpl.html',
-		description : 'Filter data by States and Counties',
-		category : 'datafilter'
-
-	},
-	{
-		id : 'TimePeriodFilter',
-		title : 'Time Period Filter',
-		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
-		description : 'Filter data by Time Period',
-		category : 'datafilter'
-	},
-	{
-		id : 'ByVariableFilter',
-		title : 'By Variable Filter',
-		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
-		description : 'Filter data by Variables',
-		category : 'datafilter'
-	}];
-	
-	
-	this.tool_list = [
-	{
-		id : 'BarChartTool',
-		title : 'Bar Chart Tool',
-		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
-		description : 'Display Bar Chart in Weave',
-		category : 'visualization',
-		enabled : false
-
-	}, {
-		id : 'MapTool',
-		title : 'Map Tool',
-		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
-		description : 'Display Map in Weave',
-		category : 'visualization',
-		enabled : false
-	}, {
-		id : 'DataTableTool',
-		title : 'Data Table Tool',
-		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
-		description : 'Display a Data Table in Weave',
-		category : 'visualization',
-		enabled : false
-	}, {
-		id : 'ScatterPlotTool',
-		title : 'Scatter Plot Tool',
-		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
-		description : 'Display a Scatter Plot in Weave',
-		category : 'visualization',
-		enabled : false
-	}];
 	
 	/**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
@@ -126,68 +138,97 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     	}
     };
 
+    /**
+     * This function wraps the async aws getListOfProjects function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.getListOfProjectsfromDatabase = function() {
+		var deferred = $q.defer();
+
+		aws.queryService(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
+    	that.dataObject.listOfProjectsFromDatabase = result;
+    	
+    	scope.$safeApply(function() {
+            deferred.resolve(result);
+        });
+    	
+    });
+        
+        return deferred.promise;
+        
+    };
     
-    this.getSessionState = function(params){
+    
+    this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
+      	
+    	var deferred = $q.defer();
+    	var params = {};
+    	params.userName = userName;
+    	params.projectName = projectName;
+    	params.projectDescription = projectDescription;
+    	params.queryObjectTitle = queryObjectTitle;
+    	params.queryObjectContent = queryObjectContent;
+
+    	aws.queryService(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
+        	console.log("insertQueryObjectStatus", result);
+        	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
+    
+    /**
+     * This function wraps the async aws deleteproject function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.deleteProject = function(projectName) {
+          	
+    	var deferred = $q.defer();
+    	var params = {};
+    	params.projectName = projectName;
+
+    	aws.queryService(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
+        	console.log("deleteProjectStatus", result);
+            
+        	that.dataObject.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
+        	scope.$safeApply(function() {
+                deferred.resolve(result);
+            });
+        	
+        });
+        
+        return deferred.promise;
+        
+    };
+    
+    
+    this.getSessionState = function(){
     	if(!(newWeaveWindow.closed)){
     		var base64SessionState = newWeaveWindow.getSessionState();
-    		this.writeSessionState(base64SessionState, params);
+    		this.writeSessionState(base64SessionState);
     	}
     };
    
-    this.writeSessionState = function(base64String, savingParams){
-    	var userName = "Awesome User";
-    	var projectName = "";
-    	var projectDescription = "";
-    	if(savingParams.projectEntered != ""){
-    		projectName = savingParams.projectEntered;
-    		projectDescription = "These query objects belong to " + projectName;
-    	}
-    	else{
-    		projectName = "Other";
-    		projectDescription = "These query objects do not belong to any specified project";
-    	}
-    	if(savingParams.queryTitleEntered != ""){
-    		this.queryObject.title = savingParams.queryTitleEntered;
-    		queryObjectTitles = savingParams.queryTitleEntered;
-    	}
-    	else
-    		var queryObjectTitles = this.queryObject.title;
+    this.writeSessionState = function(base64String){
     	
-    	var qo =this.queryObject;
-    	for(var key in qo.scriptOptions) {
-    		var input = qo.scriptOptions[key];
-    		//console.log(typeof input);
-    		switch(typeof input) {
-    			
-    			case 'string' :
-    				var inputVal = tryParseJSON(input);
-    				if(inputVal) {  // column input
-    					qo.scriptOptions[key] = inputVal;
-    				} else { // regular string
-    					qo.scriptOptions[key] = input;
-    				}
-    				break;
-    			
-    			default:
-    				console.log("unknown script input type");
-    		}
-    	}
-    	if (typeof(qo.Indicator) == 'string'){
-    		var inputVal = tryParseJSON(qo.Indicator);
-			if(inputVal) {  // column input
-				qo.Indicator = inputVal;
-			} else { // regular string
-				qo.Indicator = input;
-			}
-    	}
-    	var queryObjectJsons = angular.toJson(qo);
-    	console.log("got it", queryObjectJsons);
+    	var params = {};
+    	params.queryObjectJsons = angular.toJson(this.queryObject);
+    	params.projectName = "Other";
+    	params.userName = "Awesome User";
+    	params.projectDescription = "These query objects do not belong to any project";
+    	params.resultVisualizations = base64String;
+    	params.queryObjectTitles = this.queryObject.title;
     	
-    	var resultVisualizations = base64String;
     	
-    	aws.queryService(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
+    	console.log("got it", base64String);
+    	aws.queryService(projectManagementURL, 'writeSessionState', params, function(result){
     		console.log("adding status", result);
-    		alert(queryObjectTitles + " has been added");
+    		alert(params.queryObjectTitles + " has been added");
     	});
     };
     
@@ -386,7 +427,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 
         	var deferred = $q.defer();
             
-            aws.AdminClient.updateEntity(user, password, entityId, diff, function(){
+        	aws.queryService(adminServiceURL, 'updateEntity', [user, password, entityId, diff], function(){
                 
             	scope.$safeApply(function(){
                     deferred.resolve();
@@ -397,16 +438,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
         
         this.authenticate = function(user, password) {
 
-        	var deferred = $q.defer();
-            
-            aws.AdminClient.authenticate(user, password, function(result){
-                
-            	scope.$apply(function(){
-                    deferred.resolve(result);
-                });
-            });
-            
-            return deferred.promise;
+        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
+                this.authenticated = result;
+                scope.$apply();
+            }.bind(this));
         };
         
         
@@ -414,8 +449,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
          // This will parse a delimited string into an array of
          // arrays. The default delimiter is the comma, but this
          // can be overriden in the second argument.
-     
-     
+ 
         this.CSVToArray = function(strData, strDelimiter) {
             // Check to see if the delimiter is defined. If not,
             // then default to comma.

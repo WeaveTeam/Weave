@@ -422,6 +422,7 @@ weave.WeavePath.prototype.exec = function(script, callback_or_variableName)
 	var callback = type == 'function' ? callback_or_variableName : null;
 	// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
 	var variableName = type == 'string' ? callback_or_variableName : "";
+	this._vars[''] = Object.keys(this._vars); // include a list of keys in property '' so undefined variables will be preserved
 	var result = this.weave.evaluateExpression(this._path, script, this._vars, null, variableName);
 	this._deleteTempVars();
 	// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
@@ -575,6 +576,7 @@ weave.WeavePath.prototype.getReverseDiff = function(/*...relativePath, otherStat
  */
 weave.WeavePath.prototype.getValue = function(script_or_variableName)
 {
+	this._vars[''] = Object.keys(this._vars); // include a list of keys in property '' so undefined variables will be preserved
 	var result = this.weave.evaluateExpression(this._path, script_or_variableName, this._vars);
 	this._deleteTempVars();
 	return result;
@@ -607,24 +609,21 @@ weave.WeavePath.prototype._assertParams = function(methodName, args, minLength)
 
 weave.WeavePath.prototype._failPath = function(methodName, path)
 {
-	var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
-	var msg = 'command failed (path: ' + pathStr + ')';
-	this._failMessage(methodName, msg);
+	this._failMessage(methodName, 'command failed', path);
 };
 
 weave.WeavePath.prototype._failObject = function(methodName, path)
 {
-	var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
-	var msg = 'object does not exist (path: ' + pathStr + ')';
-	this._failMessage(methodName, msg);
+	this._failMessage(methodName, 'object does not exist', path);
 };
 
-weave.WeavePath.prototype._failMessage = function(methodName, message)
+weave.WeavePath.prototype._failMessage = function(methodName, message, path)
 {
 	var str = 'WeavePath.' + methodName + '(): ' + message;
-	
-	//TODO - mode where error is logged instead of thrown?
-	//console.error(str);
-	
+	if (path)
+	{
+		var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
+		str += ' (path: ' + pathStr + ')';
+	}
 	throw new Error(str);
 };

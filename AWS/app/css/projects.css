@@ -393,11 +393,10 @@
   opacity: .8;
   transition: opacity .2s;
   -webkit-transition: opacity .2s;
-  float: right;
   height: 31px;
   overflow: hidden;
-  margin: 10px 0 0 5px;
-  padding: 0 25px;
+  margin: 2px 0 0 2px;
+  padding: 0 5px;
   outline: 0;
   border: 0;
   font: 300 15px/31px 'Open Sans',Helvetica,Arial,sans-serif;

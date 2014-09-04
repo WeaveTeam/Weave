@@ -1,4 +1,4 @@
-treeUtils = {};
+var treeUtils = {};
 
 treeUtils.toggleSelect = function(treeId){
 	$(treeId).dynatree("getRoot").visit(function(node){
@@ -58,4 +58,4 @@ treeUtils.getSelectedNodes = function(treeId) {
 	}
 	
 	return selectedNodes;
-}
+};

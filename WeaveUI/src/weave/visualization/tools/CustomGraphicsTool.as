@@ -97,7 +97,7 @@ package weave.visualization.tools
 			canvas.rawChildren.addChild(bitmap);
 
 			enableSubMenu.value = true;
-			subMenu.dataProvider = [
+			subMenuButton.data = [
 				{
 					label: lang("Edit session state"),
 					click: toggleControlPanel

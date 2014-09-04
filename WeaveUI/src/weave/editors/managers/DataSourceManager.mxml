@@ -29,7 +29,8 @@
 	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*">
 	<mx:HDividedBox initialize="UIUtils.pad(event, padding, 100, 100)">
 		<mx:VBox height="100%">
-			<mx:Button id="createDataSource" label="{lang('New data source...')}" width="100%"/>
+			<ui:MenuButton id="createDataSource" label="{lang('New data source...')}" width="100%"
+						   initialize="createDataSource.data = DataMenu.getDynamicItems as Function;"/>
 			<ui:Paragraph translate="true">
 				Select a data source:
 			</ui:Paragraph>
@@ -39,30 +40,14 @@
 					 height="100%" width="100%">
 				<mx:itemRenderer>
 					<mx:Component>
-						<mx:HBox horizontalScrollPolicy="off" verticalAlign="middle">
+						<mx:HBox horizontalScrollPolicy="off" verticalAlign="middle" initialize="UIUtils.pad(this, 2);">
 							<mx:Label id="lbl" width="100%"/>
-							<mx:Button id="menu" toolTip="{lang('Menu')}"
-									   icon="@Embed(source='/weave/resources/images/menu_9x7.png')"
-									   width="20" height="20"/>
-							<ui:BusyIndicator id="busy" diameterRatio=".75"/>
-							<mx:Script>
-								<![CDATA[
-									import weave.api.core.ILinkableHashMap;
-									import weave.api.core.ILinkableObject;
-									import weave.api.data.IDataSource;
-									import weave.api.getLinkableOwner;
-									import weave.core.UIUtils;
-									import weave.menus.WeaveMenuItem;
-									import weave.ui.SubMenu;
-									
-									private var _subMenu:SubMenu;
-									
-									override protected function childrenCreated():void
-									{
-										UIUtils.pad(this, 2);
-										_subMenu = new SubMenu(menu, [
+							<ui:MenuButton id="menu" toolTip="{lang('Menu')}" smallIcon="true" width="20" height="20">
+								<ui:initialize>
+									<![CDATA[
+										menu.data = [
 											{
-												label: lang("Refresh hierarchy"),
+												label: lang('Refresh hierarchy'),
 												click: function():void {
 													if (data is IDataSource)
 														(data as IDataSource).refreshHierarchy();
@@ -76,9 +61,19 @@
 													WeaveAPI.globalHashMap.removeObject(name);
 												}
 											}
-										]);
-									}
-
+										];
+									]]>
+								</ui:initialize>
+							</ui:MenuButton>
+							<ui:BusyIndicator id="busy" diameterRatio=".75"/>
+							<mx:Script>
+								<![CDATA[
+									import weave.api.core.ILinkableHashMap;
+									import weave.api.core.ILinkableObject;
+									import weave.api.data.IDataSource;
+									import weave.core.UIUtils;
+									import weave.menus.WeaveMenuItem;
+									
 									override public function set data(value:Object):void
 									{
 										super.data = value as IDataSource;
@@ -99,7 +94,7 @@
 				</mx:Canvas>
 				<mx:HBox width="100%" height="100%">
 					<editors:DynamicColumnEditor id="browser" dataSource="{dataSource}"/>
-					<mx:Button id="createVis" label="{lang('Create a visualization...')}"/>
+					<ui:MenuButton id="createVis" label="{lang('Create a visualization...')}"/>
 					<mx:VBox width="100%" height="100%" id="columnDisplay">
 						<mx:Label id="columnDisplayLabel"/>
 						<CustomDataGrid:CustomDataGrid id="columnDisplayGrid"
@@ -216,7 +211,6 @@
 					super.childrenCreated();
 					
 					initCreateVis();
-					createDataSource.data = new SubMenu(createDataSource, DataMenu.getDynamicItems());
 					
 					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
 					selectDataSource(null);
@@ -248,7 +242,7 @@
 								ColumnUtils.initSelectableAttributes(selectables, input);
 						}
 					}
-					createVis.data = new SubMenu(createVis, function():Array {
+					createVis.data = function():Array {
 						return ToolsMenu.getDynamicItems().filter(
 							function(item:WeaveMenuItem, ..._):Boolean {
 								item.click = onClick;
@@ -257,7 +251,7 @@
 								return ClassUtils.classImplements(qname, qname_iowsa);
 							}
 						);
-					});
+					};
 				}
 				
 				override public function reposition():void
