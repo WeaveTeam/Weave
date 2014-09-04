@@ -104,6 +104,7 @@ package weave
 			_toggleToolsMenuItem("CustomGraphicsTool", false);
 			_toggleToolsMenuItem("DataStatisticsTool", false);
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
+			_toggleToolsMenuItem("RTextEditor", false);
 			_toggleToolsMenuItem("SchafersMissingDataTool", false);
 			_toggleToolsMenuItem("DataFilter", false);
 			_toggleToolsMenuItem("KeyMappingTool", false);
