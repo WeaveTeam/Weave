@@ -1,5 +1,5 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
-AnalysisModule.service("WeaveService", function() {
+AnalysisModule.service("WeaveService", function(queryService) {
 	
 	this.weave;
 	var ws = this;
@@ -158,15 +158,6 @@ AnalysisModule.service("WeaveService", function() {
 			if(! angular.isUndefined(ws.weave))
 			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
 		}
-	};
-	
-	this.getSessionState = function()
-	{
-		return ws.weave.path().getValue("\
-		        var e = new 'mx.utils.Base64Encoder'();\
-		        e.encodeBytes( Class('weave.Weave').createWeaveFileContent(true) );\
-		        return e.drain();\
-		    ");
 	};
 });
 
