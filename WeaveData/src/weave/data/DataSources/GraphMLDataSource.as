@@ -76,8 +76,8 @@ package weave.data.DataSources
 
         private function handleURLChange():void
         {
-            WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(sourceUrl.value), handleGraphMLDownload, handleGraphMLDownloadError, sourceUrl.value, URLLoaderDataFormat.TEXT);
-            return;
+			if (sourceUrl.value)
+	            WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(sourceUrl.value), handleGraphMLDownload, handleGraphMLDownloadError, sourceUrl.value, URLLoaderDataFormat.TEXT);
         }
 
 

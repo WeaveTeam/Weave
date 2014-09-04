@@ -112,6 +112,8 @@
 
 			public function applyChanges():void
 			{
+				target.dbfUrl.value = null; // temporary solution, fixes bug where local file update won't be detected
+				target.shpUrl.value = null; // temporary solution, fixes bug where local file update won't be detected
 				target.dbfUrl.value = dbfURL.text;
 				target.shpUrl.value = shpURL.text;
 				target.projection.value = projection.text;

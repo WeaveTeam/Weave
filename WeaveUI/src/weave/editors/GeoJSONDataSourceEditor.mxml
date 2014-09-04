@@ -121,6 +121,7 @@
 
 			public function applyChanges():void
 			{
+				target.url.value = null; // temporary solution, fixes bug where local file update won't be detected
 				target.url.value = url.text;
 				if (!eq(target.getProjection(), projection.text))
 					target.projection.value = projection.text;
