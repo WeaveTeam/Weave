@@ -39,7 +39,10 @@ package weave.menus
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.IVisTool;
+	import weave.api.ui.IVisTool_Basic;
+	import weave.api.ui.IVisTool_Utility;
 	import weave.compiler.StandardLib;
+	import weave.core.ClassUtils;
 	import weave.ui.AddExternalTool;
 	import weave.ui.ColorController;
 	import weave.ui.DraggablePanel;
@@ -148,10 +151,6 @@ package weave.menus
 			}
 		);
 		
-		private static const toolLookup:Dictionary = new Dictionary(); // class -> group number
-		public static function registerBasicToolImplementation(classDef:Class):void { toolLookup[classDef] = 1; }
-		public static function registerUtilityToolImplementation(classDef:Class):void { toolLookup[classDef] = 2; }
-		
 		public static function getDynamicItems(labelFormat:String = null):Array
 		{
 			function getToolItemLabel(item:WeaveMenuItem):String
@@ -163,27 +162,21 @@ package weave.menus
 			}
 			
 			var implementations:Array = WeaveAPI.ClassRegistry.getImplementations(IVisTool);
-			var partitioned:Array = [];
-			var numGroups:int = 3;
-			for (var i:int = 0; i <= numGroups; i++)
+			var partitions:Array = ClassUtils.partitionClassList(implementations, IVisTool_Basic, IVisTool_Utility);
+			var items:Array = [];
+			for each (var list:Array in partitions)
 			{
-				if (partitioned.length)
-					partitioned.push(null);
-				for each (var impl:Class in implementations)
-					if ((toolLookup[impl] || numGroups) == i)
-						partitioned.push(impl);
-			}
-			
-			return createItems(
-				partitioned.map(function(impl:Class, ..._):* {
-					return impl ? {
+				if (items.length)
+					items.push(WeaveMenuItem.TYPE_SEPARATOR);
+				for each (var impl:Class in list)
+					items.push({
 						shown: [notDash, Weave.properties.getToolToggle(impl)],
 						label: getToolItemLabel,
 						click: createGlobalObject,
 						data: impl
-					} : WeaveMenuItem.TYPE_SEPARATOR;
-				})
-			);
+					});
+			}
+			return createItems(items);
 		}
 		
 		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({

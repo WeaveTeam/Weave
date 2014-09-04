@@ -140,7 +140,6 @@
 			import weave.data.AttributeColumns.KeyColumn;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
-			import weave.menus.ToolsMenu;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomDataGrid.CustomDataGridColumn;
@@ -155,7 +154,6 @@
 			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataTableTool, "Data Table");
-			ToolsMenu.registerBasicToolImplementation(DataTableTool);
 			
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));

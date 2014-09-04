@@ -35,7 +35,6 @@
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.menus.ToolsMenu;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
@@ -43,7 +42,6 @@
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
-			ToolsMenu.registerBasicToolImplementation(ColorBinLegendTool);
 			
 			private var _plotter:ColorBinLegendPlotter = null;
 			

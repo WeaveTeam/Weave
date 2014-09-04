@@ -15,12 +15,10 @@
 
 package weave.api.ui
 {
-	import weave.api.core.ILinkableObject;
-
 	/**
-	 * A visusalization tool that a user would want to create an instance of at runtime.
+	 * A visusalization tool that requires other tools to be useful (not stand-alone).
 	 */
-	public interface IVisTool extends ILinkableObject
+	public interface IVisTool_Utility extends IVisTool
 	{
 	}
 }

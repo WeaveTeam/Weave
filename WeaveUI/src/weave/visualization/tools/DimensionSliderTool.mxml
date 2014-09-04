@@ -35,11 +35,9 @@
 			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-			import weave.menus.ToolsMenu;
 			import weave.utils.ColumnUtils;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
-			ToolsMenu.registerUtilityToolImplementation(DimensionSliderTool);
 			
 	override protected function constructor():void
 	{

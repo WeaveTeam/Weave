@@ -44,7 +44,6 @@
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
-			import weave.menus.ToolsMenu;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColumnListComponent;
@@ -58,7 +57,6 @@
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, LineChartTool, "Line Chart");
-			ToolsMenu.registerBasicToolImplementation(LineChartTool);
 			
 			private var _plotter:ParallelCoordinatesPlotter = null;
 			

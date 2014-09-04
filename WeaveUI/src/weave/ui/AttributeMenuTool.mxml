@@ -140,14 +140,12 @@
 			import weave.core.SessionManager;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.menus.ToolsMenu;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
-			ToolsMenu.registerUtilityToolImplementation(AttributeMenuTool);
 
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			

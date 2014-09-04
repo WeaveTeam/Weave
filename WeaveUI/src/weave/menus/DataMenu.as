@@ -89,47 +89,23 @@ package weave.menus
 				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
 				adsp.dataSourceType = item.data as Class;
 			}
-			return createItems(
-				partitionClassList(
-					WeaveAPI.ClassRegistry.getImplementations(IDataSource),
-					IDataSource_File,
-					IDataSource_Service,
-					IDataSource_Transform
-				).map(
-					function(impl:Class, ..._):* {
-						return impl ? {
-							shown: Weave.properties.enableManageDataSources,
-							label: getLabel,
-							click: onClick,
-							data: impl
-						} : WeaveMenuItem.TYPE_SEPARATOR;
-					}
-				)
-			);
-		}
-		
-		/**
-		 * Partitions a list of classes based on which interfaces they implement.
-		 * Inserts null values between the partitions, and places any remaining classes in a final partition.
-		 */
-		private static function partitionClassList(classes:Array, ...interfaces):Array
-		{
-			var result:Array = [];
-			for each (var interfaceClass:Class in interfaces)
+			
+			var implementations:Array = WeaveAPI.ClassRegistry.getImplementations(IDataSource);
+			var partitions:Array = ClassUtils.partitionClassList(implementations, IDataSource_File, IDataSource_Service, IDataSource_Transform);
+			var items:Array = [];
+			for each (var list:Array in partitions)
 			{
-				if (result.length)
-					result.push(null);
-				classes = classes.filter(function(impl:Class, i:int, a:Array):Boolean {
-					if (ClassUtils.classImplements(getQualifiedClassName(impl), getQualifiedClassName(interfaceClass)))
-					{
-						// include in result, remove from from classes
-						result.push(impl);
-						return false;
-					}
-					return true;
-				});
+				if (items.length)
+					items.push(WeaveMenuItem.TYPE_SEPARATOR);
+				for each (var impl:Class in list)
+					items.push({
+						shown: Weave.properties.enableManageDataSources,
+						label: getLabel,
+						click: onClick,
+						data: impl
+					});
 			}
-			return classes.length ? result.concat(null, classes) : result;
+			return createItems(items);
 		}
 		
 		public function DataMenu()

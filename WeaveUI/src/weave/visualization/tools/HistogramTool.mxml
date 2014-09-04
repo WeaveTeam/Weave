@@ -33,7 +33,6 @@
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.menus.ToolsMenu;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
@@ -41,7 +40,6 @@
 			import weave.visualization.plotters.SimpleAxisPlotter;
 		
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, HistogramTool, "Histogram");
-			ToolsMenu.registerBasicToolImplementation(HistogramTool);
 			
 			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
 			

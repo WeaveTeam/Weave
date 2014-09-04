@@ -42,7 +42,6 @@
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
-			import weave.menus.ToolsMenu;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DynamicColumnComponent;
@@ -52,7 +51,6 @@
 			import weave.visualization.plotters.SimpleAxisPlotter;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
-			ToolsMenu.registerBasicToolImplementation(CompoundBarChartTool);
 
 			/**
 			 * When this is set to true, labels for all bars will be shown.

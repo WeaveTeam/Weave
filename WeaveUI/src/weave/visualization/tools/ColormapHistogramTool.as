@@ -21,7 +21,6 @@ package weave.visualization.tools
 {
 	import weave.Weave;
 	import weave.api.ui.IVisTool;
-	import weave.menus.ToolsMenu;
 	
 	/**
 	 * kept for backwards compatibility
@@ -31,7 +30,6 @@ package weave.visualization.tools
 	public class ColormapHistogramTool extends HistogramTool
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ColormapHistogramTool, "Color Histogram");
-		ToolsMenu.registerBasicToolImplementation(ColormapHistogramTool);
 
 		public function ColormapHistogramTool()
 		{
