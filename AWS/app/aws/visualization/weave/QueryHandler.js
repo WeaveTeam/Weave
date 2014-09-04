@@ -5,7 +5,7 @@
 var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 
 var qh_module = angular.module('aws.QueryHandlerModule', []);
-var weavewindow;
+var weaveWindow;
 
 function waitForWeave(popup, callback)
 {
@@ -24,7 +24,7 @@ qh_module.service('QueryHandlerService',
 		['$q', '$rootScope','queryService','WeaveService', '$window', function($q, scope, queryService, WeaveService, $window) {
 	
 	
-	this.weaveWindow;
+	//this.weaveWindow;
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
@@ -200,15 +200,18 @@ qh_module.service('QueryHandlerService',
 		}
 		
 		scriptName = queryObject.scriptSelected;
-		
+		 var stringifiedQO = JSON.stringify(queryObject);
+		 console.log("query", stringifiedQO);
+		 console.log(JSON.parse(stringifiedQO));
+
 		this.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
 			if(!angular.isUndefined(resultData.data))//only if something is returned open weave
 				{
-					if(!that.weaveWindow || that.weaveWindow.closed) {
-						that.weaveWindow = $window.open("/weave.html?",
+					if(!weaveWindow || weaveWindow.closed) {
+						weaveWindow = $window.open("/weave.html?",
 								"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 					}
-					waitForWeave(that.weaveWindow , function(weave) {
+					waitForWeave(weaveWindow , function(weave) {
 						WeaveService.weave = weave;
 						WeaveService.addCSVData(resultData.data);
 						WeaveService.columnNames = resultData.data[0];
