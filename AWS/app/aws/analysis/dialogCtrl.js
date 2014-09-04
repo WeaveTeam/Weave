@@ -1,4 +1,4 @@
-AnalysisModule.controller('DialogController', function ($scope, $dialog) {
+AnalysisModule.controller('DialogController', function ($scope, $dialog, queryService) {
 	$scope.opts = {
 		 backdrop: false,
           backdropClick: true,
@@ -19,6 +19,7 @@ AnalysisModule.controller('DialogController', function ($scope, $dialog) {
     	  if(params){
     		  console.log("finally got project as ", params.projectEntered);
     		  console.log("qo", params.queryTitleEntered);
+    		  queryService.getSessionState(params);
     	  }
       });
       
