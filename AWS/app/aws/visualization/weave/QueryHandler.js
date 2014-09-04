@@ -20,9 +20,18 @@ function waitForWeave(popup, callback)
     checkWeaveReady();
 }
 
-qh_module.service('QueryHandlerService',  ['$q', '$rootScope', function($q, scope) {
+qh_module.service('QueryHandlerService', 
+		['$q', '$rootScope','queryService','WeaveService', '$window', function($q, scope, queryService, WeaveService, $window) {
+	
 	
 	this.weaveWindow;
+	var scriptInputs = {};
+	var filters = {};
+	var scriptName = ""; 
+	var queryObject = queryService.queryObject;
+	var nestedFilterRequest = {and : []};
+	
+	var that = this; // point to this for async responses
 	
 	/**
      * This function wraps the async aws runScript function into an angular defer/promise
@@ -42,19 +51,10 @@ qh_module.service('QueryHandlerService',  ['$q', '$rootScope', function($q, scop
         return deferred.promise;
     };
 	
-}]);
-
-qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService, WeaveService, $window) {
-	
-	var scriptInputs = {};
-	var filters = {};
-	var scriptName = ""; 
-	var queryObject = queryService.queryObject;
-	var nestedFilterRequest = {and : []};
-	
-	$scope.service = queryService;
-	
-	$scope.run = function() {
+	/**
+	 * this function processes the queryObject and makes the async call for running the script
+	 */
+	this.run = function() {
 		
 		for(var key in queryObject.scriptOptions) {
 			var input = queryObject.scriptOptions[key];
@@ -201,14 +201,14 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 		
 		scriptName = queryObject.scriptSelected;
 		
-		QueryHandlerService.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
+		this.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
 			if(!angular.isUndefined(resultData.data))//only if something is returned open weave
 				{
-					if(!QueryHandlerService.weaveWindow || QueryHandlerService.weaveWindow.closed) {
-						QueryHandlerService.weaveWindow = $window.open("/weave.html?",
+					if(!that.weaveWindow || that.weaveWindow.closed) {
+						that.weaveWindow = $window.open("/weave.html?",
 								"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 					}
-					waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
+					waitForWeave(that.weaveWindow , function(weave) {
 						WeaveService.weave = weave;
 						WeaveService.addCSVData(resultData.data);
 						WeaveService.columnNames = resultData.data[0];
@@ -218,4 +218,14 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 			
 		});
 	};
+	
+	
+}]);
+
+qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService) {
+	
+	$scope.service = queryService;
+	$scope.runService = QueryHandlerService;
+	
+	
 });
