@@ -96,7 +96,7 @@ package weave.menus
 			for each (var list:Array in partitions)
 			{
 				if (items.length)
-					items.push(WeaveMenuItem.TYPE_SEPARATOR);
+					items.push(TYPE_SEPARATOR);
 				for each (var impl:Class in list)
 					items.push({
 						shown: Weave.properties.enableManageDataSources,

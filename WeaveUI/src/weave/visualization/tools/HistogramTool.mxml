@@ -24,6 +24,7 @@
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
 		 xmlns:settings="weave.ui.settings.*"
+		 implements="weave.api.ui.IVisTool_Basic"
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[

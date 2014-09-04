@@ -27,7 +27,7 @@
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 	verticalScrollPolicy="off"
 	title="{lang('Slider Tool')}"
-	implements="weave.api.ui.IVisTool" xmlns:editors="weave.editors.*"
+	implements="weave.api.ui.IVisTool_Utility" xmlns:editors="weave.editors.*"
 	>
 	<ui:CustomViewStack id="viewStack" width="100%" height="100%" selectedIndex="{layoutCombo.selectedIndex}" minHeight="0">
 		<mx:HBox width="100%" label="{lang('Horizontal slider')}" minWidth="50">

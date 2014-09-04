@@ -23,7 +23,7 @@
 <ui:DraggablePanel xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" xmlns:editors="weave.editors.*"
-			   implements="weave.api.ui.IVisTool" xmlns:managers="weave.editors.managers.*"
+			   implements="weave.api.ui.IVisTool_Utility" xmlns:managers="weave.editors.managers.*"
 			   >
 	<mx:List id="list"
 			 initialize="UIUtils.pad(event, 2, 100, 100)"
