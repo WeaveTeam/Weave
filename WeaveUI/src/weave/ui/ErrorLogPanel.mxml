@@ -100,6 +100,10 @@
 							for each (var lb:LinkableBoolean in allMenuToggles)
 								if (!lb.value)
 									return true;
+							for each (var dp:DraggablePanel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
+								for each (lb in [dp.enableBorders, dp.enableMoveResize, dp.enableZOrder, dp.minimizable, dp.maximizable, dp.closeable])
+									if (!lb.value)
+										return true;
 							return false;
 						}
 					},{
