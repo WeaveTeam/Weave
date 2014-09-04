@@ -153,7 +153,8 @@
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 				tableEditor.setRows(null);
 				tabNav.selectedChild = textTab;
-				textEditor.setFocus();
+				if (!url.text)
+					textEditor.setFocus();
 			}
 			
 			private function getKeyColumnMenuItems():Array
