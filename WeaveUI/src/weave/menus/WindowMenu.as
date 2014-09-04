@@ -68,7 +68,7 @@ package weave.menus
 			return WeaveAPI.StageUtils.stage;
 		}
 		
-		public static const staticItems:Array = createItems(
+		public static const staticItems:Array = createItems([
 			{
 				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableUserPreferences]},
 				label: lang("Preferences"),
@@ -164,7 +164,7 @@ package weave.menus
 					return false;
 				}
 			}
-		);
+		]);
 		
 		public static function get dynamicItems():Array
 		{
@@ -193,11 +193,10 @@ package weave.menus
 				label: lang("Window"),
 				children: function():Array {
 					if (detectLinkableObjectChange(this, WeaveAPI.globalHashMap.childListCallbacks))
-						cachedItems = createItems(
+						cachedItems = createItems([
 							staticItems,
-							TYPE_SEPARATOR,
 							dynamicItems
-						);
+						]);
 					return cachedItems;
 				}
 			});
