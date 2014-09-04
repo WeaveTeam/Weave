@@ -11,7 +11,7 @@
 			  data-placeholder="Choose Column to Filter"
 			  ng-click="getFilterType(service.queryObject.ByVariableColumns[$index], $index)">
 				<option></option>
-				<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'by-variable' }"> {{col.title}}</option>
+				<option value="{{col}}" ng-repeat="col in service.dataObject.columns"> {{col.title}}</option>
 			</select>
 			
 			<a style="display: inline-block;" ng-click='removeByVariable($index)'>Remove</a>

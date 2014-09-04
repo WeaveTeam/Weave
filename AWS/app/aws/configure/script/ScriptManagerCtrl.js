@@ -4,7 +4,6 @@ var scriptModule =angular.module('aws.configure.script', ['ngGrid', 'mk.editable
 	  $scope.queryService = queryService;
 	  $scope.selectedScript = [];
 	  $scope.scriptMetadata = {};
-	  $scope.newScriptName = "";
 	  $scope.selectedRow = [];
 	  $scope.editMode = false;
 	  
@@ -29,34 +28,32 @@ var scriptModule =angular.module('aws.configure.script', ['ngGrid', 'mk.editable
 	  $scope.refreshScripts  = refreshScripts;
 	  
 	  refreshScripts();
-	  
 	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
-	 
-	        	  if(newVal.length && newVal != oldVal) {
-	        		  scriptManagerService.getScriptMetadata(newVal[0].Script).then(function(result) {
-	        			  $scope.scriptMetadata.description = result.description;
-	        			  $scope.scriptMetadata.inputs = result.inputs;
-	        			  $scope.newScriptName = newVal[0].Script;
-	        		  });
-	        		  
-	        		  scriptManagerService.getScript(newVal[0].Script).then(function(result) {
-	        			  $scope.scriptContent = result;
-	        		  });
-	        	  }
-	          });
+		  
+		  if(newVal.length && newVal[0].Script) {
+			  scriptManagerService.getScriptMetadata(newVal[0].Script).then(function(result) {
+				  $scope.scriptMetadata.description = result.description;
+				  $scope.scriptMetadata.inputs = result.inputs;
+			  });
+			  
+			  scriptManagerService.getScript(newVal[0].Script).then(function(result) {
+				  $scope.scriptContent = result;
+			  });
+		  }
+      });
 	          
 	          
-	          $scope.rScriptListOptions = {
-	        		  data: 'rScripts',
+      $scope.rScriptListOptions = {
+		  data: 'rScripts',
 		  columnDefs: [{field: 'Script', displayName: 'R Scripts'}],
-			  selectedItems: $scope.selectedScript,
-			  multiSelect: false,
-			  enableRowSelection: true
-	  };
-	  
+		  selectedItems: $scope.selectedScript,
+		  multiSelect: false,
+		  enableRowSelection: true
+      };
+      
 	  $scope.stataScriptListOptions = {
 			  data: 'stataScripts',
-		  columnDefs: [{field: 'Script', displayName: 'Stata Scripts'}],
+			  columnDefs: [{field: 'Script', displayName: 'Stata Scripts'}],
 			  selectedItems: $scope.selectedScript,
 			  multiSelect: false,
 			  enableRowSelection: true
@@ -66,8 +63,9 @@ var scriptModule =angular.module('aws.configure.script', ['ngGrid', 'mk.editable
 			  data: 'scriptMetadata.inputs',
 		  columnDefs : [{field : "param", displayName : "Parameter"},
 		               {field :"type", displayName : "Type", cellTemplate : '<select  ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
-		               {field : "columnType", displayName : "Column Type", cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="input for input in columnTypes" style="align:center"></select>'},
+		               {field : "columnType", displayName : "Column Type", cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata.inputs[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="type for type in columnTypes" style="align:center"></select>'},
 		               {field : "options", displayName : "Options"},
+		               {field : "default", displayName : "Default"},
 		               {field : "description", displayName : "Description"}],
 			  multiSelect: false,
 			  enableRowSelection: true,
@@ -106,13 +104,8 @@ var scriptModule =angular.module('aws.configure.script', ['ngGrid', 'mk.editable
 	 $scope.saveChanges = function () {
 		 if($scope.selectedScript[0])
 		 {
-			 // if the script name hasn't changed, just save the metadata. otherwise rename files.
-			 if($scope.newScriptName == $scope.selectedScript[0].Script) {
-					 scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata)).then(refreshScripts);
-					 scriptManagerService.saveScriptContent($scope.selectedScript[0].Script, $scope.scriptContent);
-			 } else {
-				 scriptManagerService.renameScript(oldScriptName, newScriptName, $scope.scriptContent, angular.toJson($scope.scriptMetadata).then(refreshScripts));
-			 }
+			 scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata)).then(refreshScripts);
+			 scriptManagerService.saveScriptContent($scope.selectedScript[0].Script, $scope.scriptContent);
 		 }
 	 };
 });
