@@ -33,7 +33,7 @@
 				   title="{lang('Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
-		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
+		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid" id="filterControls" width="100%" verticalAlign="middle" horizontalScrollPolicy="off">
 			<mx:Spacer width="{dataGrid.width}"/>
 		</mx:HBox>
 		<CustomDataGrid:CustomDataGridWithFilters
@@ -196,12 +196,10 @@
 					else
 						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
-				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
-				getCallbackCollection(_subset).addImmediateCallback(this,invalidateDisplayList);
-				_selection.addImmediateCallback(this,invalidateDisplayList);
+				
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
-				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
-				getCallbackCollection(_textFormat).addImmediateCallback(this,invalidateDisplayList);
+				for each (var target:ILinkableObject in [this, _subset, _selection, Weave.defaultColorColumn, _textFormat])
+					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate);
 			}
 			
 			override protected function childrenCreated():void
@@ -269,24 +267,23 @@
 				_probe.clearKeys();
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			private function groupedUpdate():void
 			{
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				if (!parent) 
 					return;
 				
-				var columnsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, columns);
+				var columnsChanged:Boolean = detectLinkableObjectChange(groupedUpdate, columns);
 				if (columnsChanged)
 				{
 					updateKeyTypeComboBox();
 					updateDataGridColumns();
 					super.updateDisplayList(unscaledWidth, unscaledHeight); // avoids crashing below
 				}
-				if (detectLinkableObjectChange(updateDisplayList, lockedColumns) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, lockedColumns) || columnsChanged)
 				{
 					handleLockedColumnChange();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType, maxRows) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, filterColumnsByKeyType, maxRows) || columnsChanged)
 				{
 					updateKeysColumnsDataProviderAndSelection();
 				}
@@ -294,49 +291,49 @@
 				{
 					updateBorders();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, columnWidths, maxHeaderHeight))
+				if (detectLinkableObjectChange(groupedUpdate, columnWidths, maxHeaderHeight))
 				{
 					updateColumnWidths();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, showFilters))
+				if (detectLinkableObjectChange(groupedUpdate, showFilters))
 				{
 					updateFilters();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, filterComponents) && showFilters.value)
+				if (detectLinkableObjectChange(groupedUpdate, filterComponents) && showFilters.value)
 				{
 					dataGrid.invalidateFilters();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, dataGridHorizontalScrollPosition) || columnsChanged)
 				{
 					handleDataGridHorizontalScroll();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, dataGridVerticalScrollPosition) || columnsChanged)
 				{
 					if (dataGrid.verticalScrollPosition != dataGridVerticalScrollPosition.value)
 						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
-				var subsetChanged:Boolean = detectLinkableObjectChange(updateDisplayList, _subset);
+				var subsetChanged:Boolean = detectLinkableObjectChange(groupedUpdate, _subset);
 				if (subsetChanged)
 				{
 					// temporary solution
 					dataGrid.dataProvider = dataGrid.dataProvider;
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, _selection))
+				if (detectLinkableObjectChange(groupedUpdate, _selection))
 				{
 					updateGlobalSelectionChange();
 					dataGrid.invalidateList();
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, _textFormat))
+				if (detectLinkableObjectChange(groupedUpdate, _textFormat))
 				{
 					_textFormat.copyToStyle(dataGrid);
 				}
-				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
+				if (detectLinkableObjectChange(groupedUpdate, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
 				{
 					callLater(sortCallback);
 				}
-				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn, showColors, cellColorFunction))
+				if (detectLinkableObjectChange(groupedUpdate, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn, showColors, cellColorFunction))
 				{
 					dataGrid.setStyle("alternatingItemColors", [backgroundColor1.value, backgroundColor2.value]);
 					extraColorTriggers = 2;
@@ -751,15 +748,19 @@
 						tempWidth = allottedDisplayWidth - _minSuggestedColumnSize;
 					//int casting required as rendering works fast with whole number than with an floating number
 					var newWidth:Number = int(Math.min(tempWidth, allottedDisplayWidth));
-					if (j == _currentDataGridColumns.length - 1)
-						newWidth -= 16; // account for scrollbar
+					var lastColumn:Boolean = j == _currentDataGridColumns.length - 1;
+					
+					if (lastColumn)
+						newWidth -= SCROLLBAR_WIDTH; // account for scrollbar
 					
 					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
 					
 					if (dgc.filterComponent)
 					{
-						dgc.filterComponent.width = dgc.width;
+						if (lastColumn)
+							newWidth += SCROLLBAR_WIDTH;
+						dgc.filterComponent.width = newWidth;
 					}
 					//add those columns which are displayed on datagrid
 					if (j >= dataGridHorizontalScrollPosition.value)
@@ -970,10 +971,11 @@
 			{
 				if (!detectLinkableObjectChange( handleMouseClick, _selection ))
 					if ( dataGrid.mouseY > dataGrid.headerHeight )
-						if ( dataGrid.mouseX < dataGrid.width - 16 )
+						if ( dataGrid.mouseX < dataGrid.width - SCROLLBAR_WIDTH)
 							if ( WeaveAPI.StageUtils.pointClicked )
 								_selection.clearKeys() ;
 			}
+			private static const SCROLLBAR_WIDTH:int = 16;
 			
 			private static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
