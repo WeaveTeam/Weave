@@ -34,6 +34,7 @@ package weave.menus
 	import weave.editors.managers.DataSourceManager;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
+	import weave.ui.EquationEditor;
 	import weave.ui.NewUserWizard;
 	import weave.ui.WizardPanel;
 
@@ -45,7 +46,7 @@ package weave.menus
 			WeaveAPI.topLevelApplication['visApp']['exportCSV']();
 		}
 		
-		public static const staticItems:Array = createItems(
+		public static const staticItems:Array = createItems([
 			{
 				shown: Weave.properties.enableLoadMyData,
 				label: lang("Load my data"),
@@ -73,7 +74,7 @@ package weave.menus
 				click: exportCSV,
 				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes).length > 0; }
 			}
-		);
+		]);
 		
 		public static function getDynamicItems(labelFormat:String = null):Array
 		{
@@ -89,24 +90,34 @@ package weave.menus
 				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
 				adsp.dataSourceType = item.data as Class;
 			}
-			
-			var implementations:Array = WeaveAPI.ClassRegistry.getImplementations(IDataSource);
-			var partitions:Array = ClassUtils.partitionClassList(implementations, IDataSource_File, IDataSource_Service, IDataSource_Transform);
-			var items:Array = [];
-			for each (var list:Array in partitions)
-			{
-				if (items.length)
-					items.push(TYPE_SEPARATOR);
-				for each (var impl:Class in list)
-					items.push({
-						shown: Weave.properties.enableManageDataSources,
-						label: getLabel,
-						click: onClick,
-						data: impl
-					});
-			}
-			return createItems(items);
+			return createItems(
+				ClassUtils.partitionClassList(
+					WeaveAPI.ClassRegistry.getImplementations(IDataSource),
+					IDataSource_File,
+					IDataSource_Service,
+					IDataSource_Transform
+				).map(
+					function(group:Array, i:*, a:*):Array {
+						return group.map(
+							function(impl:Class, i:*, a:*):Object {
+								return {
+									shown: Weave.properties.enableManageDataSources,
+									label: getLabel,
+									click: onClick,
+									data: impl
+								};
+							}
+						)
+					}
+				)
+			);
 		}
+		
+		public static const equationColumnItem:WeaveMenuItem = new WeaveMenuItem({
+			shown: [Weave.properties.showEquationEditor],
+			label: lang("Equation Column Editor"),
+			click: function():void { DraggablePanel.openStaticInstance(EquationEditor); }
+		});
 		
 		public function DataMenu()
 		{
@@ -115,11 +126,11 @@ package weave.menus
 				label: lang("Data"),
 				children: function():Array
 				{
-					return createItems(
+					return createItems([
 						staticItems,
-						TYPE_SEPARATOR,
-						getDynamicItems("Add {0}")
-					);
+						getDynamicItems("Add {0}"),
+						equationColumnItem
+					]);
 				}
 			});
 		}

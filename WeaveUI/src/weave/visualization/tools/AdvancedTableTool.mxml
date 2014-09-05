@@ -29,11 +29,11 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute" implements="weave.api.ui.IVisTool_Basic, weave.api.ui.IObjectWithSelectableAttributes"
-				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
+				   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+				   title="{lang('Advanced Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
-		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
+		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid" id="filterControls" width="100%" verticalAlign="middle" horizontalScrollPolicy="off">
 			<mx:Spacer width="{dataGrid.width}"/>
 		</mx:HBox>
 		<CustomDataGrid:CustomDataGridWithFilters
@@ -142,7 +142,7 @@
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.CustomDataGrid.CustomDataGridColumn;
+			import weave.ui.CustomDataGrid.DataGridColumnForQKeyWithFilterAndGraphics;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
@@ -153,13 +153,13 @@
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
-			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataTableTool, "Data Table");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AdvancedTableTool, "Advanced Table");
 			
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 			public const filterComponents:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IFilterComponent));
-			public const enableProbing:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const enableProbing:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 
 			private const dataGridColumns:Dictionary = new Dictionary();
 			private var _currentDataGridColumns:Array = [];
@@ -180,9 +180,9 @@
 			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				var probeHeaderColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
 				var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
@@ -196,12 +196,10 @@
 					else
 						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
-				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
-				getCallbackCollection(_subset).addImmediateCallback(this,invalidateDisplayList);
-				_selection.addImmediateCallback(this,invalidateDisplayList);
+				
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
-				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
-				getCallbackCollection(_textFormat).addImmediateCallback(this,invalidateDisplayList);
+				for each (var target:ILinkableObject in [this, _subset, _selection, Weave.defaultColorColumn, _textFormat])
+					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate);
 			}
 			
 			override protected function childrenCreated():void
@@ -269,24 +267,23 @@
 				_probe.clearKeys();
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			private function groupedUpdate():void
 			{
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				if (!parent) 
 					return;
 				
-				var columnsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, columns);
+				var columnsChanged:Boolean = detectLinkableObjectChange(groupedUpdate, columns);
 				if (columnsChanged)
 				{
 					updateKeyTypeComboBox();
 					updateDataGridColumns();
 					super.updateDisplayList(unscaledWidth, unscaledHeight); // avoids crashing below
 				}
-				if (detectLinkableObjectChange(updateDisplayList, lockedColumns) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, lockedColumns) || columnsChanged)
 				{
 					handleLockedColumnChange();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType, maxRows) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, filterColumnsByKeyType, maxRows) || columnsChanged)
 				{
 					updateKeysColumnsDataProviderAndSelection();
 				}
@@ -294,49 +291,49 @@
 				{
 					updateBorders();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, columnWidths, maxHeaderHeight))
+				if (detectLinkableObjectChange(groupedUpdate, columnWidths, maxHeaderHeight))
 				{
 					updateColumnWidths();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, showFilters))
+				if (detectLinkableObjectChange(groupedUpdate, showFilters))
 				{
 					updateFilters();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, filterComponents) && showFilters.value)
+				if (detectLinkableObjectChange(groupedUpdate, filterComponents) && showFilters.value)
 				{
 					dataGrid.invalidateFilters();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, dataGridHorizontalScrollPosition) || columnsChanged)
 				{
 					handleDataGridHorizontalScroll();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, dataGridVerticalScrollPosition) || columnsChanged)
 				{
 					if (dataGrid.verticalScrollPosition != dataGridVerticalScrollPosition.value)
 						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
-				var subsetChanged:Boolean = detectLinkableObjectChange(updateDisplayList, _subset);
+				var subsetChanged:Boolean = detectLinkableObjectChange(groupedUpdate, _subset);
 				if (subsetChanged)
 				{
 					// temporary solution
 					dataGrid.dataProvider = dataGrid.dataProvider;
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, _selection))
+				if (detectLinkableObjectChange(groupedUpdate, _selection))
 				{
 					updateGlobalSelectionChange();
 					dataGrid.invalidateList();
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, _textFormat))
+				if (detectLinkableObjectChange(groupedUpdate, _textFormat))
 				{
 					_textFormat.copyToStyle(dataGrid);
 				}
-				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
+				if (detectLinkableObjectChange(groupedUpdate, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
 				{
 					callLater(sortCallback);
 				}
-				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn, showColors, cellColorFunction))
+				if (detectLinkableObjectChange(groupedUpdate, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn, showColors, cellColorFunction))
 				{
 					dataGrid.setStyle("alternatingItemColors", [backgroundColor1.value, backgroundColor2.value]);
 					extraColorTriggers = 2;
@@ -357,7 +354,7 @@
 			
 			override public function get defaultPanelTitle():String
 			{
-				return lang("Data Table");
+				return lang("Advanced Table");
 			}
 			
 			
@@ -551,7 +548,7 @@
 			private function updateKeysColumnsDataProviderAndSelection():void
 			{
 				var includedColumns:Array = [];
-				for each (var col:CustomDataGridColumn in dataGrid.columns)
+				for each (var col:DataGridColumnForQKeyWithFilterAndGraphics in dataGrid.columns)
 				{
 					if (keyTypeCombo.selectedItem == COMBO_ITEM_ALL_KEY_TYPES ||
 						(col.attrColumn is KeyColumn) ||
@@ -622,14 +619,14 @@
 						var dataType:String = ColumnUtils.getDataType(attrColumn);
 						
 						//column Section
-						var dgc:CustomDataGridColumn;
+						var dgc:DataGridColumnForQKeyWithFilterAndGraphics;
 						if (dataGridColumns[columnName])
 						{
 							dgc = dataGridColumns[columnName];
 						}
 						else
 						{
-							dgc = new CustomDataGridColumn(attrColumn, showColors, _cellColorFunction);
+							dgc = new DataGridColumnForQKeyWithFilterAndGraphics(attrColumn, showColors, _cellColorFunction);
 							dataGridColumns[columnName] = dgc;
 						}
 						
@@ -662,7 +659,7 @@
 				var newColumnOrder:Array = [];
 				for(var i:int = 0; i< dataGrid.columns.length; i++)
 				{
-					var currDGcolumn:CustomDataGridColumn = dataGrid.columns[i] as CustomDataGridColumn;
+					var currDGcolumn:DataGridColumnForQKeyWithFilterAndGraphics = dataGrid.columns[i] as DataGridColumnForQKeyWithFilterAndGraphics;
 					var columnName:String = columns.getName(currDGcolumn.attrColumn as ILinkableObject);
 					newColumnOrder.push(columnName);
 				}
@@ -692,7 +689,7 @@
 				var dataGridColumnsWidth:Number = dataGrid.getColumnDisplayWidth();
 				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)
 				{
-					var dgc:CustomDataGridColumn = _currentDataGridColumns[i];
+					var dgc:DataGridColumnForQKeyWithFilterAndGraphics = _currentDataGridColumns[i];
 					if (dgc.filterComponent)
 						dgc.filterComponent.width = dgc.width;
 					
@@ -712,7 +709,7 @@
 			private  function updateColumnWidths():void
 			{
 				// if there isn't a parent or the grid isn't fully instantiated, return
-				if (!parent || dataGrid.width == 0  )
+				if (!parent || dataGrid.width == 0)
 				{
 					callLater(updateColumnWidths);
 					return;
@@ -722,9 +719,9 @@
 				var sessionedWidth:LinkableString;
 				var defaultValue:Number = allottedDisplayWidth/_currentDataGridColumns.length;
 				var displayedColumnsTotalWidth:Number = 0;
-				for (var j:int = 0  ; j < _currentDataGridColumns.length; j++)
+				for (var j:int = 0; j < _currentDataGridColumns.length; j++)
 				{
-					var dgc:CustomDataGridColumn = _currentDataGridColumns[j] as CustomDataGridColumn;
+					var dgc:DataGridColumnForQKeyWithFilterAndGraphics = _currentDataGridColumns[j] as DataGridColumnForQKeyWithFilterAndGraphics;
 					columnName = columns.getName(dgc.attrColumn);
 					if (columnName == null)
 						continue;
@@ -751,13 +748,19 @@
 						tempWidth = allottedDisplayWidth - _minSuggestedColumnSize;
 					//int casting required as rendering works fast with whole number than with an floating number
 					var newWidth:Number = int(Math.min(tempWidth, allottedDisplayWidth));
+					var lastColumn:Boolean = j == _currentDataGridColumns.length - 1;
+					
+					if (lastColumn)
+						newWidth -= SCROLLBAR_WIDTH; // account for scrollbar
 					
 					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
 					
 					if (dgc.filterComponent)
 					{
-						dgc.filterComponent.width = dgc.width;
+						if (lastColumn)
+							newWidth += SCROLLBAR_WIDTH;
+						dgc.filterComponent.width = newWidth;
 					}
 					//add those columns which are displayed on datagrid
 					if (j >= dataGridHorizontalScrollPosition.value)
@@ -780,7 +783,7 @@
 				var hsp:int = 0;
 				for (var i:int = 0; i < dataGridHorizontalScrollPosition.value && i < _currentDataGridColumns.length; i++)
 				{
-					hsp += (_currentDataGridColumns[i] as CustomDataGridColumn).width;
+					hsp += (_currentDataGridColumns[i] as DataGridColumnForQKeyWithFilterAndGraphics).width;
 				}
 				filterControls.horizontalScrollPosition = hsp;
 				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;
@@ -968,10 +971,11 @@
 			{
 				if (!detectLinkableObjectChange( handleMouseClick, _selection ))
 					if ( dataGrid.mouseY > dataGrid.headerHeight )
-						if ( dataGrid.mouseX < dataGrid.width - 16 )
+						if ( dataGrid.mouseX < dataGrid.width - SCROLLBAR_WIDTH)
 							if ( WeaveAPI.StageUtils.pointClicked )
 								_selection.clearKeys() ;
 			}
+			private static const SCROLLBAR_WIDTH:int = 16;
 			
 			private static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
@@ -991,7 +995,7 @@
 				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>
 					Select a column that contains image URLs.
-					The images will be displayed in the data table.
+					The images will be displayed in the table.
 				</ui:HelpComponent>
 			</mx:HBox>
 

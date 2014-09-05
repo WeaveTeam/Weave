@@ -53,9 +53,9 @@
 			public const sliderMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
 			private var setToIndex:int = -1;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				minimizable.value = false;
 				maximizable.value = false;

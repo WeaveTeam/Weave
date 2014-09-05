@@ -77,11 +77,12 @@ package weave.data.KeySets
 		/**
 		 * This sets up the FilteredKeySet to get its base set of keys from a list of columns and provide them in sorted order.
 		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
+		 * @param sortDirections Array of sort directions corresponding to the columns and given as integers (1=ascending, -1=descending, 0=none).
 		 * @param keyCompare If specified, descendingFlags will be ignored and this compare function will be used instead.
 		 * @param keyInclusionLogic Passed to KeySetUnion constructor.
+		 * @see weave.data.KeySets.SortedKeySet#generateCompareFunction()
 		 */
-		public function setColumnKeySources(sortColumns:Array, descendingFlags:Array = null, keyCompare:Function = null, keyInclusionLogic:Function = null):void
+		public function setColumnKeySources(columns:Array, sortDirections:Array = null, keyCompare:Function = null, keyInclusionLogic:Function = null):void
 		{
 			if (StandardLib.arrayCompare(_setColumnKeySources_arguments, arguments) == 0)
 				return;
@@ -102,20 +103,20 @@ package weave.data.KeySets
 			
 			_setColumnKeySources_arguments = arguments;
 			
-			if (sortColumns)
+			if (columns)
 			{
 				// KeySetUnion should not trigger callbacks
 				var union:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
-				for each (keySet in sortColumns)
+				for each (keySet in columns)
 					union.addKeySetDependency(keySet);
-				sortColumns = sortColumns.filter(includeColumnsOnly);
+				columns = columns.filter(includeColumnsOnly);
 				
 				if (debug && keyCompare == null)
-					trace(debugId(this), 'sort by [', sortColumns, ']');
+					trace(debugId(this), 'sort by [', columns, ']');
 				
-				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(sortColumns, descendingFlags);
+				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(columns, sortDirections);
 				// SortedKeySet should trigger callbacks
-				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, sortColumns));
+				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, columns));
 				_generatedKeySets = [union, sorted];
 				
 				_baseKeySet = sorted;

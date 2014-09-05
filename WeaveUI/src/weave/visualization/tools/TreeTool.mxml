@@ -49,9 +49,9 @@ private var dataDescriptor:ParentColumnTreeDescriptor;
 
 WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TreeTool, "Tree Tool");
 
-override protected function constructor():void
+override protected function inConstructor():void
 {
-    super.constructor();
+    super.inConstructor();
     
 }
 

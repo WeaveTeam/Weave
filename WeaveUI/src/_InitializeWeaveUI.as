@@ -36,9 +36,9 @@ package
 	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.NumberDataFilter;
 	import weave.data.KeySets.StringDataFilter;
-	import weave.data.Transforms.PartitionDataTransform;
 	import weave.data.Transforms.ForeignDataMappingTransform;
-    import weave.data.Transforms.GroupedDataTransform;
+	import weave.data.Transforms.GroupedDataTransform;
+	import weave.data.Transforms.PartitionDataTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
@@ -50,8 +50,8 @@ package
 	import weave.editors.GeometryPlotterEditor;
 	import weave.editors.GeometryRelationPlotterEditor;
 	import weave.editors.GraphMLDataSourceEditor;
-    import weave.editors.GroupedDataTransformEditor;
 	import weave.editors.GridLinePlotterEditor;
+	import weave.editors.GroupedDataTransformEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.PartitionDataTransformEditor;
@@ -71,9 +71,9 @@ package
 	import weave.ui.DataFilter;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
+	import weave.ui.SchafersMissingDataTool;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.annotation.SessionedTextBox;
-	import weave.ui.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -93,7 +93,7 @@ package
 	import weave.visualization.tools.CytoscapeWebTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
-	import weave.visualization.tools.DataTableTool;
+	import weave.visualization.tools.AdvancedTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.GraphTool;
@@ -110,13 +110,14 @@ package
 	import weave.visualization.tools.RadVizToolEditor;
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.TableTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 	import weave.visualization.tools.TreeTool;
 
 	/**
-	 * Referencing this class will register WeaveAPI singleton implementations.
+	 * Referencing this class will register other classes in this library with WeaveAPI.
 	 * 
 	 * @author adufilie
 	 */
@@ -181,7 +182,7 @@ package
 				CytoscapeWebTool,
 				SchafersMissingDataTool,
 				DataFilter,
-				DataTableTool,
+				AdvancedTableTool,
 				GaugeTool,
 				HistogramTool,
 				Histogram2DTool,
@@ -194,6 +195,7 @@ package
 				RadVizTool,
 				RTextEditor,
 				ScatterPlotTool,
+				TableTool,
 				ThermometerTool,
 				TimeSliderTool,
 				TransposedTableTool,
@@ -229,6 +231,7 @@ package
 			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
 			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
 			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
+			ClassUtils.registerDeprecatedClass("DataTableTool", AdvancedTableTool);
 		}();
 	}
 }

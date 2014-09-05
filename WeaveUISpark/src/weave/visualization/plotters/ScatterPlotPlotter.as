@@ -122,7 +122,7 @@ package weave.visualization.plotters
 			if (_extraKeyDependencies)
 				columns = columns.concat(_extraKeyDependencies);
 			
-			_filteredKeySet.setColumnKeySources(columns, [true], null, _keyInclusionLogic);
+			_filteredKeySet.setColumnKeySources(columns, [-1], null, _keyInclusionLogic);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void

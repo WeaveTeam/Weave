@@ -23,6 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
+		 implements="weave.api.ui.IVisTool_Basic"
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
@@ -60,9 +61,9 @@
 			
 			private var _plotter:ParallelCoordinatesPlotter = null;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginTop.value    = "30";

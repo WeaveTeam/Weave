@@ -60,7 +60,7 @@ package weave.visualization.plotters
 			
 			setColumnKeySources(
 				[xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset],
-				[false, false, true, true]
+				[1, 1, -1, -1]
 			);
 		}
 		

@@ -116,12 +116,12 @@ package weave.data.KeySets
 		/**
 		 * This funciton generates a compare function that will compare IQualifiedKeys based on the corresponding values in the specified columns.
 		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
+		 * @param sortDirections Array of sort directions corresponding to the columns and given as integers (1=ascending, -1=descending, 0=none).
 		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns.
 		 */
-		public static function generateCompareFunction(columns:Array, descendingFlags:Array = null):Function
+		public static function generateCompareFunction(columns:Array, sortDirections:Array = null):Function
 		{
-			return new KeyComparator(columns, descendingFlags).compare;
+			return new KeyComparator(columns, sortDirections).compare;
 		}
 	}
 }
@@ -134,12 +134,12 @@ import weave.data.QKeyManager;
 
 internal class KeyComparator
 {
-	public function KeyComparator(columns:Array, descendingFlags:Array)
+	public function KeyComparator(columns:Array, sortDirections:Array)
 	{
 		this.columns = columns.concat();
 		this.n = columns.length;
-		this.desc = descendingFlags ? descendingFlags.concat() : [];
-		this.desc.length = columns.length;
+		this.sortDirections = sortDirections ? sortDirections.concat() : [];
+		this.sortDirections.length = columns.length;
 		
 		// when any of the columns are disposed, disable the compare function
 		for each (var column:IAttributeColumn in columns)
@@ -147,7 +147,7 @@ internal class KeyComparator
 	}
 	
 	private var columns:Array;
-	private var desc:Array;
+	private var sortDirections:Array;
 	private var n:int;
 	
 	public function compare(key1:IQualifiedKey, key2:IQualifiedKey):int
@@ -155,14 +155,14 @@ internal class KeyComparator
 		for (var i:int = 0; i < n; i++)
 		{
 			var column:IAttributeColumn = columns[i] as IAttributeColumn;
-			if (!column)
+			if (!column || !sortDirections[0])
 				continue;
 			var value1:* = column.getValueFromKey(key1, Number);
 			var value2:* = column.getValueFromKey(key2, Number);
 			var result:int = ObjectUtil.numericCompare(value1, value2);
 			if (result != 0)
 			{
-				if (desc[i])
+				if (sortDirections[i] < 0)
 					return -result;
 				return result;
 			}
@@ -173,7 +173,7 @@ internal class KeyComparator
 	public function dispose():void
 	{
 		columns = null;
-		desc = null;
+		sortDirections = null;
 		n = 0;
 	}
 }

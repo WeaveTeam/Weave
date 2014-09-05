@@ -1302,21 +1302,6 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
-		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
-		{
-			var link:String = (useLinkableBefore && useLinkableAfter ? 'LINK' : 'link') + '(' + ObjectUtil.toString(linkVal) + ')';
-			var bind:String = (!useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind') + '(' + ObjectUtil.toString(bindVal) + ')';
-			var str:String = link + ', ' + bind;
-			if (useLinkableBefore && !useLinkableAfter)
-				str = link + ' = ' + bind;
-			if (!useLinkableBefore && useLinkableAfter)
-				str = bind + ' = ' + link;
-			if (callingLater)
-				str += ' (callingLater)';
-			
-			trace(str);
-		}*/
-		
 		/**
 		 * @inheritDoc
 		 */

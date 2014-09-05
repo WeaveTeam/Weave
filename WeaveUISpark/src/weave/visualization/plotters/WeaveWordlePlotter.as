@@ -51,7 +51,7 @@ package weave.visualization.plotters
 			fillStyle.color.defaultValue.setSessionState(0x808080);
 			
 			// set up session state
-			setColumnKeySources([wordColumn], [true]);
+			setColumnKeySources([wordColumn], [-1]);
 			
 			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn));
 		}	

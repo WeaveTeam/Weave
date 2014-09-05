@@ -122,6 +122,12 @@
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
 			private const ownerWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
 			
+			private var _overrideOwner:IObjectWithSelectableAttributes;
+			public function set overrideOwner(value:IObjectWithSelectableAttributes):void
+			{
+				ownerWatcher.target = _overrideOwner = value;
+			}
+			
 			public function set listHeight(value:Number):void
 			{
 				_listHeight = value;
@@ -200,14 +206,14 @@
 			
 			private function openSelector():void
 			{
-				AttributeSelectorPanel.open(controller.hashMap, label, showVariableNames);
+				AttributeSelectorPanel.open(controller.hashMap, label, showVariableNames, _overrideOwner);
 			}
 			
 			public function set hashMap(value:ILinkableHashMap):void
 			{
 				enabled = !!value;
 				controller.hashMap = value;
-				ownerWatcher.target = AttributeSelectorPanel.getOwnerWithSelectableAttributes(value);
+				ownerWatcher.target = _overrideOwner || AttributeSelectorPanel.getOwnerWithSelectableAttributes(value);
 				updateLabel();
 			}
 			public function get hashMap():ILinkableHashMap

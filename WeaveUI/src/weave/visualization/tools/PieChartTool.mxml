@@ -40,9 +40,9 @@
 			
 			public var _plotter:PieChartPlotter = null;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				_plotter = initializePlotters(PieChartPlotter, false);
 				

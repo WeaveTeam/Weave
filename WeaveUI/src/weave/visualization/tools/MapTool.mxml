@@ -80,9 +80,9 @@
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
 			private const visibleScaleController:VariableListController = newDisposableChild(this, VariableListController);
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				AttributeMenuTool.hack_skipToolTargets[this] = true;
 			}

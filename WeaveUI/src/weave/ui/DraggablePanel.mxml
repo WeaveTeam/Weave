@@ -185,7 +185,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					_constructorCalled = true;
 					reposition();
-					constructor();
+					inConstructor();
 					afterConstructor();
 				}
 			}
@@ -193,11 +193,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/**
 			 * A constructor cannot be defined in MXML.
 			 * This function gets called as a result of calling the super class's constructor.
-			 * Classes that extend DraggablePanel can override this and call super.constructor().
+			 * Classes that extend DraggablePanel can override this and call super.inConstructor().
 			 * Any code that should execute in the constructor can be put into this function.
 			 * This function should not be called directly.
 			 */
-			protected function constructor():void
+			protected function inConstructor():void
 			{
 				// use capture phase on mouse down event because otherwise, if the panel is a popup,
 				// drop-down menus will be hidden behind the window after we move the window to the front.
@@ -1462,7 +1462,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var names:Array = tool.getSelectableAttributeNames();
 					if (attrs && attrs[attrIndex])
 					{
-						return AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex]);
+						return AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex], false, tool);
 					}
 				}
 				return null;

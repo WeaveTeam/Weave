@@ -118,27 +118,22 @@ package weave.menus
 		
 		private static const notDash:Object = {not: Weave.properties.dashboardMode};
 		
-		public static const staticItems:Array = createItems(
+		public static const staticItems:Array = createItems([
 			{
-				shown: [notDash, Weave.properties.showColorController],
+				shown: [Weave.properties.showColorController],
 				label: lang("Color Controller"),
 				click: openStaticInstance,
 				data: ColorController
 			},{
-				shown: [notDash, Weave.properties.showProbeToolTipEditor],
+				shown: [Weave.properties.showProbeToolTipEditor],
 				label: lang("Edit Mouseover Info"),
 				click: openStaticInstance,
 				data: ProbeToolTipEditor
 			},{
 				shown: [notDash, Weave.properties.showProbeWindow],
-				label: lang("Mouseover Window"),
+				label: lang("Show Mouseover Window"),
 				click: createGlobalObject,
 				data: [ProbeToolTipWindow, "ProbeToolTipWindow"]
-			},{
-				shown: [notDash, Weave.properties.showEquationEditor],
-				label: lang("Equation Column Editor"),
-				click: openStaticInstance,
-				data: EquationEditor
 			},{
 				shown: [notDash, Weave.properties.showCollaborationEditor],
 				label: lang("Collaboration Settings"),
@@ -149,7 +144,7 @@ package weave.menus
 				label: lang("Add external tool..."),
 				click: AddExternalTool.show
 			}
-		);
+		]);
 		
 		public static function getDynamicItems(labelFormat:String = null):Array
 		{
@@ -160,23 +155,35 @@ package weave.menus
 					return lang(labelFormat, displayName);
 				return displayName;
 			}
-			
-			var implementations:Array = WeaveAPI.ClassRegistry.getImplementations(IVisTool);
-			var partitions:Array = ClassUtils.partitionClassList(implementations, IVisTool_Basic, IVisTool_Utility);
-			var items:Array = [];
-			for each (var list:Array in partitions)
-			{
-				if (items.length)
-					items.push(TYPE_SEPARATOR);
-				for each (var impl:Class in list)
-					items.push({
-						shown: [notDash, Weave.properties.getToolToggle(impl)],
-						label: getToolItemLabel,
-						click: createGlobalObject,
-						data: impl
-					});
-			}
-			return createItems(items);
+			return createItems(
+				ClassUtils.partitionClassList(
+					WeaveAPI.ClassRegistry.getImplementations(IVisTool),
+					IVisTool_Basic,
+					IVisTool_Utility
+				).map(
+					function(group:Array, iGroup:int, groups:Array):* {
+						var items:Array = group.map(
+							function(impl:Class, i:int, a:Array):* {
+								return {
+									shown: [notDash, Weave.properties.getToolToggle(impl)],
+									label: getToolItemLabel,
+									click: createGlobalObject,
+									data: impl
+								};
+							}
+						);
+						/*
+						if (iGroup == groups.length - 1)
+							return {
+								shown: [notDash],
+								label: lang('Other tools'),
+								children: items
+							};
+						*/
+						return items;
+					}
+				)
+			);
 		}
 		
 		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
@@ -196,13 +203,11 @@ package weave.menus
 				children: function():Array
 				{
 					if (detectLinkableObjectChange(this, Weave.properties.toolToggles.childListCallbacks))
-						cachedItems = createItems(
+						cachedItems = createItems([
 							staticItems,
-							TYPE_SEPARATOR,
 							getDynamicItems("Add {0}"),
-							TYPE_SEPARATOR,
 							dashboardItem
-						);
+						]);
 					return cachedItems;
 				}
 			});

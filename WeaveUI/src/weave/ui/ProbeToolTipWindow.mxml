@@ -2,6 +2,7 @@
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:editors="weave.editors.*"
+				   implements="weave.api.ui.IObjectWithSelectableAttributes"
 				   layout="absolute" width="25%" height="20%">
 	<mx:Script>
 		<![CDATA[
@@ -13,7 +14,17 @@
 			import weave.core.LinkableDynamicObject;
 			import weave.core.UIUtils;
 			import weave.data.KeySets.KeySet;
+			import weave.editors.WindowSettingsEditor;
 			import weave.utils.ProbeTextUtils;
+			
+			public function getSelectableAttributes():Array
+			{
+				return (controlPanel as ProbeToolTipEditor).getSelectableAttributes();
+			}
+			public function getSelectableAttributeNames():Array
+			{
+				return (controlPanel as ProbeToolTipEditor).getSelectableAttributeNames();
+			}
 			
 			public const dynamicKeySet:ILinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet), updateText, true);
 			
@@ -22,9 +33,9 @@
 				return dynamicKeySet.internalObject as IKeySet;
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				dynamicKeySet.globalName = Weave.DEFAULT_PROBE_KEYSET;
 				getCallbackCollection(ProbeTextUtils.probeHeaderColumns).addGroupedCallback(this, updateText);
@@ -38,6 +49,11 @@
 					keySetCombo.dataProvider = WeaveAPI.globalHashMap.getNames(KeySet);
 					keySetCombo.selectedItem = dynamicKeySet.globalName;
 				}, true);
+				
+				var windowEditor:WindowSettingsEditor = new WindowSettingsEditor();
+				windowEditor.target = this;
+				controlPanel.children = [windowEditor];
+				windowEditor.addChild(additionalWindowSettings)
 			}
 			
 			override public function get defaultPanelTitle():String
@@ -55,17 +71,13 @@
 		]]>
 	</mx:Script>
 	<mx:TextArea id="probeTextArea" height="100%" width="100%" editable="false"/>
-	<mx:VBox id="controls">
-		<mx:Spacer/>
+	
+	<!-- controlPanel -->
+	<ui:ProbeToolTipEditor backgroundColor="0xCCCCCC" showEnableCheckBox="false"/>
+	<mx:VBox id="additionalWindowSettings">
 		<ui:Indent label="{lang('Linked KeySet:')}">
 			<ui:CustomComboBox id="keySetCombo"
 							   change="if (UIUtils.hasFocus(keySetCombo)) dynamicKeySet.globalName = keySetCombo.selectedItem as String;"/>
 		</ui:Indent>
-		<mx:Button label="{lang('Open mouseover info editor')}"
-				   click="DraggablePanel.openStaticInstance(ProbeToolTipEditor)"/>
 	</mx:VBox>
-	<ui:ControlPanel>
-		<editors:WindowSettingsEditor id="settingsEditor" target="{this}"
-									  creationComplete="settingsEditor.addChild(controls)"/>
-	</ui:ControlPanel>
 </ui:DraggablePanel>

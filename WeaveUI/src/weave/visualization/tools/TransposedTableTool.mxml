@@ -84,9 +84,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			private var sourceArrayCollection:ArrayCollection = new ArrayCollection();
 
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 			}
 			

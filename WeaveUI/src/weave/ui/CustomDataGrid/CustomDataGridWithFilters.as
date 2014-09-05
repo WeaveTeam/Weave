@@ -120,9 +120,9 @@ package weave.ui.CustomDataGrid
 			var cff:Array = [filterKeys];
 			for each (var column:DataGridColumn in columns)
 			{
-				if (column is CustomDataGridColumn)
+				if (column is DataGridColumnForQKeyWithFilterAndGraphics)
 				{
-					var mc:CustomDataGridColumn = CustomDataGridColumn(column);					
+					var mc:DataGridColumnForQKeyWithFilterAndGraphics = DataGridColumnForQKeyWithFilterAndGraphics(column);					
 					if (mc.filterComponent)
 					{
 						var filter:IFilterComponent = mc.filterComponent;

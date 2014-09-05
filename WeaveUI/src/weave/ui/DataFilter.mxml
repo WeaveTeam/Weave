@@ -65,9 +65,9 @@
 				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				enableSubMenu.value = true;
 			}
 			

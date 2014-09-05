@@ -50,9 +50,9 @@ package weave.visualization.tools
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
 		
-		override protected function constructor():void
+		override protected function inConstructor():void
 		{
-			super.constructor();
+			super.inConstructor();
 			
 			filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 		}
