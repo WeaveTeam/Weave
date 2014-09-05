@@ -151,6 +151,7 @@
 				busyIndicator.visible = false;
 				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(CSVDataSource));
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
+				keyTypeSelector.selectedKeyType = sourceName.text;
 				tableEditor.setRows(null);
 				tabNav.selectedChild = textTab;
 				textEditor.setFocus();
@@ -315,8 +316,14 @@
 			{
 				// Show busy indicator until parser finishes (handleCSVParser)
 				busyIndicator.visible = true;
+				var nameEqualsKeyType:Boolean = sourceName.text == keyTypeSelector.selectedKeyType;
+				
 				if (sourceName.editable && (!append || !textEditor.text))
+				{
 					sourceName.text = _fileLoader.name;
+					if (nameEqualsKeyType)
+						keyTypeSelector.selectedKeyType = _fileLoader.name;
+				}
 				keyTypeSelector.addKeyTypeToMenu(_fileLoader.name);
 				_fileLoader.load();
 				WeaveAPI.ProgressIndicator.addTask(_fileLoader);
