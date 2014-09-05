@@ -168,6 +168,18 @@ AnalysisModule.service("WeaveService", function() {
 		        return e.drain();\
 		    ");
 	};
+	
+	this.setSessionHistory = function(base64encodedstring)
+	{
+		ws.weave.path()
+		.vars({encoded: base64encodedstring})
+		.getValue("\
+	        var d = new 'mx.utils.Base64Decoder'();\
+			var decodedStuff = d.decode(encoded);\
+			var decodeBytes =  d.toByteArray();\
+	      Class('weave.Weave').loadWeaveFileContent(decodeBytes);\
+	    ");
+	};
 });
 
 //goog.require('aws');
