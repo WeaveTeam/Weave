@@ -378,13 +378,7 @@
 			 */	
 			private function handleItemSelection(event:Event=null):void
 			{
-				dataGrid.validateNow();
-				var selectedKeys:Array = new Array();
-				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
-				{
-					selectedKeys[i] = dataProvider.getItemAt( dataGrid.selectedIndices[i] ) as IQualifiedKey;
-				}
-				_selection.replaceKeys(selectedKeys);
+				_selection.replaceKeys(dataGrid.selectedItems);
 			}
 			
 			/* TODO: Move this method into an abstract class to extend CustomDataGrid
