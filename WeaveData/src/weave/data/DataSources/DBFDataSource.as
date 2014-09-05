@@ -117,6 +117,10 @@ package weave.data.DataSources
 		
 		public static const DBF_COLUMN_NAME:String = 'name';
 		public static const THE_GEOM_COLUMN:String = 'the_geom';
+		private function getGeomColumnTitle():String
+		{
+			return lang("{0} geometry", WeaveAPI.globalHashMap.getName(this));
+		}
 		
 		/**
 		 * Called when the DBF file is downloaded from the URL
@@ -309,16 +313,17 @@ package weave.data.DataSources
 		{
 			var meta:Object = {};
 			meta[DBF_COLUMN_NAME] = columnName;
-			meta[ColumnMetadata.TITLE] = columnName;
 			meta[ColumnMetadata.KEY_TYPE] = getKeyType();
 			meta[ColumnMetadata.PROJECTION] = projection.value;
 			if (columnName == THE_GEOM_COLUMN)
 			{
+				meta[ColumnMetadata.TITLE] = getGeomColumnTitle();
 				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
 				return meta;
 			}
 			else
 			{
+				meta[ColumnMetadata.TITLE] = columnName;
 				for each (var field:DbfField in dbfHeader.fields)
 				{
 					if (field.name == columnName)
