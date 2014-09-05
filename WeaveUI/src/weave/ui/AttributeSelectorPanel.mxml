@@ -35,7 +35,7 @@
 				width="100%"
 				useHandCursor="true"
 				dataProvider="{selectableAttributeNames.map(translateAttrName)}"
-				itemClick="linkToObject(selectableAttributes[event.index]);"/>
+				itemClick="linkToObject(selectableAttributes[event.index], selectableAttributeNames[event.index], _overrideOwner);"/>
 		</mx:HBox>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
@@ -187,9 +187,15 @@
 			 * The last object that was passed in to linkToObject()
 			 */
 			private var _linkedObject:ILinkableObject = null;
-			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
+			/**
+			 * The last owner that was passed in to linkToObject()
+			 */
+			private var _overrideOwner:IObjectWithSelectableAttributes;
+			
+			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null, owner:IObjectWithSelectableAttributes = null):void
 			{
 				_linkedObject = columnOrHashMap;
+				_overrideOwner = owner;
 				
 				editor.setTarget(ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
 				columnList.hashMap = columnOrHashMap as ILinkableHashMap;
@@ -197,7 +203,7 @@
 				editor.explorer.fileView.allowMultipleSelection = !!columnList.hashMap;
 				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
 
-				var tool:IObjectWithSelectableAttributes = getOwnerWithSelectableAttributes(columnOrHashMap);
+				var tool:IObjectWithSelectableAttributes = owner || getOwnerWithSelectableAttributes(columnOrHashMap);
 				toolWatcher.target = tool;
 				// make sure we call handleTool() later
 				getCallbackCollection(toolWatcher).triggerCallbacks();
@@ -242,11 +248,11 @@
 			
 			///////////////////////////////////////////////////////////////////////
 			
-			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):AttributeSelectorPanel
+			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false, owner:IObjectWithSelectableAttributes = null):AttributeSelectorPanel
 			{
 				var instance:AttributeSelectorPanel = DraggablePanel.openStaticInstance(AttributeSelectorPanel);
 				
-				instance.linkToObject(columnOrHashMap, title);
+				instance.linkToObject(columnOrHashMap, title, owner);
 				instance.columnList.showVariableNames = showVariableNames;
 				
 				instance.reposition();
