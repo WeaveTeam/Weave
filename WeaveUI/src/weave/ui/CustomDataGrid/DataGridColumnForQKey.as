@@ -21,6 +21,7 @@ package weave.ui.CustomDataGrid
 {
 	import mx.controls.dataGridClasses.DataGridColumn;
 	
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.KeySets.SortedKeySet;
@@ -39,6 +40,12 @@ package weave.ui.CustomDataGrid
 		}
 		
 		public var attrColumn:IAttributeColumn = null;
+		
+		override public function get headerText():String
+		{
+			var title:String = attrColumn ? attrColumn.getMetadata(ColumnMetadata.TITLE) : '';
+			return super.headerText || title;
+		}
 		
 		private function _labelFunction(item:Object, column:DataGridColumn):String
 		{
