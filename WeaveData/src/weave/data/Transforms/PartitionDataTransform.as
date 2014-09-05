@@ -124,34 +124,23 @@ package weave.data.Transforms
 		
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-
-			var metadata:Object = proxyColumn.getProxyMetadata();
-			var columnName:String = metadata[PARTITION_COLUMNNAME_META];
-			var value:String = metadata[PARTITION_VALUE_META];
-			
-			var filteredColumn:FilteredColumn = proxyColumn.getInternalColumn() as FilteredColumn;
-			var column:IAttributeColumn = inputColumns.getObject(columnName) as IAttributeColumn;
-
-			if (!column)
+			var filterValue:String = proxyColumn.getMetadata(PARTITION_VALUE_META);
+			var columnName:String = proxyColumn.getMetadata(PARTITION_COLUMNNAME_META);
+			var inputColumn:IAttributeColumn = inputColumns.getObject(columnName) as IAttributeColumn;
+			if (!inputColumn)
 			{
 				proxyColumn.dataUnavailable();
 				return;
 			}
 
-			if (!filteredColumn)
-			{
-				filteredColumn = new FilteredColumn();
-				
-				var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
+			var filteredColumn:FilteredColumn = proxyColumn.getInternalColumn() as FilteredColumn || new FilteredColumn();
+			var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
 
-				filter.column.requestLocalObjectCopy(partitionColumn);
-				filter.stringValue.value = value;
-				filteredColumn.internalDynamicColumn.requestLocalObjectCopy(column);
-				
-				proxyColumn.setInternalColumn(filteredColumn);
-
-				return;
-			}
+			filter.column.requestLocalObjectCopy(partitionColumn);
+			filter.stringValue.value = filterValue;
+			filteredColumn.internalDynamicColumn.requestLocalObjectCopy(inputColumn);
+			
+			proxyColumn.setInternalColumn(filteredColumn);
 		}
 	}
 }
