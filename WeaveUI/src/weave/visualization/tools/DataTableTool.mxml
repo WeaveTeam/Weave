@@ -30,7 +30,7 @@
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute" implements="weave.api.ui.IVisTool_Basic, weave.api.ui.IObjectWithSelectableAttributes"
-				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
+				   title="{lang('Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
 		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
@@ -153,7 +153,7 @@
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
-			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataTableTool, "Data Table");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataTableTool, "Table");
 			
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -357,7 +357,7 @@
 			
 			override public function get defaultPanelTitle():String
 			{
-				return lang("Data Table");
+				return lang("Table");
 			}
 			
 			
@@ -991,7 +991,7 @@
 				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>
 					Select a column that contains image URLs.
-					The images will be displayed in the data table.
+					The images will be displayed in the table.
 				</ui:HelpComponent>
 			</mx:HBox>
 
