@@ -131,6 +131,8 @@
 			
 			public function filterFunction(key:Object):Boolean
 			{
+				if (!column)
+					return true;
 				var value:Number = column.getValueFromKey(key as IQualifiedKey, Number);
 				var min:Number = minimum.value;
 				var max:Number = maximum.value;
