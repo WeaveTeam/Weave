@@ -142,7 +142,7 @@
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.CustomDataGrid.CustomDataGridColumn;
+			import weave.ui.CustomDataGrid.DataGridColumnForQKeyWithFilterAndGraphics;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
@@ -548,7 +548,7 @@
 			private function updateKeysColumnsDataProviderAndSelection():void
 			{
 				var includedColumns:Array = [];
-				for each (var col:CustomDataGridColumn in dataGrid.columns)
+				for each (var col:DataGridColumnForQKeyWithFilterAndGraphics in dataGrid.columns)
 				{
 					if (keyTypeCombo.selectedItem == COMBO_ITEM_ALL_KEY_TYPES ||
 						(col.attrColumn is KeyColumn) ||
@@ -619,14 +619,14 @@
 						var dataType:String = ColumnUtils.getDataType(attrColumn);
 						
 						//column Section
-						var dgc:CustomDataGridColumn;
+						var dgc:DataGridColumnForQKeyWithFilterAndGraphics;
 						if (dataGridColumns[columnName])
 						{
 							dgc = dataGridColumns[columnName];
 						}
 						else
 						{
-							dgc = new CustomDataGridColumn(attrColumn, showColors, _cellColorFunction);
+							dgc = new DataGridColumnForQKeyWithFilterAndGraphics(attrColumn, showColors, _cellColorFunction);
 							dataGridColumns[columnName] = dgc;
 						}
 						
@@ -659,7 +659,7 @@
 				var newColumnOrder:Array = [];
 				for(var i:int = 0; i< dataGrid.columns.length; i++)
 				{
-					var currDGcolumn:CustomDataGridColumn = dataGrid.columns[i] as CustomDataGridColumn;
+					var currDGcolumn:DataGridColumnForQKeyWithFilterAndGraphics = dataGrid.columns[i] as DataGridColumnForQKeyWithFilterAndGraphics;
 					var columnName:String = columns.getName(currDGcolumn.attrColumn as ILinkableObject);
 					newColumnOrder.push(columnName);
 				}
@@ -689,7 +689,7 @@
 				var dataGridColumnsWidth:Number = dataGrid.getColumnDisplayWidth();
 				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)
 				{
-					var dgc:CustomDataGridColumn = _currentDataGridColumns[i];
+					var dgc:DataGridColumnForQKeyWithFilterAndGraphics = _currentDataGridColumns[i];
 					if (dgc.filterComponent)
 						dgc.filterComponent.width = dgc.width;
 					
@@ -721,7 +721,7 @@
 				var displayedColumnsTotalWidth:Number = 0;
 				for (var j:int = 0; j < _currentDataGridColumns.length; j++)
 				{
-					var dgc:CustomDataGridColumn = _currentDataGridColumns[j] as CustomDataGridColumn;
+					var dgc:DataGridColumnForQKeyWithFilterAndGraphics = _currentDataGridColumns[j] as DataGridColumnForQKeyWithFilterAndGraphics;
 					columnName = columns.getName(dgc.attrColumn);
 					if (columnName == null)
 						continue;
@@ -783,7 +783,7 @@
 				var hsp:int = 0;
 				for (var i:int = 0; i < dataGridHorizontalScrollPosition.value && i < _currentDataGridColumns.length; i++)
 				{
-					hsp += (_currentDataGridColumns[i] as CustomDataGridColumn).width;
+					hsp += (_currentDataGridColumns[i] as DataGridColumnForQKeyWithFilterAndGraphics).width;
 				}
 				filterControls.horizontalScrollPosition = hsp;
 				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;

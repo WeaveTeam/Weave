@@ -111,17 +111,21 @@
 							<CustomDataGrid:creationComplete>
 								<![CDATA[
 									browser.explorer.fileVBox.addChild(columnDisplay);
-									var column:IAttributeColumn = browser.referencedColumn;
-									var dgc1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
-									var dgc2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
-									columnDisplayGrid.columns = [dgc1, dgc2];
-									dataColumn.setInternalColumn(column);
-									column.addGroupedCallback(
+									var dataColumn:IAttributeColumn = browser.referencedColumn;
+									var dgcKey:DataGridColumn = new DataGridColumn();
+									var dgcValue:DataGridColumn = new DataGridColumn();
+									dgcKey.headerWordWrap = true;
+									dgcValue.headerWordWrap = true;
+									columnDisplayGrid.columns = [dgcKey, dgcValue];
+									columnDisplayGrid.labelFunction = function(key:IQualifiedKey, dgc:DataGridColumn):String {
+										return dgc == dgcKey ? key.localName : dataColumn.getValueFromKey(key, String);
+									};
+									dataColumn.addGroupedCallback(
 										this,
 										function():void {
-											var keyCount:int = column.keys.length;
+											var keyCount:int = dataColumn.keys.length;
 											columnDisplay.enabled = keyCount > 0;
-											if (linkableObjectIsBusy(column))
+											if (linkableObjectIsBusy(dataColumn))
 												columnDisplayLabel.text = lang("Loading data...");
 											else
 											{
@@ -131,12 +135,11 @@
 													StandardLib.formatNumber(keyCount)
 												);
 											}
-											columnDisplayGrid.dataProvider = column.keys;
-											keyColumn.keyType.value = column.getMetadata(ColumnMetadata.KEY_TYPE);
-											var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
-											var metadata:Object = {};
-											metadata[ColumnMetadata.TITLE] = dataType ? lang("Value ({0})", dataType) : lang("Value");
-											dataColumn.setMetadata(metadata);
+											columnDisplayGrid.dataProvider = dataColumn.keys;
+											keyColumn.keyType.value = dataColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+											var dataType:String = dataColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+											dgcKey.headerText = keyColumn.getMetadata(ColumnMetadata.TITLE);
+											dgcValue.headerText = dataType ? lang("Value ({0})", dataType) : lang("Value");
 										},
 										true
 									);
@@ -174,6 +177,7 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import weave.api.data.IQualifiedKey;
 				import weave.Weave;
 				import weave.utils.VectorUtils;
 				import mx.core.INavigatorContent;
@@ -207,13 +211,12 @@
 				import weave.core.UIUtils;
 				import weave.data.AttributeColumns.KeyColumn;
 				import weave.data.AttributeColumns.ProxyColumn;
-				import weave.ui.CustomDataGrid.CustomDataGridColumn;
+				import weave.ui.CustomDataGrid.DataGridColumnForQKey;
 				import weave.utils.PopUpUtils;
 				
 				private static const padding:int = 8;
 				
 				private const keyColumn:KeyColumn = newDisposableChild(this, KeyColumn);
-				private const dataColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 				
 				override protected function childrenCreated():void
 				{

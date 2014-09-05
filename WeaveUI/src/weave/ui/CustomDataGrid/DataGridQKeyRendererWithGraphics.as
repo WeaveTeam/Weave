@@ -36,9 +36,9 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.ImageColumn;
 
-	public class CustomDataGridCell extends Canvas implements IDropInListItemRenderer
+	public class DataGridQKeyRendererWithGraphics extends Canvas implements IDropInListItemRenderer
 	{
-		public function CustomDataGridCell()
+		public function DataGridQKeyRendererWithGraphics()
 		{
 		}
 		
@@ -53,7 +53,7 @@ package weave.ui.CustomDataGrid
 		{
 			_listData = value;
 			if (_listData && _listData.owner is CustomDataGrid)
-				column = (_listData.owner as CustomDataGrid).getColumn(_listData.columnIndex) as CustomDataGridColumn;
+				column = (_listData.owner as CustomDataGrid).getColumn(_listData.columnIndex) as DataGridColumnForQKeyWithFilterAndGraphics;
 			else
 				column = null;
 		}
@@ -74,7 +74,7 @@ package weave.ui.CustomDataGrid
 				toolTip = lbl.text;
 		}
 		
-		private var column:CustomDataGridColumn;
+		private var column:DataGridColumnForQKeyWithFilterAndGraphics;
 		private var img:Image;
 		public const lbl:Label = new Label();
 		
