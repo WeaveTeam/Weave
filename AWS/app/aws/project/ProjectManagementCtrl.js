@@ -1,5 +1,5 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope,queryService,projectService){
+.controller("ProjectManagementCtrl", function($scope,queryService,projectService, QueryHandlerService){
 	$scope.projectService = projectService;
 	projectService.getListOfProjects();
 	
@@ -83,9 +83,10 @@ angular.module('aws.project', [])
 	};
 	
 	$scope.runQueryInAnalysisBuilder = function(item){
-		queryService.queryObject = item;
-		queryHandler = new aws.QueryHandler(queryService.queryObject);//TO DO
-		queryHandler.runQuery();
+		queryService.queryObject = item;//setting the queryObject to be handled by the QueryHandlerService
+		QueryHandlerService.run(false);
+		//queryHandler = new aws.QueryHandler(queryService.queryObject);//TO DO
+		//queryHandler.runQuery();
 		console.log("running query");
 	};
 	
