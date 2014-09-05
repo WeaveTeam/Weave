@@ -25,7 +25,7 @@
     verticalScrollPolicy="off"
     horizontalScrollPolicy="off"
     creationPolicy="all"
-    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
+    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor, weave.api.ui.IObjectWithSelectableAttributes" xmlns:ui="weave.ui.*"
     >
     <mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
     <ui:Indent label="{lang('Source Name')}" visible="{!target}" includeInLayout="{!target}">
@@ -34,15 +34,14 @@
                                 prompt="{lang('Enter a name')}"
                                 errorString="{sourceName.text ? null : lang('Required')}"/>
     </ui:Indent>
-    <ui:DynamicColumnComponent 
-        label="Partition source column" id="partitionColumnEditor">
+    <ui:DynamicColumnComponent id="partitionColumnEditor">
         <ui:helpContent>
             Each unique value in this column will produce a corresponding group containing all the keys which correspond to those values.
         </ui:helpContent>
     </ui:DynamicColumnComponent>
-    <ui:ColumnListComponent id="inputColumnsEditor" showVariableNames="false" label="{lang('Columns to partition')}">
+    <ui:ColumnListComponent id="inputColumnsEditor" showVariableNames="false">
         <ui:helpContent>
-            Each column selected here will have several corresponding columns created, one for each value in the partition source column.
+            Each column selected here will have several corresponding columns created, one for each value in the "Partition by" column.
         </ui:helpContent>
     </ui:ColumnListComponent>
     <mx:Script>
@@ -63,6 +62,15 @@
             
             private const partitionColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
             private const inputColumns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			
+			public function getSelectableAttributes():Array
+			{
+				return [partitionColumn, inputColumns];
+			}
+			public function getSelectableAttributeNames():Array
+			{
+				return ["Partition by", "Columns to partition"];
+			}
             
             [Bindable] private var target:PartitionDataTransform = null;
             
