@@ -147,7 +147,7 @@ package weave.core
 			
 			// if the bindable value is not a boolean and the bindable parent has focus, delay synchronization
 			var bindableValue:Object = bindableParent[bindablePropertyName];
-			if (!useLinkableValue && uiComponent && !(bindableValue is Boolean))
+			if (uiComponent && !(bindableValue is Boolean))
 			{
 				var obj:DisplayObject = uiComponent.getFocus();
 				if (obj && uiComponent.contains(obj)) // has focus
@@ -182,7 +182,7 @@ package weave.core
 						return;
 					}
 				}
-				else if (onlyWhenFocused && !callingLater)
+				else if (!useLinkableValue && onlyWhenFocused && !callingLater)
 				{
 					// component does not have focus, so ignore the bindableValue.
 					return;
