@@ -712,7 +712,7 @@
 			private  function updateColumnWidths():void
 			{
 				// if there isn't a parent or the grid isn't fully instantiated, return
-				if (!parent || dataGrid.width == 0  )
+				if (!parent || dataGrid.width == 0)
 				{
 					callLater(updateColumnWidths);
 					return;
@@ -722,7 +722,7 @@
 				var sessionedWidth:LinkableString;
 				var defaultValue:Number = allottedDisplayWidth/_currentDataGridColumns.length;
 				var displayedColumnsTotalWidth:Number = 0;
-				for (var j:int = 0  ; j < _currentDataGridColumns.length; j++)
+				for (var j:int = 0; j < _currentDataGridColumns.length; j++)
 				{
 					var dgc:CustomDataGridColumn = _currentDataGridColumns[j] as CustomDataGridColumn;
 					columnName = columns.getName(dgc.attrColumn);
@@ -751,6 +751,8 @@
 						tempWidth = allottedDisplayWidth - _minSuggestedColumnSize;
 					//int casting required as rendering works fast with whole number than with an floating number
 					var newWidth:Number = int(Math.min(tempWidth, allottedDisplayWidth));
+					if (j == _currentDataGridColumns.length - 1)
+						newWidth -= 16; // account for scrollbar
 					
 					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
