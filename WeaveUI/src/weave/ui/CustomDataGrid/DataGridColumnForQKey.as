@@ -31,15 +31,18 @@ package weave.ui.CustomDataGrid
 		public function DataGridColumnForQKey(attrColumn:IAttributeColumn)
 		{
 			this.attrColumn = attrColumn;
-			
 			labelFunction = _labelFunction;
-			sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]);
 			headerWordWrap = true;
-			
 			this.minWidth = 0;
 		}
 		
 		public var attrColumn:IAttributeColumn = null;
+		
+		override public function get sortCompareFunction():Function
+		{
+			return super.sortCompareFunction as Function
+				|| (super.sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]));
+		}
 		
 		override public function get headerText():String
 		{
