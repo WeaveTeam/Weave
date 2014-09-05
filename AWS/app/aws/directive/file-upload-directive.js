@@ -13,7 +13,6 @@ angular.module('aws.directives.fileUpload', [])
               });
               $(elem).on('click', function(args) {
                 deferred = $q.defer();
-                console.log(args);
                 $scope.fileUpload = deferred.promise;
               });
               $(elem).find('input').on("change", function(evt) {
@@ -24,9 +23,9 @@ angular.module('aws.directives.fileUpload', [])
                 var reader = new FileReader();
                 reader.onload = function(e) {
                   var contents = {filename: file.name,
-                    contents: e.target.result};
+                    content: e.target.result};
+                  scriptUploaded = contents;
                   $scope.$safeApply(function() { deferred.resolve(contents); });
-                  console.log("contents", contents);
                 };
                 reader.readAsText(file);
               });

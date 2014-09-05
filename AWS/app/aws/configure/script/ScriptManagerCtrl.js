@@ -1,4 +1,5 @@
-var scriptModule =angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, scriptManagerService, queryService) {
+var scriptUploaded;
+var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, scriptManagerService, queryService) {
 
 	  $scope.service = scriptManagerService;
 	  $scope.queryService = queryService;
@@ -108,4 +109,70 @@ var scriptModule =angular.module('aws.configure.script', ['ngGrid', 'mk.editable
 			 scriptManagerService.saveScriptContent($scope.selectedScript[0].Script, $scope.scriptContent);
 		 }
 	 };
+	 
+	 
+	 
 });
+scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, scriptManagerService, queryService) {
+	$scope.opts = {
+		 backdrop: false,
+         backdropClick: true,
+         dialogFade: true,
+         keyboard: true,
+         templateUrl: 'aws/configure/script/uploadNewScript.html',
+         controller: 'AddScriptDialogInstanceCtrl',
+	};
+	
+    $scope.saveNewScript = function (content, metadata) {
+      
+    	var d = $dialog.dialog($scope.opts);
+    	d.open();
+    };
+ })
+ .controller('AddScriptDialogInstanceCtrl', function ($scope, dialog, scriptManagerService) {
+	  
+	 $scope.fileName = "";
+	 $scope.scriptContent = "";
+	 $scope.metadata = "";
+	 $scope.step = 1;
+	 
+	 $scope.scriptUploaded = {};
+	 $scope.$watch(function () {
+		 return scriptUploaded;
+	 }, function(n, o) {
+		 $scope.fileName = scriptUploaded.filename;
+		 $scope.scriptContent = scriptUploaded.content;
+	 });
+	 $scope.close = function () {
+	  dialog.close();
+	 };
+	  
+	 $scope.save = function () {
+	  dialog.close();
+	 };
+	 $scope.metadataobj = {
+		 inputs : [],
+		 description : ""
+	 };
+	 
+	 $scope.loadMetadata = function() {
+		 if($scope.step==1 && $scope.metadata) {
+			 console.log($scope.metadata);
+			 angular.fromJson($scope.metadata);
+		 };
+	 };
+	 
+	 $scope.scriptMetadataGridOptions = {
+	      data: 'angular.fromJson(metadata).inputs',
+		  columnDefs : [{field : "param", displayName : "Parameter"},
+		               {field :"type", displayName : "Type"},
+		               {field : "columnType", displayName : "Column Type"},
+		               {field : "options", displayName : "Options"},
+		               {field : "default", displayName : "Default"},
+		               {field : "description", displayName : "Description"}],
+			  multiSelect: false,
+			  enableRowSelection: false,
+			  enableCellEdit : false,
+	  };
+	 
+  });
