@@ -159,6 +159,15 @@ AnalysisModule.service("WeaveService", function() {
 			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
 		}
 	};
+	
+	this.getSessionState = function()
+	{
+		return ws.weave.path().getValue("\
+		        var e = new 'mx.utils.Base64Encoder'();\
+		        e.encodeBytes( Class('weave.Weave').createWeaveFileContent(true) );\
+		        return e.drain();\
+		    ");
+	};
 });
 
 //goog.require('aws');
