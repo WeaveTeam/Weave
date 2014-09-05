@@ -210,24 +210,33 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     this.getSessionState = function(params){
     	if(!(weaveWindow.closed)){
     		var base64SessionState = WeaveService.getSessionState();
-    		console.log("base 64", base64SessionState);
-    		//var base64SessionState = weaveWindow.getSessionState();
     		this.writeSessionState(base64SessionState, params);
     	}
     };
    
     this.writeSessionState = function(base64String, params){
-    	
+    	var projectName;
+    	var userName = "Awesome User";
+    	var queryObjectTitles;
+    	var projectDescription;
     	//params.queryObjectJsons = angular.toJson(this.queryObject);
     	
     	if(angular.isDefined(params.projectEntered))
-    		var projectName = params.projectEntered;
+    		{
+	    		projectName = params.projectEntered;
+	    		projectDescription = "This project belongs to " + projectName;
+    		}
     	else
-    		var projectName = "Other";
-    	if(angular.isDefined(params.queryTitleEntered))
-    		var userName = queryTitleEntered;
+    		{
+	    		projectName = "Other";
+	    		projectDescription = "These query objects do not belong to any project"; 
+    		}
+    	if(angular.isDefined(params.queryTitleEntered)){
+    		queryObjectTitles = params.queryTitleEntered;
+    		this.queryObject.title = queryObjectTitles;
+    	}
     	else
-    		var userName = "Awesome User";
+    		 queryObjectTitles = this.queryObject.title;
     	
     	
     	var qo =this.queryObject;
@@ -258,9 +267,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     				}
     	    	}
     	var queryObjectJsons = angular.toJson(qo);
-    	var projectDescription = "These query objects do not belong to any project";
     	var resultVisualizations = base64String;
-    	var queryObjectTitles = this.queryObject.title;
     	
     	
     	aws.queryService(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
