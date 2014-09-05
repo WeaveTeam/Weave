@@ -15,7 +15,7 @@ qh_module.service('QueryHandlerService',
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
-	var queryObject = queryService.queryObject;
+	//var queryObject = queryService.queryObject;
 	var nestedFilterRequest = {and : []};
 	
 	var that = this; // point to this for async responses
@@ -58,6 +58,9 @@ qh_module.service('QueryHandlerService',
 	 * this function processes the queryObject and makes the async call for running the script
 	 */
 	this.run = function() {
+		//setting the query Object to be used for executing the query
+		var queryObject = queryService.queryObject;
+		
 		
 		for(var key in queryObject.scriptOptions) {
 			var input = queryObject.scriptOptions[key];
@@ -203,9 +206,9 @@ qh_module.service('QueryHandlerService',
 		}
 		
 		scriptName = queryObject.scriptSelected;
-		 var stringifiedQO = JSON.stringify(queryObject);
-		 console.log("query", stringifiedQO);
-		 console.log(JSON.parse(stringifiedQO));
+		// var stringifiedQO = JSON.stringify(queryObject);
+		// console.log("query", stringifiedQO);
+		// console.log(JSON.parse(stringifiedQO));
 
 		this.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
 			if(!angular.isUndefined(resultData.data))//only if something is returned open weave
