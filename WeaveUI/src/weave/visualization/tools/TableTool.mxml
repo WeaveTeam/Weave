@@ -35,9 +35,10 @@
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
 		<CustomDataGrid:CustomDataGrid
 			id="dataGrid"
+			dataProvider="{dataProvider}"
+			useNoSort="true"
 			horizontalScrollPolicy="auto"
 			verticalScrollPolicy="auto"
-			dataProvider="{dataRowKeys}" 
 			width="100%" height="100%"
 			allowMultipleSelection="true"
 			minWidth="0"
@@ -56,10 +57,6 @@
 		<mx:HBox id="tooManyRecordsIndicator" visible="false" includeInLayout="false" width="100%" horizontalGap="0">
 			<mx:Spacer width="100%"/>
 			<mx:Label id="maxRowsLabel"/>
-			<ui:HelpComponent>
-				The table is currently hiding some of the records,
-				as the amount has exceeded the tables capability for dealing with it efficiently.
-			</ui:HelpComponent>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -97,6 +94,7 @@
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.KeyColumn;
+			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
@@ -122,16 +120,16 @@
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
 			private var _textFormat:LinkableTextFormat = Weave.properties.visTextFormat;
-			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
 
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
-			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
+			public const filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
+			private const dataProvider:ArrayCollection = new ArrayCollection();
 			
-			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25000));
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber()); // by default, no limit
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
 			
 			override protected function inConstructor():void
@@ -151,8 +149,9 @@
 						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
 				
+				filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
-				for each (var target:ILinkableObject in [this, _subset, _selection, Weave.defaultColorColumn, _textFormat])
+				for each (var target:ILinkableObject in [this, filteredKeySet, _selection, Weave.defaultColorColumn, _textFormat])
 					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate);
 			}
 			
@@ -165,14 +164,13 @@
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
-				
 				dataGrid.addEventListener(ListEvent.ITEM_ROLL_OVER, handleRollOver);
 				dataGrid.addEventListener(MouseEvent.ROLL_OUT, handleRollOut);
 
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
 				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
-				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);
+				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange, true);
 				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
 			}
 
@@ -191,18 +189,18 @@
 				updateColumnWidths();
 			}
 			
-			private function handleRollOver(event:ListEvent):void // Probe
+			private function handleRollOver(event:ListEvent):void
 			{
 				if (enableProbing.value == false)
 					return;
 
-				var index:int = event.rowIndex;
-				var obj:Object = (dataGrid.dataProvider as ArrayCollection).getItemAt( index );
-				var key:IQualifiedKey = obj as IQualifiedKey;
-
-				_probe.replaceKeys([key]);
+				var key:IQualifiedKey = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
+				if (key)
+					_probe.replaceKeys([key]);
+				else
+					_probe.clearKeys();
 			}
-			private function handleRollOut(event:MouseEvent):void // Unprobe
+			private function handleRollOut(event:MouseEvent):void
 			{
 				if (enableProbing.value == false)
 					return;
@@ -216,6 +214,20 @@
 					return;
 				
 				var columnsChanged:Boolean = detectLinkableObjectChange(groupedUpdate, columns);
+				var keySetChanged:Boolean = detectLinkableObjectChange(groupedUpdate, filteredKeySet);
+				
+				if (detectLinkableObjectChange(groupedUpdate, sortFieldIndex, sortInDescendingOrder) || columnsChanged || keySetChanged)
+				{
+					var attrCols:Array = columns.getObjects();
+					var sortDirections:Array = new Array(attrCols.length);
+					sortDirections[sortFieldIndex.value] = sortInDescendingOrder.value ? -1 : 1;
+					filteredKeySet.setColumnKeySources(attrCols, sortDirections);
+					
+					// since we're changing the key set, we need to reset the cached trigger counter
+					detectLinkableObjectChange(groupedUpdate, filteredKeySet);
+					
+					callLater(sortCallback);
+				}
 				if (columnsChanged)
 				{
 					updateDataGridColumns();
@@ -225,7 +237,7 @@
 				{
 					handleLockedColumnChange();
 				}
-				if (detectLinkableObjectChange(groupedUpdate, maxRows) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, maxRows) || columnsChanged || keySetChanged)
 				{
 					updateKeysColumnsDataProviderAndSelection();
 				}
@@ -246,12 +258,6 @@
 					if (dataGrid.verticalScrollPosition != dataGridVerticalScrollPosition.value)
 						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
-				var subsetChanged:Boolean = detectLinkableObjectChange(groupedUpdate, _subset);
-				if (subsetChanged)
-				{
-					dataRowKeys.filterFunction = _subset.containsKey;
-					dataRowKeys.refresh();
-				}
 				
 				if (detectLinkableObjectChange(groupedUpdate, _selection))
 				{
@@ -262,10 +268,6 @@
 				if (detectLinkableObjectChange(groupedUpdate, _textFormat))
 				{
 					_textFormat.copyToStyle(dataGrid);
-				}
-				if (detectLinkableObjectChange(groupedUpdate, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
-				{
-					callLater(sortCallback);
 				}
 				if (detectLinkableObjectChange(groupedUpdate, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn))
 				{
@@ -380,16 +382,12 @@
 				var selectedKeys:Array = new Array();
 				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
 				{
-					selectedKeys[i] = (dataGrid.dataProvider as ArrayCollection).getItemAt( dataGrid.selectedIndices[i] ) as IQualifiedKey;
+					selectedKeys[i] = dataProvider.getItemAt( dataGrid.selectedIndices[i] ) as IQualifiedKey;
 				}
 				_selection.replaceKeys(selectedKeys);
 			}
 			
-//			private function clearSelection():void
-//			{
-//				_selection.clearKeys();
-//			}
-			/* TODO: Move this method into an abstract class to extend CustomDataGrid off of;
+			/* TODO: Move this method into an abstract class to extend CustomDataGrid
 			   this functionality is duplicated used in TreeTool */ 
 			private function updateGlobalSelectionChange():void
 			{
@@ -406,7 +404,7 @@
 				
 				var changeDetected:Boolean = false;
 				var selectedItems:Array = [];
-				for each (item in dataGrid.dataProvider)
+				for each (item in dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
 					{
@@ -442,45 +440,15 @@
 				dataGrid.highlightItemsForced(_probe.keys, _selection.containsKey);
 			}
 			
-			/**
-			 * @TODO This should be a mode, not a one-time action.
-			 *       Use AdvancedDataGrid and lockedRowCount.
-			 *       The locked rows should also be sorted by the active sort column.
-			 *       We shouldn't be resetting the sort.
-			 */
-			private function moveSelectedToTop():void
-			{
-				//push selected Objects into an Array
-				var selectedItems:Array = dataGrid.selectedItems;
-				
-				//datagrid.selectedItems returns null. So have to loop through indices to get the items
-				(dataGrid.dataProvider as ArrayCollection).sort = null;
-				
-				for each(var item:Object in selectedItems)
-				{
-					var index:int = dataRowKeys.getItemIndex(item);
-					dataRowKeys.removeItemAt(index);
-					dataRowKeys.source.unshift(item);
-				}
-				
-				dataRowKeys.refresh();
-				dataGrid.validateNow();
-				updateGlobalSelectionChange();
-				dataGrid.scrollToIndex(0);
-			}
-			
-			private static const COMBO_ITEM_ALL_KEY_TYPES:String = lang("All key types");
-			
 			private function updateKeysColumnsDataProviderAndSelection():void
 			{
-				var attrCols:Array = dataGrid.columns.map(function(dgc:DataGridColumnForQKey,..._):*{ return dgc.attrColumn; });
-				var keys:Array = ColumnUtils.getAllKeys(attrCols);
+				var keys:Array = filteredKeySet.keys;
 				if (keys.length > maxRows.value)
 				{
 					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(keys.length));
 					tooManyRecordsIndicator.visible = true;
 					tooManyRecordsIndicator.includeInLayout = true;
-					keys.length = maxRows.value;
+					keys = keys.slice(0, maxRows.value);
 				}
 				else
 				{
@@ -488,7 +456,7 @@
 					tooManyRecordsIndicator.includeInLayout = false;
 				}
 					
-				dataRowKeys.source = keys;
+				dataProvider.source = keys;
 				updateGlobalSelectionChange();
 			}
 			
@@ -555,7 +523,7 @@
 				//if column is added , we need to add respective ColumnWidth
 				if (columns.childListCallbacks.lastObjectAdded)
 				{
-				}  			
+				}
 				//if column is removed , we need to remove respective ColumnWidth
 				else if (columns.childListCallbacks.lastObjectRemoved)
 				{
