@@ -175,6 +175,9 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
 	       	
 	       	that.getListOfQueryObjects(projectName);//fetches new list
 	       	
+	       	//if the project contained only one QO which was deleted , retrive the new updated lists of projects
+	       	if(that.data.returnedQueryObjects.length == 0)
+	       		that.getListOfProjects();
 	       	
 	       	scope.$safeApply(function() {
 	               deferred.resolve(result);
