@@ -155,7 +155,7 @@ internal class KeyComparator
 		for (var i:int = 0; i < n; i++)
 		{
 			var column:IAttributeColumn = columns[i] as IAttributeColumn;
-			if (!column || !sortDirections[0])
+			if (!column || !sortDirections[i])
 				continue;
 			var value1:* = column.getValueFromKey(key1, Number);
 			var value2:* = column.getValueFromKey(key2, Number);
