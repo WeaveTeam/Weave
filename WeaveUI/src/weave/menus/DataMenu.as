@@ -34,6 +34,7 @@ package weave.menus
 	import weave.editors.managers.DataSourceManager;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
+	import weave.ui.EquationEditor;
 	import weave.ui.NewUserWizard;
 	import weave.ui.WizardPanel;
 
@@ -112,6 +113,12 @@ package weave.menus
 			);
 		}
 		
+		public static const equationColumnItem:WeaveMenuItem = new WeaveMenuItem({
+			shown: [Weave.properties.showEquationEditor],
+			label: lang("Equation Column Editor"),
+			click: function():void { DraggablePanel.openStaticInstance(EquationEditor); }
+		});
+		
 		public function DataMenu()
 		{
 			super({
@@ -121,7 +128,8 @@ package weave.menus
 				{
 					return createItems([
 						staticItems,
-						getDynamicItems("Add {0}")
+						getDynamicItems("Add {0}"),
+						equationColumnItem
 					]);
 				}
 			});

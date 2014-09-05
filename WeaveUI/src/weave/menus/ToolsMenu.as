@@ -120,25 +120,20 @@ package weave.menus
 		
 		public static const staticItems:Array = createItems([
 			{
-				shown: [notDash, Weave.properties.showColorController],
+				shown: [Weave.properties.showColorController],
 				label: lang("Color Controller"),
 				click: openStaticInstance,
 				data: ColorController
 			},{
-				shown: [notDash, Weave.properties.showProbeToolTipEditor],
+				shown: [Weave.properties.showProbeToolTipEditor],
 				label: lang("Edit Mouseover Info"),
 				click: openStaticInstance,
 				data: ProbeToolTipEditor
 			},{
 				shown: [notDash, Weave.properties.showProbeWindow],
-				label: lang("Mouseover Window"),
+				label: lang("Show Mouseover Window"),
 				click: createGlobalObject,
 				data: [ProbeToolTipWindow, "ProbeToolTipWindow"]
-			},{
-				shown: [notDash, Weave.properties.showEquationEditor],
-				label: lang("Equation Column Editor"),
-				click: openStaticInstance,
-				data: EquationEditor
 			},{
 				shown: [notDash, Weave.properties.showCollaborationEditor],
 				label: lang("Collaboration Settings"),
