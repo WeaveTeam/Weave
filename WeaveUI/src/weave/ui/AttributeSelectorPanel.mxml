@@ -79,13 +79,13 @@
 			{
 				super.inConstructor();
 				
-				subMenuButton.data = [
+				subMenuButton.data = WeaveMenuItem.createItems([
 					{
 						label: lang("New data source"),
 						children: DataMenu.getDynamicItems as Function
 					},
 					subMenuButton.data
-				];
+				]);
 				
 				minimizable.value = true;
 				maximizable.value = true;
