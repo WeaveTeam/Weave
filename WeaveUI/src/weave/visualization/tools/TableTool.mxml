@@ -131,7 +131,7 @@
 			
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
 			
-			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100000));
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25000));
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
 			
 			override protected function inConstructor():void
@@ -306,7 +306,7 @@
 			 * This function(event Listener) gets called during 
 			 * HeaderRelease event in Datagrid 
 			 * or Called (Manually )when column or sortFieldIndex or sortInDescendingOrder changes
-			 */				
+			 */
 			private function handleHeaderRelease(event:DataGridEvent):void
 			{
 				// There is a bug in flex: column.sortDescending will always return false				
