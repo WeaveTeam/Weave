@@ -39,9 +39,9 @@
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
 			
-	override protected function constructor():void
+	override protected function inConstructor():void
 	{
-		super.constructor();
+		super.inConstructor();
 	}
 	override public function dispose():void
 	{

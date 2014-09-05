@@ -45,9 +45,9 @@
 			}
 			private static var _instance:CollaborationTool;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				if (!_instance)
 					_instance = this;
 				else

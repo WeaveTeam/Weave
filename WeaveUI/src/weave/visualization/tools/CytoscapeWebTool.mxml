@@ -74,9 +74,9 @@
 
 			public const _cytoscapeReady:LinkableBoolean = newDisposableChild(this, LinkableBoolean);
 
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				_nodeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				_edgeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn]);

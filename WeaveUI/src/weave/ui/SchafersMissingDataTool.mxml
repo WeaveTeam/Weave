@@ -146,9 +146,9 @@ SchafersMissingDataImputation
 			public const assignTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();				
+				super.inConstructor();				
 				var columns:Array = ProbeTextUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);

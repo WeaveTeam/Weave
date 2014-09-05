@@ -168,9 +168,9 @@ A text editor to change the Session State on the fly.
 			private const _nameColumn:DataGridColumn = new DataGridColumn(NAME_FIELD);
 			private const _valueColumn:DataGridColumn = new DataGridColumn(VALUE_FIELD);
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				_nameColumn.headerText = lang(NAME_FIELD);
 				_valueColumn.headerText = lang(VALUE_FIELD);
 			}

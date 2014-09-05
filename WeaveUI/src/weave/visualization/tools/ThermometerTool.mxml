@@ -38,9 +38,9 @@
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ThermometerTool, "Thermometer Tool");
 			
 			private function get plotter():ThermometerPlotter { return mainPlotter as ThermometerPlotter; }
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				initializePlotters(ThermometerPlotter, true);
 				visualization.plotManager.getLayerSettings(SimpleInteractiveVisualization.X_AXIS_LAYER_NAME).visible.value = false;

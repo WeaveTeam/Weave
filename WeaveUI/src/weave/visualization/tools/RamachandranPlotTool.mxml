@@ -61,9 +61,9 @@
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
 			
 			public var _plotter:ScatterPlotPlotter = null;
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// add background layer
 				visualization.plotManager.plotters.requestObject("background", RamachandranBackgroundPlotter, true);
 				

@@ -34,9 +34,9 @@
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CustomTool, "Custom Tool");
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				panelTitle.value = "Custom Tool";
 				var pm:PlotManager = visualization.plotManager;

@@ -142,9 +142,9 @@
 			
 			private const htmlTextFunction:LinkableFunction = newDisposableChild(this, LinkableFunction);
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				minimizable.value = false;
 				maximizable.value = false;

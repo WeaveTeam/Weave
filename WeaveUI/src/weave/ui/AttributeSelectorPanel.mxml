@@ -72,9 +72,9 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				minimizable.value = true;
 				maximizable.value = true;

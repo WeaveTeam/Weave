@@ -47,9 +47,9 @@
 			import weave.core.ClassUtils;
 			import weave.core.UIUtils;
 
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				panelWidth.value = "700";
 				panelHeight.value = "500";

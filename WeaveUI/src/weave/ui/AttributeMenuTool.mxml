@@ -244,9 +244,9 @@
 				return layoutLabels[layouts.indexOf(inputString)];
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// have a default dynamic title
 				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');

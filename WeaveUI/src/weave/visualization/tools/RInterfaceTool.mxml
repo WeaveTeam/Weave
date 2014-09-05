@@ -390,9 +390,9 @@
 			private var rPreload:DataPreloadInR = DataPreloadInR.getDataPreloadInRinstance(fillingResult);//used for calculating certain statistics as soon as data is loaded
 			private var normBinAndStatResult:Array = new Array();//object returned from R which contains stats, distributions 
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();				
+				super.inConstructor();				
 				var columns:Array = ProbeTextUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);

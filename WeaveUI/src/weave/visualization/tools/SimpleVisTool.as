@@ -75,9 +75,9 @@ package weave.visualization.tools
 			// Put code in the constructor() function instead.
 		}
 
-		override protected function constructor():void
+		override protected function inConstructor():void
 		{
-			super.constructor();
+			super.inConstructor();
 			
 			// lock an InteractiveVisualization onto the panel
 			_visualization = children.requestObject("visualization", SimpleInteractiveVisualization, true);

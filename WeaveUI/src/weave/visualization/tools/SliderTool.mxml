@@ -135,9 +135,9 @@
 	//constructor
 	
 	//This class is the base class for Slider visualization tools
-	override protected function constructor():void
+	override protected function inConstructor():void
 	{
-		super.constructor();
+		super.inConstructor();
 		this.height = 40;
 		// wait 1 frame before initializing labels because other tools may not be initialized yet
 		WeaveAPI.StageUtils.callLater(this, initializeLabels, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);

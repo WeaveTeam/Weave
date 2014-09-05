@@ -73,9 +73,9 @@
 			private static const ORIGINAL:String = "original";
 			private static const LOCALED:String = "localed";
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				enableSubMenu.value = true;
 				subMenuButton.data = [
 					{

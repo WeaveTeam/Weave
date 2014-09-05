@@ -22,9 +22,9 @@
 				return dynamicKeySet.internalObject as IKeySet;
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				dynamicKeySet.globalName = Weave.DEFAULT_PROBE_KEYSET;
 				getCallbackCollection(ProbeTextUtils.probeHeaderColumns).addGroupedCallback(this, updateText);

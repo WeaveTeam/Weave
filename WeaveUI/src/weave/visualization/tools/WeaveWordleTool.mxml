@@ -30,9 +30,9 @@
 			import weave.visualization.plotters.WeaveWordlePlotter;
 			
 			private var plotter:WeaveWordlePlotter = null;
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				plotter = initializePlotters(WeaveWordlePlotter, false);
 				

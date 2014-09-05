@@ -44,9 +44,9 @@
 			
 			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// lock dynamic objects into place
 				initializePlotters(HistogramPlotter, true);

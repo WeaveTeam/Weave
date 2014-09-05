@@ -48,9 +48,9 @@
 			}
 			private var _colorLegendPlotter:ColorBinLegendPlotter;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				
 				// create bar segment legend
