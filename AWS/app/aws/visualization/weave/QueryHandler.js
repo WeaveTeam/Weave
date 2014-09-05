@@ -56,8 +56,12 @@ qh_module.service('QueryHandlerService',
 	
 	/**
 	 * this function processes the queryObject and makes the async call for running the script
+	 * @param runInRealTime this parameter serves as a flag which determines if the Weave JS Api should be run
+	 * automatically or for user to interact
+	 * true : user interaction required
+	 * false: no user interaction required, run automatically
 	 */
-	this.run = function() {
+	this.run = function(runInRealTime) {
 		//setting the query Object to be used for executing the query
 		var queryObject = queryService.queryObject;
 		
@@ -65,6 +69,9 @@ qh_module.service('QueryHandlerService',
 		for(var key in queryObject.scriptOptions) {
 			var input = queryObject.scriptOptions[key];
 			switch(typeof input) {
+				case 'object' :
+					scriptInputs[key] = input;
+					break;
 				case 'array': // array of columns
 					scriptInputs[key] = $.map(input, function(inputVal) {
 						return { id : JSON.parse(inputVal).id };
@@ -221,11 +228,35 @@ qh_module.service('QueryHandlerService',
 						WeaveService.weave = weave;
 						WeaveService.addCSVData(resultData.data);
 						WeaveService.columnNames = resultData.data[0];
+						if(!runInRealTime)//if false
+						{
+							//check for the vizzies and make the required calls
+							if(queryObject.BarChartTool.enabled){
+								console.log("barchart tool enabled");
+								WeaveService.BarChartTool(queryObject.BarChartTool);
+							}
+							if(queryObject.DataTableTool.enabled){
+								console.log('dt tool enbaled');
+								WeaveService.DataTableTool(queryObject.DataTableTool);
+							}
+							if(queryObject.ScatterPlotTool.enabled){
+								console.log('scplot tool enabled');
+								WeaveService.ScatterPlotTool(queryObject.ScatterPlotTool);
+							}
+							if(queryObject.MapTool.enabled){
+								console.log('mp tool enabled');
+								WeaveService.MapTool(queryObject.MapTool);
+							}
+							if(queryObject.ColorColumn){
+								WeaveService.ColorColumn(queryObject.ColorColumn);
+							}
+						}
 						$scope.$apply();
 					});
 				}
 			
 		});
+		
 	};
 	
 	
