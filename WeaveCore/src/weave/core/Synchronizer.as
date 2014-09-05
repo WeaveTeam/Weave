@@ -30,6 +30,7 @@ package weave.core
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
+	import weave.compiler.Compiler;
 	
 	/**
 	 * @see weave.core.SessionManager#linkBindableProperty()
@@ -69,6 +70,8 @@ package weave.core
 			this.watcher = null;
 		}
 		
+		public var debug:Boolean = false;
+		
 		private const sm:ISessionManager = WeaveAPI.SessionManager;
 		private var callbackCollection:ICallbackCollection;
 		private var linkableVariable:ILinkableVariable;
@@ -81,6 +84,22 @@ package weave.core
 		private var useLinkableValue:Boolean = true;
 		private var callLaterTime:int = 0;
 		private var recursiveCall:Boolean = false;
+		
+		private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
+		{
+			var link:String = (useLinkableBefore && useLinkableAfter ? 'LINK' : 'link') + '(' + Compiler.stringify(linkVal) + ')';
+			var bind:String = (!useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind') + '(' + Compiler.stringify(bindVal) + ')';
+			var str:String = link + ', ' + bind;
+			if (useLinkableBefore && !useLinkableAfter)
+			str = link + ' = ' + bind;
+			if (!useLinkableBefore && useLinkableAfter)
+			str = bind + ' = ' + link;
+			if (callingLater)
+			str += ' (callingLater)';
+			
+			trace(str);
+		}
+
 		
 		// When given zero parameters, this function copies the linkable value to the bindable value.
 		// When given one or more parameters, this function copies the bindable value to the linkable value.
@@ -97,13 +116,14 @@ package weave.core
 				return;
 			}
 			
-			/*debugLink(
-			linkableVariable.getSessionState(),
-			firstParam===undefined ? bindableParent[bindablePropertyName] : firstParam,
-			useLinkableValue,
-			firstParam===undefined,
-			callingLater
-			);*/
+			if (debug)
+				debugLink(
+					linkableVariable.getSessionState(),
+					firstParam===undefined ? bindableParent[bindablePropertyName] : firstParam,
+					useLinkableValue,
+					firstParam===undefined,
+					callingLater
+				);
 			
 			// If bindableParent has focus:
 			// When linkableVariable changes, update bindable value only when focus is lost (callLaterTime = int.MAX_VALUE).
