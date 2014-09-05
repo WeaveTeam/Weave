@@ -164,7 +164,7 @@ package weave.visualization.plotters
 			{
 				var keySources:Array = _columns.concat();
 				keySources.unshift(radiusColumn);
-				setColumnKeySources(keySources, [true]);
+				setColumnKeySources(keySources, [-1]);
 			
 				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					
