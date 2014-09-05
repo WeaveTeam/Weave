@@ -24,6 +24,8 @@ package weave.ui.CustomDataGrid
 	import spark.components.gridClasses.GridColumn;
 	import spark.events.GridEvent;
 	
+	import weave.compiler.StandardLib;
+	
 	public class CustomSparkDataGrid extends DataGrid
 	{
 		public function CustomSparkDataGrid()
@@ -31,8 +33,9 @@ package weave.ui.CustomDataGrid
 			super();
 			showDataTips = true;
 			selectionMode = 'multipleCells';
-			this.addEventListener(GridEvent.GRID_MOUSE_DOWN,dataGrid_gridMouseDownHandler)
-			this.addEventListener(GridEvent.GRID_MOUSE_UP,dataGrid_gridMouseUpHandler)
+			this.addEventListener(GridEvent.GRID_MOUSE_DOWN,dataGrid_gridMouseDownHandler);
+			this.addEventListener(GridEvent.GRID_MOUSE_UP,dataGrid_gridMouseUpHandler);
+			
 			
 		}
 		// Single Click Editing support
@@ -93,6 +96,8 @@ package weave.ui.CustomDataGrid
 			
 			var columnArray:Array;
 			dataProvider = null;
+			var typicalItemArray:Array = new Array();
+			var firstRow:Array = rows[0];
 			columnArray = header.map(
 				function(title:String, index:int, a:Array):GridColumn {
 					var dgc:GridColumn = new GridColumn(title);
@@ -100,10 +105,20 @@ package weave.ui.CustomDataGrid
 					// if title is missing, override default headerText which is equal to dataField
 					if (!title)
 						dgc.headerText = '';
+					if(firstRow){
+						var str:String = header[index];
+						str += StandardLib.lpad('',Math.ceil(str.length/ 20),'0');
+						
+						if(str.length > String(firstRow[index]).length)
+							typicalItemArray[index] =str;
+						else
+							typicalItemArray[index] = firstRow[index];
+					}					
 					return dgc;
 				}
 			);
 			columns = new ArrayCollection(columnArray);
+			typicalItem = typicalItemArray;
 			dataProvider = new ArrayCollection( rows);
 		}
 		
