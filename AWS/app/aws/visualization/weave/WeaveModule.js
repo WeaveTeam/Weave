@@ -180,6 +180,10 @@ AnalysisModule.service("WeaveService", function() {
 	      Class('weave.Weave').loadWeaveFileContent(decodeBytes);\
 	    ");
 	};
+	
+	this.clearSessionState = function(){
+		ws.weave.path().state(['WeaveDataSource']);
+	};
 });
 
 //goog.require('aws');
