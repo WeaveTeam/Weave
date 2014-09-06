@@ -52,16 +52,22 @@ package weave.core
 			// because that will copy from the bindable property to the sessioned property.
 			this.synchronize();
 			
-			this.watcher = BindingUtils.bindSetter(synchronize, bindableParent, bindablePropertyName);
+			// below, we need to check if the variables are still set in case dispose() was called from synchronize()
 			
-			// when session state changes, set bindable property
-			this.callbackCollection.addImmediateCallback(bindableParent, synchronize);
+			// when the bindable property changes, set the session state
+			if (this.linkableVariable)
+				this.watcher = BindingUtils.bindSetter(synchronize, bindableParent, bindablePropertyName);
+			
+			// when the session state changes, set the bindable property
+			if (this.callbackCollection)
+				this.callbackCollection.addImmediateCallback(bindableParent, synchronize);
 		}
 		
 		public function dispose():void
 		{
 			this.callbackCollection.removeCallback(synchronize);
-			this.watcher.unwatch();
+			if (this.watcher)
+				this.watcher.unwatch();
 			
 			this.linkableVariable = null;
 			this.bindableParent = null;

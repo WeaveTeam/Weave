@@ -1322,6 +1322,9 @@ package weave.core
 			// unlink in case previously linked (prevents double-linking)
 			unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
 			
+			if (objectWasDisposed(linkableVariable))
+				return;
+			
 			var lookup:Object = _synchronizers.get(linkableVariable, bindableParent);
 			if (!lookup)
 				_synchronizers.set(linkableVariable, bindableParent, lookup = {});
