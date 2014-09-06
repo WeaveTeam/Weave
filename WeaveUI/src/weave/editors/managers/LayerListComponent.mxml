@@ -57,7 +57,7 @@
 							{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
 							WeaveMenuItem.TYPE_SEPARATOR,
 							{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
-						];"/>
+						];" doubleClickEnabled="true" doubleClick="openSettingsPanel()"/>
 						<mx:Script>
 							<![CDATA[
 								import mx.core.UIComponent;
