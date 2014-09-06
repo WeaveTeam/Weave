@@ -702,6 +702,13 @@ internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
 		return children;
 	}
 	
-	public function getDataSource():IDataSource { return source; }
-	public function getColumnMetadata():Object { return source.generateMetadataForColumnId(source.getColumnIds()[columnIndex]); }
+	public function getDataSource():IDataSource
+	{
+		return source;
+	}
+	public function getColumnMetadata():Object
+	{
+		var id:Object = source.getColumnIds()[columnIndex];
+		return id && source.generateMetadataForColumnId(id);
+	}
 }
