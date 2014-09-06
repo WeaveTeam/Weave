@@ -25,6 +25,7 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.KeySets.SortedKeySet;
+	import weave.utils.ColumnUtils;
 	
 	public class DataGridColumnForQKey extends DataGridColumn
 	{
@@ -46,8 +47,7 @@ package weave.ui.CustomDataGrid
 		
 		override public function get headerText():String
 		{
-			var title:String = attrColumn ? attrColumn.getMetadata(ColumnMetadata.TITLE) : '';
-			return super.headerText || title;
+			return super.headerText || ColumnUtils.getTitle(attrColumn);
 		}
 		
 		private function _labelFunction(item:Object, column:DataGridColumn):String
