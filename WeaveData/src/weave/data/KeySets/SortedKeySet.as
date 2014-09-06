@@ -130,8 +130,10 @@ package weave.data.KeySets
 
 import mx.utils.ObjectUtil;
 
+import weave.api.core.ILinkableObject;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IQualifiedKey;
+import weave.api.getCallbackCollection;
 import weave.data.QKeyManager;
 
 internal class KeyComparator
@@ -144,8 +146,8 @@ internal class KeyComparator
 		this.sortDirections.length = columns.length;
 		
 		// when any of the columns are disposed, disable the compare function
-		for each (var column:IAttributeColumn in columns)
-			column.addDisposeCallback(null, dispose);
+		for each (var obj:ILinkableObject in columns)
+			getCallbackCollection(obj).addDisposeCallback(null, dispose);
 	}
 	
 	private var columns:Array;
