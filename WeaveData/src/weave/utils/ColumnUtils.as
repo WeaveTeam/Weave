@@ -642,7 +642,7 @@ package weave.utils
 		
 		/**
 		 * This will initialize one selectable attribute using a column or column reference. 
-		 * @param selectableAttribute A selectable attribute (Either an IColumnWrapper or an ILinkableHashMap)
+		 * @param selectableAttribute A selectable attribute (IColumnWrapper/ILinkableHashMap/ReferencedColumn)
 		 * @param column_or_columnReference Either an IAttributeColumn or an ILinkableHashMap
 		 * @param clearHashMap If the selectableAttribute is an ILinkableHashMap, all objects will be removed from it prior to adding a column.
 		 */
@@ -651,25 +651,41 @@ package weave.utils
 			var inputCol:IAttributeColumn = column_or_columnReference as IAttributeColumn;
 			var inputRef:IColumnReference = column_or_columnReference as IColumnReference;
 			
-			var outputCol:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
-			if (outputCol && outputCol.getInternalColumn() == null)
+			var outputRC:ReferencedColumn = selectableAttribute as ReferencedColumn;
+			if (outputRC)
+			{
+				var inputRC:ReferencedColumn;
+				if (inputCol)
+					inputRC = inputCol as ReferencedColumn
+						|| getLinkableDescendants(inputCol, ReferencedColumn)[0] as ReferencedColumn;
+				
+				if (inputRC)
+					copySessionState(inputRC, outputRC);
+				else if (inputRef)
+					outputRC.setColumnReference(inputRef.getDataSource(), inputRef.getColumnMetadata());
+				else
+					outputRC.setColumnReference(null, null);
+			}
+			
+			var outputDC:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
+			if (outputDC && outputDC.getInternalColumn() == null)
 			{
 				if (inputCol)
 				{
 					if (inputCol is DynamicColumn)
-						copySessionState(inputCol, outputCol);
+						copySessionState(inputCol, outputDC);
 					else
-						outputCol.requestLocalObjectCopy(inputCol);
+						outputDC.requestLocalObjectCopy(inputCol);
 				}
 				else if (inputRef)
 					ReferencedColumn(
-						outputCol.requestLocalObject(ReferencedColumn, false)
+						outputDC.requestLocalObject(ReferencedColumn, false)
 					).setColumnReference(
 						inputRef.getDataSource(),
 						inputRef.getColumnMetadata()
 					);
 				else
-					outputCol.removeObject();
+					outputDC.removeObject();
 			}
 			
 			var outputHash:ILinkableHashMap = selectableAttribute as ILinkableHashMap;
