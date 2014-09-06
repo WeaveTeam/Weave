@@ -183,7 +183,7 @@ package weave.data.DataSources
 				var meta:Object = {};
 				meta[ColumnMetadata.TITLE] = WeaveAPI.globalHashMap.getName(this);
 				
-				var rootChildren:Array = null;
+				var rootChildren:Array = [];
 				if (jsonData)
 				{
 					// include empty string for the geometry column
@@ -388,7 +388,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 	}
 	public function getColumnMetadata():Object
 	{
-		return metadata;
+		return children ? null : metadata;
 	}
 }
 
