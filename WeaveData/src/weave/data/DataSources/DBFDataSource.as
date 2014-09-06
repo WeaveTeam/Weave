@@ -311,6 +311,9 @@ package weave.data.DataSources
 		}
 		public function getColumnMetadata(columnName:String):Object
 		{
+			if (!columnName)
+				return null;
+			
 			var meta:Object = {};
 			meta[DBF_COLUMN_NAME] = columnName;
 			meta[ColumnMetadata.KEY_TYPE] = getKeyType();
@@ -321,7 +324,7 @@ package weave.data.DataSources
 				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
 				return meta;
 			}
-			else
+			else if (dbfHeader)
 			{
 				meta[ColumnMetadata.TITLE] = columnName;
 				for each (var field:DbfField in dbfHeader.fields)
