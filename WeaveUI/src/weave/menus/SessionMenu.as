@@ -235,7 +235,7 @@ package weave.menus
 							PopUpUtils.confirm(
 								null,
 								lang("Create template"),
-								lang("This will reset all attribute selections and remove all data sources. "
+								lang("This will reset all attribute selections, remove all data sources, and clear the history. "
 									+ "The attributes will be re-populated when you load a file through the Data menu."),
 								createTemplate,
 								null,
