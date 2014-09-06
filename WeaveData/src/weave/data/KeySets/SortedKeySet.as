@@ -142,8 +142,11 @@ internal class KeyComparator
 	{
 		this.columns = columns.concat();
 		this.n = columns.length;
-		this.sortDirections = sortDirections ? sortDirections.concat() : [];
-		this.sortDirections.length = columns.length;
+		if (sortDirections)
+		{
+			this.sortDirections = sortDirections.concat();
+			this.sortDirections.length = columns.length;
+		}
 		
 		// when any of the columns are disposed, disable the compare function
 		for each (var obj:ILinkableObject in columns)
@@ -159,14 +162,14 @@ internal class KeyComparator
 		for (var i:int = 0; i < n; i++)
 		{
 			var column:IAttributeColumn = columns[i] as IAttributeColumn;
-			if (!column || !sortDirections[i])
+			if (!column || (sortDirections && !sortDirections[i]))
 				continue;
 			var value1:* = column.getValueFromKey(key1, Number);
 			var value2:* = column.getValueFromKey(key2, Number);
 			var result:int = ObjectUtil.numericCompare(value1, value2);
 			if (result != 0)
 			{
-				if (sortDirections[i] < 0)
+				if (sortDirections && sortDirections[i] < 0)
 					return -result;
 				return result;
 			}
