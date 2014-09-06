@@ -274,6 +274,8 @@ package weave
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableManagePlugins:LinkableBoolean = new LinkableBoolean(false); // show "manage plugins" menu item
 		public const enableSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
+		public const showCreateTemplateMenuItem:LinkableBoolean = new LinkableBoolean(true);
+		public const isTemplate:LinkableBoolean = new LinkableBoolean(false);
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
 		

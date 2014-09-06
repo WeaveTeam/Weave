@@ -27,8 +27,15 @@ package weave.menus
 	import mx.managers.PopUpManager;
 	
 	import weave.Weave;
+	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.reportError;
 	import weave.core.LinkableBoolean;
+	import weave.data.AttributeColumns.ReferencedColumn;
+	import weave.data.KeySets.KeySet;
 	import weave.menus.WeaveMenuItem;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
@@ -36,6 +43,9 @@ package weave.menus
 	import weave.ui.ExportSessionStateOptions;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.collaboration.CollaborationTool;
+	import weave.utils.ColumnUtils;
+	import weave.utils.HierarchyUtils;
+	import weave.utils.PopUpUtils;
 
 	public class SessionMenu extends WeaveMenuItem
 	{
@@ -104,6 +114,68 @@ package weave.menus
 			}
 		}
 		
+		/**
+		 * Removes all IDataSources, resets all ReferencedColumns/KeySets, clears history.
+		 */
+		public static function createTemplate():void
+		{
+			for each (var name:String in WeaveAPI.globalHashMap.getNames(IDataSource))
+				WeaveAPI.globalHashMap.removeObject(name);
+			
+			var columns:Array = getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn);
+			for each (var rc:ReferencedColumn in columns)
+				rc.setColumnReference(null, null);
+			
+			var keySets:Array = getLinkableDescendants(WeaveAPI.globalHashMap, KeySet);
+			for each (var keySet:KeySet in keySets)
+				keySet.clearKeys();
+			
+			for each (var file:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
+				WeaveAPI.URLRequestUtils.removeLocalFile(file);
+			
+			Weave.history.clearHistory();
+			
+			Weave.properties.isTemplate.value = true;
+		}
+		
+		/**
+		 * Initializes the current session state as a template using a data source.
+		 * @param fileSource The data source. 
+		 * @return true if the current session state looks like a template.
+		 */
+		public static function initTemplate(fileSource:IDataSource_File):Boolean
+		{
+			function init():Boolean
+			{
+				var columns:Array = getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn)
+					.filter(function(rc:ReferencedColumn, i:*, a:*):Boolean {
+						return rc.getDataSource() == null && rc.metadata.getSessionState() == null;
+					});
+				if (columns.length)
+				{
+					// Request the nodes whether or not the source is currently busy
+					// because requesting them may be what makes it busy.
+					var input:Array = HierarchyUtils.getAllColumnReferenceDescendants(fileSource);
+					if (!input.length || linkableObjectIsBusy(fileSource))
+					{
+						// busy? try later
+						getCallbackCollection(fileSource).addGroupedCallback(null, init);
+					}
+					else
+					{
+						// not busy, so initialize now
+						ColumnUtils.initSelectableAttributes(columns, input);
+						// only initialize once
+						getCallbackCollection(fileSource).removeCallback(init);
+					}
+					// return true if there are blank ReferencedColumns 
+					return true;
+				}
+				return false;
+			}
+			return init();
+		}
+		
 		public function SessionMenu()
 		{
 			super({
@@ -154,6 +226,23 @@ package weave.menus
 								return lang("Connect to collaboration server");
 						},
 						click: function():void { DraggablePanel.openStaticInstance(CollaborationTool); }
+					},
+					TYPE_SEPARATOR,
+					{
+						shown: Weave.properties.showCreateTemplateMenuItem,
+						label: lang("Convert this session state into a template"),
+						click: function():void {
+							PopUpUtils.confirm(
+								null,
+								lang("Create template"),
+								lang("This will reset all attribute selections and remove all data sources. "
+									+ "The attributes will be re-populated when you load a file through the Data menu."),
+								createTemplate,
+								null,
+								lang("Ok"),
+								lang("Cancel")
+							);
+						}
 					},
 					TYPE_SEPARATOR,
 					{
