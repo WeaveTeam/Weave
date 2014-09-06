@@ -51,6 +51,7 @@
 				//mainLayerSettings.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
 				mainLayerSettings.selectionFilter.removeObject();
 				mainLayerSettings.probeFilter.removeObject();
+				mainLayerSettings.selectable.value = false;
 
 				//BEGIN TEMPORARY SOLUTION
 				visualization.plotManager.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
