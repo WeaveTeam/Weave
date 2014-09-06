@@ -90,6 +90,7 @@ package weave.data.KeySets
 		private var _dependencies:ICallbackCollection = newDisposableChild(this, CallbackCollection);
 		private var _keySet:IKeySet;
 		private var _compare:Function;
+		// Note: not using newLinkableChild for _asyncSort because we do not trigger if sorting does not affect order
 		private var _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		private var _sortedKeys:Array = [];
 		private var _prevSortedKeys:Array = [];
@@ -109,6 +110,7 @@ package weave.data.KeySets
 		
 		private function _handleSorted():void
 		{
+			// only trigger callbacks if sorting changes order
 			if (StandardLib.arrayCompare(_prevSortedKeys, _sortedKeys) != 0)
 				getCallbackCollection(this).triggerCallbacks();
 		}
