@@ -418,7 +418,7 @@ package weave.utils
 		 * @param dataType
 		 * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
 		 */
-		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null,dataType:Class = null):String
+		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null, dataType:Class = null):String
 		{
 			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
 			
@@ -466,7 +466,9 @@ package weave.utils
 				
 				for (var i:int = 0; i < attrCols.length; i++)
 				{
-					var value:Object = (attrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+					var col:IAttributeColumn = attrCols[i] as IAttributeColumn;
+					var dt:Class = dataType || DataType.getClass(col.getMetadata(ColumnMetadata.DATA_TYPE));
+					var value:Object = col.getValueFromKey(key, dt);
 					if (StandardLib.isDefined(value))
 						record[columnTitles[i]] = value;
 				}
