@@ -597,12 +597,45 @@ package weave.utils
 		/**
 		 * This will initialize selectable attributes using a list of columns and/or column references.
 		 * @param selectableAttributes An Array of IColumnWrapper and/or ILinkableHashMaps to initialize.
-		 * @param columns An Array of IAttributeColumn and/or IColumnReference objects
+		 * @param input An Array of IAttributeColumn and/or IColumnReference objects. If not specified, getColumnsWithCommonKeyType() will be used.
+		 * @see #getColumnsWithCommonKeyType()
 		 */
-		public static function initSelectableAttributes(selectableAttributes:Array, input:Array):void
+		public static function initSelectableAttributes(selectableAttributes:Array, input:Array = null):void
 		{
+			if (!input)
+				input = getColumnsWithCommonKeyType();
+			
 			for (var i:int = 0; i < selectableAttributes.length; i++)
 				initSelectableAttribute(selectableAttributes[i], input[i % input.length]);
+		}
+		
+		/**
+		 * Gets a list of columns with a common keyType.
+		 */
+		public static function getColumnsWithCommonKeyType(keyType:String = null):Array
+		{
+			var columns:Array = getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn);
+			
+			// if keyType not specified, find the most common keyType
+			if (!keyType)
+			{
+				var keyTypeCounts:Object = new Object();
+				for each (var column:IAttributeColumn in columns)
+				keyTypeCounts[ColumnUtils.getKeyType(column)] = int(keyTypeCounts[ColumnUtils.getKeyType(column)]) + 1;
+				var count:int = 0;
+				for (var kt:String in keyTypeCounts)
+					if (keyTypeCounts[kt] > count)
+						count = keyTypeCounts[keyType = kt];
+			}
+			
+			// remove columns not of the selected key type
+			var n:int = 0;
+			for (var i:int = 0; i < columns.length; i++)
+				if (ColumnUtils.getKeyType(columns[i]) == keyType)
+					columns[n++] = columns[i];
+			columns.length = n;
+			
+			return columns;
 		}
 		
 		/**

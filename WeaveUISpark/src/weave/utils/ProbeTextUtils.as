@@ -29,12 +29,14 @@ package weave.utils
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getLinkableDescendants;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.primitives.Bounds2D;
 	
 	/**
@@ -291,39 +293,6 @@ package weave.utils
 		{
 			if (probeToolTip)
 				probeToolTip.visible = false;
-		}
-		
-		public static function getColumnsWithCommonKeyType(keyType:String = null):Array
-		{
-			var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
-			if (probedColumns.length == 0)
-				probedColumns = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
-			
-			if (!keyType)
-			{
-				var keyTypeCounts:Object = new Object();
-				for each (var column:IAttributeColumn in probedColumns)
-					keyTypeCounts[ColumnUtils.getKeyType(column)] = int(keyTypeCounts[ColumnUtils.getKeyType(column)]) + 1;
-				var count:int = 0;
-				for (var kt:String in keyTypeCounts)
-					if (keyTypeCounts[kt] > count)
-						count = keyTypeCounts[keyType = kt];
-			}
-			
-			// remove columns not of the selected key type
-			var i:int = probedColumns.length;
-			while (--i > -1)
-				if (ColumnUtils.getKeyType(probedColumns[i]) != keyType)
-					probedColumns.splice(i, 1);
-			
-			if (probedColumns.length == 0)
-			{
-				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
-				if (filteredColumn.getInternalColumn())
-					probedColumns.push(filteredColumn.getInternalColumn());
-			}
-			
-			return probedColumns;
 		}
 	}
 }

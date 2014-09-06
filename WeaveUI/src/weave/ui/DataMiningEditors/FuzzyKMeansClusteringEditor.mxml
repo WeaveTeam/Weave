@@ -59,7 +59,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableHashMap;
 			import weave.services.WeaveRServlet;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 			
 			public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -79,7 +78,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
-				var columns:Array = ProbeTextUtils.getColumnsWithCommonKeyType();
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					inputColumns.requestObjectCopy(null, columns[i]);
 			}

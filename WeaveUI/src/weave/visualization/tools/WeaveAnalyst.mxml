@@ -81,7 +81,7 @@
 			import weave.core.LinkableHashMap;
 			import weave.core.UIUtils;
 			import weave.editors.PrincipalComponentEditor;
-			import weave.utils.ProbeTextUtils;
+			import weave.utils.ColumnUtils;
 
 
 			private static var analystInstance:WeaveAnalyst = null;
@@ -97,7 +97,7 @@
 			
 			 protected function constructor():*
 			{
-				 var columns:Array = ProbeTextUtils.getColumnsWithCommonKeyType();
+				 var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				 for (var i:int = 0; i < columns.length; i++)
 					 inputColumns.requestObjectCopy(null, columns[i]);
 				 

@@ -74,9 +74,7 @@
 			import mx.managers.IFocusManagerComponent;
 			
 			import weave.Weave;
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
@@ -92,10 +90,8 @@
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
-			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.KeyColumn;
 			import weave.data.KeySets.FilteredKeySet;
-			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
 			import weave.ui.CustomDataGrid.DataGridColumnForQKey;
@@ -103,7 +99,6 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
-			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TableTool, "Table");
@@ -136,25 +131,22 @@
 			{
 				super.inConstructor();
 				
-				var probeHeaderColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
-				var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
-				var allColumns:Array = (probeHeaderColumns.concat as Function).apply(null, probedColumns);
-				for (var i:int = 0; i < allColumns.length; i++)
-				{
-					var dynamicColumn:DynamicColumn = columns.requestObject(null, DynamicColumn, false);
-					var probedColumn:ILinkableObject = allColumns[i] as ILinkableObject;
-					if (probedColumn is DynamicColumn)
-						copySessionState(probedColumn, dynamicColumn);
-					else
-						dynamicColumn.requestLocalObjectCopy(probedColumn);
-				}
-				
 				filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
-				for each (var target:ILinkableObject in [this, filteredKeySet, _selection, Weave.defaultColorColumn, _textFormat])
-					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate);
+				_probe.addImmediateCallback(this, updateGlobalProbeChangeLater);
+				for each (var target:ILinkableObject in [this, _selection, Weave.defaultColorColumn, _textFormat])
+					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate, true);
 			}
 			
+			override protected function afterConstructor():void
+			{
+				const MAX_DEFAULT_COLUMNS:int = 10;
+				ColumnUtils.getColumnsWithCommonKeyType()
+					.slice(0, MAX_DEFAULT_COLUMNS)
+					.forEach(function(item:Object, i:int, a:Array):void {
+						ColumnUtils.initSelectableAttribute(columns, item, i == 0);
+					});
+			}
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
