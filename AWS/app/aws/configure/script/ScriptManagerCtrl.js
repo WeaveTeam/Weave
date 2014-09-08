@@ -29,6 +29,10 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.refreshScripts  = refreshScripts;
 	  
 	  refreshScripts();
+	  
+	  $scope.$on("refreshScripts", function() {
+		  refreshScripts();
+	  });
 	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
 		  
 		  if(newVal.length && newVal[0].Script) {
@@ -110,8 +114,6 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		 }
 	 };
 	 
-	 
-	 
 });
 scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, scriptManagerService, queryService) {
 	$scope.opts = {
@@ -128,8 +130,9 @@ scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, 
     	var d = $dialog.dialog($scope.opts);
     	d.open();
     };
+    
  })
- .controller('AddScriptDialogInstanceCtrl', function ($scope, dialog, scriptManagerService) {
+ .controller('AddScriptDialogInstanceCtrl', function ($rootScope, $scope, dialog, scriptManagerService) {
 	  
 	 $scope.fileName = "";
 	 $scope.scriptContent = "";
@@ -137,33 +140,25 @@ scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, 
 	 $scope.step = 1;
 	 
 	 $scope.scriptUploaded = {};
-	 $scope.$watch(function () {
-		 return scriptUploaded;
-	 }, function(n, o) {
-		 $scope.fileName = scriptUploaded.filename;
-		 $scope.scriptContent = scriptUploaded.content;
-	 });
+	 $scope.metadataUploaded = {
+			 content : ""
+	 };
+	
 	 $scope.close = function () {
 	  dialog.close();
 	 };
-	  
-	 $scope.save = function () {
-	  dialog.close();
-	 };
-	 $scope.metadataobj = {
-		 inputs : [],
-		 description : ""
-	 };
 	 
-	 $scope.loadMetadata = function() {
-		 if($scope.step==1 && $scope.metadata) {
-			 console.log($scope.metadata);
-			 angular.fromJson($scope.metadata);
-		 };
-	 };
+	 $scope.uploadSuccessful = "na";
 	 
-	 $scope.scriptMetadataGridOptions = {
-	      data: 'angular.fromJson(metadata).inputs',
+	 $scope.$watch('scriptUploaded.metadata', function() {
+		 console.log($scope.scriptUploaded.metadata);
+		 if($scope.scriptUploaded.metadata) {
+			 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
+		 }
+	 });
+	 
+	 $scope.scriptMetadataOptions = {
+	      data: 'metadataUploaded.inputs',
 		  columnDefs : [{field : "param", displayName : "Parameter"},
 		               {field :"type", displayName : "Type"},
 		               {field : "columnType", displayName : "Column Type"},
@@ -175,4 +170,45 @@ scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, 
 			  enableCellEdit : false,
 	  };
 	 
+	$scope.$watch('step', function(n, o) { 
+		if(n == 3) {
+			var scriptName = "";
+			var scriptContent = "";
+			
+			if($scope.scriptUploaded.script) {
+				scriptName = $scope.scriptUploaded.script.filename;
+				scriptContent = $scope.scriptUploaded.script.content;
+			}
+			var scriptMetadata = "";
+			if($scope.scriptUploaded.metadata) {
+				scriptMetadata = $scope.scriptUploaded.metadata.content;
+			}
+			// make sure we have the scriptname, the content and the metadata
+			if(scriptName && scriptContent) {
+				if(scriptMetadata) {
+					scriptManagerService.uploadNewScript(scriptName, scriptContent, scriptMetadata).then(function(result) {
+						if(result) {
+							$scope.uploadSuccessful = "success";
+						} else {
+							$scope.uploadSuccessful = "failure";
+						}
+					});
+					$scope.$broadcast('refreshScripts'); // tell the other controller to refresh the list of scripts
+				} else {
+					scriptManagerService.uploadNewScript(scriptName, scriptContent, null).then(function(result) {
+						if(result) {
+							$scope.uploadSuccessful = "success";
+							$scope.metadataUploaded.description = "";
+						} else {
+							$scope.uploadSuccessful = "failure";
+						}
+					});
+					$scope.$broadcast('refreshScripts'); // tell the other controller to refresh the list of scripts
+				}
+			}
+				
+		} else {
+			$scope.uploadSucessful = "na";
+		}
+	});
   });

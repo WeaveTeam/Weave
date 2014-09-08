@@ -236,12 +236,16 @@ public class ScriptManagerService{
 
  		try
  		{
- 			file.createNewFile();
- 			FileWriter fw = new FileWriter(file);
- 			BufferedWriter bw = new BufferedWriter(fw);
- 			bw.write(content);
- 			bw.flush();
- 			bw.close();
+ 			if(!file.exists()) {
+ 				file.createNewFile();
+ 				FileWriter fw = new FileWriter(file);
+ 				BufferedWriter bw = new BufferedWriter(fw);
+ 				bw.write(content);
+ 				bw.flush();
+ 				bw.close();
+ 			} else {
+ 				return false;
+ 			}
  		}catch(IOException e){
  			e.printStackTrace();
   		}

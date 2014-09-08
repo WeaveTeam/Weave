@@ -113,11 +113,11 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	      return deferred.promise;
 	  };
 	  
-	  this.uploadNewScript = function (script, metadata) {
+	  this.uploadNewScript = function (scriptName, content, metadata) {
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'uploadNewScript', [scriptName, metadata], function(result) {
+		  aws.queryService(scriptServiceURL, 'uploadNewScript', [scriptName, content, metadata], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });

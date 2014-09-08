@@ -117,7 +117,10 @@ public class ScriptManagementServlet extends WeaveServlet
  	public boolean uploadNewScript(String scriptName, String content, String metadata) throws Exception {
  		 
  		if(metadata == null)
- 			metadata = "";//will use blank jsonobejct is metadata is not specified
+ 			metadata = "{" +
+ 					"\"inputs\" : []," +
+ 					"\"description\" : \"\"" +
+ 					"}"; //empty script template
  		
  		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
  		{
