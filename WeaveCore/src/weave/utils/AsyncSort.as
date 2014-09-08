@@ -156,7 +156,8 @@ package weave.utils
 			}
 			else
 			{
-				WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_2_BUILDING, done);
+				// high priority because many things cannot continue without sorting results or must be recalculated when sorting finishes
+				WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, done);
 			}
 		}
 		

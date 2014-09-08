@@ -258,7 +258,8 @@ package weave.data.DataSources
 					gc.setGeometries(keys, geoms);
 					proxyColumn.setInternalColumn(gc);
 				}
-				WeaveAPI.StageUtils.startTask(proxyColumn, initGeoms, WeaveAPI.TASK_PRIORITY_2_BUILDING, setGeoms);
+				// high priority because not much can be done without data
+				WeaveAPI.StageUtils.startTask(proxyColumn, initGeoms, WeaveAPI.TASK_PRIORITY_HIGH, setGeoms);
 			}
 			else
 			{

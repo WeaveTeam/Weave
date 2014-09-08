@@ -193,7 +193,7 @@ internal class Library implements IDisposableObject
 		{
 			_asyncToken = new AsyncToken();
 			// notify the responder one frame later
-			WeaveAPI.StageUtils.callLater(this, _notifyResponders, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+			WeaveAPI.StageUtils.callLater(this, _notifyResponders, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 		}
 		
 		_asyncToken.addResponder(new AsyncResponder(asyncResultHandler, asyncFaultHandler, token));
@@ -334,7 +334,8 @@ internal class Library implements IDisposableObject
 			}
 			return 1;
 		}
-		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_3_PARSING, _notifyResponders);
+		// immediate priority because we want a quick startup time
+		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_IMMEDIATE, _notifyResponders);
 	}
 	
 	/**

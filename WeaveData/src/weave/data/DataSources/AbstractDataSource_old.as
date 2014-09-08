@@ -197,7 +197,8 @@ package weave.data.DataSources
 			if (_requestedHierarchySubtreeStringMap[pathString] == undefined)
 			{
 				_requestedHierarchySubtreeStringMap[pathString] = true;
-				WeaveAPI.StageUtils.callLater(this, requestHierarchyFromSource, [subtreeNode], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+				// high priority because not much can be done without data
+				WeaveAPI.StageUtils.callLater(this, requestHierarchyFromSource, [subtreeNode], WeaveAPI.TASK_PRIORITY_HIGH);
 			}
 		}
 

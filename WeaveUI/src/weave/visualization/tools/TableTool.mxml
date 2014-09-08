@@ -317,14 +317,6 @@
 			}
 			
 			/**
-			 * called from callLater of handleHeaderRelease listener ,to get the correct sorting order. 
-			 * There is a bug in flex because of which the c.sortDescending will always return false
-			 */
-			private function getOrder(column:DataGridColumn,index:int):void
-			{
-			}
-			
-			/**
 			 * This function gets called in Updatedisplaylist, 
 			 * when there is change in sortFieldIndex or sortInDescending 	
 			 * called with parameter if called from change in column 

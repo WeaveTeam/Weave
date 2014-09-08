@@ -147,7 +147,8 @@ package weave.utils
 			// insert bounds-to-key mappings in the kdtree
 			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
 			_iterateAll(-1); // restart from first task
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_2_BUILDING, triggerCallbacks);
+			// normal priority because some things can be done without having a fully populated spatial index (?)
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, triggerCallbacks);
 		}
 		
 		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2);

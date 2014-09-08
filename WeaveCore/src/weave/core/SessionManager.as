@@ -755,7 +755,8 @@ package weave.core
 				
 				// when there are no more tasks, check later to see if callbacks trigger
 				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
-				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+				// immediate priority because we want to trigger as soon as possible
+				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{

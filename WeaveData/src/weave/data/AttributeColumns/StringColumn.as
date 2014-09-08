@@ -154,7 +154,8 @@ package weave.data.AttributeColumns
 			
 			_i = 0;
 			_numberToString = {};
-			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncComplete);
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
 		}
 		
 		private var _i:int;

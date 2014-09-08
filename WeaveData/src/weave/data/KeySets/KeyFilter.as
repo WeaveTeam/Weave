@@ -159,7 +159,8 @@ package weave.data.KeySets
 			if (_deprecatedState == null)
 			{
 				_deprecatedState = {};
-				WeaveAPI.StageUtils.callLater(this, _applyDeprecatedSessionState, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+				// immediate priority because we want the session state to be set as soon as possible.
+				WeaveAPI.StageUtils.callLater(this, _applyDeprecatedSessionState, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 			_deprecatedState[propertyName] = value;
 		}
