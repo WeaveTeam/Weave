@@ -56,12 +56,12 @@ package weave.core
 		/**
 		 * Cannot be modified externally because it is not returned by getSessionState()
 		 */
-		protected var _sessionStateInternal:* = null;
+		protected var _sessionStateInternal:* = undefined;
 		
 		/**
 		 * Available externally via getSessionState()
 		 */
-		protected var _sessionStateExternal:* = null;
+		protected var _sessionStateExternal:* = undefined;
 		
 		/**
 		 * This is set to true when lock() is called.
@@ -94,7 +94,7 @@ package weave.core
 			
 			_verifier = verifier;
 			
-			if (!sessionStateEquals(defaultValue))
+			if (defaultValue !== undefined)
 			{
 				setSessionState(defaultValue);
 				
