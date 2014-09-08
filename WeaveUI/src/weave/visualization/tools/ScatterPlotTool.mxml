@@ -27,6 +27,8 @@
 			   >
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.CheckBox;
+			
 			import weave.Weave;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
@@ -42,6 +44,7 @@
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeMenuTool;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
@@ -87,10 +90,6 @@
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
-				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
-				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
-				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
-				
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginTop.value    = "30";
 				visualization.plotManager.marginLeft.value   = "80";
@@ -100,7 +99,6 @@
 				initRegressionLayer();
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
-				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
 			override public function initSelectableAttributes(input:Array):void
@@ -260,71 +258,18 @@
 			}
 			/*END UNDEFINED LAYER CODE*/
 			
-			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
-			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, null, null), handleAttributesToIncludeInProbe, true);
+			private function handleAttributesToIncludeInProbe():void
 			{
-				handleSelectAllAttrInProbe(value);
-			}
-			
-			private function handleSelectAllAttrInProbe(setAll:Boolean):void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var valuesToSet:Array = [];
-				if(setAll)
-				{
-					for each (var name:String in attributes)
-					{
-						valuesToSet.push(true);
-					}
-				}
-				else
-				{
-					for each (var name2:String in attributes)
-					{
-						valuesToSet.push(false);
-					}
-				}
-				attributesToIncludeInProbe.setSessionState(valuesToSet);
-			}
-			
-			
-			private function updateProbeColumns():void
-			{
-				if (!parent)
-				{
-					callLater(updateProbeColumns);
-					return;
-				}
-				
-				/* first check to see if select all should be disabled or not */
-				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				
-				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
-					probeColumnsCheckBox.selected = true;
-				
-				var attributes:Array = getSelectableAttributes();
-				var columns:Array = [];
-				
-				var dataXColIndex:int = attributes.indexOf(plotter.dataX);
-				if (plotter.dataX.getInternalColumn() && attrToIncludeCheckList[dataXColIndex])
-					columns.push(plotter.dataX.getInternalColumn());
-				
-				var dataYColIndex:int = attributes.indexOf(plotter.dataY);
-				if (plotter.dataY.getInternalColumn() && attrToIncludeCheckList[dataYColIndex])
-					columns.push(plotter.dataY.getInternalColumn());
-				
-				var colorColIndex:int = attributes.indexOf(plotter.fill.color);
-				if (plotter.fill.color.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
-					columns.push(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
-				
-				var sizeColIndex:int = attributes.indexOf(plotter.sizeBy);
-				if(plotter.sizeBy.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
-					columns.push(plotter.sizeBy.getInternalColumn());
-				
+				var columns:Array = SelectableAttributesCheckBoxList.getSelectedAttributeColumns(this, attributesToIncludeInProbe);
 				visualization.additionalProbeColumns = columns;
 				vis_undef_x.additionalProbeColumns = columns;
 				vis_undef_y.additionalProbeColumns = columns;
 				vis_undef_xy.additionalProbeColumns = columns;
+			}
+			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
+			{
+				attributesToIncludeInProbe.setSessionState(value ? getSelectableAttributeNames() : []);
 			}
 			
 			override public function get defaultPanelTitle():String
@@ -336,14 +281,11 @@
 			{
 				super.childrenCreated();
 				
-				plotEditor.setTarget(plotter);
-				
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateEquation);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
-				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			private function updateEquationStyle():void
@@ -430,7 +372,6 @@
 						equationText.parent.removeChild(equationText);
 				}
 				equationText.text = str;
-				lineEquation.text = StandardLib.replace(str, '\n', '    ');
 				
 				equationText.validateNow();
 //				// severely hacked This needs to be fixed.
@@ -466,7 +407,7 @@
 				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
 			}
 			
-			protected function createLegend():void
+			public function createLegend():void
 			{
 				var sizeBinLegendTool:SizeBinLegendTool = Weave.root.requestObject(null, SizeBinLegendTool, false);
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
@@ -481,48 +422,53 @@
 		bottom="0"
 		left="0"
 		initialize="linkBindableProperty(isVisibleEquationTextBoolean, equationText, 'visible')"/>
-	<ui:ControlPanel>
+	<editorFactory><mx:Component><ui:ControlPanel>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				import weave.compiler.StandardLib;
+				import weave.core.UIUtils;
+				import weave.visualization.plotters.RegressionLinePlotter;
+			]]>
+		</mx:Script>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
-			<editors:ScatterPlotPlotterEditor id="plotEditor" width="100%"/>
-			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
+			<editors:ScatterPlotPlotterEditor id="plotEditor" width="100%" creationComplete="plotEditor.setTarget(outerDocument.plotter)"/>
+			<mx:Button label="{lang('Show legend')}" click="outerDocument.createLegend()"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			
-			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist" translate="true" dataProvider="{getSelectableAttributeNames()}"/>
-			</ui:CheckBoxWithNestedOptions>
+			<ui:SelectableAttributesCheckBoxList id="selectedAttrList" creationComplete="selectedAttrList.setup(outerDocument, outerDocument.attributesToIncludeInProbe)"/>
 			
 			<!-- @author fkamayou 
 				 Beginning of trendline option 
 			-->
 			<ui:CheckBoxWithNestedOptions id= "trendlineCheckBox" label="{lang('Enable Trendline (Requires Rserve on the server)')}"
 						  	 toolTip="Use the dropdown menu to choose a trendline."
-							 creationComplete="linkBindableProperty(regressionPlotter.drawLine, event.target, 'selected')">
+							 creationComplete="linkBindableProperty(outerDocument.regressionPlotter.drawLine, event.target, 'selected')">
 				<mx:HBox>
 					<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
 								 id="trendlineComboBox" dataProvider="{RegressionLinePlotter.trendlines}"
-								 creationComplete="linkBindableProperty(regressionPlotter.currentTrendline,event.target,'selectedItem')"/>
+								 creationComplete="linkBindableProperty(outerDocument.regressionPlotter.currentTrendline,event.target,'selectedItem')"/>
 					<mx:HBox visible="{trendlineComboBox.selectedItem == 'Polynomial'}"
 							 includeInLayout="{trendlineComboBox.selectedItem == 'Polynomial'}">
 						<mx:Label text = "{lang('Degree')}" />
 						<mx:HSlider id="polynomialDegreeSlider"
-									creationComplete="linkBindableProperty(regressionPlotter.polynomialDegree, event.target, 'value')"									
+									creationComplete="linkBindableProperty(outerDocument.regressionPlotter.polynomialDegree, event.target, 'value')"									
 									minimum="2" maximum="6" snapInterval="1" liveDragging="true"
 									tickInterval="1"/>
 					</mx:HBox>
 				</mx:HBox>
-				<mx:Label id="lineEquation"/>
+				<mx:Label id="lineEquation" text="{StandardLib.replace(outerDocument.equationText.text, '\n', '    ')}"/>
 				<mx:CheckBox id="hideEquationCheckBox" label="{lang('Display the equation in the visualization')}" labelPlacement="right"
-							 creationComplete="linkBindableProperty(this.isVisibleEquationTextBoolean, event.target, 'selected')"/>
+							 creationComplete="linkBindableProperty(outerDocument.isVisibleEquationTextBoolean, event.target, 'selected')"/>
 				<ui:Indent label="{lang('Line Color')}">
 					<ui:CustomColorPicker id="regressionColorPicker" 
-									creationComplete="linkBindableProperty(regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
+									creationComplete="linkBindableProperty(outerDocument.regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
 									enabled="{trendlineCheckBox.selected}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('Line Thickness')}">
 					<mx:HSlider id="regressionThicknessSlider"
-								creationComplete="linkBindableProperty(regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
+								creationComplete="linkBindableProperty(outerDocument.regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
 								enabled="{trendlineCheckBox.selected}"
 								minimum="1" maximum="10" snapInterval="1" liveDragging="true"
 								tickInterval="1"/>
@@ -532,9 +478,9 @@
 								enabled="{trendlineCheckBox.selected}"
 								minimum="0.1" maximum="1" snapInterval=".1" liveDragging="true"
 								tickInterval="0.1"
-								creationComplete="linkBindableProperty(regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
+								creationComplete="linkBindableProperty(outerDocument.regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
 				</ui:Indent>
 			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
-	</ui:ControlPanel>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

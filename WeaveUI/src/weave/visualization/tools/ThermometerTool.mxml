@@ -37,13 +37,14 @@
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ThermometerTool, "Thermometer Tool");
 			
-			private function get plotter():ThermometerPlotter { return mainPlotter as ThermometerPlotter; }
+			internal function get plotter():ThermometerPlotter { return mainPlotter as ThermometerPlotter; }
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
 				// lock dynamic objects into place
 				initializePlotters(ThermometerPlotter, true);
 				visualization.plotManager.getLayerSettings(SimpleInteractiveVisualization.X_AXIS_LAYER_NAME).visible.value = false;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
 				
 				// by default this tool only displays the probed records.
 				// TEMPORARY SOLUTION until we start using VisToolGroup
@@ -92,19 +93,9 @@
 
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
-			<mx:Panel id="attributesPanel" 
-					  label="{lang('Attributes for Thermometer')}" 
-					  headerHeight="2"
-					  borderColor="0x000000" 
-					  backgroundColor="0xCCCCCC" 
-					  backgroundAlpha="0.0" 
-					  borderThickness="0.0" 
-					  height="100%" 
-					  width="100%" 
-					  borderAlpha="0.2" 
-					  borderStyle="none">
-				<ui:DynamicColumnComponent label="{lang('Meter column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
-			</mx:Panel>
-	</ui:ControlPanel>
+	<editorFactory><mx:Component><ui:ControlPanel>
+		<mx:VBox label="{lang('Attributes')}">
+			<ui:DynamicColumnComponent label="{lang('Meter column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = outerDocument.plotter.meterColumn"/>
+		</mx:VBox>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

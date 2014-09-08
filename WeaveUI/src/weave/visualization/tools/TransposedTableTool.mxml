@@ -92,8 +92,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function childrenCreated():void
 			{
-				columnsList.hashMap = columns;
-				linkBindableProperty(headerText,headerTextInput,"text");
+				super.childrenCreated();
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);
 			}
 			
@@ -259,15 +258,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
+	<ui:editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Data')}">
 			<mx:HBox>
 				<mx:Label text="{lang('Corner header:')}"/>
 				<mx:TextInput id="headerTextInput" width="300"/>
 			</mx:HBox>
-			<ui:DynamicColumnComponent id="headerColumn" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
+			<ui:DynamicColumnComponent id="headerColumn" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = outerDocument.headerAttributeColumn" />
 			<ui:ColumnListComponent id="columnsList" backgroundAlpha="0.7" height="100%" width="100%"/>
 		</mx:VBox>
-		<editors:WindowSettingsEditor target="{this}"/>
-	</ui:ControlPanel>
+		<editors:WindowSettingsEditor target="{outerDocument}"/>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					columnsList.hashMap = outerDocument.columns;
+					linkBindableProperty(outerDocument.headerText, headerTextInput, "text");
+				}
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></ui:editorFactory>
 </ui:DraggablePanel>

@@ -151,8 +151,6 @@
 			{
 				super.childrenCreated();
 				
-				linkBindableProperty(enableProbing, enableProbingCheckBox, "selected");
-
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
@@ -448,6 +446,8 @@
 			
 			private var _minSuggestedColumnSize:int = 32;
 			
+			[Bindable] internal var maxLockedColumns:int = 0;
+			
 			private function updateDataGridColumns():void
 			{
 				// if there isn't a parent or the grid isn't fully instantiated, return
@@ -481,8 +481,7 @@
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
-					numLockedColumns.maximum = Math.max(0, attrColumns.length - 2);
-					numLockedColumns.enabled = numLockedColumns.maximum > 0;
+					maxLockedColumns = Math.max(0, attrColumns.length - 2);
 				}
 				catch (error:Error)
 				{
@@ -504,8 +503,6 @@
 			
 			private function handleColumnListChange():void
 			{
-				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;
-				
 				//if column is added , we need to add respective ColumnWidth
 				if (columns.childListCallbacks.lastObjectAdded)
 				{
@@ -619,29 +616,6 @@
 			}
 			
 			
-			private function handleKeyColumnCheckBox():void
-			{
-				if (showKeyColumnCheckBox.selected)
-				{
-					var kc:Array= columns.getObjects(KeyColumn);
-					if (kc.length == 0)
-					{
-						var nameOrder:Array = columns.getNames();
-						columns.requestObject("KeyColumn",KeyColumn, false);
-						columns.setNameOrder(nameOrder);
-					}
-				}
-				else
-				{
-					var keyCols:Array = columns.getNames(KeyColumn);
-					for each(var keyCol:String in keyCols)
-					{
-						columns.removeObject(keyCol);
-					}
-				}
-				
-			}
-			
 			public const lockedColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLockedColumnCount));
 			
 			private function verifyLockedColumnCount(value:Number):Boolean
@@ -675,31 +649,78 @@
 			}
 			private static const SCROLLBAR_WIDTH:int = 16;
 			
-			private static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
+			internal static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
 			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
+	<ui:editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Columns')}">
 			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show key column')}" change="handleKeyColumnCheckBox()"/>
-			<ui:ColumnListComponent id="dimensionsList" creationComplete="dimensionsList.hashMap = columns;"/>
+			<ui:ColumnListComponent id="dimensionsList" creationComplete="dimensionsList.hashMap = outerDocument.columns;"/>
 			<mx:HBox>
 				<mx:Label text="{lang('Number of locked columns')}"/>
-				<mx:NumericStepper id="numLockedColumns" minimum="0" 
-								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
+				<ui:CustomNumericStepper id="numLockedColumns" minimum="0"
+								   enabled="{outerDocument.maxLockedColumns > 0}"
+								   maximum="{outerDocument.maxLockedColumns}"
+								   creationComplete="linkBindableProperty(outerDocument.lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
 
-			<mx:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
+			<mx:Button label="{lang('Reset column widths')}" click="outerDocument.columnWidths.removeAllObjects()"/>
 
 			<mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable mouseover linking')}"/>
 			
 			<ui:Indent id="bgColorControls" label="{lang('Background colors')}">
-				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
-				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
-				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(outerDocument.backgroundColor1, event.target, 'selectedColor');"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(outerDocument.backgroundColor2, event.target, 'selectedColor');"/>
+				<mx:Button label="{lang('Reset')}" click="outerDocument.backgroundColor1.value = TableTool.DEFAULT_BACKGROUND_COLORS[0]; outerDocument.backgroundColor2.value = TableTool.DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 		</mx:VBox>
-		<editors:WindowSettingsEditor id="windowEditor" target="{this}" creationComplete="windowEditor.addChild(bgColorControls);"/>
-	</ui:ControlPanel>
+		<editors:WindowSettingsEditor id="windowEditor" target="{outerDocument}"/>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				import weave.data.AttributeColumns.KeyColumn;
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					linkBindableProperty(outerDocument.enableProbing, enableProbingCheckBox, "selected");
+
+					outerDocument.columns.childListCallbacks.addGroupedCallback(this, handleColumnsList, true);
+					
+					windowEditor.removeChild(windowEditor.backgroundColorIndent);
+					windowEditor.addChild(bgColorControls);
+				}
+				private function handleColumnsList():void
+				{
+					showKeyColumnCheckBox.selected = outerDocument.columns.getNames(KeyColumn).length > 0;
+				}
+				
+				private function handleKeyColumnCheckBox():void
+				{
+					if (showKeyColumnCheckBox.selected)
+					{
+						var kc:Array = outerDocument.columns.getObjects(KeyColumn);
+						if (kc.length == 0)
+						{
+							var nameOrder:Array = outerDocument.columns.getNames();
+							outerDocument.columns.requestObject("KeyColumn", KeyColumn, false);
+							outerDocument.columns.setNameOrder(nameOrder);
+						}
+					}
+					else
+					{
+						var keyCols:Array = outerDocument.columns.getNames(KeyColumn);
+						for each (var keyCol:String in keyCols)
+						{
+							outerDocument.columns.removeObject(keyCol);
+						}
+					}
+				}
+
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></ui:editorFactory>
 </ui:DraggablePanel>

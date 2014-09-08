@@ -144,9 +144,9 @@
 				title = lang('Control Panel');
 			}
 			
+			private var _children:Array = [];
 			public function set children(array:Array):void
 			{
-				initialize();
 				for each (var child:DisplayObject in array)
 				{
 					if (!(child as INavigatorContent))
@@ -157,7 +157,10 @@
 						box.addChild(child);
 						child = box;
 					}
-					controlPanelControls.tabNavigator.addChild(child);
+					if (createdChildren)
+						controlPanelControls.tabNavigator.addChild(child);
+					else
+						_children.push(child);
 				}
 			}
 			
@@ -238,10 +241,18 @@
 			 */
 			public function save():void
 			{
-				if (!_targetObjects && parent is ILinkableObject)
+				if (!_targetObjects)
 				{
-					targets = [parent]; // this calls save() again
-					return;
+					var target:ILinkableObject = sessionEditorTarget as ILinkableObject;
+					if (!target && this.hasOwnProperty(OUTER_DOCUMENT))
+						target = this[OUTER_DOCUMENT] as ILinkableObject;
+					if (!target)
+						target = parent as ILinkableObject
+					if (target)
+					{
+						targets = [target]; // this calls save() again
+						return;
+					}
 				}
 				if (tabNavigator)
 				{
@@ -317,6 +328,9 @@
 				{
 					controlPanelControls.tabNavigator.addChild(children[i]);
 				}
+				
+				while (_children.length)
+					controlPanelControls.tabNavigator.addChild(_children.shift());
 			}
 			
 			override protected function childrenCreated():void
@@ -405,12 +419,11 @@
 					editors[linkableObject] = editor;
 					
 					controlPanel = newDisposableChild(linkableObject, ControlPanel);
-					
-					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
-					
 					controlPanel.children = [editor];
 					controlPanel.title = controlPanel._defaultTitle = getControlPanelTitle(linkableObject);
 					controlPanel.sessionEditorTarget = linkableObject;
+					
+					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
 				}
 				
 				editorPanels[linkableObject] = controlPanel;

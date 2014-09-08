@@ -64,8 +64,7 @@
 		super.childrenCreated();
 		
 		SecondaryKeyNumColumn.secondaryKeyFilter.addGroupedCallback(this, handleSliderChange, true);
-		checkBox_useGlobalMinMax.visible = true;
-		checkBox_useGlobalMinMax.includeInLayout = true;
+		checkBox_useGlobalMinMax_show = true;
 	}
 
 	/**

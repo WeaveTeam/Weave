@@ -101,9 +101,9 @@ package weave.visualization.tools
 		private var visTitle:Paragraph; // For display of title inside the window area
 		protected var visCanvas:Canvas; // For linkDisplayObjects
 		private var _visualization:SimpleInteractiveVisualization;
-		protected var layersEditor:LayerListComponent;
-		protected var axesEditor:SimpleAxisEditor;
-		protected var windowEditor:WindowSettingsEditor;
+		internal var layersEditor:LayerListComponent;
+		internal var axesEditor:SimpleAxisEditor;
+		internal var windowEditor:WindowSettingsEditor;
 		
 		override protected function createChildren():void
 		{
@@ -137,6 +137,18 @@ package weave.visualization.tools
 				visCanvas.addChild(flexChildren[i]);
 			
 			this.addChild(toolVBox);
+		}
+		
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
+		}
+		
+		override protected function initControlPanel():void
+		{
+			super.initControlPanel();
 			
 			layersEditor = new LayerListComponent();
 			layersEditor.visualization = visualization;
@@ -150,16 +162,7 @@ package weave.visualization.tools
 			windowEditor.target = this;
 			
 			if (controlPanel)
-			{
 				controlPanel.children = [layersEditor, axesEditor, windowEditor];
-			}
-		}
-		
-		override protected function childrenCreated():void
-		{
-			super.childrenCreated();
-			
-			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
 		}
 		
 		private function handleBindableTitle(value:String):void

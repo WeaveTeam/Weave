@@ -1033,12 +1033,18 @@
 					<ui:CodeEditor id="cellColorFunctionEditor" creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
 				</mx:HBox>
 			</ui:CheckBoxWithNestedOptions>
-			<ui:Indent label="{lang('Background colors')}">
+			<ui:Indent id="bgColorControls" label="{lang('Background colors')}">
 				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
 				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
 				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 		</mx:VBox>
-		<editors:WindowSettingsEditor target="{this}"/>
+		<editors:WindowSettingsEditor id="windowEditor" target="{this}"/>
+		<ui:creationComplete>
+			<![CDATA[
+				windowEditor.removeChild(windowEditor.backgroundColorIndent);
+				windowEditor.addChild(bgColorControls);
+			]]>
+		</ui:creationComplete>
 	</ui:ControlPanel>
 </ui:DraggablePanel>
