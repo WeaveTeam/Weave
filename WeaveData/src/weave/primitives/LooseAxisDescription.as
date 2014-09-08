@@ -101,7 +101,7 @@ package weave.primitives
 				_axisMax = _tickMax + (.5 * _tickDelta);
 			}
 			
-			_numDigits = Math.max(-Math.floor(Math.log(_tickDelta) / Math.LN10), 0.0);
+			_numDigits = forceTickCount ? -1 : Math.max(-Math.floor(Math.log(_tickDelta) / Math.LN10), 0.0);
 		}
 		
 		public function get range():Number

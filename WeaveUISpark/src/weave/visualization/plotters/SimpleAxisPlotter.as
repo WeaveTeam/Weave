@@ -514,10 +514,9 @@ package weave.visualization.plotters
 			
 			var result:String = null;
 			// attempt to use label function
-			var labelFunctionResult:String = _labelFunction == null ? null : _labelFunction(tickValue);
-			if (_labelFunction != null && labelFunctionResult != null)
+			if (_labelFunction != null)
 			{
-				result = labelFunctionResult;
+				result = _labelFunction(tickValue);
 			}
 			else if (tickValue == minValue || tickValue == maxValue)
 			{
