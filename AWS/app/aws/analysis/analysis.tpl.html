@@ -102,7 +102,8 @@
 						
 						<div style="padding-bottom :7px"></div>
 						
-						<button class="btn btn-primary" 
+						<button class = "bttn" ng-class="{'validate': runService.isValidated}"
+								ng-model= "runService.isValidated"
 								style="width: 100%;"
 								ng-click="runService.run(true)" 
 								ng-controller="QueryHandlerCtrl">
