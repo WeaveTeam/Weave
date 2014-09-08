@@ -231,7 +231,7 @@ package
 			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
 			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
 			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
-			ClassUtils.registerDeprecatedClass("DataTableTool", AdvancedTableTool);
+			ClassUtils.registerDeprecatedClass("weave.visualization.tools::DataTableTool", AdvancedTableTool);
 		}();
 	}
 }
