@@ -5,24 +5,36 @@
 var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 
 var qh_module = angular.module('aws.QueryHandlerModule', []);
-var weavewindow;
+var weaveWindow;
 
-function waitForWeave(popup, callback)
-{
-    function checkWeaveReady() {
-        var weave = popup.document.getElementById('weave');
-        if (weave && weave.WeavePath) {
-    		weave.loadFile('minimal.xml', callback.bind(this, weave));
-        }
-        else
-            setTimeout(checkWeaveReady, 50);
-    }
-    checkWeaveReady();
-}
-
-qh_module.service('QueryHandlerService',  ['$q', '$rootScope', function($q, scope) {
+qh_module.service('QueryHandlerService', 
+		['$q', '$rootScope','queryService','WeaveService', '$window', function($q, scope, queryService, WeaveService, $window) {
 	
-	this.weaveWindow;
+	
+	//this.weaveWindow;
+	var scriptInputs = {};
+	var filters = {};
+	var scriptName = ""; 
+	//var queryObject = queryService.queryObject;
+	var nestedFilterRequest = {and : []};
+	
+	var that = this; // point to this for async responses
+	
+
+	this.waitForWeave = function(popup, callback)
+	{
+	    function checkWeaveReady() {
+	        var weave = popup.document.getElementById('weave');
+	        if (weave && weave.WeavePath) {
+	    		weave.loadFile('minimal.xml', callback.bind(this, weave));
+	        }
+	        else
+	            setTimeout(checkWeaveReady, 50);
+	    }
+	    checkWeaveReady();
+	};
+
+	
 	
 	/**
      * This function wraps the async aws runScript function into an angular defer/promise
@@ -42,23 +54,24 @@ qh_module.service('QueryHandlerService',  ['$q', '$rootScope', function($q, scop
         return deferred.promise;
     };
 	
-}]);
-
-qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService, WeaveService, $window) {
-	
-	var scriptInputs = {};
-	var filters = {};
-	var scriptName = ""; 
-	var queryObject = queryService.queryObject;
-	var nestedFilterRequest = {and : []};
-	
-	$scope.service = queryService;
-	
-	$scope.run = function() {
+	/**
+	 * this function processes the queryObject and makes the async call for running the script
+	 * @param runInRealTime this parameter serves as a flag which determines if the Weave JS Api should be run
+	 * automatically or for user to interact
+	 * true : user interaction required
+	 * false: no user interaction required, run automatically
+	 */
+	this.run = function(runInRealTime) {
+		//setting the query Object to be used for executing the query
+		var queryObject = queryService.queryObject;
+		
 		
 		for(var key in queryObject.scriptOptions) {
 			var input = queryObject.scriptOptions[key];
 			switch(typeof input) {
+				case 'object' :
+					scriptInputs[key] = input;
+					break;
 				case 'array': // array of columns
 					scriptInputs[key] = $.map(input, function(inputVal) {
 						return { id : JSON.parse(inputVal).id };
@@ -200,22 +213,59 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 		}
 		
 		scriptName = queryObject.scriptSelected;
-		
-		QueryHandlerService.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
-			if(!QueryHandlerService.weaveWindow || QueryHandlerService.weaveWindow.closed) {
-				QueryHandlerService.weaveWindow = $window.open("/weave.html?",
-						"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-			}
-			waitForWeave(QueryHandlerService.weaveWindow , function(weave) {
-				WeaveService.weave = weave;
-				console.log("weave", WeaveService.weave);
-				WeaveService.addCSVData(resultData.data);
-				console.log("resultData.data", resultData.data);
-				WeaveService.columnNames = resultData.data[0];
-				console.log("columns inweave", WeaveService.columnNames);
-				$scope.$apply();
-			});
+		// var stringifiedQO = JSON.stringify(queryObject);
+		// console.log("query", stringifiedQO);
+		// console.log(JSON.parse(stringifiedQO));
+
+		this.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
+			if(!angular.isUndefined(resultData.data))//only if something is returned open weave
+				{
+					if(!weaveWindow || weaveWindow.closed) {
+						weaveWindow = $window.open("/weave.html?",
+								"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+					}
+					that.waitForWeave(weaveWindow , function(weave) {
+						WeaveService.weave = weave;
+						WeaveService.addCSVData(resultData.data);
+						WeaveService.columnNames = resultData.data[0];
+						if(!runInRealTime)//if false
+						{
+							//check for the vizzies and make the required calls
+							if(queryObject.BarChartTool.enabled){
+								console.log("barchart tool enabled");
+								WeaveService.BarChartTool(queryObject.BarChartTool);
+							}
+							if(queryObject.DataTableTool.enabled){
+								console.log('dt tool enbaled');
+								WeaveService.DataTableTool(queryObject.DataTableTool);
+							}
+							if(queryObject.ScatterPlotTool.enabled){
+								console.log('scplot tool enabled');
+								WeaveService.ScatterPlotTool(queryObject.ScatterPlotTool);
+							}
+							if(queryObject.MapTool.enabled){
+								console.log('mp tool enabled');
+								WeaveService.MapTool(queryObject.MapTool);
+							}
+							if(queryObject.ColorColumn){
+								WeaveService.ColorColumn(queryObject.ColorColumn);
+							}
+						}
+						$scope.$apply();
+					});
+				}
 			
 		});
+		
 	};
+	
+	
+}]);
+
+qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService) {
+	
+	$scope.service = queryService;
+	$scope.runService = QueryHandlerService;
+	
+	
 });

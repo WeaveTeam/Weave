@@ -104,7 +104,7 @@
 						
 						<button class="btn btn-primary" 
 								style="width: 100%;"
-								ng-click="run()" 
+								ng-click="runService.run(true)" 
 								ng-controller="QueryHandlerCtrl">
 								 <span style="vertical-align: right">Run</span>
 						 </button>
@@ -202,7 +202,7 @@
 						<!-- <span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span> -->
 						Key Column:
 						<div style="width: 100%" class="master-select2-container">
-							<select style="width: 100%" ui-select2 ng-controller="ColorCtrl" ng-model="service.queryObject.keyColumn" ng-init="service.queryObject.keyColumn = 'fips'" data-placeholder="Choose Key Column">
+							<select style="width: 100%" ui-select2 ng-controller="ColorCtrl" ng-model="service.queryObject.keyColumn.name" data-placeholder="Choose Key Column">
 								<option></option>
 								<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 							</select>
@@ -221,7 +221,7 @@
 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a>
 						</div>
 						<div style="display: table ; width : 100%; padding-top : 5px">
-							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a>
+<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a> -->
 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a>
 <!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> -->
 						</div>

@@ -2,7 +2,7 @@
  * contains all the functions required for project management 
  */
 var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
-angular.module('aws.project').service('projectService', ['$q', '$rootScope', function($q, scope){
+angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'WeaveService', 'QueryHandlerService', function($q, scope, WeaveService, QueryHandlerService){
 	
 	var that = this;
 	this.data= {};
@@ -33,7 +33,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
 		
 		});
     };
-
+    
     /**
      * This function wraps the async aws getQueryObjectsInProject function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
@@ -47,7 +47,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
         			var countOfJsons = AWSQueryObjectCollection.length;
         			for(var i = 0; i < countOfJsons; i++)
         			{
-        				var singleObject = {};
+        				var singleObject= {};
         				singleObject.queryObject = JSON.parse(AWSQueryObjectCollection[i].finalQueryObject);
         				singleObject.queryObjectName = AWSQueryObjectCollection[i].queryObjectName;
         				singleObject.projectDescription = AWSQueryObjectCollection[i].projectDescription;
@@ -101,15 +101,17 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
    		if(!(angular.isUndefined(that.data.weaveSessionState))){
    		 if (!newWeave || newWeave.closed) {
 				newWeave = window
-						.open("aws/visualization/weave/weave.html",
+						.open("/weave.html?",
 								"abc",
 								"toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-				newWeave.setSession = that.data.weaveSessionState;
+				//WeaveService.setSessionHistory(that.data.weaveSessionState);
 			}
-   		 else{
-   			 newWeave.setSessionHistory(that.data.weaveSessionState);
-   		 }
-   		 newWeave.logvar = "Displaying Visualizations";
+   		 
+   		QueryHandlerService.waitForWeave(newWeave, function(weave) {
+			WeaveService.weave = weave;
+			WeaveService.setSessionHistory(that.data.weaveSessionState);
+		});
+   		 //newWeave.logvar = "Displaying Visualizations";
    		}
    		 
         	scope.$safeApply(function() {
@@ -173,6 +175,9 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', fun
 	       	
 	       	that.getListOfQueryObjects(projectName);//fetches new list
 	       	
+	       	//if the project contained only one QO which was deleted , retrive the new updated lists of projects
+	       	if(that.data.returnedQueryObjects.length == 0)
+	       		that.getListOfProjects();
 	       	
 	       	scope.$safeApply(function() {
 	               deferred.resolve(result);

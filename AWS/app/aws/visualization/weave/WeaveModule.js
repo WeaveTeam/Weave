@@ -1,5 +1,5 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
-AnalysisModule.service("WeaveService", function(queryService) {
+AnalysisModule.service("WeaveService", function() {
 	
 	this.weave;
 	var ws = this;
@@ -141,7 +141,6 @@ AnalysisModule.service("WeaveService", function(queryService) {
 	
 	
 	this.ColorColumn = function(state){
-		console.log("color", state);
 		if(state.column)
 			{
 				ws.weave.path('defaultColorDataColumn').setColumn(state.column, ws.dataSourceName);
@@ -149,10 +148,41 @@ AnalysisModule.service("WeaveService", function(queryService) {
 			}
 	};
 	
-	this.keyColName = function(keyColName) {
-		if(keyColName) {
+	this.keyColumnName = function(keyColumn) {
+		if(keyColumn.name) {
+			console.log("before making weave call", keyColumn.name);
+			ws.weave.setSessionState(['CSVDataSource'], {keyColName : keyColumn.name});
+		}
+		else
+		{
+			if(! angular.isUndefined(ws.weave))
 			ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
 		}
+	};
+	
+	this.getSessionState = function()
+	{
+		return ws.weave.path().getValue("\
+		        var e = new 'mx.utils.Base64Encoder'();\
+		        e.encodeBytes( Class('weave.Weave').createWeaveFileContent(true) );\
+		        return e.drain();\
+		    ");
+	};
+	
+	this.setSessionHistory = function(base64encodedstring)
+	{
+		ws.weave.path()
+		.vars({encoded: base64encodedstring})
+		.getValue("\
+	        var d = new 'mx.utils.Base64Decoder'();\
+			var decodedStuff = d.decode(encoded);\
+			var decodeBytes =  d.toByteArray();\
+	      Class('weave.Weave').loadWeaveFileContent(decodeBytes);\
+	    ");
+	};
+	
+	this.clearSessionState = function(){
+		ws.weave.path().state(['WeaveDataSource']);
 	};
 });
 

@@ -108,6 +108,11 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		WeaveService[tool.id](queryService.queryObject[tool.id]); // temporary because the watch is not triggered
 	};
 	
+	//clears the session state
+	$scope.clearSessionState = function(){
+		WeaveService.clearSessionState();
+	};
+	
 	$scope.$watch('queryService.queryObject.Indicator', function() {
 		if(queryService.queryObject.Indicator) {
 			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;

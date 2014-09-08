@@ -82,7 +82,7 @@ aws.bulkQueryService = function(url, method, queryIdToParams, resultsHandler)
 };
 
 
-QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
+QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', function($q, scope, WeaveService) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);
@@ -114,7 +114,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
 			MapTool : { enabled : false },
 			ScatterPlotTool : { enabled : false },
 			DataTableTool : { enabled : false },
-			ColorColumn : {column : ""}
+			ColorColumn : {column : ""},
+			keyColumn : {name : ""}
 	};    		
     
 	this.dataObject = {
@@ -206,28 +207,72 @@ QueryObject.service("queryService", ['$q', '$rootScope', function($q, scope) {
     };
     
     
-    this.getSessionState = function(){
-    	if(!(newWeaveWindow.closed)){
-    		var base64SessionState = newWeaveWindow.getSessionState();
-    		this.writeSessionState(base64SessionState);
+    this.getSessionState = function(params){
+    	if(!(weaveWindow.closed)){
+    		var base64SessionState = WeaveService.getSessionState();
+    		this.writeSessionState(base64SessionState, params);
     	}
     };
    
-    this.writeSessionState = function(base64String){
+    this.writeSessionState = function(base64String, params){
+    	var projectName;
+    	var userName = "Awesome User";
+    	var queryObjectTitles;
+    	var projectDescription;
+    	//params.queryObjectJsons = angular.toJson(this.queryObject);
     	
-    	var params = {};
-    	params.queryObjectJsons = angular.toJson(this.queryObject);
-    	params.projectName = "Other";
-    	params.userName = "Awesome User";
-    	params.projectDescription = "These query objects do not belong to any project";
-    	params.resultVisualizations = base64String;
-    	params.queryObjectTitles = this.queryObject.title;
+    	if(angular.isDefined(params.projectEntered))
+    		{
+	    		projectName = params.projectEntered;
+	    		projectDescription = "This project belongs to " + projectName;
+    		}
+    	else
+    		{
+	    		projectName = "Other";
+	    		projectDescription = "These query objects do not belong to any project"; 
+    		}
+    	if(angular.isDefined(params.queryTitleEntered)){
+    		queryObjectTitles = params.queryTitleEntered;
+    		this.queryObject.title = queryObjectTitles;
+    	}
+    	else
+    		 queryObjectTitles = this.queryObject.title;
     	
     	
-    	console.log("got it", base64String);
-    	aws.queryService(projectManagementURL, 'writeSessionState', params, function(result){
+    	var qo =this.queryObject;
+    	   	for(var key in qo.scriptOptions) {
+    	    		var input = qo.scriptOptions[key];
+    	    		//console.log(typeof input);
+    	    		switch(typeof input) {
+    	    			
+    	    			case 'string' :
+    	    				var inputVal = tryParseJSON(input);
+    	    				if(inputVal) {  // column input
+    	    					qo.scriptOptions[key] = inputVal;
+    	    				} else { // regular string
+    	    					qo.scriptOptions[key] = input;
+    	    				}
+    	    				break;
+    	    			
+    	    			default:
+    	    				console.log("unknown script input type");
+    	    		}
+    	    	}
+    	    	if (typeof(qo.Indicator) == 'string'){
+    	    		var inputVal = tryParseJSON(qo.Indicator);
+    				if(inputVal) {  // column input
+    					qo.Indicator = inputVal;
+    				} else { // regular string
+    					qo.Indicator = input;
+    				}
+    	    	}
+    	var queryObjectJsons = angular.toJson(qo);
+    	var resultVisualizations = base64String;
+    	
+    	
+    	aws.queryService(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
     		console.log("adding status", result);
-    		alert(params.queryObjectTitles + " has been added");
+    		alert(queryObjectTitles + " has been added");
     	});
     };
     

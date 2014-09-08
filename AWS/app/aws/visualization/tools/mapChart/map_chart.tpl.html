@@ -28,7 +28,7 @@
 	Select Label
 	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Layer">
 			<option></option>
-			<option value="{{output.param}}" ng-repeat="output in WeaveService.columnNames"> {{output.param}} </option>
+			<option value="{{output}}" ng-repeat="output in WeaveService.columnNames"> {{output}} </option>
 		</select>
 	</div>
 	

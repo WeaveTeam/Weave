@@ -1,6 +1,5 @@
 AnalysisModule.controller("ColorCtrl", function($scope, queryService, WeaveService){
 
-	console.log("reached color controller");
 	$scope.service = queryService;
 	$scope.WeaveService = WeaveService;
 	
