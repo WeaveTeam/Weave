@@ -57,14 +57,14 @@
 				<div class="well">
 					<table style="display:block">
 						<button class="file-nput-btn" style="float:left; width:25%" ng-click="refreshScripts()">Refresh</button>
-						<a class="btn" ng-hide="!savingMetadata"><i class="glyphicon glyphicon-refresh"></i>Saving</a>
+						<font color="{{statusColor}}">{{status}}</font>
 						<button class="file-nput-btn" style="float:right; width:25%" ng-click="saveChanges()">Save Changes</button>
 						<tr>
 							<td>
 								<b>Script:</b>
 							</td>
 							<td width="100%">
-								<input type="text" ng-model='selectedScript[0].Script' style="width:100%"/>
+								<input type="text" ng-model='selectedScript[0].Script' disabled style="width:100%"/>
 							</td>
 						</tr>
 						<tr>
@@ -81,19 +81,45 @@
 					</table>
 				</div>
 				
-				<div class="gridStyle" ng-grid="scriptMetadataGridOptions"></div>
-				
-				<br>
+				<div>
+					<div class="gridStyle" ng-show="!viewasjson" ng-grid="scriptMetadataGridOptions"></div>
+					<textarea style="width:821px; height:300px; resize:none" ng-show="viewasjson" ng-model='inputsAsString'></textarea>
+				</div>
 				<br>
 				<input type="button" value="Add" ng-click="addNewRow()">
     		    <input type="button" value="Delete" ng-click="removeRow()">
+    		    <input type="button" value="View as {{jsonbtn}}" ng-click="toggleJsonView()">
 				<br><br>
 
-				<div class ="well">
-					<h3> Script Content </h3>
-					<pre>{{scriptContent}}</pre>
+				<div class="well">
+					<h4 style="display:inline-block"> Script Content </h4>
+					<div class="btn-group btn-toggle" ng-click="toggleEdit()" style="position:absolute;display:inline-block;right:0; padding-right:30px">
+						<button ng-class="{'active btn-primary': editScript == true}" class="btn btn-default">
+										Edit
+						</button>
+						<button ng-class="{'active': editScript == false}" class="btn btn-default">
+									    &nbsp &nbsp
+						</button>
+					</div>
+					<div style="display:block;">
+						<pre ng-show="!editScript" style="width: 100%; height: 600px; resize:none; overflow: scroll">{{script.content}}</pre>
+						<textarea ng-show="editScript" ng-model="script.content"
+														style="width: 100%; 
+															   height: 600px; 
+															   resize:none; 
+															   overflow: scroll; 
+															   font-family:Monaco,Menlo,Consolas,'Courier New',monospace; 
+															   font-size: 10pt;
+															   padding:9.5px;
+															   margin:0 0 10px;
+															   border:1px;
+															   line-height: 1.428571429;
+															   border-radius: 4px;
+															   border: 1px solid #ccc;">
+								{{script.content}}
+						</textarea>
+					</div>
 				</div>
-			</div>
 		</div>
 	</div>
 </div>

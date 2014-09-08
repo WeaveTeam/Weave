@@ -3,59 +3,26 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 
 	  $scope.service = scriptManagerService;
 	  $scope.queryService = queryService;
+	  $scope.script = {};
 	  $scope.selectedScript = [];
 	  $scope.scriptMetadata = {};
+	  $scope.script.content = "";
 	  $scope.selectedRow = [];
-	  $scope.editMode = false;
+	  $scope.editScript = false;
+	  $scope.status = "";
+	  $scope.statusColor = "#3276B1";
+	  $scope.jsonbtn = "json";
 	  
-	  $scope.$watch('scriptMetadata', function () {
-	 // console.log($scope.scriptMetadata);
-	  }, true);
+	  $scope.inputsAsString = "";
 	  
-	  var refreshScripts = function () {
-		  scriptManagerService.getListOfRScripts().then(function(result) {
-			  $scope.rScripts = $.map(result, function(item) {
-				  return {Script : item};
-			  });
-		  });
-	  
-	      scriptManagerService.getListOfStataScripts().then(function(result) {
-	    	  $scope.stataScripts = $.map(result, function(item) {
-	    		  return {Script : item};
-	          });
-	      });
-	  };
-	  
-	  $scope.refreshScripts  = refreshScripts;
-	  
-	  refreshScripts();
-	  
-	  $scope.$on("refreshScripts", function() {
-		  refreshScripts();
-	  });
-	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
-		  
-		  if(newVal.length && newVal[0].Script) {
-			  scriptManagerService.getScriptMetadata(newVal[0].Script).then(function(result) {
-				  $scope.scriptMetadata.description = result.description;
-				  $scope.scriptMetadata.inputs = result.inputs;
-			  });
-			  
-			  scriptManagerService.getScript(newVal[0].Script).then(function(result) {
-				  $scope.scriptContent = result;
-			  });
-		  }
-      });
-	          
-	          
-      $scope.rScriptListOptions = {
-		  data: 'rScripts',
-		  columnDefs: [{field: 'Script', displayName: 'R Scripts'}],
-		  selectedItems: $scope.selectedScript,
-		  multiSelect: false,
-		  enableRowSelection: true
-      };
-      
+	  $scope.rScriptListOptions = {
+			  data: 'rScripts',
+			  columnDefs: [{field: 'Script', displayName: 'R Scripts'}],
+			  selectedItems: $scope.selectedScript,
+			  multiSelect: false,
+			  enableRowSelection: true
+	      };
+	      
 	  $scope.stataScriptListOptions = {
 			  data: 'stataScripts',
 			  columnDefs: [{field: 'Script', displayName: 'Stata Scripts'}],
@@ -81,6 +48,82 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
 	  $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
 	  
+	  
+	  var refreshScripts = function () {
+		  scriptManagerService.getListOfRScripts().then(function(result) {
+			  $scope.rScripts = $.map(result, function(item) {
+				  return {Script : item};
+			  });
+		  });
+	  
+	      scriptManagerService.getListOfStataScripts().then(function(result) {
+	    	  $scope.stataScripts = $.map(result, function(item) {
+	    		  return {Script : item};
+	          });
+	      });
+	  };
+	  
+	  $scope.refreshScripts  = refreshScripts;
+	  
+	  refreshScripts();
+	  
+	  $scope.$on("refreshScripts", function() {
+		  console.log("broadcast received");
+		  refreshScripts();
+	  });
+	  
+	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
+		  
+		  if(newVal.length && newVal[0].Script) {
+			  scriptManagerService.getScriptMetadata(newVal[0].Script).then(function(result) {
+				  $scope.scriptMetadata.description = result.description;
+				  $scope.scriptMetadata.inputs = result.inputs;
+			  });
+			  
+			  scriptManagerService.getScript(newVal[0].Script).then(function(result) {
+				  $scope.script.content = result;
+			  });
+		  }
+      });
+	  
+	  $scope.toggleEdit = function() {
+		$scope.editScript = !$scope.editScript;
+		
+		// every time editScript is turnOff, we should save the changes.
+		if(!$scope.editScript) {
+			if($scope.script.content && $scope.selectedScript[0].Script) {
+				scriptManagerService.saveScriptContent($scope.selectedScript[0].Script,  $scope.script.content).then(function (result) {
+					if(result) {
+						console.log("script modified successfully");
+					}
+				});
+			}
+		}
+	  };
+	  
+	  $scope.toggleJsonView = function() {
+		  $scope.viewasjson = !$scope.viewasjson;
+		  if($scope.jsonbtn == "json")
+		  {
+			$scope.jsonbtn = "grid";  
+		  } else {
+			  $scope.jsonbtn = "json";
+		  }
+	  };
+	  
+	  /*** two way binding ***/
+	  $scope.$watch('inputsAsString', function() {
+		  if($scope.inputsAsString) {
+			  $scope.scriptMetadata.inputs = angular.fromJson($scope.inputsAsString); 
+		  }
+	  });
+	  $scope.$watch('scriptMetadata.inputs', function () {
+		  if($scope.scriptMetadata.inputs) {
+			  $scope.inputsAsString = angular.toJson($scope.scriptMetadata.inputs); 
+		  }
+	  }, true);
+	  /***********************/
+	  
 	  $scope.addNewRow = function () {
 		 $scope.scriptMetadata.inputs.push({param: '...', type: ' ', columnType : ' ', options : ' ', description : '...'});
 	 };
@@ -99,7 +142,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 					console.log("script deleted successfully");
 			}
 			$scope.selectedScript[0].Script = "";
-			$scope.scriptContent = "";
+			$scope.script.content = "";
 			$scope.scriptMetadata = {};
 			refreshScripts();
 			});
@@ -109,11 +152,23 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 $scope.saveChanges = function () {
 		 if($scope.selectedScript[0])
 		 {
-			 scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata)).then(refreshScripts);
-			 scriptManagerService.saveScriptContent($scope.selectedScript[0].Script, $scope.scriptContent);
+			 scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata)).then(function(result) { 
+				 
+				 if(result) {
+					 refreshScripts();
+					 $scope.statusColor = "green";
+					 $scope.status = "Changes successful!";
+					 setTimeout(function() {
+						 $scope.status = "";
+						 $scope.$apply();
+					 }, 1000);
+				 } else {
+					 $scope.statusColor = "green";
+					 $scope.status = "Changes successful!";
+				 }
+			 });
 		 }
 	 };
-	 
 });
 scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, scriptManagerService, queryService) {
 	$scope.opts = {
@@ -135,7 +190,6 @@ scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, 
  .controller('AddScriptDialogInstanceCtrl', function ($rootScope, $scope, dialog, scriptManagerService) {
 	  
 	 $scope.fileName = "";
-	 $scope.scriptContent = "";
 	 $scope.metadata = "";
 	 $scope.step = 1;
 	 
