@@ -75,17 +75,14 @@ angular.module('aws.configure', ['aws.configure.metadata',
 
 // From Amith's UI
 app.controller('AWSController', function($scope, $route, $location) {
-	
 	$scope.$route = $route;
 	
-});
-//controller for the error log that is universal to all tabs
-app.controller('analystErrorLogCtrl', function($scope){
+	$scope.errorAside;
 	$scope.errorAside = {
 		title : "Error Log"	
 	};
-	
 });
+
 //var navbar_ctrl = function($scope, $route, $location) {
 //	$scope.$route = $route;
 //};
