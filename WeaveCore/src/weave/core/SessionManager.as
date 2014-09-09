@@ -259,6 +259,7 @@ package weave.core
 			}
 			else
 			{
+				var deprecatedLookup:Object = null;
 				if (object is ILinkableDynamicObject)
 				{
 					// do not show static object in tree
@@ -267,12 +268,14 @@ package weave.core
 				else if (object)
 				{
 					names = getLinkablePropertyNames(object);
+					var className:String = getQualifiedClassName(object);
+					deprecatedLookup = classNameToDeprecatedGetterLookup[className];
 				}
 				for each (var name:String in names)
 				{
 					if (object is ILinkableDynamicObject)
 						childObject = (object as ILinkableDynamicObject).internalObject;
-					else
+					else if (!deprecatedLookup[name])
 						childObject = object[name];
 					if (!childObject)
 						continue;
