@@ -1,59 +1,48 @@
-<div class= "modal-dialog">
-	<div class="modal-content" style="width:580px; height:600px">
-			<div class="modal-header">
-            	<h4 style="color: #3276B1">New Script Wizard</h4>
+<div style="right:50%;">
+	<div class="modal-header">
+          	<h4 style="color: #3276B1">New Script Wizard</h4>
+	</div>
+	
+	<div class="modal-body" style="width:578; height:438px">
+		<div ng-if="step==1">
+			Load local script or enter it below:
+			<br><label class='file-nput-btn' style="width:80px">Browse...<input id='scriptInput' fileread="scriptUploaded.script" class='file-upload' type='file' change="test()"/></label>
+			<br><br>Script Name:<input type="text" ng-model="scriptUploaded.script.filename" style="width:200px"> <font color="red">{{validText}}</font>
+			<br><br><textarea style="width: 100%; height: 300px; resize:none" ng-model="scriptUploaded.script.content">
+			</textarea>
+		</div>
+		
+		<div ng-if="step==2">
+			Load local metadata json or enter it below (Optional):
+			<br>
+			<label class='file-nput-btn' style="width:80px">Browse...<input id='scriptInput' fileread="scriptUploaded.metadata" class='file-upload' type='file' change="test()"/></label>
+			<br>
+			<br>
+			<textarea style="width: 100%; height: 300px; resize:none" ng-model="scriptUploaded.metadata.content">
+			</textarea>
+		</div>
+		
+		<div ng-if="step==3">
+			<div ng-if="uploadSuccessful == 'success'">
+				<font color="green">Script uploaded successfully!<br></font>
+				<b>Script: </b>{{scriptUploaded.script.filename}}<br>
+				<b>Description: </b> {{metadataUploaded.description}}<br><br>
+				<div class="gridStyle" ng-grid="scriptMetadataOptions" style="height:130px;"></div>
+				<pre style="height:220px; overflow:scroll">{{scriptUploaded.script.content}}</pre>				
 			</div>
-			
-			<div class="modal-body" style="width:578; height:438px">
-				<div ng-if="step==1">
-					Load local script:
-					<br>
-					<label class='file-nput-btn' style="width:80px">Choose...<input id='scriptInput' fileread="scriptUploaded.script" class='file-upload' type='file' change="test()"/></label>
- 					<br><input type="text" ng-model="scriptUploaded.script.filename" style="width:200px">
-					<br>
-					<b>OR</b> 
-					<br>
-					Paste your script below:
-					<br>
-					<textarea style="width: 100%; height: 300px; resize:none" ng-model="scriptUploaded.script.content">
-					</textarea>
-				</div>
-				
-				<div ng-if="step==2">
-					Load local metadata json (Optional):
-					<br>
-					<label class='file-nput-btn' style="width:80px">Choose...<input id='scriptInput' fileread="scriptUploaded.metadata" class='file-upload' type='file' change="test()"/></label>
-					<br>
-					<b>OR</b> 
-					<br>
-					Paste your json below:
-					<br>
-					<textarea style="width: 100%; height: 300px; resize:none" ng-model="scriptUploaded.metadata.content">
-					</textarea>
-				</div>
-				
-				<div ng-if="step==3">
-					<div ng-if="uploadSuccessful == 'success'">
-						<font color="green">Script uploaded successfully!<br></font>
-						<b>Script: </b>{{scriptUploaded.script.filename}}<br>
-						<b>Description: </b> {{metadataUploaded.description}}<br><br>
-						<div class="gridStyle" ng-grid="scriptMetadataOptions" style="height:130px;"></div>
-						<pre style="height:220px; overflow:scroll">{{scriptUploaded.script.content}}</pre>				
-					</div>
-					<div ng-if="uploadSuccessful == 'failure'">
-						<font color="red">Failed to upload the script, verify script name does not already exist.</font>
-					</div>
-				</div>
-				<div ng-if="step==3">
-					<div ng-if="uploadSuccessful == 'na'">
-					</div>
-				</div>
+			<div ng-if="uploadSuccessful == 'failure'">
+				<font color="red">Failed to upload the script, verify script name does not already exist.</font>
 			</div>
-			
-			<div class="modal-footer">
-  				<button ng-click="step = step-1" ng-disabled="step == 1" class="btn btn-primary">Back</button>
-  				<button ng-click="step = step+1" ng-disabled="step == 3" class="btn btn-primary">Next</button>
-  				<button ng-click="close()" class="btn btn-primary">Close</button>
+		</div>
+		<div ng-if="step==3">
+			<div ng-if="uploadSuccessful == 'na'">
 			</div>
+		</div>
+	</div>
+	
+	<div class="modal-footer">
+				<button ng-click="step = step-1" ng-disabled="step == 1" class="btn btn-primary">Back</button>
+				<button ng-click="step = step+1" ng-disabled="step == 3 || !isScriptValid" class="btn btn-primary">Next</button>
+				<button ng-click="close()" class="btn btn-primary">Close</button>
 	</div>
 </div>

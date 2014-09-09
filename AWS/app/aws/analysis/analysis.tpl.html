@@ -9,15 +9,14 @@
 					<h2>Indicator</h2>
 				</div>
 				<div  class="body">
-					<button style="min-width: 100%; width: 100%; border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
-					ng-model="queryService.queryObject.dataTable" 
-					data-html="1"  
-					ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id" 
-					placeholder="Select Datatable" 
-					bs-select
-					ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
-						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
-					</button>
+					<select
+						style="width:100%"
+						ng-model="queryService.queryObject.dataTable" 
+						ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id" 
+						placeholder="Select Datatable" 
+						ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
+						<option></option>
+					</select>
 					
 					
 					<div style="width: 100%; margin-top: 10px;">

@@ -64,7 +64,9 @@ app.run(['$rootScope', function($rootScope){
 		templateUrl : 'aws/outputView/outputViewManagementPanel.html',
 		controller : 'OutputViewManagementController',
 		activetab : 'output_view'
-	});
+	}).otherwise({
+        redirectTo: '/analysis'
+    });;
 });
 
 
