@@ -139,6 +139,7 @@ package weave.core
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
 		[Bindable] public var maxComputationTimePerFrame:uint = 100;
+		private var maxComputationTimePerFrame_noActivity:uint = 250;
 		
 		/**
 		 * @inheritDoc
@@ -267,7 +268,13 @@ package weave.core
 			if (maxComputationTimePerFrame == 0)
 				maxComputationTimePerFrame = 100;
 
-			var maxComputationTime:uint = eventManager.useDeactivatedFrameRate ? _deactivatedMaxComputationTimePerFrame : maxComputationTimePerFrame;
+			var maxComputationTime:uint;
+			if (eventManager.useDeactivatedFrameRate)
+				maxComputationTime = _deactivatedMaxComputationTimePerFrame;
+			else if (!eventManager.userActivity)
+				maxComputationTime = maxComputationTimePerFrame_noActivity;
+			else
+				maxComputationTime = maxComputationTimePerFrame;
 			if (!eventManager.event)
 			{
 				reportError("StageUtils.handleCallLater(): _event is null. This should never happen.");
@@ -348,6 +355,8 @@ package weave.core
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
 			if (eventManager.useDeactivatedFrameRate)
 				pAlloc = pAlloc * _deactivatedMaxComputationTimePerFrame / maxComputationTimePerFrame;
+			else if (!eventManager.userActivity)
+				pAlloc = pAlloc * maxComputationTimePerFrame_noActivity / maxComputationTimePerFrame;
 			var pStop:int = Math.min(allStop, pStart + pAlloc - _activePriorityElapsedTime); // continue where we left off
 			queue = _priorityCallLaterQueues[_activePriority] as Array;
 			countdown = queue.length;
@@ -387,6 +396,8 @@ package weave.core
 					pAlloc = int(_priorityAllocatedTimes[_activePriority]);
 					if (eventManager.useDeactivatedFrameRate)
 						pAlloc = pAlloc * _deactivatedMaxComputationTimePerFrame / maxComputationTimePerFrame;
+					else if (!eventManager.userActivity)
+						pAlloc = pAlloc * maxComputationTimePerFrame_noActivity / maxComputationTimePerFrame;
 					pStop = Math.min(allStop, pStart + pAlloc);
 					queue = _priorityCallLaterQueues[_activePriority] as Array;
 					countdown = queue.length;
@@ -703,6 +714,7 @@ internal class EventManager
 	public var altKey:Boolean = false;
 	public var ctrlKey:Boolean = false;
 	public var mouseButtonDown:Boolean = false;
+	public var userActivity:int = 0; // greater than 0 when there was user activity since the last frame.
 	public var currentFrameStartTime:int = getTimer(); // this is the result of getTimer() on the last ENTER_FRAME event.
 	public var previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
 	public var pointClicked:Boolean = false;
@@ -846,6 +858,8 @@ internal class EventCallbackCollection extends CallbackCollection
 		
 		if (eventType == Event.ENTER_FRAME)
 		{
+			if (eventManager.userActivity > 0 && !eventManager.mouseButtonDown)
+				eventManager.userActivity--;
 			eventManager.previousFrameElapsedTime = eventManager.eventTime - eventManager.currentFrameStartTime;
 			eventManager.currentFrameStartTime = eventManager.eventTime;
 			eventManager.triggeredThrottledMouseThisFrame = false;
@@ -861,6 +875,7 @@ internal class EventCallbackCollection extends CallbackCollection
 		var keyboardEvent:KeyboardEvent = event as KeyboardEvent;
 		if (keyboardEvent)
 		{
+			eventManager.userActivity = 2;
 			eventManager.altKey = keyboardEvent.altKey;
 			eventManager.shiftKey = keyboardEvent.shiftKey;
 			eventManager.ctrlKey = keyboardEvent.ctrlKey;
@@ -877,6 +892,7 @@ internal class EventCallbackCollection extends CallbackCollection
 			if (isNaN(mouseEvent.stageX))
 				return; // do nothing when coords are undefined
 			
+			eventManager.userActivity = 2;
 			eventManager.altKey = mouseEvent.altKey;
 			eventManager.shiftKey = mouseEvent.shiftKey;
 			eventManager.ctrlKey = mouseEvent.ctrlKey;
