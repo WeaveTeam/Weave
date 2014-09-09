@@ -112,7 +112,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 					finalResult.data = results;//setting the data(actual result)
 				}
 			else
-				finalResult.logs = logs.toArray(finalResult.logs);
+				finalResult.logs = logs.toArray(new String[logs.size()]);
 		}
 
 		return finalResult;
