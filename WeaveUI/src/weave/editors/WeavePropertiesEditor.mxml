@@ -58,7 +58,7 @@
 		
 		<mx:VBox width="100%">
 			<ui:Indent label="{lang('Max computation time per frame')}">
-				<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="200" stepSize="10"/>
+				<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="300" stepSize="10"/>
 			</ui:Indent>
 			
 			<mx:Label text="{lang('Asynchronous task time allocation (milliseconds):')}"/>
