@@ -79,7 +79,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 			if (evalValue.inherits("try-error"))//handling errors when script fails
 			{
 				System.out.println("Error: " + evalValue.asString());
-				logs.add("Error in script " + evalValue.asString());
+				logs.add("Error in script :: " + evalValue.asString());
 				//finalResult.logs = logs.toArray(finalResult.logs);//if logs set the logs
 				
 			}
