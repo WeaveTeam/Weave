@@ -258,7 +258,6 @@ package weave
 			return toggle;
 		}
 
-		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolProbe:LinkableBoolean = new LinkableBoolean(true);
@@ -576,7 +575,8 @@ package weave
 		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void { showProbeToolTipEditor.value = value; }
-		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void { enablePanelCoordsPercentageMode.value = value; }
+		[Deprecated(replacement="windowSnapGridSize")] public function set enableToolAutoResizeAndPosition(value:Boolean):void { if (!value) windowSnapGridSize.value = value ? '1%' : '1'; }
+		[Deprecated(replacement="windowSnapGridSize")] public function set enablePanelCoordsPercentageMode(value:Boolean):void { if (!value) windowSnapGridSize.value = value ? '1%' : '1'; }
 		[Deprecated(replacement="rServiceURL")] public function set rServicesURL(value:String):void
 		{
 			if (value != '/OpenIndicatorsRServices')

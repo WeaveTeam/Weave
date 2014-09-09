@@ -23,7 +23,7 @@
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				backgroundColor="0xCCCCCC"
 				addedToStage="handleAddedToStage();"
-				sessionPanelCoordsAsPercentages="false"
+				enablePercentageCoords="false"
 				layout="vertical"
 				showBusyIndicator="false"
 				escapeKeyClosesPanel="true"

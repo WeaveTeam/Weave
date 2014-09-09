@@ -25,7 +25,7 @@
 	xmlns:ui="weave.ui.*"
 	backgroundColor="#EFF4BC"
 	escapeKeyClosesPanel="true"
-	sessionPanelCoordsAsPercentages="false"
+	enablePercentageCoords="false"
 	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*">
 	<mx:HDividedBox initialize="UIUtils.pad(event, padding, 100, 100)">
 		<mx:VBox height="100%">

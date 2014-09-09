@@ -32,7 +32,7 @@
 		borderColor="#939178"
 		borderThicknessLeft="{padding}" borderThicknessRight="{padding}"
 		roundedBottomCorners="true"
-		sessionPanelCoordsAsPercentages="false"
+		enablePercentageCoords="false"
 		escapeKeyClosesPanel="true"
 		>
 

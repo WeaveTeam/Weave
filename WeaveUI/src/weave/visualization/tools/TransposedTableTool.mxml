@@ -216,7 +216,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var columnWidth:Number = (table.columns[event.columnIndex] as DataGridColumn).width;
 				var target:LinkableString = (event.columnIndex == 0) ? headerColumnWidth : dataColumnWidth;
-				if (sessionPanelCoordsAsPercentages)
+				if (enablePercentageCoords)
 					target.value = String(columnWidth / unscaledWidth * 100) + '%';
 				else
 					target.value = String(columnWidth);
