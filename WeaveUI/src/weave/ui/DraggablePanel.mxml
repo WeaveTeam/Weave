@@ -47,6 +47,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -72,6 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.CallbackCollection;
@@ -163,6 +166,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _mouseRolledOver:Boolean = false;
 			private var _controlPanel:ControlPanel = null;
+			private var _editorFactory:IFactory = null;
 			private var buttonSize:int = 17;
 			private var buttonOffsetFromSide:int = 5;
 			private var spaceBetweenButtons:Number = 2;
@@ -170,7 +174,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
 			private var minimizedComponentVersion:MinimizedComponent = null;
 			
-			public function get controlPanel():ControlPanel { return _controlPanel; }
+			public function get controlPanel():ControlPanel
+			{
+				return _controlPanel;
+			}
+			public function set editorFactory(factory:IFactory):void
+			{
+				_editorFactory = factory;
+			}
 
 			/**
 			 *  This method is called when a UIComponent is constructed,
@@ -293,26 +304,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					if (getChildAt(i) is ControlPanel)
 					{
+						trace(StandardLib.substitute("Warning ({0}): Defining a ControlPanel as a child slows startup. Instead, use the editorFactory setter in DraggablePanel.", getQualifiedClassName(this).split("::").pop()));
 						_controlPanel = registerDisposableChild(this, getChildAt(i) as ControlPanel);
 						removeChild(_controlPanel);
 						break;
 					}
-				}
-				
-				if (!_controlPanel && WeaveAPI.EditorManager.getEditorClass(this))
-				{
-					_controlPanel = newDisposableChild(this, ControlPanel);
-					var editor:UIComponent = WeaveAPI.EditorManager.getNewEditor(this) as UIComponent;
-					addChild(_controlPanel);
-					removeChild(_controlPanel);
-					_controlPanel.tabNavigator.addChild(editor);
-				}
-				
-				if (_controlPanel)
-				{
-					_controlPanel.title = _controlPanel._defaultTitle = ControlPanel.getControlPanelTitle(this);
-					_controlPanel.enableSubMenu.value = true;
-					_controlPanel.sessionEditorTarget = this;
 				}
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
@@ -1194,8 +1190,55 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			protected var _controlPanelInitialized:Boolean = false;
+			
+			/**
+			 * This function is called once to initialize the controlPanel.
+			 * Override this function to add additional control panel initialization code.
+			 * Remeber to call super.initControlPanel() first.
+			 */
+			protected function initControlPanel():void
+			{
+				if (!_controlPanel && _editorFactory)
+				{
+					var component:Object = registerDisposableChild(this, _editorFactory.newInstance());
+					if (component is ControlPanel)
+					{
+						if (component.hasOwnProperty(OUTER_DOCUMENT))
+							component[OUTER_DOCUMENT] = this;
+						if (component is ILinkableObjectEditor)
+							(component as ILinkableObjectEditor).setTarget(this);
+						_controlPanel = component as ControlPanel;
+					}
+					//TODO handle other cases
+				}
+				
+				if (!_controlPanel && WeaveAPI.EditorManager.getEditorClass(this))
+				{
+					_controlPanel = newDisposableChild(this, ControlPanel);
+					var editor:UIComponent = WeaveAPI.EditorManager.getNewEditor(this) as UIComponent;
+					addChild(_controlPanel);
+					removeChild(_controlPanel);
+					_controlPanel.tabNavigator.addChild(editor);
+				}
+				
+				if (_controlPanel)
+				{
+					_controlPanel.title = _controlPanel._defaultTitle = ControlPanel.getControlPanelTitle(this);
+					_controlPanel.enableSubMenu.value = true;
+					_controlPanel.sessionEditorTarget = this;
+					_controlPanel.targets = [this];
+				}
+			}
+			
 			public function toggleControlPanel():void
 			{
+				if (!_controlPanelInitialized)
+				{
+					_controlPanelInitialized = true;
+					initControlPanel();
+				}
+
 				if (_controlPanel)
 				{
 					if (!_controlPanel.parent)
@@ -1346,7 +1389,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// left side
 				buttons = [userControlButton, subMenuButton, attributeButton];
 				conditions = [
-					Weave.properties.enableToolControls.value && _controlPanel,
+					Weave.properties.enableToolControls.value
+						&& (_controlPanel || _editorFactory || WeaveAPI.EditorManager.getEditorClass(this)),
 					enableSubMenu.value,
 					shouldShowAttributeButton
 				];
@@ -1771,6 +1815,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dist += increment;
 				}
 			}
+			
+			internal static const OUTER_DOCUMENT:String = 'outerDocument';
 			
 			/**
 			 * Embedded cursors

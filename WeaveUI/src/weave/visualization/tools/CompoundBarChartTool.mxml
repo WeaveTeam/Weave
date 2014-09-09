@@ -27,6 +27,8 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.CheckBox;
+			
 			import weave.Weave;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
@@ -34,10 +36,12 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
+			import weave.api.unlinkSessionState;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
@@ -46,6 +50,7 @@
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DynamicColumnComponent;
+			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.CompoundBarChartPlotter;
@@ -56,12 +61,11 @@
 			/**
 			 * When this is set to true, labels for all bars will be shown.
 			 */
-			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxisLabels, true);
-			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), sizeAxisTickCountRequestedChanged, true);
+			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const heightAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+			public const heightAxisForceTickCount:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
 			public const linkHeightAndColorColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
-			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
-			
 			
 			private var _plotter:CompoundBarChartPlotter = null;
 			private var _showYAxisLabels:Boolean = false;
@@ -112,121 +116,26 @@
 
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(true); });
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(false); });
-				
-				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
-				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
 			override public function initSelectableAttributes(input:Array):void
 			{
 				ColumnUtils.initSelectableAttributes([_plotter.sortColumn, _plotter.heightColumns], input);
 			}
-
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
-				
-				cRampEditor.colorRamp = _plotter.chartColors;
-				linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
-				linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
-				linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
-				linkBindableProperty(_plotter.groupingMode, groupMode, 'selectedValue', 0); // this must be done after creationComplete because the RadioButtonGroup hasn't been initialized until then.
-				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
-				_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
-				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
-				
-				linkBindableProperty(attributesToIncludeInProbe, probeChecklist, "selection");
-			}
 			
 			public function get heightColumns():ILinkableHashMap { return _plotter.heightColumns; }
 			public function get chartColors():ColorRamp { return _plotter.chartColors; }
 			
 			public function get plotter():CompoundBarChartPlotter {return _plotter;}
+			
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, null, null), handleAttributesToIncludeInProbe, true);
+			private function handleAttributesToIncludeInProbe():void
+			{
+				visualization.additionalProbeColumns = SelectableAttributesCheckBoxList.getSelectedAttributeColumns(this, attributesToIncludeInProbe);
+			}
 			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
 			{
-				handleSelectAllAttrInProbe(value);
-			}
-			
-			private function handleSelectAllAttrInProbe(setAll:Boolean):void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var valuesToSet:Array = [];
-				if(setAll)
-				{
-					for each (var name:String in attributes)
-					{
-						valuesToSet.push(true);
-					}
-				}
-				else
-				{
-					for each (var name2:String in attributes)
-					{
-						valuesToSet.push(false);
-					}
-				}
-				attributesToIncludeInProbe.setSessionState(valuesToSet);
-			}
-			
-			private function updateProbeColumns():void
-			{
-				if (!parent)
-				{
-					callLater(updateProbeColumns);
-					return;
-				}
-				/* first check to see if select all should be disabled or not */
-				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-
-				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
-					probeColumnsCheckBox.selected = true;
-				
-				var attributes:Array = getSelectableAttributes();
-				var columns:Array = [];
-				
-				//check if height columns should be added in probe
-				var heightColIndex:int = attributes.indexOf(_plotter.heightColumns);
-				var heightColumns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
-				
-				var posErrColumns:Array = _plotter.positiveErrorColumns.getObjects(IAttributeColumn);
-				var negErrColumns:Array = _plotter.negativeErrorColumns.getObjects(IAttributeColumn);
-				
-				var posErrColIndex:int = attributes.indexOf(_plotter.positiveErrorColumns);
-				var negErrColIndex:int = attributes.indexOf(_plotter.negativeErrorColumns);
-				
-				for (var i:int = 0; i < heightColumns.length; i++)
-				{
-					if(attrToIncludeCheckList[heightColIndex])
-						columns.push(heightColumns[i]);
-					
-					//check if positive and negative error should be added in probe for each height column
-					if (posErrColumns.length > i && attrToIncludeCheckList[posErrColIndex])
-						columns.push(posErrColumns[i]);
-					
-					if (negErrColumns.length > i && attrToIncludeCheckList[negErrColIndex])
-						columns.push(negErrColumns[i]);
-				}
-				
-				//check if color column should be added in probe
-				var colorColIndex:int = attributes.indexOf(_plotter.colorColumn);
-				if(attrToIncludeCheckList[colorColIndex])
-					columns.unshift(ColumnUtils.hack_findInternalDynamicColumn(_plotter.colorColumn));
-				
-				//check if label column should be added in probe
-				var labelColIndex:int = attributes.indexOf(_plotter.labelColumn);
-				if(attrToIncludeCheckList[labelColIndex])
-					columns.unshift(_plotter.labelColumn);
-				//check if sort column should be added in probe
-				var sortColIndex:int = attributes.indexOf(_plotter.sortColumn);
-				if(attrToIncludeCheckList[sortColIndex])
-					columns.unshift(_plotter.sortColumn);
-				
-				visualization.additionalProbeColumns = columns;
-			}
-			
-			private function numberToString(value:Number):String
-			{
-				return value.toString();
+				attributesToIncludeInProbe.setSessionState(value ? getSelectableAttributeNames() : []);
 			}
 			
  			private function handleAxisClick(isXAxis:Boolean):void
@@ -243,14 +152,6 @@
 				for (var i:int = 0; i < columns.length; i++)
 					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
 				return lang("Bar Chart of {0}", columns.join(lang(', ')));
-			}
-			
-			private var sizeAxisTickChange:Boolean = false;
-			
-			private function sizeAxisTickCountRequestedChanged():void
-			{
-				sizeAxisTickChange = true;
-				updateAxisLabels();
 			}
 			
 			private function updateAxisLabels():void
@@ -308,22 +209,21 @@
 				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction, _plotter.sortColumn);
 				heightAxis.setLabelFunction(heightAxisLabelFunction, heightColumns[0]);
 				
+				unlinkSessionState(heightAxisForceTickCount, sortAxis.forceTickCount);
+				unlinkSessionState(heightAxisTickCountRequested, sortAxis.tickCountRequested);
+				unlinkSessionState(showAllLabels, heightAxis.forceTickCount);
+				
 				// height axis uses automatic min,max based on data
 				heightAxis.tickMinValue.value = NaN;
 				heightAxis.tickMaxValue.value = NaN;
-				heightAxis.forceTickCount.value = false;
-				if( sizeAxisTickChange )
-					heightAxis.tickCountRequested.value = sizeAxisTickCountRequested.value;
-				else
-					sizeAxisTickCountRequested.value = heightAxis.tickCountRequested.value;
+				linkSessionState(heightAxisForceTickCount, heightAxis.forceTickCount);
+				linkSessionState(heightAxisTickCountRequested, heightAxis.tickCountRequested);
 				heightAxis.showLabels.value = true;
-				
-				sizeAxisTickChange = false;
 
 				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
 				sortAxis.tickMinValue.value = 0;
 				sortAxis.tickMaxValue.value = _plotter.maxTickMarks - 1;
-				sortAxis.forceTickCount.value = showAllLabels.value;
+				linkSessionState(showAllLabels, sortAxis.forceTickCount);
 				if (showAllLabels.value)
 					sortAxis.tickCountRequested.value = _plotter.maxTickMarks;
 				else
@@ -405,51 +305,18 @@
 				}
 			}
 			
-			private function updateInteractivity():void
-			{
-				if (!parent)
-					return callLater(updateInteractivity);
-				var _heightColumns:Array = _plotter.heightColumns.getObjects();
-				
-				if (_heightColumns.length > 1)
-				{
-					cRampEditor.enabled = true;
-					groupMode.enabled = true;
-					colorColumnInput.enabled = false;
-				}
-				else
-				{
-					cRampEditor.enabled = false;
-					groupMode.enabled = false;
-					colorColumnInput.enabled = true;
-				}
-			}
-			
-			private const groupCheckDisabledToolTip:String = lang('There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.');
-			private const groupCheckEnabledToolTip:String = lang('Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.');
-			
 			public function createLegend():void
 			{
 				var barChartLegendTool:BarChartLegendTool = Weave.root.requestObject(null, BarChartLegendTool, false);
 				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(this);
 			}
 			
-			private function showValueLabelsCheckBox_changeHandler():void
-			{
-				if (showValueLabelsCheckBox.selected)
-				{
-					if ((stackedRadioButton.enabled && stackedRadioButton.selected)|| (percentStackedRadioButton.enabled && percentStackedRadioButton.selected))
-						_plotter.valueLabelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_CENTER;
-					else
-						_plotter.valueLabelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
-				}
-			}
-			
 			// backwards compatibility
 			[Deprecated] public function set labelColumn(value:Object):void { setSessionState(_plotter.labelColumn, value); }
+			[Deprecated] public function set sizeAxisTickCountRequested(value:Number):void { heightAxisTickCountRequested.value = value; }
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
+	<editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Basic')}">
 			<ui:DynamicColumnComponent id="colorColumnInput" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).columnWrapper = _plotter.colorColumn"
 									   toolTip="{lang('Color column selection is enabled when only a single column is in the list below.')}" showLinkControl="false"/>
@@ -470,13 +337,13 @@
 				<ui:ColumnListComponent creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</ui:CustomTabNavigator>
 			<mx:HBox>
-				<ui:CustomCheckBox label="{lang('Link Height and Sort Column')}" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
-				<ui:CustomCheckBox label="{lang('Link Height and Color Column')}" creationComplete="linkBindableProperty(linkHeightAndColorColumns, event.target, 'selected');"/>
+				<ui:CustomCheckBox label="{lang('Link Height and Sort Column')}" creationComplete="linkBindableProperty(outerDocument.linkHeightAndSortColumns, event.target, 'selected');"/>
+				<ui:CustomCheckBox label="{lang('Link Height and Color Column')}" creationComplete="linkBindableProperty(outerDocument.linkHeightAndColorColumns, event.target, 'selected');"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="{lang('Labeling')}">
-			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
-			<ui:CustomCheckBox label="{lang('Show all axis labels')}" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
+			<mx:Button label="{lang('Show legend')}" click="outerDocument.createLegend()"/>
+			<ui:CustomCheckBox label="{lang('Show all axis labels')}" creationComplete="linkBindableProperty(outerDocument.showAllLabels, event.target, 'selected');"/>
 			<mx:HBox width="100%">
 				<mx:VBox width="100%">
 					<ui:CustomCheckBox label="{lang('Show bar labels')}" id="labelsChkBx"
@@ -571,10 +438,66 @@
 			<ui:ColorRampEditor id="cRampEditor" toolTip="{lang('The color ramp can only be set when more than one height column is specified.')}"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Mouseover info')}">
-			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-										  change="if (UIUtils.hasFocus(probeColumnsCheckBox)) handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
-				<ui:CheckBoxList id="probeChecklist" translate="true" dataProvider="{getSelectableAttributeNames()}" />
-			</ui:CheckBoxWithNestedOptions>
+			<ui:SelectableAttributesCheckBoxList id="selectedAttrList" creationComplete="selectedAttrList.setup(outerDocument, outerDocument.attributesToIncludeInProbe)"/>
 		</mx:VBox>
-	</ui:ControlPanel>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.getCallbackCollection;
+				import weave.api.linkBindableProperty;
+				import weave.core.UIUtils;
+				import weave.utils.BitmapText;
+				import weave.visualization.plotters.CompoundBarChartPlotter;
+				
+				private function get _plotter():CompoundBarChartPlotter { return outerDocument.plotter; }
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					cRampEditor.colorRamp = _plotter.chartColors;
+					linkBindableProperty(_plotter.horizontalMode, horizontalCheckBox, "selected");
+					linkBindableProperty(_plotter.barSpacing, barSpacingSlider, "value");
+					linkBindableProperty(_plotter.showValueLabels, showValueLabelsCheckBox, "selected");
+					linkBindableProperty(_plotter.groupingMode, groupMode, 'selectedValue', 0); // this must be done after creationComplete because the RadioButtonGroup hasn't been initialized until then.
+					_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
+					_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
+					getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
+				}
+
+				private function updateInteractivity():void
+				{
+					if (!parent)
+						return callLater(updateInteractivity);
+					var _heightColumns:Array = _plotter.heightColumns.getObjects();
+					
+					if (_heightColumns.length > 1)
+					{
+						cRampEditor.enabled = true;
+						groupMode.enabled = true;
+						colorColumnInput.enabled = false;
+					}
+					else
+					{
+						cRampEditor.enabled = false;
+						groupMode.enabled = false;
+						colorColumnInput.enabled = true;
+					}
+				}
+				
+				private const groupCheckDisabledToolTip:String = lang('There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.');
+				private const groupCheckEnabledToolTip:String = lang('Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.');
+				
+				private function showValueLabelsCheckBox_changeHandler():void
+				{
+					if (showValueLabelsCheckBox.selected)
+					{
+						if ((stackedRadioButton.enabled && stackedRadioButton.selected)|| (percentStackedRadioButton.enabled && percentStackedRadioButton.selected))
+							_plotter.valueLabelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_CENTER;
+						else
+							_plotter.valueLabelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
+					}
+				}
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

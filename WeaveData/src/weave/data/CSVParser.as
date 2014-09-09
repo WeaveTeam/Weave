@@ -95,7 +95,8 @@ package weave.data
 			{
 				this.csvData = csvData;
 				this.csvDataArray = [];
-				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, parseDone);
+				// high priority because preparing data is often the first thing we need to do
+				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_HIGH, parseDone);
 			}
 			else
 			{

@@ -90,6 +90,7 @@ package weave.data.KeySets
 		private var _dependencies:ICallbackCollection = newDisposableChild(this, CallbackCollection);
 		private var _keySet:IKeySet;
 		private var _compare:Function;
+		// Note: not using newLinkableChild for _asyncSort because we do not trigger if sorting does not affect order
 		private var _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		private var _sortedKeys:Array = [];
 		private var _prevSortedKeys:Array = [];
@@ -109,6 +110,7 @@ package weave.data.KeySets
 		
 		private function _handleSorted():void
 		{
+			// only trigger callbacks if sorting changes order
 			if (StandardLib.arrayCompare(_prevSortedKeys, _sortedKeys) != 0)
 				getCallbackCollection(this).triggerCallbacks();
 		}
@@ -128,8 +130,10 @@ package weave.data.KeySets
 
 import mx.utils.ObjectUtil;
 
+import weave.api.core.ILinkableObject;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IQualifiedKey;
+import weave.api.getCallbackCollection;
 import weave.data.QKeyManager;
 
 internal class KeyComparator
@@ -138,12 +142,15 @@ internal class KeyComparator
 	{
 		this.columns = columns.concat();
 		this.n = columns.length;
-		this.sortDirections = sortDirections ? sortDirections.concat() : [];
-		this.sortDirections.length = columns.length;
+		if (sortDirections)
+		{
+			this.sortDirections = sortDirections.concat();
+			this.sortDirections.length = columns.length;
+		}
 		
 		// when any of the columns are disposed, disable the compare function
-		for each (var column:IAttributeColumn in columns)
-			column.addDisposeCallback(null, dispose);
+		for each (var obj:ILinkableObject in columns)
+			getCallbackCollection(obj).addDisposeCallback(null, dispose);
 	}
 	
 	private var columns:Array;
@@ -155,14 +162,14 @@ internal class KeyComparator
 		for (var i:int = 0; i < n; i++)
 		{
 			var column:IAttributeColumn = columns[i] as IAttributeColumn;
-			if (!column || !sortDirections[0])
+			if (!column || (sortDirections && !sortDirections[i]))
 				continue;
 			var value1:* = column.getValueFromKey(key1, Number);
 			var value2:* = column.getValueFromKey(key2, Number);
 			var result:int = ObjectUtil.numericCompare(value1, value2);
 			if (result != 0)
 			{
-				if (sortDirections[i] < 0)
+				if (sortDirections && sortDirections[i] < 0)
 					return -result;
 				return result;
 			}

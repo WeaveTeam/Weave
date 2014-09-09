@@ -46,22 +46,25 @@
 				pm.marginBottom.value = '50';
 				pm.zoomBounds.setDataBounds(new Bounds2D(-1, -1, 1, 1));
 			}
-			
-			override protected function createChildren():void
-			{
-				if (createdChildren)
-					return;
-				super.createChildren();
-				
-				controlPanel.initialize();
-				controlPanel.tabNavigator.removeChild(axesEditor);
-				LayerListComponent; // work around compile error
-				layersEditor.addChildAt(axesEditor.titleControls, 0);
-				layersEditor.addChild(axesEditor.marginProperties);
-			}
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
-
-	</ui:ControlPanel>
+	<editorFactory>
+		<mx:Component>
+			<ui:ControlPanel>
+				<mx:Script>
+					<![CDATA[
+						import weave.editors.managers.LayerListComponent;
+						override protected function childrenCreated():void
+						{
+							super.childrenCreated();
+							this.tabNavigator.removeChild(outerDocument.axesEditor);
+							LayerListComponent; // work around compile error
+							outerDocument.layersEditor.addChildAt(outerDocument.axesEditor.titleControls, 0);
+							outerDocument.layersEditor.addChild(outerDocument.axesEditor.marginProperties);
+						}
+					]]>
+				</mx:Script>
+			</ui:ControlPanel>
+		</mx:Component>
+	</editorFactory>
 </SimpleVisTool>

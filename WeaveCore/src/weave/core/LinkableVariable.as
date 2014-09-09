@@ -56,12 +56,12 @@ package weave.core
 		/**
 		 * Cannot be modified externally because it is not returned by getSessionState()
 		 */
-		protected var _sessionStateInternal:* = null;
+		protected var _sessionStateInternal:* = undefined;
 		
 		/**
 		 * Available externally via getSessionState()
 		 */
-		protected var _sessionStateExternal:* = null;
+		protected var _sessionStateExternal:* = undefined;
 		
 		/**
 		 * This is set to true when lock() is called.
@@ -94,14 +94,17 @@ package weave.core
 			
 			_verifier = verifier;
 			
-			if (!sessionStateEquals(defaultValue))
+			if (defaultValue !== undefined)
 			{
 				setSessionState(defaultValue);
 				
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+				{
+					// immediate priority because we want it to trigger as soon as possible.
+					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				}
 			}
 		}
 		

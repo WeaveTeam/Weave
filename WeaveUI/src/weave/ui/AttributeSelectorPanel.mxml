@@ -43,7 +43,7 @@
 				<mx:Spacer width="100%"/>
 				<mx:Button
 					label="{lang('Select all')}"
-					click="editor.explorer.fileView.selectedItems = VectorUtils.getArrayFromCollection(editor.explorer.fileView.dataProvider as ICollectionView)"
+					click="editor.explorer.fileView.selectedItems = VectorUtils.getArrayFromCollection(editor.explorer.fileView.dataProvider as ICollectionView).reverse()"
 					enabled="{editor.explorer.fileView.dataProvider.length > 0}"/>
 				<mx:Button label="{lang('Add selected')}" click="addSelected()" enabled="{editor.explorer.fileView.selectedItem}"/>
 			</mx:HBox>
@@ -55,14 +55,14 @@
 			import mx.collections.ICollectionView;
 			import mx.controls.Label;
 			
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableDescendants;
 			import weave.api.getLinkableOwner;
+			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IObjectWithSelectableAttributes;
 			import weave.compiler.StandardLib;
@@ -75,14 +75,19 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
 			
+			/**
+			 * Used as a dummy target for the editor so it will try to find a node in the hierarchy.
+			 */
+			private const localDynamicColumn:DynamicColumn = newDisposableChild(this, DynamicColumn);
+			
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
 				
 				subMenuButton.data = WeaveMenuItem.createItems([
 					{
-						label: lang("New data source"),
-						children: DataMenu.getDynamicItems as Function
+						label: lang("Manage data sources"),
+						click: function():void { DraggablePanel.openStaticInstance(DataSourceManager); }
 					},
 					subMenuButton.data
 				]);
@@ -203,7 +208,10 @@
 				_linkedObject = columnOrHashMap;
 				_overrideOwner = owner;
 				
-				editor.setTarget(ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
+				var target:DynamicColumn = columnOrHashMap is IColumnWrapper
+					? ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper)
+					: localDynamicColumn;
+				editor.setTarget(target);
 				columnList.hashMap = columnOrHashMap as ILinkableHashMap;
 				
 				editor.explorer.fileView.allowMultipleSelection = !!columnList.hashMap;
@@ -227,23 +235,19 @@
 						title = lang(DEFAULT_TITLE);
 				}
 				
-				if (columnList.hashMap)
+				if (target == localDynamicColumn)
 				{
 					// copy the session state from the first ReferencedColumn we find.
-					var columns:Array = columnList.hashMap.getObjects(IAttributeColumn);
-					for each (var column:IAttributeColumn in columns)
-					{
-						if (column is DynamicColumn)
-							column = (column as DynamicColumn).getInternalColumn();
-						if (column is ReferencedColumn)
-						{
-							copySessionState(column, editor.referencedColumn);
-							break;
-						}
-					}
-					
-					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
+					var descendants:Array = getLinkableDescendants(columnOrHashMap, ReferencedColumn);
+					if (!descendants.length && tool)
+						descendants = getLinkableDescendants(tool);
+					if (!descendants.length)
+						descendants = getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn);
+					if (descendants.length)
+						localDynamicColumn.requestLocalObjectCopy(descendants[0] as ReferencedColumn);
 				}
+				
+				columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
 			}
 			
 			override public function removePanel():void

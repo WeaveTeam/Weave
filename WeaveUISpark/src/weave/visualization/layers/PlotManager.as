@@ -23,6 +23,7 @@ package weave.visualization.layers
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.Graphics;
+	import flash.display.PixelSnapping;
 	import flash.display.Shape;
 	import flash.events.Event;
 	import flash.filters.GlowFilter;
@@ -105,7 +106,7 @@ package weave.visualization.layers
 
 			return _bitmap;
 		}
-		private const _bitmap:Bitmap = new Bitmap(null, 'auto', true);
+		private const _bitmap:Bitmap = new Bitmap(null, PixelSnapping.ALWAYS, false);
 		
 		public const plotters:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));
 		public const layerSettings:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LayerSettings));

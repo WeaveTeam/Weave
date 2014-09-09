@@ -57,7 +57,7 @@
 							{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
 							WeaveMenuItem.TYPE_SEPARATOR,
 							{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
-						];"/>
+						];" doubleClickEnabled="true" doubleClick="openSettingsPanel()"/>
 						<mx:Script>
 							<![CDATA[
 								import mx.core.UIComponent;
@@ -203,7 +203,7 @@
 	<mx:CheckBox label="{lang('Enable zoom and pan')}"
 				 creationComplete="linkBindableProperty(_visTool.visualization.enableZoomAndPan, event.target, 'selected');"/>
 	-->
-	<ui:Indent label="{lang('Override auto zoom:')}">
+	<ui:Indent label="{overrideZoomLabel}">
 		<ui:TextInputWithPrompt id="overrideXMin" prompt="{lang('xMin')}" width="100%"/>
 		<mx:VBox width="100%">
 			<ui:TextInputWithPrompt id="overrideYMax" prompt="{lang('yMax')}" width="100%"/>
@@ -237,6 +237,7 @@
 				return !ac || !ac.length;
 			}
 			
+			[Bindable] private var overrideZoomLabel:String;
 			[Bindable] internal var _visualization:Visualization = null;
 			public const controller:VariableListController = newDisposableChild(this, VariableListController);
 			
@@ -259,6 +260,12 @@
 			{
 				_visualization = value;
 				controller.hashMap = _visualization.plotManager.plotters;
+				_visualization.plotManager.enableAutoZoomToExtent.addGroupedCallback(this, function():void {
+					if (_visualization.plotManager.enableAutoZoomToExtent.value)
+						overrideZoomLabel = lang("Override auto zoom:");
+					else
+						overrideZoomLabel = lang("Override full extent:");
+				}, true);
 			}
 			public function get visualization():Visualization
 			{

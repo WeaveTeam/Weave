@@ -96,11 +96,17 @@ package weave.ui.CustomDataGrid
 			return c ? super.columnWordWrap(c) : false;
 		}
 		
+		/**
+		 * Set this to true to use an internal ISort implementation that does not sort.
+		 * Use this option if you plan to sort externally but still want the column headers to indicate the sorting direction.
+		 */
+		public var useNoSort:Boolean = false;
+		
 		private function headerReleaseHandler(event:DataGridEvent):void
 		{
 			var c:DataGridColumn = columns[event.columnIndex];
-			if (c.sortable && !(collection.sort is CustomSort))
-				collection.sort = new CustomSort(collection.sort);
+			if (c.sortable && !(collection.sort is (useNoSort ? NoSort : CustomSort)))
+				collection.sort = useNoSort ? new NoSort() : new CustomSort(collection.sort);
 		}
 		
 		public function drawItemForced(item:Object,
@@ -272,4 +278,43 @@ package weave.ui.CustomDataGrid
 			return rows;
 		}
 	}
+}
+
+import mx.collections.ISort;
+import mx.collections.ISortField;
+
+/**
+ * Does no sorting whatsoever.
+ */
+internal class NoSort implements ISort
+{
+	private var _fields:Array = [];
+	public function get fields():Array
+	{
+		return _fields;
+	}
+	public 	function set fields(value:Array):void
+	{
+		_fields = value;
+	}
+	public function reverse():void
+	{
+		for each (var sortField:ISortField in _fields)
+			sortField.reverse();
+	}
+	
+	private var _unique:Boolean = false;
+	public function get unique():Boolean { return _unique; }
+	public function set unique(value:Boolean):void { _unique = value; }
+	
+	private var _compareFunction:Function;
+	public function get compareFunction():Function { return _compareFunction; }
+	public function set compareFunction(value:Function):void { _compareFunction = value;}
+	
+	public function findItem(items:Array, values:Object, mode:String, returnInsertionIndex:Boolean = false, compareFunction:Function = null):int
+	{
+		return -1;
+	}
+	public function propertyAffectsSort(property:String):Boolean { return false; }
+	public function sort(items:Array):void { }
 }

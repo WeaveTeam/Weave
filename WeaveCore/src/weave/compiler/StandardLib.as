@@ -549,7 +549,10 @@ package weave.compiler
 			
 			var values:Array = [];
 			
-			range = getNiceNumber(max - min, false);
+			// Bug fix: getNiceNumbersInRange(0, 500, 6) returned [0,200,400] when it could be [0,100,200,300,400,500]
+			// Was: range = getNiceNumber(max - min, false);
+			range = max - min;
+			
 			d = getNiceNumber( range / (numberOfValuesInRange - 1), true);
 			graphmin = Math.floor(min / d) * d;
 			graphmax = Math.ceil(max / d) * d;

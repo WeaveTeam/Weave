@@ -40,12 +40,14 @@
 			import mx.core.Container;
 			
 			import weave.api.data.IDataSource;
+			import weave.api.data.IDataSource_File;
 			import weave.api.disposeObject;
 			import weave.api.newDisposableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IDataSourceEditor;
 			import weave.core.ClassUtils;
 			import weave.core.UIUtils;
+			import weave.menus.SessionMenu;
 
 			override protected function inConstructor():void
 			{
@@ -97,9 +99,19 @@
 				var ds:IDataSource = _editor.createDataSource();
 				if (ds)
 				{
+					removePanel();
+					
+					// if this is the only data source and it's a file, try to initialize as a template
+					var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource_File);
+					if (sources.length == 1 && sources[0] == ds)
+					{
+						if (SessionMenu.initTemplate(ds as IDataSource_File))
+							return;
+					}
+					
+					// otherwise, open the DataSourceManager
 					var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager);
 					dsm.browse(ds);
-					removePanel();
 				}
 			}
 			

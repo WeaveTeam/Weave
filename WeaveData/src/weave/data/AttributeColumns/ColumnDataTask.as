@@ -69,7 +69,8 @@ package weave.data.AttributeColumns
 			uniqueKeys = [];
 			arrayData = new Dictionary();
 			
-			WeaveAPI.StageUtils.startTask(parentColumn, iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, callback);
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(parentColumn, iterate, WeaveAPI.TASK_PRIORITY_HIGH, callback);
 		}
 		
 		private var parentColumn:IAttributeColumn;

@@ -84,7 +84,7 @@
 			
 			override public function initSelectableAttributes(input:Array):void
 			{
-				input.forEach(function(item:Object, i:int, a:Array):void {
+				input.slice(0,10).forEach(function(item:Object, i:int, a:Array):void {
 					ColumnUtils.initSelectableAttribute(_plotter.columns, item, i == 0);
 				});
 			}

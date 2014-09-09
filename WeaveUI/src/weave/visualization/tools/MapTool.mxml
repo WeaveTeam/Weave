@@ -28,6 +28,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			import mx.core.IUIComponent;
 			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
@@ -75,10 +76,6 @@
 			import weave.visualization.plotters.WMSPlotter;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, MapTool, "Map");
-			
-			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
-			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
-			private const visibleScaleController:VariableListController = newDisposableChild(this, VariableListController);
 			
 			override protected function inConstructor():void
 			{
@@ -132,7 +129,7 @@
 			 */
 			public const projectionSRS:LinkableString = registerLinkableChild(this, new LinkableString(null, projectionVerifier));
 			// this function returns true if the projection SRS code is acceptable
-			private function projectionVerifier(srs:String):Boolean
+			internal function projectionVerifier(srs:String):Boolean
 			{
 				// allow no projection
 				if (srs == null || srs == '')
@@ -144,7 +141,7 @@
 			
 			// the keys in this Dictionary are LinkableStrings that have been linked to projectionSRS.
 			private var _linkedProjectionVariablesLookup:Dictionary = new Dictionary(true);
-			[Bindable] private var _projComboBoxData:Array = [];
+			[Bindable] internal var _projComboBoxData:Array = [];
 			
 			/**
 			 * This function links the MapTool.projectionSRS variable with another LinkableString.
@@ -181,7 +178,7 @@
 				if (WeaveAPI.ProjectionManager.projectionExists(ourSRS))
 				{
 					_projComboBoxData.push(ourSRS);
-					projComboBox.selectedItem = ourSRS; 
+					projComboBox_selectedItem = ourSRS;
 				}
 				
 				var projString:String;
@@ -262,20 +259,12 @@
 				return lang("Map");
 			}
 			
-			override protected function createChildren():void
+			override protected function initControlPanel():void
 			{
-				if (createdChildren)
-					return;
-				
-				super.createChildren();
+				super.initControlPanel();
 				
 				WindowSettingsEditor; // work around compiler error
 				SimpleAxisEditor;
-				
-//				var backgroundImageCheck:CheckBox = new CheckBox();
-//				backgroundImageCheck.label = lang("Ocean background");
-//				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-//				windowEditor.addChild(backgroundImageCheck);
 				
 				windowEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(e:Event):* {
 					if (windowEditor.titleControls.parent)
@@ -316,9 +305,6 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 				
 				initSelectionSubMenu();
-				
-				visibleScaleController.view = visibleScaleRangesList;
-				visibleScaleController.hashMap = visualization.plotManager.layerSettings
 			}
 			
 			private var selectionSubMenu:SubMenu;
@@ -404,13 +390,13 @@
 				if (zoomSlider)
 				{
 					currentlyUpdatingZoomSlider = true;
-					scaleRangeTabZoomSlider.value = zoomSlider.value = visualization.getZoomLevel();
+					scaleRangeTabZoomSlider_value = zoomSlider.value = visualization.getZoomLevel();
 					currentlyUpdatingZoomSlider = false;
 				}
 			}
 			private var currentlyUpdatingZoomSlider:Boolean = false;
 			
-			private function handleZoomSliderChange(event:Event):void
+			internal function handleZoomSliderChange(event:Event):void
 			{
 				if (!currentlyUpdatingZoomSlider)
 					visualization.setZoomLevel(event.currentTarget.value);
@@ -531,12 +517,12 @@
 				return null;
 			}
 			
-			private function addGeomLayer():void
+			internal function addGeomLayer():void
 			{
 				LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter);
 			}
 			
-			private function addLabelLayer():void
+			internal function addLabelLayer():void
 			{
 				// get existing layers before they change
 				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
@@ -572,7 +558,7 @@
 				}
 			}
 			
-			private function addBubbleLayer():void
+			internal function addBubbleLayer():void
 			{
 				// get existing layers before they change
 				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
@@ -601,7 +587,7 @@
 				}
 			}
 			
-			private function addRelationLayer():void
+			internal function addRelationLayer():void
 			{
 				// get existing layers before they change
 				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
@@ -625,7 +611,7 @@
 					}
 				}
 			}
-			private function addWMSLayer():void
+			internal function addWMSLayer():void
 			{
 				var oldLayerNames:Array = visualization.plotManager.plotters.getNames();
 
@@ -642,7 +628,7 @@
 			{
 				// update center coordinates text boxes
 				visualization.plotManager.zoomBounds.getDataBounds(_tempBounds);
-				centerCoords.text = lang(
+				centerCoords_text = lang(
 					"{x: {0}, y: {1}}",
 					StandardLib.roundSignificant(_tempBounds.getXCenter(), 6),
 					StandardLib.roundSignificant(_tempBounds.getYCenter(), 6)
@@ -693,33 +679,13 @@
 			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
-			private const _tempArray:Array = [];
-			
-			private function handleProjectionComboChange():void
-			{
-				if (UIUtils.hasFocus(projComboBox))
-				{
-					// clear all layer visibility settings because they are no longer valid in the new projection
-					visualization.plotManager.layerSettings.delayCallbacks();
-					for each (var settings:LayerSettings in visualization.plotManager.layerSettings.getObjects())
-					{
-						settings.minVisibleScale.value = 0;
-						settings.maxVisibleScale.value = Infinity;
-					}
-					visualization.plotManager.layerSettings.resumeCallbacks();
-				}
-				if (projectionVerifier(projComboBox.text))
-				{
-					projValidLabel.text = lang('Valid');
-					projComboBox.errorString = '';
-				}
-				else
-				{
-					projValidLabel.text = lang('Invalid');
-					projComboBox.errorString = lang('Unknown projection');
-				}
-			}
-			
+			private const TOP_LEFT:String = "Top left";
+			private const TOP_RIGHT:String = "Top right";
+			private const BOTTOM_LEFT:String = "Bottom left";
+			private const BOTTOM_RIGHT:String = "Bottom right";
+			internal const zoomControlsLocationsList:Array = [TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT];
+			public const zoomControlsLocation:LinkableString = registerLinkableChild(this, new LinkableString(TOP_LEFT, verifyZoomControlsLocation), handleLocationChange, true);
+			private function verifyZoomControlsLocation(value:String):Boolean { return zoomControlsLocationsList.indexOf(value) >= 0; }
 			public function handleLocationChange():void 
 			{
 				if (!parent)
@@ -728,38 +694,18 @@
 					return;
 				}
 				
-				mapControls.right = NaN;
-				mapControls.bottom = NaN;
-				mapControls.left = NaN;
-				mapControls.top = NaN;
-				switch (maptoolsLocation.value)
-				{
-					case 0:
-						mapControls.top = 0;
-						mapControls.left = 0;
-						break;
-					case 1:
-						mapControls.top = 0;
-						mapControls.right = 0;
-						break;
-					case 2:
-						mapControls.bottom = 0;
-						mapControls.left = 0;
-						break;
-					case 3:
-						mapControls.bottom = 0;
-						mapControls.right = 0;
-						break;
-				}
+				// need to set all to NaN first because we can't set both top and bottom to 0, for example.
+				mapControls.left = mapControls.right = mapControls.top = mapControls.bottom = NaN;
+				var pos:String = zoomControlsLocation.value;
+				if (pos == TOP_LEFT || pos == BOTTOM_LEFT)
+					mapControls.left = 0;
+				if (pos == TOP_RIGHT || pos == BOTTOM_RIGHT)
+					mapControls.right = 0;
+				if (pos == TOP_LEFT || pos == TOP_RIGHT)
+					mapControls.top = 0;
+				if (pos == BOTTOM_LEFT || pos == BOTTOM_RIGHT)
+					mapControls.bottom = 0;
 			}	
-			
-			private function locationChange():void
-			{
-				var index:int = maptoolLocationCombo.selectedIndex;
-				if (index >= locationsList.length)
-					return;
-				maptoolsLocation.value = index;
-			}
 			
 			public const zoomSliderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 			
@@ -780,21 +726,20 @@
 			// BACKWARDS COMPATIBILITY
 			[Deprecated(replacement="zoomSliderHeight")] public function set sizeFactorOfMapControls(value:Number):void { zoomSliderHeight.value *= value; }
 			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.plotManager.zoomToSelection; }
+			[Deprecated(replacement="zoomControlsLocation")] public function set maptoolsLocation(value:int):void { zoomControlsLocation.value = zoomControlsLocationsList[value]; }
 		]]>
 	</mx:Script>
 
 	<mx:VBox id="mapControls"
-			 	visible="{enableZoomToggle.selected}"
-			 	includeInLayout="{enableZoomToggle.selected}"
-				horizontalAlign="center"
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				initialize="UIUtils.pad(event, 4)"
-				verticalGap="4"
-				backgroundColor="white" backgroundAlpha="0.01">
+			creationComplete="UIUtils.linkVisibility(this, visualization.enableZoomAndPan, event.target)"
+			horizontalAlign="center"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off"
+			initialize="UIUtils.pad(event, 4)"
+			verticalGap="4"
+			backgroundColor="white" backgroundAlpha="0.01">
 		
 		<mx:VBox id="panControls" horizontalAlign="center" verticalGap="1"
-				 visible="{zoomControlsToggle.selected}"
-				 includeInLayout="{zoomControlsToggle.selected}">
+				 creationComplete="UIUtils.linkVisibility(this, showZoomControls, event.target)">
 			<mx:Button id="north"
 						label="N"
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -839,10 +784,9 @@
 						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"/>
 		</mx:VBox>
 		
-		<mx:VBox verticalGap="2"
+		<mx:VBox creationComplete="UIUtils.linkVisibility(this, showZoomControls, event.target)"
+				 verticalGap="2"
 				 initialize="UIUtils.pad(event, 2)"
-				 includeInLayout="{zoomControlsToggle.selected}"
-				 visible="{zoomControlsToggle.selected}"
 				 backgroundColor="white" backgroundAlpha="0.85" borderStyle="outset">
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
@@ -871,10 +815,10 @@
 					cornerRadius="0" textAlign="center"/>
 		</mx:VBox>
 		
-		<mx:HBox id="mouseModeBox" horizontalGap="1"
+		<mx:HBox id="mouseModeBox"
+				 creationComplete="UIUtils.linkVisibility(this, showMouseModeControls, event.target)"
+				 horizontalGap="1"
 				 verticalAlign="top"
-				 includeInLayout="{mouseModeControlsToggle.selected}"
-				 visible="{mouseModeControlsToggle.selected}"
 				 backgroundColor="white" backgroundAlpha="0.01"
 				 alpha="1"> 
 			<mx:Button id="panModeButton" 
@@ -934,66 +878,70 @@
 		</mx:HBox>
 	</mx:VBox>
 
-	<ui:ControlPanel>
+	<editorFactory><mx:Component><ui:ControlPanel>
 		<ui:creationComplete>
-			layerControls.addChild(layersEditor);
-			layersEditor.addChildAt(layerButtons, 0);
-			layersEditor.removeChild(layersEditor.layerButtons);
-			layersEditor.visible = true;
-			layersEditor.labelFunction = getPlotterLabel;
+			layerControls.addChild(outerDocument.layersEditor);
+			outerDocument.layersEditor.addChildAt(layerButtons, 0);
+			outerDocument.layersEditor.removeChild(outerDocument.layersEditor.layerButtons);
+			outerDocument.layersEditor.visible = true;
+			outerDocument.layersEditor.labelFunction = outerDocument.getPlotterLabel;
 		</ui:creationComplete>
 		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
 			<ui:Indent id="layerButtons" grouped="false" label="Add a layer:" translate="true" horizontalGap="4">
-				<mx:Button label="{lang('Base Map')}" click="addWMSLayer();" toolTip="{lang('Add an image layer underneath the geometries')}"/>
-				<mx:Button label="{lang('Geometry')}" click="addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
-				<mx:Button label="{lang('Labels')}" click="addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
-				<mx:Button label="{lang('Bubbles')}" click="addBubbleLayer();" toolTip="{lang('Add bubbles to the selected geometry layer')}"/>
-				<ui:MenuButton id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListComponent.initAddLayerButton(addLayerButton, visualization)"/>
+				<mx:Button label="{lang('Base Map')}" click="outerDocument.addWMSLayer();" toolTip="{lang('Add an image layer underneath the geometries')}"/>
+				<mx:Button label="{lang('Geometry')}" click="outerDocument.addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
+				<mx:Button label="{lang('Labels')}" click="outerDocument.addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
+				<mx:Button label="{lang('Bubbles')}" click="outerDocument.addBubbleLayer();" toolTip="{lang('Add bubbles to the selected geometry layer')}"/>
+				<ui:MenuButton id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListComponent.initAddLayerButton(addLayerButton, outerDocument.visualization)"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
 			<ui:Indent label="Projection" translate="true">
 				<ui:CustomComboBox id="projComboBox"
-								   dataProvider="{_projComboBoxData}"
-								   creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
+								   dataProvider="{outerDocument._projComboBoxData}"
+								   creationComplete="linkBindableProperty(outerDocument.projectionSRS, event.target, 'text');"
 								   change="handleProjectionComboChange();"
-								   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
+								   selectedItem="{outerDocument.projComboBox_selectedItem}"
+								   focusOut="projComboBox.selectedItem = outerDocument.projectionSRS.value; projValidLabel.text = '';"
 								   editable="true"
 								   width="120"
 								   />
 				<mx:Label id="projValidLabel" fontWeight="bold"/>
 			</ui:Indent> 
-			<mx:Button label="{lang('Zoom to full extent')}" click="visualization.zoomToSelection()"/>
+			<mx:Button label="{lang('Zoom to full extent')}" click="outerDocument.visualization.zoomToSelection()"/>
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
-			<ui:CheckBoxWithNestedOptions id="enableZoomToggle" label="{lang('Enable panning and zooming')}"
-						 creationComplete="linkBindableProperty(visualization.enableZoomAndPan, event.target, 'selected')">
-				<ui:CheckBoxWithNestedOptions id="zoomControlsToggle" label="{lang('Show zoom slider &amp; buttons')}"
-							 creationComplete="linkBindableProperty(showZoomControls, event.target, 'selected')">
+						 creationComplete="linkBindableProperty(outerDocument.includeToolAttributesInProbe, event.target, 'selected')"/>
+			<ui:CheckBoxWithNestedOptions id="enableZoomAndPanToggle" label="{lang('Enable panning and zooming')}"
+						creationComplete="linkBindableProperty(outerDocument.visualization.enableZoomAndPan, event.target, 'selected')">
+				<ui:CheckBoxWithNestedOptions id="showZoomControlsToggle" label="{lang('Show zoom slider &amp; buttons')}"
+						creationComplete="linkBindableProperty(outerDocument.showZoomControls, event.target, 'selected')">
 					<ui:Indent label="Zoom slider height" translate="true">
-						<mx:NumericStepper minimum="40" maximum="200" stepSize="20" creationComplete="linkBindableProperty(zoomSliderHeight, event.target, 'value')"/>
+						<mx:NumericStepper minimum="40" maximum="200" stepSize="20" creationComplete="linkBindableProperty(outerDocument.zoomSliderHeight, event.target, 'value')"/>
 					</ui:Indent>
 				</ui:CheckBoxWithNestedOptions>
-				<mx:CheckBox id="mouseModeControlsToggle" label="{lang('Show mouse mode buttons')}"
-							 creationComplete="linkBindableProperty(showMouseModeControls, event.target, 'selected')"/>
+				<mx:CheckBox id="showMouseModeControlsToggle" label="{lang('Show mouse mode buttons')}"
+							 creationComplete="linkBindableProperty(outerDocument.showMouseModeControls, event.target, 'selected')"/>
 				<ui:Indent label="{lang('Zoom controls location')}" translate="true" grouped="false"
-						   visible="{mouseModeControlsToggle.selected || zoomControlsToggle.selected}"
-						   includeInLayout="{mouseModeControlsToggle.selected || zoomControlsToggle.selected}">
-					<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
+						   visible="{showMouseModeControlsToggle.selected || showZoomControlsToggle.selected}"
+						   includeInLayout="{showMouseModeControlsToggle.selected || showZoomControlsToggle.selected}">
+					<ui:CustomComboBox id="zoomControlsLocationCombo"
+									   dataProvider="{outerDocument.zoomControlsLocationsList}"
+									   change="outerDocument.zoomControlsLocation.value = zoomControlsLocationCombo.selectedItem as String;"
+									   creationComplete="zoomControlsLocationCombo.labelFunction = lang;"/>
 				</ui:Indent>
 				<ui:Indent label="Zoom range" translate="true">
-					<mx:NumericStepper minimum="-100" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'maximum')"/>
+					<mx:NumericStepper minimum="-100" stepSize="1" creationComplete="linkBindableProperty(outerDocument.visualization.plotManager.minZoomLevel, event.target, 'value'); linkBindableProperty(outerDocument.visualization.plotManager.maxZoomLevel, event.target, 'maximum')"/>
 					<mx:Label text="to"/>
-					<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
+					<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(outerDocument.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(outerDocument.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
 				</ui:Indent>
 				<ui:Indent label="Zoom factor" translate="true">
-					<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
+					<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(outerDocument.visualization.zoomFactor, event.target, 'value')"/>
 					<ui:HelpComponent>
 						Used for zoom +/- buttons, mouse wheel, and double-click.
 					</ui:HelpComponent>
 				</ui:Indent>
 				<mx:HBox>
-					<ui:CustomCheckBox label="{lang('Snap zoom level to base map')}" creationComplete="linkBindableProperty(zoomToBaseMap, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Snap zoom level to base map')}" creationComplete="linkBindableProperty(outerDocument.zoomToBaseMap, event.target, 'selected')"/>
 					<ui:HelpComponent>
 						This option will make sure the zoom level matches the base map so the map image looks crisp as intended.
 						Disabling this option allows more freedom in zooming while sacrificing image quality.
@@ -1004,22 +952,23 @@
 			</ui:CheckBoxWithNestedOptions>
 
 			<mx:CheckBox label="{lang('Show map overview')}" id="overviewCheckBox"
-						 creationComplete="linkBindableProperty(enableOverview, event.target, 'selected')"/>
+						 creationComplete="linkBindableProperty(outerDocument.enableOverview, event.target, 'selected')"/>
 			
 			<mx:Spacer height="100%"/>
 				
 			<ui:Indent label="Coordinates at map center:" translate="true" grouped="false">
-				<ui:Paragraph id="centerCoords" selectable="true"/>
+				<ui:Paragraph id="centerCoords" selectable="true" text="{outerDocument.centerCoords_text}"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Layer Visibility')}" verticalGap="10" id="visibleScaleRangesUI">
-			<ui:Indent label="Current Zoom" translate="true" labelAlign="left" group="{scaleRangeIndentGroup}">
+			<ui:Indent label="Current Zoom" translate="true" labelAlign="left" group="{visibleScaleRangesUI}">
 				<mx:HSlider id="scaleRangeTabZoomSlider" 
 							width="100%" 
+							value="{outerDocument.scaleRangeTabZoomSlider_value}"
 							tickInterval="1"
-							change="handleZoomSliderChange(event);"
-							minimum="{zoomSliderMinimum}"
-							maximum="{zoomSliderMaximum}"
+							change="outerDocument.handleZoomSliderChange(event);"
+							minimum="{outerDocument.zoomSliderMinimum}"
+							maximum="{outerDocument.zoomSliderMaximum}"
 							liveDragging="true" />
 			</ui:Indent>
 			<mx:List id="visibleScaleRangesList"
@@ -1028,7 +977,7 @@
 								   paddingLeft="0">
 				<mx:itemRenderer>
 					<mx:Component>
-						<ui:Indent labelAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
+						<ui:Indent labelAlign="left" group="{outerDocument.visibleScaleRangesUI}" creationComplete="handleCreationComplete()">
 							<mx:Script>
 								<![CDATA[
 									import mx.events.SliderEvent;
@@ -1050,7 +999,7 @@
 										getCallbackCollection(pm.layerSettings).addGroupedCallback(outerDocument, handleSettingsChange);
 									}
 									
-									private function get pm():PlotManager { return outerDocument.visualization.plotManager; }
+									private function get pm():PlotManager { return outerDocument.outerDocument.visualization.plotManager; }
 									private function get settings():LayerSettings { return data as LayerSettings; }
 									
 									override public function set data(value:Object):void
@@ -1064,7 +1013,7 @@
 										if (!settings)
 											return;
 										
-										label = outerDocument.getPlotterLabel(pm.plotters.getObject(pm.layerSettings.getName(settings)) as IPlotter);
+										label = outerDocument.outerDocument.getPlotterLabel(pm.plotters.getObject(pm.layerSettings.getName(settings)) as IPlotter);
 										var area:Number = pm.fullDataBounds.getArea();
 										if (!isNaN(area))
 										{
@@ -1109,10 +1058,10 @@
 										liveDragging="true"
 										thumbCount="2"
 										tickInterval="1"
-										snapInterval="{outerDocument.zoomSliderSnapping}"
-										showTrackHighlight="true" 
-										minimum="{outerDocument.zoomSliderMinimum}" 
-										maximum="{outerDocument.zoomSliderMaximum}"
+										snapInterval="{outerDocument.outerDocument.layerZoomRangeSlider_snapInterval}"
+										showTrackHighlight="true"
+										minimum="{outerDocument.outerDocument.zoomSliderMinimum}"
+										maximum="{outerDocument.outerDocument.zoomSliderMaximum}"
 										change="handleScaleSliderChange(event)"
 										mouseDown="event.target.setFocus(); event.stopPropagation()"
 										width="100%"/>
@@ -1121,9 +1070,61 @@
 				</mx:itemRenderer>
 			</mx:List>
 		</mx:VBox>
-	</ui:ControlPanel>
-	<ui:IndentGroup id="scaleRangeIndentGroup"/>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				import weave.editors.managers.LayerListComponent;
+				import weave.core.UIUtils;
+				import weave.ui.VariableListController;
+				import weave.api.newDisposableChild;
+				import weave.visualization.layers.LayerSettings;
+				
+				private const visibleScaleController:VariableListController = newDisposableChild(this, VariableListController);
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					visibleScaleController.view = visibleScaleRangesList;
+					visibleScaleController.hashMap = outerDocument.visualization.plotManager.layerSettings;
+				}
+				
+				private function handleProjectionComboChange():void
+				{
+					if (UIUtils.hasFocus(projComboBox))
+					{
+						// clear all layer visibility settings because they are no longer valid in the new projection
+						outerDocument.visualization.plotManager.layerSettings.delayCallbacks();
+						for each (var settings:LayerSettings in outerDocument.visualization.plotManager.layerSettings.getObjects())
+						{
+							settings.minVisibleScale.value = 0;
+							settings.maxVisibleScale.value = Infinity;
+						}
+						outerDocument.visualization.plotManager.layerSettings.resumeCallbacks();
+					}
+					if (outerDocument.projectionVerifier(projComboBox.text))
+					{
+						projValidLabel.text = lang('Valid');
+						projComboBox.errorString = '';
+					}
+					else
+					{
+						projValidLabel.text = lang('Invalid');
+						projComboBox.errorString = lang('Unknown projection');
+					}
+				}
+
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></editorFactory>
+	
+	<!-- read by ControlPanel -->
+	<mx:Number id="layerZoomRangeSlider_snapInterval">0.25</mx:Number>
+	<mx:Number id="scaleRangeTabZoomSlider_value"/>
+	<mx:String id="centerCoords_text"/>
+	<mx:String id="projComboBox_selectedItem"/>
+	
+	<!-- read by both ControlPanel and MapTool -->
 	<mx:Number id="zoomSliderMinimum"/>
 	<mx:Number id="zoomSliderMaximum"/>
-	<mx:Number id="zoomSliderSnapping">0.25</mx:Number>
 </SimpleVisTool>

@@ -38,12 +38,11 @@
 		
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, GaugeTool, "Gauge Tool");
 			
-			private function get plotter():GaugePlotter { return mainPlotter as GaugePlotter; }
+			internal function get plotter():GaugePlotter { return mainPlotter as GaugePlotter; }
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				cRampEditor.colorRamp = plotter.colorRamp;
 				
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, handleMarginChange);
 			}
@@ -109,14 +108,14 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			private static const DEFAULT_MARGIN_BOTTOM:int = 35;
+			internal static const DEFAULT_MARGIN_BOTTOM:int = 35;
 			private function handleMarginChange():void
 			{
-				marginLabelCheckBox.selected = visualization.plotManager.marginBottomNumber.value != 0;
+				marginLabelCheckBox_selected = visualization.plotManager.marginBottomNumber.value != 0;
 				marginLabel.height = visualization.plotManager.marginBottomNumber.value;
 				marginLabel.visible = visualization.plotManager.marginBottomNumber.value > 0
 			}
-			
+			[Bindable] internal var marginLabelCheckBox_selected:Boolean;
 		]]>
 	</mx:Script>
 	<mx:TextArea id="marginLabel"
@@ -131,11 +130,11 @@
 				 bottom="0"
 				 textAlign="center"
 				 toolTip="{lang('{0}\n\tClick here to select a different attribute.', marginLabelText)}"/>
-	<ui:ControlPanel>
+	<editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Gauge properties')}" >
-			<ui:DynamicColumnComponent label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
-			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);"/>
-			<ui:ColorRampEditor id="cRampEditor"/>
+			<ui:DynamicColumnComponent label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = outerDocument.plotter.meterColumn"/>
+			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" selected="{outerDocument.marginLabelCheckBox_selected}" change="outerDocument.visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? GaugeTool.DEFAULT_MARGIN_BOTTOM : 0);"/>
+			<ui:ColorRampEditor id="cRampEditor" creationComplete="cRampEditor.colorRamp = outerDocument.plotter.colorRamp;"/>
 		</mx:VBox>
-	</ui:ControlPanel>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

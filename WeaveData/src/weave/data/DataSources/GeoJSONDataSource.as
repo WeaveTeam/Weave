@@ -183,7 +183,7 @@ package weave.data.DataSources
 				var meta:Object = {};
 				meta[ColumnMetadata.TITLE] = WeaveAPI.globalHashMap.getName(this);
 				
-				var rootChildren:Array = null;
+				var rootChildren:Array = [];
 				if (jsonData)
 				{
 					// include empty string for the geometry column
@@ -258,7 +258,8 @@ package weave.data.DataSources
 					gc.setGeometries(keys, geoms);
 					proxyColumn.setInternalColumn(gc);
 				}
-				WeaveAPI.StageUtils.startTask(proxyColumn, initGeoms, WeaveAPI.TASK_PRIORITY_2_BUILDING, setGeoms);
+				// high priority because not much can be done without data
+				WeaveAPI.StageUtils.startTask(proxyColumn, initGeoms, WeaveAPI.TASK_PRIORITY_HIGH, setGeoms);
 			}
 			else
 			{
@@ -388,7 +389,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 	}
 	public function getColumnMetadata():Object
 	{
-		return metadata;
+		return children ? null : metadata;
 	}
 }
 

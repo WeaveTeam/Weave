@@ -57,7 +57,8 @@ package weave.data.BinningDefinitions
 			i = iout = 0;
 			keys = column.keys;
 			_iterateAll(-1); // restart from first task
-			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _iterateAll, WeaveAPI.TASK_PRIORITY_2_BUILDING, _done);
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _iterateAll, WeaveAPI.TASK_PRIORITY_HIGH, _done);
 		}
 		
 		private var _sortMap:Object; // used by _sortFunc

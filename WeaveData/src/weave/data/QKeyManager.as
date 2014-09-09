@@ -134,19 +134,7 @@ package weave.data
 		 */
 		public function getQKeysAsync(keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
 		{
-			outputKeys.length = keyStrings.length;
-			var i:int = 0;
-			function iterate(stopTime:int):Number
-			{
-				for (; i < keyStrings.length; i++)
-				{
-					if (getTimer() > stopTime)
-						return i / keyStrings.length;
-					outputKeys[i] = getQKey(keyType, keyStrings[i]);
-				}
-				return 1;
-			};
-			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncCallback);
+			new QKeyGetter(this, keyType, keyStrings, relevantContext, asyncCallback, outputKeys);
 		}
 
 		/**
@@ -194,7 +182,10 @@ package weave.data
 	}
 }
 
+import flash.utils.getTimer;
+
 import weave.api.data.IQualifiedKey;
+import weave.data.QKeyManager;
 
 /**
  * This class is internal to QKeyManager because instances
@@ -233,4 +224,36 @@ internal class QKey implements IQualifiedKey
 //		// The # sign is used in anticipation that a key type will be a URI.
 //		return _keyType + '#' + _key;
 //	}
+}
+
+internal class QKeyGetter
+{
+	public function QKeyGetter(manager:QKeyManager, keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>)
+	{
+		this.manager = manager;
+		this.keyType = keyType;
+		this.keyStrings = keyStrings;
+		this.outputKeys = outputKeys;
+		
+		outputKeys.length = keyStrings.length;
+		// high priority because all visualizations depend on key sets
+		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncCallback);
+	}
+	
+	private var i:int = 0;
+	private var manager:QKeyManager;
+	private var keyType:String;
+	private var keyStrings:Array;
+	private var outputKeys:Vector.<IQualifiedKey>;
+	
+	private function iterate(stopTime:int):Number
+	{
+		for (; i < keyStrings.length; i++)
+		{
+			if (getTimer() > stopTime)
+				return i / keyStrings.length;
+			outputKeys[i] = manager.getQKey(keyType, keyStrings[i]);
+		}
+		return 1;
+	}
 }

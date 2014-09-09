@@ -109,7 +109,6 @@ package weave.data.KeySets
 				var union:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
 				for each (keySet in columns)
 					union.addKeySetDependency(keySet);
-				columns = columns.filter(includeColumnsOnly);
 				
 				if (debug && keyCompare == null)
 					trace(debugId(this), 'sort by [', columns, ']');
@@ -127,11 +126,6 @@ package weave.data.KeySets
 			}
 			
 			triggerCallbacks();
-		}
-		
-		private function includeColumnsOnly(obj:*, i:*, a:*):Boolean
-		{
-			return obj is IAttributeColumn;
 		}
 		
 		/**

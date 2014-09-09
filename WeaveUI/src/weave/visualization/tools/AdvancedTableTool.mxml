@@ -41,7 +41,7 @@
 			updateComplete="dataGrid_updateCompleteHandler(event)"
 			horizontalScrollPolicy="auto"
 			verticalScrollPolicy="auto"
-			dataProvider="{dataRowKeys}" 
+			dataProvider="{dataProvider}"
 			width="100%" height="100%"
 			allowMultipleSelection="true"
 			minWidth="0"
@@ -115,7 +115,6 @@
 			import mx.managers.IFocusManagerComponent;
 			
 			import weave.Weave;
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
@@ -135,9 +134,9 @@
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.ColorColumn;
-			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.AttributeColumns.KeyColumn;
+			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
@@ -150,7 +149,6 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
-			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AdvancedTableTool, "Advanced Table");
@@ -168,14 +166,14 @@
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
 			private var _textFormat:LinkableTextFormat = Weave.properties.visTextFormat;
-			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
 
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
-			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
+			public const filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
+			private const dataProvider:ArrayCollection = new ArrayCollection();
 			
 			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
@@ -184,22 +182,20 @@
 			{
 				super.inConstructor();
 				
-				var probeHeaderColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
-				var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
-				var allColumns:Array = (probeHeaderColumns.concat as Function).apply(null, probedColumns);
-				for (var i:int = 0; i < allColumns.length; i++)
-				{
-					var dynamicColumn:DynamicColumn = columns.requestObject(null, DynamicColumn, false);
-					var probedColumn:ILinkableObject = allColumns[i] as ILinkableObject;
-					if (probedColumn is DynamicColumn)
-						copySessionState(probedColumn, dynamicColumn);
-					else
-						dynamicColumn.requestLocalObjectCopy(probedColumn);
-				}
-				
-				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
-				for each (var target:ILinkableObject in [this, _subset, _selection, Weave.defaultColorColumn, _textFormat])
-					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate);
+				filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				_probe.addImmediateCallback(this, updateGlobalProbeChangeLater);
+				for each (var target:ILinkableObject in [this, _selection, Weave.defaultColorColumn, _textFormat])
+					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate, true);
+			}
+			
+			override protected function afterConstructor():void
+			{
+				const MAX_DEFAULT_COLUMNS:int = 10;
+				ColumnUtils.getColumnsWithCommonKeyType()
+					.slice(0, MAX_DEFAULT_COLUMNS)
+					.forEach(function(item:Object, i:int, a:Array):void {
+						ColumnUtils.initSelectableAttribute(columns, item, i == 0);
+					});
 			}
 			
 			override protected function childrenCreated():void
@@ -273,6 +269,20 @@
 					return;
 				
 				var columnsChanged:Boolean = detectLinkableObjectChange(groupedUpdate, columns);
+				var keySetChanged:Boolean = detectLinkableObjectChange(groupedUpdate, filteredKeySet);
+				
+				if (detectLinkableObjectChange(groupedUpdate, sortFieldIndex, sortInDescendingOrder) || columnsChanged || keySetChanged)
+				{
+					var attrCols:Array = columns.getObjects();
+					var sortDirections:Array = new Array(attrCols.length);
+					sortDirections[sortFieldIndex.value] = sortInDescendingOrder.value ? -1 : 1;
+					filteredKeySet.setColumnKeySources(attrCols, sortDirections);
+					
+					// since we're changing the key set, we need to reset the cached trigger counter
+					detectLinkableObjectChange(groupedUpdate, filteredKeySet);
+					
+					callLater(sortCallback);
+				}
 				if (columnsChanged)
 				{
 					updateKeyTypeComboBox();
@@ -312,12 +322,6 @@
 					if (dataGrid.verticalScrollPosition != dataGridVerticalScrollPosition.value)
 						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
-				var subsetChanged:Boolean = detectLinkableObjectChange(groupedUpdate, _subset);
-				if (subsetChanged)
-				{
-					// temporary solution
-					dataGrid.dataProvider = dataGrid.dataProvider;
-				}
 				
 				if (detectLinkableObjectChange(groupedUpdate, _selection))
 				{
@@ -328,10 +332,6 @@
 				if (detectLinkableObjectChange(groupedUpdate, _textFormat))
 				{
 					_textFormat.copyToStyle(dataGrid);
-				}
-				if (detectLinkableObjectChange(groupedUpdate, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
-				{
-					callLater(sortCallback);
 				}
 				if (detectLinkableObjectChange(groupedUpdate, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn, showColors, cellColorFunction))
 				{
@@ -398,13 +398,6 @@
 				return dataGrid.sortDirection != 'ASC';
 			}
 			
-			/**
-			 * called from callLater of handleHeaderRelease listener ,to get the correct sorting order. 
-			 * There is a bug in flex because of which the c.sortDescending will always return false
-			 */
-			private function getOrder(column:DataGridColumn,index:int):void
-			{
-			}
 			
 			/**
 			 * This function gets called in Updatedisplaylist, 
@@ -532,12 +525,12 @@
 				
 				for each(var item:Object in selectedItems)
 				{
-					var index:int = dataRowKeys.getItemIndex(item);
-					dataRowKeys.removeItemAt(index);
-					dataRowKeys.source.unshift(item);
+					var index:int = dataProvider.getItemIndex(item);
+					dataProvider.removeItemAt(index);
+					dataProvider.source.unshift(item);
 				}
 				
-				dataRowKeys.refresh();
+				dataProvider.refresh();
 				dataGrid.validateNow();
 				updateGlobalSelectionChange();
 				dataGrid.scrollToIndex(0);
@@ -562,13 +555,13 @@
 						col.visible = false;
 					}
 				}
-				var tempArray:Array = ColumnUtils.getAllKeys(includedColumns);
-				if ( tempArray.length > maxRows.value)
+				var keys:Array = filteredKeySet.keys;
+				if (keys.length > maxRows.value)
 				{
-					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(tempArray.length));
+					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(keys.length));
 					tooManyRecordsIndicator.visible = true;
 					tooManyRecordsIndicator.includeInLayout = true;
-					tempArray.length = maxRows.value;
+					keys.length = maxRows.value;
 				}
 				else
 				{
@@ -576,7 +569,7 @@
 					tooManyRecordsIndicator.includeInLayout = false;
 				}
 					
-				dataRowKeys.source = tempArray;
+				dataProvider.source = keys;
 				updateGlobalSelectionChange();
 			}
 			
@@ -1039,12 +1032,18 @@
 					<ui:CodeEditor id="cellColorFunctionEditor" creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
 				</mx:HBox>
 			</ui:CheckBoxWithNestedOptions>
-			<ui:Indent label="{lang('Background colors')}">
+			<ui:Indent id="bgColorControls" label="{lang('Background colors')}">
 				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
 				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
 				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 		</mx:VBox>
-		<editors:WindowSettingsEditor target="{this}"/>
+		<editors:WindowSettingsEditor id="windowEditor" target="{this}"/>
+		<ui:creationComplete>
+			<![CDATA[
+				windowEditor.removeChild(windowEditor.backgroundColorIndent);
+				windowEditor.addChild(bgColorControls);
+			]]>
+		</ui:creationComplete>
 	</ui:ControlPanel>
 </ui:DraggablePanel>

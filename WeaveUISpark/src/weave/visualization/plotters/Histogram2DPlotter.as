@@ -77,7 +77,7 @@ package weave.visualization.plotters
 		public const showAverageColorData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		// hack, only supports default color column
-		private const _colorColumn:ColorColumn = registerLinkableChild(this, Weave.defaultColorColumn);
+		public const _colorColumn:ColorColumn = registerLinkableChild(this, Weave.defaultColorColumn);
 		
 		public function get xColumn():DynamicColumn { return xBinnedColumn.internalDynamicColumn; }
 		public function get yColumn():DynamicColumn { return yBinnedColumn.internalDynamicColumn; }
@@ -184,7 +184,10 @@ package weave.visualization.plotters
 				}
 				
 				var color:Number = ramp.getColorFromNorm(norm);
-				graphics.beginFill(color, 1);
+				if (isFinite(color))
+					graphics.beginFill(color, 1);
+				else
+					graphics.endFill();
 				
 				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 				graphics.endFill();

@@ -352,7 +352,7 @@
             .text(value).attr("value",key));
     });
 
-    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: 'cose', padding: 5}, ready: function () { 
+    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: "null"}, ready: function () { 
         window.cy = this;
 
         toolPath = opener.WeaveExternalTools[window.name].path;

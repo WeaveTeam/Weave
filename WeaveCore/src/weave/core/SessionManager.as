@@ -259,6 +259,7 @@ package weave.core
 			}
 			else
 			{
+				var deprecatedLookup:Object = null;
 				if (object is ILinkableDynamicObject)
 				{
 					// do not show static object in tree
@@ -267,12 +268,14 @@ package weave.core
 				else if (object)
 				{
 					names = getLinkablePropertyNames(object);
+					var className:String = getQualifiedClassName(object);
+					deprecatedLookup = classNameToDeprecatedGetterLookup[className];
 				}
 				for each (var name:String in names)
 				{
 					if (object is ILinkableDynamicObject)
 						childObject = (object as ILinkableDynamicObject).internalObject;
-					else
+					else if (!deprecatedLookup[name])
 						childObject = object[name];
 					if (!childObject)
 						continue;
@@ -755,7 +758,8 @@ package weave.core
 				
 				// when there are no more tasks, check later to see if callbacks trigger
 				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
-				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+				// immediate priority because we want to trigger as soon as possible
+				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{
@@ -1321,6 +1325,9 @@ package weave.core
 			
 			// unlink in case previously linked (prevents double-linking)
 			unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
+			
+			if (objectWasDisposed(linkableVariable))
+				return;
 			
 			var lookup:Object = _synchronizers.get(linkableVariable, bindableParent);
 			if (!lookup)

@@ -56,7 +56,8 @@ package weave.utils
 		{
 			shp	= new ShpHeader(shpData);
 			records = ShpTools.readRecords(shpData);
-			WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncComplete);
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
 		}
 		
 		private function iterate(stopTime:int):Number

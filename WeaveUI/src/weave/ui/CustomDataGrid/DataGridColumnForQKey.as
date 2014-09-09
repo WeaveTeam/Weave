@@ -25,26 +25,29 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.KeySets.SortedKeySet;
+	import weave.utils.ColumnUtils;
 	
 	public class DataGridColumnForQKey extends DataGridColumn
 	{
 		public function DataGridColumnForQKey(attrColumn:IAttributeColumn)
 		{
 			this.attrColumn = attrColumn;
-			
 			labelFunction = _labelFunction;
-			sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]);
 			headerWordWrap = true;
-			
 			this.minWidth = 0;
 		}
 		
 		public var attrColumn:IAttributeColumn = null;
 		
+		override public function get sortCompareFunction():Function
+		{
+			return super.sortCompareFunction as Function
+				|| (super.sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]));
+		}
+		
 		override public function get headerText():String
 		{
-			var title:String = attrColumn ? attrColumn.getMetadata(ColumnMetadata.TITLE) : '';
-			return super.headerText || title;
+			return super.headerText || ColumnUtils.getTitle(attrColumn);
 		}
 		
 		private function _labelFunction(item:Object, column:DataGridColumn):String

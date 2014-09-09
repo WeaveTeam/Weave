@@ -456,7 +456,10 @@ internal class WorkerThread implements IDisposableObject
 		if (numGeoms == 0)
 			asyncComplete();
 		else
-			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncComplete);
+		{
+			// TODO - assess priority assignment
+			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
+		}
 	}
 	
 	/**

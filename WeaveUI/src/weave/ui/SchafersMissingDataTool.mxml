@@ -126,7 +126,6 @@ SchafersMissingDataImputation
 			import weave.services.beans.RResult;
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.AdvancedTableTool;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SchafersMissingDataTool, "Schafers Missing Data Imputation Tool");
@@ -149,7 +148,7 @@ SchafersMissingDataImputation
 			override protected function inConstructor():void
 			{
 				super.inConstructor();				
-				var columns:Array = ProbeTextUtils.getColumnsWithCommonKeyType();
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 			}
