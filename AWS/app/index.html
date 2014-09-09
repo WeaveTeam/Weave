@@ -65,6 +65,7 @@
 <!-- 							</li> -->
 
 						</ul>
+						
 						<!--The right navbar -->
 						<!--Disabling for the release.  This is the login and settings dropdowns
 						<ul class="nav navbar-nav navbar-right">
@@ -103,19 +104,24 @@
 					</div><!-- /.navbar-collapse -->
 					
 				</nav>
-
+				
 			</header>
 
-			<div style="height: 100%" class = "tab-container" >
-				<div style="height: 100%" class="ngview" ng-view>
+			<div style="height: 80%" class = "tab-container" >
+				<div style="height: 50%" class="ngview" ng-view>
 
 				</div>
 
 			</div>
+			
 			<footer>
-				<p>
-
-				</p>
+				<div style = "margin-left: 500px" ng-controller = "analystErrorLogCtrl">
+					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-template="analystErrorLog.html"
+						data-placement="top-left" data-animation="am-slide-bottom" bs-aside="errorAside" data-container="body" ng-click = "">
+							Open Error Log
+						</button>
+				</div>
+				
 			</footer>
 		</div>
 

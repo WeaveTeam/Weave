@@ -29,7 +29,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 		
 	}
 	
-	public static ArrayList<String> logs = new ArrayList<String>();
+	//public static ArrayList<String> logs = new ArrayList<String>();
 	
 	protected static RConnection getRConnection() throws RemoteException
 	{	
@@ -49,11 +49,11 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 	// essentially this function should eventually be our main run script function.
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
-	// TODO not completed
-	public ScriptResult runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception
+	public ScriptResult runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception, RserveException
 	{
+		ArrayList<String> logs = new ArrayList<String>();
 		//empty logs before every run 
-		logs.clear();
+		//logs.clear();
 		
 		RConnection rConnection = null;
 		Object results = null;
@@ -75,32 +75,46 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 			String script = "scriptFromFile <- source(scriptPath)\n" +
 					"scriptFromFile$value"; 
 		
-			REXP evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
-			names = evalValue.asList().names;
-			columnNames = new String[names.size()];
-			names.toArray(columnNames);
-			results = rexp2javaObj(evalValue);
-			// clear R Objects
-			rConnection.eval("rm(list=ls())");
+			REXP evalValue = rConnection.parseAndEval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+			if (evalValue.inherits("try-error"))//handling errors when script fails
+			{
+				System.out.println("Error: " + evalValue.asString());
+				logs.add("Error in script " + evalValue.asString());
+				//finalResult.logs = logs.toArray(finalResult.logs);//if logs set the logs
+				
+			}
+			else//when script succeeds
+			{
+				
+				names = evalValue.asList().names;//TODO what if result returned is NOT a generic vector
+				columnNames = new String[names.size()];
+				names.toArray(columnNames);
+				results = rexp2javaObj(evalValue);
+				// clear R Objects
+				rConnection.eval("rm(list=ls())");
+			}
 		}
 		catch (Exception e)	{
 			e.printStackTrace();
-			logs.add("Unable to run Script " + e.getMessage());
-			finalResult.logs = logs.toArray(finalResult.logs);//if logs set the logs
+			logs.add(e.getMessage());
 			//throw new RemoteException("Unable to run script", e);
 			
 		}
 		
-		if(logs.isEmpty())
-		{
-			results = convertToRowResults(results, columnNames);
-			finalResult.data = results;//setting the data(actual result)
+		
+		finally{
+			
+			if (rConnection != null)
+				rConnection.close();
+			if(logs.isEmpty())//success
+				{
+					results = convertToRowResults(results, columnNames);
+					finalResult.data = results;//setting the data(actual result)
+				}
+			else
+				finalResult.logs = logs.toArray(finalResult.logs);
 		}
-		
-		if (rConnection != null)
-			rConnection.close();
 
-		
 		return finalResult;
 		
 	}
