@@ -78,8 +78,7 @@
 		<mx:HBox>
 			<ui:CustomCheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
 			<ui:HelpComponent>
-				This will include "Add Data Filter" as an option in the tools menu
-				and show experimental filtering controls in the attribute selector.
+				This will include "Add Data Filter" as an option in the tools menu.
 			</ui:HelpComponent>
 		</mx:HBox>
 	</mx:VBox>
