@@ -389,8 +389,12 @@ package weave.utils
 			// get all the data values in the same order as the common keys
 			for (var cIndex:int = 0; cIndex < columns.length; cIndex++)
 			{
-				var dt:Class = dataType || DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
 				column = columns[cIndex];
+				
+				var dt:Class = dataType;
+				if (!dt && column)
+					dt = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
+				
 				var values:Array = [];
 				for (var kIndex:int = 0; kIndex < keys.length; kIndex++)
 				{
