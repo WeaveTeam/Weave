@@ -50,7 +50,7 @@ public class ScriptManagementServlet extends WeaveServlet
  		{
  			return ScriptManagerService.scriptExists(stataDirectory, scriptName);
  		} else {
- 			throw new RemoteException("Unknown Script Type");
+ 			return false;
   		}
 	}
 	

@@ -205,9 +205,18 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 $scope.metadata = "";
 	 $scope.validText = "";
 	 $scope.isScriptValid = false;
-	 $scope.step = 1;
+	 $scope.isValidMetadata = true;
+	 $scope.metaValidText = "";
+	 
+	 $scope.step = {
+			 value : 1
+	 };
 	 
 	 $scope.scriptUploaded = {
+			 metadata : {
+				 filename : "",
+				 content : ""
+			 },
 			 script : {
 				 filename : "",
 				 content :  ""
@@ -223,9 +232,19 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 
 	 $scope.uploadSuccessful = "na";
 	 
-	 $scope.$watch('scriptUploaded.metadata', function() {
-		 if($scope.scriptUploaded.metadata) {
-			 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
+	 $scope.$watch('scriptUploaded.metadata.content', function() {
+		 if($scope.scriptUploaded.metadata.content) {
+			 if(tryParseJSON($scope.scriptUploaded.metadata.content)) {
+				 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
+				 $scope.metaValidText = "";
+				 $scope.isValidMetadata = true;
+			 } else {
+				 $scope.isValidMetadata = false;
+				 $scope.metaValidText = "invalid json";
+			 }
+		 } else if ($scope.scriptUploaded.metadata.content == "") {
+			 $scope.isValidMetadata = true;
+			 $scope.metaValidText = "";
 		 }
 	 });
 	 
@@ -243,17 +262,28 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  };
 	 
 	$scope.$watch('scriptUploaded.script.filename', function () {
-		scriptManagerService.scriptExists($scope.scriptUploaded.script.filename).then(function(result) {
-			if(result) {
-				$scope.validText = "script already exists";
-				$scope.isScriptValid = false;
+		
+		if($scope.scriptUploaded.script.filename) {
+			extension = $scope.scriptUploaded.script.filename.substr((Math.max(0, $scope.scriptUploaded.script.filename.lastIndexOf(".")) || Infinity) + 1);
+			if(extension.toLowerCase() == "r" || extension.toLowerCase() == "do") {
+				scriptManagerService.scriptExists($scope.scriptUploaded.script.filename).then(function(result) {
+					if(result) {
+						$scope.validText = "script already exists";
+						$scope.isScriptValid = false;
+					} else {
+						$scope.validText = "";
+						$scope.isScriptValid = true;
+					}
+				});
 			} else {
-				$scope.validText = "";
-				$scope.isScriptValid = true;
+				$scope.validText = "only .R or .do files are supported";
+				$scope.isScriptValid = false;;
 			}
-		});
+		} else {
+			$scope.validText = "";
+		}
 	});
-	$scope.$watch('step', function(n, o) { 
+	$scope.$watch('step.value', function(n, o) { 
 		if(n == 3) {
 			var scriptName = "";
 			var scriptContent = "";
@@ -290,8 +320,34 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 				}
 			}
 				
-		} else {
+		} else if (n == 1) {
+			$scope.isValidMetadata = true;
 			$scope.uploadSucessful = "na";
+			if($scope.scriptUploaded.script.filename) {
+				scriptManagerService.scriptExists($scope.scriptUploaded.script.filename).then(function(result) {
+					if(result) {
+						$scope.validText = "script already exists";
+						$scope.isScriptValid = false;
+					} else {
+						$scope.validText = "";
+						$scope.isScriptValid = true;
+					}
+				});
+			}
+		} else if (n == 2) {
+			 if($scope.scriptUploaded.metadata.content) {
+				 if(tryParseJSON($scope.scriptUploaded.metadata.content)) {
+					 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
+					 $scope.metaValidText = "";
+					 $scope.isValidMetadata = true;
+				 } else {
+					 $scope.isValidMetadata = false;
+					 $scope.metaValidText = "invalid json";
+				 }
+			 } else if ($scope.scriptUploaded.metadata.content == "") {
+				 $scope.isValidMetadata = true;
+				 $scope.metaValidText = "";
+			 }
 		}
 	});
   });
