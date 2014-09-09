@@ -8,7 +8,7 @@ var qh_module = angular.module('aws.QueryHandlerModule', []);
 var weaveWindow;
 
 qh_module.service('QueryHandlerService', 
-		['$q', '$rootScope','queryService','WeaveService', '$window', function($q, scope, queryService, WeaveService, $window) {
+		['$q', '$rootScope','queryService','WeaveService','errorLogService', '$window', function($q, scope, queryService, WeaveService,errorLogService, $window) {
 	
 	
 	//this.weaveWindow;
@@ -46,6 +46,9 @@ qh_module.service('QueryHandlerService',
 
     	
     	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
+    		console.log("result", result);
+    		if(result.logs.length > 0)//change this
+    			errorLogService.logInErrorLog(result.logs[0]);
     		scope.$safeApply(function() {
 				deferred.resolve(result);
 			});
