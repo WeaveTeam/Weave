@@ -57,8 +57,14 @@ package weave.data.BinningDefinitions
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
+			var integerValuesOnly:Boolean = false;
 			var nonWrapperColumn:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(column);
-			var integerValuesOnly:Boolean = nonWrapperColumn && nonWrapperColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataType.NUMBER;
+			if (nonWrapperColumn)
+			{
+				var dataType:String = nonWrapperColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+				if (dataType && dataType != DataType.NUMBER)
+					integerValuesOnly = true;
+			}
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();
