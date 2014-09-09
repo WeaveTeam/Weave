@@ -224,7 +224,6 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 $scope.uploadSuccessful = "na";
 	 
 	 $scope.$watch('scriptUploaded.metadata', function() {
-		 console.log($scope.scriptUploaded.metadata);
 		 if($scope.scriptUploaded.metadata) {
 			 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
 		 }
