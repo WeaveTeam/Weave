@@ -21,6 +21,8 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -40,6 +42,14 @@ package weave.data.AttributeColumns
 		public function ColorColumn()
 		{
 			_internalColumnStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
+		}
+		
+		override public function getMetadata(propertyName:String):String
+		{
+			if (propertyName == ColumnMetadata.DATA_TYPE)
+				return DataType.STRING;
+			
+			return super.getMetadata(propertyName);
 		}
 		
 		// color values depend on the min,max stats of the internal column
