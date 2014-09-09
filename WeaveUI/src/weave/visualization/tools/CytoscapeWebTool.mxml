@@ -81,13 +81,12 @@
 				_edgeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn]);
 				_edgeFilteredKeys.setColumnKeySources([edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeColorColumn, edgeWeightColumn]);
-
-				_nodeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
-				_edgeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
 			}
 			public function cytoscapeReady():void
 			{
 				_cytoscapeReady.value = true;
+				_nodeFilteredKeys.addGroupedCallback(this, handleSubsetChange, true);
+				_edgeFilteredKeys.addGroupedCallback(this, handleSubsetChange, true);
 				if (_primitiveEdges != null && _primitiveNodes != null && _primitiveLayout != null)
 				{
 					sendNetworkToCytoscape();
@@ -97,11 +96,12 @@
 			private function raiseCytoscape():void
 			{
 				ExternalInterface.call(
-				"function (weaveID, toolname) {\
-					var weave = weaveID ? document.getElementById(weaveID) : document;\
-					weave.external_tools[toolname].focus();\
+					"function (weaveID, toolname) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.external_tools[toolname].focus();\
 					}", 
-						ExternalInterface.objectID, _toolName);
+					ExternalInterface.objectID, _toolName
+				);
 			}
 			private function launchTimeout(event:TimerEvent):void
 			{
@@ -123,12 +123,12 @@
 				var windowFeatures:String = "menubar=no,status=no,toolbar=no";
 				var success:Boolean = ExternalInterface.call(
 					"function (weaveID, toolname, url, name, features) {\
-					 var weave = weaveID ? document.getElementById(weaveID) : document;\
-					 if (weave.external_tools == undefined)\
-					     weave.external_tools = {};\
-					 var popup = window.open(url, toolname, features);\
-					 weave.external_tools[toolname] = popup;\
-					 return !!popup;\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						if (weave.external_tools == undefined)\
+						    weave.external_tools = {};\
+						var popup = window.open(url, toolname, features);\
+						weave.external_tools[toolname] = popup;\
+						return !!popup;\
 					}", 
 					ExternalInterface.objectID,
 					_toolName,
@@ -151,8 +151,9 @@
 					"function (weaveID, toolname, elements) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
 						weave.external_tools[toolname].probe(elements);\
-						}",
-						ExternalInterface.objectID, _toolName, _probe.keys);
+					}",
+					ExternalInterface.objectID, _toolName, _probe.keys
+				);
 				return 1;
 			}
 			private function handleSelectionChange():Number
@@ -161,8 +162,9 @@
 					"function (weaveID, toolname, elements) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
 						weave.external_tools[toolname].select(elements);\
-						}",
-						ExternalInterface.objectID, _toolName, _selection.keys);
+					}",
+					ExternalInterface.objectID, _toolName, _selection.keys
+				);
 				return 1;
 			}
 			public function handleSubsetChange():Number
@@ -171,8 +173,9 @@
 					"function (weaveID, toolname, elements) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
 						weave.external_tools[toolname].subset(elements);\
-						}",
-						ExternalInterface.objectID, _toolName, _nodeFilteredKeys.keys.concat(_edgeFilteredKeys.keys));
+					}",
+					ExternalInterface.objectID, _toolName, _nodeFilteredKeys.keys.concat(_edgeFilteredKeys.keys)
+				);
 				return 1;
 			}
 
@@ -290,8 +293,9 @@
 						weave.external_tools[toolname].raw_output;\
 						weave.external_tools[toolname].load_data(records, element_to_key_types, null);\
 						weave.external_tools[toolname].launch(parameters);\
-						}",
-						ExternalInterface.objectID, _toolName, primitiveElements, element_to_key_types, parameters);
+					}",
+					ExternalInterface.objectID, _toolName, primitiveElements, element_to_key_types, parameters
+				);
 			}
 
 			private function handleGraphLayoutChange():void
@@ -303,8 +307,9 @@
 					"function (weaveID, toolname, layout) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
 						weave.external_tools[toolname].vis.layout(layout);\
-						}",
-						ExternalInterface.objectID, _toolName, _primitiveLayout);
+					}",
+					ExternalInterface.objectID, _toolName, _primitiveLayout
+				);
 			}
 
 			override protected function childrenCreated():void
