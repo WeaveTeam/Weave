@@ -43,7 +43,7 @@
 				<mx:Spacer width="100%"/>
 				<mx:Button
 					label="{lang('Select all')}"
-					click="editor.explorer.fileView.selectedItems = VectorUtils.getArrayFromCollection(editor.explorer.fileView.dataProvider as ICollectionView)"
+					click="editor.explorer.fileView.selectedItems = VectorUtils.getArrayFromCollection(editor.explorer.fileView.dataProvider as ICollectionView).reverse()"
 					enabled="{editor.explorer.fileView.dataProvider.length > 0}"/>
 				<mx:Button label="{lang('Add selected')}" click="addSelected()" enabled="{editor.explorer.fileView.selectedItem}"/>
 			</mx:HBox>

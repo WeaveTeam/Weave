@@ -41,7 +41,7 @@
 		<mx:Spacer width="100%"/>
 		<mx:Button
 			label="{lang('Select all')}"
-			click="_internalList.selectedItems = VectorUtils.getArrayFromCollection(_internalList.dataProvider as ICollectionView)"
+			click="_internalList.selectedItems = VectorUtils.getArrayFromCollection(_internalList.dataProvider as ICollectionView).reverse()"
 			enabled="{_internalList.dataProvider.length > 0}"/>
 		<mx:Button
 			label="{lang('Remove selected')}"
