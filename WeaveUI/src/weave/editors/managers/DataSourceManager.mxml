@@ -271,16 +271,12 @@
 						}
 					}
 					createVis.data = function():Array {
-						return ToolsMenu.getDynamicItems().filter(
-							function(item:WeaveMenuItem, ..._):Boolean {
-								if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
-									return true;
-								item.click = onClick;
-								var qname:String = getQualifiedClassName(item.data);
-								var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
-								return ClassUtils.classImplements(qname, qname_iowsa);
-							}
-						);
+						return ToolsMenu.getDynamicItems(null, function(item:WeaveMenuItem):Boolean {
+							item.click = onClick;
+							var qname:String = getQualifiedClassName(item.data);
+							var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
+							return ClassUtils.classImplements(qname, qname_iowsa);
+						});
 					};
 				}
 				

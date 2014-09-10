@@ -205,7 +205,7 @@
 				if (menuToggleVBox.numChildren > 0)
 					return;
 				
-				for each (var item:WeaveMenuItem in ToolsMenu.getDynamicItems())
+				for each (var item:WeaveMenuItem in ToolsMenu.getDynamicItems(null, null, true))
 				{
 					if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
 					{

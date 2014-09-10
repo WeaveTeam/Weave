@@ -159,8 +159,9 @@ package weave.menus
 		 * Gets an Array of WeaveMenuItem objects for creating IVisTools.
 		 * @param labelFormat A format string to be passed to lang().
 		 * @param itemVistor A function like function(item:WeaveMenuItem):void that will be called for each tool menu item.
+		 * @param flatList Set this to true to get a flat list of items rather than a nested menu structure.
 		 */
-		public static function getDynamicItems(labelFormat:String = null, itemVisitor:Function = null):Array
+		public static function getDynamicItems(labelFormat:String = null, itemVisitor:Function = null, flatList:Boolean = false):Array
 		{
 			function getToolItemLabel(item:WeaveMenuItem):String
 			{
@@ -177,51 +178,48 @@ package weave.menus
 					function(group:Array, iGroup:int, groups:Array):* {
 						var items:Array = group.map(
 							function(impl:Class, i:int, a:Array):* {
-								return {
+								var item:WeaveMenuItem = new WeaveMenuItem({
 									shown: [notDash, Weave.properties.getToolToggle(impl)],
 									label: getToolItemLabel,
 									click: createGlobalObject,
 									data: impl
-								};
+								});
+								if (itemVisitor != null)
+									itemVisitor(item);
+								return item;
 							}
 						);
-						/*
-						if (iGroup == groups.length - 1)
+						if (!flatList && iGroup == groups.length - 1)
 							return {
-								shown: [notDash],
+								shown: [notDash, function():Boolean { return this.children.length > 0 }],
 								label: lang('Other tools'),
 								children: items
 							};
-						*/
 						return items;
 					}
 				)
 			);
 		}
 		
-		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
-			label: function():String {
-				var dash:Boolean = Weave.properties.dashboardMode.value;
-				return lang((dash ? "Disable" : "Enable") + " dashboard mode");
-			},
+		private static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
+			shown: Weave.properties.dashboardMode,
+			label: lang("Disable dashboard mode"),
 			click: Weave.properties.dashboardMode
 		});
 			
 		public function ToolsMenu()
 		{
-			var cachedItems:Array;
 			super({
+				source: Weave.properties.toolToggles.childListCallbacks,
 				shown: Weave.properties.enableDynamicTools,
 				label: lang("Tools"),
 				children: function():Array
 				{
-					if (detectLinkableObjectChange(this, Weave.properties.toolToggles.childListCallbacks))
-						cachedItems = createItems([
-							staticItems,
-							getDynamicItems("Add {0}"),
-							dashboardItem
-						]);
-					return cachedItems;
+					return createItems([
+						staticItems,
+						getDynamicItems("Add {0}"),
+						dashboardItem
+					]);
 				}
 			});
 		}
