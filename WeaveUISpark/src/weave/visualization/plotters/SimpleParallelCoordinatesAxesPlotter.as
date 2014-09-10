@@ -71,6 +71,7 @@ package weave.visualization.plotters
 			if (!plotter)
 				return;
 			var columns:Array = plotter.columns.getObjects();
+			var normalize:Boolean = plotter.normalize.value;
 			
 			// set up bitmapBounds so the direction matches that of screenBounds
 			if (screenBounds.getXDirection() > 0)
@@ -107,14 +108,14 @@ package weave.visualization.plotters
 				graphics.lineTo(maxPoint.x, maxPoint.y);
 				
 				// draw axis min value
-				bitmapText.text = ColumnUtils.deriveStringFromNumber(column, stats.getMin());
+				bitmapText.text = ColumnUtils.deriveStringFromNumber(column, normalize ? stats.getMin() : dataBounds.getYMin());
 				bitmapText.x = minPoint.x;
 				bitmapText.y = minPoint.y;
 				bitmapText.verticalAlign = screenBounds.getYDirection() > 0 ? BitmapText.VERTICAL_ALIGN_BOTTOM : BitmapText.VERTICAL_ALIGN_TOP;
 				bitmapText.draw(destination);
 				
 				// draw axis max value
-				bitmapText.text = ColumnUtils.deriveStringFromNumber(column, stats.getMax());
+				bitmapText.text = ColumnUtils.deriveStringFromNumber(column, normalize ? stats.getMax() : dataBounds.getYMax());
 				bitmapText.x = maxPoint.x;
 				bitmapText.y = maxPoint.y;
 				bitmapText.verticalAlign = screenBounds.getYDirection() > 0 ? BitmapText.VERTICAL_ALIGN_TOP : BitmapText.VERTICAL_ALIGN_BOTTOM;
