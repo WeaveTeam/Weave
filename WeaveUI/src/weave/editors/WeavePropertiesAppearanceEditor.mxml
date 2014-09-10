@@ -30,10 +30,10 @@
 	<ui:Indent id="fontIndent" label="{lang('Window title font:')}" group="{fontIndent}">
 		<ui:FontControl id="windowTitleFontControl"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Visualization font:')}" group="{fontIndent}">
-		<ui:FontControl id="visFontControl" embeddedFontsOnly="true"/>
+	<ui:Indent label="{lang('Visualization title font:')}" group="{fontIndent}">
+		<ui:FontControl id="visTitleFontControl" embeddedFontsOnly="true"/>
 		<ui:HelpComponent>
-			These font settings are used for axis labels and inside the visualization area.
+			These font settings are used for the title that appears above a visualization (when enabled).
 			Only embedded fonts are supported at this time.
 		</ui:HelpComponent>
 	</ui:Indent>
@@ -44,10 +44,10 @@
 			Only embedded fonts are supported at this time.
 		</ui:HelpComponent>
 	</ui:Indent>
-	<ui:Indent label="{lang('Visualization title font:')}" group="{fontIndent}">
-		<ui:FontControl id="visTitleFontControl" embeddedFontsOnly="true"/>
+	<ui:Indent label="{lang('Visualization font:')}" group="{fontIndent}">
+		<ui:FontControl id="visFontControl" embeddedFontsOnly="true"/>
 		<ui:HelpComponent>
-			These font settings are used for the title that appears above a visualization (when enabled).
+			These font settings are used for axis labels and inside the visualization area.
 			Only embedded fonts are supported at this time.
 		</ui:HelpComponent>
 	</ui:Indent>
