@@ -75,7 +75,7 @@ package weave.menus
 			
 			// open control panel for new tool
 			var dp:DraggablePanel = object as DraggablePanel;
-			if (dp && dp.controlPanel)
+			if (dp)
 				dp.callLater(handleDraggablePanelAdded, [dp]);
 			
 			return object;

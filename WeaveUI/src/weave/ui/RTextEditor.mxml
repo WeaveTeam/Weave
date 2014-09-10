@@ -103,8 +103,11 @@ RTextEditor
 			
 			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.disposeObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
@@ -122,7 +125,18 @@ RTextEditor
 			private const padding:int = 5;
 			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			
+			private var _service:WeaveRServlet;
+			private function get Rservice():WeaveRServlet
+			{
+				if (detectLinkableObjectChange(this, Weave.properties.rServiceURL))
+				{
+					if (_service)
+						disposeObject(_service);
+					_service = registerDisposableChild(this, new WeaveRServlet(Weave.properties.rServiceURL.value));
+				}
+				return _service;
+			}
 			public const inputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const plotTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const outputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
@@ -425,5 +439,22 @@ RTextEditor
 			
 		]]>
 	</mx:Script>
-	
+	<editorFactory>
+		<mx:Component>
+			<ControlPanel>
+				<mx:VBox label="Settings">
+					<Indent label="{lang('Weave RService URL')}">
+						<TextInputWithPrompt id="urlInput" prompt="/WeaveServices/RService" width="100%"
+											 creationComplete="linkBindableProperty(Weave.properties.rServiceURL, urlInput, 'text')"/>
+					</Indent>
+				</mx:VBox>
+				<mx:Script>
+					<![CDATA[
+						import weave.Weave;
+						import weave.api.linkBindableProperty;
+					]]>
+				</mx:Script>
+			</ControlPanel>
+		</mx:Component>
+	</editorFactory>
 </DraggablePanel>
