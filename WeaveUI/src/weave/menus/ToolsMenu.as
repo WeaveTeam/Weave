@@ -40,6 +40,7 @@ package weave.menus
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.IVisTool;
 	import weave.api.ui.IVisTool_Basic;
+	import weave.api.ui.IVisTool_R;
 	import weave.api.ui.IVisTool_Utility;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
@@ -146,20 +147,32 @@ package weave.menus
 			}
 		]);
 		
-		public static function getDynamicItems(labelFormat:String = null):Array
+		public static function getVisToolDisplayName(implementation:Class):String
+		{
+			var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(implementation);
+			if (ClassUtils.classImplements(getQualifiedClassName(implementation), getQualifiedClassName(IVisTool_R)))
+				return lang("{0} ({1})", displayName, lang("Requires Rserve"));
+			return displayName;
+		}
+		
+		/**
+		 * Gets an Array of WeaveMenuItem objects for creating IVisTools.
+		 * @param labelFormat A format string to be passed to lang().
+		 * @param itemVistor A function like function(item:WeaveMenuItem):void that will be called for each tool menu item.
+		 */
+		public static function getDynamicItems(labelFormat:String = null, itemVisitor:Function = null):Array
 		{
 			function getToolItemLabel(item:WeaveMenuItem):String
 			{
-				var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(item.data as Class);
-				if (labelFormat)
-					return lang(labelFormat, displayName);
-				return displayName;
+				var displayName:String = getVisToolDisplayName(item.data as Class);
+				return labelFormat ? lang(labelFormat, displayName) : displayName;
 			}
 			return createItems(
 				ClassUtils.partitionClassList(
 					WeaveAPI.ClassRegistry.getImplementations(IVisTool),
 					IVisTool_Basic,
-					IVisTool_Utility
+					IVisTool_Utility,
+					IVisTool_R
 				).map(
 					function(group:Array, iGroup:int, groups:Array):* {
 						var items:Array = group.map(

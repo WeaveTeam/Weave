@@ -28,7 +28,7 @@
 				layout="horizontal"
 				autoLayout="true"
 				creationComplete="draggablepanel1_creationCompleteHandler(event)"
-				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
+				implements="weave.api.ui.IVisTool_R" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
 	
 	<mx:VBox paddingLeft="10" paddingRight="5" paddingTop="5" paddingBottom="20" width="100%" height="100%">
 		<mx:MenuBar id="ROptions" labelField="@label" fontWeight="bold" cornerRadius="8" itemClick="menuItemClickHandler(event)"

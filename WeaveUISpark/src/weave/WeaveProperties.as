@@ -45,8 +45,10 @@ package weave
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IVisTool_R;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
+	import weave.core.ClassUtils;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -102,12 +104,7 @@ package weave
 //			_toggleToolsMenuItem("GaugeTool", false);
 			_toggleToolsMenuItem("TreeTool", false);
 			_toggleToolsMenuItem("CytoscapeWebTool", false);
-			_toggleToolsMenuItem("GraphTool", false);
 			_toggleToolsMenuItem("CustomGraphicsTool", false);
-			_toggleToolsMenuItem("DataStatisticsTool", false);
-			_toggleToolsMenuItem("RamachandranPlotTool", false);
-			_toggleToolsMenuItem("RTextEditor", false);
-			_toggleToolsMenuItem("SchafersMissingDataTool", false);
 			_toggleToolsMenuItem("DataFilter", false);
 			_toggleToolsMenuItem("KeyMappingTool", false);
 			
@@ -264,7 +261,9 @@ package weave
 				}
 				else
 				{
-					toggle.value = true; // default value
+					// set default value
+					var is_r_tool:Boolean = ClassUtils.classImplements(getQualifiedClassName(classDef), getQualifiedClassName(IVisTool_R));
+					toggle.value = !is_r_tool;
 				}
 			}
 			return toggle;

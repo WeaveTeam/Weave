@@ -38,7 +38,7 @@ SchafersMissingDataImputation
 <DraggablePanel xmlns="weave.ui.*"
 				xmlns:mx="http://www.adobe.com/2006/mxml"
 				x="15%" y="15%" width="70%" height="70%" autoLayout="true" backgroundColor="#EFF4BC"
-				horizontalScrollPolicy="off" implements="weave.api.ui.IVisTool" layout="horizontal"
+				horizontalScrollPolicy="off" implements="weave.api.ui.IVisTool_R" layout="horizontal"
 				title="Schafers Missing Data Imputation" verticalScrollPolicy="off">
 	<mx:HBox width="100%" height="100%" paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">

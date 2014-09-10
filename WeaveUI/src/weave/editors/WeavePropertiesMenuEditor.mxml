@@ -189,11 +189,14 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.controls.HRule;
 			import mx.events.CloseEvent;
 			
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
 			import weave.api.ui.IVisTool;
+			import weave.menus.ToolsMenu;
+			import weave.menus.WeaveMenuItem;
 			
 			override protected function createChildren():void
 			{
@@ -202,18 +205,22 @@
 				if (menuToggleVBox.numChildren > 0)
 					return;
 				
-				var cbArray:Array = [];
-				var cb:CustomCheckBox;
-				for each (var _class:Class in WeaveAPI.ClassRegistry.getImplementations(IVisTool))
+				for each (var item:WeaveMenuItem in ToolsMenu.getDynamicItems())
 				{
-					cb = new CustomCheckBox();
-					cb.label = WeaveAPI.ClassRegistry.getDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
-					linkBindableProperty(Weave.properties.getToolToggle(_class), cb, 'selected');
-					cbArray.push(cb);
+					if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
+					{
+						var hr:HRule = new HRule();
+						hr.percentWidth = 100;
+						menuToggleVBox.addChild(hr);
+					}
+					else
+					{
+						var cb:CustomCheckBox = new CustomCheckBox();
+						cb.label = item.label;
+						linkBindableProperty(Weave.properties.getToolToggle(item.data as Class), cb, 'selected');
+						menuToggleVBox.addChild(cb);
+					}
 				}
-				cbArray.sortOn('label');
-				for each (cb in cbArray)
-					menuToggleVBox.addChild(cb);
 			}
 			
 			override protected function childrenCreated():void
