@@ -562,6 +562,28 @@ background-color: #4C4F53;
 	color: white;
 }
 
+/*the red one*/
+.invalidate {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size : 17px;
+    border-radius: 10px;
+	color: #fff;
+	background-color: #d9534f;
+	border-color: #d43f3a;
+}
+/*the blue one*/
+.validate {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size : 17px;
+    border-radius: 10px;
+    color: #fff;
+	background-color: #428bca;
+	border-color: #357ebd;
+}
+
+
 .panel-heading > h2 {
 	padding: 8px 0px 2px 5px;
 	font-size: 14px;
