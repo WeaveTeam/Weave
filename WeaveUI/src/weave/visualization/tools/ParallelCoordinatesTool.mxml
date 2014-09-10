@@ -51,7 +51,9 @@
 				pm.marginBottom.value = '70';
 				
 				plotter = initializePlotters(SimpleParallelCoordinatesPlotter, false);
-				axesPlotter = pm.plotters.requestObject("axes", SimpleParallelCoordinatesAxesPlotter, true);
+				const AXES:String = 'axes';
+				axesPlotter = pm.plotters.requestObject(AXES, SimpleParallelCoordinatesAxesPlotter, true);
+				pm.getLayerSettings(AXES).selectable.value = false;
 				
 				WeaveAPI.StageUtils.callLater(this, initPlotterPath, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
