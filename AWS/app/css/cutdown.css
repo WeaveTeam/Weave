@@ -550,7 +550,8 @@ background-color: #4C4F53;
 	color: white;
 }
 
-.bttn {
+/*the red one*/
+.invalidate {
     padding-top: 5px;
     padding-bottom: 5px;
     font-size : 17px;
@@ -559,8 +560,8 @@ background-color: #4C4F53;
 	background-color: #d9534f;
 	border-color: #d43f3a;
 }
-
-.bttn.validate {
+/*the blue one*/
+.validate {
     padding-top: 5px;
     padding-bottom: 5px;
     font-size : 17px;

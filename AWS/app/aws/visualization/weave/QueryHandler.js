@@ -44,13 +44,12 @@ qh_module.service('QueryHandlerService',
     this.runScript = function(scriptName, inputs, filters) {
         
     	var deferred = $q.defer();
-
-    	
-    	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
-    		scope.$safeApply(function() {
-				deferred.resolve(result);
-			});
-		});
+    	//setTimeout(function(){this.isValidated = false;console.log("reached here",this.isValidated );}, 3000);
+//    	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
+//    		scope.$safeApply(function() {
+//				deferred.resolve(result);
+//			});
+//		});
     	
         return deferred.promise;
     };
@@ -238,6 +237,7 @@ qh_module.service('QueryHandlerService',
 			// var stringifiedQO = JSON.stringify(queryObject);
 			// console.log("query", stringifiedQO);
 			// console.log(JSON.parse(stringifiedQO));
+			
 
 			this.runScript(scriptName, scriptInputs, filters).then(function(resultData) {
 				if(!angular.isUndefined(resultData.data))//only if something is returned open weave
@@ -250,7 +250,9 @@ qh_module.service('QueryHandlerService',
 							WeaveService.weave = weave;
 							WeaveService.addCSVData(resultData.data);
 							WeaveService.columnNames = resultData.data[0];
+							console.log("service.validated", that);
 							that.isValidated = false;
+							console.log("service.validated", that);
 							if(!runInRealTime)//if false
 							{
 								//check for the vizzies and make the required calls
@@ -290,4 +292,22 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 	
 	$scope.service = queryService;
 	$scope.runService = QueryHandlerService;
+	//$scope.isValidated = false;
+	
+//	$scope.$watch(function(){
+//		return QueryHandlerService.isValidated;
+//	}, function(){
+//		$scope.isValidated = QueryHandlerService.isValidated;
+//		console.log("in the service",QueryHandlerService.isValidated );
+//		
+//	});
+	
+//	$scope.isValidated = function(b)
+//	{
+//		if( typeof b === "undefined" )
+//			return $scope.runService.isValidated;
+//		
+//		$scope.runService.isValidated = b;
+//	};
 });
+
