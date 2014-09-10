@@ -45,11 +45,11 @@ qh_module.service('QueryHandlerService',
         
     	var deferred = $q.defer();
     	//setTimeout(function(){this.isValidated = false;console.log("reached here",this.isValidated );}, 3000);
-//    	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
-//    		scope.$safeApply(function() {
-//				deferred.resolve(result);
-//			});
-//		});
+    	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
+    		scope.$safeApply(function() {
+				deferred.resolve(result);
+			});
+		});
     	
         return deferred.promise;
     };
