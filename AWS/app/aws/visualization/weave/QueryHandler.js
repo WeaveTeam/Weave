@@ -16,6 +16,7 @@ qh_module.service('QueryHandlerService',
 	var filters = {};
 	var scriptName = ""; 
 	this.isValidated = false;
+	this.validationUpdate = "";
 	//var queryObject = queryService.queryObject;
 	var nestedFilterRequest = {and : []};
 	
@@ -67,11 +68,15 @@ qh_module.service('QueryHandlerService',
     	//check for script inputs
     	if(queryObjectToValidate.dataTable && queryObjectToValidate.scriptSelected )
     		{
-	    		console.log("datatable check",queryObjectToValidate.dataTable, queryObjectToValidate.scriptSelected);
 	    		this.isValidated = true;
+	    		this.validationUpdate = "Your query Object has been varified";
     		}
     	else
-    		console.log("Please select a datatable and select a script");
+    		{
+	    		console.log("Please select a datatable and select a script");
+	    		this.validationUpdate = "Your query object has not been varified";
+    		
+    		}
     	
     };
     
@@ -295,7 +300,9 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 	
 	$scope.service = queryService;
 	$scope.runService = QueryHandlerService;
-	//$scope.isValidated = false;
+//	$scope.check =function(){
+//		$scope.isValidated = !$scope.isValidated;
+//	};
 	
 //	$scope.$watch(function(){
 //		return QueryHandlerService.isValidated;

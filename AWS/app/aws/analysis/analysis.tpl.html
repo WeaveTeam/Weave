@@ -159,13 +159,20 @@
 								
 								<div style="padding-bottom :7px"></div>
 								
-								<button ng-class="{'validate' : runService.isValidated, 'invalidate' : !runService.isValidated}"
-								ng-model = "runService.isValidated"
+								<button class = "btn btn-primary"
 								style="width: 100%;"
 								ng-click="runService.run(true)" 
 								ng-controller="QueryHandlerCtrl">
 								 <span style="vertical-align: right">Run</span>
 								 </button>
+								
+								<div ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
+								
+								 <div 
+								 ng-class="{'validate' : runService.isValidated, 'invalidate' : !runService.isValidated}">
+								 </div>
+								 {{runService.validationUpdate}}
+								 </div> 					 
 								 
 							</div>
 						</div>
