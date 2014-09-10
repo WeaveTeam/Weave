@@ -253,10 +253,24 @@ package weave
 			var className:String = getQualifiedClassName(classDef).split('::').pop();
 			var existsPreviously:Boolean = toolToggles.getObject(className) is LinkableBoolean;
 			var toggle:LinkableBoolean = toolToggles.requestObject(className, LinkableBoolean, true); // lock
+			var deprecatedToggle:LinkableBoolean = toolToggles.getObject(toolToggleBackwardsCompatibility[className]) as LinkableBoolean;
 			if (!existsPreviously)
-				toggle.value = true; // default value
+			{
+				if (deprecatedToggle)
+				{
+					// backwards compatibility for old session states
+					toggle.value = deprecatedToggle.value;
+					toolToggles.removeObject(toolToggleBackwardsCompatibility[className]);
+				}
+				else
+				{
+					toggle.value = true; // default value
+				}
+			}
 			return toggle;
 		}
+		// maps new tool name to old tool name
+		private const toolToggleBackwardsCompatibility:Object = {"AdvancedDataTable": "DataTableTool", "TableTool": "DataTableTool"};
 
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true);
