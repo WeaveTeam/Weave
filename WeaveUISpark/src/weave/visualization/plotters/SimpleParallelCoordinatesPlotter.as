@@ -22,6 +22,7 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
+	import flash.utils.Dictionary;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
@@ -54,6 +55,7 @@ package weave.visualization.plotters
 		public const curvedLines:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		private var _columns:Array = [];
+		private var _stats:Dictionary = new Dictionary(true);
 		private static const tempBoundsArray:Array = []; // Array of reusable Bounds2D objects
 		private static const tempPoint:Point = new Point(); // reusable Point object
 		
@@ -75,7 +77,10 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+			{
+				_stats[newColumn] = WeaveAPI.StatisticsCache.getColumnStatistics(newColumn);
+				registerLinkableChild(spatialCallbacks, _stats[newColumn]);
+			}
 			
 			_columns = columns.getObjects();
 			
@@ -108,7 +113,7 @@ package weave.visualization.plotters
 			{
 				var column:IAttributeColumn = _columns[i];
 				if (normalize.value)
-					output[i] = WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(recordKey);
+					output[i] = (_stats[column] as IColumnStatistics).getNorm(recordKey);
 				else
 					output[i] = column.getValueFromKey(recordKey, Number);
 			}
@@ -276,7 +281,7 @@ package weave.visualization.plotters
 				output.setYRange(NaN, NaN);
 				for (var i:int = 0; i < _columns.length; i++)
 				{
-					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]);
+					var stats:IColumnStatistics = _stats[_columns[i]];
 					output.includeCoords(i, stats.getMin());
 					output.includeCoords(i, stats.getMax());
 				}
