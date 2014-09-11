@@ -64,6 +64,20 @@ package weave.visualization.plotters
 			plotterWatcher.targetPath = plotterPath.getSessionState() as Array;
 		}
 		
+		override public function getBackgroundDataBounds(output:IBounds2D):void
+		{
+			var plotter:SimpleParallelCoordinatesPlotter = plotterWatcher.target as SimpleParallelCoordinatesPlotter;
+			if (plotter)
+			{
+				plotter.getBackgroundDataBounds(output)
+				output.setXRange(output.getXNumericMin() - 0.5, output.getXNumericMax() + 0.5);
+			}
+			else
+			{
+				output.reset();
+			}
+		}
+		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var graphics:Graphics = tempShape.graphics;
@@ -86,7 +100,8 @@ package weave.visualization.plotters
 			graphics.clear();
 			lineStyle.beginLineStyle(null, graphics);
 			textFormat.copyTo(bitmapText.textFormat);
-			bitmapText.maxHeight = Math.abs(bitmapBounds.getYMin() - screenBounds.getYMin());
+			var maxMarginHeight:Number = Math.abs(bitmapBounds.getYMax() - screenBounds.getYMax());
+			var minMarginHeight:Number = Math.abs(bitmapBounds.getYMin() - screenBounds.getYMin());
 			bitmapText.maxWidth = bitmapBounds.getXCoverage() / columns.length;
 			bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
 			
@@ -112,6 +127,7 @@ package weave.visualization.plotters
 				bitmapText.x = minPoint.x;
 				bitmapText.y = minPoint.y;
 				bitmapText.verticalAlign = screenBounds.getYDirection() > 0 ? BitmapText.VERTICAL_ALIGN_BOTTOM : BitmapText.VERTICAL_ALIGN_TOP;
+				bitmapText.maxHeight = minMarginHeight / 2;
 				bitmapText.draw(destination);
 				
 				// draw axis max value
@@ -119,13 +135,15 @@ package weave.visualization.plotters
 				bitmapText.x = maxPoint.x;
 				bitmapText.y = maxPoint.y;
 				bitmapText.verticalAlign = screenBounds.getYDirection() > 0 ? BitmapText.VERTICAL_ALIGN_TOP : BitmapText.VERTICAL_ALIGN_BOTTOM;
+				bitmapText.maxHeight = maxMarginHeight;
 				bitmapText.draw(destination);
 				
-				// draw axis title
+				// draw axis title in min margin
 				bitmapText.text = ColumnUtils.getTitle(column);
 				bitmapText.x = minPoint.x;
 				bitmapText.y = bitmapBounds.getYMin(); // align to bottom of bitmap
 				bitmapText.verticalAlign = bitmapBounds.getYDirection() > 0 ? BitmapText.VERTICAL_ALIGN_TOP : BitmapText.VERTICAL_ALIGN_BOTTOM;
+				bitmapText.maxHeight = minMarginHeight / 2;
 				bitmapText.draw(destination);
 			}
 			

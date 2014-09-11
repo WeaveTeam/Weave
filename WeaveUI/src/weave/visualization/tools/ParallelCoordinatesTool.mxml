@@ -44,11 +44,13 @@
 				super.inConstructor();
 				
 				panelTitle.value = "Parallel Coordinates";
+				
 				var pm:PlotManager = visualization.plotManager;
-				pm.marginLeft.value = '50';
-				pm.marginRight.value = '50';
+				pm.marginLeft.value = '0';
+				pm.marginRight.value = '0';
 				pm.marginTop.value = '40';
 				pm.marginBottom.value = '70';
+				pm.includeNonSelectableLayersInAutoZoom.value = true;
 				
 				plotter = initializePlotters(SimpleParallelCoordinatesPlotter, false);
 				const AXES:String = 'axes';
