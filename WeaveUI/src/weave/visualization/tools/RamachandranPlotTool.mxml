@@ -23,7 +23,8 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
-			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
+			   xmlns:settings="weave.ui.settings.*"
+			   implements="weave.api.ui.IVisTool_R"
 			   layout = "absolute" xmlns:editors="weave.editors.*" >
 	<mx:Script>
 		<![CDATA[

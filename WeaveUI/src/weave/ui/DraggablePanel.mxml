@@ -144,7 +144,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _constructorCalled:Boolean = false; // true when constructor has been called
 			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()
 			
-			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
+			[Bindable] public var enablePercentageCoords:Boolean = true;
 			
 			private var _overriddenStyles:Object = new Object();
 			private var draggablePanelCursorID:int = -1;
@@ -643,11 +643,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// calculate snap size
 				var snapStr:String = Weave.properties.windowSnapGridSize.value;
-				var usePercent:Boolean = (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages);
+				var snapToPercent:Boolean = snapStr.indexOf('%') >= 0;
+				var usePercent:Boolean = enablePercentageCoords && snapToPercent;
 				var snapNum:Number = StandardLib.asNumber(snapStr.replace('%', ''));
 				
 				// adjust snap to match panel coordinate mode
-				if (usePercent != (snapStr.indexOf('%') >= 0))
+				if (usePercent != snapToPercent)
 				{
 					if (usePercent)
 						snapNum = 100 * snapNum / Math.max(_parentWidth, _parentHeight);
@@ -776,8 +777,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			private function handleParentResize(event:Event):void
 			{
-				if (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages)
-					copyCoordinatesFromSessionedProperties();
+				if (enablePercentageCoords)
+				{
+					var snapStr:String = Weave.properties.windowSnapGridSize.value;
+					if (snapStr && snapStr.indexOf("%") >= 0)
+						copyCoordinatesFromSessionedProperties();
+				}
 			}
 			
 			private function handleCloseAlertResult(event:CloseEvent):void

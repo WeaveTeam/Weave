@@ -76,7 +76,7 @@ package weave.menus
 			}
 		]);
 		
-		public static function getDynamicItems(labelFormat:String = null):Array
+		public static function getDynamicItems(labelFormat:String = null, alwaysShow:Boolean = false):Array
 		{
 			function getLabel(item:WeaveMenuItem):String
 			{
@@ -101,7 +101,7 @@ package weave.menus
 						return group.map(
 							function(impl:Class, i:*, a:*):Object {
 								return {
-									shown: Weave.properties.enableManageDataSources,
+									shown: {or: [alwaysShow, Weave.properties.enableManageDataSources]},
 									label: getLabel,
 									click: onClick,
 									data: impl

@@ -75,7 +75,13 @@ package weave.menus
 				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); }
 			},
 			TYPE_SEPARATOR,
-			ToolsMenu.dashboardItem,
+			{
+				label: function():String {
+					var dash:Boolean = Weave.properties.dashboardMode.value;
+					return lang((dash ? "Disable" : "Enable") + " dashboard mode");
+				},
+				click: Weave.properties.dashboardMode
+			},
 			TYPE_SEPARATOR,
 			{
 				shown: Weave.properties.enableFullScreen,
@@ -187,17 +193,15 @@ package weave.menus
 		
 		public function WindowMenu()
 		{
-			var cachedItems:Array;
 			super({
+				source: WeaveAPI.globalHashMap.childListCallbacks,
 				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
 				label: lang("Window"),
 				children: function():Array {
-					if (detectLinkableObjectChange(this, WeaveAPI.globalHashMap.childListCallbacks))
-						cachedItems = createItems([
-							staticItems,
-							dynamicItems
-						]);
-					return cachedItems;
+					return createItems([
+						staticItems,
+						dynamicItems
+					]);
 				}
 			});
 		}

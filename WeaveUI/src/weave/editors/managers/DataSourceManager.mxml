@@ -25,12 +25,11 @@
 	xmlns:ui="weave.ui.*"
 	backgroundColor="#EFF4BC"
 	escapeKeyClosesPanel="true"
-	sessionPanelCoordsAsPercentages="false"
+	enablePercentageCoords="false"
 	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*">
 	<mx:HDividedBox initialize="UIUtils.pad(event, padding, 100, 100)">
 		<mx:VBox height="100%">
-			<ui:MenuButton id="createDataSource" label="{lang('New data source...')}" width="100%"
-						   initialize="createDataSource.data = DataMenu.getDynamicItems as Function;"/>
+			<ui:MenuButton id="createDataSource" label="{lang('New data source...')}" width="100%"/>
 			<ui:Paragraph translate="true">
 				Select a data source:
 			</ui:Paragraph>
@@ -177,6 +176,7 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import weave.menus.DataMenu;
 				import weave.api.data.IQualifiedKey;
 				import weave.Weave;
 				import weave.utils.VectorUtils;
@@ -222,6 +222,7 @@
 				{
 					super.childrenCreated();
 					
+					createDataSource.data = function():Array { return DataMenu.getDynamicItems(null, true); }
 					initCreateVis();
 					
 					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
@@ -271,16 +272,12 @@
 						}
 					}
 					createVis.data = function():Array {
-						return ToolsMenu.getDynamicItems().filter(
-							function(item:WeaveMenuItem, ..._):Boolean {
-								if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
-									return true;
-								item.click = onClick;
-								var qname:String = getQualifiedClassName(item.data);
-								var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
-								return ClassUtils.classImplements(qname, qname_iowsa);
-							}
-						);
+						return ToolsMenu.getDynamicItems(null, function(item:WeaveMenuItem):Boolean {
+							item.click = onClick;
+							var qname:String = getQualifiedClassName(item.data);
+							var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
+							return ClassUtils.classImplements(qname, qname_iowsa);
+						});
 					};
 				}
 				

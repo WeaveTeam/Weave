@@ -143,7 +143,7 @@ package weave.editors
 				var clc:ColumnListComponent = new ColumnListComponent();
 				clc.label = label;
 				clc.hashMap = lhm;
-				clc.listHeight = 96;
+				clc.listHeight = 160;
 				return clc;
 			}
 			

@@ -160,7 +160,16 @@ package weave.core
 				{
 					if (linkableVariable is LinkableVariable)
 					{
-						if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
+						var verified:Boolean = false;
+						try
+						{
+							verified = (linkableVariable as LinkableVariable).verifyValue(bindableValue);
+						}
+						catch (e:Error)
+						{
+							trace('Error calling verifier:', e.getStackTrace());
+						}
+						if (verified)
 						{
 							// clear previous error string
 							if (uiComponent.errorString == VALUE_NOT_ACCEPTED)

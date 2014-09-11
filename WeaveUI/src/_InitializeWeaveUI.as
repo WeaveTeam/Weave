@@ -84,6 +84,7 @@ package
 	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
+	import weave.visualization.tools.AdvancedTableTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -93,7 +94,6 @@ package
 	import weave.visualization.tools.CytoscapeWebTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
-	import weave.visualization.tools.AdvancedTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.GraphTool;
@@ -103,6 +103,7 @@ package
 	import weave.visualization.tools.LayerSettingsTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
+	import weave.visualization.tools.ParallelCoordinatesTool;
 	import weave.visualization.tools.PieChartHistogramTool;
 	import weave.visualization.tools.PieChartTool;
 	import weave.visualization.tools.RInterfaceTool;
@@ -204,7 +205,8 @@ package
 				RInterfaceTool,
 				TreeTool,
 				KeyMappingTool,
-				LayerSettingsTool
+				LayerSettingsTool,
+				ParallelCoordinatesTool
 			]);
 			
 			/**

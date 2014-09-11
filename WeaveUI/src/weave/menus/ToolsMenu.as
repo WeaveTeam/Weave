@@ -40,6 +40,7 @@ package weave.menus
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.IVisTool;
 	import weave.api.ui.IVisTool_Basic;
+	import weave.api.ui.IVisTool_R;
 	import weave.api.ui.IVisTool_Utility;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
@@ -74,7 +75,7 @@ package weave.menus
 			
 			// open control panel for new tool
 			var dp:DraggablePanel = object as DraggablePanel;
-			if (dp && dp.controlPanel)
+			if (dp)
 				dp.callLater(handleDraggablePanelAdded, [dp]);
 			
 			return object;
@@ -146,69 +147,79 @@ package weave.menus
 			}
 		]);
 		
-		public static function getDynamicItems(labelFormat:String = null):Array
+		public static function getVisToolDisplayName(implementation:Class):String
+		{
+			var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(implementation);
+			if (ClassUtils.classImplements(getQualifiedClassName(implementation), getQualifiedClassName(IVisTool_R)))
+				return lang("{0} ({1})", displayName, lang("Requires Rserve"));
+			return displayName;
+		}
+		
+		/**
+		 * Gets an Array of WeaveMenuItem objects for creating IVisTools.
+		 * @param labelFormat A format string to be passed to lang().
+		 * @param itemVistor A function like function(item:WeaveMenuItem):void that will be called for each tool menu item.
+		 * @param flatList Set this to true to get a flat list of items rather than a nested menu structure.
+		 */
+		public static function getDynamicItems(labelFormat:String = null, itemVisitor:Function = null, flatList:Boolean = false):Array
 		{
 			function getToolItemLabel(item:WeaveMenuItem):String
 			{
-				var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(item.data as Class);
-				if (labelFormat)
-					return lang(labelFormat, displayName);
-				return displayName;
+				var displayName:String = getVisToolDisplayName(item.data as Class);
+				return labelFormat ? lang(labelFormat, displayName) : displayName;
 			}
 			return createItems(
 				ClassUtils.partitionClassList(
 					WeaveAPI.ClassRegistry.getImplementations(IVisTool),
 					IVisTool_Basic,
-					IVisTool_Utility
+					IVisTool_Utility,
+					IVisTool_R
 				).map(
 					function(group:Array, iGroup:int, groups:Array):* {
 						var items:Array = group.map(
 							function(impl:Class, i:int, a:Array):* {
-								return {
+								var item:WeaveMenuItem = new WeaveMenuItem({
 									shown: [notDash, Weave.properties.getToolToggle(impl)],
 									label: getToolItemLabel,
 									click: createGlobalObject,
 									data: impl
-								};
+								});
+								if (itemVisitor != null)
+									itemVisitor(item);
+								return item;
 							}
 						);
-						/*
-						if (iGroup == groups.length - 1)
+						if (!flatList && iGroup == groups.length - 1)
 							return {
-								shown: [notDash],
+								shown: [notDash, function():Boolean { return this.children.length > 0 }],
 								label: lang('Other tools'),
 								children: items
 							};
-						*/
 						return items;
 					}
 				)
 			);
 		}
 		
-		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
-			label: function():String {
-				var dash:Boolean = Weave.properties.dashboardMode.value;
-				return lang((dash ? "Disable" : "Enable") + " dashboard mode");
-			},
+		private static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
+			shown: Weave.properties.dashboardMode,
+			label: lang("Disable dashboard mode"),
 			click: Weave.properties.dashboardMode
 		});
 			
 		public function ToolsMenu()
 		{
-			var cachedItems:Array;
 			super({
+				source: Weave.properties.toolToggles.childListCallbacks,
 				shown: Weave.properties.enableDynamicTools,
 				label: lang("Tools"),
 				children: function():Array
 				{
-					if (detectLinkableObjectChange(this, Weave.properties.toolToggles.childListCallbacks))
-						cachedItems = createItems([
-							staticItems,
-							getDynamicItems("Add {0}"),
-							dashboardItem
-						]);
-					return cachedItems;
+					return createItems([
+						staticItems,
+						getDynamicItems("Add {0}"),
+						dashboardItem
+					]);
 				}
 			});
 		}

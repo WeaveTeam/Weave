@@ -443,7 +443,6 @@
 				 Beginning of trendline option 
 			-->
 			<ui:CheckBoxWithNestedOptions id= "trendlineCheckBox" label="{lang('Enable Trendline (Requires Rserve on the server)')}"
-						  	 toolTip="Use the dropdown menu to choose a trendline."
 							 creationComplete="linkBindableProperty(outerDocument.regressionPlotter.drawLine, event.target, 'selected')">
 				<mx:HBox>
 					<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
@@ -458,7 +457,7 @@
 									tickInterval="1"/>
 					</mx:HBox>
 				</mx:HBox>
-				<mx:Label id="lineEquation" text="{StandardLib.replace(outerDocument.equationText.text, '\n', '    ')}"/>
+				<mx:Label id="lineEquation" text="{StandardLib.replace(outerDocument.equationText.text, '\n', '    ')}" visible="{lineEquation.text ? true : false}" includeInLayout="{lineEquation.text ? true : false}"/>
 				<mx:CheckBox id="hideEquationCheckBox" label="{lang('Display the equation in the visualization')}" labelPlacement="right"
 							 creationComplete="linkBindableProperty(outerDocument.isVisibleEquationTextBoolean, event.target, 'selected')"/>
 				<ui:Indent label="{lang('Line Color')}">

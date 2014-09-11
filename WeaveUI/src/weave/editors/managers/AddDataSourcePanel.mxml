@@ -23,7 +23,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
 	xmlns:ui="weave.ui.*"
-	sessionPanelCoordsAsPercentages="false"
+	enablePercentageCoords="false"
 	escapeKeyClosesPanel="true"
 	title="{lang('Add new data source')}">
 	<mx:VBox initialize="UIUtils.pad(event, 8, 100, 100)">
