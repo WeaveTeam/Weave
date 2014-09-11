@@ -51,6 +51,7 @@
 				pm.marginTop.value = '40';
 				pm.marginBottom.value = '70';
 				pm.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.enableZoomAndPan.value = false;
 				
 				plotter = initializePlotters(SimpleParallelCoordinatesPlotter, false);
 				const AXES:String = 'axes';
