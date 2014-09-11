@@ -31,7 +31,7 @@
 
 	<body>
 
-		<div style="height: 1024px;" ng-controller="AWSController">
+		<div style="height: 100%;" ng-controller="AWSController">
 
 			<header id ="header">
 				<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -114,8 +114,8 @@
 			</div>
 			
 			<footer>
-				<div style = "margin-left: 500px">
-					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-template="analystErrorLog.html"
+				<div id = "footer" style = "margin-left: 500px">
+					<button id = "errorLog" type="button" class="btn btn-primary" data-template="analystErrorLog.html"
 						data-placement="top-left" data-animation="am-slide-bottom" bs-aside="errorAside" data-container="body" ng-click = "">
 							Open Error Log
 						</button>
