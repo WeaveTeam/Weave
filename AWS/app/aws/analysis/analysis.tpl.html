@@ -100,14 +100,10 @@
 							<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
 						</select>
 						
-						<div style="padding-bottom :7px"></div>
-						
-						
-						 
 						<div>
 						
-						<div style="padding-bottom :7px"></div>
 						
+								<h6 class='tool-category'>Script parameters</h6>
 								<div class = "tool-bar" >
 									<table width=100%>
 									<tr ng-repeat="input in service.dataObject.scriptMetadata.inputs">
@@ -157,7 +153,6 @@
 								</table>
 								</div>
 								
-								<div style="padding-bottom :7px"></div>
 								
 								<button class = "btn btn-primary"
 								style="width: 100%;"
@@ -165,13 +160,13 @@
 								ng-controller="QueryHandlerCtrl">
 								 <span style="vertical-align: right">Run</span>
 								 </button>
+								<div style="padding-bottom :7px"></div>
 								
-								<div ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
-								
-								 <div 
-								 ng-class="{'validate' : runService.isValidated, 'invalidate' : !runService.isValidated}">
-								 </div>
-								 {{runService.validationUpdate}}
+								<div style = "display :table" ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
+									 <div style = "display : table-cell" 
+									 ng-class="{'validate' : runService.isValidated, 'invalidate' : !runService.isValidated}">
+									 </div>
+									 <div style= "display : table-cell; padding-left : 5px">{{runService.validationUpdate}}</div>
 								 </div> 					 
 								 
 							</div>

@@ -16,7 +16,7 @@ qh_module.service('QueryHandlerService',
 	var filters = {};
 	var scriptName = ""; 
 	this.isValidated = false;
-	this.validationUpdate = "";
+	this.validationUpdate = "Query Object Status";
 	//var queryObject = queryService.queryObject;
 	var nestedFilterRequest = {and : []};
 	
@@ -69,12 +69,12 @@ qh_module.service('QueryHandlerService',
     	if(queryObjectToValidate.dataTable && queryObjectToValidate.scriptSelected )
     		{
 	    		this.isValidated = true;
-	    		this.validationUpdate = "Your query Object has been varified";
+	    		this.validationUpdate = "Your query object is varified";
     		}
     	else
     		{
 	    		console.log("Please select a datatable and select a script");
-	    		this.validationUpdate = "Your query object has not been varified";
+	    		this.validationUpdate = "Your query object is not varified";
     		
     		}
     	
