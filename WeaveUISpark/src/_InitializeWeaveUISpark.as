@@ -19,6 +19,7 @@
 
 package
 {
+	import weave.core.ClassUtils;
 	import weave.core.WeaveXMLDecoder;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.CustomGlyphPlotter;
@@ -28,6 +29,7 @@ package
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.Histogram2DPlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.OldParallelCoordinatesPlotter;
 	import weave.visualization.plotters.RectanglePlotter;
 	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SimpleGlyphPlotter;
@@ -78,5 +80,7 @@ package
 			"weave.visualization.plotters",
 			"weave.visualization.plotters.styles"
 		);
+		
+		ClassUtils.registerDeprecatedClass("weave.visualization.plotters::ParallelCoordinatesPlotter", OldParallelCoordinatesPlotter);
 	}
 }
