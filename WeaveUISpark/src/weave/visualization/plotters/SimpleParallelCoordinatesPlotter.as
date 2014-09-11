@@ -202,22 +202,22 @@ package weave.visualization.plotters
 				
 				dataBounds.projectPointTo(tempPoint, screenBounds);				
 				
-				// if we aren't continuing a new line (it is a new line segment)	
-				if (!continueLine)
+				if (continueLine)
 				{
-					// set the previous X and Y locations to be this new coordinate
-					_prevX = tempPoint.x;
-					_prevY = tempPoint.y;
-				}
-				
-				if (curvedLines.value)
-				{
-					DrawUtils.drawDoubleCurve(graphics, _prevX, _prevY, tempPoint.x, tempPoint.y, true, 1);
+					if (curvedLines.value)
+					{
+						DrawUtils.drawDoubleCurve(graphics, _prevX, _prevY, tempPoint.x, tempPoint.y, true, 1);
+					}
+					else
+					{
+						//graphics.moveTo(_prevX, _prevY);
+						graphics.lineTo(tempPoint.x, tempPoint.y);
+					}
 				}
 				else
 				{
-					graphics.moveTo(_prevX, _prevY);
-					graphics.lineTo(tempPoint.x, tempPoint.y);
+					// we're not continuing a line, but we need to start the next line from the current point
+					graphics.moveTo(tempPoint.x, tempPoint.y);
 				}
 				
 				continueLine = true;
