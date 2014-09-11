@@ -91,6 +91,7 @@
 				<div class="header panel-heading">
 					<h2>Calculations</h2>
 				</div>
+				<!-- options to select the script -->
 				<div class="body" ng-controller="ScriptsSettingsCtrl">
 						<select style="width: 100%;" ui-select2
 							ng-model="service.queryObject.scriptSelected"
@@ -100,9 +101,8 @@
 							<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
 						</select>
 						
+						<!-- options for selecting the input parameters for a script -->
 						<div>
-						
-						
 								<h6 class='tool-category'>Script parameters</h6>
 								<div class = "tool-bar" >
 									<table width=100%>
@@ -153,15 +153,17 @@
 								</table>
 								</div>
 								
-								
+								<!-- The Run button that validates and executes a query -->
 								<button class = "btn btn-primary"
 								style="width: 100%;"
 								ng-click="runService.run(true)" 
 								ng-controller="QueryHandlerCtrl">
 								 <span style="vertical-align: right">Run</span>
 								 </button>
+								 
 								<div style="padding-bottom :7px"></div>
 								
+								<!-- Tell us the validation status of a query object -->
 								<div style = "display :table" ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
 									 <div style = "display : table-cell" 
 									 ng-class="{'validate' : runService.isValidated, 'invalidate' : !runService.isValidated}">
@@ -171,16 +173,7 @@
 								 
 							</div>
 						</div>
-					
-					
-					<!--<div id="loading" ng-show="show_load" class="ng-hide">
-					<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
-					</div>-->
-
-				<!--<div class="body" ng-model="content-tools">
-				<div style="height:100%" ng-include="content_tools[4].template_url"></div>
-				</div>-->
-
+				
 			</div>
 
 			<div>
@@ -209,38 +202,42 @@
 								</li>
 							</ul>
 						</div>
-						<!-- <span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span> -->
-						Key Column:
-						<div style="width: 100%" class="master-select2-container">
-							<select style="width: 100%" ui-select2 ng-controller="ColorCtrl" ng-model="service.queryObject.keyColumn.name" data-placeholder="Choose Key Column">
-								<option></option>
-								<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-							</select>
-						</div>
-						<br>
-						Color Column:
-						<div style="width: 100%" class="master-select2-container">
-							<select style="width: 100%" ui-select2 ng-controller="ColorCtrl" ng-model="service.queryObject.ColorColumn.column" data-placeholder="Choose Color Column">
-								<option></option>
-								<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-							</select>
-						</div>
-						<!-- Contains the buttons pertaining to a query and its visualizations -->
 						
-						<div ng-controller = DialogController>
-							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a>
-						</div>
-						<div style="display: table ; width : 100%; padding-top : 5px">
-<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a> -->
-							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a>
-<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> -->
-						</div>
+							<!-- The key column -->
+							Key Column:
+							<div style="width: 100%" class="master-select2-container">
+								<select style="width: 100%" ui-select2 ng-controller="ColorCtrl" ng-model="service.queryObject.keyColumn.name" data-placeholder="Choose Key Column">
+									<option></option>
+									<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+								</select>
+							</div>
+							<br>
+						
+							<!-- The color column -->
+							Color Column:
+							<div style="width: 100%" class="master-select2-container">
+								<select style="width: 100%" ui-select2 ng-controller="ColorCtrl" ng-model="service.queryObject.ColorColumn.column" data-placeholder="Choose Color Column">
+									<option></option>
+									<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+								</select>
+							</div>
+							<!-- Contains the buttons pertaining to a query and its visualizations -->
+							
+							<div ng-controller = DialogController>
+								<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a>
+							</div>
+							<div style="display: table ; width : 100%; padding-top : 5px">
+	<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a> -->
+								<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a>
+	<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> -->
+							</div>
 						
 						</div>
 				</div>
 
 			</div>
-<!--  			<br> <textarea id="resultTextArea" width="100%" cols="100" rows="5"></textarea></td> -->
+			
+<!--  			Actual visualization widget bricks that get added when selected -->
 			<br>	
 			<div style="height:100%; margin-top: 100px; width: 100%;" class="col-md-8 widget-container">
 					<div style="width: 270px; float : left; margin-right : 20px" ng-repeat="tool in AnalysisService.tool_list | filter : { enabled : 'true' }" class="panel panel-default">
