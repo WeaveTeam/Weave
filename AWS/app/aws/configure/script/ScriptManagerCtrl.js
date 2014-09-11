@@ -9,10 +9,12 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.script.content = "";
 	  $scope.selectedRow = [];
 	  $scope.editScript = false;
+	  $scope.editDesc = false;
 	  $scope.status = "";
 	  $scope.statusColor = "#3276B1";
 	  $scope.jsonbtn = "json";
 	  $scope.EditDone = "Edit";
+	  $scope.EditDoneDesc = "Edit";
 	  $scope.inputsAsString = "";
 	  
 	  $scope.rScriptListOptions = {
@@ -38,7 +40,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.scriptMetadataGridOptions = {
 			  data: 'scriptMetadata.inputs',
 			  columnDefs : [{field : "param", displayName : "Parameter"},
-		               {field :"type", displayName : "Type", enableCellEdit : false, cellTemplate : '<select  ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
+		               {field :"type", displayName : "Type", enableCellEdit : false, cellTemplate : '<select style="vertical-align:middle;" ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
 		               {field : "columnType", displayName : "Column Type", enableCellEdit : false, cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata.inputs[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="type for type in columnTypes" style="align:center"></select>'},
 		               {field : "options", displayName : "Options"},
 		               {field : "default", displayName : "Default"},
@@ -103,6 +105,9 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 				scriptManagerService.saveScriptContent($scope.selectedScript[0].Script,  $scope.script.content).then(function (result) {
 					if(result) {
 						console.log("script modified successfully");
+					} else {
+						$scope.statusColor = "red";
+						 $scope.status = "Error saving script content";
 					}
 				});
 			}
@@ -110,6 +115,38 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 			$scope.EditDone = "Done";
 		}
 	  };
+	  
+	  $scope.toggleEditDesc = function() {
+		  $scope.editDesc = !$scope.editDesc;
+		  
+		  // every time editScript is turnOff, we should save the changes.
+		  if(!$scope.editDesc) {
+			  $scope.EditDoneDesc = "Edit";
+				if($scope.scriptMetadata.description && $scope.selectedScript[0].Script) {
+					scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+						 if(!result) {
+							 $scope.statusColor = "red";
+							 $scope.status = "Error saving script metadata";
+						 }
+					 });
+				}
+	  		} else {
+	  			$scope.EditDoneDesc = "Done";
+	  		}
+	  };
+	  
+	  $scope.$watchCollection('scriptMetadata.inputs', function() {
+		  if($scope.selectedScript.length) {
+			  if($scope.scriptMetadata.inputs && $scope.selectedScript[0].Script) {
+				  scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+					  if(!result) {
+						  $scope.statusColor = "red";
+						  $scope.status = "Error saving script metadata";
+					  }
+				  });
+			  }
+		  }
+      });
 	  
 	  $scope.toggleJsonView = function() {
 		  $scope.viewasjson = !$scope.viewasjson;
@@ -165,30 +202,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 			 }
 		 }
 	 };
-	 $scope.$watch('selectedScript.length', function () {
-		 console.log($scope.selectedScript.length);
-	 });
 	 
-	 $scope.saveChanges = function () {
-		 if($scope.selectedScript[0])
-		 {
-			 scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
-				 
-				 if(result) {
-					 refreshScripts();
-					 $scope.statusColor = "green";
-					 $scope.status = "Changes successful!";
-					 setTimeout(function() {
-						 $scope.status = "";
-						 $scope.$apply();
-					 }, 1000);
-				 } else {
-					 $scope.statusColor = "red";
-					 $scope.status = "Changes unsuccessful!";
-				 }
-			 });
-		 }
-	 };
     $scope.saveNewScript = function (content, metadata) {
     	$modal.open({
 			 backdrop: false,
