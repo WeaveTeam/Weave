@@ -1,20 +1,20 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+	This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.servlets;
@@ -72,8 +72,10 @@ import com.heatonresearch.httprecipes.html.PeekableInputStream;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
 
+import flex.messaging.FlexContext;
 import flex.messaging.MessageException;
 import flex.messaging.io.SerializationContext;
+import flex.messaging.io.TypeMarshallingContext;
 import flex.messaging.io.amf.ASObject;
 import flex.messaging.io.amf.Amf3Input;
 import flex.messaging.io.amf.Amf3Output;
@@ -134,23 +136,23 @@ public class WeaveServlet extends HttpServlet
 	 */
 	protected WeaveServlet(Object ...serviceObjects)
 	{
-	    super();
-	    
-	    try
-	    {
-	    	// explicitly initialize this method
-	    	initMethod(this, WeaveServlet.class.getMethod(GET_CAPABILITIES));
-	    }
-	    catch (NoSuchMethodException e)
-	    {
-	    	e.printStackTrace();
-	    }
-	    
-	    // automatically initialize methods of this object
-	    initAllMethods(this);
-	    
-	    for (Object serviceObject : serviceObjects)
-	    	initAllMethods(serviceObject);
+		super();
+		
+		try
+		{
+			// explicitly initialize this method
+			initMethod(this, WeaveServlet.class.getMethod(GET_CAPABILITIES));
+		}
+		catch (NoSuchMethodException e)
+		{
+			e.printStackTrace();
+		}
+		
+		// automatically initialize methods of this object
+		initAllMethods(this);
+		
+		for (Object serviceObject : serviceObjects)
+			initAllMethods(serviceObject);
 	}
 
 	public void init(ServletConfig config) throws ServletException
@@ -172,6 +174,23 @@ public class WeaveServlet extends HttpServlet
 		serializationContext.restoreReferences = false;
 		serializationContext.logPropertyErrors = false;
 		serializationContext.ignorePropertyErrors = true;
+		
+		cleanupThreadLocals();
+	}
+	
+	private static void cleanupThreadLocals()
+	{
+		// Below is a fix for the following error:
+		// SEVERE: The web application [/WeaveServices] created a ThreadLocal with key of type [java.lang.ThreadLocal] (value [java.lang.ThreadLocal@10d6a3f]) and a value of type [flex.messaging.io.SerializationContext] (value [flex.messaging.io.SerializationContext@1ba7ccc]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+		// Solution found at http://forum.spring.io/forum/spring-projects/web/flex/80980-shutting-down-flex-message-broker-cleanly?p=551551#post551551
+		
+		// Clear the thread locals used by the 'main' startup thread.
+		// Otherwise get thread leak messages from Tomcat on application shutdown.
+		FlexContext.clearThreadLocalObjects();
+		
+		// Clear other thread local objects on the 'main' initialization thread
+		SerializationContext.clearThreadLocalObjects();
+		TypeMarshallingContext.clearThreadLocalObjects();
 	}
 	
 	/**
@@ -211,9 +230,9 @@ public class WeaveServlet extends HttpServlet
 			methodMap.put(methodName, null);
 	
 			System.err.println(String.format(
-					"Method %s.%s will not be supported because there are multiple definitions.",
-					this.getClass().getName(), methodName
-				));
+				"Method %s.%s will not be supported because there are multiple definitions.",
+				this.getClass().getName(), methodName
+			));
 		}
 		else
 		{
@@ -289,6 +308,7 @@ public class WeaveServlet extends HttpServlet
 		synchronized (_servletRequestInfo)
 		{
 			_servletRequestInfo.remove(Thread.currentThread());
+			cleanupThreadLocals();
 		}
 	}
 	
@@ -311,8 +331,8 @@ public class WeaveServlet extends HttpServlet
 			
 			if (request.getMethod().equals("GET"))
 			{
-	    		List<String> urlParamNames = Collections.list(request.getParameterNames());
-	    		
+				List<String> urlParamNames = Collections.list(request.getParameterNames());
+				
 				HashMap<String, String> params = new HashMap<String,String>();
 				
 				for (String paramName : urlParamNames)
@@ -323,38 +343,38 @@ public class WeaveServlet extends HttpServlet
 				json.method = params.remove(METHOD);
 				json.params = params;
 				
-	    		info.currentJsonRequest = json;
-	    		info.prettyPrinting = true;
-	    		invokeMethod(json.method, params);
+				info.currentJsonRequest = json;
+				info.prettyPrinting = true;
+				invokeMethod(json.method, params);
 			}
 			else // post
 			{
-	    		try
-	    		{
-	    			String methodName;
-	    			Object methodParams;
-	    			if (info.inputStream.peek() == '[' || info.inputStream.peek() == '{') // json
-	    			{
-	    				handleArrayOfJsonRequests(info.inputStream,response);
-	    			}
-	    			else // AMF3
-	    			{
-	    				ASObject obj = (ASObject)deserializeAmf3(info.inputStream);
-	    				methodName = (String) obj.get(METHOD);
-	    				methodParams = obj.get(PARAMS);
-	    				info.streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
-	    				invokeMethod(methodName, methodParams);
-	    			}
-		    	}
-	    		catch (IOException e)
-	    		{
-	    			sendError(e, null);
-	    		}
-	    		catch (Exception e)
-		    	{
-		    		sendError(e, null);
-		    	}
-		    	
+				try
+				{
+					String methodName;
+					Object methodParams;
+					if (info.inputStream.peek() == '[' || info.inputStream.peek() == '{') // json
+					{
+						handleArrayOfJsonRequests(info.inputStream,response);
+					}
+					else // AMF3
+					{
+						ASObject obj = (ASObject)deserializeAmf3(info.inputStream);
+						methodName = (String) obj.get(METHOD);
+						methodParams = obj.get(PARAMS);
+						info.streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
+						invokeMethod(methodName, methodParams);
+					}
+				}
+				catch (IOException e)
+				{
+					sendError(e, null);
+				}
+				catch (Exception e)
+				{
+					sendError(e, null);
+				}
+				
 			}
 			handleJsonResponses();
 		}
@@ -515,32 +535,32 @@ public class WeaveServlet extends HttpServlet
 		if (id == null)
 			return;
 		
-	    JsonRpcResponseModel result = new JsonRpcResponseModel();
-	    result.id = id;
-	    result.jsonrpc = "2.0";
-	    result.error = new JsonRpcErrorModel();
-	    result.error.message = message;
-	    result.error.data = data;
-	    
-	    if (message.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE)
-	    		|| message.equals(JSON_RPC_ID_ERROR_MESSAGE))
-	    {
-	    	result.error.code = "-32600";
-	    }
-	    else if (message.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
-	    {
-	    	result.error.code = "-32601";
-	    }
-	    else if (message.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
-	    {
-	    	result.error.code = "-32700";
-	    }
-	    else
-	    {
-	    	result.error.code = "-32000";
-	    }
-	    
-	    info.jsonResponses.add(result);
+		JsonRpcResponseModel result = new JsonRpcResponseModel();
+		result.id = id;
+		result.jsonrpc = "2.0";
+		result.error = new JsonRpcErrorModel();
+		result.error.message = message;
+		result.error.data = data;
+		
+		if (message.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE)
+				|| message.equals(JSON_RPC_ID_ERROR_MESSAGE))
+		{
+			result.error.code = "-32600";
+		}
+		else if (message.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
+		{
+			result.error.code = "-32601";
+		}
+		else if (message.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
+		{
+			result.error.code = "-32700";
+		}
+		else
+		{
+			result.error.code = "-32000";
+		}
+		
+		info.jsonResponses.add(result);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -928,9 +948,9 @@ public class WeaveServlet extends HttpServlet
 		if (info.currentJsonRequest == null)
 		{
 			ServletOutputStream servletOutputStream = info.getOutputStream();
-	    	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
-	    	errorMessage.faultCode = exception.getClass().getSimpleName();
-	    	serializeCompressedAmf3(errorMessage, servletOutputStream);
+			ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
+			errorMessage.faultCode = exception.getClass().getSimpleName();
+			serializeCompressedAmf3(errorMessage, servletOutputStream);
 		}
 		else
 		{
@@ -974,7 +994,7 @@ public class WeaveServlet extends HttpServlet
 		amf3Input.setInputStream(inputStream); // uncompress
 		deSerializedObj = (ASObject) amf3Input.readObject();
 		//amf3Input.close();
-		
+
 		return deSerializedObj;
 	}
 	

@@ -102,6 +102,11 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
+	public void destroy()
+	{
+		SQLUtils.staticCleanup();
+	}
+	
 	/**
 	 * This function should be the first thing called by the Admin Console to initialize the servlet.
 	 * If SQL config data migration is required, it will be done and periodic status updates will be written to the servlet output stream.
