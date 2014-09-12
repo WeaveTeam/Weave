@@ -26,6 +26,8 @@ package weave.services.collaboration
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
+	import flash.xml.XMLNode;
+	import flash.xml.XMLNodeType;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.Sort;
@@ -79,6 +81,7 @@ package weave.services.collaboration
 		private var connectedToRoom:Boolean 			= false;
 		private var stateLog:SessionStateLog 			= null;
 		private var synchronizingIncomingDiff:Boolean 	= false;
+		private var _message:Message                     = new Message();
 		
 		public const userList:ArrayCollection 			= new ArrayCollection();
 		public const TYPE_MIC:String 					= "MIC";
@@ -190,7 +193,7 @@ package weave.services.collaboration
 		}
 		
 		//Sends messages to the room on the server
-		private function sendEncodedObject( message:Object, target:String ):void
+		private function sendEncodedObject( message:Object, target:String):void
 		{
 			if (!connectedToRoom) {
 				trace("Not connected");
@@ -198,10 +201,46 @@ package weave.services.collaboration
 //				throw new Error("Not connected");
 			}
 			
+			//Construct Message object.
+			_message.from = new EscapedJID(selfJID, false);
+			if( target != null )
+				_message.to = new EscapedJID(target, false);
+			if( message is TextMessage )
+			{
+				if( target != null )
+					_message.type = Message.TYPE_CHAT;
+				else
+					_message.type = Message.TYPE_GROUPCHAT;		
+				_message.body = (message as TextMessage).message;
+			}
+			else
+			{
+				//_message.body = encodeObject(message);
+				//_message.addTextNode(new XMLNode(XMLNodeType.ELEMENT_NODE,encodeObject(message)), "weave", encodeObject(message));
+				_message.setNode(createWeaveStanza(selfJID, target, message));
+			}
+			
+			trace("To string:   " + _message.getNode().toString());
+			
+			//room.sendMessageWithExtension(_message);
+		
 			if( target != null)
 				room.sendPrivateMessage( target, encodeObject(message) );
 			else
 				room.sendMessage( encodeObject(message) );
+			
+		}
+		private function createWeaveStanza(whoTo:String, whoFrom:String, data:Object):XMLNode
+		{
+			var weaveTag:String = "weave";
+			var toTag:String = " to=";
+			var fromTag:String = " from=";
+			var typeTag:String = " type=weave";
+			var idTag:String = " id=";
+			var contentTag:String = " content=";
+			
+			var node:XMLNode = new XMLNode(XMLNodeType.ELEMENT_NODE, weaveTag + toTag + whoTo + fromTag + whoFrom + typeTag + idTag + contentTag + encodeObject(data));
+			return node;
 		}
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
 		{
@@ -234,7 +273,7 @@ package weave.services.collaboration
 		public function sendTextMessage( text:String, target:String=null ):void
 		{
 			var message:TextMessage = new TextMessage( selfJID, text );
-			sendEncodedObject( message, target );
+			sendEncodedObject( message, target);
 		}
 		public function sendPing(id:String, sendToRoom:Boolean = false, ping:Number = 0):void
 		{
@@ -255,7 +294,7 @@ package weave.services.collaboration
 		public function sendFullSessionState( diffID:int, diff:Object, target:String ):void
 		{
 			var message:FullSessionState = new FullSessionState(diffID, diff);
-			sendEncodedObject( message, target );
+			sendEncodedObject( message, target);
 		}
 		
 		//Handles sending session state changes
@@ -369,6 +408,7 @@ package weave.services.collaboration
 			//and not from a user
 			if( event.data.id != null) 
 			{
+				trace("Received:  " + event.data.getNode().toString());
 				var i:int;
 				
 				// handle a message from a user
