@@ -497,7 +497,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		DataConfig dataConfig = getDataConfig();
 		
 		DataEntityMetadata params = new DataEntityMetadata();
-		params.setPublicMetadata(
+		params.setPublicValues(
 				PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 				PublicMetadata.KEYTYPE, keyType
 			);

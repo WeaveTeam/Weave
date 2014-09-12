@@ -450,7 +450,7 @@ public class DataConfig
 			{
 				// update entityType to hierarchy
 				DataEntityMetadata metadata = new DataEntityMetadata();
-				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
+				metadata.setPublicValues(PublicMetadata.ENTITYTYPE, EntityType.HIERARCHY);
 				updateEntity(childId, metadata);
 			}
 		}
@@ -463,7 +463,7 @@ public class DataConfig
 			{
 				metadata = new DataEntityMetadata();
 				String title = public_metadata.getProperty(childId, PublicMetadata.TITLE);
-				metadata.setPublicMetadata(PublicMetadata.TITLE, title);
+				metadata.setPublicValues(PublicMetadata.TITLE, title);
 			}
 			else
 			{
@@ -471,7 +471,7 @@ public class DataConfig
 			}
 			// if parent is root, make it a hierarchy. otherwise, make it a category
 			String newType = parentId == NULL ? EntityType.HIERARCHY : EntityType.CATEGORY;
-			metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, newType);
+			metadata.setPublicValues(PublicMetadata.ENTITYTYPE, newType);
 			// make the copy
 			newChildId = newEntity(metadata, parentId, insertAtIndex);
 		}
@@ -701,7 +701,7 @@ public class DataConfig
 		/**
 		 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
 		 */
-		public void setPublicMetadata(String ...pairs)
+		public void setPublicValues(String ...pairs)
 		{
 			MapUtils.putPairs(publicMetadata, (Object[])pairs);
 		}
@@ -709,7 +709,7 @@ public class DataConfig
 		/**
 		 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
 		 */
-		public void setPrivateMetadata(String ...pairs)
+		public void setPrivateValues(String ...pairs)
 		{
 			MapUtils.putPairs(privateMetadata, (Object[])pairs);
 		}
