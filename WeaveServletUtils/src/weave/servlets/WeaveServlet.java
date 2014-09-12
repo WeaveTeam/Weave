@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.zip.DeflaterOutputStream;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -110,6 +111,7 @@ public class WeaveServlet extends HttpServlet
 	
 	private Map<String, ExposedMethod> methodMap = new HashMap<String, ExposedMethod>(); //Key: methodName
 	private Paranamer paranamer = new BytecodeReadingParanamer(); // this gets parameter names from Methods
+	private SerializationContext serializationContext;
 	
 	/**
 	 * This class contains a Method with its parameter names and class instance.
@@ -149,6 +151,27 @@ public class WeaveServlet extends HttpServlet
 	    
 	    for (Object serviceObject : serviceObjects)
 	    	initAllMethods(serviceObject);
+	}
+
+	public void init(ServletConfig config) throws ServletException
+	{
+		super.init(config);
+		
+		serializationContext = SerializationContext.getSerializationContext();
+		
+		// set serialization context properties
+		serializationContext.enableSmallMessages = true;
+		serializationContext.instantiateTypes = true;
+		serializationContext.supportRemoteClass = true;
+	   	serializationContext.legacyCollection = false;
+		serializationContext.legacyMap = false;
+		serializationContext.legacyXMLDocument = false;
+		serializationContext.legacyXMLNamespaces = false;
+		serializationContext.legacyThrowable = false;
+		serializationContext.legacyBigNumbers = false;
+		serializationContext.restoreReferences = false;
+		serializationContext.logPropertyErrors = false;
+		serializationContext.ignorePropertyErrors = true;
 	}
 	
 	/**
@@ -915,37 +938,14 @@ public class WeaveServlet extends HttpServlet
 		}
 	}
 	
-	protected static SerializationContext getSerializationContext()
-	{
-		SerializationContext context = SerializationContext.getSerializationContext();
-		
-		// set serialization context properties
-		context.enableSmallMessages = true;
-		context.instantiateTypes = true;
-	   	context.supportRemoteClass = true;
-		context.legacyCollection = false;
-		context.legacyMap = false;
-		context.legacyXMLDocument = false;
-		context.legacyXMLNamespaces = false;
-		context.legacyThrowable = false;
-		context.legacyBigNumbers = false;
-		context.restoreReferences = false;
-		context.logPropertyErrors = false;
-		context.ignorePropertyErrors = true;
-		
-		return context;
-	}
-	
 	// Serialize a Java Object to AMF3 ByteArray
 	protected void serializeCompressedAmf3(Object objToSerialize, ServletOutputStream servletOutputStream)
 	{
 		try
 		{
-			SerializationContext context = getSerializationContext();
-	
 			DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(servletOutputStream);
 			
-			Amf3Output amf3Output = new Amf3Output(context);
+			Amf3Output amf3Output = new Amf3Output(serializationContext);
 			amf3Output.setOutputStream(deflaterOutputStream); // compress
 			amf3Output.writeObject(objToSerialize);
 			amf3Output.flush();
@@ -970,9 +970,7 @@ public class WeaveServlet extends HttpServlet
 	{
 		ASObject deSerializedObj = null;
 	
-		SerializationContext context = getSerializationContext();
-		
-		Amf3Input amf3Input = new Amf3Input(context);
+		Amf3Input amf3Input = new Amf3Input(serializationContext);
 		amf3Input.setInputStream(inputStream); // uncompress
 		deSerializedObj = (ASObject) amf3Input.readObject();
 		//amf3Input.close();
