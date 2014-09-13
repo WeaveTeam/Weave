@@ -975,7 +975,7 @@ package weave.visualization.layers
 		}
 
 		/**
-		 * An array of additional columns to be displayed in the probe tooltip for this visualization instance 
+		 * An array of additional columns (or ILinkableHashMaps containing columns) to be displayed in the probe tooltip for this visualization instance 
 		 */		
 		public var additionalProbeColumns:Array = null;
 		

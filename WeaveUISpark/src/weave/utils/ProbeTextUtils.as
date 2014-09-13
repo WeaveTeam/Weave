@@ -68,27 +68,36 @@ package weave.utils
 		public static const probeLineFormatter:LinkableFunction = new LinkableFunction(DEFAULT_LINE_FORMAT, true, false, ['column', 'key', 'string', 'title']);
 		
 		/**
-		 * Additional columns to be used by getProbeText() when the additionalColumnsArray parameter is not specified.
+		 * Additional columns (or ILinkableHashMaps containing columns) to be used by getProbeText() when the additionalAttributes parameter is not specified.
 		 * This variable will be set automatically when that parameter is passed to getProbeText().
 		 */
-		public static var additionalColumns:Array = null;
+		private static var savedAdditionalAttributes:Array = null;
 		
 		/**
 		 * @param keySet The key set you are interested in.
-		 * @param additionalColumnsArray An array of additional columns (other than global probed columns) to be included in the probe text.
+		 * @param additionalAttributes An array of additional columns (or ILinkableHashMaps containing columns) to be included in the probe text.
 		 *                               If this parameter is not specified, the previously specified Array (or null) will be used.
 		 * @return A String containing formatted values from the probed columns.
 		 */
-		public static function getProbeText(keys:Array, additionalColumnsArray:* = undefined):String
+		public static function getProbeText(keys:Array, additionalAttributes:* = undefined):String
 		{
+			// save the additional columns for the next time this function is called so the same info will be returned.
+			if (additionalAttributes !== undefined)
+				savedAdditionalAttributes = additionalAttributes;
+			
 			var result:String = '';
 			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
 			// include headers in list of columns so that those appearing in the headers won't be duplicated.
 			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
-			if (additionalColumnsArray !== undefined)
-				additionalColumns = additionalColumnsArray;
-			if (additionalColumns && additionalColumns.length)
-				columns = columns.concat(additionalColumns);
+			// add additional columns (flatten any hash maps)
+			for each (var item:Object in savedAdditionalAttributes)
+			{
+				if (item is ILinkableHashMap)
+					columns = columns.concat((item as ILinkableHashMap).getObjects(IAttributeColumn));
+				else if (item is IAttributeColumn)
+					columns.push(item);
+			}
+			
 			var keys:Array = keys.concat();
 			AsyncSort.sortImmediately(keys);
 			var key:IQualifiedKey;
@@ -112,7 +121,7 @@ package weave.utils
 				
 				if (record)
 					record += '\n';
-				var lookup:Object = new Object() ;
+				var lookup:Object = {};
 				for (var iColumn:int = 0; iColumn < columns.length; iColumn++)
 				{
 					var column:IAttributeColumn = columns[iColumn] as IAttributeColumn;
