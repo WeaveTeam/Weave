@@ -120,13 +120,11 @@ package weave.data.DataSources
 		{
 			// save parsedRows only if csvData has non-null session state
 			var rows:Array = csvData.getSessionState() as Array;
-			if (rows != null && rows.length)
-			{
-				// clear url value when we specify csvData session state
-				if (url.value)
-					url.value = null;
+			// clear url value when we specify csvData session state
+			if (url.value && rows != null && rows.length)
+				url.value = null;
+			if (!url.value)
 				handleParsedRows(rows);
-			}
 		}
 		
 		/**
@@ -494,7 +492,7 @@ package weave.data.DataSources
 
 			// get column id from metadata
 			var columnId:Object = metadata[METADATA_COLUMN_INDEX];
-			if (columnId)
+			if (columnId != null)
 			{
 				columnId = int(columnId);
 			}
@@ -709,6 +707,6 @@ internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
 	public function getColumnMetadata():Object
 	{
 		var id:Object = source.getColumnIds()[columnIndex];
-		return id && source.generateMetadataForColumnId(id);
+		return id != null && source.generateMetadataForColumnId(id);
 	}
 }
