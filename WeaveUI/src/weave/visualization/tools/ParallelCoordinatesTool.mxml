@@ -59,6 +59,7 @@
 				pm.getLayerSettings(AXES).selectable.value = false;
 				
 				WeaveAPI.StageUtils.callLater(this, initPlotterPath, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				visualization.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 			}
 			
 			private function initPlotterPath():void
@@ -69,7 +70,7 @@
 				axesPlotter.plotterPath.lock();
 				axesPlotter.plotterPath.resumeCallbacks();
 			}
-
+			
 			override public function initSelectableAttributes(input:Array):void
 			{
 				const MAX_DEFAULT_COLUMNS:int = 10;
@@ -77,6 +78,15 @@
 					.forEach(function(item:Object, i:int, a:Array):void {
 						ColumnUtils.initSelectableAttribute(plotter.columns, item, i == 0);
 					});
+			}
+			
+			private function handleMouseMove(event:MouseEvent):void
+			{
+				var point:Point = visualization.getMouseDataCoordinates();
+				visualization.additionalProbeColumns = [
+					ColumnUtils.hack_findInternalDynamicColumn(plotter.lineStyle.color),
+					plotter.columns.getObjects()[Math.round(point.x)]
+				];
 			}
 		]]>
 	</mx:Script>

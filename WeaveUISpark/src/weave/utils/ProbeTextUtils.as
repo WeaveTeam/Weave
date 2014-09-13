@@ -125,6 +125,8 @@ package weave.utils
 				for (var iColumn:int = 0; iColumn < columns.length; iColumn++)
 				{
 					var column:IAttributeColumn = columns[iColumn] as IAttributeColumn;
+					if (!column)
+						continue;
 					var value:String = String(column.getValueFromKey(key, String));
 					if (!value || value == 'NaN')
 						continue;
