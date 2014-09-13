@@ -210,7 +210,7 @@
 			<ui:TextInputWithPrompt id="overrideYMin" prompt="{lang('yMin')}" width="100%"/>
 		</mx:VBox>
 		<ui:TextInputWithPrompt id="overrideXMax" prompt="{lang('xMax')}" width="100%"/>
-		<mx:Button label="{lang('Use current zoom')}" click="setOverrideCoords(true)"/>
+		<mx:Button id="useCurrentZoom" label="{lang('Use current zoom')}" click="setOverrideCoords(true)"/>
 		<mx:Button label="{lang('Reset')}" click="setOverrideCoords(false)"/>
 	</ui:Indent>
 	<mx:Script>
@@ -282,6 +282,7 @@
 					linkBindableProperty(_visualization.plotManager.overrideYMin, overrideYMin, 'text');
 					linkBindableProperty(_visualization.plotManager.overrideXMax, overrideXMax, 'text');
 					linkBindableProperty(_visualization.plotManager.overrideYMax, overrideYMax, 'text');
+					UIUtils.linkVisibility(this, _visualization.plotManager.enableAutoZoomToExtent, useCurrentZoom, true);
 				}
 				
 				controller.reverse = true;
