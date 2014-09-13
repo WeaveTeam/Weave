@@ -28,7 +28,9 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.layers.PlotManager;
 			import weave.visualization.plotters.SimpleParallelCoordinatesAxesPlotter;
@@ -59,7 +61,7 @@
 				pm.getLayerSettings(AXES).selectable.value = false;
 				
 				WeaveAPI.StageUtils.callLater(this, initPlotterPath, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
-				visualization.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+				visualization.addEventListener(MouseEvent.MOUSE_MOVE, updateProbeAttrs);
 			}
 			
 			private function initPlotterPath():void
@@ -80,12 +82,22 @@
 					});
 			}
 			
-			private function handleMouseMove(event:MouseEvent):void
+			public const includeColorAttributeInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeAttrs, true);
+			public const includeAllAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateProbeAttrs, true);
+			
+			private function updateProbeAttrs(event:MouseEvent = null):void
 			{
+				if (event && includeAllAttributesInProbe.value)
+					return;
+				
 				var point:Point = visualization.getMouseDataCoordinates();
 				visualization.additionalProbeColumns = [
-					ColumnUtils.hack_findInternalDynamicColumn(plotter.lineStyle.color),
-					plotter.columns.getObjects()[Math.round(point.x)]
+					includeColorAttributeInProbe.value
+						? ColumnUtils.hack_findInternalDynamicColumn(plotter.lineStyle.color)
+						: null,
+					includeAllAttributesInProbe.value
+						? plotter.columns
+						: plotter.columns.getObjects()[Math.round(point.x)]
 				];
 			}
 		]]>
