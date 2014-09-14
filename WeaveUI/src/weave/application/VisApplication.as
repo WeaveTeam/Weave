@@ -64,10 +64,13 @@ package weave.application
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.WeaveArchive;
+	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
+	import weave.editors.managers.AddDataSourcePanel;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
@@ -75,12 +78,10 @@ package weave.application
 	import weave.ui.DraggablePanel;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
-	import weave.ui.NewUserWizard;
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.WeaveProgressBar;
-	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
@@ -704,11 +705,18 @@ package weave.application
 			}
 		}
 
-		public function CSVWizardWithData(content:Object):void
+		public function handleDraggedFile(fileName:String, fileContent:ByteArray):void
 		{
-			var newUserWiz:NewUserWizard = new NewUserWizard();
-			WizardPanel.createWizard(this, newUserWiz);
-			newUserWiz.CSVFileDrop(content as ByteArray);
+			if (fileName.substr(-4).toLowerCase() == '.csv')
+			{
+				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
+				adsp.dataSourceType = CSVDataSource;
+				(adsp.editor as CSVDataSourceEditor).url.text = WeaveAPI.URLRequestUtils.saveLocalFile(fileName, fileContent);
+			}
+			else
+			{
+				loadSessionState(fileContent, fileName);
+			}
 		}
 		
 		private var _screenshot:Image = null;

@@ -48,18 +48,11 @@ function handleFile(file) {
 		}
 	};
 	reader.onloadend = function(evt) {
-		var data = evt.target.result;
-		data = data.substr(data.indexOf('base64,') + 7);
-		
+		var prefix = 'base64,';
+		var data = evt.target.result.substr(data.indexOf(prefix) + prefix.length);
 		var libs = ['weave.compiler.StandardLib', 'weave.Weave'];
-		
-		var script;
-		if( file.name.substr(-4).toLowerCase() == ".csv" )
-			script = "WeaveAPI.topLevelApplication['visApp'].CSVWizardWithData(StandardLib.atob(data))";
-		else
-			script = "Weave.loadWeaveFileContent(StandardLib.atob(data))";
-		
-		weave.evaluateExpression([], script, {"data": data}, libs);
+		var script = "WeaveAPI.topLevelApplication['visApp'].handleDraggedFile(name, StandardLib.atob(data))";
+		weave.evaluateExpression([], script, {"name": file.name, "data": data}, libs);
 	};
 
 	// begin the read operation

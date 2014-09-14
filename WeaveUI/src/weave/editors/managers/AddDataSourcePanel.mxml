@@ -64,6 +64,8 @@
 				dataSourceType = _dataSourceType;
 			}
 			
+			public function get editor():IDataSourceEditor { return _editor; }
+			
 			private var _editor:IDataSourceEditor;
 			private var _dataSourceType:Class;
 			

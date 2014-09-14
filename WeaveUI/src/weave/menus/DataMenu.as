@@ -19,10 +19,6 @@
 
 package weave.menus
 {
-	import avmplus.getQualifiedClassName;
-	
-	import flash.display.DisplayObject;
-	
 	import weave.Weave;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_File;
@@ -35,8 +31,6 @@ package weave.menus
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
-	import weave.ui.NewUserWizard;
-	import weave.ui.WizardPanel;
 
 	public class DataMenu extends WeaveMenuItem
 	{
@@ -48,10 +42,6 @@ package weave.menus
 		
 		public static const staticItems:Array = createItems([
 			{
-				shown: Weave.properties.enableLoadMyData,
-				label: lang("Load my data"),
-				click: function():void { WizardPanel.createWizard(WeaveAPI.topLevelApplication as DisplayObject, new NewUserWizard()); }
-			},{
 				shown: Weave.properties.enableBrowseData,
 				label: lang("Browse Data"),
 				click: AttributeSelectorPanel.open
