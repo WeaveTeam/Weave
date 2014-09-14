@@ -84,7 +84,9 @@
 
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:HBox horizontalGap="0">
-			<mx:TextInput id="keyColumnName" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
+			<ui:TextInputWithPrompt id="keyColumnName"
+									prompt="{keyColumnName.text ? null : lang(AUTO_GENERATED)}"
+									toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 			<ui:MenuButton id="keyColumnMenu"
 						   alignRight="true"
 						   data="{getKeyColumnMenuItems as Function}"
@@ -106,10 +108,10 @@
 			
 			import spark.events.GridItemEditorEvent;
 			
-			import weave.api.getSessionState;
-			import weave.api.reportError;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
+			import weave.api.getSessionState;
+			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.core.UIUtils;
 			import weave.data.CSVParser;
@@ -158,18 +160,21 @@
 				textEditor.setFocus();
 			}
 			
+			private static const AUTO_GENERATED:String = lang("Auto-generated");
 			private function getKeyColumnMenuItems():Array
 			{
 				function setKeyColumnName(item:WeaveMenuItem):void {
-					keyColumnName.text = item.label;
-					keyTypeSelector.addKeyTypeToMenu(item.label);
+					keyColumnName.text = item.data as String;
+					keyTypeSelector.addKeyTypeToMenu(item.data as String);
 				}
 				var rows:Array = getRows();
-				if (rows && rows.length)
-					return (rows[0] as Array).map(function(name:String, i:*, a:*):* {
-						return {label: name, click: setKeyColumnName};
-					});
-				return null;
+				var header:Array = (rows && rows[0]) || [];
+				return WeaveMenuItem.createItems([
+					{label: AUTO_GENERATED, click: setKeyColumnName},
+					header.map(function(name:String, i:*, a:*):* {
+						return {label: name, click: setKeyColumnName, data: name};
+					})
+				]);
 			}
 
 			private function handleComboKeyDown(event:Event):void
