@@ -98,6 +98,7 @@
 					url.text = target.url.value;
 					keyColumnName.text = target.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(target.keyType.value);
+					keyTypeSelector.selectedKeyType = target.keyType.value;
 					uploadSection.visible = false;
 					showGridButton.visible = false;
 					sourceName.editable = false;
