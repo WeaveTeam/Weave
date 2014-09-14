@@ -48,8 +48,7 @@ function handleFile(file) {
 		}
 	};
 	reader.onloadend = function(evt) {
-		var prefix = 'base64,';
-		var data = evt.target.result.substr(data.indexOf(prefix) + prefix.length);
+		var data = evt.target.result.split('base64,')[1];
 		var libs = ['weave.compiler.StandardLib', 'weave.Weave'];
 		var script = "WeaveAPI.topLevelApplication['visApp'].handleDraggedFile(name, StandardLib.atob(data))";
 		weave.evaluateExpression([], script, {"name": file.name, "data": data}, libs);

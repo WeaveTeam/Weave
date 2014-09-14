@@ -78,6 +78,7 @@
 						   closeDuration="0"
 						   enabled="{!tableEdited}"
 						   dataProvider="{delimiters}"
+						   labelFunction="{delimiterLabelFunction}"
 						   change="delimiterChanged()"/>
 		<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
 	</ui:Indent>
@@ -130,19 +131,25 @@
 			[Bindable] private var tableEdited:Boolean = false;
 			private var append:Boolean = false;
 			
-			private const delimiters:Array = [
-				{label: lang("Comma"), data: ','}, 
-				{label: lang("Semicolon"), data: ';'},
-				{label: lang("Space"), data: ' '},
-				{label: lang("Tab"), data: '\t'}
-			];
+			private const delimiters:Array = [',', ';', ' ', '\t'];
+			private function delimiterLabelFunction(char:String):String
+			{
+				if (char == ',')
+					return lang("Comma");
+				if (char == ';')
+					return lang("Semicolon");
+				if (char == ' ')
+					return lang("Space");
+				if (char == '\t')
+					return lang("Tab");
+				return char;
+			}
 			
 			private var _fileLoader:FileReference = null;
 
 			private function get parser():CSVParser
 			{
-				var item:Object = delimiterComboBox.selectedItem;
-				var delim:String = item ? item.data : delimiterComboBox.text || ',';
+				var delim:String = delimiterComboBox.selectedItem as String || delimiterComboBox.text || ',';
 				return new CSVParser(false, delim);
 			}
 			
@@ -238,7 +245,7 @@
 			private function delimiterChanged():void
 			{
 				if (!delimiterComboBox.text || delimiterComboBox.text == '"')
-					delimiterComboBox.selectedItem = delimiters[0]
+					delimiterComboBox.selectedItem = ',';
 				if (textEditor.text)
 				{
 					textToTable();
@@ -372,6 +379,17 @@
 				);
 			}
 
+			public function setText(text:String, delimiter:String):void
+			{
+				delimiterComboBox.selectedItem = delimiter;
+				if (!delimiterComboBox.selectedItem)
+					delimiterComboBox.text = delimiter;
+				tabNav.selectedChild = textTab;
+				tabNav.validateProperties();
+				textEditor.text = text;
+				tabNav.selectedChild = tableTab;
+			}
+			
 			private function appendRows(rowsToAppend:Array):void
 			{
 				tabNav.selectedChild = tableTab;
