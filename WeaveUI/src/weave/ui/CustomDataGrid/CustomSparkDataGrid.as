@@ -99,30 +99,32 @@ package weave.ui.CustomDataGrid
 			var typicalItemArray:Array = new Array();
 			var firstRow:Array = rows[0];
 			columnArray = header.map(
-				function(title:String, index:int, a:Array):GridColumn {
+				function(title:String, index:int, a:Array):GridColumn
+				{
 					var dgc:GridColumn = new GridColumn(title);
 					dgc.dataField = index;
 					// if title is missing, override default headerText which is equal to dataField
 					if (!title)
 						dgc.headerText = '';
-					if(firstRow){
-						var headerString:String = header[index];
-						// required to add additional characters - column width calcualtion 
+					if (firstRow)
+					{
+						var headerString:String = header[index] || '';
+						// required to add additional characters - column width calculation 
 						// is based on Header string length due to Bold font,
-						headerString += StandardLib.lpad('',Math.ceil(headerString.length/ 20),'0');
+						headerString += StandardLib.lpad('', Math.ceil(headerString.length / 20), '0');
 						// required to find either header string or first string has maximum length
 						// and generate typicalitem object , which decides the column width.
-						if(headerString.length > String(firstRow[index]).length)
+						if (headerString.length > String(firstRow[index]).length)
 							typicalItemArray[index] = headerString;
 						else
 							typicalItemArray[index] = firstRow[index];
-					}					
+					}
 					return dgc;
 				}
 			);
 			columns = new ArrayCollection(columnArray);
 			typicalItem = typicalItemArray;
-			dataProvider = new ArrayCollection( rows);
+			dataProvider = new ArrayCollection(rows);
 		}
 		
 		/**
