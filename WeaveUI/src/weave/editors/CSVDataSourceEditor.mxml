@@ -313,7 +313,7 @@
 			{
 				try
 				{
-					if(_fileLoader == null)
+					if (_fileLoader == null)
 					{
 						_fileLoader = new FileReference();
 						_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
