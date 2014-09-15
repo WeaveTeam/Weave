@@ -36,12 +36,10 @@ package weave.data.Transforms
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.DataSources.AbstractDataSource;
-	import weave.data.KeySets.KeySet;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.utils.ColumnUtils;
 	import weave.utils.EquationColumnLib;
@@ -153,20 +151,10 @@ package weave.data.Transforms
 			proxyColumn.setMetadata(metadata);
 			
 			var dataColumn:IAttributeColumn = dataColumns.getObject(columnName) as IAttributeColumn;
-			var equationColumn:EquationColumn = proxyColumn.getInternalColumn() as AggregateColumn || new AggregateColumn();
-			
-			var uniqueValues:KeySet = equationColumn.variables.requestObject("foreignKeys", KeySet, false) as KeySet;
+			var aggregateColumn:AggregateColumn = proxyColumn.getInternalColumn() as AggregateColumn || new AggregateColumn(this);
+			aggregateColumn.setup(metadata, dataColumn, getGroupKeys());
 
-			equationColumn.hack_internalColumn = equationColumn.variables.requestObjectCopy(AggregateColumn.DATA_COLUMN, dataColumn) as IAttributeColumn;
-			equationColumn.variables.requestObjectCopy(AggregateColumn.GROUP_BY_COLUMN, groupByColumn);
-			equationColumn.filterByKeyType.value = true;
-			
-			uniqueValues.replaceKeys(getGroupKeys());
-
-			equationColumn.metadata.value = metadata;
-			equationColumn.equation.value = "this.getAggregateValue(key, dataType)";
-
-			proxyColumn.setInternalColumn(equationColumn);
+			proxyColumn.setInternalColumn(aggregateColumn);
 		}
 
 		private var _groupKeys:Array;
@@ -193,24 +181,113 @@ package weave.data.Transforms
 	}
 }
 
-import avmplus.getQualifiedClassName;
+import flash.utils.Dictionary;
 
+import weave.api.data.Aggregation;
 import weave.api.data.ColumnMetadata;
 import weave.api.data.DataType;
 import weave.api.data.IAttributeColumn;
+import weave.api.data.IPrimitiveColumn;
 import weave.api.data.IQualifiedKey;
-import weave.compiler.Compiler;
+import weave.api.registerLinkableChild;
 import weave.compiler.StandardLib;
-import weave.data.AttributeColumns.EquationColumn;
+import weave.core.SessionManager;
+import weave.data.AttributeColumns.AbstractAttributeColumn;
 import weave.data.AttributeColumns.NumberColumn;
 import weave.data.AttributeColumns.StringColumn;
+import weave.data.Transforms.GroupedDataTransform;
 import weave.utils.ColumnUtils;
+import weave.utils.Dictionary2D;
 import weave.utils.EquationColumnLib;
+import weave.utils.VectorUtils;
 
-internal class AggregateColumn extends EquationColumn
+internal class AggregateColumn extends AbstractAttributeColumn implements IPrimitiveColumn
 {
-	public static const GROUP_BY_COLUMN:String = 'dataColumn';
-	public static const DATA_COLUMN:String = 'groupByColumn';
+	public function AggregateColumn(source:GroupedDataTransform)
+	{
+		registerLinkableChild(this, source);
+		_groupByColumn = source.groupByColumn;
+	}
+	
+	private var _groupByColumn:IAttributeColumn;
+	private var _dataColumn:IAttributeColumn;
+	private var _keys:Array;
+	private var _cacheTriggerCounter:uint = 0;
+	
+	public function setup(metadata:Object, dataColumn:IAttributeColumn, keys:Array):void
+	{
+		if (_dataColumn && _dataColumn != dataColumn)
+			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _dataColumn);
+		
+		_metadata = copyValues(metadata);
+		_dataColumn = registerLinkableChild(this, dataColumn);
+		_keys = keys;
+		_cacheTriggerCounter = 0;
+	}
+	
+	override public function getMetadata(propertyName:String):String
+	{
+		return super.getMetadata(propertyName)
+			|| _dataColumn.getMetadata(propertyName);
+	}
+	
+	override public function getMetadataPropertyNames():Array
+	{
+		if (_dataColumn)
+			return VectorUtils.union(super.getMetadataPropertyNames(), _dataColumn.getMetadataPropertyNames());
+		return super.getMetadataPropertyNames();
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	override public function get keys():Array
+	{
+		return _keys;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	override public function containsKey(key:IQualifiedKey):Boolean
+	{
+		return _dataColumn.containsKey(key);
+	}
+	
+	public function deriveStringFromNumber(value:Number):String
+	{
+		return ColumnUtils.deriveStringFromNumber(_dataColumn, value);
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	override public function getValueFromKey(groupKey:IQualifiedKey, dataType:Class = null):*
+	{
+		if (triggerCounter != _cacheTriggerCounter)
+		{
+			_cacheTriggerCounter = triggerCounter;
+			dataCache = new Dictionary2D();
+		}
+		
+		if (!dataType)
+			dataType = Array;
+		
+		var cache:Dictionary = dataCache.dictionary[dataType] as Dictionary;
+		if (!cache)
+			dataCache.dictionary[dataType] = cache = new Dictionary();
+		var value:* = cache[groupKey];
+		if (value === undefined)
+		{
+			value = getAggregateValue(groupKey, dataType);
+			cache[groupKey] = value === undefined ? UNDEFINED : value;
+		}
+		else if (value === UNDEFINED)
+			value = undefined;
+		return value;
+	}
+	
+	private static const UNDEFINED:Object = {}; // used as a placeholder for undefined values in dataCache
 	
 	/**
 	 * Computes an aggregated value.
@@ -226,25 +303,23 @@ internal class AggregateColumn extends EquationColumn
 			dataType = Array;
 		
 		// get input keys from groupKey
-		var groupByColumn:IAttributeColumn = this.variables.getObject(GROUP_BY_COLUMN) as IAttributeColumn;
-		var keys:Array = EquationColumnLib.getAssociatedKeys(groupByColumn, groupKey, true);
-		
-		var dataColumn:IAttributeColumn = this.variables.getObject(DATA_COLUMN) as IAttributeColumn;
-		var meta_dataType:String = dataColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+		var keys:Array = EquationColumnLib.getAssociatedKeys(_groupByColumn, groupKey, true);
+		var meta_dataType:String = _dataColumn.getMetadata(ColumnMetadata.DATA_TYPE);
 		var inputType:Class = DataType.getClass(meta_dataType);
 
 		if (dataType === Array)
 		{
 			// We want a flat Array of values, not a nested Array, so we request the original input type
 			// in case they need to be pre-aggregated.
-			return getValues(dataColumn, keys, inputType);
+			return getValues(_dataColumn, keys, inputType);
 		}
 		
-		var meta_aggregation:String = this.getMetadata(ColumnMetadata.AGGREGATION);
+		var meta_aggregation:String = this.getMetadata(ColumnMetadata.AGGREGATION) || Aggregation.DEFAULT;
 		
 		if (inputType === Number || inputType === Date)
 		{
-			var number:Number = NumberColumn.aggregate(this.getValueFromKey(groupKey, Array), meta_aggregation);
+			var array:Array = this.getValueFromKey(groupKey, Array) as Array;
+			var number:Number = NumberColumn.aggregate(array, meta_aggregation);
 			
 			if (dataType === Number)
 				return number;
@@ -253,8 +328,12 @@ internal class AggregateColumn extends EquationColumn
 				return new Date(number);
 			
 			if (dataType === String)
-				return ColumnUtils.deriveStringFromNumber(dataColumn, number)
+			{
+				if (isNaN(number) && array && array.length > 1 && meta_aggregation == Aggregation.SAME)
+					return StringColumn.AMBIGUOUS_DATA;
+				return ColumnUtils.deriveStringFromNumber(_dataColumn, number)
 					|| StandardLib.formatNumber(number);
+			}
 			
 			return undefined;
 		}
@@ -262,7 +341,7 @@ internal class AggregateColumn extends EquationColumn
 		if (inputType === String)
 		{
 			// get a list of values of the requested type, then treat them as Strings and aggregate the Strings
-			var values:Array = getValues(dataColumn, keys, dataType);
+			var values:Array = getValues(_dataColumn, keys, dataType);
 
 			var string:String = StringColumn.aggregate(values, meta_aggregation);
 			
