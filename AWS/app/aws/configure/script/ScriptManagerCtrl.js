@@ -1,5 +1,5 @@
 var scriptUploaded;
-var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService) {
+var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, $dialog, scriptManagerService, queryService) {
 
 	  $scope.service = scriptManagerService;
 	  $scope.queryService = queryService;
@@ -16,6 +16,11 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.EditDone = "Edit";
 	  $scope.EditDoneDesc = "Edit";
 	  $scope.inputsAsString = "";
+	  $scope.tabs = [
+	                 {title : 'R Scripts', page : 'aws/configure/script/rscripts.html'},
+	                 {title : 'Stata Scripts', page : 'aws/configure/script/statascripts.html'}
+	                 ];
+	  $scope.tabs.activeTab = 1;
 	  
 	  $scope.rScriptListOptions = {
 			  data: 'rScripts',
@@ -204,16 +209,16 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 };
 	 
     $scope.saveNewScript = function (content, metadata) {
-    	$modal.open({
+    	$dialog.dialog({
 			 backdrop: false,
 	         backdropClick: true,
 	         dialogFade: true,
 	         keyboard: true,
 	         templateUrl: 'aws/configure/script/uploadNewScript.html',
 	         controller: 'AddScriptDialogInstanceCtrl',
-		});
+		}).open();
     };
-}).controller('AddScriptDialogInstanceCtrl', function ($rootScope, $scope, $modalInstance, scriptManagerService) {
+}).controller('AddScriptDialogInstanceCtrl', function ($scope, dialog, scriptManagerService) {
 	  
 	 $scope.fileName = "";
 	 $scope.metadata = "";
@@ -241,7 +246,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 };
 	
 	 $scope.close = function () {
-		 $modalInstance.close();
+		 dialog.close();
 	 };
 	 
 	 $scope.uploadSuccessful = "na";

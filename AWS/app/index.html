@@ -27,12 +27,11 @@
 		<link rel="stylesheet" href="css/script_managemnt.css" />
 		<link rel="stylesheet" href="css/app-old.css" />
 		<link rel="stylesheet" href="css/modal.css"/>
-		
 	</head>
 
 	<body>
 
-		<div ng-controller="AWSController">
+		<div style="height: 1024px;" ng-controller="AWSController">
 
 			<header id ="header">
 				<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -65,7 +64,6 @@
 <!-- 							</li> -->
 
 						</ul>
-						
 						<!--The right navbar -->
 						<!--Disabling for the release.  This is the login and settings dropdowns
 						<ul class="nav navbar-nav navbar-right">
@@ -104,24 +102,19 @@
 					</div><!-- /.navbar-collapse -->
 					
 				</nav>
-				
+
 			</header>
 
-			<div style="height: 80%" class = "tab-container" >
-				<div style="height: 50%" class="ngview" ng-view>
+			<div style="height: 100%" class = "tab-container" >
+				<div style="height: 100%" class="ngview" ng-view>
 
 				</div>
 
 			</div>
-			
 			<footer>
-				<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl">
-					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-template="analystErrorLog.html"
-						data-placement="top-left" data-animation="am-slide-bottom" bs-aside="errorAside" data-container="body" ng-click = "">
-							Open Error Log
-					</button>
-				</div>
-				
+				<p>
+
+				</p>
 			</footer>
 		</div>
 
@@ -141,14 +134,15 @@
 		<!--<script src='lib/jquery/jquery.bootstrap-duallistbox.js'></script>-->
 		<!--Angular Libraries-->
 		<script src="lib/angular/1.2/angular.min.js"></script>
-		<script src="lib/ui.bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
+		<script src="lib/ui.bootstrap/ui-bootstrap-0.11.0.js"></script>
+		<script src="lib/ui.bootstrap/ui-bootstrap-tpls-0.1.0.js"></script>
 		<!--Unsure if we use this-->
 		<script src='lib/angular/1.2/angular-resource.min.js'></script>
 		<script src="lib/angular/1.2/angular-route.min.js" type="text/javascript"></script>
 		<script src="lib/angular/1.2/angular-sanitize.min.js" type="text/javascript"></script>
 		<script src="lib/angular/1.2/angular-animate.min.js" type="text/javascript"></script>
 		
-		<script src="lib/angularstrap/angular-strap-2-0-0-rc4.js" type="text/javascript"></script>
+		<script src="lib/angularstrap/angular-strap.min.js" type="text/javascript"></script>
 		<script src="lib/angularstrap//angular-strap.tpl.min.js"></script>
 		<script src="lib/ui-select2/angular-ui-select2.js"></script>
 
