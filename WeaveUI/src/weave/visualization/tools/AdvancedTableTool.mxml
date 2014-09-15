@@ -62,8 +62,7 @@
 			<mx:Spacer width="100%"/>
 			<mx:Label id="maxRowsLabel"/>
 			<ui:HelpComponent>
-				The table is currently hiding some of the records,
-				as the amount has exceeded the tables capability for dealing with it efficiently.
+				The table is currently hiding some of the records.
 			</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox id="extraControls" width="100%">
@@ -171,7 +170,7 @@
 			public const filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
 			private const dataProvider:ArrayCollection = new ArrayCollection();
 			
-			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber()); // by default, no limit
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
 			
 			override protected function inConstructor():void
@@ -434,19 +433,9 @@
 			 */	
 			private function handleItemSelection(event:Event=null):void
 			{
-				dataGrid.validateNow();
-				var selectedKeys:Array = new Array();
-				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
-				{
-					selectedKeys[i] = (dataGrid.dataProvider as ArrayCollection).getItemAt( dataGrid.selectedIndices[i] ) as IQualifiedKey;
-				}
-				_selection.replaceKeys(selectedKeys);
+				_selection.replaceKeys(dataGrid.selectedItems);
 			}
 			
-//			private function clearSelection():void
-//			{
-//				_selection.clearKeys();
-//			}
 			/* TODO: Move this method into an abstract class to extend CustomDataGrid off of;
 			   this functionality is duplicated used in TreeTool */ 
 			private function updateGlobalSelectionChange():void
