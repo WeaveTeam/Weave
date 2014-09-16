@@ -29,7 +29,6 @@ package weave.data.KeySets
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -91,7 +90,8 @@ package weave.data.KeySets
 		private var _dependencies:ICallbackCollection = newDisposableChild(this, CallbackCollection);
 		private var _keySet:IKeySet;
 		private var _compare:Function;
-		private var _asyncSort:AsyncSort = newLinkableChild(this, AsyncSort);
+		// Note: not using newLinkableChild for _asyncSort because we do not trigger if sorting does not affect order
+		private var _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		private var _sortedKeys:Array = [];
 		private var _prevSortedKeys:Array = [];
 		
