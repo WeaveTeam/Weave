@@ -60,10 +60,6 @@ app.run(['$rootScope', function($rootScope){
 		templateUrl : 'aws/project/projectManagementPanel.html',
 		controller : 'ProjectManagementCtrl',
 		activetab : 'project_management'
-	}).when('/output_view', {
-		templateUrl : 'aws/outputView/outputViewManagementPanel.html',
-		controller : 'OutputViewManagementController',
-		activetab : 'output_view'
 	});
 });
 
