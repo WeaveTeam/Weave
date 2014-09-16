@@ -179,7 +179,7 @@
 			<div>
 
 				<!--Configure Visuals-->
-				<div class="databox" style="width: 20% ; margin-bottom : 40px">
+				<div  ng-show = "queryHandlerService.displayVizMenu" class="ng-hide databox" style="width: 20% ; margin-bottom : 40px">
 					<!-- <div class="databox" style="width: 220px;"> -->
 
 					<div class="header panel-heading" >
@@ -223,14 +223,12 @@
 							</div>
 							<!-- Contains the buttons pertaining to a query and its visualizations -->
 							
-							<div ng-controller = DialogController>
-								<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a>
-							</div>
-							<div style="display: table ; width : 100%; padding-top : 5px">
-	<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a> -->
-								<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a>
-	<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> -->
-							</div>
+<!-- 							<div ng-controller = DialogController> -->
+<!-- 								<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a> -->
+<!-- 							</div> -->
+<!-- 							<div style="display: table ; width : 100%; padding-top : 5px"> -->
+<!-- 								<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a> -->
+<!-- 							</div> -->
 						
 						</div>
 				</div>
@@ -239,7 +237,7 @@
 			
 <!--  			Actual visualization widget bricks that get added when selected -->
 			<br>	
-			<div style="height:100%; margin-top: 100px; width: 100%;" class="col-md-8 widget-container">
+			<div style="height:100%; margin-top: 100px; width: 100%;">
 					<div style="width: 270px; float : left; margin-right : 20px" ng-repeat="tool in AnalysisService.tool_list | filter : { enabled : 'true' }" class="panel panel-default">
 							<div class="panel-heading">
 								<h2>{{tool.title}}</h2>
