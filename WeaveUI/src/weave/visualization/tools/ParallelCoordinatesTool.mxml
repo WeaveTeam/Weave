@@ -60,7 +60,7 @@
 				axesPlotter = pm.plotters.requestObject(AXES, SimpleParallelCoordinatesAxesPlotter, true);
 				pm.getLayerSettings(AXES).selectable.value = false;
 				
-				WeaveAPI.StageUtils.callLater(this, initPlotterPath, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				WeaveAPI.StageUtils.callLater(this, initPlotterPath);
 				visualization.addEventListener(MouseEvent.MOUSE_MOVE, updateProbeAttrs);
 			}
 			

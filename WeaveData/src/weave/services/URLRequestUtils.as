@@ -202,8 +202,7 @@ package weave.services
 					var contentRequestToken:ContentAsyncResponder = new ContentAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token);
 					var resultEvent:ResultEvent = ResultEvent.createEvent(content);
 					// wait one frame and make sure to call contentResult() instead of result().
-					// low priority because we're simulating a remote request
-					WeaveAPI.StageUtils.callLater(relevantContext, contentRequestToken.contentResult, [resultEvent], WeaveAPI.TASK_PRIORITY_LOW);
+					WeaveAPI.StageUtils.callLater(relevantContext, contentRequestToken.contentResult, [resultEvent]);
 					return contentRequestToken;
 				}
 			}

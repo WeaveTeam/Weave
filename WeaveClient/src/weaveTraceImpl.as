@@ -18,8 +18,7 @@ package
 		else
 		{
 			$.backlog = [args];
-			// low priority because we can wait for log messages
-			WeaveAPI.StageUtils.callLater(null, $.flush, null, WeaveAPI.TASK_PRIORITY_LOW);
+			WeaveAPI.StageUtils.callLater(null, $.flush);
 		}
 	}
 }

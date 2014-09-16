@@ -212,8 +212,7 @@ package weave.core
 			if (sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
 			{
 				// firstParam is ignored when callingLater=true
-				// immediate priority because we want the interface to respond quickly
-				WeaveAPI.StageUtils.callLater(this, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				WeaveAPI.StageUtils.callLater(this, synchronize, [firstParam, true]);
 				return;
 			}
 			
