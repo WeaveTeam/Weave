@@ -201,10 +201,11 @@ package weave.services.collaboration
 //				throw new Error("Not connected");
 			}
 			
+			_message = room.getMessage();
+			
 			//Construct Message object.
-			_message.from = new EscapedJID(selfJID, false);
 			if( target != null )
-				_message.to = new EscapedJID(target, false);
+				_message.to = new EscapedJID(room.roomJID + "/" + target, false);
 			if( message is TextMessage )
 			{
 				if( target != null )
@@ -213,10 +214,12 @@ package weave.services.collaboration
 					_message.type = Message.TYPE_GROUPCHAT;		
 				_message.body = (message as TextMessage).message;
 			}
+			//Special Weave messages case.
 			else
 			{
 				//_message.body = encodeObject(message);
 				//_message.addTextNode(new XMLNode(XMLNodeType.ELEMENT_NODE,encodeObject(message)), "weave", encodeObject(message));
+				
 				_message.setNode(createWeaveStanza(selfJID, target, message));
 			}
 			
