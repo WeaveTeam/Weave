@@ -132,7 +132,7 @@
 						
 						var hashMap:ILinkableHashMap = attrs[i] as ILinkableHashMap;
 						if (hashMap)
-							columns.push.apply(columns, hashMap.getObjects(IAttributeColumn));
+							columns.push(hashMap);
 					}
 				}
 				return columns;

@@ -64,10 +64,18 @@ package weave.application
 	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.WeaveArchive;
+	import weave.data.DataSources.CSVDataSource;
+	import weave.data.DataSources.GeoJSONDataSource;
+	import weave.data.DataSources.GraphMLDataSource;
 	import weave.data.DataSources.WeaveDataSource;
+	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
+	import weave.editors.managers.AddDataSourcePanel;
+	import weave.editors.managers.DataSourceManager;
+	import weave.menus.SessionMenu;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
@@ -75,12 +83,10 @@ package weave.application
 	import weave.ui.DraggablePanel;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
-	import weave.ui.NewUserWizard;
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.WeaveProgressBar;
-	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
@@ -706,11 +712,65 @@ package weave.application
 
 		}
 
-		public function CSVWizardWithData(content:Object):void
+		public function handleDraggedFile(fileName:String, fileContent:ByteArray):void
 		{
-			var newUserWiz:NewUserWizard = new NewUserWizard();
-			WizardPanel.createWizard(this, newUserWiz);
-			newUserWiz.CSVFileDrop(content as ByteArray);
+			var ext:String = String(fileName.split('.').pop()).toLowerCase();
+			if (ext == 'weave' || ext == 'xml')
+			{
+				loadSessionState(fileContent, fileName);
+				return;
+			}
+			
+			var dataSource:*;
+			function newDataSource(type:Class):*
+			{
+				return dataSource = WeaveAPI.globalHashMap.requestObject(fileName, type, false);
+			}
+			function getFileUrl():String
+			{
+				return WeaveAPI.URLRequestUtils.saveLocalFile(fileName, fileContent);
+			}
+			
+			if (ext == 'tsv' || ext == 'txt')
+			{
+				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
+				adsp.dataSourceType = CSVDataSource;
+				var csvEditor:CSVDataSourceEditor = adsp.editor as CSVDataSourceEditor;
+				csvEditor.sourceName.text = fileName;
+				csvEditor.keyTypeSelector.selectedKeyType = fileName;
+				csvEditor.setText(fileContent.toString(), ext == 'tsv' ? '\t' : ',');
+			}
+			else if (ext == 'csv')
+			{
+				var csv:CSVDataSource = newDataSource(CSVDataSource);
+				csv.url.value = getFileUrl();
+				csv.keyType.value = fileName;
+			}
+			else if (ext == 'xls')
+			{
+				var xls:XLSDataSource = newDataSource(XLSDataSource);
+				xls.url.value = getFileUrl();
+				xls.keyType.value = fileName;
+			}
+			else if (ext == 'geojson')
+			{
+				var geojson:GeoJSONDataSource = newDataSource(GeoJSONDataSource);
+				geojson.url.value = getFileUrl();
+				geojson.keyType.value = fileName;
+			}
+			else if (ext == 'graphml')
+			{
+				var graphml:GraphMLDataSource = newDataSource(GraphMLDataSource);
+				graphml.sourceUrl.value = getFileUrl();
+				graphml.edgeKeyType.value = fileName + " (edge)";
+				graphml.nodeKeyType.value = fileName + " (node)";
+			}
+			
+			if (dataSource && !SessionMenu.initTemplate(dataSource))
+			{
+				var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager);
+				dsm.selectDataSource(dataSource);
+			}
 		}
 		
 		private var _screenshot:Image = null;

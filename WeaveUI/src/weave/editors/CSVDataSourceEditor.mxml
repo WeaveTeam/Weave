@@ -78,13 +78,16 @@
 						   closeDuration="0"
 						   enabled="{!tableEdited}"
 						   dataProvider="{delimiters}"
+						   labelFunction="{delimiterLabelFunction}"
 						   change="delimiterChanged()"/>
 		<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
 	</ui:Indent>
 
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:HBox horizontalGap="0">
-			<mx:TextInput id="keyColumnName" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
+			<ui:TextInputWithPrompt id="keyColumnName"
+									prompt="{keyColumnName.text ? null : lang(AUTO_GENERATED)}"
+									toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 			<ui:MenuButton id="keyColumnMenu"
 						   alignRight="true"
 						   data="{getKeyColumnMenuItems as Function}"
@@ -106,10 +109,10 @@
 			
 			import spark.events.GridItemEditorEvent;
 			
-			import weave.api.getSessionState;
-			import weave.api.reportError;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
+			import weave.api.getSessionState;
+			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.core.UIUtils;
 			import weave.data.CSVParser;
@@ -128,19 +131,25 @@
 			[Bindable] private var tableEdited:Boolean = false;
 			private var append:Boolean = false;
 			
-			private const delimiters:Array = [
-				{label: lang("Comma"), data: ','}, 
-				{label: lang("Semicolon"), data: ';'},
-				{label: lang("Space"), data: ' '},
-				{label: lang("Tab"), data: '\t'}
-			];
+			private const delimiters:Array = [',', ';', ' ', '\t'];
+			private function delimiterLabelFunction(char:String):String
+			{
+				if (char == ',')
+					return lang("Comma");
+				if (char == ';')
+					return lang("Semicolon");
+				if (char == ' ')
+					return lang("Space");
+				if (char == '\t')
+					return lang("Tab");
+				return char;
+			}
 			
 			private var _fileLoader:FileReference = null;
 
 			private function get parser():CSVParser
 			{
-				var item:Object = delimiterComboBox.selectedItem;
-				var delim:String = item ? item.data : delimiterComboBox.text || ',';
+				var delim:String = delimiterComboBox.selectedItem as String || delimiterComboBox.text || ',';
 				return new CSVParser(false, delim);
 			}
 			
@@ -158,18 +167,21 @@
 				textEditor.setFocus();
 			}
 			
+			private static const AUTO_GENERATED:String = lang("Auto-generated");
 			private function getKeyColumnMenuItems():Array
 			{
 				function setKeyColumnName(item:WeaveMenuItem):void {
-					keyColumnName.text = item.label;
-					keyTypeSelector.addKeyTypeToMenu(item.label);
+					keyColumnName.text = item.data as String;
+					keyTypeSelector.addKeyTypeToMenu(item.data as String);
 				}
 				var rows:Array = getRows();
-				if (rows && rows.length)
-					return (rows[0] as Array).map(function(name:String, i:*, a:*):* {
-						return {label: name, click: setKeyColumnName};
-					});
-				return null;
+				var header:Array = (rows && rows[0]) || [];
+				return WeaveMenuItem.createItems([
+					{label: AUTO_GENERATED, click: setKeyColumnName},
+					header.map(function(name:String, i:*, a:*):* {
+						return {label: name, click: setKeyColumnName, data: name};
+					})
+				]);
 			}
 
 			private function handleComboKeyDown(event:Event):void
@@ -233,7 +245,7 @@
 			private function delimiterChanged():void
 			{
 				if (!delimiterComboBox.text || delimiterComboBox.text == '"')
-					delimiterComboBox.selectedItem = delimiters[0]
+					delimiterComboBox.selectedItem = ',';
 				if (textEditor.text)
 				{
 					textToTable();
@@ -301,7 +313,7 @@
 			{
 				try
 				{
-					if(_fileLoader == null)
+					if (_fileLoader == null)
 					{
 						_fileLoader = new FileReference();
 						_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
@@ -367,6 +379,17 @@
 				);
 			}
 
+			public function setText(text:String, delimiter:String):void
+			{
+				delimiterComboBox.selectedItem = delimiter;
+				if (!delimiterComboBox.selectedItem)
+					delimiterComboBox.text = delimiter;
+				tabNav.selectedChild = textTab;
+				tabNav.validateProperties();
+				textEditor.text = text;
+				tabNav.selectedChild = tableTab;
+			}
+			
 			private function appendRows(rowsToAppend:Array):void
 			{
 				tabNav.selectedChild = tableTab;

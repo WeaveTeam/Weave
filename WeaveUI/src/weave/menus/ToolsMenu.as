@@ -217,7 +217,7 @@ package weave.menus
 				{
 					return createItems([
 						staticItems,
-						getDynamicItems("Add {0}"),
+						getDynamicItems("+ {0}"),
 						dashboardItem
 					]);
 				}

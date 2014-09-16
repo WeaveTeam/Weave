@@ -323,7 +323,7 @@
 					}
 				}
 				
-				private function selectDataSource(value:IDataSource):void
+				public function selectDataSource(value:IDataSource):void
 				{
 					sourceList.selectedItem = value;
 					handleSourceSelect(true);

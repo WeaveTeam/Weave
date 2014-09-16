@@ -171,7 +171,8 @@ package weave.data.DataSources
 			if (initializationComplete)
 			{
 				_proxyColumns[column] = false; // no longer pending
-				WeaveAPI.StageUtils.callLater(column, requestColumnFromSourceLater, [column]);
+				// immediate priority because we want to start the async column tasks as soon as possible.
+				WeaveAPI.StageUtils.callLater(column, requestColumnFromSourceLater, [column], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 			else
 			{

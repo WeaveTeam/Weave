@@ -55,12 +55,12 @@
 			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.LayerSettings;
-			import weave.visualization.plotters.ParallelCoordinatesPlotter;
+			import weave.visualization.plotters.OldParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, LineChartTool, "Line Chart");
 			
-			internal var _plotter:ParallelCoordinatesPlotter = null;
+			internal var _plotter:OldParallelCoordinatesPlotter = null;
 			internal var labelPlotter:TextGlyphPlotter = null ;
 			
 			override protected function inConstructor():void
@@ -73,7 +73,7 @@
 				visualization.plotManager.marginRight.value  = "80";
 				
 				// lock dynamic objects into place
-				_plotter = initializePlotters(ParallelCoordinatesPlotter, true);
+				_plotter = initializePlotters(OldParallelCoordinatesPlotter, true);
 				// default axis values
 				yAxisPlotter.tickCountRequested.value = 5;
 				
@@ -351,8 +351,8 @@
 			<mx:HBox verticalAlign="middle" width="100%">
 				<mx:Label text="{lang('Shape:')}" 
 						  toolTip="{lang('This controls what shape is used to indicate the data points on the axes.')}"/>
-				<ui:CustomComboBox id="shapeCombo" dataProvider="{ParallelCoordinatesPlotter.shapesAvailable}" initialize="shapeCombo.labelFunction = lang;"/>
-				<mx:HBox enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}" verticalAlign="middle" width="100%">
+				<ui:CustomComboBox id="shapeCombo" dataProvider="{OldParallelCoordinatesPlotter.shapesAvailable}" initialize="shapeCombo.labelFunction = lang;"/>
+				<mx:HBox enabled="{shapeCombo.selectedItem != OldParallelCoordinatesPlotter.NO_SHAPE}" verticalAlign="middle" width="100%">
 					<mx:Label text="{lang('Size:')}"
 							  toolTip="{lang('This controls the size of the shapes indicating the data points on the axes.')}"/>
 					<mx:HSlider id="shapeSizeSlider"
@@ -408,7 +408,7 @@
 			</mx:HBox>
 			
 			<mx:CheckBox id="curveCheckBox" label="{lang('Curved lines')}"
-						 change="_plotter.curveType.value = curveCheckBox.selected ? ParallelCoordinatesPlotter.CURVE_DOUBLE : ParallelCoordinatesPlotter.CURVE_NONE"/>
+						 change="_plotter.curveType.value = curveCheckBox.selected ? OldParallelCoordinatesPlotter.CURVE_DOUBLE : OldParallelCoordinatesPlotter.CURVE_NONE"/>
 			
 			<mx:HBox verticalAlign="middle">
 				<mx:Label text="{lang('Label Text Size: ')}"/>
@@ -442,10 +442,10 @@
 				import weave.data.AttributeColumns.EquationColumn;
 				import weave.utils.ColumnUtils;
 				import weave.utils.PlotterUtils;
-				import weave.visualization.plotters.ParallelCoordinatesPlotter;
+				import weave.visualization.plotters.OldParallelCoordinatesPlotter;
 				import weave.visualization.plotters.TextGlyphPlotter;
 				
-				private function get _plotter():ParallelCoordinatesPlotter
+				private function get _plotter():OldParallelCoordinatesPlotter
 				{
 					return outerDocument._plotter;
 				}
@@ -480,7 +480,7 @@
 					_plotter.curveType.addGroupedCallback(this, handleCurveType, true);
 					function handleCurveType():void
 					{
-						curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
+						curveCheckBox.selected = _plotter.curveType.value == OldParallelCoordinatesPlotter.CURVE_DOUBLE;
 					}
 					
 					_plotter.groupBy.addGroupedCallback(this, updateGroupKeyTypePrompt, true);
@@ -546,9 +546,9 @@
 				private function handleCurveCheckBox():void
 				{
 					if (curveCheckBox.selected)
-						_plotter.curveType.value = ParallelCoordinatesPlotter.CURVE_DOUBLE;
+						_plotter.curveType.value = OldParallelCoordinatesPlotter.CURVE_DOUBLE;
 					else
-						_plotter.curveType.value = ParallelCoordinatesPlotter.CURVE_NONE;
+						_plotter.curveType.value = OldParallelCoordinatesPlotter.CURVE_NONE;
 				}
 				
 				/**

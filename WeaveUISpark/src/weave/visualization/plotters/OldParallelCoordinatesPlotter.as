@@ -62,9 +62,9 @@ package weave.visualization.plotters
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
-	public class ParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
+	public class OldParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
 	{
-		public function ParallelCoordinatesPlotter()
+		public function OldParallelCoordinatesPlotter()
 		{
 			lineStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			lineStyle.weight.defaultValue.value = 1;

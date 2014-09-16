@@ -102,6 +102,11 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
+	public void destroy()
+	{
+		SQLUtils.staticCleanup();
+	}
+	
 	/**
 	 * This function should be the first thing called by the Admin Console to initialize the servlet.
 	 * If SQL config data migration is required, it will be done and periodic status updates will be written to the servlet output stream.
@@ -1247,7 +1252,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			SQLUtils.cleanup(conn);
 
             DataEntityMetadata tableInfo = new DataEntityMetadata();
-            tableInfo.setPrivateMetadata(
+            tableInfo.setPrivateValues(
             	PrivateMetadata.IMPORTMETHOD, "importCSV",
             	PrivateMetadata.FILENAME, csvFile,
             	PrivateMetadata.KEYCOLUMN, csvKeyColumn
@@ -1300,7 +1305,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
         DataEntityMetadata tableInfo = new DataEntityMetadata();
-       	tableInfo.setPrivateMetadata(PrivateMetadata.IMPORTMETHOD, "importSQL");
+       	tableInfo.setPrivateValues(PrivateMetadata.IMPORTMETHOD, "importSQL");
        	int[] filterColumnIndices = null;
        	if (filterColumnNames != null)
        	{
@@ -1432,14 +1437,14 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				DataEntityMetadata metaQuery = new DataEntityMetadata();
 				// we don't search public metadata because that would be a separate sql query
 				// and we only know the entityType.
-				metaQuery.setPrivateMetadata(
+				metaQuery.setPrivateValues(
 						PrivateMetadata.CONNECTION, connectionName,
 						PrivateMetadata.SQLQUERY, query
 					);
 				if (filteredValues != null)
 				{
 					String filteredQuery = buildFilteredQuery(conn, query, filteredValues.columnNames);
-					metaQuery.setPrivateMetadata(PrivateMetadata.SQLQUERY, filteredQuery);
+					metaQuery.setPrivateValues(PrivateMetadata.SQLQUERY, filteredQuery);
 					// generate one query per unique filter value combination
 					for (int iRow = 0; iRow < filteredValues.rows.length; iRow++)
 					{
@@ -1459,7 +1464,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 						if (configAppend)
 						{
 							// try to find a matching column using private metadata: connection, sqlQuery, and sqlParams
-							metaQuery.setPrivateMetadata(PrivateMetadata.SQLPARAMS, info.sqlParamsStr);
+							metaQuery.setPrivateValues(PrivateMetadata.SQLPARAMS, info.sqlParamsStr);
 							info.existingColumnId = ListUtils.getFirstSortedItem(
 									dataConfig.searchPrivateMetadata(metaQuery.privateMetadata, null),
 									DataConfig.NULL
@@ -1518,8 +1523,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			}
 			
 			DataEntityMetadata tableInfo = tableImportInfo == null ? new DataEntityMetadata() : tableImportInfo;
-			tableInfo.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.TABLE);
-        	tableInfo.setPrivateMetadata(
+			tableInfo.setPublicValues(PublicMetadata.ENTITYTYPE, EntityType.TABLE);
+        	tableInfo.setPrivateValues(
         		PrivateMetadata.CONNECTION, connectionName,
         		PrivateMetadata.SQLSCHEMA, sqlSchema,
         		PrivateMetadata.SQLTABLE, sqlTable,
@@ -1529,7 +1534,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
         	if (existingTableId == DataConfig.NULL)
         	{
         		// only set title if creating a new table
-        		tableInfo.setPublicMetadata(PublicMetadata.TITLE, configDataTableName);
+        		tableInfo.setPublicValues(PublicMetadata.TITLE, configDataTableName);
 				table_id = dataConfig.newEntity(tableInfo, DataConfig.NULL, DataConfig.NULL);
         	}
         	else
@@ -1546,15 +1551,15 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				
 				// only set title on new columns
 				if (existingTableId == DataConfig.NULL || info.existingColumnId == DataConfig.NULL)
-					newMeta.setPublicMetadata(PublicMetadata.TITLE, info.title);
+					newMeta.setPublicValues(PublicMetadata.TITLE, info.title);
 					
-				newMeta.setPublicMetadata(
+				newMeta.setPublicValues(
 					PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 					PublicMetadata.KEYTYPE, keyType,
 					PublicMetadata.DATATYPE, info.dataType,
 					PublicMetadata.PROJECTION, info.projection
 				);
-				newMeta.setPrivateMetadata(
+				newMeta.setPrivateValues(
 					PrivateMetadata.CONNECTION, connectionName,
 					PrivateMetadata.SQLQUERY, info.query,
 					PrivateMetadata.SQLSCHEMA, info.schema,
@@ -1564,7 +1569,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				);
 				if (filteredValues != null)
 				{
-					newMeta.setPrivateMetadata(
+					newMeta.setPrivateValues(
 						PrivateMetadata.SQLPARAMS, info.sqlParamsStr,
 						PrivateMetadata.SQLFILTERCOLUMNS, CSVParser.defaultParser.createCSVRow(ListUtils.getItems(sqlColumnNames, filterColumnIndices), true)
 					);
@@ -1771,7 +1776,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 
         DataEntityMetadata tableInfo = new DataEntityMetadata();
-        tableInfo.setPrivateMetadata(
+        tableInfo.setPrivateValues(
         	PrivateMetadata.IMPORTMETHOD, "importSHP",
         	PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSVRow(fileNameWithoutExtension, true),
         	PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSVRow(keyColumns, true),
@@ -1810,7 +1815,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 		else
 		{
-			tableInfo.setPublicMetadata(
+			tableInfo.setPublicValues(
 				PublicMetadata.ENTITYTYPE, EntityType.TABLE,
 				PublicMetadata.TITLE, configTitle
 			);
@@ -1822,7 +1827,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			// prepare metadata for existing column check
 			DataEntityMetadata geomInfo = new DataEntityMetadata();
 			// we don't search public metadata because that would require two sql queries
-			geomInfo.setPrivateMetadata(
+			geomInfo.setPrivateValues(
 				PrivateMetadata.CONNECTION, configConnectionName,
 				PrivateMetadata.SQLSCHEMA, sqlSchema,
 				PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix
@@ -1847,7 +1852,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			}
 			
 			// set the new public metadata
-			geomInfo.setPublicMetadata(
+			geomInfo.setPublicValues(
 					PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 					PublicMetadata.DATATYPE, DataType.GEOMETRY,
 					PublicMetadata.KEYTYPE, configKeyType,
@@ -1857,7 +1862,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			if (existingGeomId == DataConfig.NULL)
 			{
 				// we only update the title if the column doesn't already exist
-				geomInfo.setPublicMetadata(PublicMetadata.TITLE, configTitle);
+				geomInfo.setPublicValues(PublicMetadata.TITLE, configTitle);
 				// create new column
 				dataConfig.newEntity(geomInfo, tableId, 0);
 			}
@@ -1943,13 +1948,13 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				
 				result = SQLUtils.getResultFromQuery(conn, query, sqlParamsArray, false);
 
-				entity.setPrivateMetadata(PrivateMetadata.SQLRESULT, String.format("Returned %s rows", result.rows.length));
+				entity.setPrivateValues(PrivateMetadata.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
 			catch (Exception e)
 			{
 				System.err.println(query);
 				e.printStackTrace();
-				entity.setPrivateMetadata(PrivateMetadata.SQLRESULT, e.getMessage());
+				entity.setPrivateValues(PrivateMetadata.SQLRESULT, e.getMessage());
 			}
 		}
 		return columns;

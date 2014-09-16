@@ -38,10 +38,11 @@
 		</mx:HBox>
 		<CustomDataGrid:CustomDataGridWithFilters
 			id="dataGrid"
+			dataProvider="{dataProvider}"
+			useNoSort="true"
 			updateComplete="dataGrid_updateCompleteHandler(event)"
 			horizontalScrollPolicy="auto"
 			verticalScrollPolicy="auto"
-			dataProvider="{dataProvider}"
 			width="100%" height="100%"
 			allowMultipleSelection="true"
 			minWidth="0"
@@ -61,23 +62,17 @@
 			<mx:Spacer width="100%"/>
 			<mx:Label id="maxRowsLabel"/>
 			<ui:HelpComponent>
-				The table is currently hiding some of the records,
-				as the amount has exceeded the tables capability for dealing with it efficiently.
+				The table is currently hiding some of the records.
 			</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox id="extraControls" width="100%">
-			<ui:Indent label="Key type:" translate="true" visible="false" includeInLayout="false">
-				<ui:CustomComboBox id="keyTypeCombo"
-								   change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;"
-								   toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
-			</ui:Indent>
-			<mx:Button id="button_moveSelectedToTop" visible="{toggle_moveSelectedToTop.selected}" includeInLayout="{toggle_moveSelectedToTop.selected}"
+			<mx:Button id="button_moveSelectedToTop" creationComplete="UIUtils.linkVisibility(this, show_moveSelectedToTop, event.target)"
 					   label="{lang('Move selected to top')}" click="moveSelectedToTop()"/>
-			<mx:Button id="button_clearSelection" visible="{toggle_clearSelection.selected}" includeInLayout="{toggle_clearSelection.selected}"
+			<mx:Button id="button_clearSelection" creationComplete="UIUtils.linkVisibility(this, show_clearSelection, event.target)"
 					   label="{lang('Clear selection')}" click="_selection.clearKeys()"/>
-			<mx:Button id="button_editColumns" visible="{toggle_editColumns.selected}" includeInLayout="{toggle_editColumns.selected}"
+			<mx:Button id="button_editColumns" creationComplete="UIUtils.linkVisibility(this, show_editColumns, event.target)"
 					   label="{lang('Edit columns')}" click="AttributeSelectorPanel.open(columns)"/>
-			<mx:Button id="button_exportData" visible="{toggle_exportData.selected}" includeInLayout="{toggle_exportData.selected}"
+			<mx:Button id="button_exportData" creationComplete="UIUtils.linkVisibility(this, show_exportData, event.target)"
 					   label="{lang('Export data')}">
 				<mx:click>
 					try
@@ -175,7 +170,7 @@
 			public const filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
 			private const dataProvider:ArrayCollection = new ArrayCollection();
 			
-			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber()); // by default, no limit
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
 			
 			override protected function inConstructor():void
@@ -202,10 +197,6 @@
 			{
 				super.childrenCreated();
 				
-				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
-				linkBindableProperty(showColors, showColorsCheckBox,"selected");
-				linkBindableProperty(enableProbing, enableProbingCheckBox, "selected");
-
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
@@ -285,7 +276,6 @@
 				}
 				if (columnsChanged)
 				{
-					updateKeyTypeComboBox();
 					updateDataGridColumns();
 					super.updateDisplayList(unscaledWidth, unscaledHeight); // avoids crashing below
 				}
@@ -293,7 +283,7 @@
 				{
 					handleLockedColumnChange();
 				}
-				if (detectLinkableObjectChange(groupedUpdate, filterColumnsByKeyType, maxRows) || columnsChanged)
+				if (detectLinkableObjectChange(groupedUpdate, maxRows) || columnsChanged || keySetChanged)
 				{
 					updateKeysColumnsDataProviderAndSelection();
 				}
@@ -358,7 +348,7 @@
 			}
 			
 			
-			private function addImageColumn():void
+			internal function addImageColumn():void
 			{
 				var imageColumnName:String = columns.generateUniqueName("ImageColumn");
 				var imageCol:ImageColumn = columns.requestObject(imageColumnName,ImageColumn, false);
@@ -443,19 +433,9 @@
 			 */	
 			private function handleItemSelection(event:Event=null):void
 			{
-				dataGrid.validateNow();
-				var selectedKeys:Array = new Array();
-				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
-				{
-					selectedKeys[i] = (dataGrid.dataProvider as ArrayCollection).getItemAt( dataGrid.selectedIndices[i] ) as IQualifiedKey;
-				}
-				_selection.replaceKeys(selectedKeys);
+				_selection.replaceKeys(dataGrid.selectedItems);
 			}
 			
-//			private function clearSelection():void
-//			{
-//				_selection.clearKeys();
-//			}
 			/* TODO: Move this method into an abstract class to extend CustomDataGrid off of;
 			   this functionality is duplicated used in TreeTool */ 
 			private function updateGlobalSelectionChange():void
@@ -536,63 +516,24 @@
 				dataGrid.scrollToIndex(0);
 			}
 			
-			private static const COMBO_ITEM_ALL_KEY_TYPES:String = lang("All key types");
-			
 			private function updateKeysColumnsDataProviderAndSelection():void
 			{
-				var includedColumns:Array = [];
-				for each (var col:DataGridColumnForQKeyWithFilterAndGraphics in dataGrid.columns)
-				{
-					if (keyTypeCombo.selectedItem == COMBO_ITEM_ALL_KEY_TYPES ||
-						(col.attrColumn is KeyColumn) ||
-						(ColumnUtils.getKeyType(col.attrColumn) == filterColumnsByKeyType.value))
-					{
-						col.visible = true;
-						includedColumns.push(col.attrColumn);
-					}
-					else
-					{
-						col.visible = false;
-					}
-				}
 				var keys:Array = filteredKeySet.keys;
 				if (keys.length > maxRows.value)
 				{
 					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(keys.length));
 					tooManyRecordsIndicator.visible = true;
 					tooManyRecordsIndicator.includeInLayout = true;
-					keys.length = maxRows.value;
+					keys = keys.slice(0, maxRows.value);
 				}
 				else
 				{
 					tooManyRecordsIndicator.visible = false;
 					tooManyRecordsIndicator.includeInLayout = false;
 				}
-					
+				
 				dataProvider.source = keys;
 				updateGlobalSelectionChange();
-			}
-			
-			public const filterColumnsByKeyType:LinkableString = newLinkableChild(this,LinkableString,updateKeyTypeComboBox,true);
-			private function updateKeyTypeComboBox():void
-			{
-				if (keyTypeCombo == null)
-					return callLater(updateKeyTypeComboBox);
-				
-				var prevIndex:int = keyTypeCombo.selectedIndex;
-				var keyTypeList:Array = new Array();
-				keyTypeList.push(COMBO_ITEM_ALL_KEY_TYPES);
-				for each (var attrCol:IAttributeColumn in columns.getObjects())
-				{
-					if (attrCol is KeyColumn)
-						continue;
-					
-					var keyType:String = ColumnUtils.getKeyType(attrCol) || DataType.STRING;
-					if (keyTypeList.indexOf(keyType) == -1)
-						keyTypeList.push(keyType);
-				}
-				keyTypeCombo.dataProvider = keyTypeList;
-				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || COMBO_ITEM_ALL_KEY_TYPES;
 			}
 			
 			private var _minSuggestedColumnSize:int = 32;
@@ -638,14 +579,14 @@
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
-					numLockedColumns.maximum = Math.max(0, attrColumns.length - 2);
-					numLockedColumns.enabled = numLockedColumns.maximum > 0;
+					numLockedColumns_maximum = Math.max(0, attrColumns.length - 2);
 				}
 				catch (error:Error)
 				{
 					reportError(error);
 				}
 			}
+			[Bindable] internal var numLockedColumns_maximum:Number = 0;
 			
 			private function handleColumnReorder(event:IndexChangedEvent):void
 			{
@@ -661,8 +602,6 @@
 			
 			private function handleColumnListChange():void
 			{
-				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;
-				
 				//if column is added , we need to add respective sessioned FilterComponent and ColumnWidth
 				if (columns.childListCallbacks.lastObjectAdded)
 				{
@@ -787,31 +726,6 @@
 				}
 			}
 			
-			
-			private function handleKeyColumnCheckBox():void
-			{
-				if (showKeyColumnCheckBox.selected)
-				{
-					var kc:Array= columns.getObjects(KeyColumn);
-					if (kc.length == 0)
-					{
-						var nameOrder:Array = columns.getNames();
-						columns.requestObject("KeyColumn",KeyColumn, false);
-						columns.setNameOrder(nameOrder);
-					}
-					updateKeyTypeComboBox();
-				}
-				else
-				{
-					var keyCols:Array = columns.getNames(KeyColumn);
-					for each(var keyCol:String in keyCols)
-					{
-						columns.removeObject(keyCol);
-					}
-				}
-				
-			}
-			
 			public const showControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateControls);
 			public const show_moveSelectedToTop:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			public const show_clearSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
@@ -873,14 +787,14 @@
 			}
 			
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
+			public static const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
 				function (column, key, cell) {\n\
 					var name = 'defaultColorColumn';\n\
 					var cc = WeaveAPI.globalHashMap.getObject(name);\n\
 					return cc.getValueFromKey(key, Number);\n\
 				}\n\
 			");
-			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
+			public static const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
 				function (column, key, cell) {\n\
 					import 'weave.utils.ColumnUtils';\n\
 					var norm = ColumnUtils.getNorm(column, key);\n\
@@ -900,13 +814,14 @@
 				{
 					_lastCellColorError = null;
 					cellColorFunction.validate();
-					cellColorFunctionEditor.errorString = '';
+					cellColorFunctionEditor_errorString = '';
 				}
 				catch (e:Error)
 				{
-					cellColorFunctionEditor.errorString = e.message;
+					cellColorFunctionEditor_errorString = e.message;
 				}
 			}
+			[Bindable] internal var cellColorFunctionEditor_errorString:String;
 			// this gets passed to cell item renderers
 			private function _cellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
 			{
@@ -970,29 +885,31 @@
 			}
 			private static const SCROLLBAR_WIDTH:int = 16;
 			
-			private static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
+			public static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
 			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
+	<ui:editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Columns')}">
 			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show key column')}" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
 				<mx:Label text="{lang('Number of locked columns')}"/>
-				<mx:NumericStepper id="numLockedColumns" minimum="0" 
-								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
+				<mx:NumericStepper id="numLockedColumns" minimum="0"
+								   maximum="{outerDocument.numLockedColumns_maximum}"
+								   enabled="{numLockedColumns.maximum > 0}"
+								   creationComplete="linkBindableProperty(outerDocument.lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
-			<ui:ColumnListComponent id="dimensionsList" creationComplete="dimensionsList.hashMap = columns;"/>
+			<ui:ColumnListComponent id="dimensionsList" creationComplete="dimensionsList.hashMap = outerDocument.columns;"/>
 			<mx:HBox>
-				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
+				<mx:Button label="{lang('Add image column')}" click="outerDocument.addImageColumn()"/>
 				<ui:HelpComponent>
 					Select a column that contains image URLs.
 					The images will be displayed in the table.
 				</ui:HelpComponent>
 			</mx:HBox>
 
-			<mx:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
+			<mx:Button label="{lang('Reset column widths')}" click="outerDocument.columnWidths.removeAllObjects()"/>
 
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
@@ -1008,11 +925,11 @@
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>
 			</mx:HBox>
-			<ui:CheckBoxWithNestedOptions label="{lang('Show buttons on panel')}" creationComplete="linkBindableProperty(showControls, event.target, 'selected')">
-				<mx:CheckBox id="toggle_moveSelectedToTop" label="{lang('Move selected to top')}" creationComplete="linkBindableProperty(show_moveSelectedToTop, event.target, 'selected')"/>
-				<mx:CheckBox id="toggle_clearSelection" label="{lang('Clear selection')}" creationComplete="linkBindableProperty(show_clearSelection, event.target, 'selected')"/>
-				<mx:CheckBox id="toggle_editColumns" label="{lang('Edit columns')}" creationComplete="linkBindableProperty(show_editColumns, event.target, 'selected')"/>
-				<mx:CheckBox id="toggle_exportData" label="{lang('Export data')}" creationComplete="linkBindableProperty(show_exportData, event.target, 'selected')"/>
+			<ui:CheckBoxWithNestedOptions label="{lang('Show buttons on panel')}" creationComplete="linkBindableProperty(outerDocument.showControls, event.target, 'selected')">
+				<mx:CheckBox id="toggle_moveSelectedToTop" label="{lang('Move selected to top')}" creationComplete="linkBindableProperty(outerDocument.show_moveSelectedToTop, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_clearSelection" label="{lang('Clear selection')}" creationComplete="linkBindableProperty(outerDocument.show_clearSelection, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_editColumns" label="{lang('Edit columns')}" creationComplete="linkBindableProperty(outerDocument.show_editColumns, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_exportData" label="{lang('Export data')}" creationComplete="linkBindableProperty(outerDocument.show_exportData, event.target, 'selected')"/>
 			</ui:CheckBoxWithNestedOptions>
 			<ui:CheckBoxWithNestedOptions id="showColorsCheckBox" label="{lang('Enable cell coloring')}" width="100%" height="100%">
 				<ui:HelpComponent>
@@ -1025,25 +942,65 @@
 				</ui:HelpComponent>
 				<mx:HBox width="100%" height="100%">
 					<mx:VBox>
-						<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
-						<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
-						<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
+						<mx:Button label="{lang('Default colors')}" click="outerDocument.cellColorFunction.value = AdvancedTableTool.DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+						<mx:Button label="{lang('Heat map')}" click="outerDocument.cellColorFunction.value = AdvancedTableTool.HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
+						<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(outerDocument.colorRamp)"/>
 					</mx:VBox>
-					<ui:CodeEditor id="cellColorFunctionEditor" creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
+					<ui:CodeEditor id="cellColorFunctionEditor"
+								   errorString="{outerDocument.cellColorFunctionEditor_errorString}"
+								   creationComplete="linkBindableProperty(outerDocument.cellColorFunction, event.target, 'text', 500);"/>
 				</mx:HBox>
 			</ui:CheckBoxWithNestedOptions>
 			<ui:Indent id="bgColorControls" label="{lang('Background colors')}">
-				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
-				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
-				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(outerDocument.backgroundColor1, event.target, 'selectedColor');"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(outerDocument.backgroundColor2, event.target, 'selectedColor');"/>
+				<mx:Button label="{lang('Reset')}" click="outerDocument.backgroundColor1.value = AdvancedTableTool.DEFAULT_BACKGROUND_COLORS[0]; outerDocument.backgroundColor2.value = AdvancedTableTool.DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 		</mx:VBox>
 		<editors:WindowSettingsEditor id="windowEditor" target="{this}"/>
-		<ui:creationComplete>
+		<mx:Script>
 			<![CDATA[
-				windowEditor.removeChild(windowEditor.backgroundColorIndent);
-				windowEditor.addChild(bgColorControls);
+				import weave.api.linkBindableProperty;
+				import weave.data.AttributeColumns.KeyColumn;
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					windowEditor.removeChild(windowEditor.backgroundColorIndent);
+					windowEditor.addChild(bgColorControls);
+					outerDocument.columns.childListCallbacks.addGroupedCallback(this, handleColumnListChange, true);
+					linkBindableProperty(outerDocument.showFilters, showFiltersCheckBox, "selected");
+					linkBindableProperty(outerDocument.showColors, showColorsCheckBox,"selected");
+					linkBindableProperty(outerDocument.enableProbing, enableProbingCheckBox, "selected");
+				}
+				private function handleColumnListChange():void
+				{
+					showKeyColumnCheckBox.selected = outerDocument.columns.getNames(KeyColumn).length > 0;
+				}
+				private function handleKeyColumnCheckBox():void
+				{
+					if (showKeyColumnCheckBox.selected)
+					{
+						var kc:Array= outerDocument.columns.getObjects(KeyColumn);
+						if (kc.length == 0)
+						{
+							var nameOrder:Array = outerDocument.columns.getNames();
+							outerDocument.columns.requestObject("KeyColumn", KeyColumn, false);
+							outerDocument.columns.setNameOrder(nameOrder);
+						}
+					}
+					else
+					{
+						var keyCols:Array = outerDocument.columns.getNames(KeyColumn);
+						for each(var keyCol:String in keyCols)
+						{
+							outerDocument.columns.removeObject(keyCol);
+						}
+					}
+					
+				}
+				
 			]]>
-		</ui:creationComplete>
-	</ui:ControlPanel>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></ui:editorFactory>
 </ui:DraggablePanel>

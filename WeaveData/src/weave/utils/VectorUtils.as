@@ -127,6 +127,18 @@ package weave.utils
 				keys.push(key);
 			return keys;
 		}
+
+        /** 
+         * If there are any properties of the hashMap, return false; else, return true.
+         * @param  hashMap The Object to test for emptiness.
+         * @return        A boolean which is true if the Object is empty, false if it has at least one property.
+         */
+        public static function isEmpty(hashMap:Object):Boolean
+        {
+            for (var key:* in hashMap)
+                return false;
+            return true;
+        }
 		
 		/**
 		 * Efficiently removes duplicate adjacent items in a pre-sorted Array (or Vector).

@@ -34,6 +34,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -187,27 +188,45 @@ public class SQLUtils
 	 * This maps a driver name to a Driver instance.
 	 * The purpose of this map is to avoid instantiating extra Driver objects unnecessarily.
 	 */
-	private static DriverMap _driverMap = new DriverMap();
+	private static HashMap<String,Driver> _driverMap = new HashMap<String,Driver>();
 	
-	@SuppressWarnings("serial")
-	private static class DriverMap extends HashMap<String,Driver>
+	/**
+	 * Call this when shutting down your application to deregister SQL drivers.
+	 */
+	public static void staticCleanup()
 	{
-		protected void finalize()
+		for (Connection conn : _staticReadOnlyConnections.values())
+			cleanup(conn);
+		_staticReadOnlyConnections.clear();
+		
+		// Now deregister JDBC drivers in this context's ClassLoader:
+		// Get the webapp's ClassLoader
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		// Loop through all drivers
+		Enumeration<Driver> drivers = DriverManager.getDrivers();
+		while (drivers.hasMoreElements())
 		{
-			for (Driver driver : _driverMap.values())
+			Driver driver = drivers.nextElement();
+			if (driver.getClass().getClassLoader() != cl)
 			{
-				try
-				{
-					DriverManager.deregisterDriver(driver);
-				}
-				catch (SQLException e)
-				{
-					e.printStackTrace();
-				}
+				// driver was not registered by the webapp's ClassLoader and may be in use elsewhere
+				continue;
+			}
+			
+			// This driver was registered by the webapp's ClassLoader, so deregister it:
+			try
+			{
+				DriverManager.deregisterDriver(driver);
+			}
+			catch (SQLException e)
+			{
+				e.printStackTrace();
 			}
 		}
+		
+		_driverMap.clear();
 	}
-
+	
 	/**
 	 * This maps a connection string to a Connection object.  Used by getStaticReadOnlyConnection().
 	 */

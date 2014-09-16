@@ -80,8 +80,6 @@
 						 creationComplete="linkBindableProperty(Weave.properties.enableDataMenu, event.target, 'selected')"/>
 			<mx:VBox enabled="{dataMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
 				
-				<ui:CustomCheckBox label="{lang('Load my data')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Browse data')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableBrowseData, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Manage data sources')}"

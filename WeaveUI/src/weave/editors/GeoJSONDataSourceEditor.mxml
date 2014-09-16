@@ -156,30 +156,40 @@
 				return target;
 			}
 			
-			private function openFile(target:TextInputWithPrompt, ...fileFilters):void
+			private function openFile(textInput:TextInputWithPrompt, ...fileFilters):void
 			{
 				try
 				{
-					var _fileLoader:FileReference = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, function(event:Event):void{
+					var file:FileReference = new FileReference();
+					file.addEventListener(Event.SELECT, function(event:Event):void{
 						busyIndicator.visible = true;
-						_fileLoader.load();
-						WeaveAPI.ProgressIndicator.addTask(_fileLoader);
+						file.load();
+						WeaveAPI.ProgressIndicator.addTask(file);
 					});
-					_fileLoader.addEventListener(ProgressEvent.PROGRESS, function(event:ProgressEvent):void{
-						WeaveAPI.ProgressIndicator.updateTask(_fileLoader, event.bytesLoaded / event.bytesTotal);
+					file.addEventListener(ProgressEvent.PROGRESS, function(event:ProgressEvent):void{
+						WeaveAPI.ProgressIndicator.updateTask(file, event.bytesLoaded / event.bytesTotal);
 					});
-					_fileLoader.addEventListener(Event.COMPLETE, function(event:Event):void{
-						target.text = WeaveAPI.URLRequestUtils.saveLocalFile(_fileLoader.name, _fileLoader.data);
+					file.addEventListener(Event.COMPLETE, function(event:Event):void{
+						if (sourceName.editable)
+						{
+							var nameEqualsKeyType:Boolean = sourceName.text == keyTypeSelector.selectedKeyType;
+							sourceName.text = file.name;
+							if (nameEqualsKeyType)
+							{
+								keyTypeSelector.addKeyTypeToMenu(file.name);
+								keyTypeSelector.selectedKeyType = file.name;
+							}
+						}
+						textInput.text = WeaveAPI.URLRequestUtils.saveLocalFile(file.name, file.data);
 						busyIndicator.visible = false;
-						WeaveAPI.ProgressIndicator.removeTask(_fileLoader);
+						WeaveAPI.ProgressIndicator.removeTask(file);
 					});
-					_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void{
+					file.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void{
 						busyIndicator.visible = false;
 						reportError(event);
 					});
 					
-					_fileLoader.browse(fileFilters);
+					file.browse(fileFilters);
 				}
 				catch (e:Error)
 				{

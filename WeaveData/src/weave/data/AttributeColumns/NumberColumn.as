@@ -113,9 +113,20 @@ package weave.data.AttributeColumns
 			{
 				var number:Number = getValueFromKey(key, Number);
 				if (numberToStringFunction != null)
+				{
 					return StandardLib.asString(numberToStringFunction(number, array));
+				}
+				if (isNaN(number) && array && array.length > 1)
+				{
+					var aggregation:String = (_metadata && _metadata[ColumnMetadata.AGGREGATION]) as String || Aggregation.DEFAULT;
+					if (aggregation == Aggregation.SAME)
+						return StringColumn.AMBIGUOUS_DATA;
+				}
 				return StandardLib.formatNumber(number);
 			}
+			
+			if (dataType === IQualifiedKey)
+				return WeaveAPI.QKeyManager.getQKey(DataType.NUMBER, getValueFromKey(key, Number));
 			
 			return null;
 		}

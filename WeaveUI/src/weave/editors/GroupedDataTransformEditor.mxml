@@ -196,6 +196,7 @@
                     copySessionState(target.dataColumns, dataColumns);
                     copySessionState(target.groupByColumn, groupByColumn);
 					copySessionState(target.aggregationModes, aggregationModes);
+					groupKeyType.text = target.groupKeyType.value;
                     sourceName.text = WeaveAPI.globalHashMap.getName(target);
                     sourceName.editable = false;
                     sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
@@ -211,7 +212,8 @@
             {
                 return hasDiff(dataColumns, target.dataColumns)
                     || hasDiff(groupByColumn, target.groupByColumn)
-                    || hasDiff(aggregationModes, target.aggregationModes);
+                    || hasDiff(aggregationModes, target.aggregationModes)
+                    || StandardLib.asString(groupKeyType.text) != StandardLib.asString(target.groupKeyType.value);
             }
             
             public function applyChanges():void
@@ -223,6 +225,7 @@
                 copySessionState(dataColumns, target.dataColumns);
                 copySessionState(groupByColumn, target.groupByColumn);
                 copySessionState(aggregationModes, target.aggregationModes);
+				target.groupKeyType.value = groupKeyType.text;
             }
             
             public function createDataSource():IDataSource

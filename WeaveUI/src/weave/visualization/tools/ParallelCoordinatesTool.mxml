@@ -28,7 +28,9 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.layers.PlotManager;
 			import weave.visualization.plotters.SimpleParallelCoordinatesAxesPlotter;
@@ -44,11 +46,14 @@
 				super.inConstructor();
 				
 				panelTitle.value = "Parallel Coordinates";
+				
 				var pm:PlotManager = visualization.plotManager;
-				pm.marginLeft.value = '50';
-				pm.marginRight.value = '50';
+				pm.marginLeft.value = '0';
+				pm.marginRight.value = '0';
 				pm.marginTop.value = '40';
 				pm.marginBottom.value = '70';
+				pm.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.enableZoomAndPan.value = false;
 				
 				plotter = initializePlotters(SimpleParallelCoordinatesPlotter, false);
 				const AXES:String = 'axes';
@@ -56,6 +61,7 @@
 				pm.getLayerSettings(AXES).selectable.value = false;
 				
 				WeaveAPI.StageUtils.callLater(this, initPlotterPath, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				visualization.addEventListener(MouseEvent.MOUSE_MOVE, updateProbeAttrs);
 			}
 			
 			private function initPlotterPath():void
@@ -66,7 +72,7 @@
 				axesPlotter.plotterPath.lock();
 				axesPlotter.plotterPath.resumeCallbacks();
 			}
-
+			
 			override public function initSelectableAttributes(input:Array):void
 			{
 				const MAX_DEFAULT_COLUMNS:int = 10;
@@ -74,6 +80,25 @@
 					.forEach(function(item:Object, i:int, a:Array):void {
 						ColumnUtils.initSelectableAttribute(plotter.columns, item, i == 0);
 					});
+			}
+			
+			public const includeColorAttributeInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeAttrs, true);
+			public const includeAllAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateProbeAttrs, true);
+			
+			private function updateProbeAttrs(event:MouseEvent = null):void
+			{
+				if (event && includeAllAttributesInProbe.value)
+					return;
+				
+				var point:Point = visualization.getMouseDataCoordinates();
+				visualization.additionalProbeColumns = [
+					includeColorAttributeInProbe.value
+						? ColumnUtils.hack_findInternalDynamicColumn(plotter.lineStyle.color)
+						: null,
+					includeAllAttributesInProbe.value
+						? plotter.columns
+						: plotter.columns.getObjects()[Math.round(point.x)]
+				];
 			}
 		]]>
 	</mx:Script>

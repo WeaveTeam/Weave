@@ -22,6 +22,7 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
+	import flash.utils.Dictionary;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
@@ -36,6 +37,7 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
+	import weave.primitives.Bounds2D;
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.DrawUtils;
@@ -46,17 +48,20 @@ package weave.visualization.plotters
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, SimpleParallelCoordinatesPlotter, "Parallel Coordinates");
 		
+		private static const tempBoundsArray:Array = []; // Array of reusable Bounds2D objects
+		private static const tempPoint:Point = new Point(); // reusable Point object
+		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
-		public const selectableLines:LinkableBoolean = newSpatialProperty(LinkableBoolean);
+		public const selectableLines:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const curvedLines:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		private var _columns:Array = [];
-		private static const tempBoundsArray:Array = []; // reusable array containing reusable objects
-		private static const tempPoint:Point = new Point(); // reusable object
+		private var _stats:Dictionary = new Dictionary(true);
+		private var extendPointBounds:Number = 0.25; // extends point bounds when selectableLines is false
+		private var drawStubs:Boolean = true; // draws stubbed line segments eminating from points with missing neighboring values
 		
 		public function SimpleParallelCoordinatesPlotter()
 		{
@@ -64,7 +69,6 @@ package weave.visualization.plotters
 			lineStyle.weight.defaultValue.value = 1;
 			lineStyle.alpha.defaultValue.value = 1.0;
 			
-			zoomToSubset.value = true;
 			clipDrawing = false;
 			
 			// bounds need to be re-indexed when this option changes
@@ -77,7 +81,10 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+			{
+				_stats[newColumn] = WeaveAPI.StatisticsCache.getColumnStatistics(newColumn);
+				registerLinkableChild(spatialCallbacks, _stats[newColumn]);
+			}
 			
 			_columns = columns.getObjects();
 			
@@ -93,83 +100,139 @@ package weave.visualization.plotters
 			return [lineStyle.color, columns];
 		}
 
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
+		/**
+		 * Gets an Array of numeric values from the columns.
+		 * @param recordKey A key.
+		 * @return An Array Numbers.
+		 */
+		private function getValues(recordKey:IQualifiedKey):Array
 		{
-			getBoundsCoords(recordKey, output, false);
+			var output:Array = new Array(_columns.length);
+			for (var i:int = 0; i < _columns.length; i++)
+			{
+				var column:IAttributeColumn = _columns[i];
+				if (normalize.value)
+					output[i] = (_stats[column] as IColumnStatistics).getNorm(recordKey);
+				else
+					output[i] = column.getValueFromKey(recordKey, Number);
+			}
+			return output;
 		}
 		
-		/**
-		 * Gets an Array of Bounds2D objects for a given key in data coordinates.
-		 * @parma recordKey The key
-		 * @param output Used to store the Bounds2D objects.
-		 * @param includeUndefinedBounds If this is set to true, the output is guaranteed to have the same length as _yColumns.
-		 */
-		protected function getBoundsCoords(recordKey:IQualifiedKey, output:Array, includeUndefinedBounds:Boolean):void
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			var enableGeomProbing:Boolean = Weave.properties.enableGeometryProbing.value;
 			
-			initBoundsArray(output, _columns.length);
+			var values:Array = getValues(recordKey);
 			
-			var outIndex:int = 0;
-			for (var i:int = 0; i < _columns.length; ++i)
+			// when geom probing is enabled, report a single data bounds
+			initBoundsArray(output, enableGeomProbing ? 1 : values.length);
+			
+			var stubSize:Number = selectableLines.value ? 0.5 : extendPointBounds;
+			var outputIndex:int = 0;
+			for (var x:int = 0; x < values.length; x++)
 			{
-				getCoords(i, recordKey, tempPoint);
-				if (includeUndefinedBounds || (isFinite(tempPoint.x) && isFinite(tempPoint.y)))
-					(output[outIndex] as IBounds2D).includePoint(tempPoint);
-				// when geom probing is enabled, report a single data bounds
-				if (includeUndefinedBounds || !enableGeomProbing)
-					outIndex++;
+				var y:Number = values[x];
+				if (isFinite(y))
+				{
+					var bounds:IBounds2D = output[outputIndex] as IBounds2D;
+					bounds.includeCoords(x, y);
+					if (drawStubs)
+					{
+						bounds.includeCoords(x - stubSize, y);
+						bounds.includeCoords(x + stubSize, y);
+					}
+					if (!enableGeomProbing)
+						outputIndex++;
+				}
 			}
-			while (output.length > outIndex + 1)
-				ObjectPool.returnObject(output.pop());
 		}
 		
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, dataBounds:IBounds2D = null):Array
 		{
-			getBoundsCoords(recordKey, tempBoundsArray, true);
-			
+			var x:int;
+			var y:Number;
 			var results:Array = [];
-			var geometry:ISimpleGeometry;
-			var includeLines:Boolean = selectableLines.value;
-			
-			for (var i:int = 0; i < _columns.length; ++i)
+			var values:Array = getValues(recordKey);
+			if (selectableLines.value)
 			{
-				var current:IBounds2D = tempBoundsArray[i] as IBounds2D;
-				var next:IBounds2D = tempBoundsArray[i + 1] as IBounds2D;
-				
-				if (includeLines && next && !next.isUndefined())
+				var continueLine:Boolean = false;
+				for (x = 0; x < values.length; x++)
 				{
-					if (current.isUndefined())
+					y = values[x];
+					if (isFinite(y))
 					{
-						// current undefined, next defined
-						geometry = new SimpleGeometry(GeometryType.POINT);
-						geometry.setVertices([
-							new Point(next.getXMin(), next.getYMin())
-						]);
-						results.push(geometry);
+						if (continueLine)
+						{
+							// finite -> finite
+							results.push(new SimpleGeometry(GeometryType.LINE, [
+								new Point(x - 1, values[x - 1]),
+								new Point(x, y)
+							]));
+						}
+						else
+						{
+							// NaN -> finite
+							if (drawStubs && x > 0)
+							{
+								results.push(new SimpleGeometry(GeometryType.LINE, [
+									new Point(x - 0.5, y),
+									new Point(x, y)
+								]));
+							}
+							else if (x == values.length - 1)
+							{
+								results.push(new SimpleGeometry(GeometryType.POINT, [
+									new Point(x, y)
+								]));
+							}
+						}
+						continueLine = true;
 					}
 					else
 					{
-						// both current and next are defined
-						geometry = new SimpleGeometry(GeometryType.LINE);
-						geometry.setVertices([
-							new Point(current.getXMin(), current.getYMin()),
-							new Point(next.getXMin(), next.getYMin())
-						]);
-						results.push(geometry);
+						if (continueLine)
+						{
+							// finite -> NaN
+							y = values[x - 1];
+							if (drawStubs)
+							{
+								results.push(new SimpleGeometry(GeometryType.LINE, [
+									new Point(x - 1, y),
+									new Point(x - 0.5, y)
+								]));
+							}
+							else
+							{
+								results.push(new SimpleGeometry(GeometryType.POINT, [
+									new Point(x - 1, y)
+								]));
+							}
+						}
+						continueLine = false;
 					}
 				}
-				else if (!current.isUndefined() && (i == 0 || !includeLines))
+			}
+			else
+			{
+				for (x = 0; x < values.length; x++)
 				{
-					// special case: i == 0, current defined, next undefined
-					geometry = new SimpleGeometry(GeometryType.POINT);
-					geometry.setVertices([
-						new Point(current.getXMin(), current.getYMin())
-					]);
-					results.push(geometry);
+					y = values[x];
+					if (isFinite(y))
+					{
+						if (extendPointBounds)
+							results.push(new SimpleGeometry(GeometryType.LINE, [
+								new Point(x - extendPointBounds, y),
+								new Point(x + extendPointBounds, y)
+							]));
+						else
+							results.push(new SimpleGeometry(GeometryType.POINT, [
+								new Point(x, y)
+							]));
+					}
 				}
 			}
-
+			
 			return results;
 		}
 		
@@ -184,89 +247,82 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
 			var graphics:Graphics = tempShape.graphics;
-			var _prevX:Number = NaN;
-			var _prevY:Number = NaN;
+			var prevScreenX:Number = NaN;
+			var prevScreenY:Number = NaN;
 			var continueLine:Boolean = false;
 			
 			lineStyle.beginLineStyle(recordKey, graphics);
 			
-			for (var i:int = 0; i < _columns.length; i++)
+			var values:Array = getValues(recordKey);
+			for (var x:int = 0; x < values.length; x++)
 			{
-				getCoords(i, recordKey, tempPoint);
-				
-				if (!isFinite(tempPoint.x) || !isFinite(tempPoint.y))
+				var y:Number = values[x];
+				if (!isFinite(y))
 				{
+					// missing value
+					if (drawStubs && continueLine)
+					{
+						// previous value was not missing, so half a horizontal line eminating from the previous point
+						tempPoint.x = x - 0.5;
+						tempPoint.y = values[x - 1];
+						dataBounds.projectPointTo(tempPoint, screenBounds);
+						graphics.lineTo(tempPoint.x, tempPoint.y);
+					}
+					
 					continueLine = false;
 					continue;
 				}
 				
-				dataBounds.projectPointTo(tempPoint, screenBounds);				
+				// value is not missing
 				
-				// if we aren't continuing a new line (it is a new line segment)	
-				if (!continueLine)
+				if (x > 0 && drawStubs && !continueLine)
 				{
-					// set the previous X and Y locations to be this new coordinate
-					_prevX = tempPoint.x;
-					_prevY = tempPoint.y;
+					// previous value was missing, so draw half a horizontal line going into the current point
+					tempPoint.x = x - 0.5;
+					tempPoint.y = y;
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					prevScreenX = tempPoint.x
+					prevScreenY = tempPoint.y;
+					graphics.moveTo(prevScreenX, prevScreenY);
+					continueLine = true;
 				}
 				
-				if (curvedLines.value)
+				tempPoint.x = x;
+				tempPoint.y = y;
+				dataBounds.projectPointTo(tempPoint, screenBounds);
+				if (continueLine)
 				{
-					DrawUtils.drawDoubleCurve(graphics, _prevX, _prevY, tempPoint.x, tempPoint.y, true, 1);
+					if (curvedLines.value)
+						DrawUtils.drawDoubleCurve(graphics, prevScreenX, prevScreenY, tempPoint.x, tempPoint.y, true, 1, continueLine);
+					else
+						graphics.lineTo(tempPoint.x, tempPoint.y);
 				}
 				else
-				{
-					graphics.moveTo(_prevX, _prevY);
-					graphics.lineTo(tempPoint.x, tempPoint.y);
-				}
+					graphics.moveTo(tempPoint.x, tempPoint.y);
 				
 				continueLine = true;
-
-				_prevX = tempPoint.x;
-				_prevY = tempPoint.y;
+				prevScreenX = tempPoint.x;
+				prevScreenY = tempPoint.y;
 			}
 		}
 		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			// normalized data coordinates
-			if (zoomToSubset.value)
+			output.setXRange(0, _columns.length - 1);
+			if (normalize.value)
 			{
-				output.reset();
+				output.setYRange(0, 1);
 			}
 			else
 			{
-				output.setBounds(0, 0, Math.max(1, columns.getNames().length - 1), 1);
-				
-				if (!normalize.value)
+				output.setYRange(NaN, NaN);
+				for (var i:int = 0; i < _columns.length; i++)
 				{
-					// reset y coords
-					output.setYRange(NaN, NaN);
-					for each (var column:IAttributeColumn in _columns)
-					{
-						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-						// expand y range to include all data coordinates
-						output.includeCoords(0, stats.getMin());
-						output.includeCoords(0, stats.getMax());
-					}
+					var stats:IColumnStatistics = _stats[_columns[i]];
+					output.includeCoords(i, stats.getMin());
+					output.includeCoords(i, stats.getMax());
 				}
 			}
-		}
-		
-		/**
-		 * Gets the coordinates for a record and column index and stores them in a Point object.
-		 * @param columnIndex
-		 * @param recordKey
-		 * @param output
-		 */
-		public function getCoords(columnIndex:int, recordKey:IQualifiedKey, output:Point):void
-		{
-			var col:IAttributeColumn = _columns[columnIndex] as IAttributeColumn;
-			output.x = columnIndex;
-			if (normalize.value)
-				output.y = WeaveAPI.StatisticsCache.getColumnStatistics(col).getNorm(recordKey);
-			else
-				output.y = col.getValueFromKey(recordKey, Number);
 		}
 	}
 }

@@ -70,6 +70,7 @@ import weave.utils.SQLUtils.WhereClause;
 import weave.utils.SQLUtils.WhereClause.ColumnFilter;
 import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 import weave.utils.Strings;
+
 /**
  * This class connects to a database and gets data
  * uses xml configuration file to get connection/query info
@@ -90,6 +91,11 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
+	}
+	
+	public void destroy()
+	{
+		SQLUtils.staticCleanup();
 	}
 	
 	/////////////////////
@@ -497,7 +503,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		DataConfig dataConfig = getDataConfig();
 		
 		DataEntityMetadata params = new DataEntityMetadata();
-		params.setPublicMetadata(
+		params.setPublicValues(
 				PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 				PublicMetadata.KEYTYPE, keyType
 			);

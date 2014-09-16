@@ -282,6 +282,7 @@ package weave.compiler
 			}
 			else
 			{
+				number = StandardLib.roundSignificant(number);
 				if (Math.abs(number) < 1)
 					return String(number); // this fixes the bug where "0.1" gets converted to ".1" (we don't want the "0" to be lost)
 				_numberFormatter.precision = -1;
