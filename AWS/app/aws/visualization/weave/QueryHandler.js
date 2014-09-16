@@ -15,8 +15,14 @@ qh_module.service('QueryHandlerService',
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
+	//booleans used for validation of a query object
 	this.isValidated = false;
-	this.validationUpdate = "Query Object Status";
+	this.validationUpdate = "Ready for validation";
+	
+	//boolean used for displaying the Visualization widget tool menu
+	//only when results are returned and Weave pops up, should this menu be enabled
+	this.displayVizMenu = false;
+	
 	//var queryObject = queryService.queryObject;
 	var nestedFilterRequest = {and : []};
 	
@@ -26,6 +32,7 @@ qh_module.service('QueryHandlerService',
 	this.waitForWeave = function(popup, callback)
 	{
 	    function checkWeaveReady() {
+	    	
 	        var weave = popup.document.getElementById('weave');
 	        if (weave && weave.WeavePath) {
 	    		weave.loadFile('minimal.xml', callback.bind(this, weave));
@@ -33,7 +40,7 @@ qh_module.service('QueryHandlerService',
 	        else
 	            setTimeout(checkWeaveReady, 50);
 	    }
-	    checkWeaveReady();
+	    	checkWeaveReady();
 	};
 
 	
@@ -48,7 +55,7 @@ qh_module.service('QueryHandlerService',
     	//setTimeout(function(){this.isValidated = false;console.log("reached here",this.isValidated );}, 3000);
     	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
     		console.log("result", result);
-    		if(result.logs.length > 0)//change this
+    		if(angular.isDefined(result.logs))//change this
     			errorLogService.logInErrorLog(result.logs[0]);
     		scope.$safeApply(function() {
 				deferred.resolve(result);
@@ -66,14 +73,38 @@ qh_module.service('QueryHandlerService',
     	//check for a dataset
     	//check for a script
     	//check for script inputs
-    	if(queryObjectToValidate.dataTable && queryObjectToValidate.scriptSelected )
+    	
+    	var scriptOptionsComplete = false;//true if all parameters have been filled in by UI
+    	var counter = Object.keys(queryObjectToValidate.scriptOptions).length;
+    	if(!scriptOptionsComplete)
+    	{
+    		var g = 0;
+    		for(var f in queryObjectToValidate.scriptOptions)
     		{
-	    		this.isValidated = true;
-	    		this.validationUpdate = "Your query object is varified";
+    			//var check = queryObjectToValidate.scriptOptions[f];
+    			if(!(queryObjectToValidate.scriptOptions[f]))
+    				{
+    				    console.log("param", f);
+	    				alert("Script parameter at " + f + "has not been entered");
+	    				break;
+    				}
+    			else
+    				g++;
+    		}
+    		if(g == counter)
+    			scriptOptionsComplete = true;
+    		
+    	}
+    	
+    	
+    	if(queryObjectToValidate.dataTable && queryObjectToValidate.scriptSelected && scriptOptionsComplete)
+    		{
+    			this.isValidated = true;
+    			this.validationUpdate = "Your query object is varified";
     		}
     	else
     		{
-	    		console.log("Please select a datatable and select a script");
+	    		console.log("Please select a datatable, select a script and enter ALL script parameters");
 	    		this.validationUpdate = "Your query object is not varified";
     		
     		}
@@ -258,33 +289,13 @@ qh_module.service('QueryHandlerService',
 							WeaveService.weave = weave;
 							WeaveService.addCSVData(resultData.data);
 							WeaveService.columnNames = resultData.data[0];
-							console.log("service.validated", that);
+							
+							//updates required for updating query object validation and to enable visualization widget controls
+							that.displayVizMenu = true;
 							that.isValidated = false;
-							console.log("service.validated", that);
-							if(!runInRealTime)//if false
-							{
-								//check for the vizzies and make the required calls
-								if(queryObject.BarChartTool.enabled){
-									console.log("barchart tool enabled");
-									WeaveService.BarChartTool(queryObject.BarChartTool);
-								}
-								if(queryObject.DataTableTool.enabled){
-									console.log('dt tool enbaled');
-									WeaveService.DataTableTool(queryObject.DataTableTool);
-								}
-								if(queryObject.ScatterPlotTool.enabled){
-									console.log('scplot tool enabled');
-									WeaveService.ScatterPlotTool(queryObject.ScatterPlotTool);
-								}
-								if(queryObject.MapTool.enabled){
-									console.log('mp tool enabled');
-									WeaveService.MapTool(queryObject.MapTool);
-								}
-								if(queryObject.ColorColumn){
-									WeaveService.ColorColumn(queryObject.ColorColumn);
-								}
-							}
-							$scope.$apply();
+							that.validationUpdate = "Ready for validation";
+							
+							scope.$apply();//re-fires the digest cycle and updates the view
 						});
 					}
 				
