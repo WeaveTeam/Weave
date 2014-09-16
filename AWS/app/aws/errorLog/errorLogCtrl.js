@@ -5,10 +5,25 @@
 
 var errorLogModule = angular.module('aws.errorLog', []);
 
-errorLogModule.controller('analystErrorLogCtrl', function($scope, $modal){
-	
+errorLogModule.controller('analystErrorLogCtrl', function($scope, $modal, errorLogService){
+	$scope.errorLogService = errorLogService;
 	$scope.openErrorLog = function(){
-		$modal.open({
+		$modal.open($scope.errorLogService.errorLogModalOptions);
+	};
+});
+
+errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $modalInstance, errorLogService){
+	$scope.logs = errorLogService.logs;
+	
+	$scope.close = function () {
+		 $modalInstance.close();
+	 };
+});
+
+
+errorLogModule.service('errorLogService',[function(){
+	
+	this.errorLogModalOptions = {
 			 backdrop: false,
 	         backdropClick: true,
 	         dialogFade: true,
@@ -16,18 +31,7 @@ errorLogModule.controller('analystErrorLogCtrl', function($scope, $modal){
 	         templateUrl: 'aws/errorLog/analystErrorLog.html',
 	         controller: 'errorLogInstanceCtrl',
 	         windowClass : 'erroLog-modal'
-		});
-	};
-});
-
-errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $modalInstance){
-	 $scope.close = function () {
-		 $modalInstance.close();
-	 };
-});
-
-
-errorLogModule.service('errorLogService',[function(){
+		};
 	
 	this.logs = "";
 	/**
