@@ -232,7 +232,7 @@ package weave.core
 			if (!immediately && getTimer() < _saveTime)
 			{
 				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
-				WeaveAPI.StageUtils.callLater(this, saveDiff, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				WeaveAPI.StageUtils.callLater(this, saveDiff);
 				return;
 			}
 			

@@ -113,7 +113,7 @@ package weave.services.wms
 			if (index >= 0)
 				_pendingTiles.splice(index, 1);
 			
-			WeaveAPI.StageUtils.callLater(this, getCallbackCollection(this).triggerCallbacks);
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**

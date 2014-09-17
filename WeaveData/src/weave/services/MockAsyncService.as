@@ -80,8 +80,7 @@ package weave.services
 			else
 			{
 				token = new AsyncToken();
-				// low priority because we are simulating an RPC
-				WeaveAPI.StageUtils.callLater(this, callLater, [method, params, token], WeaveAPI.TASK_PRIORITY_LOW);
+				WeaveAPI.StageUtils.callLater(this, callLater, [method, params, token]);
 			}
 			return token;
 		}

@@ -96,6 +96,7 @@ package weave.core
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
 		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
+		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
 
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
@@ -438,7 +439,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
+		public function callLater(relevantContext:Object, method:Function, parameters:Array = null):void
 		{
 			if (method == null)
 			{
@@ -448,13 +449,9 @@ package weave.core
 			
 //			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
-			if (priority >= _priorityCallLaterQueues.length)
-			{
-				reportError("Invalid priority value: " + priority);
-				priority = WeaveAPI.TASK_PRIORITY_NORMAL;
-			}
 			//trace("call later @",currentFrameElapsedTime);
-			_priorityCallLaterQueues[priority].push(arguments);
+			_priorityCallLaterQueues[_nextCallLaterPriority].push(arguments);
+			_nextCallLaterPriority = WeaveAPI.TASK_PRIORITY_IMMEDIATE;
 			
 			if (debug_async_stack)
 				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
@@ -534,7 +531,8 @@ package weave.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter], priority);
+			_nextCallLaterPriority = priority;
+			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
 			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
@@ -622,7 +620,8 @@ package weave.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			callLater(null, _iterateTask, arguments, priority);
+			_nextCallLaterPriority = priority;
+			callLater(null, _iterateTask, arguments);
 		}
 		
 		/**
