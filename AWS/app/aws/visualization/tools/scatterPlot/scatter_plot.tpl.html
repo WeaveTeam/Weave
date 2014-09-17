@@ -8,7 +8,7 @@
 	
 	<div>
 		X Column
-		<select style = "width : 100%" ui-select2 ng-model="service.queryObject.ScatterPlotTool.X" data-placeholder="Choose X Column">
+		<select style = "width : 100%" ui-select2-"{allowClear : true}" ng-model="service.queryObject.ScatterPlotTool.X" data-placeholder="Choose X Column">
 			<option></option>
 			<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 		</select>
@@ -16,7 +16,7 @@
 	
 	<div>
 		Y Column
-		<select style = "width : 100%" ui-select2 ng-model="service.queryObject.ScatterPlotTool.Y" data-placeholder="Choose Y Column">
+		<select style = "width : 100%" ui-select2-"{allowClear : true}" ng-model="service.queryObject.ScatterPlotTool.Y" data-placeholder="Choose Y Column">
 		<option></option>
 		<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 	</select>

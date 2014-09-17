@@ -7,7 +7,7 @@
 	<br>
 	<div>
 	Select Geomtery
-	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.geometryLayer" data-placeholder="Choose Layer">
+	<select style = "width : 100%" ui-select2-"{allowClear : true}" ng-model="service.queryObject.MapTool.geometryLayer" data-placeholder="Choose Layer">
 			<option></option>
 			<option value="{{gt}}"  ng-repeat="gt in service.dataObject.geometryColumns">{{gt.title}}</option>
 		</select>
@@ -26,7 +26,7 @@
 	<br>
 	<div>
 	Select Label
-	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Layer">
+	<select style = "width : 100%" ui-select2-"{allowClear : true}" ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Layer">
 			<option></option>
 			<option value="{{output}}" ng-repeat="output in WeaveService.columnNames"> {{output}} </option>
 		</select>
