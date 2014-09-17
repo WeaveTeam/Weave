@@ -5,7 +5,10 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.queryService = queryService;
 	  $scope.script = {};
 	  $scope.selectedScript = [];
-	  $scope.scriptMetadata = {};
+	  $scope.scriptMetadata = {
+			  inputs : [],
+			  description : ""
+	  };
 	  $scope.script.content = "";
 	  $scope.selectedRow = [];
 	  $scope.editScript = false;

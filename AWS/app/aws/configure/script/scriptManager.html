@@ -1,42 +1,6 @@
 <div class='script-manager-container' ng-controller="ScriptManagerCtrl" style="padding-top:20px" >
 	
-	<div ng-if="!queryService.authenticated" style="padding-top: 20px; 
-		 position:absolute;
-	     width:300px;
-	     height:200px;
-	     z-index:15;
-	     top:50%;
-	     left:50%;
-	     margin:-100px 0 0 -150px;"
-	     ng-enter="queryService.authenticate(user, password)">	
-		 <table>
-		 	<tr style="margin-bottom: 1em;">
-		 		<td>
-					 User Name: 
-				</td>
-		 		<td>
-		 			<input ng-model="user" type="text" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
-		 		</td>
-		 	</tr>
-		 	<tr>
-		 		<td>
-		 			Password:
-		 		</td>
-		 		<td>
-			 		<input ng-model="password" type="password" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
-		 		</td>
-		 	</tr>
-		 	<tr>
-			 	<td>
-		 		</td>
-		 		<td>
-			 		<div align="right" style="padding-top: 5px">
-					 <input type="button" value="Login" ng-click="queryService.authenticate(user, password)"/>
-			 		</div>
-		 		</td>
-		 	</tr>
-		 </table>
-	</div> 
+	<div ng-include src="'aws/configure/auth/login.html'"></div>
 
 	<div class="container" contenteditable="false"  ng-if="queryService.authenticated">
 		<div class="row">
