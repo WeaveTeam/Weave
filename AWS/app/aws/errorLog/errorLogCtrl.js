@@ -23,8 +23,8 @@ errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $
 
 errorLogModule.service('errorLogService',[function(){
 	
-	this.errorLogModalOptions = {
-			 backdrop: false,
+	this.errorLogModalOptions = {//TODO find out how to push error log to bottom of page
+			 backdrop: true,
 	         backdropClick: true,
 	         dialogFade: true,
 	         keyboard: true,
