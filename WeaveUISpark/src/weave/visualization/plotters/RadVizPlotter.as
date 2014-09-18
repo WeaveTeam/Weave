@@ -44,7 +44,7 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
@@ -75,7 +75,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class RadVizPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class RadVizPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function RadVizPlotter()
 		{

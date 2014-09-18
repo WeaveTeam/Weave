@@ -34,7 +34,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -49,7 +49,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class RectanglePlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class RectanglePlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
 		

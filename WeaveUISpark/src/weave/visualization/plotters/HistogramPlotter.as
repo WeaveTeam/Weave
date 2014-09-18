@@ -31,7 +31,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
@@ -48,7 +48,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class HistogramPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class HistogramPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function HistogramPlotter()
 		{

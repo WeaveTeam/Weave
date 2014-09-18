@@ -38,6 +38,7 @@ package weave.menus
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
+	import weave.api.ui.IInitSelectableAttributes;
 	import weave.api.ui.IVisTool;
 	import weave.api.ui.IVisTool_Basic;
 	import weave.api.ui.IVisTool_R;
@@ -52,6 +53,7 @@ package weave.menus
 	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.collaboration.CollaborationEditor;
 	import weave.utils.AsyncSort;
+	import weave.utils.ColumnUtils;
 
 	public class ToolsMenu extends WeaveMenuItem
 	{
@@ -73,7 +75,11 @@ package weave.menus
 			// put panel in front
 			WeaveAPI.globalHashMap.setNameOrder([name]);
 			
-			// open control panel for new tool
+			var iisa:IInitSelectableAttributes = object as IInitSelectableAttributes;
+			if (iisa)
+				iisa.initSelectableAttributes(ColumnUtils.getColumnsWithCommonKeyType());
+			
+			// add "Start here" tip for a panel
 			var dp:DraggablePanel = object as DraggablePanel;
 			if (dp)
 				dp.callLater(handleDraggablePanelAdded, [dp]);

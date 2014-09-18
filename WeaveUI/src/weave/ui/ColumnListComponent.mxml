@@ -62,7 +62,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.core.LinkableWatcher;
 			import weave.ui.CustomDataGrid.CustomDataGrid;
 			import weave.utils.ColumnUtils;
@@ -122,8 +122,8 @@
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
 			private const ownerWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
 			
-			private var _overrideOwner:IObjectWithSelectableAttributes;
-			public function set overrideOwner(value:IObjectWithSelectableAttributes):void
+			private var _overrideOwner:ISelectableAttributes;
+			public function set overrideOwner(value:ISelectableAttributes):void
 			{
 				ownerWatcher.target = _overrideOwner = value;
 			}
@@ -194,7 +194,7 @@
 					callLater(updateLabel);
 					return;
 				}
-				var tool:IObjectWithSelectableAttributes = ownerWatcher.target as IObjectWithSelectableAttributes;
+				var tool:ISelectableAttributes = ownerWatcher.target as ISelectableAttributes;
 				if (!tool)
 					return;
 				var names:Array = tool.getSelectableAttributeNames();

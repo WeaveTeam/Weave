@@ -36,13 +36,13 @@
 			import weave.api.data.IColumnWrapper;
 			import weave.api.getCallbackCollection;
 			import weave.api.registerDisposableChild;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.utils.ColumnUtils;
 			
-			private var target:IObjectWithSelectableAttributes;
+			private var target:ISelectableAttributes;
 			private var selectedNames:LinkableVariable;
 			private var prevNames:Array;
 			
@@ -58,7 +58,7 @@
 			 * @param target
 			 * @param selectedNames A LinkableVariable containing an Array of selected names.
 			 */
-			public function setup(target:IObjectWithSelectableAttributes, selectedNames:LinkableVariable):void
+			public function setup(target:ISelectableAttributes, selectedNames:LinkableVariable):void
 			{
 				this.target = target;
 				this.selectedNames = selectedNames;
@@ -108,7 +108,7 @@
 				);
 			}
 			
-			public static function getSelectedAttributeColumns(target:IObjectWithSelectableAttributes, selectedNames:LinkableVariable, defaultSelectedState:Boolean = true):Array
+			public static function getSelectedAttributeColumns(target:ISelectableAttributes, selectedNames:LinkableVariable, defaultSelectedState:Boolean = true):Array
 			{
 				var state:Array = selectedNames.getSessionState() as Array;
 				var booleans:Array;

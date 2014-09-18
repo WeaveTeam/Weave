@@ -2,7 +2,7 @@
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:editors="weave.editors.*"
-				   implements="weave.api.ui.IObjectWithSelectableAttributes"
+				   implements="weave.api.ui.ISelectableAttributes"
 				   layout="absolute" width="25%" height="20%">
 	<mx:Script>
 		<![CDATA[

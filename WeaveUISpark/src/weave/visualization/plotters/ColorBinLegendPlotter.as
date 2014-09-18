@@ -32,7 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
@@ -58,7 +58,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter, IObjectWithSelectableAttributes
+	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter, ISelectableAttributes
 	{
 		public function ColorBinLegendPlotter()
 		{

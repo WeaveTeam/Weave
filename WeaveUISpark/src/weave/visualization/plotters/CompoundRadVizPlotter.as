@@ -35,7 +35,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -62,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class CompoundRadVizPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class CompoundRadVizPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function CompoundRadVizPlotter()
 		{

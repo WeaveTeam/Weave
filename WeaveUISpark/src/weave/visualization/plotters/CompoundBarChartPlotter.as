@@ -36,7 +36,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -66,7 +66,7 @@ package weave.visualization.plotters
 	 * @author adufilie
 	 * @author kmanohar
 	 */
-	public class CompoundBarChartPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class CompoundBarChartPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function CompoundBarChartPlotter()
 		{

@@ -28,14 +28,14 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.utils.DrawUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
-	public class StickFigureGlyphPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
+	public class StickFigureGlyphPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
 		public function StickFigureGlyphPlotter()
 		{

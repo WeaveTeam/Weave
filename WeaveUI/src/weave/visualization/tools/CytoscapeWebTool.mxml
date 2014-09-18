@@ -2,7 +2,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
-		 implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+		 implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
 		 layout="vertical">
 		<mx:VBox>
 

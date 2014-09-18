@@ -36,7 +36,7 @@ package weave.editors
 	import weave.api.core.ILinkableVariable;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.linkBindableProperty;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -182,7 +182,7 @@ package weave.editors
 			}
 			
 			// editors for enumerated selectable attributes should appear first
-			var owsa:IObjectWithSelectableAttributes = target as IObjectWithSelectableAttributes;
+			var owsa:ISelectableAttributes = target as ISelectableAttributes;
 			if (owsa)
 			{
 				var lookup:Dictionary = VectorUtils.createLookup(subtrees, OBJECT);

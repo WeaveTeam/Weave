@@ -61,7 +61,7 @@ package weave.application
 	import weave.api.getCallbackCollection;
 	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.WeaveArchive;
 	import weave.data.DataSources.CSVDataSource;
@@ -947,7 +947,7 @@ package weave.application
 					_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
 						lang("Export CSV"), 
 						this,
-						function(event:ContextMenuEvent):void { exportCSV(_panelToExport as IObjectWithSelectableAttributes); },
+						function(event:ContextMenuEvent):void { exportCSV(_panelToExport as ISelectableAttributes); },
 						"4 exportMenuItems"
 					);
 				}
@@ -966,7 +966,7 @@ package weave.application
 		private var _panelPrintContextMenuItem:ContextMenuItem = null;
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
 		private var exportCSVfileRef:FileReference = new FileReference();	// CSV download file references
-		public function getSelectableAttributes(tool:IObjectWithSelectableAttributes = null):Array
+		public function getSelectableAttributes(tool:ISelectableAttributes = null):Array
 		{
 			var attrs:Array = [];
 			if (tool)
@@ -979,13 +979,13 @@ package weave.application
 				VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(IAttributeColumn), attrs);
 				// get probe columns
 				VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(ILinkableHashMap), attrs);
-				for each (var tool:IObjectWithSelectableAttributes in WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes))
+				for each (var tool:ISelectableAttributes in WeaveAPI.globalHashMap.getObjects(ISelectableAttributes))
 					VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
 			}
 			return attrs;
 		}
 			
-		public function exportCSV(tool:IObjectWithSelectableAttributes = null):void
+		public function exportCSV(tool:ISelectableAttributes = null):void
 		{
 			try
 			{

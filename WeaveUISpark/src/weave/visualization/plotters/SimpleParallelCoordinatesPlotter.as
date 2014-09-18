@@ -32,7 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
@@ -44,7 +44,7 @@ package weave.visualization.plotters
 	import weave.utils.ObjectPool;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
-	public class SimpleParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
+	public class SimpleParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, SimpleParallelCoordinatesPlotter, "Parallel Coordinates");
 		

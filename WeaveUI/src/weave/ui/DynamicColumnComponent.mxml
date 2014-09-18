@@ -90,7 +90,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.newLinkableChild;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -153,7 +153,7 @@
 			private function updateLabel():void
 			{
 				toolWatcher.target = AttributeSelectorPanel.getOwnerWithSelectableAttributes(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
-				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
+				var tool:ISelectableAttributes = toolWatcher.target as ISelectableAttributes;
 				if (!tool)
 					return;
 				var names:Array = tool.getSelectableAttributeNames();

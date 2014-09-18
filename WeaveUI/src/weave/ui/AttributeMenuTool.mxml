@@ -20,7 +20,7 @@
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.IObjectWithSelectableAttributes"
+				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
@@ -116,7 +116,7 @@
 				import weave.api.data.IColumnWrapper;
 				import weave.api.getCallbackCollection;
 				import weave.api.linkBindableProperty;
-				import weave.api.ui.IObjectWithSelectableAttributes;
+				import weave.api.ui.ISelectableAttributes;
 				import weave.compiler.Compiler;
 				import weave.compiler.StandardLib;
 				import weave.core.SessionManager;
@@ -140,7 +140,7 @@
 				private function handleGlobalListChange():void
 				{
 					// update the list of tools
-					var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, IObjectWithSelectableAttributes);
+					var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, ISelectableAttributes);
 					// two filter passes because the filter function may modify the array on the first pass
 					descendants = descendants.filter(outerDocument.filterDescendants).filter(outerDocument.filterDescendants).map(objectToPathString);
 					StandardLib.sort(descendants);
@@ -191,7 +191,7 @@
 					// make sure the correct item is selected
 					targetToolCombo.selectedItem = pathToString(outerDocument.targetToolPath.getSessionState() as Array);
 					
-					var tool:IObjectWithSelectableAttributes = outerDocument.getTargetTool();
+					var tool:ISelectableAttributes = outerDocument.getTargetTool();
 					// update the list of available attributes
 					if (tool)
 					{
@@ -242,7 +242,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.Compiler;
@@ -324,7 +324,7 @@
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			internal const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IObjectWithSelectableAttributes), handleToolChange, true);
+			internal const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ISelectableAttributes), handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
 			
@@ -410,9 +410,9 @@
 			}
 			
 			// this returns the tool object corresponding to the selected item in the toolCombo
-			public function getTargetTool():IObjectWithSelectableAttributes
+			public function getTargetTool():ISelectableAttributes
 			{
-				return toolWatcher.target as IObjectWithSelectableAttributes;
+				return toolWatcher.target as ISelectableAttributes;
 			}
 			
 			public function get targetAttributeName():String
@@ -431,7 +431,7 @@
 				return _attrNames.indexOf(ta);
 			}
 			
-			internal function filterDescendants(that:IObjectWithSelectableAttributes, i:int, all:Array):Boolean
+			internal function filterDescendants(that:ISelectableAttributes, i:int, all:Array):Boolean
 			{
 				if (!that || that == this)
 					return false;
@@ -461,11 +461,11 @@
 				toolWatcher.targetPath = targetToolPath.getSessionState() as Array;
 				
 				// backwards compatibility
-				var tool:IObjectWithSelectableAttributes = getTargetTool();
+				var tool:ISelectableAttributes = getTargetTool();
 				if (tool && tool.getSelectableAttributes().length == 0)
 				{
 					var sm:ISessionManager = WeaveAPI.SessionManager;
-					var descendants:Array = sm.getLinkableDescendants(tool, IObjectWithSelectableAttributes);
+					var descendants:Array = sm.getLinkableDescendants(tool, ISelectableAttributes);
 					descendants = descendants.filter(filterDescendants).filter(filterDescendants);
 					if (descendants.length)
 					{
@@ -485,7 +485,7 @@
 					return;
 				}
 				
-				var tool:IObjectWithSelectableAttributes = getTargetTool();
+				var tool:ISelectableAttributes = getTargetTool();
 				// update the list of available attributes
 				if (tool)
 				{
@@ -544,7 +544,7 @@
 				
 				var selectedAttr:IAttributeColumn = choices.getObject(selectedName) as IAttributeColumn;
 				
-				var tool:IObjectWithSelectableAttributes = getTargetTool();
+				var tool:ISelectableAttributes = getTargetTool();
 				// do nothing if there is no tool
 				if (!tool)
 					return;

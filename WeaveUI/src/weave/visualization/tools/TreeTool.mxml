@@ -3,7 +3,7 @@
                    xmlns:mx="http://www.adobe.com/2006/mxml"
                    xmlns:ui="weave.ui.*" 
                    xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
                    title="{lang('Tree')}" xmlns:editors="weave.editors.*">
 <ui:CustomTree width="100%" height="100%" id="treeView" allowMultipleSelection="true" dataDescriptor="{new ParentColumnTreeDescriptor()}"/>
 <mx:Script>

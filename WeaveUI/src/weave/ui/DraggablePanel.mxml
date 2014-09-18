@@ -75,7 +75,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.ILinkableObjectEditor;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.CallbackCollection;
 			import weave.core.ClassUtils;
@@ -197,7 +197,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_constructorCalled = true;
 					reposition();
 					inConstructor();
-					afterConstructor();
 				}
 			}
 			
@@ -225,13 +224,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(this).addGroupedCallback(this, updateButtonsIfSelectableAttributesChanged, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
-			}
-			
-			/**
-			 * This is called after the constructor.
-			 */
-			protected function afterConstructor():void
-			{
 			}
 			
 			/**
@@ -1357,8 +1349,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function get shouldShowAttributeButton():Boolean
 			{
 				return Weave.properties.enableToolControls.value
-					&& this is IObjectWithSelectableAttributes
-					&& (this as IObjectWithSelectableAttributes).getSelectableAttributes().length;
+					&& this is ISelectableAttributes
+					&& (this as ISelectableAttributes).getSelectableAttributes().length;
 			}
 			
 			private function updateButtons():void
@@ -1504,7 +1496,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function openAttributeSelector(attrIndex:int = 0):AttributeSelectorPanel
 			{
-				var tool:IObjectWithSelectableAttributes = this as IObjectWithSelectableAttributes;
+				var tool:ISelectableAttributes = this as ISelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();

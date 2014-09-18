@@ -184,7 +184,7 @@
 				import weave.menus.DataMenu;
 				import weave.api.core.ILinkableHashMap;
 				import weave.utils.ColumnUtils;
-				import weave.api.ui.IObjectWithSelectableAttributes;
+				import weave.api.ui.ISelectableAttributes;
 				import avmplus.getQualifiedClassName;
 				import weave.core.ClassUtils;
 				import weave.visualization.tools.SimpleVisTool;
@@ -255,7 +255,7 @@
 						if (input.length > max_input)
 							input.length = max_input;
 						
-						var obj:IObjectWithSelectableAttributes = ToolsMenu.createGlobalObject(item) as IObjectWithSelectableAttributes;
+						var obj:ISelectableAttributes = ToolsMenu.createGlobalObject(item) as ISelectableAttributes;
 						if (obj is SimpleVisTool)
 						{
 							(obj as SimpleVisTool).initSelectableAttributes(input);
@@ -275,7 +275,7 @@
 						return ToolsMenu.getDynamicItems(null, function(item:WeaveMenuItem):Boolean {
 							item.click = onClick;
 							var qname:String = getQualifiedClassName(item.data);
-							var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
+							var qname_iowsa:String = getQualifiedClassName(ISelectableAttributes);
 							return ClassUtils.classImplements(qname, qname_iowsa);
 						});
 					};

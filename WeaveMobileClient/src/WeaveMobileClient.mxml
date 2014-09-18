@@ -254,7 +254,7 @@
 				];
 				for each (var oldToolName:String in oldToolNames)
 					ClassUtils.registerDeprecatedClass(
-						'weave.visualization.tools::' + oldToolName,
+						'weave.visualization.tools.' + oldToolName,
 						SimpleInteractiveVisualization
 					);
 			}

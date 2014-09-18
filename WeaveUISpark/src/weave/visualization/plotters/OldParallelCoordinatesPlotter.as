@@ -39,7 +39,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.compiler.StandardLib;
@@ -62,7 +62,7 @@ package weave.visualization.plotters
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
-	public class OldParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
+	public class OldParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes
 	{
 		public function OldParallelCoordinatesPlotter()
 		{
