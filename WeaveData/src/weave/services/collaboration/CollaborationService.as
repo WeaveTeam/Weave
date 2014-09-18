@@ -446,7 +446,7 @@ package weave.services.collaboration
 				_message = event.data;
 				
 				//A text message from the text box
-				if( _message.getAllExtensionsByNS(WeaveExtension.NS).length == 0 )
+				if( _message.getAllExtensionsByNS(WeaveExtension.NS) == null)
 				{
 					dispatchLogEvent( _message.from + ": " + _message.body);
 					return;
