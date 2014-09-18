@@ -215,20 +215,6 @@ package weave.services.wms
 		}
 		
 		/**
-		 * This is a private method used for sorting an array of WMSTiles.
-		 */ 
-		private function tileSortingComparison(a:WMSTile, b:WMSTile):int
-		{
-			// if a is lower quality (lower zoomLevel), it goes before
-			if (a.zoomLevel < b.zoomLevel)
-				return -1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return 1;			
-		}
-		
-		/**
 		 * This function sets the value of _tempCoord.zoom.
 		 */
 		private function setTempCoordZoomLevel(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean):void

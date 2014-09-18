@@ -360,20 +360,6 @@ package weave.services.wms
 			AsyncSort.sortImmediately(tiles, tileSortingComparison);
 			return tiles;
 		}
-		
-		/**
-		 * This is a private method used for sorting an array of WMSTiles.
-		 */ 
-		private function tileSortingComparison(a:WMSTile, b:WMSTile):int
-		{
-			// if a is higher quality (less data/screen => smaller value), it succeeds b
-			if (a.zoomLevel < b.zoomLevel)
-				return 1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return -1;			
-		}
 
 		override public function getAllowedBounds(output:IBounds2D):void
 		{
