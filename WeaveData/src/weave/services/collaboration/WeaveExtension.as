@@ -13,6 +13,14 @@ package weave.services.collaboration
 		public static var NS:String = "weave:message";
 		public static var ELEMENT:String = "data";
 		
+		public static var FULL_SESSION_STATE:String = "fullsessionstate";
+		public static var SESSION_STATE_MESSAGE:String = "sessionstatemessage";
+		public static var REQUEST_MOUSE_MESSAGE:String = "requestmousemessage";
+		public static var MOUSE_MESSAGE:String = "mousemessage";
+		public static var PING:String = "ping";
+		public static var ADDONS_MESSAGE:String = "addonsmessage";
+		public static var ADDON_STATUS:String = "addonstatus";
+		
 		private var myContentNode:XMLNode;
 		
 		public function WeaveExtension(parent:XMLNode=null)
