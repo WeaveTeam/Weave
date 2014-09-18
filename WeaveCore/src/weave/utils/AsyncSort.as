@@ -173,25 +173,28 @@ package weave.utils
 		
 		private function iterate(stopTime:int):Number
 		{
-			if (compare === ObjectUtil.numericCompare)
+			if (original is Array)
 			{
-				original.sort(Array.NUMERIC);
-				return 1;
-			}
-			
-			if (compare === compareCaseInsensitive)
-			{
-				original.sort(Array.CASEINSENSITIVE);
-				return 1;
-			}
-			
-			if (compare === null)
-			{
-				if (original[0] is Number || original[0] is Date)
+				if (compare === ObjectUtil.numericCompare)
+				{
 					original.sort(Array.NUMERIC);
-				else
-					original.sort();
-				return 1;
+					return 1;
+				}
+				
+				if (compare === compareCaseInsensitive)
+				{
+					original.sort(Array.CASEINSENSITIVE);
+					return 1;
+				}
+				
+				if (compare === null)
+				{
+					if (original[0] is Number || original[0] is Date)
+						original.sort(Array.NUMERIC);
+					else
+						original.sort();
+					return 1;
+				}
 			}
 			
 			var time:int = getTimer();
