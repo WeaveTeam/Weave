@@ -68,10 +68,10 @@ package weave.utils
 		}
 		
 		/**
-		 * This is a basic compare function similar to the default compare used by Array.sort().
+		 * Compares two primitive values.
 		 * This function is faster than ObjectUtil.compare(), but does not do deep object compare.
 		 */
-		public static function defaultCompare(a:*, b:*):int
+		public static function primitiveCompare(a:*, b:*):int
 		{
 			if (a === b)
 				return 0;
@@ -173,9 +173,15 @@ package weave.utils
 		
 		private function iterate(stopTime:int):Number
 		{
+			if (compare === compareCaseInsensitive)
+			{
+				original.sort(Array.CASEINSENSITIVE);
+				return 1;
+			}
+			
 			if (compare === null)
 			{
-				if (original.length && original[0] is Number)
+				if (original[0] is Number || original[0] is Date)
 					original.sort(Array.NUMERIC);
 				else
 					original.sort();

@@ -615,7 +615,7 @@ package weave.compiler
 		public static function arrayCompare(a:Array, b:Array):int
 		{
 			if (!a || !b)
-				return AsyncSort.defaultCompare(a, b);
+				return AsyncSort.primitiveCompare(a, b);
 			var an:int = a.length;
 			var bn:int = b.length;
 			if (an < bn)
@@ -630,7 +630,7 @@ package weave.compiler
 				if (ai is Array && bi is Array)
 					result = arrayCompare(ai as Array, bi as Array);
 				else
-					result = AsyncSort.defaultCompare(ai, bi);
+					result = AsyncSort.primitiveCompare(ai, bi);
 				if (result != 0)
 					return result;
 			}
