@@ -34,6 +34,8 @@ package weave.data.AttributeColumns
 	{
 		public function SortedColumn()
 		{
+			sortAscending = SortedKeySet.generateCompareFunction([internalDynamicColumn], [1]);
+			sortDescending = SortedKeySet.generateCompareFunction([internalDynamicColumn], [-1]);
 		}
 		
 		/**
@@ -43,8 +45,8 @@ package weave.data.AttributeColumns
 
 		private var _keys:Array = [];
 		private var _prevTriggerCounter:uint = 0;
-		private const sortAscending:Function = SortedKeySet.generateCompareFunction([internalDynamicColumn], [1]);
-		private const sortDescending:Function = SortedKeySet.generateCompareFunction([internalDynamicColumn], [-1]);
+		private var sortAscending:Function;
+		private var sortDescending:Function;
 
 		/**
 		 * This function returns the unique strings of the internal column.
