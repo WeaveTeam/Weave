@@ -91,7 +91,7 @@ package weave.ui
 		public function setComponentOrder(orderedIds:Array):void
 		{
 			// do nothing if order didn't change
-			if (StandardLib.arrayCompare(orderedIds, getComponentOrder()) == 0)
+			if (StandardLib.compare(orderedIds, getComponentOrder()) == 0)
 				return;
 			
 			getCallbackCollection(this).delayCallbacks();

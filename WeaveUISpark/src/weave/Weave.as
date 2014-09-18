@@ -216,7 +216,7 @@ package weave
 					array.push(newPluginList[i]);
 			newPluginList = array;
 			// stop if no change
-			if (StandardLib.arrayCompare(_pluginList, newPluginList) == 0)
+			if (StandardLib.compare(_pluginList, newPluginList) == 0)
 			{
 				return true;
 			}

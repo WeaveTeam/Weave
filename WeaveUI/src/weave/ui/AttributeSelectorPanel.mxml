@@ -163,10 +163,10 @@
 					var attrs:Array = tool.getSelectableAttributes();
 					var names:Array = tool.getSelectableAttributeNames();
 					
-					if (StandardLib.arrayCompare(attrs, selectableAttributes))
+					if (StandardLib.compare(attrs, selectableAttributes))
 						selectableAttributes = attrs;
 					
-					if (StandardLib.arrayCompare(names, selectableAttributeNames))
+					if (StandardLib.compare(names, selectableAttributeNames))
 						selectableAttributeNames = names;
 					
 					var index:int = attrs.indexOf(_linkedObject);

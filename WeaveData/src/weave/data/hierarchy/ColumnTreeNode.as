@@ -121,11 +121,11 @@ package weave.data.hierarchy
 				return false; // source differs
 			
 			// compare data
-			if (StandardLib.compareDynamicObjects(this.data, that.data) != 0)
+			if (StandardLib.compare(this.data, that.data) != 0)
 				return false; // data differs
 			
 			// compare idFields
-			if (StandardLib.arrayCompare(this.idFields, that.idFields) != 0)
+			if (StandardLib.compare(this.idFields, that.idFields) != 0)
 				return false; // idFields differs
 			
 			// compare columnMetadata
@@ -136,12 +136,12 @@ package weave.data.hierarchy
 			if (this.idFields) // partial columnMetadata comparison
 			{
 				for each (var field:String in idFields)
-					if (StandardLib.compareDynamicObjects(this.columnMetadata[field], that.columnMetadata[field]) != 0)
+					if (StandardLib.compare(this.columnMetadata[field], that.columnMetadata[field]) != 0)
 						return false; // columnMetadata differs
 				return true; // columnMetadata equivalent
 			}
 			else // full columnMetadata comparison
-				return StandardLib.compareDynamicObjects(this.columnMetadata, that.columnMetadata) == 0;
+				return StandardLib.compare(this.columnMetadata, that.columnMetadata) == 0;
 		}
 		
 		/**

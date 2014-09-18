@@ -111,7 +111,7 @@ package weave.data.KeySets
 		private function _handleSorted():void
 		{
 			// only trigger callbacks if sorting changes order
-			if (StandardLib.arrayCompare(_prevSortedKeys, _sortedKeys) != 0)
+			if (StandardLib.compare(_prevSortedKeys, _sortedKeys) != 0)
 				getCallbackCollection(this).triggerCallbacks();
 		}
 		

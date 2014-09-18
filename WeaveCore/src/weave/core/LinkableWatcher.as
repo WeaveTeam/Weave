@@ -141,7 +141,7 @@ package weave.core
 			// do not allow watching the globalHashMap
 			if (path && path.length == 0)
 				path = null;
-			if (StandardLib.arrayCompare(_targetPath, path) != 0)
+			if (StandardLib.compare(_targetPath, path) != 0)
 			{
 				_targetPath = path;
 				handlePath();

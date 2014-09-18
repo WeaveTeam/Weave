@@ -73,7 +73,7 @@
 			private function handleTarget():void
 			{
 				var newNames:Array = target.getSelectableAttributeNames();
-				if (StandardLib.arrayCompare(prevNames, newNames) != 0)
+				if (StandardLib.compare(prevNames, newNames) != 0)
 					list.dataProvider = prevNames = newNames;
 				var state:Array = selectedNames ? selectedNames.getSessionState() as Array : null;
 				if (StandardLib.getArrayType(state) == Boolean)

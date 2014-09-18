@@ -109,7 +109,7 @@
 					min = stats.getMin();
 				if (isNaN(max))
 					max = stats.getMax();
-				if (StandardLib.arrayCompare(rangeSlider.values, [min,max]) != 0)
+				if (StandardLib.compare(rangeSlider.values, [min,max]) != 0)
 					rangeSlider.values = [min, max];
 				
 				lbl.text = lang("[{0}, {1}]", min, max);

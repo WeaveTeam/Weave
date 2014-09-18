@@ -227,7 +227,7 @@ package weave.core
 				});
 			
 			// if we don't have any changes, use the original array
-			if (StandardLib.arrayCompare(array, state as Array) == 0)
+			if (StandardLib.compare(array, state) == 0)
 				return true;
 			
 			// use the new array

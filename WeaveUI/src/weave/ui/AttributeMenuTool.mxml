@@ -144,7 +144,7 @@
 					// two filter passes because the filter function may modify the array on the first pass
 					descendants = descendants.filter(outerDocument.filterDescendants).filter(outerDocument.filterDescendants).map(objectToPathString);
 					StandardLib.sort(descendants);
-					if (StandardLib.arrayCompare(_prevDescendants, descendants) != 0)
+					if (StandardLib.compare(_prevDescendants, descendants) != 0)
 						targetToolCombo.dataProvider = _prevDescendants = descendants;
 					// make sure the correct item is selected
 					targetToolCombo.selectedItem = pathToString(outerDocument.targetToolPath.getSessionState() as Array);
@@ -173,7 +173,7 @@
 						return path[0];
 					
 					// ["MapTool", "children", "visualization", "plotManager", "plotters", "Rectangles"]
-					if (path.length == 6 && StandardLib.arrayCompare(path.slice(1, 5), ["children", "visualization", "plotManager", "plotters"]) == 0)
+					if (path.length == 6 && StandardLib.compare(path.slice(1, 5), ["children", "visualization", "plotManager", "plotters"]) == 0)
 						return lang("{0} (Layer: {1})", path[0], path[5]);
 					
 					return str;
@@ -197,7 +197,7 @@
 					{
 						var names:Array = tool.getSelectableAttributeNames() || [];
 						var attrs:Array = tool.getSelectableAttributes() || [];
-						if (StandardLib.arrayCompare(names, _attrNames) || StandardLib.arrayCompare(attrs, _attrs))
+						if (StandardLib.compare(names, _attrNames) || StandardLib.compare(attrs, _attrs))
 						{
 							_attrs = attrs;
 							targetAttributeCombo.dataProvider = _attrNames = names;
