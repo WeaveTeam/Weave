@@ -19,15 +19,11 @@
 
 package weave.data.AttributeColumns
 {
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.data.QKeyManager;
-	import weave.utils.AsyncSort;
-	import weave.utils.VectorUtils;
+	import weave.data.KeySets.SortedKeySet;
 	
 	/**
 	 * This is a wrapper for another column that provides sorted keys.
@@ -38,15 +34,17 @@ package weave.data.AttributeColumns
 	{
 		public function SortedColumn()
 		{
-			super();
-			ascending.value = true;
-			addImmediateCallback(this, invalidateKeys);
 		}
-
+		
 		/**
-		 * This is used to store the sorted list of keys.
+		 * This is an option to sort the column in ascending or descending order.
 		 */
+		public const ascending:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+
 		private var _keys:Array = [];
+		private var _prevTriggerCounter:uint = 0;
+		private const sortAscending:Function = SortedKeySet.generateCompareFunction([internalDynamicColumn], [1]);
+		private const sortDescending:Function = SortedKeySet.generateCompareFunction([internalDynamicColumn], [-1]);
 
 		/**
 		 * This function returns the unique strings of the internal column.
@@ -54,65 +52,13 @@ package weave.data.AttributeColumns
 		 */
 		override public function get keys():Array
 		{
-			validateKeys();
-			return _keys;
-		}
-		
-		/**
-		 * This is an option to sort the column in ascending or descending order.
-		 */
-		public const ascending:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		
-		/**
-		 * This function will invalidate the sorted keys.
-		 */
-		private function invalidateKeys():void
-		{
-			// invalidate keys
-			_keys.length = 0;
-		}
-
-		/**
-		 * This function will, if necessary, sort the keys based on the numeric value of the internal column.
-		 */
-		private function validateKeys():void
-		{
-			if (_keys.length == 0)
+			if (_prevTriggerCounter != triggerCounter)
 			{
-				// get the keys from the internal column
-				var keys:Array = getInternalColumn() ? getInternalColumn().keys : [];
-				// make a copy of the list of keys
-				VectorUtils.copy(keys, _keys);
-				// set sort mode
-				_sortAscending = ascending.value;
-				// sort the keys based on the numeric values associated with them
-				AsyncSort.sortImmediately(_keys, sortByNumericValue);
+				_keys = super.keys.concat();
+				StandardLib.sort(_keys, ascending.value ? sortAscending : sortDescending);
+				_prevTriggerCounter = triggerCounter;
 			}
-		}
-
-		/**
-		 * This variable is used to tell the sortByNumericValue() function how to sort.
-		 */
-		private var _sortAscending:Boolean = true;
-		
-		/**
-		 * This function is used to sort a list of keys.
-		 * @param key1 The first key identifying a Number to compare.
-		 * @param key2 The second key identifying a Number to compare.
-		 * @return The compare result used to sort a list of keys.
-		 */
-		private function sortByNumericValue(firstKey:IQualifiedKey, secondKey:IQualifiedKey):int
-		{
-			var key1:IQualifiedKey = _sortAscending ? firstKey : secondKey;
-			var key2:IQualifiedKey = _sortAscending ? secondKey : firstKey;
-			
-			var column:IAttributeColumn = internalDynamicColumn.getInternalColumn();
-			
-			var val1:Number = column ? column.getValueFromKey(key1, Number) : NaN;
-			var val2:Number = column ? column.getValueFromKey(key2, Number) : NaN;
-			// if numeric values are equal, compare the keys
-			return ObjectUtil.numericCompare(val1, val2)
-				|| QKeyManager.keyCompare(key1, key2);
+			return _keys;
 		}
 	}
 }
