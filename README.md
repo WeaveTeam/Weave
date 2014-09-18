@@ -20,6 +20,6 @@ Components in this repository:
  
 The bare minimum you need to build Weave is [Flex 4.5.1.A](http://fpdownload.adobe.com/pub/flex/sdk/builds/flex4.5/flex_sdk_4.5.1.21328A.zip) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: http://info.oicweave.org/projects/weave/wiki/Development_environment_setup
 
-To build the projects on the command line, use the **build.xml** and **WeaveServices/build.xml** Ant scripts.
+To build the projects on the command line, use the **build.xml** Ant script. To create a ZIP file for deployment on another system (much like the nightlies,) use the **dist** target.
 
 See install-linux.md for detailed linux install instructions.
