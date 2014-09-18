@@ -80,6 +80,8 @@ package weave.services.collaboration
 		private var connectedToRoom:Boolean 			= false;
 		private var stateLog:SessionStateLog 			= null;
 		private var synchronizingIncomingDiff:Boolean 	= false;
+		private var _message:Message = new Message();
+		private var weaveExtension:WeaveExtension = new WeaveExtension();
 		
 		public const userList:ArrayCollection 			= new ArrayCollection();
 		public const TYPE_MIC:String 					= "MIC";
@@ -99,6 +101,8 @@ package weave.services.collaboration
 			// all of these classes are internal
 			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus, MicrophoneActivity, ProfilePicMessage, RequestProfilePic])
 				registerClassAlias(getQualifiedClassName(c), c);
+				
+			WeaveExtension.enable();	
 				
 			userList.sort = new Sort();
 			userList.sort.compareFunction = ObjectUtil.stringCompare;
@@ -199,11 +203,62 @@ package weave.services.collaboration
 //				throw new Error("Not connected");
 			}
 			
-			if( target != null)
-				room.sendPrivateMessage( target, encodeObject(message) );
+			//Construct Message object.
+			_message = room.getMessage();
+			if( target != null )
+			{
+				_message.to = new EscapedJID(room.roomJID + "/" + target, false);
+				_message.type = Message.TYPE_CHAT;
+			}
+			if( message is TextMessage )
+			{
+				if( target != null )
+					_message.type = Message.TYPE_CHAT;
+				else
+					_message.type = Message.TYPE_GROUPCHAT;	
+				_message.body = (message as TextMessage).message;
+				trace("Message To string: " + _message.getNode().toString());
+				if( target != null)
+					room.sendPrivateMessage( target, (message as TextMessage).message );
+				else
+					room.sendMessage( (message as TextMessage).message );
+			}
+				//Special Weave messages case.
 			else
-				room.sendMessage( encodeObject(message) );
+			{
+				weaveExtension.content = encodeObject(message);
+	
+				if( message is FullSessionState )
+					weaveExtension.messageType = WeaveExtension.FULL_SESSION_STATE;	
+				else if( message is SessionStateMessage )
+					weaveExtension.messageType = WeaveExtension.SESSION_STATE_MESSAGE;
+				else if( message is RequestProfilePic )
+					weaveExtension.messageType = WeaveExtension.REQUEST_PROFILE_PIC;
+				else if( message is RequestMouseControl )
+					weaveExtension.messageType = WeaveExtension.REQUEST_MOUSE_CONTROL;
+				else if( message is RelinquishMouseControl )
+					weaveExtension.messageType = WeaveExtension.RELINQUISH_MOUSE_CONTROL
+				else if( message is RequestMouseMessage )
+					weaveExtension.messageType = WeaveExtension.REQUEST_MOUSE_MESSAGE;
+				else if( message is MouseMessage )
+					weaveExtension.messageType = WeaveExtension.MOUSE_MESSAGE;
+				else if( message is Ping )
+					weaveExtension.messageType = WeaveExtension.PING;
+				else if( message is AddonsMessage )
+					weaveExtension.messageType = WeaveExtension.ADDONS_MESSAGE;
+				else if( message is ProfilePicMessage )
+					weaveExtension.messageType = WeaveExtension.PROFILE_PIC_MESSAGE;
+				else if( message is AddonStatus )
+					weaveExtension.messageType = WeaveExtension.ADDON_STATUS;
+				else if( message is MicrophoneActivity )
+					weaveExtension.messageType = WeaveExtension.MICROPHONE_ACTIVITY;
+				
+				_message.addExtension(weaveExtension);
+				
+				room.sendMessageWithExtension(_message);
+			}
 		}
+		
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
 		{
 			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
@@ -396,12 +451,24 @@ package weave.services.collaboration
 			{
 				var i:int;
 				
+				_message = event.data;
+				
+				//A text message from the text box
+				if( _message.getAllExtensionsByNS(WeaveExtension.NS) == null)
+				{
+					dispatchLogEvent( _message.from + ": " + _message.body);
+					return;
+				}
+				
 				// handle a message from a user
 				var o:Object = null;
+				var theMessageType:String = "";
 				
 				try
 				{
-					o = decodeObject(event.data.body);
+					var tempArray:Array = _message.getAllExtensionsByNS(WeaveExtension.NS);
+					o = decodeObject((tempArray[0] as WeaveExtension).content);
+					theMessageType = (tempArray[0] as WeaveExtension).messageType;
 				}
 				catch( e:Error )
 				{
@@ -414,7 +481,7 @@ package weave.services.collaboration
 				var userAlias:String = event.data.from.resource;
 				
 				//Full session state message
-				if (o is FullSessionState)
+				if (theMessageType == WeaveExtension.FULL_SESSION_STATE)
 				{
 					var fss:FullSessionState = o as FullSessionState;
 					setSessionState(root, fss.state, true);
@@ -422,7 +489,7 @@ package weave.services.collaboration
 				}
 				
 				//A session state diff
-				else if (o is SessionStateMessage)
+				else if (theMessageType == WeaveExtension.SESSION_STATE_MESSAGE)
 				{
 					if (stateLog != null) //don't do anything until the collaborative session state is loaded
 					{
@@ -475,43 +542,36 @@ package weave.services.collaboration
 						}
 					}
 				}
-				
-				//A text message from the text box
-				else if ( o is TextMessage)
-				{
-					var tm:TextMessage = o as TextMessage;
-					dispatchLogEvent( tm.id + ": " + tm.message);
-				}
 					
-				else if( o is RequestMouseMessage )
+				else if( theMessageType == WeaveExtension.REQUEST_MOUSE_MESSAGE )
 				{
 					var rmm:RequestMouseMessage = o as RequestMouseMessage;
 					if( rmm.id != nickname ) 
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
 				}
-				else if( o is RequestProfilePic )
+				else if( theMessageType == WeaveExtension.REQUEST_PROFILE_PIC )
 				{
 					var rpp:RequestProfilePic = o as RequestProfilePic;
 					if( rpp.id != nickname ) 
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_PROFILE_PIC_LINK, rpp.id));
 				}
-				else if( o is RequestMouseControl )
+				else if( theMessageType == WeaveExtension.REQUEST_MOUSE_CONTROL )
 				{
 					var rmc:RequestMouseControl = o as RequestMouseControl;
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.REQUEST_MOUSE_CONTROL, rmc.id));	
 				}
-				else if( o is RelinquishMouseControl )
+				else if( theMessageType == WeaveExtension.RELINQUISH_MOUSE_CONTROL )
 				{
 					var rlmc:RelinquishMouseControl = o as RelinquishMouseControl;
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, rlmc.id));
 				}
-				else if( o is MouseMessage )
+				else if( theMessageType == WeaveExtension.MOUSE_MESSAGE )
 				{
 					var mm:MouseMessage = o as MouseMessage;
 					if( mm.id != nickname )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, mm.color, mm.percentX, mm.percentY));
 				}
-				else if( o is Ping )
+				else if( theMessageType == WeaveExtension.PING )
 				{
 					var p:Ping = o as Ping;
 					
@@ -524,7 +584,7 @@ package weave.services.collaboration
 					else
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_PING, p.id, 0, p.time));
 				}
-				else if( o is AddonsMessage )
+				else if( theMessageType == WeaveExtension.ADDONS_MESSAGE )
 				{
 					var am:AddonsMessage = o as AddonsMessage;
 					if( am.type == TYPE_MIC )
@@ -532,12 +592,12 @@ package weave.services.collaboration
 					else if( am.type == TYPE_CAM )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
-				else if( o is ProfilePicMessage )
+				else if( theMessageType == WeaveExtension.PROFILE_PIC_MESSAGE )
 				{
 					var ppm:ProfilePicMessage = o as ProfilePicMessage;
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_USER_PROFILE_PIC, ppm.link, 0, 0, 0, ppm.id));
 				}
-				else if( o is AddonStatus )
+				else if( theMessageType == WeaveExtension.ADDON_STATUS )
 				{
 					var status:AddonStatus = o as AddonStatus;
 					if( status.info == null )
@@ -545,7 +605,7 @@ package weave.services.collaboration
 					else
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info, status.queueArray));
 				}
-				else if( o is MicrophoneActivity )
+				else if( theMessageType == WeaveExtension.MICROPHONE_ACTIVITY )
 				{
 					var ma:MicrophoneActivity = o as MicrophoneActivity;
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.MICROPHONE_ACTIVITY, ma.id, 0, ma.volume));
