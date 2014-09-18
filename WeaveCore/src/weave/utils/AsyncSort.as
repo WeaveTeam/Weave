@@ -24,7 +24,6 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
 	
 	/**
 	 * Asynchronous merge sort.
@@ -173,32 +172,25 @@ package weave.utils
 		
 		private function iterate(stopTime:int):Number
 		{
-			if (original is Array)
+			if (compare === ObjectUtil.numericCompare)
 			{
-				if (compare === ObjectUtil.numericCompare)
-				{
-					original.sort(Array.NUMERIC);
-					return 1;
-				}
-				
-				if (compare === compareCaseInsensitive)
-				{
-					original.sort(Array.CASEINSENSITIVE);
-					return 1;
-				}
-				
-				if (compare === null)
-				{
-					if (original[0] is Number || original[0] is Date)
-						original.sort(Array.NUMERIC);
-					else
-						original.sort();
-					return 1;
-				}
+				original.sort(Array.NUMERIC);
+				return 1;
 			}
-			else if (compare === null)
+			
+			if (compare === compareCaseInsensitive)
 			{
-				compare = primitiveCompare;
+				original.sort(Array.CASEINSENSITIVE);
+				return 1;
+			}
+			
+			if (compare === null)
+			{
+				if (original[0] is Number || original[0] is Date)
+					original.sort(Array.NUMERIC);
+				else
+					original.sort(0); // Vector.sort() requires one parameter
+				return 1;
 			}
 			
 			var time:int = getTimer();
@@ -273,7 +265,7 @@ package weave.utils
 				debugTrace(this,result.length,'in',elapsed/1000,'seconds');
 			
 			if (!_immediately)
-				getCallbackCollection(this).triggerCallbacks();
+				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/*************
@@ -344,7 +336,7 @@ package weave.utils
 				var start:int = getTimer();
 				_debugCompareCount = 0;
 				if (compare === null)
-					array1.sort();
+					array1.sort(0);
 				else
 					array1.sort(_debugCompareCounter);
 				trace('Array.sort', array1.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
