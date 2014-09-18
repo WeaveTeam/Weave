@@ -173,6 +173,12 @@ package weave.utils
 		
 		private function iterate(stopTime:int):Number
 		{
+			if (compare === ObjectUtil.numericCompare)
+			{
+				original.sort(Array.NUMERIC);
+				return 1;
+			}
+			
 			if (compare === compareCaseInsensitive)
 			{
 				original.sort(Array.CASEINSENSITIVE);

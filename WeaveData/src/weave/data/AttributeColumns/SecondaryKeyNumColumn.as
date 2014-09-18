@@ -31,7 +31,6 @@ package weave.data.AttributeColumns
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
-	import weave.utils.AsyncSort;
 	import weave.utils.EquationColumnLib;
 	
 	public class SecondaryKeyNumColumn extends AbstractAttributeColumn implements IPrimitiveColumn
@@ -168,7 +167,7 @@ package weave.data.AttributeColumns
 					if (_uniqueStrings.indexOf(data[i]) < 0)
 						_uniqueStrings.push(data[i]);
 				}
-				AsyncSort.sortImmediately(_uniqueStrings, AsyncSort.compareCaseInsensitive);
+				StandardLib.sort(_uniqueStrings);
 				
 				// min,max numbers are the min,max indices in the unique strings array
 				_minNumber = 0;
@@ -220,7 +219,7 @@ package weave.data.AttributeColumns
 				}
 			}
 			
-			AsyncSort.sortImmediately(_uniqueSecondaryKeys);
+			StandardLib.sort(_uniqueSecondaryKeys);
 			
 			// save list of unique keys
 			index = 0;

@@ -23,6 +23,7 @@ package weave.utils
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.radviz.MatrixEntry;
 
@@ -214,7 +215,7 @@ package weave.utils
 			}	
 			// sort by increasing similarity values 
 			// we want the least similar dimensions at index 0
-			AsyncSort.sortImmediately(similarityMatrix, sortEntries);
+			StandardLib.sort(similarityMatrix, sortEntries);
 			
 			return similarityMatrix;
 		}

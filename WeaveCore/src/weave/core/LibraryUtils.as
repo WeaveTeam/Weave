@@ -137,7 +137,6 @@ import weave.api.core.IDisposableObject;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
 import weave.flascc.FlasCC;
-import weave.utils.AsyncSort;
 
 /**
  * @private
@@ -295,7 +294,7 @@ internal class Library implements IDisposableObject
 		{
 			_classQNames.push(id.split(':').join('.'));
 		}
-		AsyncSort.sortImmediately(_classQNames);
+		StandardLib.sort(_classQNames);
 		
 		// iterate over all the classes, initializing them
 		var index:int = 0;

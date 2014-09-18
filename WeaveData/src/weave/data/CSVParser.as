@@ -26,8 +26,8 @@ package weave.data
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
 	import weave.api.getCallbackCollection;
+	import weave.compiler.StandardLib;
 	import weave.flascc.FlasCC;
-	import weave.utils.AsyncSort;
 
 	/**
 	 * Parses and generates CSV-encoded data.
@@ -254,7 +254,7 @@ package weave.data
 			if (fields == null)
 			{
 				fields = getRecordFieldNames(records, allowBlankColumns, headerDepth);
-				AsyncSort.sortImmediately(fields);
+				StandardLib.sort(fields);
 			}
 			
 			var r:int;

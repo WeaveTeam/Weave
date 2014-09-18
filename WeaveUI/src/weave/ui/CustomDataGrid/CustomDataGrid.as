@@ -41,7 +41,7 @@ package weave.ui.CustomDataGrid
 	 * which was introduced in Flex 3.6 SDK. The issue is the lockedColumnContent is instantiated
 	 * and contains invalid data when the lockedColumnCount is 0.
 	 * 
-	 * Also, uses AsyncSort.sortImmediately() instead of Array.sort() via CustomSort.
+	 * Also, uses StandardLib.sort() instead of Array.sort() via CustomSort.
 	 * 
 	 * Added getColumn().
 	 * 

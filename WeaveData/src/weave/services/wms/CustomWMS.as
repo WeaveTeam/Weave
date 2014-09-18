@@ -18,7 +18,6 @@ package weave.services.wms
 	import weave.core.LinkableVariable;
 	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
-	import weave.utils.AsyncSort;
 	import weave.utils.ZoomUtils;
 
 	public class CustomWMS extends AbstractWMS
@@ -211,7 +210,7 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			StandardLib.sort(tiles, tileSortingComparison);
 			return tiles;
 		}
 		

@@ -195,7 +195,7 @@
 			private function removeSelectedColors():void
 			{
 				var indices:Array = colorOverrideList.selectedIndices;
-				AsyncSort.sortImmediately(indices);
+				StandardLib.sort(indices);
 				for (var i:int = indices.length; i--;)
 					_recordColorTable.splice(indices[i], 1);
 				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);

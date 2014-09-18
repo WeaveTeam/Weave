@@ -33,9 +33,9 @@ package weave.services.wms
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
-	import weave.utils.AsyncSort;
 
 	/**
 	 * This class handles the requests for tiles from NASA's OnEarth WMS.
@@ -357,7 +357,7 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			StandardLib.sort(tiles, tileSortingComparison);
 			return tiles;
 		}
 

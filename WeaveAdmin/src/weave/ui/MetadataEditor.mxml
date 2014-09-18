@@ -79,11 +79,11 @@
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
+	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.data.hierarchy.EntityNode;
 	import weave.services.Admin;
 	import weave.services.EntityCache;
-	import weave.utils.AsyncSort;
 	
 	override protected function createChildren():void
 	{
@@ -272,7 +272,7 @@
 			records.push(record);
 		}
 		var columnOrder:Array = WeaveAPI.CSVParser.getRecordFieldNames(records, true, 2);
-		AsyncSort.sortImmediately(columnOrder, sortFieldChains);
+		StandardLib.sort(columnOrder, sortFieldChains);
 		var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records, columnOrder, true, 2);
 		var csv:String = WeaveAPI.CSVParser.createCSV(rows);
 		

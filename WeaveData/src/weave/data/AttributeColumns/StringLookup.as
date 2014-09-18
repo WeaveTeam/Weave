@@ -25,7 +25,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
-	import weave.utils.AsyncSort;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * This provides a reverse lookup of String values in an IAttributeColumn.
@@ -121,7 +121,7 @@ package weave.data.AttributeColumns
 				}
 			}
 			// sort the unique values because we want them to be in a predictable order
-			AsyncSort.sortImmediately(_uniqueStringValues, compareNumberAndStringValues);
+			StandardLib.sort(_uniqueStringValues, compareNumberAndStringValues);
 		}
 
 		/**
