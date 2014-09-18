@@ -27,25 +27,23 @@
 						</select>
 
 					<div style="display: inline-block; margin-left: 90px;">
-						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
-						data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')">
-							New Query Object
-						</button>
+<!-- 						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" -->
+<!-- 						data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')"> -->
+<!-- 							New Query Object -->
+<!-- 						</button> -->
 
-						<button id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" data-template= "aws/project/projectAdditionPanel.html"
-						data-placement="right" data-animation="am-slide-right" bs-aside="aside2" data-container="body"  ng-click = "open()">
+						<button ng-controller = 'pjtAdditonModal' id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" ng-click = "openAdditionPanel()">
 							Create a project
 							<!-- <span class = "glyphicon glyphicon-plus-sign" ></span> -->
 						</button>
-						<button  ng-click = "deleteEntireProject()"  class="btn btn-sm new-project-button" data-trigger="hover" data-title="Delete this project" bs-tooltip>
+						<button  ng-click = "deleteEntireProject()"  class="btn btn-sm new-project-button" data-trigger="hover" data-title="Delete this project">
 							Delete selected project
-							<!-- <span class = "glyphicon glyphicon-plus-sign" ></span> -->
+<!-- 							<span class = "glyphicon glyphicon-plus-sign" ></span> -->
 						</button>
-						<button type = "button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
- 						data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body"  ng-click = "loadConstructedQueryObject()">
- 							Current Query Object
- 							<!-- <span class = "glyphicon glyphicon-plus-sign" ></span> -->
- 						</button>
+<!-- 						<button type = "button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" -->
+<!--  						data-placement="right" data-animation="am-slide-right" bs-modal="modal" data-container="body"  ng-click = "loadConstructedQueryObject()"> -->
+<!--  							Current Query Object -->
+<!--  						</button> -->
 					</div>
 
 				</div>

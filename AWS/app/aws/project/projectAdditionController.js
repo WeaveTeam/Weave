@@ -1,5 +1,5 @@
-angular.module('aws.project')
-.controller("projectAdditionController", function($scope, projectService){
+var projectModule = angular.module('aws.project');
+projectModule.controller("projectAdditionController", function($scope, projectService){
 	
 	//var project = "";
 	//var projectDescription = "";
@@ -55,4 +55,46 @@ angular.module('aws.project')
 		 
 	 };
 	
+});
+
+
+projectModule.controller('pjtAdditonModal', function($scope, $modal){
+	$scope.pjtModalOptions = {//TODO find out how to push error log to bottom of page
+			 backdrop: true,
+	         backdropClick: true,
+	         dialogFade: true,
+	         keyboard: true,
+	         templateUrl: 'aws/project/projectAdditionPanel.html',
+	         controller: 'pjtAddtionInstanceCtrl'
+		};
+	
+	$scope.openAdditionPanel = function(){
+		$modal.open($scope.pjtModalOptions);
+	};
+	
+});
+
+projectModule.controller('pjtAddtionInstanceCtrl', function($rootScope,$scope, $modalInstance, projectService) {
+	//this is the scope of the modal window that actually opens up
+	
+	$scope.projectService = projectService;
+	//saves a new project (collection of query objects to the server)
+	$scope.saveNewProjectToDatabase = function(){
+		
+//		 console.log("jsons", projectService.projectBundle.queryObjectJsons);
+//		 console.log("titles", projectService.projectBundle.queryObjectTitles);
+//		 console.log("userName", projectService.projectBundle.userName);
+//		 
+//		 if(angular.isUndefined(projectService.projectBundle.userName))
+//			 projectService.projectBundle.userName = "Awesome User";
+//		 projectService.projectBundle.resultVisualizations = null;//when queryObjects will be added with a project, generated visualizations will be null
+//				 
+//		 projectService.createNewProject(projectService.projectBundle);
+		
+		 
+	 };
+	
+	$scope.close = function () {
+		 $modalInstance.close();
+	 };
 });
