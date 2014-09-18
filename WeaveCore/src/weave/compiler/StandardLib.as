@@ -325,34 +325,6 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function filters out values outside of a given range.
-		 * @param value A value to filter.
-		 * @param min The minimum value to accept.
-		 * @param max The maximum value to accept.
-		 * @return If value is between min and max, returns value.  Otherwise, returns NaN.
-		 */
-		public static function filterRange(value:Number, min:Number, max:Number):Number
-		{
-			if (value < min || value > max)
-				return NaN;
-			return value;
-		}
-		
-		/**
-		 * This function tests if a Number is within a min,max range.
-		 * @param value A value to filter.
-		 * @param min The minimum value to accept.
-		 * @param max The maximum value to accept.
-		 * @return If value is between min and max, returns true.  Otherwise, returns false.
-		 */
-		public static function numberInRange(value:Number, min:Number, max:Number):Boolean
-		{
-			if (value < min || value > max) // a condition will be false if a value is NaN
-				return false;
-			return true;
-		}
-		
-		/**
 		 * Scales a number between 0 and 1 using specified min and max values.
 		 * @param value The value between min and max.
 		 * @param min The minimum value that corresponds to a result of 0.
