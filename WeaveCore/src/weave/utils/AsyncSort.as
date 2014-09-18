@@ -196,6 +196,10 @@ package weave.utils
 					return 1;
 				}
 			}
+			else if (compare === null)
+			{
+				compare = primitiveCompare;
+			}
 			
 			var time:int = getTimer();
 			
