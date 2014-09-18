@@ -81,7 +81,8 @@ package weave.services.collaboration
 		private var connectedToRoom:Boolean 			= false;
 		private var stateLog:SessionStateLog 			= null;
 		private var synchronizingIncomingDiff:Boolean 	= false;
-		private var _message:Message                     = new Message();
+		private var _message:Message                    = new Message();
+		private var weaveExtension:WeaveExtension       = new WeaveExtension();
 		
 		public const userList:ArrayCollection 			= new ArrayCollection();
 		public const TYPE_MIC:String 					= "MIC";
@@ -100,6 +101,8 @@ package weave.services.collaboration
 			// all of these classes are internal
 			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage, AddonStatus])
 				registerClassAlias(getQualifiedClassName(c), c);
+				
+			WeaveExtension.enable();
 				
 			userList.sort = new Sort();
 			userList.sort.compareFunction = ObjectUtil.stringCompare;
@@ -156,6 +159,7 @@ package weave.services.collaboration
 			connection.connect();
 		}
 		
+		
 		public function disconnect():void
 		{
 			if (!connectedToRoom)
@@ -201,11 +205,11 @@ package weave.services.collaboration
 //				throw new Error("Not connected");
 			}
 			
-			_message = room.getMessage();
-			
 			//Construct Message object.
+			_message = room.getMessage();
 			if( target != null )
 				_message.to = new EscapedJID(room.roomJID + "/" + target, false);
+			
 			if( message is TextMessage )
 			{
 				if( target != null )
@@ -213,38 +217,59 @@ package weave.services.collaboration
 				else
 					_message.type = Message.TYPE_GROUPCHAT;		
 				_message.body = (message as TextMessage).message;
+				
+				trace("Message To string:   " + _message.getNode().toString());
+				
+				if( target != null)
+					room.sendPrivateMessage( target, encodeObject(message) );
+				else
+					room.sendMessage( encodeObject(message) );
 			}
 			//Special Weave messages case.
 			else
 			{
+				weaveExtension.content = encodeObject(message);
+				_message.addExtension(weaveExtension);
 				//_message.body = encodeObject(message);
 				//_message.addTextNode(new XMLNode(XMLNodeType.ELEMENT_NODE,encodeObject(message)), "weave", encodeObject(message));
+				if( message is FullSessionState )
+					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.FULL_SESSION_STATE);
+					_message.type = "fullsessionstate";				
+				else if( message is SessionStateMessage )
+					_message.type = "sessionstatemessage";
+					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.SESSION_STATE_MESSAGE);
+				else if( message is RequestMouseMessage )
+					_message.type = "requestmousemessage";
+					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.REQUEST_MOUSE_MESSAGE);
+				else if( message is MouseMessage )
+					_message.type = "mousemessage";
+					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.MOUSE_MESSAGE);
+				else if( message is Ping )
+					_message.type = "ping";
+					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.PING);
+				else if( message is AddonsMessage )
+					_message.type = "addonsmessage";
+					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.ADDONS_MESSAGE);
+				else if( message is AddonStatus )
+					_message.type = "addonstatus";
+					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.ADDON_STATUS);
 				
-				_message.setNode(createWeaveStanza(selfJID, target, message));
+				/*
+				trace("Weave To string:   " + weaveMessage.getNode().toString());
+				//Replicating the functionality of room.sendMessageWithExtension().
+				if(room.isActive )
+					connection.send(weaveMessage);
+				*/
+				
+				trace("Checking in: " + _message.getNode().toString());
+				
+				room.sendMessageWithExtension(_message);
 			}
 			
-			trace("To string:   " + _message.getNode().toString());
-			
 			//room.sendMessageWithExtension(_message);
+			
+		}
 		
-			if( target != null)
-				room.sendPrivateMessage( target, encodeObject(message) );
-			else
-				room.sendMessage( encodeObject(message) );
-			
-		}
-		private function createWeaveStanza(whoTo:String, whoFrom:String, data:Object):XMLNode
-		{
-			var weaveTag:String = "weave";
-			var toTag:String = " to=";
-			var fromTag:String = " from=";
-			var typeTag:String = " type=weave";
-			var idTag:String = " id=";
-			var contentTag:String = " content=";
-			
-			var node:XMLNode = new XMLNode(XMLNodeType.ELEMENT_NODE, weaveTag + toTag + whoTo + fromTag + whoFrom + typeTag + idTag + contentTag + encodeObject(data));
-			return node;
-		}
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
 		{
 			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
@@ -345,7 +370,6 @@ package weave.services.collaboration
 			room.addEventListener(RoomEvent.LOCKED_ERROR, handleLockedError);
 			
 			room.join();
-			
 		}
 		
 		private function startLogging():void

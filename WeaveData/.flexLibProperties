@@ -2,6 +2,7 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.services.collaboration.WeaveMessage"/>
+    <classEntry path="weave.services.collaboration.WeaveExtension"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
