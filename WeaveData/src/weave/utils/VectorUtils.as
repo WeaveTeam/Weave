@@ -466,7 +466,13 @@ package weave.utils
 		 */
 		public static function pluck(array:*, property:String):*
 		{
-			return array.map(function(item:Object, i:int, a:*):* { return item[property]; });
+			_pluckProperty = property;
+			return array.map(_pluck);
+		}
+		private static var _pluckProperty:String;
+		private static function _pluck(item:Object, i:int, a:*):*
+		{
+			return item[_pluckProperty];
 		}
 		
 		/**

@@ -58,22 +58,14 @@ package weave.utils
 		{
 			var a:Number = v1.importance;
 			var b:Number = v2.importance;
-			
-			if (isNaN(a) && isNaN(b))
-				return 0;
-			
 			if (isNaN(a))
-				return 1;
-			
+				return isNaN(b) ? 0 : 1;
 			if (isNaN(b))
 				return -1;
-			
 			if (a < b)
 				return -1;
-			
 			if (a > b)
 				return 1;
-			
 			return 0;
 		}
 		
