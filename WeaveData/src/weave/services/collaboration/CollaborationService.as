@@ -208,7 +208,10 @@ package weave.services.collaboration
 			//Construct Message object.
 			_message = room.getMessage();
 			if( target != null )
+			{
 				_message.to = new EscapedJID(room.roomJID + "/" + target, false);
+				_message.type = Message.TYPE_CHAT;
+			}
 			
 			if( message is TextMessage )
 			{
@@ -229,31 +232,31 @@ package weave.services.collaboration
 			else
 			{
 				weaveExtension.content = encodeObject(message);
-				_message.addExtension(weaveExtension);
 				//_message.body = encodeObject(message);
 				//_message.addTextNode(new XMLNode(XMLNodeType.ELEMENT_NODE,encodeObject(message)), "weave", encodeObject(message));
 				if( message is FullSessionState )
 					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.FULL_SESSION_STATE);
-					_message.type = WeaveExtension.FULL_SESSION_STATE;				
+					weaveExtension.messageType = WeaveExtension.FULL_SESSION_STATE;				
 				else if( message is SessionStateMessage )
-					_message.type = WeaveExtension.SESSION_STATE_MESSAGE;
+					weaveExtension.messageType = WeaveExtension.SESSION_STATE_MESSAGE;
 					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.SESSION_STATE_MESSAGE);
 				else if( message is RequestMouseMessage )
-					_message.type = WeaveExtension.REQUEST_MOUSE_MESSAGE;
+					weaveExtension.messageType = WeaveExtension.REQUEST_MOUSE_MESSAGE;
 					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.REQUEST_MOUSE_MESSAGE);
 				else if( message is MouseMessage )
-					_message.type = WeaveExtension.MOUSE_MESSAGE;
+					weaveExtension.messageType = WeaveExtension.MOUSE_MESSAGE;
 					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.MOUSE_MESSAGE);
 				else if( message is Ping )
-					_message.type = WeaveExtension.PING;
+					weaveExtension.messageType = WeaveExtension.PING;
 					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.PING);
 				else if( message is AddonsMessage )
-					_message.type = WeaveExtension.ADDONS_MESSAGE;
+					weaveExtension.messageType = WeaveExtension.ADDONS_MESSAGE;
 					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.ADDONS_MESSAGE);
 				else if( message is AddonStatus )
-					_message.type = WeaveExtension.ADDON_STATUS;
+					weaveExtension.messageType = WeaveExtension.ADDON_STATUS;
 					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.ADDON_STATUS);
 				
+				_message.addExtension(weaveExtension);
 				/*
 				trace("Weave To string:   " + weaveMessage.getNode().toString());
 				//Replicating the functionality of room.sendMessageWithExtension().
@@ -434,15 +437,16 @@ package weave.services.collaboration
 		{
 			//if id is null, it implies that the message originated from the server, 
 			//and not from a user
+			trace("Hi, got stuff");
 			if( event.data.id != null) 
 			{
 				trace("Received:  " + event.data.getNode().toString());
 				var i:int;
 				
 				_message = event.data;
-							
+				
 				//A text message from the text box
-				if ( _message.type == Message.TYPE_CHAT || _message.type == Message.TYPE_GROUPCHAT)
+				if( _message.getAllExtensionsByNS(WeaveExtension.NS).length == 0 )
 				{
 					dispatchLogEvent( _message.from + ": " + _message.body);
 					return;
@@ -450,11 +454,13 @@ package weave.services.collaboration
 				
 				// handle a message from a user
 				var o:Object = null;
+				var theMessageType:String = "";
 				
 				try
 				{
 					var tempArray:Array = _message.getAllExtensionsByNS(WeaveExtension.NS);
 					o = decodeObject((tempArray[0] as WeaveExtension).content);
+					theMessageType = (tempArray[0] as WeaveExtension).messageType;
 				}
 				catch( e:Error )
 				{
@@ -467,7 +473,7 @@ package weave.services.collaboration
 				var userAlias:String = event.data.from.resource;
 				
 				//Full session state message
-				if (_message.type == WeaveExtension.FULL_SESSION_STATE)
+				if (theMessageType == WeaveExtension.FULL_SESSION_STATE)
 				{
 					var fss:FullSessionState = o as FullSessionState;
 					setSessionState(root, fss.state, true);
@@ -475,7 +481,7 @@ package weave.services.collaboration
 				}
 				
 				//A session state diff
-				else if (_message.type == WeaveExtension.SESSION_STATE_MESSAGE)
+				else if (theMessageType == WeaveExtension.SESSION_STATE_MESSAGE)
 				{
 					if (stateLog != null) //don't do anything until the collaborative session state is loaded
 					{
@@ -529,19 +535,19 @@ package weave.services.collaboration
 					}
 				}
 					
-				else if( _message.type == WeaveExtension.REQUEST_MOUSE_MESSAGE )
+				else if( theMessageType == WeaveExtension.REQUEST_MOUSE_MESSAGE )
 				{
 					var rmm:RequestMouseMessage = o as RequestMouseMessage;
 					if( rmm.id != nickname ) 
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
 				}
-				else if( _message.type == WeaveExtension.MOUSE_MESSAGE )
+				else if( theMessageType == WeaveExtension.MOUSE_MESSAGE )
 				{
 					var mm:MouseMessage = o as MouseMessage;
 					if( mm.id != nickname )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, mm.color, mm.percentX, mm.percentY));
 				}
-				else if( _message.type == WeaveExtension.PING )
+				else if( theMessageType == WeaveExtension.PING )
 				{
 					var p:Ping = o as Ping;
 					
@@ -554,7 +560,7 @@ package weave.services.collaboration
 					else
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_PING, p.id, 0, p.time));
 				}
-				else if( _message.type == WeaveExtension.ADDONS_MESSAGE )
+				else if( theMessageType == WeaveExtension.ADDONS_MESSAGE )
 				{
 					var am:AddonsMessage = o as AddonsMessage;
 					if( am.type == TYPE_MIC )
@@ -562,7 +568,7 @@ package weave.services.collaboration
 					else if( am.type == TYPE_CAM )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
-				else if( _message.type == WeaveExtension.ADDON_STATUS )
+				else if( theMessageType == WeaveExtension.ADDON_STATUS )
 				{
 					var status:AddonStatus = o as AddonStatus;
 					if( status.info == null )

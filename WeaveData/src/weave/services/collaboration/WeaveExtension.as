@@ -21,6 +21,7 @@ package weave.services.collaboration
 		public static var ADDONS_MESSAGE:String = "addonsmessage";
 		public static var ADDON_STATUS:String = "addonstatus";
 		
+		private var myTypeNode:XMLNode;
 		private var myContentNode:XMLNode;
 		
 		public function WeaveExtension(parent:XMLNode=null)
@@ -50,6 +51,16 @@ package weave.services.collaboration
 		public function get content():String
 		{
 			return myContentNode.firstChild.nodeValue;
+		}
+		
+		public function set messageType(type:String):void
+		{
+			myTypeNode = replaceTextNode(getNode(), myTypeNode, "messagetype", type);
+		}
+		
+		public function get messageType():String
+		{
+			return myTypeNode.firstChild.nodeValue;
 		}
 		
 		/**
@@ -82,6 +93,9 @@ package weave.services.collaboration
 				{
 					case "content":
 						myContentNode = children[i];
+						break;
+					case "messagetype":
+						myTypeNode = children[i];
 						break;
 				}
 			}
