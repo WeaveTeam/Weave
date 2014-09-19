@@ -130,8 +130,8 @@ package weave.utils
 
         /** 
          * If there are any properties of the hashMap, return false; else, return true.
-         * @param  hashMap The Object to test for emptiness.
-         * @return        A boolean which is true if the Object is empty, false if it has at least one property.
+         * @param hashMap The Object to test for emptiness.
+         * @return A boolean which is true if the Object is empty, false if it has at least one property.
          */
         public static function isEmpty(hashMap:Object):Boolean
         {
@@ -144,19 +144,14 @@ package weave.utils
 		 * Efficiently removes duplicate adjacent items in a pre-sorted Array (or Vector).
 		 * @param vector The sorted Array (or Vector)
 		 */
-		public static function removeDuplicatesFromSortedArray(vector:*):void
+		public static function removeDuplicatesFromSortedArray(sorted:*):void
 		{
-			var iEnd:int = vector.length;
-			var iPrevWrite:int = 0; // always keep first item 
-			var iRead:int = 1; // start by reading second item
-			for (; iRead < iEnd; iRead++) // increment iRead unconditionally
-			{
-				// only copy current item if it is different from the previous
-				if (vector[iPrevWrite] != vector[iRead])
-					vector[++iPrevWrite] = vector[iRead];
-			}
-			if (iEnd > 0)
-				vector.length = iPrevWrite + 1;
+			var i:int = 0;
+			var prev:* = sorted[0] === undefined ? null : undefined;
+			for each (var item:* in sorted)
+				if (item !== prev)
+					sorted[i++] = prev = item;
+			sorted.length = i;
 		}
 		/**
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
@@ -361,20 +356,20 @@ package weave.utils
 		
 		/**
 		 * Performs a binary search on a sorted array with no duplicate values.
-		 * @param array Array or Vector of Numbers
+		 * @param sortedUniqueValues Array or Vector of Numbers or Strings
 		 * @param compare A compare function
 		 * @param exactMatchOnly If true, searches for exact match. If false, searches for insertion point.
 		 * @return The index of the matching value or insertion point.
 		 */
-		public static function binarySearch(array:*, item:*, exactMatchOnly:Boolean, compare:Function = null):int
+		public static function binarySearch(sortedUniqueValues:*, item:*, exactMatchOnly:Boolean, compare:Function = null):int
 		{
 			var i:int = 0,
 				imin:int = 0,
-				imax:int = array.length - 1;
+				imax:int = sortedUniqueValues.length - 1;
 			while (imin <= imax)
 			{
 				i = (imin + imax) / 2;
-				var a:* = array[i];
+				var a:* = sortedUniqueValues[i];
 				var c:int = compare != null ? compare(item, a) : (item < a ? -1 : (item > a ? 1 : 0));
 				if (c < 0)
 					imax = i - 1;
