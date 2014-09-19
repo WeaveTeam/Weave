@@ -146,12 +146,18 @@ package weave.utils
 		 */
 		public static function removeDuplicatesFromSortedArray(sorted:*):void
 		{
-			var i:int = 0;
+			var n:int = sorted.length;
+			if (n == 0)
+				return;
+			var write:int = 0;
 			var prev:* = sorted[0] === undefined ? null : undefined;
-			for each (var item:* in sorted)
+			for (var read:int = 0; read < n; ++read)
+			{
+				var item:* = sorted[read];
 				if (item !== prev)
-					sorted[i++] = prev = item;
-			sorted.length = i;
+					sorted[write++] = prev = item;
+			}
+			sorted.length = write;
 		}
 		/**
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
@@ -451,6 +457,31 @@ package weave.utils
 					output[keyValue] = item;
 			}
 			return output;
+		}
+		
+		/**
+		 * Removes items from an Array or Vector.
+		 * @param array Array or Vector
+		 * @param indices Array of indices to remove
+		 */
+		public static function removeItems(array:*, indices:Array):void
+		{
+			var n:int = array.length;
+			var skipList:Vector.<int> = Vector.<int>(indices).sort(Array.NUMERIC);
+			skipList.push(n);
+			removeDuplicatesFromSortedArray(skipList);
+			
+			var iSkip:int = 0;
+			var skip:int = skipList[0];
+			var write:int = skip;
+			for (var read:int = skip; read < n; ++read)
+			{
+				if (read == skip)
+					skip = skipList[++iSkip];
+				else
+					array[write++] = array[read];
+			}
+			array.length = write;
 		}
 		
 		/**
