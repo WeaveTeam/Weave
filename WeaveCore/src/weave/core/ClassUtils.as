@@ -100,12 +100,14 @@ package weave.core
 			_deprecatedLookup[deprecatedClassQName] = replacementClass;
 			
 			// handle case when package is not specified
-			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf(':') + 1);
+			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf('.') + 1);
 			if (!_deprecatedLookup[shortName])
 				_deprecatedLookup[shortName] = replacementClass;
 			
 			// make sure class can be looked up by name (in case it's an internal class)
 			deprecatedClassQName = getQualifiedClassName(replacementClass);
+			if (deprecatedClassQName.indexOf("::") >= 0)
+				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
 			if (!getClassDefinition(deprecatedClassQName))
 				_deprecatedLookup[deprecatedClassQName] = replacementClass;
 		}
