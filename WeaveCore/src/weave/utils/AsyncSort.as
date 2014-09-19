@@ -186,7 +186,7 @@ package weave.utils
 			
 			if (compare === null)
 			{
-				if (original[0] is Number || original[0] is Date)
+				if (original.length && (original[0] is Number || original[0] is Date))
 					original.sort(Array.NUMERIC);
 				else
 					original.sort(0); // Vector.sort() requires one parameter
