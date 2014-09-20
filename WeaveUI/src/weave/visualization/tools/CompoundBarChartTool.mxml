@@ -525,9 +525,6 @@
 					}
 				}
 				
-				private const groupCheckDisabledToolTip:String = lang('There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.');
-				private const groupCheckEnabledToolTip:String = lang('Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.');
-				
 				private function showValueLabelsCheckBox_changeHandler():void
 				{
 					if (showValueLabelsCheckBox.selected)
