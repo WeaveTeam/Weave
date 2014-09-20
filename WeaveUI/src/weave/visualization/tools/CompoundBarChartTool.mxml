@@ -63,8 +63,8 @@
 			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const heightAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 			public const heightAxisForceTickCount:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleColumnLink);
-			public const linkHeightAndColorColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleColumnLink);
+			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleColumnLink, true);
+			public const linkHeightAndColorColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleColumnLink, true);
 			
 			private var _plotter:CompoundBarChartPlotter = null;
 			private var _showYAxisLabels:Boolean = false;
