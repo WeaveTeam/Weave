@@ -177,6 +177,8 @@ package weave.core
  		 */
 		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
 		{
+			//trace(debugId(this), removeMissingDynamicObjects ? 'diff' : 'state', Compiler.stringify(newState, null, '\t'));
+			
 			// special case - no change
 			if (newState == null)
 				return;
@@ -188,8 +190,12 @@ package weave.core
 				
 				var dynamicState:Object = null;
 				var objectName:String;
-				for each (var item:Object in newState)
+				// Loop backwards because when diffs are combined, most recent entries
+				// are added last and we want to use the most recent state.
+				var i:int = newState.length;
+				while (i--)
 				{
+					var item:Object = newState[i];
 					if (DynamicState.isDynamicState(item))
 					{
 						if (item[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
