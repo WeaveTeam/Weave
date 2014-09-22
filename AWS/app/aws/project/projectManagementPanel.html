@@ -17,11 +17,6 @@
 					<h2>Manage Query Object and Projects</h2>
 				</div>
 				<div class="widget-selectors">
-<!-- 					<select ui-select2 ng-model="projectSelectorUI" style="width:200px;" data-placeholder="Select a project" ng-change= "update(pjt)"> -->
-<!-- 						<option></option> -->
-<!-- 						<option ng-repeat = "pjt in projectService.data.listOfProjectsFromDatabase" value = "{{pjt}}" >{{pjt}}</option> -->
-<!-- 					</select> -->
-						
 						<select ui-select  ng-model = "projectService.data.projectSelectorUI" style="width:200px;" ng-options = "pjt as pjt for pjt in projectService.data.listOfProjectsFromDatabase" 
 						ng-change = "getListOfQueryObjects()">
 						</select>
@@ -32,13 +27,11 @@
 <!-- 							New Query Object -->
 <!-- 						</button> -->
 
-						<button ng-controller = 'pjtAdditonModal' id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" ng-click = "openAdditionPanel()">
+						<button ng-controller = 'projectAdditionController' id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" ng-click = "openAdditionPanel()">
 							Create a project
-							<!-- <span class = "glyphicon glyphicon-plus-sign" ></span> -->
 						</button>
 						<button  ng-click = "deleteEntireProject()"  class="btn btn-sm new-project-button" data-trigger="hover" data-title="Delete this project">
 							Delete selected project
-<!-- 							<span class = "glyphicon glyphicon-plus-sign" ></span> -->
 						</button>
 <!-- 						<button type = "button" class="btn btn-sm new-project-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html" -->
 <!--  						data-placement="right" data-animation="am-slide-right" bs-modal="modal" data-container="body"  ng-click = "loadConstructedQueryObject()"> -->
@@ -56,7 +49,6 @@
 					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
 <!-- 						<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in listItems"> -->
 							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.data.returnedQueryObjects">
-							<!-- <button data-action="collapse" type="button">Collapse</button><button data-action="expand" type="button" style="display: none;">Expand</button> -->
 							<div class="dd-handle dd3-handle">
 								<!--Drag-->
 							</div>
@@ -93,6 +85,19 @@
 									</div>
 								</div>
 								<div class="query-btn-holder">
+								
+								<div class= "btn-group" dropdown is-open= "status.isopen">
+										<button  id = "openQueryObjectButton" type="button" class="btn btn-sm dropdown-toggle">
+											Open <span class="caret"></span>
+										</button>
+										
+										<ul class="dropdown-menu" role="menu">
+									        <li>   in analysis builder</li>
+									        <li class="divider"></li>
+									        <li>   in editor</li>
+									      </ul>
+									</div>
+									
 									<button ng-click = "runQueryInAnalysisBuilder(item.queryObject)" class ="btn btn-sm query-button">
 										<!--<span class = "glyphicon glyphicon-play-circle"></span>-->
 										Run Query
@@ -101,23 +106,8 @@
 										<!--<span class = "glyphicon glyphicon-remove-circle"></span>-->
 										Delete the query
 									</button>
-<!--        							<div class= "btn-group" dropdown is-open= "status.isopen"> -->
-<!--        							<button type="button" class="btn btn-primary dropdown-toggle"> -->
-<!--        									 Open <span class="caret"></span> -->
-<!--       									</button> -->
-<!-- 									      <ul class="dropdown-menu" role="menu"> -->
-<!-- 									        <li><a href="#" ng-click = "hello()" >Action</a></li> -->
-<!-- 									        <li><a href="#">Another action</a></li> -->
-<!-- 									        <li><a href="#">Something else here</a></li> -->
-<!-- 									        <li class="divider"></li> -->
-<!-- 									        <li><a href="#">Separated link</a></li> -->
-<!-- 									      </ul> -->
-<!--        							</div> -->
-		
-									<button  id = "openQueryObjectButton" ng-click = "load('openQueryObjectButton', item.queryObject)" type="button" class="btn btn-sm query-button" data-template="aws/queryObjectEditor/queryObjectEditPanel.html"
-									data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body">
-										Open in editor
-									</button>
+									
+									
 <!-- 									<button  id = "openInAnalysis" ng-click = "loadInAnalysis(item.queryObject)" type="button" class="btn btn-sm query-button"> -->
 <!-- 										Open in Analysis Builder -->
 <!-- 									</button> -->
