@@ -362,7 +362,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 				return true;
 			}
 			// check all fields
-			return StandardLib.compareDynamicObjects(this.metadata, that.metadata) == 0;
+			return StandardLib.compare(this.metadata, that.metadata) == 0;
 		}
 		return false;
 	}

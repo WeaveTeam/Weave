@@ -41,9 +41,7 @@ package
 
 	public class _InitializeWeaveCore
 	{
-		Compiler.deprecatedClassReplacements['weave.api.WeaveAPI'] = WeaveAPI;
-		Compiler.deprecatedClassReplacements['weave.api::WeaveAPI'] = WeaveAPI;
-		ClassUtils.registerDeprecatedClass('weave.api::WeaveAPI', WeaveAPI);
+		ClassUtils.registerDeprecatedClass('weave.api.WeaveAPI', WeaveAPI);
 		
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes

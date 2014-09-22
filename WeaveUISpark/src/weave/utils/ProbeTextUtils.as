@@ -29,14 +29,11 @@ package weave.utils
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getLinkableDescendants;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
-	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.primitives.Bounds2D;
 	
 	/**
@@ -99,7 +96,7 @@ package weave.utils
 			}
 			
 			var keys:Array = keys.concat();
-			AsyncSort.sortImmediately(keys);
+			StandardLib.sort(keys);
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
 			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;

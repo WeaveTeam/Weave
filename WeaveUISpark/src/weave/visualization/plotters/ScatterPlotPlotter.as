@@ -35,7 +35,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
@@ -52,7 +52,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class ScatterPlotPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
+	public class ScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
 		

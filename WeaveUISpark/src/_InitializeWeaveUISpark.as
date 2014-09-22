@@ -81,6 +81,6 @@ package
 			"weave.visualization.plotters.styles"
 		);
 		
-		ClassUtils.registerDeprecatedClass("weave.visualization.plotters::ParallelCoordinatesPlotter", OldParallelCoordinatesPlotter);
+		ClassUtils.registerDeprecatedClass("weave.visualization.plotters.ParallelCoordinatesPlotter", OldParallelCoordinatesPlotter);
 	}
 }

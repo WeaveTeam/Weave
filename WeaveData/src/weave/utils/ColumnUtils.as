@@ -598,7 +598,7 @@ package weave.utils
 		}
 		public static function sortMetadataPropertyNames(names:Array):void
 		{
-			AsyncSort.sortImmediately(names, _compareMetadataPropertyNames);
+			StandardLib.sort(names, _compareMetadataPropertyNames);
 		}
 		
 		/**

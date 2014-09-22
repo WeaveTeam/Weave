@@ -25,7 +25,7 @@
     verticalScrollPolicy="off"
     horizontalScrollPolicy="off"
     creationPolicy="all"
-    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor, weave.api.ui.IObjectWithSelectableAttributes" xmlns:ui="weave.ui.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
+    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor, weave.api.ui.ISelectableAttributes" xmlns:ui="weave.ui.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
     >
     <mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
     <ui:Indent label="{lang('Source Name')}" visible="{!target}" includeInLayout="{!target}">

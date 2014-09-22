@@ -217,7 +217,7 @@ package weave.core
 			if (_primitiveType)
 				return _sessionStateInternal == otherSessionState;
 			
-			return StandardLib.compareDynamicObjects(_sessionStateInternal, otherSessionState) == 0;
+			return StandardLib.compare(_sessionStateInternal, otherSessionState) == 0;
 		}
 		
 		/**

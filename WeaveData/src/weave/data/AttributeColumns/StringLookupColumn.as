@@ -27,8 +27,8 @@ package weave.data.AttributeColumns
 	import weave.api.data.DataType;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
+	import weave.compiler.StandardLib;
 	import weave.data.QKeyManager;
-	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	
 	/**
@@ -153,7 +153,7 @@ package weave.data.AttributeColumns
 				}
 			}
 			// sort the unique values because these will be the keys and we want them to be in a predictable order
-			AsyncSort.sortImmediately(_uniqueStringKeys, compareStringKeys);
+			StandardLib.sort(_uniqueStringKeys, compareStringKeys);
 			
 			detectLinkableObjectChange(createLookupTable, getInternalColumn());
 		}

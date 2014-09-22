@@ -24,10 +24,10 @@ package weave.data.BinningDefinitions
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -387,13 +387,10 @@ package weave.data.BinningDefinitions
 		{
 			var keys:Array = column ? column.keys : [];
 			var sortedColumn:Array = new Array(keys.length);
-			var i:uint = 0;
-			for each (var key:IQualifiedKey in keys)	
-			{
-				sortedColumn[i] = column.getValueFromKey(key,Number);
-				i = i+1;
-			}
-			AsyncSort.sortImmediately(sortedColumn, ObjectUtil.numericCompare);
+			for (var i:int = 0; i < keys.length; i++)
+				sortedColumn[i] = Number(column.getValueFromKey(keys[i], Number));
+			
+			StandardLib.sort(sortedColumn);
 			return sortedColumn;
 		}
 		

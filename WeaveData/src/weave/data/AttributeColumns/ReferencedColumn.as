@@ -192,7 +192,7 @@ package weave.data.AttributeColumns
 			if (!_dcr)
 			{
 				WeaveXMLDecoder.includePackages("weave.data.ColumnReferences"); // for old JS API code using request("HierarchyColumnReference")
-				ClassUtils.registerDeprecatedClass("weave.data.ColumnReferences::HierarchyColumnReference", HierarchyColumnReference);
+				ClassUtils.registerDeprecatedClass("weave.data.ColumnReferences.HierarchyColumnReference", HierarchyColumnReference);
 				_dcr = newDisposableChild(this, LinkableDynamicObject);
 				var hcr:HierarchyColumnReference = _dcr.requestLocalObject(HierarchyColumnReference, true);
 				hcr.referencedColumn = this;

@@ -2,7 +2,7 @@
                    xmlns:mx="http://www.adobe.com/2006/mxml"
                    xmlns:ui="weave.ui.*" 
                    xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
                    title="{lang('Key Mapping Tool')}" xmlns:editors="weave.editors.*">
                    <mx:Script>
 <![CDATA[

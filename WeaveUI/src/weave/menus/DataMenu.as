@@ -24,7 +24,7 @@ package weave.menus
 	import weave.api.data.IDataSource_File;
 	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IDataSource_Transform;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.ClassUtils;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
@@ -62,7 +62,7 @@ package weave.menus
 				shown: Weave.properties.enableExportCSV,
 				label: lang("Export CSV from all visualizations"),
 				click: exportCSV,
-				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes).length > 0; }
+				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(ISelectableAttributes).length > 0; }
 			}
 		]);
 		

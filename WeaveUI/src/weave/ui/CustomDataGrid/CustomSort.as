@@ -22,6 +22,7 @@ package weave.ui.CustomDataGrid
 	import mx.collections.ISort;
 	import mx.collections.Sort;
 	
+	import weave.compiler.StandardLib;
 	import weave.utils.AsyncSort;
 
 	public class CustomSort implements ISort
@@ -68,7 +69,7 @@ package weave.ui.CustomDataGrid
 				// this will properly initialize _sort so fixedCompareFunction won't crash
 				_sort.sort([items[0],items[1]]);
 				
-				AsyncSort.sortImmediately(items, fixedCompareFunction);
+				StandardLib.sort(items, fixedCompareFunction);
 			}
 		}
 

@@ -20,6 +20,7 @@
 package
 {
 	import weave.api.ui.IEditorManager;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.ClassUtils;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
@@ -233,7 +234,8 @@ package
 			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
 			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
 			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
-			ClassUtils.registerDeprecatedClass("weave.visualization.tools::DataTableTool", AdvancedTableTool);
+			ClassUtils.registerDeprecatedClass("weave.visualization.tools.DataTableTool", AdvancedTableTool);
+			ClassUtils.registerDeprecatedClass("weave.api.ui.IObjectWithSelectableAttributes", ISelectableAttributes);
 		}();
 	}
 }

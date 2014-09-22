@@ -39,9 +39,10 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -55,14 +56,13 @@ package weave.visualization.plotters
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
-	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.ObjectPool;
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
-	public class OldParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
+	public class OldParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes
 	{
 		public function OldParallelCoordinatesPlotter()
 		{
@@ -179,7 +179,7 @@ package weave.visualization.plotters
 				values = [];
 				for each (var key:IQualifiedKey in xData.keys)
 					values.push(xData.getValueFromKey(key, String));
-				AsyncSort.sortImmediately(values);
+				StandardLib.sort(values);
 				VectorUtils.removeDuplicatesFromSortedArray(values);
 			}
 			return _xValues = values.filter(function(value:String, ..._):Boolean { return value ? true : false; });

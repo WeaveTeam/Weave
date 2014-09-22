@@ -29,7 +29,7 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+				   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IInitSelectableAttributes"
 				   title="{lang('Advanced Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
@@ -183,11 +183,13 @@
 					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate, true);
 			}
 			
-			override protected function afterConstructor():void
+			/**
+			 * @inheritDoc
+			 */
+			public function initSelectableAttributes(input:Array):void
 			{
 				const MAX_DEFAULT_COLUMNS:int = 10;
-				ColumnUtils.getColumnsWithCommonKeyType()
-					.slice(0, MAX_DEFAULT_COLUMNS)
+				input.slice(0, MAX_DEFAULT_COLUMNS)
 					.forEach(function(item:Object, i:int, a:Array):void {
 						ColumnUtils.initSelectableAttribute(columns, item, i == 0);
 					});

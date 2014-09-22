@@ -48,7 +48,6 @@ package weave.core
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
-	import weave.utils.AsyncSort;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -594,8 +593,8 @@ package weave.core
 				}
 			}
 			
-			AsyncSort.sortImmediately(propertyNames);
-			AsyncSort.sortImmediately(deprecatedSetters);
+			StandardLib.sort(propertyNames);
+			StandardLib.sort(deprecatedSetters);
 			
 			classNameToSessionedPropertyNames[classQName] = propertyNames;
 			classNameToDeprecatedSetterNames[classQName] = deprecatedSetters;
@@ -1408,7 +1407,7 @@ package weave.core
 				// If neither is a dynamic state array, don't compare them as such.
 				if (!DynamicState.isDynamicStateArray(oldState) && !DynamicState.isDynamicStateArray(newState))
 				{
-					if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+					if (StandardLib.compare(oldState, newState) == 0)
 						return undefined; // no diff
 					return newState;
 				}

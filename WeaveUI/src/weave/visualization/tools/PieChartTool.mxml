@@ -74,7 +74,7 @@
 			
 			override public function initSelectableAttributes(input:Array):void
 			{
-				ColumnUtils.initSelectableAttributes([_plotter.data], input);
+				ColumnUtils.initSelectableAttributes([_plotter.data, _plotter.label], input);
 			}
 			
 			override protected function childrenCreated():void

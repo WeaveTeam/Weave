@@ -22,7 +22,7 @@
 <ControlPanel xmlns="weave.ui.*"
 			  xmlns:mx="http://www.adobe.com/2006/mxml"
 			  backgroundColor="#EFF4BC" horizontalScrollPolicy="off" layout="absolute"
-			  implements="weave.api.ui.IObjectWithSelectableAttributes"
+			  implements="weave.api.ui.ISelectableAttributes"
 			  title="{lang('Mouseover Info Editor')}" verticalScrollPolicy="off">
 	<mx:VBox label="{lang('Header Columns')}">
 		<mx:HBox width="100%" verticalAlign="middle">

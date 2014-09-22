@@ -27,10 +27,9 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.CheckBox;
-			
 			import weave.Weave;
 			import weave.api.copySessionState;
+			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
@@ -64,8 +63,8 @@
 			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const heightAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 			public const heightAxisForceTickCount:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
-			public const linkHeightAndColorColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
+			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleColumnLink, true);
+			public const linkHeightAndColorColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleColumnLink, true);
 			
 			private var _plotter:CompoundBarChartPlotter = null;
 			private var _showYAxisLabels:Boolean = false;
@@ -81,9 +80,9 @@
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
 				
-				_plotter.colorColumn.addGroupedCallback(this, handleColorColumnChange);
-				_plotter.sortColumn.addGroupedCallback(this, handleSortColumnChange);
-				_plotter.heightColumns.addGroupedCallback(this, handleHeightColumnsChange);
+				initColumnLink(_plotter.colorColumn);
+				initColumnLink(_plotter.sortColumn);
+				initColumnLink(_plotter.heightColumns);
 				
 				var objects:Array = [
 						xAxisPlotter,
@@ -246,7 +245,49 @@
 				return null;
 			}
 			
-			private function handleColorColumnChange():void
+			private var _columnTriggerOrder:Dictionary = new Dictionary();
+			private var _columnTriggerSerial:uint = 0;
+			private function initColumnLink(target:ILinkableObject):void
+			{
+				var cc:ICallbackCollection = getCallbackCollection(target);
+				cc.addImmediateCallback(this, function():void { _columnTriggerOrder[target] = ++_columnTriggerSerial; });
+				cc.addGroupedCallback(this, handleColumnLink);
+			}
+			private function handleColumnLink():void
+			{
+				var linkColor:Boolean = linkHeightAndColorColumns.value;
+				var linkSort:Boolean = linkHeightAndSortColumns.value;
+				var colorSerial:int = _columnTriggerOrder[_plotter.colorColumn];
+				var sortSerial:int = _columnTriggerOrder[_plotter.sortColumn];
+				var heightSerial:int = _columnTriggerOrder[_plotter.heightColumns];
+				
+				if (linkColor && linkSort)
+				{
+					var latest:int = Math.max(colorSerial, sortSerial, heightSerial);
+					if (heightSerial == latest)
+						copyHeightToColorAndOrSort();
+					else if (colorSerial == latest)
+						copyColorToHeight();
+					else if (sortSerial == latest)
+						copySortToHeight();
+				}
+				else if (linkColor)
+				{
+					if (heightSerial > colorSerial)
+						copyHeightToColorAndOrSort();
+					else
+						copyColorToHeight();
+				}
+				else if (linkSort)
+				{
+					if (heightSerial > sortSerial)
+						copyHeightToColorAndOrSort();
+					else
+						copySortToHeight();
+				}
+			}
+			
+			private function copyColorToHeight():void
 			{
 				if (linkHeightAndColorColumns.value)
 				{
@@ -260,7 +301,7 @@
 				}
 			}
 			
-			private function handleSortColumnChange():void
+			private function copySortToHeight():void
 			{
 				if (!_plotter.sortColumn.getInternalColumn())
 					return;
@@ -277,7 +318,7 @@
 				}
 			}
 			
-			private function handleHeightColumnsChange():void
+			private function copyHeightToColorAndOrSort():void
 			{
 				if (_plotter.heightColumns.getObjects().length < 1)
 					return;
@@ -483,9 +524,6 @@
 						colorColumnInput.enabled = true;
 					}
 				}
-				
-				private const groupCheckDisabledToolTip:String = lang('There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.');
-				private const groupCheckEnabledToolTip:String = lang('Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.');
 				
 				private function showValueLabelsCheckBox_changeHandler():void
 				{

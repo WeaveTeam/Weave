@@ -114,16 +114,6 @@ package weave.api.core
 		 * to act as the <code>this</code> pointer for the expression, or libraries may be included by passing an array of fully 
 		 * qualified names.
 		 * 
-		 * <br><br>
-		 * Examples: 
-		 * <br>
-		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'toggleControlPanel()')</code>
-		 * <br> 
-		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y)', {new_x : 400, new_y : 300})</code>
-		 * <br>
-		 * <code> document.getElementById('weave').evaluateExpression(null, 'openDefaultEditor()', null, ['weave.ui::SessionStateEditor'])</code>
-		 * <br> <br>
-		 * 
 		 * Note that any code written for this function depends on the implementation of the ActionScript
 		 * code inside Weave, which is subject to change. 
 		 *  

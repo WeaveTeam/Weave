@@ -63,7 +63,7 @@ package weave.data.KeySets
 		 */
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
-			return StandardLib.arrayCompare(_sessionStateInternal, otherSessionState) == 0;
+			return StandardLib.compare(_sessionStateInternal, otherSessionState) == 0;
 		}
 		
 		/**

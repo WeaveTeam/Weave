@@ -39,10 +39,11 @@ package weave.visualization.tools
 	import weave.api.getLinkableDescendants;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IInitSelectableAttributes;
 	import weave.api.ui.ILinkableContainer;
-	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IVisTool;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -67,12 +68,12 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisTool, IObjectWithSelectableAttributes, ILinkableContainer
+	public class SimpleVisTool extends DraggablePanel implements IVisTool, IInitSelectableAttributes, ILinkableContainer
 	{
 		public function SimpleVisTool()
 		{
 			// Don't put any code here.
-			// Put code in the constructor() function instead.
+			// Put code in the inConstructor() function instead.
 		}
 
 		override protected function inConstructor():void
@@ -88,10 +89,6 @@ package weave.visualization.tools
 				invalidateDisplayList();
 			}
 			getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
-		}
-		override protected function afterConstructor():void
-		{
-			initSelectableAttributes(ColumnUtils.getColumnsWithCommonKeyType());
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
@@ -184,10 +181,10 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributeNames():Array
 		{
-			var obj:IObjectWithSelectableAttributes = mainPlotter as IObjectWithSelectableAttributes;
+			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
 			if (!obj)
 			{
-				var descendants:Array = getLinkableDescendants(this, IObjectWithSelectableAttributes);
+				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
 				if (descendants.length == 1)
 					obj = descendants[0];
 			}
@@ -200,10 +197,10 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributes():Array
 		{
-			var obj:IObjectWithSelectableAttributes = mainPlotter as IObjectWithSelectableAttributes;
+			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
 			if (!obj)
 			{
-				var descendants:Array = getLinkableDescendants(this, IObjectWithSelectableAttributes);
+				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
 				if (descendants.length == 1)
 					obj = descendants[0];
 			}
@@ -295,15 +292,12 @@ package weave.visualization.tools
 		}
 		
 		/**
-		 * This will initialize the selectable attributes using a list of columns and/or column references.
-		 * Tools can override this function for different behavior.
-		 * @param input An Array of IAttributeColumn and/or IColumnReference objects
+		 * @inheritDoc
 		 */
 		public function initSelectableAttributes(input:Array):void
 		{
 			ColumnUtils.initSelectableAttributes(getSelectableAttributes(), input);
 		}
-		
 		
 		/**
 		 * This function will return an array of IQualifiedKey objects which overlap

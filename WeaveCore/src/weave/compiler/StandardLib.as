@@ -325,34 +325,6 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function filters out values outside of a given range.
-		 * @param value A value to filter.
-		 * @param min The minimum value to accept.
-		 * @param max The maximum value to accept.
-		 * @return If value is between min and max, returns value.  Otherwise, returns NaN.
-		 */
-		public static function filterRange(value:Number, min:Number, max:Number):Number
-		{
-			if (value < min || value > max)
-				return NaN;
-			return value;
-		}
-		
-		/**
-		 * This function tests if a Number is within a min,max range.
-		 * @param value A value to filter.
-		 * @param min The minimum value to accept.
-		 * @param max The maximum value to accept.
-		 * @return If value is between min and max, returns true.  Otherwise, returns false.
-		 */
-		public static function numberInRange(value:Number, min:Number, max:Number):Boolean
-		{
-			if (value < min || value > max) // a condition will be false if a value is NaN
-				return false;
-			return true;
-		}
-		
-		/**
 		 * Scales a number between 0 and 1 using specified min and max values.
 		 * @param value The value between min and max.
 		 * @param min The minimum value that corresponds to a result of 0.
@@ -607,37 +579,6 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function compares each of the elements in two arrays in order, supporting nested Arrays.
-		 * @param a The first Array for comparison
-		 * @param b The second Array for comparison
-		 * @return The first nonzero compare value, or zero if the arrays are equal.
-		 */
-		public static function arrayCompare(a:Array, b:Array):int
-		{
-			if (!a || !b)
-				return AsyncSort.defaultCompare(a, b);
-			var an:int = a.length;
-			var bn:int = b.length;
-			if (an < bn)
-				return -1;
-			if (an > bn)
-				return 1;
-			for (var i:int = 0; i < an; i++)
-			{
-				var ai:* = a[i];
-				var bi:* = b[i];
-				var result:int;
-				if (ai is Array && bi is Array)
-					result = arrayCompare(ai as Array, bi as Array);
-				else
-					result = AsyncSort.defaultCompare(ai, bi);
-				if (result != 0)
-					return result;
-			}
-			return 0;
-		}
-		
-		/**
 		 * This will return the type of item found in the Array if each item has the same type.
 		 * @param a An Array to check.
 		 * @return The type of all items in the Array, or null if the types differ. 
@@ -725,12 +666,14 @@ package weave.compiler
 		
 		/**
 		 * This compares two dynamic objects or primitive values and is much faster than ObjectUtil.compare().
+		 * Does not check for circular refrences.
 		 * @param a First dynamic object or primitive value.
 		 * @param b Second dynamic object or primitive value.
 		 * @return A value of zero if the two objects are equal, nonzero if not equal.
 		 */
-		public static function compareDynamicObjects(a:Object, b:Object):int
+		public static function compare(a:Object, b:Object):int
 		{
+			var c:int;
 			if (a === b)
 				return 0;
 			if (a == null)
@@ -751,6 +694,22 @@ package weave.compiler
 				return 1;
 			if (a is Date && b is Date)
 				return ObjectUtil.dateCompare(a as Date, b as Date);
+			if ((a is Array && b is Array) || (a is Vector && b is Vector))
+			{
+				var an:int = a.length;
+				var bn:int = b.length;
+				if (an < bn)
+					return -1;
+				if (an > bn)
+					return 1;
+				for (var i:int = 0; i < an; i++)
+				{
+					c = compare(a[i], b[i]);
+					if (c != 0)
+						return c;
+				}
+				return 0;
+			}
 			
 			var qna:String = getQualifiedClassName(a);
 			var qnb:String = getQualifiedClassName(b);
@@ -783,7 +742,7 @@ package weave.compiler
 				if (!a.hasOwnProperty(p))
 					return 1;
 				
-				var c:int = compareDynamicObjects(a[p], b[p]);
+				c = compare(a[p], b[p]);
 				if (c != 0)
 					return c;
 			}
@@ -819,7 +778,7 @@ package weave.compiler
 					throw "ObjectUtil.compare fail";
 			DebugTimer.lap('ObjectUtil.compare');
 			for (i = 0; i < 100; i++)
-				if (compareDynamicObjects(o1,o2) != 0)
+				if (compare(o1,o2) != 0)
 					throw "StandardLib.compareDynamicObjects fail";
 			DebugTimer.end('StandardLib.compareDynamicObjects');
 		}
@@ -858,5 +817,8 @@ package weave.compiler
 			}
 			return output + String.fromCharCode(value);
 		}
+		
+		[Deprecated(replacement="compare")] public static function arrayCompare(a:Object, b:Object):int { return compare(a,b); }
+		[Deprecated(replacement="compare")] public static function compareDynamicObjects(a:Object, b:Object):int { return compare(a,b); }
 	}
 }

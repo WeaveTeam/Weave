@@ -36,7 +36,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -55,7 +55,6 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.primitives.Range;
-	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
@@ -67,7 +66,7 @@ package weave.visualization.plotters
 	 * @author adufilie
 	 * @author kmanohar
 	 */
-	public class CompoundBarChartPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class CompoundBarChartPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function CompoundBarChartPlotter()
 		{
@@ -245,7 +244,7 @@ package weave.visualization.plotters
 			if (colorChanged || binsChanged)
 			{
 				for (var i:int = 0; i < _binnedSortColumn.numberOfBins; i++)
-					AsyncSort.sortImmediately(_binnedSortColumn.getKeysFromBinIndex(i), _sortByColor);
+					StandardLib.sort(_binnedSortColumn.getKeysFromBinIndex(i), _sortByColor);
 			}
 		}
 				

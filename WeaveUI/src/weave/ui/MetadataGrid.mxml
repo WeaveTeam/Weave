@@ -43,8 +43,8 @@
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.ColumnMetadata;
+	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
-	import weave.utils.AsyncSort;
 	
 	/**
 	 * Set this to the list of property names you want to display in the drop-down box for adding a new property. 
@@ -167,7 +167,7 @@
 	        for (var prop:String in values)
 				if (propertyIgnoreList.indexOf(prop) < 0)
 					items.push(new MetadataGridItem(prop, values[prop]));
-			AsyncSort.sortImmediately(items, propertySort);
+			StandardLib.sort(items, propertySort);
 	        grid.dataProvider = items;
 	        gridItems.addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);
 			updateMissingPropNames();
@@ -217,7 +217,7 @@
 			if (index >= 0)
 				missingPropNames.splice(index, 1);
 		}
-		AsyncSort.sortImmediately(missingPropNames, propertySort);
+		StandardLib.sort(missingPropNames, propertySort);
 		newPropCombo.dataProvider = missingPropNames;
 		newPropCombo.selectedIndex = -1;
 	}

@@ -281,7 +281,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * Add keys to this dictionary for deprecated library replacements.
+		 * Add keys to this dictionary for deprecated library replacements using dot notation rather than "::" package notation.
 		 */
 		public static const deprecatedClassReplacements:Object = {};
 		
@@ -293,6 +293,8 @@ package weave.compiler
 		 */
 		private static function getDefinition(name:String):Object
 		{
+			if (name.indexOf("::") >= 0)
+				name = StandardLib.replace(name, "::", ".");
 			return deprecatedClassReplacements[name] as Class || getDefinitionByName(name);
 		}
 		
