@@ -48,7 +48,7 @@ qh_module.service('QueryHandlerService',
     	
     	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
     		console.log("result", errorLogService);
-    		if(angular.isDefined(result.logs)){//change this
+    		if(result.logs != null){
     			errorLogService.logInErrorLog(result.logs[0]);
     			$modal.open(errorLogService.errorLogModalOptions);
     		}
