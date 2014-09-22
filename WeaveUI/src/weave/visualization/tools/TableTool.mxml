@@ -131,7 +131,7 @@
 			{
 				super.inConstructor();
 				
-				filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 				_probe.addImmediateCallback(this, updateGlobalProbeChangeLater);
 				for each (var target:ILinkableObject in [this, _selection, Weave.defaultColorColumn, _textFormat])
 					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate, true);

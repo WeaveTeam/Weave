@@ -296,8 +296,6 @@ package weave.ui
 		{
 			if (hashMap)
 				return hashMap.getName(item as ILinkableObject);
-			if (dynamicObject)
-				return dynamicObject.globalName;
 			return null;
 		}
 		
@@ -508,8 +506,6 @@ package weave.ui
 		{
 			if (hashMap)
 				return hashMap.getName(item as ILinkableObject);
-			if (dynamicObject)
-				return dynamicObject.globalName;
 			return null;
 		}
 		
@@ -526,9 +522,6 @@ package weave.ui
 				
 				if (hashMap && newValue && hashMap.getNames().indexOf(newValue) < 0)
 					hashMap.renameObject(oldName, newValue);
-				
-				if (dynamicObject && newValue != dynamicObject.globalName)
-					dynamicObject.globalName = newValue;
 			}
 		}
 	}

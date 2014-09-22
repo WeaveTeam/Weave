@@ -61,8 +61,8 @@
 
 			protected var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
-			private var _savedGlobalSessionStates:Array;
-			private var _savedGlobalNames:Object;
+			private var _savedPathSessionStates:Array;
+			private var _savedPaths:Object;
 			
 			override public function reposition():void
 			{
@@ -222,14 +222,14 @@
 				var i:int = 0;
 				for each(var object:ILinkableObject in _targetObjects)
 				{
-					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(object))
+					if (!WeaveAPI.SessionManager.objectWasDisposed(object))
 						setSessionState(object, _savedTargetSessionStates[i++]); 
 				}
-				for each (var dynamicState:Object in _savedGlobalSessionStates)
+				for each (var obj:Object in _savedPathSessionStates)
 				{
-					var classDef:Class = ClassUtils.getClassDefinition(dynamicState[DynamicState.CLASS_NAME]);
-					var globalObject:ILinkableObject = WeaveAPI.globalHashMap.requestObject(dynamicState[DynamicState.OBJECT_NAME], classDef, false);
-					setSessionState(globalObject, dynamicState[DynamicState.SESSION_STATE]);
+					var ilo:ILinkableObject = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, obj["path"]);
+					if (ilo)
+						setSessionState(ilo, obj["state"]);
 				}
 			}
 			
@@ -272,8 +272,8 @@
 					}
 				}
 				
-				_savedGlobalNames = {};
-				_savedGlobalSessionStates = [];
+				_savedPaths = {};
+				_savedPathSessionStates = [];
 				_savedTargetSessionStates = [];
 				for each(var object:ILinkableObject in _targetObjects)
 				{
@@ -292,19 +292,15 @@
 					dynamicObjects.unshift(object);
 				for each (var dynamicObject:ILinkableDynamicObject in dynamicObjects)
 				{
-					// if the dynamic object references a global object by name...
-					if (dynamicObject.internalObject && dynamicObject.globalName != null && !_savedGlobalNames[dynamicObject.globalName])
+					// if the dynamic object references a path...
+					var path:Array = dynamicObject.targetPath;
+					var pathStr:String = Compiler.stringify(path);
+					if (dynamicObject.internalObject && path != null && !_savedPaths[pathStr])
 					{
 						// avoid duplicate entries and infinite recursion
-						_savedGlobalNames[dynamicObject.globalName] = true;
+						_savedPaths[pathStr] = true;
 						// save the session state of the global object
-						_savedGlobalSessionStates.push(
-							DynamicState.create(
-								dynamicObject.globalName,
-								getQualifiedClassName(dynamicObject.internalObject),
-								getSessionState(dynamicObject.internalObject)
-							)
-						);
+						_savedPathSessionStates.push({"path": path, "state": getSessionState(dynamicObject.internalObject)});
 						saveRelatedSessionStates(dynamicObject.internalObject);
 					}
 				}

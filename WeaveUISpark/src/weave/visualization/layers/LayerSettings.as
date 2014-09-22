@@ -39,9 +39,9 @@ package weave.visualization.layers
 	{
 		public function LayerSettings()
 		{
-//			subsetFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-			selectionFilter.globalName = Weave.DEFAULT_SELECTION_KEYSET;
-			probeFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
+//			subsetFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
+			selectionFilter.targetPath = [Weave.DEFAULT_SELECTION_KEYSET];
+			probeFilter.targetPath = [Weave.DEFAULT_PROBE_KEYSET];
 		}
 		
 		/**

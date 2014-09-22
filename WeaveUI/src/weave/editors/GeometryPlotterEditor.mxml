@@ -198,13 +198,13 @@
 				}
 				else
 				{
-					_plotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+					_plotter.filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 				}
 			}
 			
 			private function handleSubsetChange():void
 			{
-				ignoreSubsetCheck.selected = _plotter.filteredKeySet.keyFilter.globalName ? false : true;
+				ignoreSubsetCheck.selected = _plotter.filteredKeySet.keyFilter.targetPath ? false : true;
 			}
 			
 			private function handleImageColumn():void

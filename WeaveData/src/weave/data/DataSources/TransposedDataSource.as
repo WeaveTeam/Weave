@@ -51,7 +51,7 @@ package weave.data.DataSources
 			internalData = new InternalData(this);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsChange);
 			metadata.childListCallbacks.addImmediateCallback(this, setColumnKeySources);
-			filteredKeySet.keyFilter.globalName = 'defaultSubsetKeyFilter';
+			filteredKeySet.keyFilter.targetPath = ['defaultSubsetKeyFilter'];
 		}
 		
 		public const filteredKeySet:IFilteredKeySet = newLinkableChild(this, FilteredKeySet);
