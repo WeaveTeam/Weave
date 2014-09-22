@@ -109,7 +109,7 @@ package weave.visualization.tools
 			
 			super.createChildren();
 			
-			toolVBox = new VBox()
+			toolVBox = new VBox();
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
 			toolVBox.setStyle("verticalGap", 0);
