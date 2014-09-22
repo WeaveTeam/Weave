@@ -234,28 +234,6 @@ package weave.core
 			internalSetTarget(node);
 		}
 		
-		/**
-		 * Finds path dependencies while traversing the _targetPath.
-		 * @return The object at the end of the _targetPath
-		 */
-		private function traversePath():ILinkableObject
-		{
-			var sm:ISessionManager = WeaveAPI.SessionManager;
-			var node:ILinkableObject = WeaveAPI.globalHashMap;
-			var subPath:Array = [];
-			for each (var name:* in _targetPath)
-			{
-				if (node is ILinkableDynamicObject)
-					addPathDependency(node as ILinkableDynamicObject);
-				
-				subPath[0] = name;
-				var child:ILinkableObject = sm.getObject(node, subPath);
-				if (!node)
-					break;
-			}
-			return node;
-		}
-		
 		private function addPathDependency(ldo:ILinkableDynamicObject):void
 		{
 			var sm:ISessionManager = WeaveAPI.SessionManager;
