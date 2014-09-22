@@ -143,7 +143,7 @@ package weave.data.DataSources
 				}
 				catch (e:Error)
 				{
-					throw new Error("Your version of Flash Player (" + Capabilities.version + ") does not have native JSON support.");
+					throw new Error("GeoJSON: Your version of Flash Player (" + Capabilities.version + " " + Capabilities.playerType + ") does not have native JSON support.");
 				}
 				
 				// parse the json

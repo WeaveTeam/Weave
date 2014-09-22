@@ -211,7 +211,7 @@ package
 			}
 			catch (e:Error)
 			{
-				trace("Your version of Flash Player (" + Capabilities.version + ") does not have native JSON support.");
+				trace("Your version of Flash Player (" + Capabilities.version + " " + Capabilities.playerType + ") does not have native JSON support.");
 			}
 			
 			if (json)
