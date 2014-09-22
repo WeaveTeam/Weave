@@ -136,7 +136,7 @@ package weave.core
 				{
 					setLocalObjectType(className);
 					var classDef:Class = ClassUtils.getClassDefinition(className);
-					if (target is classDef)
+					if (classDef && target is classDef)
 						WeaveAPI.SessionManager.setSessionState(target, sessionState);
 				}
 			}

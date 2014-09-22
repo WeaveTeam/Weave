@@ -44,7 +44,7 @@ package weave.core
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			if (domain.hasDefinition(classQName))
 				return domain.getDefinition(classQName) as Class;
-			if (classQName.indexOf("::") >= 0)
+			if (classQName && classQName.indexOf("::") >= 0)
 				classQName = StandardLib.replace(classQName, "::", ".");
 			return _deprecatedLookup[classQName];
 		}
@@ -59,7 +59,7 @@ package weave.core
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			if (domain.hasDefinition(classQName))
 				return true;
-			if (classQName.indexOf("::") >= 0)
+			if (classQName && classQName.indexOf("::") >= 0)
 				classQName = StandardLib.replace(classQName, "::", ".");
 			return !!_deprecatedLookup[classQName];
 		}
@@ -74,7 +74,7 @@ package weave.core
 			// cache class info first because in doing so we may find out the class is deprecated and register it as such.
 			if (!cacheClassInfo(classQName))
 				return false;
-			if (classQName.indexOf("::") >= 0)
+			if (classQName && classQName.indexOf("::") >= 0)
 				classQName = StandardLib.replace(classQName, "::", ".");
 			return !!_deprecatedLookup[classQName];
 		}
