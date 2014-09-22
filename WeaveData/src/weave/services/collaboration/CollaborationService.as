@@ -26,8 +26,6 @@ package weave.services.collaboration
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
-	import flash.xml.XMLNode;
-	import flash.xml.XMLNodeType;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.Sort;
@@ -221,8 +219,6 @@ package weave.services.collaboration
 					_message.type = Message.TYPE_GROUPCHAT;		
 				_message.body = (message as TextMessage).message;
 				
-				trace("Message To string:   " + _message.getNode().toString());
-				
 				if( target != null)
 					room.sendPrivateMessage( target, (message as TextMessage).message );
 				else
@@ -232,41 +228,23 @@ package weave.services.collaboration
 			else
 			{
 				weaveExtension.content = encodeObject(message);
-				//_message.body = encodeObject(message);
-				//_message.addTextNode(new XMLNode(XMLNodeType.ELEMENT_NODE,encodeObject(message)), "weave", encodeObject(message));
+
 				if( message is FullSessionState )
-					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.FULL_SESSION_STATE);
 					weaveExtension.messageType = WeaveExtension.FULL_SESSION_STATE;				
 				else if( message is SessionStateMessage )
 					weaveExtension.messageType = WeaveExtension.SESSION_STATE_MESSAGE;
-					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.SESSION_STATE_MESSAGE);
 				else if( message is RequestMouseMessage )
 					weaveExtension.messageType = WeaveExtension.REQUEST_MOUSE_MESSAGE;
-					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.REQUEST_MOUSE_MESSAGE);
 				else if( message is MouseMessage )
 					weaveExtension.messageType = WeaveExtension.MOUSE_MESSAGE;
-					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.MOUSE_MESSAGE);
 				else if( message is Ping )
 					weaveExtension.messageType = WeaveExtension.PING;
-					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.PING);
 				else if( message is AddonsMessage )
 					weaveExtension.messageType = WeaveExtension.ADDONS_MESSAGE;
-					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.ADDONS_MESSAGE);
 				else if( message is AddonStatus )
 					weaveExtension.messageType = WeaveExtension.ADDON_STATUS;
-					//weaveMessage = new WeaveMessage(room.roomJID.escaped,null,encodeObject(message),WeaveMessage.ADDON_STATUS);
 				
 				_message.addExtension(weaveExtension);
-				/*
-				trace("Weave To string:   " + weaveMessage.getNode().toString());
-				//Replicating the functionality of room.sendMessageWithExtension().
-				if(room.isActive )
-					connection.send(weaveMessage);
-				*/
-				
-				trace("Checking in: " + _message.getNode().toString());
-				trace("extensions  " + _message.getAllExtensions());
-				
 				room.sendMessageWithExtension(_message);
 			}
 			
@@ -437,10 +415,8 @@ package weave.services.collaboration
 		{
 			//if id is null, it implies that the message originated from the server, 
 			//and not from a user
-			trace("Hi, got stuff");
 			if( event.data.id != null) 
 			{
-				trace("Received:  " + event.data.getNode().toString());
 				var i:int;
 				
 				_message = event.data;
