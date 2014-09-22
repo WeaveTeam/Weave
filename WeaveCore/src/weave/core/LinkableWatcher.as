@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
@@ -64,17 +65,26 @@ package weave.core
 		
 		/**
 		 * This is the linkable object currently being watched.
+		 * Setting this will unset the targetPath.
 		 */		
 		public function get target():ILinkableObject
 		{
 			return _foundTarget ? _target : null;
 		}
+		public function set target(newTarget:ILinkableObject):void
+		{
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			cc.delayCallbacks();
+			targetPath = null;
+			internalSetTarget(newTarget);
+			cc.resumeCallbacks();
+		}
 		
 		/**
-		 * This sets the new target to which should be watched.
+		 * This sets the new target to be watched without resetting targetPath.
 		 * Callbacks will be triggered immediately if the new target is different from the old one.
 		 */
-		public function set target(newTarget:ILinkableObject):void
+		protected function internalSetTarget(newTarget:ILinkableObject):void
 		{
 			if (_foundTarget && _typeRestriction)
 				newTarget = newTarget as _typeRestriction as ILinkableObject;
@@ -147,7 +157,7 @@ package weave.core
 		
 		/**
 		 * This will set a path which should be watched for new targets.
-		 * Callbacks will be triggered immediately if the path points to a new target.
+		 * Callbacks will be triggered immediately if the path changes or points to a new target.
 		 */
 		public function set targetPath(path:Array):void
 		{
@@ -156,9 +166,15 @@ package weave.core
 				path = null;
 			if (StandardLib.compare(_targetPath, path) != 0)
 			{
+				var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+				cc.delayCallbacks();
+				
 				resetPathDependencies();
 				_targetPath = path;
 				handlePath();
+				cc.triggerCallbacks();
+				
+				cc.resumeCallbacks();
 			}
 		}
 		
@@ -167,7 +183,7 @@ package weave.core
 			if (!_targetPath)
 			{
 				_foundTarget = true;
-				target = null;
+				internalSetTarget(null);
 				return;
 			}
 			
@@ -202,20 +218,20 @@ package weave.core
 						if (_target != null)
 						{
 							// path dependency code will detect changes to this node
-							target = null;
+							internalSetTarget(null);
 							// must trigger here because _foundtarget is false
 							sm.getCallbackCollection(this).triggerCallbacks();
 						}
 					}
 					else
-						target = node;
+						internalSetTarget(node);
 					return;
 				}
 			}
 			
 			// we found a desired target if there is no type restriction or the object fits the restriction
 			_foundTarget = !_typeRestriction || node is _typeRestriction;
-			target = node;
+			internalSetTarget(node);
 		}
 		
 		/**
@@ -287,18 +303,25 @@ package weave.core
 		/*
 			// JavaScript test code for path dependency case
 			var lhm = weave.path('lhm').remove().request('LinkableHashMap');
+			
 			var a = lhm.push('a').request('LinkableDynamicObject').state(lhm.getPath('b', null));
+			
+			a.addCallback(function () {
+			if (a.getType(null))
+			console.log('a.getState(null): ', JSON.stringify(a.getState(null)));
+			else
+			console.log('a has no internal object');
+			}, false, true);
+			
 			var b = lhm.push('b').request('LinkableDynamicObject').state(lhm.getPath('c'));
+			
+			// a has no internal object
+			
 			var c = lhm.push('c').request('LinkableDynamicObject').request(null, 'LinkableString').state(null, 'c value');
 			
-			a.addCallback(function(){
-				if (a.getType(null))
-					console.log('a.getState(null): ', JSON.stringify(a.getState(null)));
-				else
-					console.log('a has no internal object');
-			}, true, true);
-			
-			// a.getState(null): [{"className":"weave.core::LinkableString","sessionState":"c value","objectName":null}]
+			// a.getState(null): []
+			// a.getState(null): [{"className":"weave.core::LinkableString","objectName":null,"sessionState":null}]
+			// a.getState(null): [{"className":"weave.core::LinkableString","objectName":null,"sessionState":"c value"}]
 			
 			b.remove(null);
 			
