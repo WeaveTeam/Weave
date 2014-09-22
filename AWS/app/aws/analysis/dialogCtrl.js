@@ -5,7 +5,7 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
           backdropClick: true,
           dialogFade: true,
           keyboard: true,
-          templateUrl: 'aws/analysis/myModalContent.html',
+          templateUrl: 'aws/analysis/savingOutputsModal.html',
           controller: 'DialogInstanceCtrl',
           resolve:
           {
@@ -18,7 +18,8 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
     	
     	var saveQueryObjectInstance = $modal.open($scope.opts);
     	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
-    	console.log("checking", params);
+    	//console.log("params", params);
+    		queryService.getSessionState(params);
     		
     	});
     };
@@ -26,7 +27,6 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
   })
  .controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered) {
 	  $scope.close = function (projectEntered, queryTitleEntered) {
-		  console.log("checking2", projectEntered, queryTitleEntered);
 		  var params = {
 				  projectEntered : projectEntered,
 				  queryTitleEntered : queryTitleEntered
