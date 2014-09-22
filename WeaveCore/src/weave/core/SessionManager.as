@@ -1205,7 +1205,7 @@ package weave.core
 			var object:ILinkableObject = root;
 			for each (var propertyName:Object in path)
 			{
-				if (object == null)
+				if (object == null || _disposedObjectsMap[object])
 					return null;
 				if (object is ILinkableHashMap)
 				{
@@ -1226,7 +1226,7 @@ package weave.core
 					object = object[propertyName] as ILinkableObject;
 				}
 			}
-			return object;
+			return _disposedObjectsMap[object] ? null : object;
 		}
 		
 		
