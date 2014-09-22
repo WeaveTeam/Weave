@@ -1,41 +1,6 @@
 <div class='script-manager-container' ng-controller="ScriptManagerCtrl" style="padding-top:20px" >
 	
-	<div ng-if="!queryService.authenticated" style="padding-top: 20px; 
-		 position:absolute;
-	     width:300px;
-	     height:200px;
-	     z-index:15;
-	     top:50%;
-	     left:50%;
-	     margin:-100px 0 0 -150px;">	
-		 <table>
-		 	<tr>
-		 		<td>
-					 User Name: 
-				</td>
-		 		<td>
-		 			<input ng-model="user" type="text" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
-		 		</td>
-		 	</tr>
-		 	<tr>
-		 		<td>
-		 			Password:
-		 		</td>
-		 		<td>
-			 		<input ng-model="password" type="password" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
-		 		</td>
-		 	</tr>
-		 	<tr>
-			 	<td>
-		 		</td>
-		 		<td>
-			 		<div align="right" style="padding-top: 5px">
-					 <input type="button" ng-click="queryService.authenticate(user, password)" value="Login" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
-			 		</div>
-		 		</td>
-		 	</tr>
-		 </table>
-	</div> 
+	<div ng-include src="'aws/configure/auth/login.html'"></div>
 
 	<div class="container" contenteditable="false"  ng-if="queryService.authenticated">
 		<div class="row">
@@ -44,21 +9,25 @@
 		<br>
 		<div class="row" contenteditable="false">
 			<div class="col-md-3" contenteditable="false">
-				<div class="gridStyle" ng-grid="rScriptListOptions"></div>
-				<div class="gridStyle" ng-grid="stataScriptListOptions"></div>
-
-			<div>
-				<button class="file-nput-btn" style="float:left; width:48%" ng-click="deteleScript()">Delete Script</button>
-				<button ng-controller="AddScriptDialogController" class="file-nput-btn" style="float:left; width:50%" ng-click="saveNewScript()">Add New Script...</button>
+				<tabset>
+				    <tab heading="R Scripts">
+						<div class="gridStyle" ng-grid="rScriptListOptions"></div>
+				    </tab>
+				    <tab heading="Stata Scripts">
+						<div class="gridStyle" ng-grid="stataScriptListOptions"></div>
+				    </tab>
+				 </tabset>
+				<div>
+					<button class="file-nput-btn" style="float:left; width:33%" ng-click="refreshScripts()">Refresh</button>
+					<button class="file-nput-btn" style="float:left; width:33%" ng-click="deteleScript()">Delete Script</button>
+					<button class="file-nput-btn" style="float:left; width:30%" ng-click="saveNewScript()">New...</button>
+				</div>
 			</div>
-
-			</div>
-			<div class="col-md-9" contenteditable="false">
+			
+			<div class="col-md-9" contenteditable="false" ng-if="selectedScript.length">
 				<div class="well">
 					<table style="display:block">
-						<button class="file-nput-btn" style="float:left; width:25%" ng-click="refreshScripts()">Refresh</button>
 						<font color="{{statusColor}}">{{status}}</font>
-						<button class="file-nput-btn" style="float:right; width:25%" ng-click="saveChanges()">Save Changes</button>
 						<tr>
 							<td>
 								<b>Script:</b>
@@ -73,34 +42,45 @@
 							</td>
 							<br><br>
 							<td width="100%">
-								<textarea rows="4" cols="50" ng-model="scriptMetadata.description" style="width: 100%; resize:none">
-									{{scriptMetadata.description}}
-								</textarea>
+								<div class="well">
+									 <input type="button" value="{{EditDoneDesc}}" ng-click="toggleEditDesc()" style="float:right;">
+									<pre ng-show="!editDesc" style="width: 100%; height:100px; resize:none; overflow: scroll">{{scriptMetadata.description}}</pre>
+									<textarea ng-show="editDesc" ng-model="scriptMetadata.description"
+																		style="width: 100%; 
+																		height:100px;
+																	   resize:none; 
+																	   overflow: scroll; 
+																	   font-family:Monaco,Menlo,Consolas,'Courier New',monospace; 
+																	   font-size: 10pt;
+																	   padding:9.5px;
+																	   margin:0 0 10px;
+																	   border:1px;
+																	   line-height: 1.428571429;
+																	   border-radius: 4px;
+																	   border: 1px solid #ccc;">
+											{{scriptMetadata.description}}
+									</textarea>
+								</div>
 							</td>
 						</tr>
 					</table>
 				</div>
 				
-				<div>
-					<div class="gridStyle" ng-show="!viewasjson" ng-grid="scriptMetadataGridOptions"></div>
-					<textarea style="width:821px; height:300px; resize:none" ng-show="viewasjson" ng-model='inputsAsString'></textarea>
+				<div style="width:100%">
+					<div class="gridStyle" style="width:100%" ng-show="!viewasjson" ng-grid="scriptMetadataGridOptions"></div>
+<!-- 					<textarea style="width:100%; height:300px; resize:none" ng-change="scriptMetadataGridOptions.inputs = angular.fromJson(inputsAsString)" ng-show="viewasjson" ng-model='inputsAsString'> -->
+<!-- 					 	{{inputsAsString}} -->
+<!-- 					 </textarea> -->
 				</div>
 				<br>
-				<input type="button" value="Add" ng-click="addNewRow()">
-    		    <input type="button" value="Delete" ng-click="removeRow()">
-    		    <input type="button" value="View as {{jsonbtn}}" ng-click="toggleJsonView()">
+				<input type="button" value="Add Row" ng-click="addNewRow()">
+    		    <input type="button" value="Delete Row" ng-click="removeRow()">
+<!--     		    <input type="checkbox" ng-click="toggleJsonView()"> View as Json </input> -->
 				<br><br>
 
 				<div class="well">
 					<h4 style="display:inline-block"> Script Content </h4>
-					<div class="btn-group btn-toggle" ng-click="toggleEdit()" style="position:absolute;display:inline-block;right:0; padding-right:30px">
-						<button ng-class="{'active btn-primary': editScript == true}" class="btn btn-default">
-										Edit
-						</button>
-						<button ng-class="{'active': editScript == false}" class="btn btn-default">
-									    &nbsp &nbsp
-						</button>
-					</div>
+					 <input type="button" value="{{EditDone}}" ng-click="toggleEdit()" style="float:right;">
 					<div style="display:block;">
 						<pre ng-show="!editScript" style="width: 100%; height: 600px; resize:none; overflow: scroll">{{script.content}}</pre>
 						<textarea ng-show="editScript" ng-model="script.content"

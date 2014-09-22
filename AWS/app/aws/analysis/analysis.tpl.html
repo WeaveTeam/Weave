@@ -9,15 +9,14 @@
 					<h2>Indicator</h2>
 				</div>
 				<div  class="body">
-					<button style="min-width: 100%; width: 100%; border-radius: 0px" type="button" class="btn btn-default" ng-focus="dt_focused = true" ng-blur="dt_focused = false"
-					ng-model="queryService.queryObject.dataTable" 
-					data-html="1"  
-					ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id" 
-					placeholder="Select Datatable" 
-					bs-select
-					ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
-						<!--<span style="display: inline-block, float: right" class="caret"></span>-->
-					</button>
+					<select
+						style="width:100%"
+						ng-model="queryService.queryObject.dataTable" 
+						ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id" 
+						placeholder="Select Datatable" 
+						ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
+						<option></option>
+					</select>
 					
 					
 					<div style="width: 100%; margin-top: 10px;">
@@ -241,7 +240,7 @@
 					<div style="width: 270px; float : left; margin-right : 20px" ng-repeat="tool in AnalysisService.tool_list | filter : { enabled : 'true' }" class="panel panel-default">
 							<div class="panel-heading">
 								<h2>{{tool.title}}</h2>
-								<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="disable_widget(tool)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+								<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="disable_widget(tool)"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
 	
 							</div>
 							<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>

@@ -1,48 +1,60 @@
 var scriptUploaded;
-var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, scriptManagerService, queryService) {
+var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService) {
 
 	  $scope.service = scriptManagerService;
 	  $scope.queryService = queryService;
 	  $scope.script = {};
 	  $scope.selectedScript = [];
-	  $scope.scriptMetadata = {};
+	  $scope.scriptMetadata = {
+			  inputs : [],
+			  description : ""
+	  };
 	  $scope.script.content = "";
 	  $scope.selectedRow = [];
 	  $scope.editScript = false;
+	  $scope.editDesc = false;
 	  $scope.status = "";
 	  $scope.statusColor = "#3276B1";
 	  $scope.jsonbtn = "json";
-	  
+	  $scope.EditDone = "Edit";
+	  $scope.EditDoneDesc = "Edit";
 	  $scope.inputsAsString = "";
 	  
 	  $scope.rScriptListOptions = {
 			  data: 'rScripts',
-			  columnDefs: [{field: 'Script', displayName: 'R Scripts'}],
+			  columnDefs: [{field: 'Script', displayName: ''}],
 			  selectedItems: $scope.selectedScript,
 			  multiSelect: false,
-			  enableRowSelection: true
+			  enableRowSelection: true,
+			  headerRowHeight:0,
+			  keepLastSelected : false,
 	      };
 	      
 	  $scope.stataScriptListOptions = {
 			  data: 'stataScripts',
-			  columnDefs: [{field: 'Script', displayName: 'Stata Scripts'}],
+			  columnDefs: [{field: 'Script', displayName: ''}],
 			  selectedItems: $scope.selectedScript,
 			  multiSelect: false,
-			  enableRowSelection: true
+			  enableRowSelection: true,
+			  headerRowHeight:0,
+			  keepLastSelected : false,
 	  };
 	  
 	  $scope.scriptMetadataGridOptions = {
 			  data: 'scriptMetadata.inputs',
-		  columnDefs : [{field : "param", displayName : "Parameter"},
-		               {field :"type", displayName : "Type", cellTemplate : '<select  ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
-		               {field : "columnType", displayName : "Column Type", cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata.inputs[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="type for type in columnTypes" style="align:center"></select>'},
+			  columnDefs : [{field : "param", displayName : "Parameter"},
+		               {field :"type", displayName : "Type", enableCellEdit : false, cellTemplate : '<select style="vertical-align:middle;" ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
+		               {field : "columnType", displayName : "Column Type", enableCellEdit : false, cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata.inputs[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="type for type in columnTypes" style="align:center"></select>'},
 		               {field : "options", displayName : "Options"},
 		               {field : "default", displayName : "Default"},
 		               {field : "description", displayName : "Description"}],
 			  multiSelect: false,
 			  enableRowSelection: true,
+			  keepLastSelected : false,
+			  enableCellEditOnFocus: true,
 			  enableCellEdit : true,
-			  selectedItems : $scope.selectedRow
+			  selectedItems : $scope.selectedRow,
+			  enableSorting : false,
 	  };
 	  
 	  $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
@@ -91,15 +103,53 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		
 		// every time editScript is turnOff, we should save the changes.
 		if(!$scope.editScript) {
+			$scope.EditDone = "Edit";
 			if($scope.script.content && $scope.selectedScript[0].Script) {
 				scriptManagerService.saveScriptContent($scope.selectedScript[0].Script,  $scope.script.content).then(function (result) {
 					if(result) {
 						console.log("script modified successfully");
+					} else {
+						$scope.statusColor = "red";
+						 $scope.status = "Error saving script content";
 					}
 				});
 			}
+		} else {
+			$scope.EditDone = "Done";
 		}
 	  };
+	  
+	  $scope.toggleEditDesc = function() {
+		  $scope.editDesc = !$scope.editDesc;
+		  
+		  // every time editScript is turnOff, we should save the changes.
+		  if(!$scope.editDesc) {
+			  $scope.EditDoneDesc = "Edit";
+				if($scope.scriptMetadata.description && $scope.selectedScript[0].Script) {
+					scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+						 if(!result) {
+							 $scope.statusColor = "red";
+							 $scope.status = "Error saving script metadata";
+						 }
+					 });
+				}
+	  		} else {
+	  			$scope.EditDoneDesc = "Done";
+	  		}
+	  };
+	  
+	  $scope.$watchCollection('scriptMetadata.inputs', function() {
+		  if($scope.selectedScript.length) {
+			  if($scope.scriptMetadata.inputs && $scope.selectedScript[0].Script) {
+				  scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+					  if(!result) {
+						  $scope.statusColor = "red";
+						  $scope.status = "Error saving script metadata";
+					  }
+				  });
+			  }
+		  }
+      });
 	  
 	  $scope.toggleJsonView = function() {
 		  $scope.viewasjson = !$scope.viewasjson;
@@ -119,7 +169,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  });
 	  $scope.$watch('scriptMetadata.inputs', function () {
 		  if($scope.scriptMetadata.inputs) {
-			  $scope.inputsAsString = angular.toJson($scope.scriptMetadata.inputs); 
+			  $scope.inputsAsString = angular.toJson($scope.scriptMetadata.inputs, true); 
 		  }
 	  }, true);
 	  /***********************/
@@ -129,85 +179,89 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 };
 	
 	 $scope.removeRow = function() {
+		 if($scope.viewasjson)
+			 return;
 		 if($scope.scriptMetadataGridOptions.selectedItems.length) {
 			 var index = $scope.scriptMetadata.inputs.indexOf($scope.scriptMetadataGridOptions.selectedItems[0]);
 			 $scope.scriptMetadata.inputs.splice(index, 1);
+			 $scope.scriptMetadataGridOptions.selectAll(false);
 		 }
 	 };
 	 
 	 $scope.deteleScript = function () {
 		 if($scope.selectedScript.length) {
-			scriptManagerService.deleteScript($scope.selectedScript[0].Script).then(function(status) {
-				if(status) {
-					console.log("script deleted successfully");
-			}
-			$scope.selectedScript[0].Script = "";
-			$scope.script.content = "";
-			$scope.scriptMetadata = {};
-			refreshScripts();
-			});
+			 if($scope.selectedScript[0].Script) {
+				 scriptManagerService.deleteScript($scope.selectedScript[0].Script).then(function(status) {
+					 if(status) {
+						 console.log("script deleted successfully");
+						 $scope.rScriptListOptions.selectAll(false);
+						 $scope.stataScriptListOptions.selectAll(false);
+					 }
+					 $scope.selectedScript.Script = "";
+					 $scope.script.content = "";
+					 $scope.scriptMetadata = {};
+					 refreshScripts();
+				 });
+			 }
 		 }
 	 };
 	 
-	 $scope.saveChanges = function () {
-		 if($scope.selectedScript[0])
-		 {
-			 scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata)).then(function(result) { 
-				 
-				 if(result) {
-					 refreshScripts();
-					 $scope.statusColor = "green";
-					 $scope.status = "Changes successful!";
-					 setTimeout(function() {
-						 $scope.status = "";
-						 $scope.$apply();
-					 }, 1000);
-				 } else {
-					 $scope.statusColor = "green";
-					 $scope.status = "Changes successful!";
-				 }
-			 });
-		 }
-	 };
-});
-scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, scriptManagerService, queryService) {
-	$scope.opts = {
-		 backdrop: false,
-         backdropClick: true,
-         dialogFade: true,
-         keyboard: true,
-         templateUrl: 'aws/configure/script/uploadNewScript.html',
-         controller: 'AddScriptDialogInstanceCtrl',
-	};
-	
     $scope.saveNewScript = function (content, metadata) {
-      
-    	var d = $dialog.dialog($scope.opts);
-    	d.open();
+    	$modal.open({
+			 backdrop: false,
+	         backdropClick: true,
+	         dialogFade: true,
+	         keyboard: true,
+	         templateUrl: 'aws/configure/script/uploadNewScript.html',
+	         controller: 'AddScriptDialogInstanceCtrl',
+		});
     };
-    
- })
- .controller('AddScriptDialogInstanceCtrl', function ($rootScope, $scope, dialog, scriptManagerService) {
+}).controller('AddScriptDialogInstanceCtrl', function ($rootScope, $scope, $modalInstance, scriptManagerService) {
 	  
 	 $scope.fileName = "";
 	 $scope.metadata = "";
-	 $scope.step = 1;
+	 $scope.validText = "";
+	 $scope.isScriptValid = false;
+	 $scope.isValidMetadata = true;
+	 $scope.metaValidText = "";
 	 
-	 $scope.scriptUploaded = {};
+	 $scope.step = {
+			 value : 1
+	 };
+	 
+	 $scope.scriptUploaded = {
+			 metadata : {
+				 filename : "",
+				 content : ""
+			 },
+			 script : {
+				 filename : "",
+				 content :  ""
+			 }
+	 };
 	 $scope.metadataUploaded = {
 			 content : ""
 	 };
 	
 	 $scope.close = function () {
-	  dialog.close();
+		 $modalInstance.close();
 	 };
 	 
 	 $scope.uploadSuccessful = "na";
 	 
-	 $scope.$watch('scriptUploaded.metadata', function() {
-		 console.log($scope.scriptUploaded.metadata);
-		 if($scope.scriptUploaded.metadata) {
-			 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
+	 $scope.$watch('scriptUploaded.metadata.content', function() {
+		 if($scope.scriptUploaded.metadata.content) {
+			 if(tryParseJSON($scope.scriptUploaded.metadata.content)) {
+				 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
+				 $scope.metaValidText = "";
+				 $scope.isValidMetadata = true;
+			 } else {
+				 $scope.isValidMetadata = false;
+				 $scope.metaValidText = "invalid json";
+			 }
+		 } else if ($scope.scriptUploaded.metadata.content == "") {
+			 $scope.isValidMetadata = true;
+			 $scope.metaValidText = "";
 		 }
 	 });
 	 
@@ -224,7 +278,29 @@ scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, 
 			  enableCellEdit : false,
 	  };
 	 
-	$scope.$watch('step', function(n, o) { 
+	$scope.$watch('scriptUploaded.script.filename', function () {
+		
+		if($scope.scriptUploaded.script.filename) {
+			extension = $scope.scriptUploaded.script.filename.substr((Math.max(0, $scope.scriptUploaded.script.filename.lastIndexOf(".")) || Infinity) + 1);
+			if(extension.toLowerCase() == "r" || extension.toLowerCase() == "do") {
+				scriptManagerService.scriptExists($scope.scriptUploaded.script.filename).then(function(result) {
+					if(result) {
+						$scope.validText = "script already exists";
+						$scope.isScriptValid = false;
+					} else {
+						$scope.validText = "";
+						$scope.isScriptValid = true;
+					}
+				});
+			} else {
+				$scope.validText = "only .R or .do files are supported";
+				$scope.isScriptValid = false;;
+			}
+		} else {
+			$scope.validText = "";
+		}
+	});
+	$scope.$watch('step.value', function(n, o) { 
 		if(n == 3) {
 			var scriptName = "";
 			var scriptContent = "";
@@ -261,8 +337,34 @@ scriptModule.controller('AddScriptDialogController', function ($scope, $dialog, 
 				}
 			}
 				
-		} else {
+		} else if (n == 1) {
+			$scope.isValidMetadata = true;
 			$scope.uploadSucessful = "na";
+			if($scope.scriptUploaded.script.filename) {
+				scriptManagerService.scriptExists($scope.scriptUploaded.script.filename).then(function(result) {
+					if(result) {
+						$scope.validText = "script already exists";
+						$scope.isScriptValid = false;
+					} else {
+						$scope.validText = "";
+						$scope.isScriptValid = true;
+					}
+				});
+			}
+		} else if (n == 2) {
+			 if($scope.scriptUploaded.metadata.content) {
+				 if(tryParseJSON($scope.scriptUploaded.metadata.content)) {
+					 $scope.metadataUploaded = angular.fromJson($scope.scriptUploaded.metadata.content);
+					 $scope.metaValidText = "";
+					 $scope.isValidMetadata = true;
+				 } else {
+					 $scope.isValidMetadata = false;
+					 $scope.metaValidText = "invalid json";
+				 }
+			 } else if ($scope.scriptUploaded.metadata.content == "") {
+				 $scope.isValidMetadata = true;
+				 $scope.metaValidText = "";
+			 }
 		}
 	});
   });

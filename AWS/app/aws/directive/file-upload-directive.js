@@ -45,12 +45,24 @@ angular.module('aws.directives.fileUpload', [])
                         scope.fileread = {
                         		content : loadEvent.target.result,
                         		filename : changeEvent.target.files[0].name
-                        }
+                        };
                     });
-                }
+                };
                 reader.readAsText(changeEvent.target.files[0]);
             });
         }
-    }
-}]);;
+    };
+}]).directive('ngEnter', function () {
+    return function (scope, element, attrs) {
+        element.bind("keydown keypress", function (event) {
+            if(event.which === 13) {
+                scope.$apply(function (){
+                    scope.$eval(attrs.ngEnter);
+                });
+
+                event.preventDefault();
+            }
+        });
+    };
+});;;
         

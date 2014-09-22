@@ -9,7 +9,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'aws.queryObject', // queryService.. this needs to be reconciled                               
                                  'aws.queryObjectEditor', // Shweta's module
                                  'aws.project',  // shweta's module
-                                 'aws.outputView',
+                                 'aws.errorLog',
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
@@ -60,7 +60,10 @@ app.run(['$rootScope', function($rootScope){
 		templateUrl : 'aws/project/projectManagementPanel.html',
 		controller : 'ProjectManagementCtrl',
 		activetab : 'project_management'
-	});
+	}).otherwise({
+        redirectTo: '/analysis'
+    });
+
 });
 
 
@@ -69,30 +72,13 @@ angular.module('aws.directives', ['aws.directives.dualListBox',
 angular.module('aws.configure', ['aws.configure.metadata',
                                  'aws.configure.script']);
 
-app.service('errorLogService',[function(){
-	
-	this.logs = "";
-	/**
-	 *this is the function that will be used over all tabs to log errors to the error log
-	 *@param the string you want to log to the error log
-	 */
-	this.logInErrorLog = function(error){
-		this.logs= this.logs.concat("\n" + error + new Date().toLocaleTimeString());
-	};
-	
-}]);
-
-
 // From Amith's UI
 app.controller('AWSController', function($scope, $route, $location, errorLogService) {
 	$scope.$route = $route;
-	
-	$scope.errorLogService = errorLogService;
-	$scope.errorAside = {
-		title : "Error Log"	
-	};
-	//errorLogService.logInErrorLog("Zooooooop");
+
 });
+
+
 
 //var navbar_ctrl = function($scope, $route, $location) {
 //	$scope.$route = $route;

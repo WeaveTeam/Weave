@@ -92,6 +92,16 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 	  };
 	  
+	  this.scriptExists = function (scriptName) {
+		  var deferred = $q.defer();
+		  aws.queryService(scriptServiceURL, 'scriptExists', [scriptName], function(result) {
+			  scope.$apply(function() {
+		            deferred.resolve(result);
+		          });
+		  });
+		  return deferred.promise;
+	  };
+	  
 	  this.saveScriptContent = function (scriptName, content) {
 		  
 		  var deferred = $q.defer();

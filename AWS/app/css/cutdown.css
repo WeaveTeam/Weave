@@ -37,6 +37,10 @@
 	bottom: 0
 }
 
+.erroLog-modal .modal-dialog{
+  width: 1000px;
+}
+
 #loading-image {
 	position: absolute;
 	top: 10px;

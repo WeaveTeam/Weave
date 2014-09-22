@@ -1,41 +1,7 @@
 <div style="padding-left: 25px" ng-controller = "MetadataManagerCtrl" >
 
-<div ng-if="!queryService.authenticated" style="padding-top: 20px; 
-	 position:absolute;
-     width:300px;
-     height:200px;
-     z-index:15;
-     top:50%;
-     left:50%;
-     margin:-100px 0 0 -150px;">	
-	 <table>
-	 	<tr>
-	 		<td>
-				 User Name: 
-			</td>
-	 		<td>
-	 			<input ng-model="user" type="text" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
-	 		</td>
-	 	</tr>
-	 	<tr>
-	 		<td>
-	 			Password:
-	 		</td>
-	 		<td>
-		 		<input ng-model="password" type="password" ui-keypress="{'enter':'queryService.authenticate(user, password)'}" />
-	 		</td>
-	 	</tr>
-	 	<tr>
-		 	<td>
-	 		</td>
-	 		<td>
-		 		<div align="right" style="padding-top: 5px">
-				 <input type="button" ng-click="queryService.authenticate(user, password)" value="Login" ui-keypress="{'enter':'queryService.authenticate(user, password)'}"/>
-		 		</div>
-	 		</td>
-	 	</tr>
-	 </table>
-</div> 
+<div ng-include src="'aws/configure/auth/login.html'"></div>
+
 <table ng-if="queryService.authenticated">
   <colgroup width="100%">
     <col width="50%" valign="top">

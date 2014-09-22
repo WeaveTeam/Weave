@@ -94,7 +94,7 @@ public class ScriptManagerService{
 	 	
 	 	return listOfScripts.toArray(new String[listOfScripts.size()]);
 	}
-
+		
 	/**
 	 * 
 	 * This function saves the script metadata at the same location as the script.
@@ -155,6 +155,19 @@ public class ScriptManagerService{
 		return true;
 	}
  	
+ 	/**
+ 	 * This function checks if a script with the given name already exists in the given directory
+ 	 * 
+ 	 * @param directory
+ 	 * @param scriptName
+ 	 * @return
+ 	 * @throws Exception
+ 	 */
+ 	public static boolean scriptExists(File directory, String scriptName) throws Exception {
+		
+		return new File(directory, scriptName).exists();
+		
+	}
  	/**
 	 * 
 	 * This function renames a script, and update the content and metadata.

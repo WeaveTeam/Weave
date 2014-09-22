@@ -40,7 +40,18 @@ public class ScriptManagementServlet extends WeaveServlet
  		} else {
  			throw new RemoteException("Unknown Script Type");
   		}
-
+	}
+	
+	public boolean scriptExists(String scriptName) throws Exception {
+		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R)
+ 		{
+ 			return ScriptManagerService.scriptExists(rDirectory, scriptName);
+ 		} else if( AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA)
+ 		{
+ 			return ScriptManagerService.scriptExists(stataDirectory, scriptName);
+ 		} else {
+ 			return false;
+  		}
 	}
 	
 	public String[] getListOfScripts() throws Exception{

@@ -1,37 +1,36 @@
-AnalysisModule.controller('DialogController', function ($scope, $dialog, queryService) {
+AnalysisModule.controller('DialogController', function ($scope, $modal, queryService) {
+	$scope.projectEntered2 = "Hello";
 	$scope.opts = {
 		 backdrop: false,
           backdropClick: true,
           dialogFade: true,
           keyboard: true,
-          templateUrl: 'aws/analysis/myModalContent.html',
+          templateUrl: 'aws/analysis/savingOutputsModal.html',
           controller: 'DialogInstanceCtrl',
           resolve:
           {
-                      projectEntered: function() {return angular.copy(projectEntered);},
-                      queryTitleEntered : function(){return angular.copy(queryTitleEntered);}
+                      projectEntered: function() {return $scope.projectEntered;},
+                      queryTitleEntered : function(){return $scope.queryTitleEntered;}
           }
 	};
 
     $scope.saveVisualizations = function (projectEntered, queryTitleEntered) {
-      var d = $dialog.dialog($scope.opts);
-      d.open().then(function(params){//the then funcion takes only single object as param
-    	  if(params){
-    		  console.log("finally got project as ", params.projectEntered);
-    		  console.log("qo", params.queryTitleEntered);
-    		  queryService.getSessionState(params);
-    	  }
-      });
-      
-      
+    	
+    	var saveQueryObjectInstance = $modal.open($scope.opts);
+    	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
+    	//console.log("params", params);
+    		queryService.getSessionState(params);
+    		
+    	});
     };
+    
   })
-  .controller('DialogInstanceCtrl', function ($scope, dialog, projectEntered, queryTitleEntered) {
+ .controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered) {
 	  $scope.close = function (projectEntered, queryTitleEntered) {
 		  var params = {
 				  projectEntered : projectEntered,
 				  queryTitleEntered : queryTitleEntered
 		  };
-      dialog.close(params);
+		  $modalInstance.close(params);
     };
-  });
+});
