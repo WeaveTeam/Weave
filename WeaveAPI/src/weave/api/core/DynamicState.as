@@ -32,7 +32,7 @@ package weave.api.core
 		 * @param className The qualified class name of the original object providing the session state.
 		 * @param sessionState The session state for an object of the type specified by className.
 		 */
-		public static function create(objectName:String = null, className:String = null, sessionState:* = null):Object
+		public static function create(objectName:String = null, className:String = null, sessionState:Object = null):Object
 		{
 			var obj:Object = {};
 			// convert empty strings ("") to null
