@@ -27,6 +27,7 @@ package weave.data.Transforms
     import weave.api.detectLinkableObjectChange;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
+    import weave.api.ui.ISelectableAttributes;
     import weave.core.LinkableHashMap;
     import weave.data.AttributeColumns.DynamicColumn;
     import weave.data.AttributeColumns.EquationColumn;
@@ -34,7 +35,7 @@ package weave.data.Transforms
     import weave.data.DataSources.AbstractDataSource;
     import weave.data.hierarchy.ColumnTreeNode;
 
-    public class ForeignDataMappingTransform extends AbstractDataSource
+    public class ForeignDataMappingTransform extends AbstractDataSource implements ISelectableAttributes
     {
         WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign Data Mapping");
 
@@ -48,6 +49,15 @@ package weave.data.Transforms
         {
         }
 
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Foreign key mapping", "Data to transform"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [keyColumn, dataColumns];
+		}
+		
         override protected function initialize():void
         {
             // recalculate all columns previously requested
@@ -105,13 +115,13 @@ package weave.data.Transforms
             });
         }
 		
-		private function getColumnMetadata(dataColumnName:String):Object
+		private function getColumnMetadata(dataColumnName:String, includeSourceColumnMetadata:Boolean = true):Object
 		{
 			var column:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
 			if (!column)
 				return null;
 			
-			var metadata:Object = ColumnMetadata.getAllMetadata(column);
+			var metadata:Object = includeSourceColumnMetadata ? ColumnMetadata.getAllMetadata(column) : {};
 			metadata[ColumnMetadata.KEY_TYPE] = keyColumn.getMetadata(ColumnMetadata.KEY_TYPE);
 			metadata[DATA_COLUMNNAME_META] = dataColumnName;
 			return metadata;
@@ -120,16 +130,18 @@ package weave.data.Transforms
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
         {
             var dataColumnName:String = proxyColumn.getMetadata(DATA_COLUMNNAME_META);
-			var metadata:Object = getColumnMetadata(dataColumnName);
+			var metadata:Object = getColumnMetadata(dataColumnName, false);
 			if (!metadata)
 			{
 				proxyColumn.dataUnavailable();
 				return;
 			}
+			proxyColumn.setMetadata(metadata);
 			
             var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
             var equationColumn:EquationColumn = proxyColumn.getInternalColumn() as EquationColumn || new EquationColumn();
 
+			metadata[ColumnMetadata.TITLE] = "{dataColumn.getMetadata('title')}";
 			metadata[ColumnMetadata.DATA_TYPE] = "{dataColumn.getMetadata('dataType')}";
             equationColumn.variables.requestObjectCopy("keyColumn", keyColumn);
             equationColumn.variables.requestObjectCopy("dataColumn", dataColumn);

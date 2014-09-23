@@ -28,6 +28,7 @@ package weave.data.Transforms
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
@@ -37,7 +38,7 @@ package weave.data.Transforms
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.utils.VectorUtils;
 
-	public class PartitionDataTransform extends AbstractDataSource
+	public class PartitionDataTransform extends AbstractDataSource implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned table");
 
@@ -51,6 +52,15 @@ package weave.data.Transforms
 		{
 		}
 
+		public function getSelectableAttributes():Array
+		{
+			return [partitionColumn, inputColumns];
+		}
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Partition by", "Columns to partition"];
+		}
+		
 		override protected function initialize():void
 		{
 			// recalculate all columns previously requested

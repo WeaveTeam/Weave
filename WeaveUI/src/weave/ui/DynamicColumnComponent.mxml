@@ -91,6 +91,7 @@
 			import weave.api.data.IColumnWrapper;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.ISelectableAttributes;
+			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -197,8 +198,8 @@
 					return;
 				
 				var globalName:String = null;
-				if (controller.dynamicObject)
-					globalName = controller.dynamicObject.globalName;
+				if (controller.dynamicObject is LinkableDynamicObject)
+					globalName = (controller.dynamicObject as LinkableDynamicObject).globalName;
 				else
 					show = false;
 				if (globalName)
@@ -237,7 +238,8 @@
 			
 			private function linkTo(globalName:String):void
 			{
-				controller.dynamicObject.globalName = globalName;
+				if (controller.dynamicObject is LinkableDynamicObject)
+					(controller.dynamicObject as LinkableDynamicObject).globalName = globalName;
 				toggleLinkDropDown();
 			}
 		]]>

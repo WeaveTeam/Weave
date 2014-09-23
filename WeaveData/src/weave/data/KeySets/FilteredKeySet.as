@@ -84,7 +84,7 @@ package weave.data.KeySets
 		 */
 		public function setColumnKeySources(columns:Array, sortDirections:Array = null, keyCompare:Function = null, keyInclusionLogic:Function = null):void
 		{
-			if (StandardLib.arrayCompare(_setColumnKeySources_arguments, arguments) == 0)
+			if (StandardLib.compare(_setColumnKeySources_arguments, arguments) == 0)
 				return;
 			
 			var keySet:IKeySet;

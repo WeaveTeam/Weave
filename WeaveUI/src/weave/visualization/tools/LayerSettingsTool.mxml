@@ -275,13 +275,13 @@
 				}
 				
 				// Only reset dataProvider if necessary.
-				if (StandardLib.arrayCompare(_prevLayerNames, layerNames))
+				if (StandardLib.compare(_prevLayerNames, layerNames))
 					_prevLayerNames = layerNames;
 				
 				// Only reset selection if necessary.
 				var state:Object = shownLayers.getSessionState();
 				var newSelection:Array = VectorUtils.getItems(state, layerNames, []);
-				if (StandardLib.arrayCompare(_shownLayersSelection, newSelection) != 0)
+				if (StandardLib.compare(_shownLayersSelection, newSelection) != 0)
 					_shownLayersSelection = newSelection;
 				
 				// Only reset filterFunction if necessary because it causes a refresh.

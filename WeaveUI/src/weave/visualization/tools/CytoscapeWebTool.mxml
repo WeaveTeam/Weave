@@ -77,8 +77,8 @@
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
-				_nodeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-				_edgeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				_nodeFilteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
+				_edgeFilteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn]);
 				_edgeFilteredKeys.setColumnKeySources([edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeColorColumn, edgeWeightColumn]);
 			}

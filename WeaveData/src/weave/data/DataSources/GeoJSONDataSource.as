@@ -143,7 +143,7 @@ package weave.data.DataSources
 				}
 				catch (e:Error)
 				{
-					throw new Error("Your version of Flash Player (" + Capabilities.version + ") does not have native JSON support.");
+					throw new Error("GeoJSON: Your version of Flash Player (" + Capabilities.version + " " + Capabilities.playerType + ") does not have native JSON support.");
 				}
 				
 				// parse the json
@@ -351,7 +351,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 	public function equals(other:IWeaveTreeNode):Boolean
 	{
 		var that:DataSourceNode = other as DataSourceNode;
-		if (that && this.source == that.source && StandardLib.arrayCompare(this.idFields, that.idFields) == 0)
+		if (that && this.source == that.source && StandardLib.compare(this.idFields, that.idFields) == 0)
 		{
 			if (idFields && idFields.length)
 			{

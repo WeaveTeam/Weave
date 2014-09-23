@@ -26,7 +26,7 @@
 				return (controlPanel as ProbeToolTipEditor).getSelectableAttributeNames();
 			}
 			
-			public const dynamicKeySet:ILinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet), updateText, true);
+			public const dynamicKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet), updateText, true);
 			
 			private function get keySet():IKeySet
 			{
@@ -37,7 +37,7 @@
 			{
 				super.inConstructor();
 				
-				dynamicKeySet.globalName = Weave.DEFAULT_PROBE_KEYSET;
+				dynamicKeySet.targetPath = [Weave.DEFAULT_PROBE_KEYSET];
 				getCallbackCollection(ProbeTextUtils.probeHeaderColumns).addGroupedCallback(this, updateText);
 				getCallbackCollection(ProbeTextUtils.probedColumns).addGroupedCallback(this, updateText, true);
 			}

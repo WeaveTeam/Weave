@@ -31,6 +31,7 @@ package weave.data.Transforms
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -44,7 +45,7 @@ package weave.data.Transforms
 	import weave.utils.ColumnUtils;
 	import weave.utils.EquationColumnLib;
 
-	public class GroupedDataTransform extends AbstractDataSource
+	public class GroupedDataTransform extends AbstractDataSource implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped Data Transform");
 
@@ -52,7 +53,15 @@ package weave.data.Transforms
 
 		public function GroupedDataTransform()
 		{
-
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Group by", "Data to transform"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [groupByColumn, dataColumns];
 		}
 
 		override protected function initialize():void

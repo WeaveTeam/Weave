@@ -118,7 +118,7 @@ package weave.core
 				if (object is ILinkableHashMap)
 					return (object as ILinkableHashMap).getNames();
 				if (object is ILinkableDynamicObject)
-					return [(object as ILinkableDynamicObject).globalName];
+					return [null];
 				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 			}
 			

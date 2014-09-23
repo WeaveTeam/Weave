@@ -262,7 +262,7 @@ package weave.core
 				if (object is ILinkableDynamicObject)
 				{
 					// do not show static object in tree
-					names = (object as ILinkableDynamicObject).globalName ? null : [null];
+					names = (object as ILinkableDynamicObject).targetPath ? null : [null];
 				}
 				else if (object)
 				{
@@ -1177,6 +1177,8 @@ package weave.core
 		 */
 		public function getPath(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
+			if (!descendant)
+				return null;
 			var tree:Object = getSessionStateTree(root, null);
 			var path:Array = _getPath(tree, descendant);
 			return path;
@@ -1205,7 +1207,7 @@ package weave.core
 			var object:ILinkableObject = root;
 			for each (var propertyName:Object in path)
 			{
-				if (object == null)
+				if (object == null || _disposedObjectsMap[object])
 					return null;
 				if (object is ILinkableHashMap)
 				{
@@ -1226,7 +1228,7 @@ package weave.core
 					object = object[propertyName] as ILinkableObject;
 				}
 			}
-			return object;
+			return _disposedObjectsMap[object] ? null : object;
 		}
 		
 		

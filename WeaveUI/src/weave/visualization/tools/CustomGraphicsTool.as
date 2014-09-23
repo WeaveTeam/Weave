@@ -54,7 +54,7 @@ package weave.visualization.tools
 		{
 			super.inConstructor();
 			
-			filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+			filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 		}
 		
 		public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
