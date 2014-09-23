@@ -90,6 +90,7 @@ package weave.data.KeySets
 		private var _dependencies:ICallbackCollection = newDisposableChild(this, CallbackCollection);
 		private var _keySet:IKeySet;
 		private var _compare:Function;
+		// Note: not using newLinkableChild for _asyncSort because we do not trigger if sorting does not affect order
 		private var _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		private var _sortedKeys:Array = [];
 		private var _prevSortedKeys:Array = [];
@@ -109,48 +110,77 @@ package weave.data.KeySets
 		
 		private function _handleSorted():void
 		{
-			if (StandardLib.arrayCompare(_prevSortedKeys, _sortedKeys) != 0)
+			// only trigger callbacks if sorting changes order
+			if (StandardLib.compare(_prevSortedKeys, _sortedKeys) != 0)
 				getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
 		 * This funciton generates a compare function that will compare IQualifiedKeys based on the corresponding values in the specified columns.
 		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
+		 * @param sortDirections Array of sort directions corresponding to the columns and given as integers (1=ascending, -1=descending, 0=none).
 		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns.
 		 */
-		public static function generateCompareFunction(columns:Array, descendingFlags:Array = null):Function
+		public static function generateCompareFunction(columns:Array, sortDirections:Array = null):Function
 		{
-			var i:int;
-			var column:IAttributeColumn;
-			var result:int;
-			var n:int = columns.length;
-			var desc:Array = descendingFlags ? descendingFlags.concat() : [];
-			desc.length = n;
-			
-			// when any of the columns are disposed, disable the compare function
-			for each (column in columns)
-				column.addDisposeCallback(null, function():void { n = 0; });
-			
-			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
+			return new KeyComparator(columns, sortDirections).compare;
+		}
+	}
+}
+
+import mx.utils.ObjectUtil;
+
+import weave.api.core.ILinkableObject;
+import weave.api.data.IAttributeColumn;
+import weave.api.data.IQualifiedKey;
+import weave.api.getCallbackCollection;
+import weave.data.QKeyManager;
+
+internal class KeyComparator
+{
+	public function KeyComparator(columns:Array, sortDirections:Array)
+	{
+		this.columns = columns.concat();
+		this.n = columns.length;
+		if (sortDirections)
+		{
+			this.sortDirections = sortDirections.concat();
+			this.sortDirections.length = columns.length;
+		}
+		
+		// when any of the columns are disposed, disable the compare function
+		for each (var obj:ILinkableObject in columns)
+			getCallbackCollection(obj).addDisposeCallback(null, dispose);
+	}
+	
+	private var columns:Array;
+	private var sortDirections:Array;
+	private var n:int;
+	
+	public function compare(key1:IQualifiedKey, key2:IQualifiedKey):int
+	{
+		for (var i:int = 0; i < n; i++)
+		{
+			var column:IAttributeColumn = columns[i] as IAttributeColumn;
+			if (!column || (sortDirections && !sortDirections[i]))
+				continue;
+			var value1:* = column.getValueFromKey(key1, Number);
+			var value2:* = column.getValueFromKey(key2, Number);
+			var result:int = ObjectUtil.numericCompare(value1, value2);
+			if (result != 0)
 			{
-				for (i = 0; i < n; i++)
-				{
-					column = columns[i] as IAttributeColumn;
-					if (!column)
-						continue;
-					var value1:* = column.getValueFromKey(key1, Number);
-					var value2:* = column.getValueFromKey(key2, Number);
-					result = ObjectUtil.numericCompare(value1, value2);
-					if (result != 0)
-					{
-						if (desc[i])
-							return -result;
-						return result;
-					}
-				}
-				return QKeyManager.keyCompare(key1, key2);
+				if (sortDirections && sortDirections[i] < 0)
+					return -result;
+				return result;
 			}
 		}
+		return QKeyManager.keyCompare(key1, key2);
+	}
+	
+	public function dispose():void
+	{
+		columns = null;
+		sortDirections = null;
+		n = 0;
 	}
 }

@@ -23,7 +23,8 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
-			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
+			   xmlns:settings="weave.ui.settings.*"
+			   implements="weave.api.ui.IVisTool_R"
 			   layout = "absolute" xmlns:editors="weave.editors.*" >
 	<mx:Script>
 		<![CDATA[
@@ -61,9 +62,9 @@
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
 			
 			public var _plotter:ScatterPlotPlotter = null;
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// add background layer
 				visualization.plotManager.plotters.requestObject("background", RamachandranBackgroundPlotter, true);
 				

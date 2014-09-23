@@ -111,11 +111,12 @@ package weave.visualization.plotters
 		/**
 		 * This will set up the keySet so it provides keys in sorted order based on the values in a list of columns.
 		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
+		 * @param sortDirections Array of sort directions corresponding to the columns and given as integers (1=ascending, -1=descending, 0=none).
+		 * @see weave.data.KeySets.FilteredKeySet#setColumnKeySources()
 		 */
-		protected function setColumnKeySources(columns:Array, descendingFlags:Array = null):void
+		protected function setColumnKeySources(columns:Array, sortDirections:Array = null):void
 		{
-			_filteredKeySet.setColumnKeySources(columns, descendingFlags);
+			_filteredKeySet.setColumnKeySources(columns, sortDirections);
 		}
 		
 		/**

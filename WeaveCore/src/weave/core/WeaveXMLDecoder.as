@@ -66,7 +66,7 @@ package weave.core
 		/**
 		 * The list of packages to check for classes when calling getClassDefinition().
 		 */
-		internal static const defaultPackages:Array = ["weave.core"];
+		internal static const defaultPackages:Array = [""];
 
 		/**
 		 * This function will check all the packages specified in the static
@@ -77,6 +77,10 @@ package weave.core
 		 */
 		public static function getClassName(className:String, packageName:String = null):String
 		{
+			const oldPkg:String = "org.openindicators";
+			if (packageName && packageName.substr(0, oldPkg.length) === oldPkg)
+				packageName = 'weave' + packageName.substr(oldPkg.length);
+			
 			for (var i:int = -1; i < defaultPackages.length; i++)
 			{
 				var pkg:String = (i < 0) ? packageName : defaultPackages[i];

@@ -32,19 +32,19 @@ package weave.core
 	 */
 	public class EditorManager implements IEditorManager
 	{
-		private const _editorLookup:Dictionary = new Dictionary();
+		private const _editorLookup:Dictionary = new Dictionary(true);
 		
 		/**
 		 * @inheritDoc
 		 */
-		public function registerEditor(objType:Class, editorType:Class):void
+		public function registerEditor(linkableObjectOrClass:Object, editorType:Class):void
 		{
 			var editorQName:String = getQualifiedClassName(editorType);
 			var interfaceQName:String = getQualifiedClassName(ILinkableObjectEditor);
 			if (!ClassUtils.classImplements(editorQName, interfaceQName))
 				throw new Error(editorQName + " does not implement " + interfaceQName);
 			
-			_editorLookup[objType] = editorType;
+			_editorLookup[linkableObjectOrClass] = editorType;
 		}
 		
 		/**
@@ -52,6 +52,10 @@ package weave.core
 		 */
 		public function getEditorClass(linkableObjectOrClass:Object):Class
 		{
+			var editorClass:Class = _editorLookup[linkableObjectOrClass] as Class;
+			if (editorClass)
+				return editorClass;
+			
 			var classQName:String = linkableObjectOrClass as String || getQualifiedClassName(linkableObjectOrClass);
 			var superClasses:Array = ClassUtils.getClassExtendsList(classQName);
 			superClasses.unshift(classQName);
@@ -59,7 +63,7 @@ package weave.core
 			{
 				classQName = superClasses[i];
 				var classDef:Class = ClassUtils.getClassDefinition(classQName);
-				var editorClass:Class = _editorLookup[classDef] as Class
+				editorClass = _editorLookup[classDef] as Class
 				if (editorClass)
 					return editorClass;
 			}

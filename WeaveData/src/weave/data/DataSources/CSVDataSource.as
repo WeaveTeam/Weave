@@ -33,6 +33,7 @@ package weave.data.DataSources
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -63,9 +64,9 @@ package weave.data.DataSources
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource_old
+	public class CSVDataSource extends AbstractDataSource_old implements IDataSource_File
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
 
 		public function CSVDataSource()
 		{
@@ -82,7 +83,7 @@ package weave.data.DataSources
 		/**
 		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
 		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
-		 */		
+		 */
 		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
 		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
 		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
@@ -119,13 +120,11 @@ package weave.data.DataSources
 		{
 			// save parsedRows only if csvData has non-null session state
 			var rows:Array = csvData.getSessionState() as Array;
-			if (rows != null && rows.length)
-			{
-				// clear url value when we specify csvData session state
-				if (url.value)
-					url.value = null;
+			// clear url value when we specify csvData session state
+			if (url.value && rows != null && rows.length)
+				url.value = null;
+			if (!url.value)
 				handleParsedRows(rows);
-			}
 		}
 		
 		/**
@@ -351,7 +350,7 @@ package weave.data.DataSources
 		
 		private function handleServletResponse(event:ResultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			var data:Array = event.result as Array;
 			if (!data)
@@ -367,7 +366,7 @@ package weave.data.DataSources
 		}
 		private function handleServletError(event:FaultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			reportError(event);
 		}
@@ -414,7 +413,11 @@ package weave.data.DataSources
 			if (metadata.hasOwnProperty(METADATA_COLUMN_INDEX))
 				return new CSVColumnNode(this, metadata[METADATA_COLUMN_INDEX]);
 			if (metadata.hasOwnProperty(METADATA_COLUMN_NAME))
-				return new CSVColumnNode(this, getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]));
+			{
+				var index:int = getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]);
+				if (index >= 0)
+					return new CSVColumnNode(this, index);
+			}
 			
 			return null;
 		}
@@ -489,7 +492,7 @@ package weave.data.DataSources
 
 			// get column id from metadata
 			var columnId:Object = metadata[METADATA_COLUMN_INDEX];
-			if (columnId)
+			if (columnId != null)
 			{
 				columnId = int(columnId);
 			}
@@ -515,6 +518,12 @@ package weave.data.DataSources
 				colIndex = colNames.indexOf(columnId);
 				colName = String(columnId);
 			}
+			if (colIndex < 0)
+			{
+				proxyColumn.dataUnavailable(lang("No such column: {0}", columnId));
+				return;
+			}
+			
 			if (!metadata[ColumnMetadata.TITLE])
 				metadata[ColumnMetadata.TITLE] = colName;
 			
@@ -597,7 +606,7 @@ package weave.data.DataSources
 		/**
 		 * @param rows The rows to get values from.
 		 * @param columnIndex If this is -1, record index values will be returned.  Otherwise, this specifies which column to get values from.
-		 * @return A list of values from the specified column, excluding the first row, which is the header.
+		 * @param outputArrayOrVector Output Array or Vector to store the values from the specified column, excluding the first row, which is the header.
 		 */		
 		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):void
 		{
@@ -691,6 +700,13 @@ internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
 		return children;
 	}
 	
-	public function getDataSource():IDataSource { return source; }
-	public function getColumnMetadata():Object { return source.generateMetadataForColumnId(source.getColumnIds()[columnIndex]); }
+	public function getDataSource():IDataSource
+	{
+		return source;
+	}
+	public function getColumnMetadata():Object
+	{
+		var id:Object = source.getColumnIds()[columnIndex];
+		return id != null && source.generateMetadataForColumnId(id);
+	}
 }

@@ -38,11 +38,13 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (dataType != null && dataType != BitmapData)
-				return super.getValueFromKey(key, dataType);
+			if (dataType == BitmapData)
+			{
+				var url:String = super.getValueFromKey(key, String) as String;
+				return getImageFromUrl(url);
+			}
 			
-			var url:String = super.getValueFromKey(key, String) as String;
-			return getImageFromUrl(url);
+			return super.getValueFromKey(key, dataType);
 		}
 		
 		//------------------------------

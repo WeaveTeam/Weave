@@ -57,7 +57,7 @@
 			{
 				super.createChildren();
 				
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("WeaveDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(WeaveDataSource));
 			}
 			
 			[Bindable] private var target:WeaveDataSource = null;

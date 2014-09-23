@@ -16,16 +16,13 @@
 package weave.api.data
 {
 	/**
-	 * IPrimitiveAttributeColumn
 	 * A primitive attribute column is one defined by primitive data and has both numeric and string
 	 * representations of its data values.
-	 * 
-	 * @author adufilie
 	 */
 	public interface IPrimitiveColumn extends IAttributeColumn
 	{
 		/**
-		 * deriveStringFromNumber
+		 * Derives a String from a Number using this column's conversion method.
 		 * @param number The numeric value to convert to a String.
 		 * @return The String representation of the given number using this column's conversion method.
 		 */

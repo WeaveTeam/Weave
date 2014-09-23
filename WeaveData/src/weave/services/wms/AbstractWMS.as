@@ -113,7 +113,7 @@ package weave.services.wms
 			if (index >= 0)
 				_pendingTiles.splice(index, 1);
 			
-			WeaveAPI.StageUtils.callLater(this, getCallbackCollection(this).triggerCallbacks);
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -184,6 +184,20 @@ package weave.services.wms
 		public function getImageHeight():int
 		{
 			return _imageHeight;
+		}
+		
+		/**
+		 * used for sorting an array of WMSTiles.
+		 */
+		protected function tileSortingComparison(a:WMSTile, b:WMSTile):int
+		{
+			// if a is lower quality (lower zoomLevel), it goes before
+			if (a.zoomLevel < b.zoomLevel)
+				return -1;
+			else if (a.zoomLevel == b.zoomLevel)
+				return 0;
+			else
+				return 1;			
 		}
 	}
 }

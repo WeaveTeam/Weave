@@ -4,7 +4,7 @@
 
 # Server requirements
 
-* Java Servlet Container (Tomcat or Glassfish)
+* Java Servlet Container (Tomcat, Glassfish, or Jetty)
 * MySQL or PostgreSQL
 
 # Installation
@@ -16,7 +16,7 @@
  * git
  * junit4
  * libservlet2.5-java
-2. Download the [Adobe Flex 3.6 SDK](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and extract it to a directory in your home dir, something like 
+2. Download the [Adobe Flex 4.5.1A SDK](http://fpdownload.adobe.com/pub/flex/sdk/builds/flex4.5/flex_sdk_4.5.1.21328A.zip) and extract it to a directory in your home directory, something like
 
  ``~/bin/flex``.
 
@@ -33,11 +33,11 @@
  Or, if you are a contributor:
 
  ``git clone git@github.com:IVPR/Weave.git``
-5. Enter the resulting Weave directory, and the subdirectory it contains named ``WeaveClient.``
-6. Edit the ``buildall.xml`` file. Be sure to set ``WEAVE_DOCROOT`` to some path writable by your user, and to set SDK_VERSION as appropriate for the SDK version. More information can be found in the comments of the file.
+5. Enter the resulting Weave directory.
+6. Edit the ``build.properties`` file. Be sure to set ``WEAVE_DOCROOT`` to some path writable by your user, and to set the various `*_SWF` variables to match the names of those present in your version of the Flex SDK. (The default values for the `*_SWF` variables are set with Flex 4.5.1A in mind.)
 7. Run 
 
- ``ANT_OPTS='-XX:MaxPermSize=1024m -Xms256M -Xmx512M' ant -f buildall.xml install``
+ ``ANT_OPTS='-XX:MaxPermSize=1024m -Xms256M -Xmx512M' ant install``
 
 8. Open a new file at /etc/tomcat6/Catalina/localhost/weave.xml, ie
 
@@ -47,7 +47,7 @@
  
  ``<Context path="/weave" docBase="/home/user/pub/app">``
 	
- Modifying ``docBase`` as appropriate NOTE: It should match the value of WEAVE_DOCROOT. 
+ Modifying ``docBase`` to match the value of WEAVE_DOCROOT.
 8. Copy ``WeaveServices.war`` from the source directory into ``/var/lib/tomcat7/webapps``.
 9. Restart the tomcat service as appropriate for your distribution. For example, on Ubuntu/Debian:
  ``sudo service tomcat7 restart``
@@ -56,6 +56,7 @@
  ``"http://localhost:8080/weave/weave.html"`` 
  		or
  ``"http://localhost:8080/weave/AdminConsole.html"`` 
- 
 
  to test.
+
+Alternatively, the 'dist' target may be used to build a zip file containing both the WeaveServices.war and the Weave ROOT folder so you can deploy it on another system.

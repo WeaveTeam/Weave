@@ -28,16 +28,16 @@ package weave.api.core
 		function get internalObject():ILinkableObject;
 		
 		/**
-		 * This is the name of the linked global object, or null if the internal object is local.
+		 * This is the path that is currently being watched for linkable object targets.
 		 */
-		function get globalName():String;
+		function get targetPath():Array;
 
 		/**
-		 * This function will change the internalObject if the new globalName is different, unless this object is locked.
-		 * If a new global name is given, the session state of the new global object will take precedence.
-		 * @param newGlobalName This is the name of the global object to link to, or null to unlink from the current global object.
+		 * This will set a path which should be watched for new targets.
+		 * Callbacks will be triggered immediately if the path points to a new target.
+		 * @param newPath The new path to watch.
 		 */
-		function set globalName(newGlobalName:String):void;
+		function set targetPath(newPath:Array):void;
 
 		/**
 		 * This function creates a global object using the given Class definition if it doesn't already exist.

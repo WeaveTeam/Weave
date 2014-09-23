@@ -68,14 +68,20 @@ package weave.menus
 			return WeaveAPI.StageUtils.stage;
 		}
 		
-		public static const staticItems:Array = createItems(
+		public static const staticItems:Array = createItems([
 			{
 				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableUserPreferences]},
 				label: lang("Preferences"),
 				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); }
 			},
 			TYPE_SEPARATOR,
-			ToolsMenu.dashboardItem,
+			{
+				label: function():String {
+					var dash:Boolean = Weave.properties.dashboardMode.value;
+					return lang((dash ? "Disable" : "Enable") + " dashboard mode");
+				},
+				click: Weave.properties.dashboardMode
+			},
 			TYPE_SEPARATOR,
 			{
 				shown: Weave.properties.enableFullScreen,
@@ -164,7 +170,7 @@ package weave.menus
 					return false;
 				}
 			}
-		);
+		]);
 		
 		public static function get dynamicItems():Array
 		{
@@ -187,18 +193,15 @@ package weave.menus
 		
 		public function WindowMenu()
 		{
-			var cachedItems:Array;
 			super({
+				source: WeaveAPI.globalHashMap.childListCallbacks,
 				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
 				label: lang("Window"),
 				children: function():Array {
-					if (detectLinkableObjectChange(this, WeaveAPI.globalHashMap.childListCallbacks))
-						cachedItems = createItems(
-							staticItems,
-							TYPE_SEPARATOR,
-							dynamicItems
-						);
-					return cachedItems;
+					return createItems([
+						staticItems,
+						dynamicItems
+					]);
 				}
 			});
 		}

@@ -48,22 +48,22 @@ package
 	public class WeaveAPI
 	{
 		/**
-		 * For use with StageUtils.startTask(); this priority is used for things that must be done before anything else.
+		 * For use with StageUtils.startTask(); this priority is used for things that MUST be done before anything else.
 		 * Tasks having this priority will take over the scheduler and prevent any other asynchronous task from running until it is completed.
 		 */
-		public static const TASK_PRIORITY_0_IMMEDIATE:uint = 0;
+		public static const TASK_PRIORITY_IMMEDIATE:uint = 0;
 		/**
-		 * For use with StageUtils.startTask(); this priority is associated with rendering.
+		 * For use with StageUtils.startTask().
 		 */
-		public static const TASK_PRIORITY_1_RENDERING:uint = 1;
+		public static const TASK_PRIORITY_HIGH:uint = 1;
 		/**
-		 * For use with StageUtils.startTask(); this priority is associated with data manipulation tasks such as building an index.
+		 * For use with StageUtils.startTask().
 		 */
-		public static const TASK_PRIORITY_2_BUILDING:uint = 2;
+		public static const TASK_PRIORITY_NORMAL:uint = 2;
 		/**
-		 * For use with StageUtils.startTask(); this priority is associated with parsing raw data.
+		 * For use with StageUtils.startTask().
 		 */
-		public static const TASK_PRIORITY_3_PARSING:uint = 3;
+		public static const TASK_PRIORITY_LOW:uint = 3;
 		
 		/**
 		 * Static instance of ClassRegistry
@@ -271,7 +271,7 @@ package
 		
 		/**
 		 * This function will initialize the external API so calls can be made from JavaScript to Weave.
-		 * After initializing, this will call an external function weave.apiReady(weave) if it exists, where
+		 * After the first time this function is called, this will call an external function weave.apiReady(weave) if it exists, where
 		 * 'weave' is a pointer to the instance of Weave that was initialized.
 		 * @param scripts A list of JavaScript files containing initialization code, each given as a Class (for an embedded file) or a String.
 		 *                Within the script, the "weave" variable can be used as a pointer to the Weave instance.

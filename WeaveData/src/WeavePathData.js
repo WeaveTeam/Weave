@@ -485,7 +485,6 @@ var DC = 'weave.data.AttributeColumns::DynamicColumn';
 var RC = 'weave.data.AttributeColumns::ReferencedColumn';
 var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {types: [EDC, DC, RC]});
 var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]', null, ['weave.api.data.IDataSource']);
-var createCSVRow = weave.evaluateExpression(null, 'WeaveAPI.CSVParser.createCSVRow');
 
 /**
  * Sets the metadata for a column at the current path.

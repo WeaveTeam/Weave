@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -133,9 +134,9 @@ package weave.visualization.plotters
 						f.font = font.getValueFromKey(recordKey, String) as String;
 						f.size = size.getValueFromKey(recordKey, Number);
 						f.color = color.getValueFromKey(recordKey, Number);
-						f.bold = bold.getValueFromKey(recordKey, Boolean) as Boolean;
-						f.italic = italic.getValueFromKey(recordKey, Boolean) as Boolean;
-						f.underline = underline.getValueFromKey(recordKey, Boolean) as Boolean;
+						f.bold = StandardLib.asBoolean(bold.getValueFromKey(recordKey, Number));
+						f.italic = StandardLib.asBoolean(italic.getValueFromKey(recordKey, Number));
+						f.underline = StandardLib.asBoolean(underline.getValueFromKey(recordKey, Number));
 		
 						var shouldRender:Boolean = true;
 						

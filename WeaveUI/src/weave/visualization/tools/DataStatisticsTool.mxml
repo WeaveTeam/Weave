@@ -32,7 +32,7 @@
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
 				autoLayout="true"
-				implements="weave.api.ui.IVisTool" xmlns:ui="weave.ui.*"
+				implements="weave.api.ui.IVisTool_R" xmlns:ui="weave.ui.*"
 				>
 	
 	<mx:HBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
@@ -93,9 +93,9 @@
 			private var columnObjectCollection:ArrayCollection = new ArrayCollection();
 			
 			private static var statToolInstance : DataStatisticsTool = null;
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();				
+				super.inConstructor();				
 				
 			}
 			public static function getStatToolInstance():DataStatisticsTool 

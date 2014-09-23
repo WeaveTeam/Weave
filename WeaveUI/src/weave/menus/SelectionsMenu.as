@@ -81,7 +81,7 @@ package weave.menus
 				label: lang("Selections"),
 				children: function(menu:WeaveMenuItem):Array {
 					if (detectLinkableObjectChange(menu, Weave.savedSelectionKeySets))
-						cachedItems = createItems(
+						cachedItems = createItems([
 							{
 								shown: Weave.properties.enableSaveCurrentSelection,
 								label: lang("Save current selection..."),
@@ -116,7 +116,7 @@ package weave.menus
 							Weave.savedSelectionKeySets.getObjects().map(function(selection:Object, ..._):* {
 								return {label: getItemLabel, click: copyItemState, data: selection};
 							})
-						);
+						]);
 					
 					return cachedItems;
 				}

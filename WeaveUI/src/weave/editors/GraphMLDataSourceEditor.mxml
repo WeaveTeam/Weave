@@ -94,7 +94,7 @@
                 super.createChildren();
 				
                 addChild(busyIndicator);
-                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("GraphMLDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(GraphMLDataSource));
 
                 nodeKeyPropertyInput.labelFunction = nodeKeyLabelFunction;
                 edgeKeyPropertyInput.labelFunction = edgeKeyLabelFunction;
@@ -210,6 +210,7 @@
                 target.edgeKeyType.value = edgeKeyTypeSelector.selectedKeyType;
                 target.edgeKeyPropertyName.value = edgeKeyPropertyInput.selectedItem as String;
 
+				target.sourceUrl.value = null; // temporary solution, fixes bug where local file update won't be detected
                 target.sourceUrl.value = sourceUrl.text;
             }
             

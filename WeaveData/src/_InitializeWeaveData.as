@@ -25,9 +25,11 @@ package
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.core.ClassUtils;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumnCache;
 	import weave.data.CSVParser;
+	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.ProjectionManager;
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
@@ -35,6 +37,9 @@ package
 
 	public class _InitializeWeaveData
 	{
+		[Embed(source="WeavePathData.js", mimeType="application/octet-stream")]
+		public static const WeavePathData:Class;
+		
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */
@@ -44,8 +49,7 @@ package
 		WeaveAPI.ClassRegistry.registerSingletonImplementation(IProjectionManager, ProjectionManager);
 		WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
 		WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
-		[Embed(source="WeavePathData.js", mimeType="application/octet-stream")]
-		public static const WeavePathData:Class;
+		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 		 */
@@ -63,5 +67,7 @@ package
 			"weave.services.collaboration",
 			"weave.services.wms"
 		);
+		ClassUtils.registerDeprecatedClass("OpenIndicatorsServletDataSource", WeaveDataSource);
+		ClassUtils.registerDeprecatedClass("OpenIndicatorsDataSource", WeaveDataSource);
 	}
 }

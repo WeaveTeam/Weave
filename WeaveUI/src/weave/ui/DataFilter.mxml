@@ -22,7 +22,7 @@
 <DraggablePanel xmlns="weave.ui.*" 
 				layout="vertical" verticalAlign="middle"
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
 	<mx:Script>
@@ -65,9 +65,9 @@
 				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				enableSubMenu.value = true;
 			}
 			

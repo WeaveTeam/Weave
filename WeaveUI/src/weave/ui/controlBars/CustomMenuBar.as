@@ -101,7 +101,7 @@ package weave.ui.controlBars
 		
 		private function repositionMenu(menu:Menu):void
 		{
-			if (!menu.parent)
+			if (!menu.parent || menu.parentMenu)
 				return;
 			
 			// always make the menu appear below the menu bar

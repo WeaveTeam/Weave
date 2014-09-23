@@ -33,11 +33,15 @@ package weave.primitives
 	{
 		/**
 		 * @param type One of the constants defined in GeometryType.
+		 * @param points An optional Array of Objects to pass to setVertices().
 		 * @see weave.primitives.GeometryType
+		 * @see #setVertices()
 		 */
-		public function SimpleGeometry(type:String = GeometryType.POLYGON)
+		public function SimpleGeometry(type:String = GeometryType.POLYGON, points:Array = null)
 		{
 			_type = type;
+			if (points)
+				setVertices(points);
 		}
 		
 		/**

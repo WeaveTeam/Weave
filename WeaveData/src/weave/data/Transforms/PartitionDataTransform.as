@@ -28,6 +28,7 @@ package weave.data.Transforms
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
@@ -37,9 +38,9 @@ package weave.data.Transforms
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.utils.VectorUtils;
 
-	public class PartitionDataTransform extends AbstractDataSource
+	public class PartitionDataTransform extends AbstractDataSource implements ISelectableAttributes
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned Table");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, PartitionDataTransform, "Partitioned table");
 
 		public static const PARTITION_VALUE_META:String = "__PartitionValue__";
 		public static const PARTITION_COLUMNNAME_META:String = "__PartitionColumnName__";
@@ -51,6 +52,15 @@ package weave.data.Transforms
 		{
 		}
 
+		public function getSelectableAttributes():Array
+		{
+			return [partitionColumn, inputColumns];
+		}
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Partition by", "Columns to partition"];
+		}
+		
 		override protected function initialize():void
 		{
 			// recalculate all columns previously requested
@@ -124,22 +134,23 @@ package weave.data.Transforms
 		
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
+			var filterValue:String = proxyColumn.getMetadata(PARTITION_VALUE_META);
+			var columnName:String = proxyColumn.getMetadata(PARTITION_COLUMNNAME_META);
+			var inputColumn:IAttributeColumn = inputColumns.getObject(columnName) as IAttributeColumn;
+			if (!inputColumn)
+			{
+				proxyColumn.dataUnavailable();
+				return;
+			}
 
-			var metadata:Object = proxyColumn.getProxyMetadata();
-			var columnName:String = metadata[PARTITION_COLUMNNAME_META];
-			var value:String = metadata[PARTITION_VALUE_META];
-			
-			var column:IAttributeColumn = inputColumns.getObject(columnName) as IAttributeColumn;
-
-			var newFilteredColumn:FilteredColumn = new FilteredColumn();
-			var filter:StringDataFilter = newFilteredColumn.filter.requestLocalObject(StringDataFilter, false);
+			var filteredColumn:FilteredColumn = proxyColumn.getInternalColumn() as FilteredColumn || new FilteredColumn();
+			var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
 
 			filter.column.requestLocalObjectCopy(partitionColumn);
-			filter.stringValue.value = value;
-
-			newFilteredColumn.internalDynamicColumn.requestLocalObjectCopy(column);
-
-			proxyColumn.setInternalColumn(newFilteredColumn);
+			filter.stringValue.value = filterValue;
+			filteredColumn.internalDynamicColumn.requestLocalObjectCopy(inputColumn);
+			
+			proxyColumn.setInternalColumn(filteredColumn);
 		}
 	}
 }

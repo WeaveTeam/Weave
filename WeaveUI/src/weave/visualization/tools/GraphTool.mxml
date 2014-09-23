@@ -29,6 +29,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
+		 implements="weave.api.ui.IVisTool_R"
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
@@ -54,9 +55,9 @@
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
 			public var _labelPlotter:GraphLabelPlotter = null;
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				_plotter = initializePlotters(GraphPlotter, false);
 				// create new label layer

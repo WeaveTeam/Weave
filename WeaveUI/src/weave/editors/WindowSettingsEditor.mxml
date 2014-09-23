@@ -79,6 +79,9 @@
 			
 			public function set target(panel:DraggablePanel):void
 			{
+				if (_panel == panel)
+					return;
+				
 				if (_panel)
 					throw new Error(lang("target should not be set more than once"));
 				

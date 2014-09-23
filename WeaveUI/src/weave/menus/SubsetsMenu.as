@@ -93,7 +93,7 @@ package weave.menus
 				label: lang("Subsets"),
 				children: function(menu:WeaveMenuItem):Array {
 					if (detectLinkableObjectChange(menu, Weave.savedSubsetsKeyFilters))
-						cachedItems = createItems(
+						cachedItems = createItems([
 							{
 								shown: Weave.properties.enableCreateSubsets,
 								label: lang("Create subset from selected records"),
@@ -162,7 +162,7 @@ package weave.menus
 							Weave.savedSubsetsKeyFilters.getObjects().map(function(subset:Object, ..._):* {
 								return {label: getItemLabel, click: copyItemState, data: subset};
 							})
-						);
+						]);
 					
 					return cachedItems;
 				}

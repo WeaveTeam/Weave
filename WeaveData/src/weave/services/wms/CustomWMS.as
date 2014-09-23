@@ -18,7 +18,6 @@ package weave.services.wms
 	import weave.core.LinkableVariable;
 	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
-	import weave.utils.AsyncSort;
 	import weave.utils.ZoomUtils;
 
 	public class CustomWMS extends AbstractWMS
@@ -211,7 +210,7 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			StandardLib.sort(tiles, tileSortingComparison);
 			return tiles;
 		}
 		
@@ -384,20 +383,6 @@ package weave.services.wms
 				'{bbox}', [data.getXMin(), data.getYMin(), data.getXMax(), data.getYMax()].join(','),
 				'{size}', [_imageWidth, _imageHeight].join(',')
 			);
-		}
-		
-		/**
-		 * This is a private method used for sorting an array of WMSTiles.
-		 */ 
-		private function tileSortingComparison(a:WMSTile, b:WMSTile):int
-		{
-			// if a is lower quality (lower zoomLevel), it goes before
-			if (a.zoomLevel < b.zoomLevel)
-				return -1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return 1;			
 		}
 	}
 }

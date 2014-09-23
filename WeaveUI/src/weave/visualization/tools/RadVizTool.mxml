@@ -85,9 +85,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
 			public const enabelAnnuliCircles:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(RadVizPlotter, false);
@@ -111,7 +111,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override public function initSelectableAttributes(input:Array):void
 			{
-				input.forEach(function(item:Object, i:int, a:Array):void {
+				input.slice(0,10).forEach(function(item:Object, i:int, a:Array):void {
 					ColumnUtils.initSelectableAttribute(_plotter.columns, item, i == 0);
 				});
 			}

@@ -41,9 +41,9 @@
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				showLinkControls = true;
 			}
 			

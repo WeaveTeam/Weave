@@ -136,6 +136,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.compiler.Compiler;
+			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.StageUtils;
@@ -168,9 +169,9 @@ A text editor to change the Session State on the fly.
 			private const _nameColumn:DataGridColumn = new DataGridColumn(NAME_FIELD);
 			private const _valueColumn:DataGridColumn = new DataGridColumn(VALUE_FIELD);
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				_nameColumn.headerText = lang(NAME_FIELD);
 				_valueColumn.headerText = lang(VALUE_FIELD);
 			}
@@ -386,7 +387,7 @@ A text editor to change the Session State on the fly.
 
 		    private function linkSelectedObject():void
 		    {
-				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
+				var dynamicObject:LinkableDynamicObject = sessionNav.getSelectedLinkableObject() as LinkableDynamicObject;
 		    	if (dynamicObject)
 		    	{
 		    		dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
@@ -399,7 +400,7 @@ A text editor to change the Session State on the fly.
 				if (selectedItem)
 					console.context = selectedItem.object;
 				
-				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
+				var dynamicObject:LinkableDynamicObject = sessionNav.getSelectedLinkableObject() as LinkableDynamicObject;
 				if (dynamicObject)
 				{
 					linkNameInput.text = dynamicObject.globalName;

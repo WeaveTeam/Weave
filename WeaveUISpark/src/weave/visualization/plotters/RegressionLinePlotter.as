@@ -60,7 +60,7 @@ package weave.visualization.plotters
 			// hack to fix old session states
 			_filteredKeySet.addImmediateCallback(this, function():void {
 				if (_filteredKeySet.keyFilter.internalObject == null)
-					_filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+					_filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 			});
 		}
 		

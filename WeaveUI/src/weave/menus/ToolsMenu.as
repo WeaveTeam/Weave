@@ -22,6 +22,7 @@ package weave.menus
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
@@ -29,6 +30,7 @@ package weave.menus
 	import mx.core.IToolTip;
 	import mx.core.UIComponent;
 	import mx.managers.ToolTipManager;
+	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.core.ICallbackCollection;
@@ -36,7 +38,13 @@ package weave.menus
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
+	import weave.api.ui.IInitSelectableAttributes;
 	import weave.api.ui.IVisTool;
+	import weave.api.ui.IVisTool_Basic;
+	import weave.api.ui.IVisTool_R;
+	import weave.api.ui.IVisTool_Utility;
+	import weave.compiler.StandardLib;
+	import weave.core.ClassUtils;
 	import weave.ui.AddExternalTool;
 	import weave.ui.ColorController;
 	import weave.ui.DraggablePanel;
@@ -44,6 +52,8 @@ package weave.menus
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.collaboration.CollaborationEditor;
+	import weave.utils.AsyncSort;
+	import weave.utils.ColumnUtils;
 
 	public class ToolsMenu extends WeaveMenuItem
 	{
@@ -65,9 +75,13 @@ package weave.menus
 			// put panel in front
 			WeaveAPI.globalHashMap.setNameOrder([name]);
 			
-			// open control panel for new tool
+			var iisa:IInitSelectableAttributes = object as IInitSelectableAttributes;
+			if (iisa)
+				iisa.initSelectableAttributes(ColumnUtils.getColumnsWithCommonKeyType());
+			
+			// add "Start here" tip for a panel
 			var dp:DraggablePanel = object as DraggablePanel;
-			if (dp && dp.controlPanel)
+			if (dp)
 				dp.callLater(handleDraggablePanelAdded, [dp]);
 			
 			return object;
@@ -111,27 +125,22 @@ package weave.menus
 		
 		private static const notDash:Object = {not: Weave.properties.dashboardMode};
 		
-		public static const staticItems:Array = createItems(
+		public static const staticItems:Array = createItems([
 			{
-				shown: [notDash, Weave.properties.showColorController],
+				shown: [Weave.properties.showColorController],
 				label: lang("Color Controller"),
 				click: openStaticInstance,
 				data: ColorController
 			},{
-				shown: [notDash, Weave.properties.showProbeToolTipEditor],
+				shown: [Weave.properties.showProbeToolTipEditor],
 				label: lang("Edit Mouseover Info"),
 				click: openStaticInstance,
 				data: ProbeToolTipEditor
 			},{
 				shown: [notDash, Weave.properties.showProbeWindow],
-				label: lang("Mouseover Window"),
+				label: lang("Show Mouseover Window"),
 				click: createGlobalObject,
 				data: [ProbeToolTipWindow, "ProbeToolTipWindow"]
-			},{
-				shown: [notDash, Weave.properties.showEquationEditor],
-				label: lang("Equation Column Editor"),
-				click: openStaticInstance,
-				data: EquationEditor
 			},{
 				shown: [notDash, Weave.properties.showCollaborationEditor],
 				label: lang("Collaboration Settings"),
@@ -142,54 +151,81 @@ package weave.menus
 				label: lang("Add external tool..."),
 				click: AddExternalTool.show
 			}
-		);
+		]);
 		
-		public static function getDynamicItems(labelFormat:String = null):Array
+		public static function getVisToolDisplayName(implementation:Class):String
+		{
+			var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(implementation);
+			if (ClassUtils.classImplements(getQualifiedClassName(implementation), getQualifiedClassName(IVisTool_R)))
+				return lang("{0} ({1})", displayName, lang("Requires Rserve"));
+			return displayName;
+		}
+		
+		/**
+		 * Gets an Array of WeaveMenuItem objects for creating IVisTools.
+		 * @param labelFormat A format string to be passed to lang().
+		 * @param itemVistor A function like function(item:WeaveMenuItem):void that will be called for each tool menu item.
+		 * @param flatList Set this to true to get a flat list of items rather than a nested menu structure.
+		 */
+		public static function getDynamicItems(labelFormat:String = null, itemVisitor:Function = null, flatList:Boolean = false):Array
 		{
 			function getToolItemLabel(item:WeaveMenuItem):String
 			{
-				var displayName:String = WeaveAPI.ClassRegistry.getDisplayName(item.data as Class);
-				if (labelFormat)
-					return lang(labelFormat, displayName);
-				return displayName;
+				var displayName:String = getVisToolDisplayName(item.data as Class);
+				return labelFormat ? lang(labelFormat, displayName) : displayName;
 			}
 			return createItems(
-				WeaveAPI.ClassRegistry.getImplementations(IVisTool).map(function(impl:Class, ..._):* {
-					return {
-						shown: [notDash, Weave.properties.getToolToggle(impl)],
-						label: getToolItemLabel,
-						click: createGlobalObject,
-						data: impl
-					};
-				})
+				ClassUtils.partitionClassList(
+					WeaveAPI.ClassRegistry.getImplementations(IVisTool),
+					IVisTool_Basic,
+					IVisTool_Utility,
+					IVisTool_R
+				).map(
+					function(group:Array, iGroup:int, groups:Array):* {
+						var items:Array = group.map(
+							function(impl:Class, i:int, a:Array):* {
+								var item:WeaveMenuItem = new WeaveMenuItem({
+									shown: [notDash, Weave.properties.getToolToggle(impl)],
+									label: getToolItemLabel,
+									click: createGlobalObject,
+									data: impl
+								});
+								if (itemVisitor != null)
+									itemVisitor(item);
+								return item;
+							}
+						);
+						if (!flatList && iGroup == groups.length - 1)
+							return {
+								shown: [notDash, function():Boolean { return this.children.length > 0 }],
+								label: lang('Other tools'),
+								children: items
+							};
+						return items;
+					}
+				)
 			);
 		}
 		
-		public static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
-			label: function():String {
-				var dash:Boolean = Weave.properties.dashboardMode.value;
-				return lang((dash ? "Disable" : "Enable") + " dashboard mode");
-			},
+		private static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
+			shown: Weave.properties.dashboardMode,
+			label: lang("Disable dashboard mode"),
 			click: Weave.properties.dashboardMode
 		});
 			
 		public function ToolsMenu()
 		{
-			var cachedItems:Array;
 			super({
+				source: Weave.properties.toolToggles.childListCallbacks,
 				shown: Weave.properties.enableDynamicTools,
 				label: lang("Tools"),
 				children: function():Array
 				{
-					if (detectLinkableObjectChange(this, Weave.properties.toolToggles.childListCallbacks))
-						cachedItems = createItems(
-							staticItems,
-							TYPE_SEPARATOR,
-							getDynamicItems("Add {0}"),
-							TYPE_SEPARATOR,
-							dashboardItem
-						);
-					return cachedItems;
+					return createItems([
+						staticItems,
+						getDynamicItems("+ {0}"),
+						dashboardItem
+					]);
 				}
 			});
 		}

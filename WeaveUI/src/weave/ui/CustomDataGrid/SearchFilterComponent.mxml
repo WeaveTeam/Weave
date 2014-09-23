@@ -29,8 +29,8 @@
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableString;
 			 
-			public var column:CustomDataGridColumn;
-			public function mapColumnToFilter(column:CustomDataGridColumn):void
+			public var column:DataGridColumnForQKeyWithFilterAndGraphics;
+			public function mapColumnToFilter(column:DataGridColumnForQKeyWithFilterAndGraphics):void
 			{
 				this.column = column;
 			}

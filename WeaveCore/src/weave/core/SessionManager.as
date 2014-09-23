@@ -30,8 +30,6 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
-	import mx.binding.utils.BindingUtils;
-	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncResponder;
@@ -50,7 +48,6 @@ package weave.core
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
-	import weave.utils.AsyncSort;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -261,20 +258,23 @@ package weave.core
 			}
 			else
 			{
+				var deprecatedLookup:Object = null;
 				if (object is ILinkableDynamicObject)
 				{
 					// do not show static object in tree
-					names = (object as ILinkableDynamicObject).globalName ? null : [null];
+					names = (object as ILinkableDynamicObject).targetPath ? null : [null];
 				}
 				else if (object)
 				{
 					names = getLinkablePropertyNames(object);
+					var className:String = getQualifiedClassName(object);
+					deprecatedLookup = classNameToDeprecatedGetterLookup[className];
 				}
 				for each (var name:String in names)
 				{
 					if (object is ILinkableDynamicObject)
 						childObject = (object as ILinkableDynamicObject).internalObject;
-					else
+					else if (!deprecatedLookup[name])
 						childObject = object[name];
 					if (!childObject)
 						continue;
@@ -593,8 +593,8 @@ package weave.core
 				}
 			}
 			
-			AsyncSort.sortImmediately(propertyNames);
-			AsyncSort.sortImmediately(deprecatedSetters);
+			StandardLib.sort(propertyNames);
+			StandardLib.sort(deprecatedSetters);
 			
 			classNameToSessionedPropertyNames[classQName] = propertyNames;
 			classNameToDeprecatedSetterNames[classQName] = deprecatedSetters;
@@ -757,7 +757,8 @@ package weave.core
 				
 				// when there are no more tasks, check later to see if callbacks trigger
 				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
-				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+				// immediate priority because we want to trigger as soon as possible
+				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{
@@ -1032,9 +1033,13 @@ package weave.core
 				
 				// if the object is an ILinkableVariable, unlink it from all bindable properties that were previously linked
 				if (linkableObject is ILinkableVariable)
-					for (var bindableParent:* in _watcherMap[linkableObject])
-						for (var bindablePropertyName:String in _watcherMap[linkableObject][bindableParent])
-							unlinkBindableProperty(linkableObject as ILinkableVariable, bindableParent, bindablePropertyName);
+				{
+					// this technically should not be necessary...
+					for (var bindableParent:* in _synchronizers.dictionary[linkableObject])
+						for each (var synchronizer:Synchronizer in _synchronizers.get(linkableObject, bindableParent))
+							disposeObject(synchronizer);
+					delete _synchronizers.dictionary[linkableObject];
+				}
 				
 				// unlink this object from all other linkable objects
 				for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
@@ -1172,6 +1177,8 @@ package weave.core
 		 */
 		public function getPath(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
+			if (!descendant)
+				return null;
 			var tree:Object = getSessionStateTree(root, null);
 			var path:Array = _getPath(tree, descendant);
 			return path;
@@ -1200,7 +1207,7 @@ package weave.core
 			var object:ILinkableObject = root;
 			for each (var propertyName:Object in path)
 			{
-				if (object == null)
+				if (object == null || _disposedObjectsMap[object])
 					return null;
 				if (object is ILinkableHashMap)
 				{
@@ -1221,7 +1228,7 @@ package weave.core
 					object = object[propertyName] as ILinkableObject;
 				}
 			}
-			return object;
+			return _disposedObjectsMap[object] ? null : object;
 		}
 		
 		
@@ -1300,23 +1307,6 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
-		private const VALUE_NOT_ACCEPTED:String = lang('Value not accepted.'); // errorString used by linkBindableProperty
-		
-		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
-		{
-			var link:String = (useLinkableBefore && useLinkableAfter ? 'LINK' : 'link') + '(' + ObjectUtil.toString(linkVal) + ')';
-			var bind:String = (!useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind') + '(' + ObjectUtil.toString(bindVal) + ')';
-			var str:String = link + ', ' + bind;
-			if (useLinkableBefore && !useLinkableAfter)
-				str = link + ' = ' + bind;
-			if (!useLinkableBefore && useLinkableAfter)
-				str = bind + ' = ' + link;
-			if (callingLater)
-				str += ' (callingLater)';
-			
-			trace(str);
-		}*/
-		
 		/**
 		 * @inheritDoc
 		 */
@@ -1334,176 +1324,16 @@ package weave.core
 				return;
 			}
 			
-			// unlink in case previously linked
+			// unlink in case previously linked (prevents double-linking)
 			unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
 			
-			// initialize dictionaries
-			if (_watcherMap[linkableVariable] === undefined)
-				_watcherMap[linkableVariable] = new Dictionary(true);
-			if (_watcherMap[linkableVariable][bindableParent] === undefined)
-				_watcherMap[linkableVariable][bindableParent] = new Object();
+			if (objectWasDisposed(linkableVariable))
+				return;
 			
-			var callbackCollection:ICallbackCollection = getCallbackCollection(linkableVariable);
-			var watcher:ChangeWatcher = null;
-			var useLinkableValue:Boolean = true;
-			var callLaterTime:int = 0;
-			var uiComponent:UIComponent = bindableParent as UIComponent;
-			var recursiveCall:Boolean = false;
-			// When given zero parameters, this function copies the linkable value to the bindable value.
-			// When given one or more parameters, this function copies the bindable value to the linkable value.
-			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
-			{
-				// unlink if linkableVariable was disposed
-				if (objectWasDisposed(linkableVariable))
-				{
-					unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
-					return;
-				}
-				// stop if unlinked
-				var test:Object;
-				if (!(test = _watcherMap[linkableVariable]) || !(test = test[bindableParent]) || !test.hasOwnProperty(bindablePropertyName))
-					return;
-				
-				/*debugLink(
-					linkableVariable.getSessionState(),
-					firstParam===undefined ? bindableParent[bindablePropertyName] : firstParam,
-					useLinkableValue,
-					firstParam===undefined,
-					callingLater
-				);*/
-				
-				// If bindableParent has focus:
-				// When linkableVariable changes, update bindable value only when focus is lost (callLaterTime = int.MAX_VALUE).
-				// When bindable value changes, update linkableVariable after a delay.
-				
-				if (!callingLater)
-				{
-					// remember which value changed last -- the linkable one or the bindable one
-					useLinkableValue = firstParam === undefined; // true when called from linkable variable grouped callback
-					// if we're not calling later and there is already a timestamp, just wait for the callLater to trigger
-					if (callLaterTime)
-					{
-						// if there is a callLater waiting to trigger, update the target time
-						callLaterTime = useLinkableValue ? int.MAX_VALUE : getTimer() + delay;
-						
-						//trace('\tdelaying the timer some more');
-						
-						return;
-					}
-				}
-				
-				// if the bindable value is not a boolean and the bindable parent has focus, delay synchronization
-				var bindableValue:Object = bindableParent[bindablePropertyName];
-				if (!(bindableValue is Boolean))
-				{
-					if (uiComponent)
-					{
-						var obj:DisplayObject = uiComponent.getFocus();
-						if (obj && uiComponent.contains(obj)) // has focus
-						{
-							if (linkableVariable is LinkableVariable)
-							{
-								if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
-								{
-									// clear previous error string
-									if (uiComponent.errorString == VALUE_NOT_ACCEPTED)
-										uiComponent.errorString = '';
-								}
-								else
-								{
-									// show error string if not already shown
-									if (!uiComponent.errorString)
-										uiComponent.errorString = VALUE_NOT_ACCEPTED;
-								}
-							}
-							
-							var currentTime:int = getTimer();
-							
-							// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
-							if (!callingLater)
-								callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
-							
-							// if we haven't reached the target time yet or callbacks are delayed, call later
-							if (currentTime < callLaterTime)
-							{
-								uiComponent.callLater(synchronize, [firstParam, true]); // callingLater = true
-								return;
-							}
-						}
-						else if (onlyWhenFocused && !callingLater)
-						{
-							// component does not have focus, so ignore the bindableValue.
-							return;
-						}
-						
-						// otherwise, synchronize now
-						// clear saved time stamp when we are about to synchronize
-						callLaterTime = 0;
-					}
-				}
-				
-				// if the linkable variable's callbacks are delayed, delay synchronization
-				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
-				{
-					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
-					return;
-				}
-				
-				// synchronize
-				if (useLinkableValue)
-				{
-					var linkableValue:Object = linkableVariable.getSessionState();
-					if ((bindableValue is Number) != (linkableValue is Number))
-					{
-						try {
-							if (linkableValue is Number)
-							{
-								if (isNaN(linkableValue as Number))
-									linkableValue = '';
-								else
-									linkableValue = '' + linkableValue;
-							}
-							else
-							{
-								linkableVariable.setSessionState(Number(linkableValue));
-								linkableValue = linkableVariable.getSessionState();
-							}
-						} catch (e:Error) { }
-					}
-					if (bindableValue != linkableValue)
-						bindableParent[bindablePropertyName] = linkableValue;
-					
-					// clear previous error string
-					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString == VALUE_NOT_ACCEPTED)
-						uiComponent.errorString = '';
-				}
-				else
-				{
-					var prevCount:uint = callbackCollection.triggerCounter;
-					linkableVariable.setSessionState(bindableValue);
-					// Always synchronize after setting the linkableVariable because there may
-					// be constraints on the session state that will prevent the callbacks
-					// from triggering if the bindable value does not match those constraints.
-					// This makes UIComponents update to the real value after they lose focus.
-					if (callbackCollection.triggerCounter == prevCount && !recursiveCall)
-					{
-						// avoid infinite recursion in the case where the new value is not accepted by a verifier function
-						recursiveCall = true;
-						synchronize();
-						recursiveCall = false;
-					}
-				}
-			};
-			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
-			// because that will copy from the bindable property to the sessioned property.
-			_watcherMap[linkableVariable][bindableParent][bindablePropertyName] = null; // prevents synchronize() from thinking it's unlinked
-			synchronize();
-			watcher = BindingUtils.bindSetter(synchronize, bindableParent, bindablePropertyName);
-			// save a mapping from the linkableVariable,bindableParent,bindablePropertyName parameters to the watcher for the property
-			_watcherMap[linkableVariable][bindableParent][bindablePropertyName] = watcher;
-			// when session state changes, set bindable property
-			_watcherToSynchronizeFunctionMap[watcher] = synchronize;
-			callbackCollection.addImmediateCallback(bindableParent, synchronize);
+			var lookup:Object = _synchronizers.get(linkableVariable, bindableParent);
+			if (!lookup)
+				_synchronizers.set(linkableVariable, bindableParent, lookup = {});
+			lookup[bindablePropertyName] = new Synchronizer(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused);
 		}
 		/**
 		 * @inheritDoc
@@ -1516,29 +1346,19 @@ package weave.core
 				return;
 			}
 			
-			try
+			var lookup:Object = _synchronizers.get(linkableVariable, bindableParent);
+			if (lookup && lookup[bindablePropertyName])
 			{
-				var watcher:ChangeWatcher = _watcherMap[linkableVariable][bindableParent][bindablePropertyName];
-				var cc:ICallbackCollection = getCallbackCollection(linkableVariable);
-				cc.removeCallback(_watcherToSynchronizeFunctionMap[watcher]);
-				watcher.unwatch();
-				delete _watcherMap[linkableVariable][bindableParent][bindablePropertyName];
-			}
-			catch (e:Error)
-			{
-				//trace(SessionManager, getQualifiedClassName(bindableParent), bindablePropertyName, e.getStackTrace());
+				disposeObject(lookup[bindablePropertyName])
+				delete lookup[bindablePropertyName];
 			}
 		}
 		/**
 		 * This is a multidimensional mapping, such that
-		 *     _watcherMap[linkableVariable][bindableParent][bindablePropertyName]
-		 * maps to a ChangeWatcher object.
+		 *     _synchronizers.dictionary[linkableVariable][bindableParent][bindablePropertyName]
+		 * maps to a Synchronizer object.
 		 */
-		private const _watcherMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
-		/**
-		 * This maps a ChangeWatcher object to a function that was added as a callback to the corresponding ILinkableVariable.
-		 */
-		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
+		private const _synchronizers:Dictionary2D = new Dictionary2D(true, true); // use weak links to be GC-friendly
 		
 		
 		
@@ -1589,7 +1409,7 @@ package weave.core
 				// If neither is a dynamic state array, don't compare them as such.
 				if (!DynamicState.isDynamicStateArray(oldState) && !DynamicState.isDynamicStateArray(newState))
 				{
-					if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+					if (StandardLib.compare(oldState, newState) == 0)
 						return undefined; // no diff
 					return newState;
 				}

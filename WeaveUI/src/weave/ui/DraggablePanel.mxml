@@ -47,6 +47,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -72,7 +74,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.CallbackCollection;
 			import weave.core.ClassUtils;
@@ -125,21 +128,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
-			protected const zOrderButton:MenuButton = new MenuButton([
-				{
-					label: lang('Reset'),
-					click: function():void { zOrder.value = 0; },
-					shown: function():Boolean { return zOrder.value != 0; }
-				},{
-					label: lang('Always above'),
-					click: function():void { zOrder.value = 1; },
-					shown: function():Boolean { return zOrder.value <= 0; }
-				},{
-					label: lang('Always below'),
-					click: function():void { zOrder.value = -1; },
-					shown: function():Boolean { return zOrder.value >= 0; }
-				}
-			]);
+			protected const zOrderButton:MenuButton = new MenuButton();
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
@@ -155,7 +144,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _constructorCalled:Boolean = false; // true when constructor has been called
 			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()
 			
-			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
+			[Bindable] public var enablePercentageCoords:Boolean = true;
 			
 			private var _overriddenStyles:Object = new Object();
 			private var draggablePanelCursorID:int = -1;
@@ -177,6 +166,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _mouseRolledOver:Boolean = false;
 			private var _controlPanel:ControlPanel = null;
+			private var _editorFactory:IFactory = null;
 			private var buttonSize:int = 17;
 			private var buttonOffsetFromSide:int = 5;
 			private var spaceBetweenButtons:Number = 2;
@@ -184,7 +174,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
 			private var minimizedComponentVersion:MinimizedComponent = null;
 			
-			public function get controlPanel():ControlPanel { return _controlPanel; }
+			public function get controlPanel():ControlPanel
+			{
+				return _controlPanel;
+			}
+			public function set editorFactory(factory:IFactory):void
+			{
+				_editorFactory = factory;
+			}
 
 			/**
 			 *  This method is called when a UIComponent is constructed,
@@ -199,19 +196,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					_constructorCalled = true;
 					reposition();
-					constructor();
-					afterConstructor();
+					inConstructor();
 				}
 			}
 			
 			/**
 			 * A constructor cannot be defined in MXML.
 			 * This function gets called as a result of calling the super class's constructor.
-			 * Classes that extend DraggablePanel can override this and call super.constructor().
+			 * Classes that extend DraggablePanel can override this and call super.inConstructor().
 			 * Any code that should execute in the constructor can be put into this function.
 			 * This function should not be called directly.
 			 */
-			protected function constructor():void
+			protected function inConstructor():void
 			{
 				// use capture phase on mouse down event because otherwise, if the panel is a popup,
 				// drop-down menus will be hidden behind the window after we move the window to the front.
@@ -228,13 +224,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(this).addGroupedCallback(this, updateButtonsIfSelectableAttributesChanged, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
-			}
-			
-			/**
-			 * This is called after the constructor.
-			 */
-			protected function afterConstructor():void
-			{
 			}
 			
 			/**
@@ -268,6 +257,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
 				subMenuButton.smallIcon = true;
+				zOrderButton.data = [
+					{
+						label: lang('Reset'),
+						click: function():void { zOrder.value = 0; },
+						shown: function():Boolean { return zOrder.value != 0; }
+					},{
+						label: lang('Always above'),
+						click: function():void { zOrder.value = 1; },
+						shown: function():Boolean { return zOrder.value <= 0; }
+					},{
+						label: lang('Always below'),
+						click: function():void { zOrder.value = -1; },
+						shown: function():Boolean { return zOrder.value >= 0; }
+					}
+				];
 				
 				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 				if (hashMap)
@@ -292,26 +296,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					if (getChildAt(i) is ControlPanel)
 					{
+						trace(StandardLib.substitute("Warning ({0}): Defining a ControlPanel as a child slows startup. Instead, use the editorFactory setter in DraggablePanel.", getQualifiedClassName(this).split("::").pop()));
 						_controlPanel = registerDisposableChild(this, getChildAt(i) as ControlPanel);
 						removeChild(_controlPanel);
 						break;
 					}
-				}
-				
-				if (!_controlPanel && WeaveAPI.EditorManager.getEditorClass(this))
-				{
-					_controlPanel = newDisposableChild(this, ControlPanel);
-					var editor:UIComponent = WeaveAPI.EditorManager.getNewEditor(this) as UIComponent;
-					addChild(_controlPanel);
-					removeChild(_controlPanel);
-					_controlPanel.tabNavigator.addChild(editor);
-				}
-				
-				if (_controlPanel)
-				{
-					_controlPanel.title = _controlPanel._defaultTitle = ControlPanel.getControlPanelTitle(this);
-					_controlPanel.enableSubMenu.value = true;
-					_controlPanel.sessionEditorTarget = this;
 				}
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
@@ -646,11 +635,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// calculate snap size
 				var snapStr:String = Weave.properties.windowSnapGridSize.value;
-				var usePercent:Boolean = (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages);
+				var snapToPercent:Boolean = snapStr.indexOf('%') >= 0;
+				var usePercent:Boolean = enablePercentageCoords && snapToPercent;
 				var snapNum:Number = StandardLib.asNumber(snapStr.replace('%', ''));
 				
 				// adjust snap to match panel coordinate mode
-				if (usePercent != (snapStr.indexOf('%') >= 0))
+				if (usePercent != snapToPercent)
 				{
 					if (usePercent)
 						snapNum = 100 * snapNum / Math.max(_parentWidth, _parentHeight);
@@ -779,8 +769,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			private function handleParentResize(event:Event):void
 			{
-				if (Weave.properties.enablePanelCoordsPercentageMode.value && sessionPanelCoordsAsPercentages)
-					copyCoordinatesFromSessionedProperties();
+				if (enablePercentageCoords)
+				{
+					var snapStr:String = Weave.properties.windowSnapGridSize.value;
+					if (snapStr && snapStr.indexOf("%") >= 0)
+						copyCoordinatesFromSessionedProperties();
+				}
 			}
 			
 			private function handleCloseAlertResult(event:CloseEvent):void
@@ -1193,8 +1187,55 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			protected var _controlPanelInitialized:Boolean = false;
+			
+			/**
+			 * This function is called once to initialize the controlPanel.
+			 * Override this function to add additional control panel initialization code.
+			 * Remeber to call super.initControlPanel() first.
+			 */
+			protected function initControlPanel():void
+			{
+				if (!_controlPanel && _editorFactory)
+				{
+					var component:Object = registerDisposableChild(this, _editorFactory.newInstance());
+					if (component is ControlPanel)
+					{
+						if (component.hasOwnProperty(OUTER_DOCUMENT))
+							component[OUTER_DOCUMENT] = this;
+						if (component is ILinkableObjectEditor)
+							(component as ILinkableObjectEditor).setTarget(this);
+						_controlPanel = component as ControlPanel;
+					}
+					//TODO handle other cases
+				}
+				
+				if (!_controlPanel && WeaveAPI.EditorManager.getEditorClass(this))
+				{
+					_controlPanel = newDisposableChild(this, ControlPanel);
+					var editor:UIComponent = WeaveAPI.EditorManager.getNewEditor(this) as UIComponent;
+					addChild(_controlPanel);
+					removeChild(_controlPanel);
+					_controlPanel.tabNavigator.addChild(editor);
+				}
+				
+				if (_controlPanel)
+				{
+					_controlPanel.title = _controlPanel._defaultTitle = ControlPanel.getControlPanelTitle(this);
+					_controlPanel.enableSubMenu.value = true;
+					_controlPanel.sessionEditorTarget = this;
+					_controlPanel.targets = [this];
+				}
+			}
+			
 			public function toggleControlPanel():void
 			{
+				if (!_controlPanelInitialized)
+				{
+					_controlPanelInitialized = true;
+					initControlPanel();
+				}
+
 				if (_controlPanel)
 				{
 					if (!_controlPanel.parent)
@@ -1308,8 +1349,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function get shouldShowAttributeButton():Boolean
 			{
 				return Weave.properties.enableToolControls.value
-					&& this is IObjectWithSelectableAttributes
-					&& (this as IObjectWithSelectableAttributes).getSelectableAttributes().length;
+					&& this is ISelectableAttributes
+					&& (this as ISelectableAttributes).getSelectableAttributes().length;
 			}
 			
 			private function updateButtons():void
@@ -1345,7 +1386,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// left side
 				buttons = [userControlButton, subMenuButton, attributeButton];
 				conditions = [
-					Weave.properties.enableToolControls.value && _controlPanel,
+					Weave.properties.enableToolControls.value
+						&& (_controlPanel || _editorFactory || WeaveAPI.EditorManager.getEditorClass(this)),
 					enableSubMenu.value,
 					shouldShowAttributeButton
 				];
@@ -1454,14 +1496,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function openAttributeSelector(attrIndex:int = 0):AttributeSelectorPanel
 			{
-				var tool:IObjectWithSelectableAttributes = this as IObjectWithSelectableAttributes;
+				var tool:ISelectableAttributes = this as ISelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();
 					var names:Array = tool.getSelectableAttributeNames();
 					if (attrs && attrs[attrIndex])
 					{
-						return AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex]);
+						return AttributeSelectorPanel.open(attrs[attrIndex], names[attrIndex], false, tool);
 					}
 				}
 				return null;
@@ -1770,6 +1812,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dist += increment;
 				}
 			}
+			
+			internal static const OUTER_DOCUMENT:String = 'outerDocument';
 			
 			/**
 			 * Embedded cursors

@@ -19,6 +19,8 @@
 
 package weave.utils
 {
+	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.data.IWeaveTreeNodeWithPathFinding;
 
@@ -290,6 +292,25 @@ package weave.utils
 			}
 			
 			return null;
+		}
+		
+		/**
+		 * Traverses an entire hierarchy and returns all nodes that
+		 * implement IColumnReference and have column metadata.
+		 */
+		public static function getAllColumnReferenceDescendants(source:IDataSource_File):Array
+		{
+			return getAllColumnReferences(source.getHierarchyRoot(), []);
+		}
+		private static function getAllColumnReferences(node:IWeaveTreeNode, output:Array):Array
+		{
+			var ref:IColumnReference = node as IColumnReference;
+			if (ref && ref.getColumnMetadata())
+				output.push(ref);
+			if (node)
+				for each (var child:IWeaveTreeNode in node.getChildren())
+					getAllColumnReferences(child, output);
+			return output;
 		}
 	}
 }

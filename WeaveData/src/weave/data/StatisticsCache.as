@@ -379,7 +379,8 @@ internal class ColumnStatistics implements IColumnStatistics
 		mean = NaN;
 		variance = NaN;
 		standardDeviation = NaN;
-		WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_2_BUILDING, asyncComplete);
+		// high priority because preparing data is often a prerequisite for other things
+		WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
 	}
 
 	private function iterate(stopTime:int):Number

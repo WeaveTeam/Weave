@@ -101,8 +101,8 @@ package weave.visualization.plotters
 			var radius:Number;
 			if (absoluteValueColorEnabled.value)
 			{
-				var sizeData:Number = screenRadius.getValueFromKey(recordKey);
-				var alpha:Number = fill.alpha.getValueFromKey(recordKey);
+				var sizeData:Number = screenRadius.getValueFromKey(recordKey, Number);
+				var alpha:Number = fill.alpha.getValueFromKey(recordKey, Number);
 				if( sizeData < 0 )
 					graphics.beginFill(absoluteValueColorMin.value, alpha);
 				else if( sizeData > 0 )

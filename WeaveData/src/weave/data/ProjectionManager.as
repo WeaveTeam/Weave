@@ -439,7 +439,7 @@ internal class WorkerThread implements IDisposableObject
 		numGeoms = 0;
 		for (var i:int = 0; i < keys.length; i++)
 		{
-			var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
+			var value:Array = unprojectedColumn.getValueFromKey(keys[i], Array) as Array;
 			if (value)
 				numGeoms += value.length;
 			values.push(value);
@@ -456,7 +456,10 @@ internal class WorkerThread implements IDisposableObject
 		if (numGeoms == 0)
 			asyncComplete();
 		else
-			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncComplete);
+		{
+			// TODO - assess priority assignment
+			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
+		}
 	}
 	
 	/**

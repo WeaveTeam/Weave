@@ -34,7 +34,7 @@ package weave.visualization.tools
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IVisTool;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -46,15 +46,15 @@ package weave.visualization.tools
 	import weave.utils.PlotterUtils;
 	import weave.utils.TextGraphics;
 	
-	public class CustomGraphicsTool extends DraggablePanel implements IVisTool, IObjectWithSelectableAttributes
+	public class CustomGraphicsTool extends DraggablePanel implements IVisTool, ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
 		
-		override protected function constructor():void
+		override protected function inConstructor():void
 		{
-			super.constructor();
+			super.inConstructor();
 			
-			filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+			filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 		}
 		
 		public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);

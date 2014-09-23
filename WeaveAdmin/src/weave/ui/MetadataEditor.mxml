@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
@@ -60,29 +79,33 @@
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
+	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.data.hierarchy.EntityNode;
 	import weave.services.Admin;
 	import weave.services.EntityCache;
-	import weave.utils.AsyncSort;
 	
 	override protected function createChildren():void
 	{
 		super.createChildren();
 		
 		rawChildren.addChild(new BusyIndicator(Admin.entityCache));
+		
 		removeChild(csvWindow);
 		csvWindow.enableZOrder.value = false;
 		csvWindow.minimizable.value = false;
 		csvWindow.closeable.value = true;
 		csvWindow.maximizable.value = true;
+		
+		publicMetaGrid.getSuggestedPropertyValues = Admin.instance.getSuggestedPropertyValues;
+		privateMetaGrid.getSuggestedPropertyValues = Admin.instance.getSuggestedPropertyValues;
 	}
 	
 	private static const PUBLIC_META_GRID_LABEL_FORMAT:String = 'Public ({0}){1}';
 	private static const PRIVATE_META_GRID_LABEL_FORMAT:String = 'Private ({0}){1}';
 	
 	// namespaces, public metadata names, and private metadata names are all in this same Array because it's convenient and it doesn't matter much.
-	private const preferredMetadataOrder:Array = 'internal,public,private,id,parent,type,title,keyType,dataType,number,string,dateFormat,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
+	private const preferredMetadataOrder:Array = 'internal,public,private,id,parent,type,title,keyType,dataType,number,string,aggregation,dateFormat,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
 	private function sortFieldChains(chain1:Array, chain2:Array):int
 	{
 		var level:int = (chain1[0] != chain2[0]) ? 0 : 1;
@@ -249,7 +272,7 @@
 			records.push(record);
 		}
 		var columnOrder:Array = WeaveAPI.CSVParser.getRecordFieldNames(records, true, 2);
-		AsyncSort.sortImmediately(columnOrder, sortFieldChains);
+		StandardLib.sort(columnOrder, sortFieldChains);
 		var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records, columnOrder, true, 2);
 		var csv:String = WeaveAPI.CSVParser.createCSV(rows);
 		

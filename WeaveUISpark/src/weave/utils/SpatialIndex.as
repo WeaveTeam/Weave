@@ -147,7 +147,8 @@ package weave.utils
 			// insert bounds-to-key mappings in the kdtree
 			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
 			_iterateAll(-1); // restart from first task
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_2_BUILDING, triggerCallbacks);
+			// normal priority because some things can be done without having a fully populated spatial index (?)
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, triggerCallbacks);
 		}
 		
 		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2);
@@ -252,11 +253,11 @@ package weave.utils
 			
 			return false;		
 		}
-		private static function polygonOverlapsPolyPoint(polygon:Array, point:Object):Boolean
+		private static function polygonOverlapsPolyPoint(polygon:Array, points:Object):Boolean
 		{
-			for (var i:int = 0; i < point.length; ++i)
+			for (var i:int = 0; i < points.length; ++i)
 			{
-				if (GeometryUtils.polygonOverlapsPoint(polygon, point[i].x, point[i].y))
+				if (GeometryUtils.polygonOverlapsPoint(polygon, points[i].x, points[i].y))
 					return true;
 			}
 			
@@ -267,7 +268,7 @@ package weave.utils
 			var min:Number = Number.POSITIVE_INFINITY;
 			for (var i:int = 0; i < line.length - 1; ++i)
 			{
-				var distance:Number = GeometryUtils.getUnscaledDistanceFromLine(line[i].x, line[i].y, line[i + 1].x, line[i + 1].y, x, y);
+				var distance:Number = GeometryUtils.getUnscaledDistanceFromLine(line[i].x, line[i].y, line[i + 1].x, line[i + 1].y, x, y, true);
 				min = Math.min(distance, min);
 			}			
 			return min;
@@ -547,11 +548,9 @@ package weave.utils
 								else if (genGeomIsPoint)
 								{
 									distanceSq = getMinimumUnscaledDistanceFromPolyPoint(part, xQueryCenter, yQueryCenter);
-									if (distanceSq <= Number.MIN_VALUE)
-									{
-										overlapsQueryCenter = true;
-										break;
-									}
+									// give points priority since it's unlikely they will be exactly at the center of the query bounds
+									overlapsQueryCenter = true;
+									break;
 								}
 							}
 							if (overlapCount % 2)
@@ -596,8 +595,7 @@ package weave.utils
 							// calculate the distanceSq and overlapsQueryCenter
 							if (simpleGeomIsPoly)
 							{
-								if (GeometryUtils.polygonOverlapsPoint(
-									vertices, xQueryCenter, yQueryCenter))
+								if (GeometryUtils.polygonOverlapsPoint(vertices, xQueryCenter, yQueryCenter))
 								{
 									distanceSq = 0;
 									overlapsQueryCenter = true;
@@ -619,10 +617,8 @@ package weave.utils
 							else if (simpleGeomIsPoint)
 							{
 								distanceSq = getMinimumUnscaledDistanceFromPolyPoint(vertices, xQueryCenter, yQueryCenter);
-								if (distanceSq <= Number.MIN_VALUE)
-									overlapsQueryCenter = true;
-								else 
-									overlapsQueryCenter = false;
+								// give points priority since it's unlikely they will be exactly at the center of the query bounds
+								overlapsQueryCenter = true;
 							}
 							
 							// Consider all keys until we have found one that overlaps the query center.

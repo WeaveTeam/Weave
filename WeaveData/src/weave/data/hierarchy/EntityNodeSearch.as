@@ -291,7 +291,7 @@ internal class SearchResults
 			return;
 		
 		var newIds:Array = event.result as Array;
-		if (StandardLib.arrayCompare(ids, newIds))
+		if (StandardLib.compare(ids, newIds))
 		{
 			ids = newIds;
 			rebuildLookup(cache);

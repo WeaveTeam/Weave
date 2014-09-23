@@ -24,7 +24,6 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
 	
 	/**
 	 * Asynchronous merge sort.
@@ -41,7 +40,7 @@ package weave.utils
 		 * This function will sort an Array (or Vector) immediately.
 		 * @param array An Array (or Vector) to sort in place.
 		 * @param compareFunction The function used to compare items in the array.
-		 */		
+		 */
 		public static function sortImmediately(array:*, compareFunction:Function = null):void
 		{
 			if (!_immediateSorter)
@@ -68,10 +67,10 @@ package weave.utils
 		}
 		
 		/**
-		 * This is a basic compare function similar to the default compare used by Array.sort().
+		 * Compares two primitive values.
 		 * This function is faster than ObjectUtil.compare(), but does not do deep object compare.
 		 */
-		public static function defaultCompare(a:*, b:*):int
+		public static function primitiveCompare(a:*, b:*):int
 		{
 			if (a === b)
 				return 0;
@@ -127,12 +126,12 @@ package weave.utils
 		 * The given Array (or Vector) will be modified in-place.
 		 * @param arrayToSort The Array (or Vector) to sort.
 		 * @param compareFunction A function that compares two items and returns -1, 0, or 1.
-		 * @see mx.utils.ObjectUtil#compare
+		 * @see mx.utils.ObjectUtil#compare()
 		 */
 		public function beginSort(arrayToSort:*, compareFunction:Function = null):void
 		{
 			// initialize
-			compare = compareFunction || defaultCompare;
+			compare = compareFunction;
 			original = arrayToSort || [];
 			source = original;
 			length = original.length;
@@ -156,12 +155,44 @@ package weave.utils
 			}
 			else
 			{
-				WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_2_BUILDING, done);
+				// high priority because many things cannot continue without sorting results or must be recalculated when sorting finishes
+				WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, done);
 			}
+		}
+		
+		/**
+		 * Aborts the current async sort operation.
+		 */
+		public function abort():void
+		{
+			compare = null;
+			source = original = destination = null;
+			length = subArraySize = iLeft = iRight = middle = end = elapsed = 0;
 		}
 		
 		private function iterate(stopTime:int):Number
 		{
+			if (compare === ObjectUtil.numericCompare)
+			{
+				original.sort(Array.NUMERIC);
+				return 1;
+			}
+			
+			if (compare === compareCaseInsensitive)
+			{
+				original.sort(Array.CASEINSENSITIVE);
+				return 1;
+			}
+			
+			if (compare === null)
+			{
+				if (original.length && (original[0] is Number || original[0] is Date))
+					original.sort(Array.NUMERIC);
+				else
+					original.sort(0); // Vector.sort() requires one parameter
+				return 1;
+			}
+			
 			var time:int = getTimer();
 			
 			while (getTimer() < stopTime)
@@ -234,15 +265,15 @@ package weave.utils
 				debugTrace(this,result.length,'in',elapsed/1000,'seconds');
 			
 			if (!_immediately)
-				getCallbackCollection(this).triggerCallbacks();
+				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/*************
 		 ** Testing **
 		 *************/
 		
-		//test(false); // Class('weave.utils.AsyncSort').test(false)
 		/*
+			Built-in sort is slower when using a compare function because it uses more comparisons.
 			Array.sort 50 numbers; 0.002 seconds; 487 comparisons
 			Merge Sort 50 numbers; 0.001 seconds; 208 comparisons
 			Array.sort 3000 numbers; 0.304 seconds; 87367 comparisons
@@ -256,33 +287,67 @@ package weave.utils
 			Array.sort 50000 numbers; 37.285 seconds; 10238787 comparisons
 			Merge Sort 50000 numbers; 2.603 seconds; 585089 comparisons
 		*/
-		public static function test(useDefaultSort:Boolean):void
+		/*
+			Built-in sort is faster when no compare function is given.
+			Array.sort 50 numbers; 0 seconds
+			Merge Sort 50 numbers; 0.001 seconds
+			Array.sort 3000 numbers; 0.003 seconds
+			Merge Sort 3000 numbers; 0.056 seconds
+			Array.sort 6000 numbers; 0.006 seconds
+			Merge Sort 6000 numbers; 0.123 seconds
+			Array.sort 12000 numbers; 0.012 seconds
+			Merge Sort 12000 numbers; 0.261 seconds
+			Array.sort 25000 numbers; 0.026 seconds
+			Merge Sort 25000 numbers; 0.599 seconds
+			Array.sort 50000 numbers; 0.058 seconds
+			Merge Sort 50000 numbers; 1.284 seconds
+		*/
+		private static var _testArrays:Array;
+		private static var _testType:int = -1;
+		public static function test(compare:Object, testType:int = 0):void
 		{
-			for each (var n:uint in [0,1,2,3,4,5,50,3000,6000,12000,25000,50000])
+			if (testType != _testType)
 			{
-				var array:Array = [];
-				for (var i:int = 0; i < n; i++)
-					array.push(Math.random() < .5 ? NaN : uint(Math.random()*100));
-				var array2:Array = array.concat();
+				_testType = testType;
+				_testArrays = [];
+				for each (var n:uint in [0,1,2,3,4,5,50,3000,6000,12000,25000,50000])
+				{
+					var array:Array = [];
+					for (var i:int = 0; i < n; i++)
+					{
+						if (testType == 0)
+							array.push(uint(Math.random()*100));
+						else if (testType == 1)
+							array.push(Math.random() < .5 ? NaN : uint(Math.random()*100));
+						else if (testType == 2)
+							array.push('a' + Math.random());
+					}
+					_testArrays.push(array);
+				}
+			}
+			trace("testType =", testType);
+			
+			_debugCompareFunction = compare as Function;
+			for each (var _array:Array in _testArrays)
+			{
+				var array1:Array = _array.concat();
+				var array2:Array = _array.concat();
 				
 				var start:int = getTimer();
 				_debugCompareCount = 0;
-				if (useDefaultSort)
-					array.sort();
+				if (compare === null)
+					array1.sort(0);
 				else
-					array.sort(_debugCompare);
-				trace('Array.sort', n, 'numbers;', (getTimer() - start) / 1000, 'seconds;',_debugCompareCount,'comparisons');
+					array1.sort(_debugCompareCounter);
+				trace('Array.sort', array1.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
 				
 				start = getTimer();
 				_debugCompareCount = 0;
-				if (useDefaultSort)
-					sortImmediately(array2);
-				else
-					sortImmediately(array2, _debugCompare);
+				sortImmediately(array2, compare is Function ? _debugCompareCounter : null);
 				//trace('Merge Sort', n, 'numbers;', _immediateSorter.elapsed / 1000, 'seconds;',_debugCompareCount,'comparisons');
-				trace('Merge Sort', n, 'numbers;', (getTimer() - start) / 1000, 'seconds;',_debugCompareCount,'comparisons');
+				trace('Merge Sort', array2.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
 				
-				if (array2.length == 1 && ObjectUtil.compare(array[0],array2[0]) != 0)
+				if (array2.length == 1 && ObjectUtil.compare(array1[0],array2[0]) != 0)
 					throw new Error("sort failed on array length 1");
 				
 				verifyNumbersSorted(array2);
@@ -299,10 +364,11 @@ package weave.utils
 			}
 		}
 		private static var _debugCompareCount:int = 0;
-		private static function _debugCompare(a:Object, b:Object):int
+		private static var _debugCompareFunction:Function = null;
+		private static function _debugCompareCounter(a:Object, b:Object):int
 		{
 			_debugCompareCount++;
-			return ObjectUtil.compare(a, b);
+			return _debugCompareFunction(a, b);
 		}
 	}
 }

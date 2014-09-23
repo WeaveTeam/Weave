@@ -125,7 +125,7 @@
 				});
 			}
 			
-			public static const defaultMenus:Array = WeaveMenuItem.createItems(
+			public static const defaultMenus:Array = WeaveMenuItem.createItems([
 				SessionMenu,
 				DataMenu,
 				ToolsMenu,
@@ -133,7 +133,7 @@
 				SubsetsMenu,
 				WindowMenu,
 				HelpMenu
-			);
+			]);
 			
 			public var maxLabelLength:int = 75;
 			private function trimLabel(item:WeaveMenuItem):String

@@ -70,6 +70,7 @@ import weave.utils.SQLUtils.WhereClause;
 import weave.utils.SQLUtils.WhereClause.ColumnFilter;
 import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 import weave.utils.Strings;
+
 /**
  * This class connects to a database and gets data
  * uses xml configuration file to get connection/query info
@@ -90,6 +91,11 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
+	}
+	
+	public void destroy()
+	{
+		SQLUtils.staticCleanup();
 	}
 	
 	/////////////////////
@@ -249,26 +255,26 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		double minValue = Double.NaN;
 		double maxValue = Double.NaN;
 		
-		// override config min,max with param values if given
-		if (!Double.isNaN(minParam))
-		{
-			minValue = minParam;
-		}
-		else
+		// server min,max values take priority over user-specified params
+		if (entity.publicMetadata.containsKey(PublicMetadata.MIN))
 		{
 			try {
 				minValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MIN));
 			} catch (Exception e) { }
 		}
-		if (!Double.isNaN(maxParam))
-		{
-			maxValue = maxParam;
-		}
 		else
+		{
+			minValue = minParam;
+		}
+		if (entity.publicMetadata.containsKey(PublicMetadata.MAX))
 		{
 			try {
 				maxValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MAX));
 			} catch (Exception e) { }
+		}
+		else
+		{
+			maxValue = maxParam;
 		}
 		
 		if (Double.isNaN(minValue))
@@ -497,7 +503,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		DataConfig dataConfig = getDataConfig();
 		
 		DataEntityMetadata params = new DataEntityMetadata();
-		params.setPublicMetadata(
+		params.setPublicValues(
 				PublicMetadata.ENTITYTYPE, EntityType.COLUMN,
 				PublicMetadata.KEYTYPE, keyType
 			);

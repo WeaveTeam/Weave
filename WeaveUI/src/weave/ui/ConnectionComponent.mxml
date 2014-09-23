@@ -134,6 +134,7 @@ ConnectionComponent
 		private var _prevStaticName:String = null;
 		private function handleDynamicObjChange():void
 		{
+			/*
 			var newName:String = dynamicObject.globalName
 			if(_prevStaticName != newName)
 			{
@@ -150,6 +151,7 @@ ConnectionComponent
 				// add mapping from new static name to this component
 				staticNameToConnectionComp[newName][this] = true; // save weak link in dictionary to this component
 			}
+			*/
 		}
 		
 		public function getConnectedComponents():Array
@@ -173,6 +175,7 @@ ConnectionComponent
 		
 		private function addConnection(cc:ConnectionComponent):void
 		{
+			/*
 			// link to new static name if not static already
 			if (this.dynamicObject.globalName == null)
 				this.dynamicObject.globalName = Weave.root.generateUniqueName(className).split("::").pop();
@@ -181,15 +184,18 @@ ConnectionComponent
 			
 			this.source = _connected;
 			toggleToolTip();
+			*/
 		}
 		
 		private function removeConnections():void
 		{
+			/*
 			// unlink from static name
 			dynamicObject.globalName = null;
 			
 //			this.source = _connected;
 //			toggleToolTip();
+			*/
 		}
 		
 		

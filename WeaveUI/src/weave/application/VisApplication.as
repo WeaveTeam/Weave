@@ -58,33 +58,36 @@ package weave.application
 	import weave.api.getCallbackCollection;
 	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IDataSource;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveArchive;
+	import weave.data.DataSources.CSVDataSource;
+	import weave.data.DataSources.GeoJSONDataSource;
+	import weave.data.DataSources.GraphMLDataSource;
 	import weave.data.DataSources.WeaveDataSource;
+	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
-	import weave.services.GoogleDrive;
+	import weave.editors.managers.AddDataSourcePanel;
+	import weave.editors.managers.DataSourceManager;
+	import weave.menus.SessionMenu;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
+	import weave.services.GoogleDrive;
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.DraggablePanel;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
-	import weave.ui.NewUserWizard;
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.WeaveProgressBar;
-	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
@@ -217,12 +220,6 @@ package weave.application
 			{
 				downloadConfigFile();
 			}
-
-			if (JavaScript.available)
-			{
-				JavaScript.registerMethod('loadFile', loadFile);
-				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
-			}
 		}
 
 		private function handleError():void
@@ -280,6 +277,12 @@ package weave.application
 		
 		private function downloadConfigFile():void
 		{
+			if (JavaScript.available)
+			{
+				JavaScript.registerMethod('loadFile', loadFile);
+				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
+			}
+
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
 			{
 				handleConfigFileDownloaded();
@@ -312,7 +315,6 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			WeaveAPI.callExternalWeaveReady();
 			while (_loadFileCallbacks.length)
 				(_loadFileCallbacks.shift() as Function)();
 		}
@@ -715,11 +717,65 @@ package weave.application
 			}
 		}
 
-		public function CSVWizardWithData(content:Object):void
+		public function handleDraggedFile(fileName:String, fileContent:ByteArray):void
 		{
-			var newUserWiz:NewUserWizard = new NewUserWizard();
-			WizardPanel.createWizard(this, newUserWiz);
-			newUserWiz.CSVFileDrop(content as ByteArray);
+			var ext:String = String(fileName.split('.').pop()).toLowerCase();
+			if (ext == 'weave' || ext == 'xml')
+			{
+				loadSessionState(fileContent, fileName);
+				return;
+			}
+			
+			var dataSource:*;
+			function newDataSource(type:Class):*
+			{
+				return dataSource = WeaveAPI.globalHashMap.requestObject(fileName, type, false);
+			}
+			function getFileUrl():String
+			{
+				return WeaveAPI.URLRequestUtils.saveLocalFile(fileName, fileContent);
+			}
+			
+			if (ext == 'tsv' || ext == 'txt')
+			{
+				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
+				adsp.dataSourceType = CSVDataSource;
+				var csvEditor:CSVDataSourceEditor = adsp.editor as CSVDataSourceEditor;
+				csvEditor.sourceName.text = fileName;
+				csvEditor.keyTypeSelector.selectedKeyType = fileName;
+				csvEditor.setText(fileContent.toString(), ext == 'tsv' ? '\t' : ',');
+			}
+			else if (ext == 'csv')
+			{
+				var csv:CSVDataSource = newDataSource(CSVDataSource);
+				csv.url.value = getFileUrl();
+				csv.keyType.value = fileName;
+			}
+			else if (ext == 'xls')
+			{
+				var xls:XLSDataSource = newDataSource(XLSDataSource);
+				xls.url.value = getFileUrl();
+				xls.keyType.value = fileName;
+			}
+			else if (ext == 'geojson')
+			{
+				var geojson:GeoJSONDataSource = newDataSource(GeoJSONDataSource);
+				geojson.url.value = getFileUrl();
+				geojson.keyType.value = fileName;
+			}
+			else if (ext == 'graphml')
+			{
+				var graphml:GraphMLDataSource = newDataSource(GraphMLDataSource);
+				graphml.sourceUrl.value = getFileUrl();
+				graphml.edgeKeyType.value = fileName + " (edge)";
+				graphml.nodeKeyType.value = fileName + " (node)";
+			}
+			
+			if (dataSource && !SessionMenu.initTemplate(dataSource))
+			{
+				var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager);
+				dsm.selectDataSource(dataSource);
+			}
 		}
 		
 		private var _screenshot:Image = null;
@@ -727,6 +783,8 @@ package weave.application
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
+			if (fileName)
+				Weave.fileName = fileName.split('/').pop();
 			try
 			{
 				if (getFlashVarRecover())
@@ -738,16 +796,14 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
-				if (fileName)
-					Weave.fileName = fileName.split('/').pop();
 			}
 			catch (error:Error)
 			{
 				// attempt to parse as xml
-				var xml:XML = null;
 				// check the first character because a non-xml string may still parse as a single xml text node.
 				if (String(fileContent).charAt(0) == '<')
 				{
+					var xml:XML = null;
 					try
 					{
 						xml = XML(fileContent);
@@ -757,64 +813,13 @@ package weave.application
 						// invalid xml
 						reportError(xmlError);
 					}
+					if (xml)
+						Weave.loadWeaveFileContent(xml);
 				}
 				else
 				{
 					// not an xml, so report the original error
 					reportError(error);
-				}
-				
-				if (xml)
-				{
-					// backwards compatibility:
-					var stateStr:String = xml.toXMLString();
-					while (stateStr.indexOf("org.openindicators") >= 0)
-					{
-						stateStr = stateStr.replace("org.openindicators", "weave");
-						xml = XML(stateStr);
-					}
-					var tag:XML;
-					for each (tag in xml.descendants("OpenIndicatorsServletDataSource"))
-						tag.setLocalName("WeaveDataSource");
-					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
-						tag.setLocalName("WeaveDataSource");
-					for each (tag in xml.descendants("EmptyTool"))
-						tag.setLocalName("CustomTool");
-					for each (tag in xml.descendants("WMSPlotter2"))
-						tag.setLocalName("WMSPlotter");
-					for each (tag in xml.descendants("SessionedTextArea"))
-					{
-						tag.setLocalName("SessionedTextBox");
-						tag.appendChild(<enableBorders>true</enableBorders>);
-						tag.appendChild(<htmlText>{tag.textAreaString.text()}</htmlText>);
-						tag.appendChild(<panelX>{tag.textAreaWindowX.text()}</panelX>);
-						tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
-					}
-					
-					// add missing attribute titles
-					for each (var hierarchy:XML in xml.descendants('hierarchy'))
-					{
-						for each (tag in hierarchy.descendants("attribute"))
-						{
-							if (!String(tag.@title))
-							{
-								var newTitle:String = String(tag.@csvColumn);
-								if (!newTitle && String(tag.@name) && String(tag.@year))
-									newTitle = String(tag.@name) + ' (' + tag.@year + ')';
-								else if (String(tag.@name))
-									newTitle = String(tag.@name);
-								tag.@title = newTitle || 'untitled';
-							}
-						}
-					}
-					
-					Weave.loadWeaveFileContent(xml);
-					Weave.fileName = fileName;
-					
-//					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
-//					var subset:KeyFilter = Weave.defaultSubsetKeyFilter;
-//					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
-//						subset.includeMissingKeys.value = true;
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);
@@ -845,7 +850,10 @@ package weave.application
 
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
-			this.styleName = "application";	
+			this.styleName = "application";
+			
+			Weave.properties.runStartupJavaScript();
+			WeaveAPI.callExternalWeaveReady();
 		}
 		
 		private var fadeEffect:Fade = new Fade();
@@ -946,7 +954,7 @@ package weave.application
 					_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
 						lang("Export CSV"), 
 						this,
-						function(event:ContextMenuEvent):void { exportCSV(_panelToExport as IObjectWithSelectableAttributes); },
+						function(event:ContextMenuEvent):void { exportCSV(_panelToExport as ISelectableAttributes); },
 						"4 exportMenuItems"
 					);
 				}
@@ -965,7 +973,7 @@ package weave.application
 		private var _panelPrintContextMenuItem:ContextMenuItem = null;
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
 		private var exportCSVfileRef:FileReference = new FileReference();	// CSV download file references
-		public function getSelectableAttributes(tool:IObjectWithSelectableAttributes = null):Array
+		public function getSelectableAttributes(tool:ISelectableAttributes = null):Array
 		{
 			var attrs:Array = [];
 			if (tool)
@@ -978,13 +986,13 @@ package weave.application
 				VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(IAttributeColumn), attrs);
 				// get probe columns
 				VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(ILinkableHashMap), attrs);
-				for each (var tool:IObjectWithSelectableAttributes in WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes))
+				for each (var tool:ISelectableAttributes in WeaveAPI.globalHashMap.getObjects(ISelectableAttributes))
 					VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
 			}
 			return attrs;
 		}
 			
-		public function exportCSV(tool:IObjectWithSelectableAttributes = null):void
+		public function exportCSV(tool:ISelectableAttributes = null):void
 		{
 			try
 			{

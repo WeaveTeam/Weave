@@ -45,8 +45,10 @@ package weave
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IVisTool_R;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
+	import weave.core.ClassUtils;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -98,13 +100,11 @@ package weave
 				}
 			);
 
+//			_toggleToolsMenuItem("ThermometerTool", false);
+//			_toggleToolsMenuItem("GaugeTool", false);
 			_toggleToolsMenuItem("TreeTool", false);
 			_toggleToolsMenuItem("CytoscapeWebTool", false);
-			_toggleToolsMenuItem("GraphTool", false);
 			_toggleToolsMenuItem("CustomGraphicsTool", false);
-			_toggleToolsMenuItem("DataStatisticsTool", false);
-			_toggleToolsMenuItem("RamachandranPlotTool", false);
-			_toggleToolsMenuItem("SchafersMissingDataTool", false);
 			_toggleToolsMenuItem("DataFilter", false);
 			_toggleToolsMenuItem("KeyMappingTool", false);
 			
@@ -250,12 +250,27 @@ package weave
 			var className:String = getQualifiedClassName(classDef).split('::').pop();
 			var existsPreviously:Boolean = toolToggles.getObject(className) is LinkableBoolean;
 			var toggle:LinkableBoolean = toolToggles.requestObject(className, LinkableBoolean, true); // lock
+			var deprecatedToggle:LinkableBoolean = toolToggles.getObject(toolToggleBackwardsCompatibility[className]) as LinkableBoolean;
 			if (!existsPreviously)
-				toggle.value = true; // default value
+			{
+				if (deprecatedToggle)
+				{
+					// backwards compatibility for old session states
+					toggle.value = deprecatedToggle.value;
+					toolToggles.removeObject(toolToggleBackwardsCompatibility[className]);
+				}
+				else
+				{
+					// set default value
+					var is_r_tool:Boolean = ClassUtils.classImplements(getQualifiedClassName(classDef), getQualifiedClassName(IVisTool_R));
+					toggle.value = !is_r_tool;
+				}
+			}
 			return toggle;
 		}
+		// maps new tool name to old tool name
+		private const toolToggleBackwardsCompatibility:Object = {"AdvancedDataTable": "DataTableTool", "TableTool": "DataTableTool"};
 
-		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolProbe:LinkableBoolean = new LinkableBoolean(true);
@@ -273,6 +288,8 @@ package weave
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const enableManagePlugins:LinkableBoolean = new LinkableBoolean(false); // show "manage plugins" menu item
 		public const enableSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
+		public const showCreateTemplateMenuItem:LinkableBoolean = new LinkableBoolean(true);
+		public const isTemplate:LinkableBoolean = new LinkableBoolean(false);
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
 		
@@ -290,7 +307,6 @@ package weave
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
 		
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
-		public const enableLoadMyData:LinkableBoolean = new LinkableBoolean(true); // enable/disable Load MyData option
 		public const enableBrowseData:LinkableBoolean = new LinkableBoolean(false); // enable/disable Browse Data option
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(false);
 		public const enableManageDataSources:LinkableBoolean = new LinkableBoolean(true); // enable/disable Edit Datasources option
@@ -463,11 +479,15 @@ package weave
 		 */
 		public const startupJavaScript:LinkableString = new LinkableString();
 		
+		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
+		private static const WeaveStartup:Class;
+
 		/**
 		 * This function will run the JavaScript code specified in the startupScript LinkableString.
 		 */
 		public function runStartupJavaScript():void
 		{
+			WeaveAPI.initializeJavaScript(WeaveStartup);
 			if (startupJavaScript.value)
 				JavaScript.exec({"this": "weave", "catch": reportError}, startupJavaScript.value);
 		}
@@ -563,11 +583,11 @@ package weave
 		[Deprecated(replacement="visTextFormat.underline")] public function set axisFontFontUnderline(value:Boolean):void { visTextFormat.underline.value = value; }
 		
 		[Deprecated(replacement="enableSessionHistoryControls")] public function set showSessionHistoryControls(value:Boolean):void { enableSessionHistoryControls.value = enableSessionMenu.value && value; }
-		[Deprecated(replacement="enableLoadMyData")] public function set enableNewUserWizard(value:Boolean):void { enableLoadMyData.value = value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void { showProbeToolTipEditor.value = value; }
-		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void { enablePanelCoordsPercentageMode.value = value; }
+		[Deprecated(replacement="windowSnapGridSize")] public function set enableToolAutoResizeAndPosition(value:Boolean):void { if (!value) windowSnapGridSize.value = value ? '1%' : '1'; }
+		[Deprecated(replacement="windowSnapGridSize")] public function set enablePanelCoordsPercentageMode(value:Boolean):void { if (!value) windowSnapGridSize.value = value ? '1%' : '1'; }
 		[Deprecated(replacement="rServiceURL")] public function set rServicesURL(value:String):void
 		{
 			if (value != '/OpenIndicatorsRServices')

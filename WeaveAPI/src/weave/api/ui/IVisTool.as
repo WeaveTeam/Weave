@@ -19,8 +19,6 @@ package weave.api.ui
 
 	/**
 	 * A visusalization tool that a user would want to create an instance of at runtime.
-	 * 
-	 * @author adufilie
 	 */
 	public interface IVisTool extends ILinkableObject
 	{

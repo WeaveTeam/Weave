@@ -85,11 +85,13 @@ package weave.utils
 
 		/**
 		 * @param horizontalEndPoints When true, the curve starts and ends horizontal. When false, vertical.
-		 * @param curveNormValue Values that produce nice curves range from 0 to 1, 0 being a straight line. 
+		 * @param curveNormValue Values that produce nice curves range from 0 to 1, 0 being a straight line.
+		 * @param continuingLine If true, the graphics cursor is assumed to be already at (startX,startY) and moveTo will not be used prior to drawing the curve.
 		 */
-		public static function drawDoubleCurve(graphics:Graphics, startX:Number, startY:Number, endX:Number, endY:Number, horizontalEndPoints:Boolean, curveNormValue:Number = 1):void
+		public static function drawDoubleCurve(graphics:Graphics, startX:Number, startY:Number, endX:Number, endY:Number, horizontalEndPoints:Boolean, curveNormValue:Number = 1, continuingLine:Boolean = false):void
 		{
-			graphics.moveTo(startX, startY);
+			if (!continuingLine)
+				graphics.moveTo(startX, startY);
 			
 			var dx:Number = (endX - startX);
 			var dy:Number = (endY - startY);

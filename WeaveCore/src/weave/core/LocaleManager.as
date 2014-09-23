@@ -25,7 +25,7 @@ package weave.core
 	import mx.utils.StringUtil;
 	
 	import weave.api.core.ILocaleManager;
-	import weave.utils.AsyncSort;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * @author adufilie
@@ -84,7 +84,7 @@ package weave.core
 					_gotLocaleChain = true;
 			}
 			
-			AsyncSort.sortImmediately(result);
+			StandardLib.sort(result);
 			return result;
 		}
 		

@@ -77,7 +77,7 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("XLSDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(XLSDataSource));
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
@@ -98,6 +98,7 @@
 					url.text = target.url.value;
 					keyColumnName.text = target.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(target.keyType.value);
+					keyTypeSelector.selectedKeyType = target.keyType.value;
 					uploadSection.visible = false;
 					showGridButton.visible = false;
 					sourceName.editable = false;
@@ -114,6 +115,7 @@
 			
 			public function applyChanges():void
 			{
+				target.url.value = null; // temporary solution, fixes bug where local file update won't be detected
 				target.url.value = url.text;
 				target.keyColName.value = keyColumnName.text;
 				target.keyType.value = keyTypeSelector.selectedKeyType;

@@ -273,7 +273,7 @@ import weave.utils.Strings;
 			if (metadata == null)
 			{
 				metadata = new DataEntityMetadata();
-				metadata.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.TABLE);
+				metadata.setPublicValues(PublicMetadata.ENTITYTYPE, EntityType.TABLE);
 			}
 			
 			// copy tableName to "title" property if missing
@@ -310,7 +310,7 @@ import weave.utils.Strings;
 			else
 				result.publicMetadata.put(field, value);
 		}
-		result.setPublicMetadata(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
+		result.setPublicValues(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 		return result;
 	}
 

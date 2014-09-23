@@ -25,12 +25,11 @@
 	xmlns:ui="weave.ui.*"
 	backgroundColor="#EFF4BC"
 	escapeKeyClosesPanel="true"
-	sessionPanelCoordsAsPercentages="false"
+	enablePercentageCoords="false"
 	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*">
 	<mx:HDividedBox initialize="UIUtils.pad(event, padding, 100, 100)">
 		<mx:VBox height="100%">
-			<ui:MenuButton id="createDataSource" label="{lang('New data source...')}" width="100%"
-						   initialize="createDataSource.data = DataMenu.getDynamicItems as Function;"/>
+			<ui:MenuButton id="createDataSource" label="{lang('New data source...')}" width="100%"/>
 			<ui:Paragraph translate="true">
 				Select a data source:
 			</ui:Paragraph>
@@ -47,13 +46,18 @@
 									<![CDATA[
 										menu.data = [
 											{
+												label: lang('Edit session state'),
+												click: function():void {
+													SessionStateEditor.openDefaultEditor(data as IDataSource);
+												}
+											},{
 												label: lang('Refresh hierarchy'),
 												click: function():void {
 													if (data is IDataSource)
 														(data as IDataSource).refreshHierarchy();
 												}
 											},
-											//WeaveMenuItem.TYPE_SEPARATOR,
+											WeaveMenuItem.TYPE_SEPARATOR,
 											{
 												label: lang('Delete'),
 												click: function():void {
@@ -73,6 +77,7 @@
 									import weave.api.data.IDataSource;
 									import weave.core.UIUtils;
 									import weave.menus.WeaveMenuItem;
+									import weave.ui.SessionStateEditor;
 									
 									override public function set data(value:Object):void
 									{
@@ -105,17 +110,21 @@
 							<CustomDataGrid:creationComplete>
 								<![CDATA[
 									browser.explorer.fileVBox.addChild(columnDisplay);
-									var column:IAttributeColumn = browser.referencedColumn;
-									var dgc1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
-									var dgc2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
-									columnDisplayGrid.columns = [dgc1, dgc2];
-									dataColumn.setInternalColumn(column);
-									column.addGroupedCallback(
+									var dataColumn:IAttributeColumn = browser.referencedColumn;
+									var dgcKey:DataGridColumn = new DataGridColumn();
+									var dgcValue:DataGridColumn = new DataGridColumn();
+									dgcKey.headerWordWrap = true;
+									dgcValue.headerWordWrap = true;
+									columnDisplayGrid.columns = [dgcKey, dgcValue];
+									columnDisplayGrid.labelFunction = function(key:IQualifiedKey, dgc:DataGridColumn):String {
+										return dgc == dgcKey ? key.localName : dataColumn.getValueFromKey(key, String);
+									};
+									dataColumn.addGroupedCallback(
 										this,
 										function():void {
-											var keyCount:int = column.keys.length;
+											var keyCount:int = dataColumn.keys.length;
 											columnDisplay.enabled = keyCount > 0;
-											if (linkableObjectIsBusy(column))
+											if (linkableObjectIsBusy(dataColumn))
 												columnDisplayLabel.text = lang("Loading data...");
 											else
 											{
@@ -125,12 +134,11 @@
 													StandardLib.formatNumber(keyCount)
 												);
 											}
-											columnDisplayGrid.dataProvider = column.keys;
-											keyColumn.keyType.value = column.getMetadata(ColumnMetadata.KEY_TYPE);
-											var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
-											var metadata:Object = {};
-											metadata[ColumnMetadata.TITLE] = dataType ? lang("Value ({0})", dataType) : lang("Value");
-											dataColumn.setMetadata(metadata);
+											columnDisplayGrid.dataProvider = dataColumn.keys;
+											keyColumn.keyType.value = dataColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+											var dataType:String = dataColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+											dgcKey.headerText = keyColumn.getMetadata(ColumnMetadata.TITLE);
+											dgcValue.headerText = dataType ? lang("Value ({0})", dataType) : lang("Value");
 										},
 										true
 									);
@@ -169,9 +177,14 @@
 		<mx:Script>
 			<![CDATA[
 				import weave.menus.DataMenu;
+				import weave.api.data.IQualifiedKey;
+				import weave.Weave;
+				import weave.utils.VectorUtils;
+				import mx.core.INavigatorContent;
+				import weave.menus.DataMenu;
 				import weave.api.core.ILinkableHashMap;
 				import weave.utils.ColumnUtils;
-				import weave.api.ui.IObjectWithSelectableAttributes;
+				import weave.api.ui.ISelectableAttributes;
 				import avmplus.getQualifiedClassName;
 				import weave.core.ClassUtils;
 				import weave.visualization.tools.SimpleVisTool;
@@ -198,18 +211,18 @@
 				import weave.core.UIUtils;
 				import weave.data.AttributeColumns.KeyColumn;
 				import weave.data.AttributeColumns.ProxyColumn;
-				import weave.ui.CustomDataGrid.CustomDataGridColumn;
+				import weave.ui.CustomDataGrid.DataGridColumnForQKey;
 				import weave.utils.PopUpUtils;
 				
 				private static const padding:int = 8;
 				
 				private const keyColumn:KeyColumn = newDisposableChild(this, KeyColumn);
-				private const dataColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
 					
+					createDataSource.data = function():Array { return DataMenu.getDynamicItems(null, true); }
 					initCreateVis();
 					
 					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
@@ -218,15 +231,31 @@
 				
 				private function initCreateVis():void
 				{
+					Weave.properties.dashboardMode.addImmediateCallback(this, function():void {
+						createVis.enabled = !Weave.properties.dashboardMode.value;
+					});
+					
 					browser.explorer.fileVBox.addChildAt(createVis, 0);
 					
 					function onClick(item:WeaveMenuItem):void
 					{
-						var input:Array = [].concat(browser.explorer.selectedFolder.getChildren());
+						// prioritize input columns
+						var selectedItems:Array = browser.explorer.fileView.selectedItems;
+						if (selectedItems)
+							selectedItems = selectedItems.concat().reverse();
+						var input:Array = VectorUtils.union(
+							selectedItems,
+							browser.explorer.selectedFolder.getChildren()
+						).filter(function(item:Object, i:*, a:*):Boolean {
+							return item is IColumnReference && (item as IColumnReference).getColumnMetadata() != null;
+						});
+						
+						// limit the number of input columns
 						const max_input:int = 10;
 						if (input.length > max_input)
 							input.length = max_input;
-						var obj:IObjectWithSelectableAttributes = ToolsMenu.createGlobalObject(item) as IObjectWithSelectableAttributes;
+						
+						var obj:ISelectableAttributes = ToolsMenu.createGlobalObject(item) as ISelectableAttributes;
 						if (obj is SimpleVisTool)
 						{
 							(obj as SimpleVisTool).initSelectableAttributes(input);
@@ -243,14 +272,12 @@
 						}
 					}
 					createVis.data = function():Array {
-						return ToolsMenu.getDynamicItems().filter(
-							function(item:WeaveMenuItem, ..._):Boolean {
-								item.click = onClick;
-								var qname:String = getQualifiedClassName(item.data);
-								var qname_iowsa:String = getQualifiedClassName(IObjectWithSelectableAttributes);
-								return ClassUtils.classImplements(qname, qname_iowsa);
-							}
-						);
+						return ToolsMenu.getDynamicItems(null, function(item:WeaveMenuItem):Boolean {
+							item.click = onClick;
+							var qname:String = getQualifiedClassName(item.data);
+							var qname_iowsa:String = getQualifiedClassName(ISelectableAttributes);
+							return ClassUtils.classImplements(qname, qname_iowsa);
+						});
 					};
 				}
 				
@@ -296,7 +323,7 @@
 					}
 				}
 				
-				private function selectDataSource(value:IDataSource):void
+				public function selectDataSource(value:IDataSource):void
 				{
 					sourceList.selectedItem = value;
 					handleSourceSelect(true);
@@ -314,8 +341,12 @@
 					{
 						// switch back until user confirms
 						sourceList.selectedItem = dataSource;
+						var prevTab:INavigatorContent = tabNav.selectedChild;
 						tabNav.selectedChild = editTab;
-						confirmDiscard(function():void { selectDataSource(newDataSource); });
+						confirmDiscard(function():void {
+							tabNav.selectedChild = prevTab;
+							selectDataSource(newDataSource);
+						});
 						return;
 					}
 					

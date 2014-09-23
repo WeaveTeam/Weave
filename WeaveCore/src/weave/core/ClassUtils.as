@@ -23,6 +23,9 @@ package weave.core
 	import avmplus.getQualifiedClassName;
 	
 	import flash.system.ApplicationDomain;
+	
+	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * This is an all-static class containing functions related to qualified class names.
@@ -41,6 +44,8 @@ package weave.core
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			if (domain.hasDefinition(classQName))
 				return domain.getDefinition(classQName) as Class;
+			if (classQName && classQName.indexOf("::") >= 0)
+				classQName = StandardLib.replace(classQName, "::", ".");
 			return _deprecatedLookup[classQName];
 		}
 		
@@ -54,6 +59,8 @@ package weave.core
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			if (domain.hasDefinition(classQName))
 				return true;
+			if (classQName && classQName.indexOf("::") >= 0)
+				classQName = StandardLib.replace(classQName, "::", ".");
 			return !!_deprecatedLookup[classQName];
 		}
 		
@@ -64,14 +71,21 @@ package weave.core
 		 */
 		public static function isClassDeprecated(classQName:String):Boolean
 		{
-			return cacheClassInfo(classQName) && !!_deprecatedLookup[classQName];
+			// cache class info first because in doing so we may find out the class is deprecated and register it as such.
+			if (!cacheClassInfo(classQName))
+				return false;
+			if (classQName && classQName.indexOf("::") >= 0)
+				classQName = StandardLib.replace(classQName, "::", ".");
+			return !!_deprecatedLookup[classQName];
 		}
 		
 		/**
 		 * Storage for registerDeprecatedClass()
+		 * Keys in this Object use dot notation rather than "::" package notation.
 		 * @see #registerDeprecatedClass()
+		 * @see Compiler#deprecatedClassReplacements
 		 */
-		private static const _deprecatedLookup:Object = {};
+		private static const _deprecatedLookup:Object = Compiler.deprecatedClassReplacements;
 		
 		/**
 		 * Registers a replacement class for a deprecated qualified class name.
@@ -80,15 +94,20 @@ package weave.core
 		 */
 		public static function registerDeprecatedClass(deprecatedClassQName:String, replacementClass:Class):void
 		{
+			if (deprecatedClassQName.indexOf("::") >= 0)
+				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
+			
 			_deprecatedLookup[deprecatedClassQName] = replacementClass;
 			
 			// handle case when package is not specified
-			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf(':') + 1);
+			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf('.') + 1);
 			if (!_deprecatedLookup[shortName])
 				_deprecatedLookup[shortName] = replacementClass;
 			
 			// make sure class can be looked up by name (in case it's an internal class)
 			deprecatedClassQName = getQualifiedClassName(replacementClass);
+			if (deprecatedClassQName.indexOf("::") >= 0)
+				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
 			if (!getClassDefinition(deprecatedClassQName))
 				_deprecatedLookup[deprecatedClassQName] = replacementClass;
 		}
@@ -215,6 +234,36 @@ package weave.core
 					registerDeprecatedClass(classQName, classDef);
 			
 			return true; // successfully cached
+		}
+		
+		
+		/**
+		 * Partitions a list of classes based on which interfaces they implement.
+		 * @param A list of interfaces.
+		 * @return An Array of filtered Arrays corresponding to the given interfaces, including a final
+		 *         Array containing the remaining classes that did not implement any of the given interfaces.
+		 */
+		public static function partitionClassList(classes:Array, ...interfaces):Array
+		{
+			if (interfaces.length == 1 && interfaces[0] is Array)
+				interfaces = interfaces[0];
+			var partitions:Array = [];
+			for each (var interfaceClass:Class in interfaces)
+			{
+				var partition:Array = [];
+				classes = classes.filter(function(impl:Class, i:int, a:Array):Boolean {
+					if (classImplements(getQualifiedClassName(impl), getQualifiedClassName(interfaceClass)))
+					{
+						// include in result, remove from from classes
+						partition.push(impl);
+						return false;
+					}
+					return true;
+				});
+				partitions.push(partition);
+			}
+			partitions.push(classes);
+			return partitions;
 		}
 	}
 }
