@@ -2,6 +2,8 @@ package weave.ui
 {
 	import weave.compiler.StandardLib;
 	import weave.api.core.ILinkableObject;
+	import weave.core.LinkableString;
+	import weave.api.newLinkableChild;
 
 	import mx.containers.Canvas;
 	import mx.controls.Image;
@@ -18,7 +20,7 @@ package weave.ui
 		private var lastUpdate:int = 0;
 		private var forceReadTimer:Timer;
 
-		public var sourceId:String = null;
+		public const elementId:LinkableString = newLinkableChild(this, LinkableString);
 
 
 		public function JavaScriptCanvas()
@@ -50,22 +52,18 @@ package weave.ui
 			/* Only execute on the timer tick if we haven't loaded recently */
 			if (evt.type == TimerEvent.TIMER && (getTimer() < (lastUpdate + 200)) ) return;
 
-			if (evt.type == TimerEvent.TIMER) weaveTrace("timed out, jumpstarting canvas read");
-
 			var content:String;
 
 			/* TODO convert to raw ExternalInterface */
-			if (sourceId) content = JavaScript.exec(
-				{elementId: sourceId},
+			if (elementId.value) content = JavaScript.exec(
+				{elementId: elementId.value},
 				"var canvas = document.getElementById(elementId);",
 				"return canvas && canvas.toDataURL && canvas.toDataURL().split(',').pop();");
 
-			if (sourceId && content)
+			if (elementId.value && content)
 			{
 				setImage(content);	
 			}
-			
-
 		}
 
 		public function setImage(base64:String):void
