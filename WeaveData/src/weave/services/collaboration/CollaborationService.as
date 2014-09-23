@@ -246,10 +246,7 @@ package weave.services.collaboration
 				
 				_message.addExtension(weaveExtension);
 				room.sendMessageWithExtension(_message);
-			}
-			
-			//room.sendMessageWithExtension(_message);
-			
+			}			
 		}
 		
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
