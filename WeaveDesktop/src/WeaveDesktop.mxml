@@ -16,6 +16,7 @@
 			import mx.core.FlexGlobals;
 			import mx.rpc.events.ResultEvent;
 			
+			import weave.api.reportError;
 			import weave.application.VisApp;
 			
 			public var visApp:VisApp = null
@@ -46,32 +47,49 @@
 						case "xml":
 						case "weave":
 							params['file'] = file.nativePath;
-							loadFile(file.nativePath);
-							return;
 						default:
 					}
+					WeaveAPI.StageUtils.callLater(this, loadFile, [file]);
 				}
 				var url:String = e.clipboard.getData(ClipboardFormats.URL_FORMAT) as String;
 				if (url)
 				{
-					loadFile(url);
+					loadFileUrl(url);
 					return;
 				}
 			}
+			
+			private function loadFile(file:File):void
+			{
+				file.addEventListener(Event.COMPLETE, handleFileLoadComplete);
+				file.addEventListener(IOErrorEvent.IO_ERROR, handleFileLoadError);
+				file.load();
+			}
+			private function handleFileLoadError(event:IOErrorEvent):void
+			{
+				reportError(event);
+			}
+			
+			private function handleFileLoadComplete(event:Event):void
+			{
+				var file:File = event.target as File;
+				visApp.handleDraggedFile(file.name, file.data);
+			}
+			
 			private function doDragExit(e:NativeDragEvent):void
 			{
 				
 			}
 			
-			private function loadFile(path:String):void
+			private function loadFileUrl(url:String):void
 			{
 				WeaveAPI.URLRequestUtils.getURL(
 					null,
-					new URLRequest(path),
+					new URLRequest(url),
 					function (event:ResultEvent, token:Object = null):void
 					{
-						WeaveAPI.URLRequestUtils.setBaseURL(path);
-						visApp.loadSessionState(event.result, path);
+						WeaveAPI.URLRequestUtils.setBaseURL(url);
+						visApp.loadSessionState(event.result, url);
 					}
 				);
 			}
