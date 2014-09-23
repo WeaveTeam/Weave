@@ -11,14 +11,17 @@ package weave.ui
 	import flash.events.Event;
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
+	import flash.utils.Dictionary;
 	import flash.events.TimerEvent;
 
 	public class JavaScriptCanvas extends Canvas implements ILinkableObject
 	{
 		private var buffers:Vector.<Image> = new Vector.<Image>(2, true);
 		private var buffer_index:int = 0;
-		private var lastUpdate:int = 0;
-		private var forceReadTimer:Timer;
+		private var last_update:int = 0;
+		private var buffer_dirty:Dictionary = new Dictionary();
+
+		private static const MIN_FRAME_INTERVAL:int = 1000/30;
 
 		public const elementId:LinkableString = newLinkableChild(this, LinkableString);
 
@@ -30,51 +33,76 @@ package weave.ui
 		
 		override protected function createChildren():void
 		{
-			lastUpdate = getTimer();
-			forceReadTimer = new Timer(250);
 			buffers[0] = new Image();
 			buffers[1] = new Image();
 
+			buffer_dirty[buffers[0]] = false;
+			buffer_dirty[buffers[1]] = false;
+
 			buffers[0].addEventListener(Event.COMPLETE, readFromCanvas);
 			buffers[1].addEventListener(Event.COMPLETE, readFromCanvas);
-			forceReadTimer.addEventListener(TimerEvent.TIMER, readFromCanvas);
+			addEventListener(Event.ENTER_FRAME, readFromCanvas);
 
 			addChild(buffers[0]);
 			addChild(buffers[1]);
 
 			super.createChildren();
 
-			forceReadTimer.start();
+			last_update = getTimer();
 		}
 
-		public function readFromCanvas(evt:Event):void
+		public function readFromCanvas(evt:Event = null):void
 		{
-			/* Only execute on the timer tick if we haven't loaded recently */
-			if (evt.type == TimerEvent.TIMER && (getTimer() < (lastUpdate + 200)) ) return;
+			var target:Image = evt.target as Image;
+
+			if (target)
+				buffer_dirty[target] = false;
+
+			var interval:int = getTimer() - last_update;
+
+			if (!elementId.value ||interval < MIN_FRAME_INTERVAL || buffer_dirty[buffers[buffer_index]])
+			{
+				return;
+			}
 
 			var content:String;
 
-			/* TODO convert to raw ExternalInterface */
-			if (elementId.value) content = JavaScript.exec(
+			last_update = getTimer();
+
+			buffer_index = (buffer_index + 1) % 2;
+
+			buffer_dirty[buffers[buffer_index]] = true;
+			
+			WeaveAPI.StageUtils.callLater(this, updateImage);
+		}
+
+		public function updateImage():void
+		{
+			var content:String;
+			var current_buffer:Image = buffers[buffer_index];
+			
+			if (!elementId.value)
+			{
+				buffer_dirty[current_buffer] = false;
+				return;
+			}
+
+			content = JavaScript.exec(
 				{elementId: elementId.value},
 				"var canvas = document.getElementById(elementId);",
 				"return canvas && canvas.toDataURL && canvas.toDataURL().split(',').pop();");
 
-			if (elementId.value && content)
+			if (!content) 
 			{
-				setImage(content);	
+				buffer_dirty[current_buffer] = false;
+				return;
 			}
-		}
 
-		public function setImage(base64:String):void
-		{
-			lastUpdate = getTimer();
+			setChildIndex(current_buffer, 1);
 
-			setChildIndex(buffers[buffer_index], 0);
+			current_buffer.source = StandardLib.atob(content);
 
-			buffer_index = (buffer_index + 1) % 2;
-
-			buffers[buffer_index].source = StandardLib.atob(base64);
+			
 		}
 	}
 }
