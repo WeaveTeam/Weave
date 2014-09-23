@@ -57,7 +57,7 @@
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 			import weave.editors.SimpleAxisEditor;
 			import weave.editors.WindowSettingsEditor;
-			import weave.editors.managers.LayerListComponent;
+			import weave.editors.managers.LayerListSparkComponent;
 			import weave.menus.WeaveMenuItem;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeMenuTool;
@@ -106,7 +106,7 @@
 				var nonGeomColumns:Array = input.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
 				for each (var geomColumn:Object in geomColumns)
 				{
-					var gp:GeometryPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter, false);
+					var gp:GeometryPlotter = LayerListSparkComponent.addPlotterAndEdit(visualization, GeometryPlotter, false);
 					if (gp)
 					{
 						ColumnUtils.initSelectableAttribute(gp.geometryColumn, geomColumn);
@@ -519,7 +519,7 @@
 			
 			internal function addGeomLayer():void
 			{
-				LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter);
+				LayerListSparkComponent.addPlotterAndEdit(visualization, GeometryPlotter);
 			}
 			
 			internal function addLabelLayer():void
@@ -531,7 +531,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:GeometryLabelPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryLabelPlotter);
+				var plotter:GeometryLabelPlotter = LayerListSparkComponent.addPlotterAndEdit(visualization, GeometryLabelPlotter);
 				if (!plotter)
 					return;
 				
@@ -567,7 +567,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:ScatterPlotPlotter = LayerListComponent.addPlotterAndEdit(visualization, ScatterPlotPlotter);
+				var plotter:ScatterPlotPlotter = LayerListSparkComponent.addPlotterAndEdit(visualization, ScatterPlotPlotter);
 				if (!plotter)
 					return;
 				
@@ -596,7 +596,7 @@
 					layerNames.unshift(layersEditor.selectedPlotterName);
 				
 				// create new plotter
-				var plotter:GeometryRelationPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryRelationPlotter);
+				var plotter:GeometryRelationPlotter = LayerListSparkComponent.addPlotterAndEdit(visualization, GeometryRelationPlotter);
 				if (!plotter)
 					return;
 				
@@ -616,7 +616,7 @@
 				var oldLayerNames:Array = visualization.plotManager.plotters.getNames();
 
 				// create new plotter
-				var plotter:WMSPlotter = LayerListComponent.addPlotterAndEdit(visualization, WMSPlotter);
+				var plotter:WMSPlotter = LayerListSparkComponent.addPlotterAndEdit(visualization, WMSPlotter);
 				if (!plotter)
 					return;
 				
@@ -892,7 +892,7 @@
 				<mx:Button label="{lang('Geometry')}" click="outerDocument.addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
 				<mx:Button label="{lang('Labels')}" click="outerDocument.addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
 				<mx:Button label="{lang('Bubbles')}" click="outerDocument.addBubbleLayer();" toolTip="{lang('Add bubbles to the selected geometry layer')}"/>
-				<ui:MenuButton id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListComponent.initAddLayerButton(addLayerButton, outerDocument.visualization)"/>
+				<ui:MenuButton id="addLayerButton" label="{lang('Other...')}" toolTip="{lang('Add another type of layer')}" creationComplete="LayerListSparkComponent.initAddLayerButton(addLayerButton, outerDocument.visualization)"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
@@ -1073,7 +1073,7 @@
 		<mx:Script>
 			<![CDATA[
 				import weave.api.linkBindableProperty;
-				import weave.editors.managers.LayerListComponent;
+				import weave.editors.managers.LayerListSparkComponent;
 				import weave.core.UIUtils;
 				import weave.ui.VariableListController;
 				import weave.api.newDisposableChild;
