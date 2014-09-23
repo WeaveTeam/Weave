@@ -69,7 +69,25 @@
 			[Embed(source="/weave/resources/images/collab/chat.png")]     private const iChat:Class;  
 			
 			protected function creationComplete(event:FlexEvent):void
-			{
+			{				
+				//Used to be in addedToStage that was a static call function, placed in here the chat window appears in the proper spot.
+				button_connect.enabled 	= false;
+				button_chat.enabled 	= false;
+				button_settings.enabled = true;
+				
+				createWindowChat();
+				createWindowSettings();
+				
+				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
+				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
+				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
+				CHAT.userNameList = collabService.userList;
+				
+				resizeHandler();
+				//End addedToStage code.
+				
 				trace("CollaborationMenuBar is opened");
 				rtmpService = new NetConnection();
 
@@ -96,24 +114,6 @@
 				button_settings.addEventListener(MouseEvent.CLICK, toggleSettings);
 				stage.addEventListener(Event.RESIZE, resizeHandler);
 				
-			}
-			public function addedToStage():void
-			{
-				button_connect.enabled 	= false;
-				button_chat.enabled 	= false;
-				button_settings.enabled = true;
-				
-				createWindowChat();
-				createWindowSettings();
-				
-				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
-				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
-				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
-				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
-				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
-				CHAT.userNameList = collabService.userList;
-				
-				resizeHandler();
 			}
 			public function dispose():void
 			{
@@ -604,7 +604,7 @@
 			private function percentToCoordY(y:Number):Number { return y * WeaveAPI.topLevelApplication.stage.stageHeight;  }
 			private function xMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseX / WeaveAPI.topLevelApplication.stage.stageWidth;  }
 			private function yMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseY / WeaveAPI.topLevelApplication.stage.stageHeight; }
-
+			
 		]]>
 	</mx:Script>
 </mx:HBox>

@@ -639,7 +639,6 @@ package weave.application
 				{
 					_collabMenu.percentWidth = 100;
 					this.addChild(_collabMenu);
-					_collabMenu.addedToStage();
 				}
 			} else {
 				try
@@ -647,6 +646,7 @@ package weave.application
 					if( this == _collabMenu.parent ) {
 						_collabMenu.dispose();
 						this.removeChild(_collabMenu);
+						_collabMenu = null;
 					}
 					
 				} catch( error:Error ) {
