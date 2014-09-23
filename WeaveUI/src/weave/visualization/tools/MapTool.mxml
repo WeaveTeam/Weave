@@ -1027,7 +1027,7 @@
 											
 											currentlyUpdatingLayerZoomRangeSlider = true;
 											var newValues:Array = [minZoomLevel, maxZoomLevel];
-											if (StandardLib.arrayCompare(layerZoomRangeSlider.values, newValues) == 0)
+											if (StandardLib.compare(layerZoomRangeSlider.values, newValues) == 0)
 												layerZoomRangeSlider.values = [NaN, NaN];
 											layerZoomRangeSlider.values = newValues;
 											currentlyUpdatingLayerZoomRangeSlider = false;

@@ -87,7 +87,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
-				keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				keySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 			}
 			
 			override protected function childrenCreated():void
