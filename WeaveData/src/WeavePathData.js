@@ -520,7 +520,7 @@ weave.WeavePath.prototype.setColumn = function(metadata, dataSourceName)
 /**
  * Sets the metadata for multiple columns that are children of the current path.
  * @param metadataMapping An object mapping child names (or indices) to column metadata.
- *                         An Array of column metadata objects may be given for a LinkableHashMap.
+ *                        An Array of column metadata objects may be given for a LinkableHashMap.
  * @param dataSourceName (Optional) The name of the data source in the session state.
  *                       If ommitted, the first data source in the session state will be used.
  * @return The current WeavePath object.
