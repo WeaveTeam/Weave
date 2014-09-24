@@ -519,19 +519,19 @@ weave.WeavePath.prototype.setColumn = function(metadata, dataSourceName)
 
 /**
  * Sets the metadata for multiple columns that are children of the current path.
- * @param childToIdMapping An object mapping child names (or indices) to column metadata.
+ * @param metadataMapping An object mapping child names (or indices) to column metadata.
  *                         An Array of column metadata objects may be given for a LinkableHashMap.
  * @param dataSourceName (Optional) The name of the data source in the session state.
  *                       If ommitted, the first data source in the session state will be used.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.setColumns = function(childToIdMapping, dataSourceName) {
+weave.WeavePath.prototype.setColumns = function(metadataMapping, dataSourceName) {
     var useDataSource = arguments.length > 1;
     return this
-        .forEach(childToIdMapping, function(id, i) {
-            var path = this.push(i);
-            var func = Array.isArray(id) ? path.setColumns : path.setColumn;
-            var args = useDataSource ? [id, dataSourceName] : [id];
+        .forEach(childToIdMapping, function(value, key) {
+            var path = this.push(key);
+            var func = Array.isArray(value) ? path.setColumns : path.setColumn;
+            var args = useDataSource ? [value, dataSourceName] : [value];
             func.apply(path, args);
         });
 };

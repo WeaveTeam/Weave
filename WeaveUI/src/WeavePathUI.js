@@ -1,6 +1,8 @@
 /* This code assumes that WeavePath.js has already been loaded. */
 /* "use strict"; */
 
+var checkType = weave.evaluateExpression(null, "(o, type) => o is type");
+
 /**
  * Requests that an panel object be created if it doesn't already exist at the current path.
  * @param type The type of panel requested.
@@ -14,15 +16,15 @@ weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, use
 {
 	this.request(type);
 	
-	if (!this.weave.evaluateExpression(this.getPath(), "this is DraggablePanel", null, ['weave.ui.DraggablePanel']))
+	if (!checkType(this, 'weave.ui.DraggablePanel'))
 		this._failMessage('requestPanel', type + " is not a DraggablePanel type.", this._path);
 	
 	if (!usePixelValues)
 	{
-		panelX = x + '%';
-		panelY = y + '%';
-		panelWidth = width + '%';
-		panelHeight = height + '%';
+		x = x + '%';
+		y = y + '%';
+		width = width + '%';
+		height = height + '%';
 	}
     return this.state({
         panelX: x,
@@ -39,6 +41,9 @@ weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, use
  */
 weave.WeavePath.prototype.pushPlotter = function(plotterName, plotterType)
 {
+	if (!checkType(this, 'weave.visualization.tools.SimpleVisTool'))
+		this._failMessage('pushPlotter', "Not a compatible visualization tool", this._path);
+	
     var path = this.push('children', 'visualization', 'plotManager', 'plotters', plotterName || 'plot');
     if (plotterType)
         path.request(plotterType);
