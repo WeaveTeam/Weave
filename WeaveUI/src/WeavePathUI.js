@@ -41,26 +41,35 @@ weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, use
  */
 weave.WeavePath.prototype.pushPlotter = function(plotterName, plotterType)
 {
-	if (!checkType(this, 'weave.visualization.tools.SimpleVisTool'))
-		this._failMessage('pushPlotter', "Not a compatible visualization tool", this._path);
+	var tool = this.weave.path(this._path[0]);
+	if (!checkType(tool, 'weave.visualization.tools.SimpleVisTool'))
+		this._failMessage('pushLayerSettings', "Not a compatible visualization tool", this._path);
 	
-    var path = this.push('children', 'visualization', 'plotManager', 'plotters', plotterName || 'plot');
+	if (!plotterName)
+		plotterName = checkType(this, 'weave.visualization.layers.LayerSettings') ? this._path[this._path.length - 1] : 'plot';
+	
+	var result = tool.push('children', 'visualization', 'plotManager', 'plotters', plotterName);
+	result._parent = this;
     if (plotterType)
-        path.request(plotterType);
-    return path;
+        result.request(plotterType);
+    return result;
 };
 
 /**
  * This is a shortcut for pushing the path to a LayerSettings object from the current path, which should reference a visualization tool.
- * @param plotterName The name of an existing plotter.
+ * @param plotterName (Optional) The name of an existing plotter.
+ *                    If omitted, either the plotter at the current path or the default plotter ("plot") will be used.
  */
 weave.WeavePath.prototype.pushLayerSettings = function(plotterName)
 {
-	if (!checkType(this, 'weave.visualization.tools.SimpleVisTool'))
-		this._failMessage('pushPlotter', "Not a compatible visualization tool", this._path);
+	var tool = this.weave.path(this._path[0]);
+	if (!checkType(tool, 'weave.visualization.tools.SimpleVisTool'))
+		this._failMessage('pushLayerSettings', "Not a compatible visualization tool", this._path);
 	
-    var path = this.push('children', 'visualization', 'plotManager', 'layerSettings', plotterName || 'plot');
-    if (plotterType)
-        path.request(plotterType);
-    return path;
+	if (!plotterName)
+		plotterName = checkType(this, 'weave.api.ui.IPlotter') ? this._path[this._path.length - 1] : 'plot';
+	
+	var result = tool.push('children', 'visualization', 'plotManager', 'layerSettings', plotterName);
+	result._parent = this;
+	return result;
 };
