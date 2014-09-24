@@ -3,32 +3,32 @@
 
 /**
  * Requests that an panel object be created if it doesn't already exist at the current path.
- * @param type The object type
- * @param panelX The session state for the "panelX" property.
- * @param panelY The session state for the "panelY" property.
- * @param panelWidth The session state for the "panelWidth" property.
- * @param panelHeight The session state for the "panelHeight" property.
+ * @param type The type of panel requested.
+ * @param x A numeric value for the panel X coordinate.
+ * @param y A numeric value for the panel Y coordinate.
+ * @param width A numeric value for the panel width.
+ * @param height A numeric value for the panel height.
  * @param usePixelValues (Optional) Set this to true if the panel coordinates are given in pixels. Otherwise, they are treated as percentage values.
  */
-weave.WeavePath.prototype.requestPanel = function(type, panelX, panelY, panelWidth, panelHeight, usePixelValues)
+weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, usePixelValues)
 {
 	this.request(type);
 	
 	if (!this.weave.evaluateExpression(this.getPath(), "this is DraggablePanel", null, ['weave.ui.DraggablePanel']))
-		this._failMessage('requestPanel', type + " is not a DraggablePanel.", this._path);
+		this._failMessage('requestPanel', type + " is not a DraggablePanel type.", this._path);
 	
 	if (!usePixelValues)
 	{
-		panelX = panelX + '%';
-		panelY = panelY + '%';
-		panelWidth = panelWidth + '%';
-		panelHeight = panelHeight + '%';
+		panelX = x + '%';
+		panelY = y + '%';
+		panelWidth = width + '%';
+		panelHeight = height + '%';
 	}
     return this.state({
-        panelX: panelX,
-        panelY: panelY,
-        panelWidth: panelWidth,
-        panelHeight: panelHeight
+        panelX: x,
+        panelY: y,
+        panelWidth: width,
+        panelHeight: height
     });
 };
 
