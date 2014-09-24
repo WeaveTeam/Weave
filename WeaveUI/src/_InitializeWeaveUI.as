@@ -125,6 +125,9 @@ package
 	 */
 	public class _InitializeWeaveUI
 	{
+		[Embed(source="WeavePathUI.js", mimeType="application/octet-stream")]
+		public static const WeavePathUI:Class;
+
 		private static var _:* = function():void
 		{
 			SessionStateEditor.initializeShortcuts();

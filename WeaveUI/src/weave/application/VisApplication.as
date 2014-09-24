@@ -274,7 +274,7 @@ package weave.application
 			if (JavaScript.available)
 			{
 				JavaScript.registerMethod('loadFile', loadFile);
-				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData);
+				WeaveAPI.initializeJavaScript(_InitializeWeaveData.WeavePathData, _InitializeWeaveUI.WeavePathUI);
 			}
 
 			if (getFlashVarRecover() || Weave.handleWeaveReload())
