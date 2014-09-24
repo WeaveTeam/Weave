@@ -109,6 +109,16 @@
 								ng-controller="QueryHandlerCtrl">
 								 <span style="vertical-align: right">Run</span>
 						 </button>
+<!-- 						 <div ng-controller = DialogController> -->
+<!-- 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 10%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a> -->
+<!-- 						</div> -->
+<!-- 						<div style="display: table ; width : 10%; padding-top : 5px"> -->
+<!-- <!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a> --> -->
+<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a> -->
+<!-- <!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> --> -->
+<!-- 						</div> -->
+						
+						</div>
 					</div><!-- /.navbar-collapse -->
 					
 				</nav>
@@ -200,11 +210,13 @@
 		<script src='aws/project/project-query-button-directive.js'></script>
 		<script src='aws/project/projectService.js'></script>
 		<script src="aws/visualization/tools/barChart/barChartCtrl.js"></script>
+		<script src="aws/analysis/data_filters/dataFilterCtrl.js"></script>
 		<script src="aws/analysis/data_filters/geographyCtrl.js"></script>
 		<script src="aws/analysis/data_filters/timePeriodCtrl.js"></script>
 		<script src="aws/analysis/data_filters/byVariableCtrl.js"></script>
 		<script src="aws/visualization/weave/QueryHandler.js"></script>
 		<script src="aws/visualization/weave/WeaveModule.js"></script>
+		<script src="aws/visualization/tools/toolsCtrl.js"></script>
 		<script src="aws/visualization/tools/barChart/barChartCtrl.js"></script>
 		<script src="aws/visualization/tools/dataTable/dataTableCtrl.js"></script>
 		<script src="aws/visualization/tools/mapChart/mapChartCtrl.js"></script>

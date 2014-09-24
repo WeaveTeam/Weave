@@ -133,8 +133,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-		 queryService.updateEntity($scope.user, 
-			$scope.password, 
+		 queryService.updateEntity(queryService.user, 
+			queryService.password, 
 			$scope.selectedColumnId, { 
 										publicMetadata : { 
 															aws_metadata : jsonaws_metadata 
@@ -236,8 +236,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
         							}
         						}
 	        					if(id) {
-	        						queryService.updateEntity($scope.user, 
-	        								$scope.password, 
+	        						queryService.updateEntity(queryService.user, 
+	        								queryService.password, 
 	        								 id, { 
 	        															publicMetadata : { 
 	        																				aws_metadata : metadata.replace(/\s/g, '')

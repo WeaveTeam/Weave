@@ -50,39 +50,7 @@ AnalysisModule.service('AnalysisService', function() {
 				template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
 				description : 'Filter data by Variables',
 				category : 'datafilter'
-			}],
-			
-			tool_list : [
-			         	{
-			        		id : 'BarChartTool',
-			        		title : 'Bar Chart Tool',
-			        		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
-			        		description : 'Display Bar Chart in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-
-			        	}, {
-			        		id : 'MapTool',
-			        		title : 'Map Tool',
-			        		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
-			        		description : 'Display Map in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-			        	}, {
-			        		id : 'DataTableTool',
-			        		title : 'Data Table Tool',
-			        		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
-			        		description : 'Display a Data Table in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-			        	}, {
-			        		id : 'ScatterPlotTool',
-			        		title : 'Scatter Plot Tool',
-			        		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
-			        		description : 'Display a Scatter Plot in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-			        	}]
+			}]
 	};
 	
 	return AnalysisService;
@@ -114,34 +82,38 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	};
 	
 	$scope.$watch('queryService.queryObject.Indicator', function() {
-		if(queryService.queryObject.Indicator) {
-			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
-		}
 		
 		if(queryService.queryObject.Indicator) {
+			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
 			queryService.getEntitiesById([angular.fromJson(queryService.queryObject.Indicator).id], true).then(function (result) {
 				if(result.length) {
 					var resultMetadata = result[0];
 					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
 						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
 						if(metadata.hasOwnProperty("varValues")) {
-							$scope.varValues = metadata.varValues;
+							queryService.getDataMapping(metadata.varValues).then(function(result) {
+								$scope.varValues = result;
+							});
 						}
 					}
 				}
 			});
+		} else {
+			// delete description and table if the indicator is clear
+			$scope.IndicDescription = "";
+			$scope.varValues = [];
 		}
 	});
 	
-	$scope.$watchCollection(function() {
-		return $.map(AnalysisService.tool_list, function(tool) {
-			return tool.enabled;
-		});
-	}, function() {
-		$.map(AnalysisService.tool_list, function(tool) {
-			queryService.queryObject[tool.id].enabled = tool.enabled;
-		});
-	});
+//	$scope.$watchCollection(function() {
+//		return $.map(AnalysisService.tool_list, function(tool) {
+//			return tool.enabled;
+//		});
+//	}, function() {
+//		$.map(AnalysisService.tool_list, function(tool) {
+//			queryService.queryObject[tool.id].enabled = tool.enabled;
+//		});
+//	});
 	
 	$scope.$watch(function () {
 		return queryService.queryObject.BarChartTool.enabled;

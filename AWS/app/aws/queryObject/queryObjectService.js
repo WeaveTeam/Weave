@@ -416,32 +416,32 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
         
     this.getDataMapping = function(varValues)
     {
-	        	var deferred = $q.defer();
+        	var deferred = $q.defer();
 
-	        	callback = function(result)
-	        	{
-	         		scope.$safeApply(function(){
-	                   deferred.resolve(result);
-	     			});
+        	var callback = function(result)
+        	{
+         		scope.$safeApply(function(){
+                   deferred.resolve(result);
+         		});
+        	};
 
-	         	if (Array.isArray(varValues))
-	         	{
-	         		setTimeout(function(){ callback(varValues); }, 0);
-	         		return;
-	         	}
+         	if (Array.isArray(varValues))
+         	{
+         		setTimeout(function(){ callback(varValues); }, 0);
+         		return deferred.promise;
+         	}
 
-	         	if (typeof varValues == 'string')
-	         		varValues = {"aws_id": varValues};
-	         		aws.queryService(dataServiceURL, 'getColumn', [varValues, NaN, NaN, null],
-	             		function(columnData) {
-	             			var result = [];
-	             			for (var i in columnData.keys)
-	             				result[i] = {"value": columnData.keys[i], "label": columnData.data[i]};
-	             			callback(result);
-	             		}
-	             	);
-	        };
-
+         	//if (typeof varValues == 'string')
+         	//	varValues = {"aws_id": varValues};
+         		
+         	aws.queryService(dataServiceURL, 'getColumn', [varValues, NaN, NaN, null],
+         		function(columnData) {
+         			var result = [];
+         			for (var i in columnData.keys) 
+         				result[i] = {"value": columnData.keys[i], "label": columnData.data[i]};
+         			callback(result);
+     			}
+     		);
 	        return deferred.promise;
     };
         

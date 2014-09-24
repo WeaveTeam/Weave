@@ -1,45 +1,50 @@
 <div style="height: 100%" ng-controller="AnalysisCtrl">
-	<div style="height: 100%" class=".container-fluid" style="padding: 5px;">
-		<div class=".row " style="margin-top: 10px;">
-			
+	<div style="height: 100%" class="container-fluid" style="padding: 5px;">
+		<div class="row" style="height: 30%;">
 			<!--Indicator and datatable-->
 			<div class="databox" style="width: 15%">
 				<!-- <div class="databox" style="width: 200px;"> -->
 				<div class=" header panel-heading">
 					<h2>Indicator</h2>
 				</div>
-				<div  class="body" style="width:100%">
+				<div class="body" style="width: 100%">
 					<select popover="Select Data Table" popover-trigger="mouseenter"
-						style="width:100%"
-						ng-model="queryService.queryObject.dataTable" 
-						ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id" 
-						data-placeholder="Select Datatable" 
+						style="width: 100%" ng-model="queryService.queryObject.dataTable"
+						ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id"
+						data-placeholder="Select Datatable"
 						ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
 						<option value="">Select Data Table</option>
-					</select>
-					
-					
+					</select> <input type="checkbox"
+						ng-model="queryService.dataObject.displayAsQuestions">
+					Display As Questions</input>
+
 					<div style="width: 100%; margin-top: 10px;">
-					<select popover="Choose indicator" popover-trigger="mouseenter" style="width: 100%;" ui-select2="{allowClear : true}" ng-model="queryService.queryObject.Indicator" data-placeholder="Choose Indicator">
-						<option></option>
-						<option value="{{indicator}}" ng-repeat="indicator in queryService.dataObject.columns | filter : { columnType : 'indicator' }">{{indicator.title}}</option>
-					</select>
+						<select popover="Choose indicator" popover-trigger="mouseenter"
+							style="width: 100%;"
+							ui-select2="{allowClear : true, dropdownAutoWidth : true}"
+							ng-model="queryService.queryObject.Indicator"
+							data-placeholder="Choose Indicator">
+							<option></option>
+							<option value="{{indicator}}"
+								ng-repeat="indicator in queryService.dataObject.columns | filter : { columnType : 'indicator' }">{{queryService.dataObject.displayAsQuestions
+								&& (indicator.description) || (indicator.title)}}</option>
+						</select>
 					</div>
-					<br>	
-					{{IndicDescription}}
-					<br><br>
+					<br> {{IndicDescription}} <br>
+					<br>
 					<table border="border: 1px solid #0000FF" width="100%">
 						<tr ng-repeat="varValue in varValues">
-							<td style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
-							<td  style="padding-left: 5px"> {{varValue.label}} </td>
+							<td style="padding-left: 5px; padding-right: 5px">
+								{{varValue.value}}</td>
+							<td style="padding-left: 5px">{{varValue.label}}</td>
 						</tr>
 					</table>
 				</div>
-				
-				
-				
+
+
+
 			</div>
-			
+
 			<!--Calculations -->
 			<div class="databox" style="width: 20%">
 
@@ -47,68 +52,78 @@
 					<h2>Calculations</h2>
 				</div>
 				<div class="body" ng-controller="ScriptsSettingsCtrl">
-						<select style="width: 100%;" ui-select2="{allowClear : true}"
-							ng-model="service.queryObject.scriptSelected"
-							data-placeholder="Select Script"
-							ng-change="service.getScriptMetadata(service.queryObject.scriptSelected, true)">
+					<select style="width: 100%;" ui-select2="{allowClear : true}"
+						ng-model="service.queryObject.scriptSelected"
+						data-placeholder="Select Script"
+						ng-change="service.getScriptMetadata(service.queryObject.scriptSelected, true)">
 						<option></option>
-							<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
-						</select>
-						
-						<div style="padding-bottom :7px"></div>
-						
-						<div style="padding-bottom :7px"></div>
-						
-								<table width=100%>
-									<tr ng-repeat="input in service.dataObject.scriptMetadata.inputs">
-										<td align="right" width=30%>
-											<div class="label-p">{{input.param}}:</div>
-										</td>
-										
-										<td style="padding-left: 10px;">
-												<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'options' && input.options.length != 2" ui-select2="{allowClear : true}" ng-model="service.queryObject.scriptOptions[input.param]">
-													<option></option>
-													<option value="{{opt}}" ng-repeat="opt in input.options"> {{opt}}</option>
-											</select>
-											
-											<div class="btn-group btn-toggle" ng-if="input.type == 'options' && input.options.length == 2" ng-click="toggleButton(input)"">
-													<button ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[0]}" class="btn btn-default">
-																		{{input.options[0]}}
-													</button>
-													<button ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[1]}" class="btn btn-default">
-															{{input.options[1]}}
-													</button>
-											</div>
-											
-											<div class="btn-group btn-toggle" ng-if="input.type == 'boolean'" ng-click="service.queryObject.scriptOptions[input.param] = !service.queryObject.scriptOptions[input.param]">
-													<button ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == true}" class="btn btn-default">
-																		True
-													</button>
-													<button ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == false}" class="btn btn-default">
-															False
-													</button>
-											</div>
-											
-											<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'column'" ui-select2="{allowClear : true}" ng-model="service.queryObject.scriptOptions[input.param]">
-												<option></option>
-												<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter:input.columnType"> {{col.title}}</option>
-											</select>
-									
-											<input style="width: 100%" ng-if="input.type == 'value'" ng-model="service.queryObject.scriptOptions[input.param]">
-									
-											<select style="width: 100%" ng-if="input.type == 'multiColumns'" ui-select2="{allowClear : true}" multiple ng-model="service.queryObject.scriptOptions[input.param]">
-												<option></option>
-												<option value="{{ col }}" ng-repeat="col in service.dataObject.columns | filter:input.columnType"> {{col.title}}</option>
-											</select>
-											
-											<br>
-										</td>
-									</tr>
-								</table>
-						</div>
-					
-					
-					<!--<div id="loading" ng-show="show_load" class="ng-hide">
+						<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
+					</select>
+
+					<div style="padding-bottom: 7px"></div>
+
+					<div style="padding-bottom: 7px"></div>
+
+					<table width=100%>
+						<tr ng-repeat="input in service.dataObject.scriptMetadata.inputs">
+							<td align="right" width=30%>
+								<div class="label-p">{{input.param}}:</div>
+							</td>
+
+							<td style="padding-left: 10px;"><select style="width: 100%"
+								class="select-2-drop"
+								ng-if="input.type == 'options' && input.options.length != 2"
+								ui-select2="{allowClear : true}"
+								ng-model="service.queryObject.scriptOptions[input.param]">
+									<option></option>
+									<option value="{{opt}}" ng-repeat="opt in input.options">
+										{{opt}}</option>
+							</select>
+
+								<div class="btn-group btn-toggle"
+									ng-if="input.type == 'options' && input.options.length == 2"
+									ng-click="toggleButton(input)"">
+									<button
+										ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[0]}"
+										class="btn btn-default">{{input.options[0]}}</button>
+									<button
+										ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[1]}"
+										class="btn btn-default">{{input.options[1]}}</button>
+								</div>
+
+								<div class="btn-group btn-toggle"
+									ng-if="input.type == 'boolean'"
+									ng-click="service.queryObject.scriptOptions[input.param] = !service.queryObject.scriptOptions[input.param]">
+									<button
+										ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == true}"
+										class="btn btn-default">True</button>
+									<button
+										ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == false}"
+										class="btn btn-default">False</button>
+								</div> <select style="width: 100%" class="select-2-drop"
+								ng-if="input.type == 'column'" ui-select2="{allowClear : true}"
+								ng-model="service.queryObject.scriptOptions[input.param]">
+									<option></option>
+									<option value="{{col}}"
+										ng-repeat="col in service.dataObject.columns | filter:input.columnType">
+										{{col.title}}</option>
+							</select> <input style="width: 100%" ng-if="input.type == 'value'"
+								ng-model="service.queryObject.scriptOptions[input.param]">
+
+								<select style="width: 100%" ng-if="input.type == 'multiColumns'"
+								ui-select2="{allowClear : true}" multiple
+								ng-model="service.queryObject.scriptOptions[input.param]">
+									<option></option>
+									<option value="{{ col }}"
+										ng-repeat="col in service.dataObject.columns | filter:input.columnType">
+										{{col.title}}</option>
+							</select> <br></td>
+						</tr>
+					</table>
+				</div>
+
+
+				<!--<div id="loading" ng-show="show_load" class="ng-hide">
 					<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
 					</div>-->
 
@@ -117,27 +132,10 @@
 				</div>-->
 
 			</div>
-			
-			<div class="databox" style="width:150px">
-				
-				<div class="header panel-heading">
-					<h2> Add Filter </h2>
-				</div>
-				
-				<div class="body">
-					<input type="checkbox" ng-model="AnalysiService.showGeographyFilter"> Geography Filter</input>
-					<br>
-					<input type="checkbox" ng-model="AnalysiService.showTimePeriodFilter"> Time Period Filter</input>
-					<br>
-					<button type="button" class="btn btn-sm new-project-button">
-							Add custom
-					</button>
-				</div>
-				
-			</div>
 
 			<!--Geography filter -->
-			<div class="databox" style="width: 15%;" ng-if="AnalysiService.showGeographyFilter">
+			<div class="databox" style="width: 15%;"
+				ng-if="AnalysisService.showGeographyFilter">
 				<!-- <div class="databox" style="width: 160px;"> -->
 
 				<div class="header panel-heading">
@@ -146,14 +144,18 @@
 
 				<div class="body">
 
-					<div style="height:100%" ng-include="AnalysisService.content_tools[1].template_url"></div>
+					<div style="height: 100%"
+						ng-include="AnalysisService.content_tools[1].template_url"></div>
 
 				</div>
 
 			</div>
 
+			<div ng-include src="'aws/analysis/data_filters/data_filters.html'"></div>
+
 			<!--Timeperiod filter -->
-			<div class="databox" style="width: 15%" ng-if="AnalysiService.showTimePeriodFilter">
+			<div class="databox" style="width: 15%"
+				ng-if="AnalysisService.showTimePeriodFilter">
 				<!-- <div class="databox" style="width: 130px;"> -->
 
 				<div class="header panel-heading">
@@ -161,103 +163,35 @@
 				</div>
 
 				<div class="body">
-					<div style="height:100%" ng-include="AnalysisService.content_tools[2].template_url"></div>
+					<div style="height: 100%"
+						ng-include="AnalysisService.content_tools[2].template_url"></div>
 				</div>
 
 			</div>
 
 			<!--Byvariable filter -->
-			<div class="databox" style="width: 15%">
-				<!-- <div class="databox" style="width: 160px;"> -->
+			<div style="width: 75%">
+				<div class="databox" style="width: 15%">
+					<!-- <div class="databox" style="width: 160px;"> -->
 
-				<div class="header panel-heading">
-					<h2>By-variable</h2>
-				</div>
-
-				<div class="body">
-					<div style="height:100%" ng-include="AnalysisService.content_tools[3].template_url"></div>
-				</div>
-
-			</div>
-			
-		</div>
-		<br>
-		<div class=".row " style="margin-top: 10px;">
-		<div>
-
-				<!--Configure Visuals-->
-				<div class="databox" style="width: 20% ; margin-bottom : 40px">
-					<!-- <div class="databox" style="width: 220px;"> -->
-
-					<div class="header panel-heading" >
-						<h2>Output Display</h2>
+					<div class="header panel-heading">
+						<h2>By-variable</h2>
 					</div>
 
 					<div class="body">
-
-						<div class="tool-bar">
-
-							<ul class="tool-list">
-								<li>
-									<h6 class='tool-category'>Visualization Tools</h6>
-								</li>
-								<li ng-repeat= "tool in AnalysisService.tool_list">
-									<span class="checkbox">
-										<input type="checkbox"  ng-model="tool.enabled">
-									</span>
-									<a href='javascript: void()'> {{tool.title}}</a>
-								</li>
-							</ul>
-						</div>
-						
-						<accordion close-others="oneAtATime" class="tool-list">
-							 <accordion-group heading="Static Header, initially expanded">
-     							 This content is straight in the template.
-   							 </accordion-group>
-   						</accordion>
-						<!-- <span style="display: inline-block; margin-left: 20px; margin-right: 10px; font-size: 13px;">Set Color Column</span> -->
-						Key Column:
-						<div style="width: 100%" class="master-select2-container">
-							<select style="width: 100%" ui-select2="{allowClear : true}" ng-controller="ColorCtrl" ng-model="service.queryObject.keyColumn.name" data-placeholder="Choose Key Column">
-								<option></option>
-								<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-							</select>
-						</div>
-						<br>
-						Color Column:
-						<div style="width: 100%" class="master-select2-container">
-							<select style="width: 100%" ui-select2="{allowClear : true}" ng-controller="ColorCtrl" ng-model="service.queryObject.ColorColumn.column" data-placeholder="Choose Color Column">
-								<option></option>
-								<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-							</select>
-						</div>
-						<!-- Contains the buttons pertaining to a query and its visualizations -->
-						
-						<div ng-controller = DialogController>
-							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 100%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a>
-						</div>
-						<div style="display: table ; width : 100%; padding-top : 5px">
-<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a> -->
-							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a>
-<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> -->
-						</div>
-						
-						</div>
-				</div>
-
-			</div>
-<!--  			<br> <textarea id="resultTextArea" width="100%" cols="100" rows="5"></textarea></td> -->
-			<div style="height:100%; margin-top: 100px; width: 100%;" class="col-md-8 widget-container">
-					<div style="width: 270px; float : left; margin-right : 20px" ng-repeat="tool in AnalysisService.tool_list | filter : { enabled : 'true' }" class="panel panel-default">
-							<div class="panel-heading">
-								<h2>{{tool.title}}</h2>
-								<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="disable_widget(tool)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
-	
-							</div>
-							<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>
-							<h6 style = "font-size: 13px" class="widget-description" ng-show = "tool.note"> {{widget_brick.note}} </h6>
-							<div class="" ng-include="tool.template_url"></div>
+						<div style="height: 100%"
+							ng-include="AnalysisService.content_tools[3].template_url"></div>
 					</div>
+
+				</div>
+			</div>
+
+		</div>
+		<div class="row " style="height: 50%;">
+			<!-- Contains the buttons pertaining to a query and its visualizations -->
+			<div>
+				<div ng-include src="'aws/visualization/tools/tools.html'"></div>
 			</div>
 		</div>
 	</div>
+</div>

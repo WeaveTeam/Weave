@@ -48,7 +48,9 @@ AnalysisModule.controller('byVariableCtrl', function($scope, queryService){
 																				values : [(aws_metadata.varRange[1] - aws_metadata.varRange[0]) / 3, 2 * (aws_metadata.varRange[1] - aws_metadata.varRange[0]) / 3]};
 							} else if(aws_metadata.varType == "categorical") {
 								queryService.dataObject.filterType[index] = aws_metadata.varType;
-								queryService.dataObject.filterOptions[index] = aws_metadata.varValues;
+								queryService.getDataMapping(aws_metadata.varValues).then(function(result) {
+									queryService.dataObject.filterOptions[index] = result;
+								});
 							}
 						}
 					}
