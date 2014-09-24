@@ -19,6 +19,7 @@
 			import weave.api.reportError;
 			import weave.application.VisApp;
 			
+			public var version:String;
 			public var visApp:VisApp = null
 			private var params:Object = null;
 			
@@ -29,6 +30,10 @@
 			
 			private function appComplete():void
 			{
+				var xml:XML = NativeApplication.nativeApplication.applicationDescriptor;
+				var ns:Namespace = xml.namespace();
+				this.version = xml.ns::versionNumber;
+				
 				addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, doDragEnter);
 				addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, doDragDrop);
 				addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT, doDragExit);
