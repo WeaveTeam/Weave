@@ -4,7 +4,7 @@
 var checkType = weave.evaluateExpression(null, "(o, type) => o is type");
 
 /**
- * Requests that an panel object be created if it doesn't already exist at the current path.
+ * Requests that a panel object be created if it doesn't already exist at the current path.
  * @param type The type of panel requested.
  * @param x A numeric value for the panel X coordinate.
  * @param y A numeric value for the panel Y coordinate.
