@@ -20,7 +20,7 @@
 			import weave.application.VisApp;
 			
 			public var version:String;
-			public var visApp:VisApp = null
+			public var visApp:VisApp = null;
 			private var params:Object = null;
 			
 			override public function get parameters():Object
@@ -45,22 +45,29 @@
 			private function doDragDrop(e:NativeDragEvent):void
 			{
 				var dropFiles:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
-				for each (var file:File in dropFiles)
+				if (dropFiles && dropFiles.length)
 				{
-					switch (file.extension.toLowerCase())
+					for each (var file:File in dropFiles)
 					{
-						case "xml":
-						case "weave":
-							params['file'] = file.nativePath;
-						default:
+						switch (file.extension.toLowerCase())
+						{
+							case "xml":
+							case "weave":
+								params['file'] = file.nativePath;
+							default:
+						}
+						WeaveAPI.StageUtils.callLater(this, loadFile, [file]);
 					}
-					WeaveAPI.StageUtils.callLater(this, loadFile, [file]);
 				}
-				var url:String = e.clipboard.getData(ClipboardFormats.URL_FORMAT) as String;
-				if (url)
+				else
 				{
-					loadFileUrl(url);
-					return;
+					var url:String = e.clipboard.getData(ClipboardFormats.URL_FORMAT) as String;
+					if (url)
+					{
+						debugTrace(e, url);
+						loadFileUrl(url);
+						return;
+					}
 				}
 			}
 			
@@ -70,7 +77,7 @@
 				file.addEventListener(IOErrorEvent.IO_ERROR, handleFileLoadError);
 				file.load();
 			}
-			private function handleFileLoadError(event:IOErrorEvent):void
+			private function handleFileLoadError(event:Event):void
 			{
 				reportError(event);
 			}
