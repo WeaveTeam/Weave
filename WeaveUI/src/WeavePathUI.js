@@ -10,17 +10,17 @@ var checkType = weave.evaluateExpression(null, "(o, type) => o is type");
  * @param y A numeric value for the panel Y coordinate.
  * @param width A numeric value for the panel width.
  * @param height A numeric value for the panel height.
- * @param usePixelValues (Optional) Set this to true if the panel coordinates are given in pixels. Otherwise, they are treated as percentage values.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, usePixelValues)
+weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height)
 {
 	this.request(type);
 	
 	if (!checkType(this, 'weave.ui.DraggablePanel'))
 		this._failMessage('requestPanel', type + " is not a DraggablePanel type.", this._path);
 	
-	if (!usePixelValues)
+	var snap = weave.path('WeaveProperties', 'windowSnapGridSize').getState() || '';
+	if (snap.indexOf('%') >= 0)
 	{
 		x = x + '%';
 		y = y + '%';
