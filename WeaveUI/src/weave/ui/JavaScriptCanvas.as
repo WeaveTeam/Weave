@@ -1,30 +1,28 @@
 package weave.ui
 {
-	import weave.compiler.StandardLib;
-	import weave.api.core.ILinkableObject;
-	import weave.core.LinkableString;
-	import weave.api.newLinkableChild;
-
+	import flash.events.Event;
+	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
+	
 	import mx.containers.Canvas;
 	import mx.controls.Image;
-
-	import flash.events.Event;
-	import flash.utils.Timer;
-	import flash.utils.getTimer;
-	import flash.utils.Dictionary;
-	import flash.events.TimerEvent;
+	
+	import weave.api.core.ILinkableObject;
+	import weave.api.newLinkableChild;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableString;
 
 	public class JavaScriptCanvas extends Canvas implements ILinkableObject
 	{
 		private var buffers:Vector.<Image> = new Vector.<Image>(2, true);
-		private var buffer_index:int = 0;
+		private var back_buffer:Image;
 		private var last_update:int = 0;
-		private var buffer_dirty:Dictionary = new Dictionary();
+		private var rendering:Boolean = false;
+		private var prev_ascii:String;
 
 		private static const MIN_FRAME_INTERVAL:int = 1000/30;
 
 		public const elementId:LinkableString = newLinkableChild(this, LinkableString);
-
 
 		public function JavaScriptCanvas()
 		{
@@ -33,76 +31,73 @@ package weave.ui
 		
 		override protected function createChildren():void
 		{
-			buffers[0] = new Image();
-			buffers[1] = new Image();
-
-			buffer_dirty[buffers[0]] = false;
-			buffer_dirty[buffers[1]] = false;
-
-			buffers[0].addEventListener(Event.COMPLETE, readFromCanvas);
-			buffers[1].addEventListener(Event.COMPLETE, readFromCanvas);
-			addEventListener(Event.ENTER_FRAME, readFromCanvas);
-
-			addChild(buffers[0]);
-			addChild(buffers[1]);
-
 			super.createChildren();
+			
+			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, this, handleEnterFrame);
+			
+			for (var i:int = 0; i < buffers.length; i++)
+			{
+				buffers[i] = new Image();
+				buffers[i].addEventListener(Event.COMPLETE, handleImageComplete);
+				addChild(buffers[i]);
+			}
 
+			addChild(buffers[1]);
+			
+			back_buffer = buffers[0];
 			last_update = getTimer();
 		}
 
-		public function readFromCanvas(evt:Event = null):void
+		public function handleEnterFrame():void
 		{
-			var target:Image = evt.target as Image;
-
-			if (target)
-				buffer_dirty[target] = false;
-
 			var interval:int = getTimer() - last_update;
-
-			if (!elementId.value ||interval < MIN_FRAME_INTERVAL || buffer_dirty[buffers[buffer_index]])
-			{
+			if (rendering || interval < MIN_FRAME_INTERVAL || !elementId.value)
 				return;
-			}
 
-			var content:String;
-
+			rendering = true;
 			last_update = getTimer();
-
-			buffer_index = (buffer_index + 1) % 2;
-
-			buffer_dirty[buffers[buffer_index]] = true;
-			
 			WeaveAPI.StageUtils.callLater(this, updateImage);
 		}
 
 		public function updateImage():void
 		{
-			var content:String;
-			var current_buffer:Image = buffers[buffer_index];
-			
 			if (!elementId.value)
 			{
-				buffer_dirty[current_buffer] = false;
+				for each (var buffer:Image in buffers)
+					buffer.visible = false;
+				rendering = false;
 				return;
 			}
 
-			content = JavaScript.exec(
+			var ascii:String = JavaScript.exec(
 				{elementId: elementId.value},
 				"var canvas = document.getElementById(elementId);",
-				"return canvas && canvas.toDataURL && canvas.toDataURL().split(',').pop();");
-
-			if (!content) 
+				"return canvas && canvas.toDataURL && canvas.toDataURL().split(',').pop();"
+			);
+			if (!ascii || ascii === prev_ascii)
 			{
-				buffer_dirty[current_buffer] = false;
+				rendering = false;
 				return;
 			}
-
-			setChildIndex(current_buffer, 1);
-
-			current_buffer.source = StandardLib.atob(content);
-
-			
+			prev_ascii = ascii;
+			var bytes:ByteArray = StandardLib.atob(ascii);
+			WeaveAPI.StageUtils.callLater(this, setSource, [bytes]);
+		}
+		
+		private function setSource(content:ByteArray):void
+		{
+			back_buffer.source = content;
+		}
+		
+		private function handleImageComplete(event:Event):void
+		{
+			if (event.target === back_buffer)
+			{
+				for each (var buffer:Image in buffers)
+					buffer.visible = buffer === back_buffer;
+				back_buffer = buffers[buffers.indexOf(buffer) ^ 1];
+				rendering = false;
+			}
 		}
 	}
 }
