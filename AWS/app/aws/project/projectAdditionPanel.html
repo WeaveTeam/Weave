@@ -29,12 +29,12 @@
 		</tr>
 		<tr>
 			<td>Add query objects (.json) files</td>
+			<td ng-if= "!uploadStatus">No file uploaded</td>
 			<td>{{uploadStatus}}</td> 
-			
 		</tr>
 		<tr></tr>
 		<tr>
-			<td> <label class='file-nput-btn' style="width:80px">Upload<input fileread="uploadedQueryObject" class='file-upload' type='file'/></label></td>
+			<td> <label class='file-nput-btn' style="width:80px">Upload<input fileread="uploaded.QueryObject" class='file-upload' type='file'/></label></td>
 			
 		</tr>
 	</table>
