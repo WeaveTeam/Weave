@@ -104,8 +104,8 @@
 				if(panel is MapTool)
 				{
 					_addRemoveContextMenuItem.enabled = true;
-					anchorPoint.x = e.mouseTarget.stage.mouseX;
-					anchorPoint.y = e.mouseTarget.stage.mouseY;
+					anchorPoint.x = WeaveAPI.StageUtils.stage.mouseX;
+					anchorPoint.y = WeaveAPI.StageUtils.stage.mouseY;
 				}
 				else
 				{
