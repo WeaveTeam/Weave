@@ -11,6 +11,7 @@ var checkType = weave.evaluateExpression(null, "(o, type) => o is type");
  * @param width A numeric value for the panel width.
  * @param height A numeric value for the panel height.
  * @param usePixelValues (Optional) Set this to true if the panel coordinates are given in pixels. Otherwise, they are treated as percentage values.
+ * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, usePixelValues)
 {
@@ -39,6 +40,7 @@ weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, use
  * @param plotterName (Optional) The name of an existing or new plotter.
  *                    If omitted, the default plotter name ("plot") will be used.
  * @param plotterType (Optional) The type of plotter to request if it doesn't exist yet.
+ * @return A new WeavePath object which remembers the current WeavePath as its parent.
  */
 weave.WeavePath.prototype.pushPlotter = function(plotterName, plotterType)
 {
@@ -60,6 +62,7 @@ weave.WeavePath.prototype.pushPlotter = function(plotterName, plotterType)
  * This is a shortcut for pushing the path to a LayerSettings object from the current path, which should reference a visualization tool.
  * @param plotterName (Optional) The name of an existing plotter.
  *                    If omitted, either the plotter at the current path or the default plotter ("plot") will be used.
+ * @return A new WeavePath object which remembers the current WeavePath as its parent.
  */
 weave.WeavePath.prototype.pushLayerSettings = function(plotterName)
 {
