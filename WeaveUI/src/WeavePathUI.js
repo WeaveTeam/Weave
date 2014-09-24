@@ -38,7 +38,8 @@ weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height)
 /**
  * This is a shortcut for pushing the path to a plotter from the current path, which should reference a visualization tool.
  * @param plotterName (Optional) The name of an existing or new plotter.
- *                    If omitted, the default plotter name ("plot") will be used.
+ *                    If omitted and the current path points to a LayerSettings object, the corresponding plotter will be used.
+ *                    Otherwise if omitted the default plotter name ("plot") will be used.
  * @param plotterType (Optional) The type of plotter to request if it doesn't exist yet.
  * @return A new WeavePath object which remembers the current WeavePath as its parent.
  */
