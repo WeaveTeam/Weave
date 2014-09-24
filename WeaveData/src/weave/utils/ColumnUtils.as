@@ -530,16 +530,15 @@ package weave.utils
 			{
 				// don't run callbacks while we edit session state
 				getCallbackCollection(columnHashMap).delayCallbacks();
-				// remember the order
+				// remember the name order
 				var names:Array = columnHashMap.getNames();
-				
-				// create a new wrapper column
-				var newCol:DynamicColumn = columnHashMap.requestObject(null, DynamicColumn, false);
+				// remember the session state of the first column
+				var state:Array = columnHashMap.getSessionState();
+				state.length = 1; // only keep first column
+				// overwrite existing column, reusing the same name
+				var newCol:DynamicColumn = columnHashMap.requestObject(names[0], DynamicColumn, false);
 				// copy the old col inside the new col
-				newCol.requestLocalObjectCopy(cols[0]);
-				// remove old col
-				columnHashMap.removeObject(columnHashMap.getName(cols[0]));
-				
+				newCol.setSessionState(state, true);
 				// restore name order
 				columnHashMap.setNameOrder(names);
 				// done editing session state
