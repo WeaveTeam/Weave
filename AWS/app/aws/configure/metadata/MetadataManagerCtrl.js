@@ -176,7 +176,6 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	};
     
 })
-.controller("MetadataCtrl", function($scope, queryService){})
 
 /*
  *applies metadata standards defined by user in a csv to the selected datatable 
@@ -186,6 +185,7 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	$scope.maxTasks;
 	$scope.progressValue = 0;
 	
+	//object representation of the metadata csv uploaded 
 	$scope.metadataUploaded = {
 			file : {
 				filename : "",
