@@ -50,7 +50,7 @@ app.run(['$rootScope', function($rootScope){
 		activetab : 'analysis'
 	}).when('/metadata', {
 		templateUrl : 'aws/configure/metadata/metadataManager.html',
-		controller : 'MetadataCtrl',
+		controller : 'MetadataManagerCtrl',
 		activetab : 'metadata'
 	}).when('/script_management', {
 		templateUrl : 'aws/configure/script/scriptManager.html',
@@ -73,7 +73,8 @@ angular.module('aws.configure', ['aws.configure.metadata',
                                  'aws.configure.script']);
 
 // From Amith's UI
-app.controller('AWSController', function($scope, $route, $location, errorLogService) {
+app.controller('AWSController', function($scope, $route, $location, queryService, errorLogService) {
+	$scope.queryService = queryService;
 	$scope.$route = $route;
 
 });
