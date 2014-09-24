@@ -2,14 +2,6 @@
 
 var app = angular.module('aws', [//'aws.router', // for app structure (can be cleaned)
                                  //'aws.analysis', 
-                                 
-                                 'aws.configure', //Both script and metadata managers
-                                 'aws.directives', // high level directives don't agree with current location
-
-                                 'aws.queryObject', // queryService.. this needs to be reconciled                               
-                                 'aws.queryObjectEditor', // Shweta's module
-                                 'aws.project',  // shweta's module
-                                 'aws.errorLog',
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
@@ -20,7 +12,13 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'ui.sortable', // Shweta Needs, comes from angular-strap???
                                  'ngRoute',
                                  'ngGrid', // Angular UI library
-                                 'mk.editablespan', // Directive for editing values. 
+                                 'mk.editablespan', // Directive for editing values.
+                                 'aws.configure', //Both script and metadata managers
+                                 'aws.directives', // high level directives don't agree with current location
+                                 'aws.queryObject', // queryService.. this needs to be reconciled                               
+                                 'aws.queryObjectEditor', // Shweta's module
+                                 'aws.project',  // shweta's module
+                                 'aws.errorLog',
                                  'aws.AnalysisModule',
                                  'aws.WeaveModule',
                                  'aws.QueryHandlerModule'
