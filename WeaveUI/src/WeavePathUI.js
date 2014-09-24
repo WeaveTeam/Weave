@@ -36,7 +36,7 @@ weave.WeavePath.prototype.requestPanel = function(type, x, y, width, height, use
 
 /**
  * This is a shortcut for pushing the path to a plotter from the current path, which should reference a visualization tool.
- * @param plotterName The name of an existing or new plotter.
+ * @param plotterName (Optional) The name of an existing or new plotter. If omitted, the default plotter name ("plot") will be used.
  * @param plotterType (Optional) The type of plotter to request if it doesn't exist yet.
  */
 weave.WeavePath.prototype.pushPlotter = function(plotterName, plotterType)
@@ -45,6 +45,21 @@ weave.WeavePath.prototype.pushPlotter = function(plotterName, plotterType)
 		this._failMessage('pushPlotter', "Not a compatible visualization tool", this._path);
 	
     var path = this.push('children', 'visualization', 'plotManager', 'plotters', plotterName || 'plot');
+    if (plotterType)
+        path.request(plotterType);
+    return path;
+};
+
+/**
+ * This is a shortcut for pushing the path to a LayerSettings object from the current path, which should reference a visualization tool.
+ * @param plotterName The name of an existing plotter.
+ */
+weave.WeavePath.prototype.pushLayerSettings = function(plotterName)
+{
+	if (!checkType(this, 'weave.visualization.tools.SimpleVisTool'))
+		this._failMessage('pushPlotter', "Not a compatible visualization tool", this._path);
+	
+    var path = this.push('children', 'visualization', 'plotManager', 'layerSettings', plotterName || 'plot');
     if (plotterType)
         path.request(plotterType);
     return path;

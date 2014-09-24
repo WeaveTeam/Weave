@@ -528,7 +528,7 @@ weave.WeavePath.prototype.setColumn = function(metadata, dataSourceName)
 weave.WeavePath.prototype.setColumns = function(metadataMapping, dataSourceName) {
     var useDataSource = arguments.length > 1;
     return this
-        .forEach(childToIdMapping, function(value, key) {
+        .forEach(metadataMapping, function(value, key) {
             var path = this.push(key);
             var func = Array.isArray(value) ? path.setColumns : path.setColumn;
             var args = useDataSource ? [value, dataSourceName] : [value];
