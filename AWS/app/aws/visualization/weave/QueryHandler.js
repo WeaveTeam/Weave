@@ -266,6 +266,4 @@ qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHan
 	
 	$scope.service = queryService;
 	$scope.runService = QueryHandlerService;
-	
-	
 });
