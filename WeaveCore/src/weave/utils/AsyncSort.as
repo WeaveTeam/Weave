@@ -379,13 +379,13 @@ package weave.utils
 					array1.sortOn('value', 0);
 				else
 					array1.sortOn('value', _debugCompareCounter);
-				trace('Array.sort', array1.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+				trace('Array.sortOn', array1.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
 				
 				start = getTimer();
 				_debugCompareCount = 0;
 				sortImmediately(array2, _debugCompareFunction);
 				//trace('Merge Sort', n, 'numbers;', _immediateSorter.elapsed / 1000, 'seconds;',_debugCompareCount,'comparisons');
-				trace('Merge Sort', array2.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+				trace('Merge SortOn', array2.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
 				
 				if (array2.length == 1 && ObjectUtil.compare(array1[0],array2[0]) != 0)
 					throw new Error("sort failed on array length 1");
