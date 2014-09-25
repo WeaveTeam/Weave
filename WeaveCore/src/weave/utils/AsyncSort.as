@@ -303,30 +303,41 @@ package weave.utils
 			Merge Sort 50000 numbers; 1.284 seconds
 		*/
 		private static var _testArrays:Array;
+		private static var _testArraysSortOn:Array;
 		private static var _testType:int = -1;
-		public static function test(compare:Object, testType:int = 0):void
+		private static function initTestArrays(testType:int):void
 		{
 			if (testType != _testType)
 			{
 				_testType = testType;
 				_testArrays = [];
+				_testArraysSortOn = [];
 				for each (var n:uint in [0,1,2,3,4,5,50,3000,6000,12000,25000,50000])
 				{
 					var array:Array = [];
+					var arraySortOn:Array = [];
 					for (var i:int = 0; i < n; i++)
 					{
+						var value:*;
 						if (testType == 0)
-							array.push(uint(Math.random()*100));
+							value = uint(Math.random()*100);
 						else if (testType == 1)
-							array.push(Math.random() < .5 ? NaN : uint(Math.random()*100));
+							value = Math.random() < .5 ? NaN : uint(Math.random()*100);
 						else if (testType == 2)
-							array.push('a' + Math.random());
+							value = 'a' + Math.random();
+						
+						array.push(value);
+						arraySortOn.push({'value': value});
 					}
 					_testArrays.push(array);
+					_testArraysSortOn.push(arraySortOn);
 				}
 			}
 			trace("testType =", testType);
-			
+		}
+		public static function test(compare:Object, testType:int = 0):void
+		{
+			initTestArrays(testType);
 			_debugCompareFunction = compare as Function;
 			for each (var _array:Array in _testArrays)
 			{
@@ -353,6 +364,36 @@ package weave.utils
 				verifyNumbersSorted(array2);
 			}
 		}
+		public static function testSortOn(compare:Object, testType:int = 0):void
+		{
+			initTestArrays(testType);
+			_debugCompareFunction = new SortOn('value', compare as Function || primitiveCompare).compare as Function;
+			for each (var _array:Array in _testArraysSortOn)
+			{
+				var array1:Array = _array.concat();
+				var array2:Array = _array.concat();
+				
+				var start:int = getTimer();
+				_debugCompareCount = 0;
+				if (compare === null)
+					array1.sortOn('value', 0);
+				else
+					array1.sortOn('value', _debugCompareCounter);
+				trace('Array.sort', array1.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+				
+				start = getTimer();
+				_debugCompareCount = 0;
+				sortImmediately(array2, _debugCompareFunction);
+				//trace('Merge Sort', n, 'numbers;', _immediateSorter.elapsed / 1000, 'seconds;',_debugCompareCount,'comparisons');
+				trace('Merge Sort', array2.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+				
+				if (array2.length == 1 && ObjectUtil.compare(array1[0],array2[0]) != 0)
+					throw new Error("sort failed on array length 1");
+				
+				verifyNumbersSorted(array2);
+			}
+
+		}
 		private static function verifyNumbersSorted(array:Array):void
 		{
 			for (var i:int = 1; i < array.length; i++)
@@ -371,4 +412,16 @@ package weave.utils
 			return _debugCompareFunction(a, b);
 		}
 	}
+}
+
+internal class SortOn
+{
+	public function SortOn(prop:String, compare:Function)
+	{
+		this.prop = prop;
+		this._compare = compare;
+	}
+	private var prop:String;
+	private var _compare:Function;
+	public function compare(a:*, b:*):int { return _compare(a[prop], b[prop]); }
 }
