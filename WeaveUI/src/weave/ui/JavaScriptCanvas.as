@@ -14,7 +14,7 @@ package weave.ui
 
 	public class JavaScriptCanvas extends Canvas implements ILinkableObject
 	{
-		private var buffers:Vector.<Image> = new Vector.<Image>(2, true);
+		private var buffers:Vector.<Image> = Vector.<Image>([new Image(), new Image()]);
 		private var back_buffer:Image;
 		private var last_update:int = 0;
 		private var rendering:Boolean = false;
@@ -35,17 +35,8 @@ package weave.ui
 			
 			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, this, handleEnterFrame);
 			
-			for (var i:int = 0; i < buffers.length; i++)
-			{
-				buffers[i] = new Image();
-				buffers[i].addEventListener(Event.COMPLETE, handleImageComplete);
-				addChild(buffers[i]);
-			}
-
-			addChild(buffers[1]);
-			
-			back_buffer = buffers[0];
-			last_update = getTimer();
+			for each (back_buffer in buffers)
+				addChild(back_buffer).addEventListener(Event.COMPLETE, handleImageComplete);
 		}
 
 		public function handleEnterFrame():void
