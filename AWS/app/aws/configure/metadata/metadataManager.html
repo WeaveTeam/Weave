@@ -23,7 +23,7 @@
 <!-- 	      <file-upload label="Upload"></file-upload> -->
 		  <div >
 		  Progress
-		      <progressbar style value="progressValue" max="maxTasks" animate="true">
+		      <progressbar ng-show = "inProgress" value="progressValue" dynamic-max = "{{maxTasks}}" animate="true">
 		      <span style="color:white; white-space:nowrap;"/>{{progressValue}}/ {{maxTasks}}</progressbar><!-- progress bar -->
 		      
 		      

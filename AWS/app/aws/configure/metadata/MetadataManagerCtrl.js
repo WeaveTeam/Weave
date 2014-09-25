@@ -1,4 +1,37 @@
-angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", function($scope, queryService){			
+var metadataModule = angular.module('aws.configure.metadata', []);
+
+// SOURCE: from stack overflow : http://stackoverflow.com/questions/25531961/angularjs-bootstrap-progressbar-max-changing
+//adding a decorator to the progressbar and bar directives provided by ui-bootstrap
+metadataModule.config(function($provide){
+	var progressDecorator = function($delegate){
+		var directive = $delegate[0];
+		var compile = directive.compile;
+		var link = directive.link;
+		
+		directive.compile = function(){
+			compile.apply(this,arguments);
+			
+			return function(scope, elem, attr, ctrl){
+				link.apply(this,arguments);
+				
+				if(angular.isDefined(attr.dynamicMax)){
+					attr.$observe('dynamicMax', function(max) {
+			              scope.max = max;
+		              scope.percent = +(100 * scope.value / max).toFixed(2);
+			        }); 
+			}
+			};
+		};//end of compile function
+		
+		return $delegate;
+	};//end of progressIndicator;
+	
+	$provide.decorator('progressbarDirective', progressDecorator);
+    $provide.decorator('barDirective', progressDecorator);
+	
+})
+
+.controller("MetadataManagerCtrl", function($scope, queryService){			
 
 	var treeData = [];
 	$scope.myData = [];
@@ -8,6 +41,8 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
     $scope.fileUpload;
     
     $scope.queryService = queryService;
+    
+    console.log("scope in controller", $scope);
     
     //generated when the dynatree directive loads
 	$scope.generateTree = function(element) {
@@ -155,11 +190,13 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	  * Editing
 	  * function calls for editing a column metadata property
 	  */
+	 //adding
 	 $scope.addNewRow = function () {
 		 $scope.myData.push({property: 'Property Name', value: 'Value'});
 		 updateMetadata($scope.myData);
 	 };
 
+	 //deleting
 	 $scope.removeRow = function() {
 		 var index = $scope.myData.indexOf($scope.gridOptions.selectedItems[0]);
 	     $scope.myData.splice(index, 1);
@@ -195,73 +232,78 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	
 	$scope.$watch('metadataUploaded.file', function(n, o) {
 		if($scope.metadataUploaded.file.content){
-			console.log("content", $scope.metadataUploaded.file.content);
-        	  //metadata file(.csv) uploaded by the user is converted to update the columns
-            var metadataArray = queryService.CSVToArray($scope.metadataUploaded.file.content);
-            
-    	  if($scope.selectedDataTableId) {//works only if a selection is made
-    		  queryService.getDataColumnsEntitiesFromId($scope.selectedDataTableId, true).then(function(columns) {
-    			 // console.log("columns", columns);
-    			  if(columns.length) {//works only if a datatable that contains column children is selected, will not work if a column is selected
-	    				  var end = columns.length;
-	    				 // $scope.maxTasks = end;
-	    				  
-        				  for (var i = 1; i < metadataArray.length; i++) {//starting the loop from index 1 to avoid headers
-        						var title = metadataArray[i][0];//gets the title of a single column
-        						
-        						var metadata = metadataArray[i][1];//gets the metadata to be updated per column
-        						
-        						//$scope.progressValue = 0;
-        						//console.log("scope", $scope);
-        						console.log("maxtasks", $scope.maxTasks);
-        						var id;
-        						for(var j = 0; j < columns.length; j++) {
-        							if(columns[j].title == title) {
-        								id = columns[j].id;
-        								break; // we assume there is only one match
-        							}
-        						}
-	        					if(id) {
-	        								//TODO handle columns with missing metadata
-	        								if(!(angular.isUndefined(metadata)))//if a particular column does not have metadata
-	        									metadata = metadata.replace(/\s/g, '');
-	        								
-	        								//console.log("progress value before", $scope.progressValue);
-	        								//updating the column metadata(adding the aws_metadata property to the public metadata) on the server 
-//	        								queryService.updateEntity($scope.queryService.user, $scope.queryService.password, id, {publicMetadata :{ 
-//	        																												aws_metadata : metadata
-//	        																											 }
-//	        																							}
-//		        							 ).then(function() {
-//		        								 $scope.progressValue++;
-//		        							 });								
+			
+	        	  //metadata file(.csv) uploaded by the user is converted to update the columns
+	           var metadataArray = queryService.CSVToArray($scope.metadataUploaded.file.content);
+	            
+	    	  if($scope.selectedDataTableId) {//works only if a selection is made
+	    		  queryService.getDataColumnsEntitiesFromId($scope.selectedDataTableId, true).then(function(columns) {
+	    			 // console.log("columns", columns);
+	    			  if(columns.length) {//works only if a datatable that contains column children is selected, will not work if a column is selected
+		    				  var end = columns.length;
+		    				  $scope.maxTasks = end;
+		    				  
+	        				  for (var i = 1; i < metadataArray.length; i++) {//starting the loop from index 1 to avoid headers
+	        						var title = metadataArray[i][0];//gets the title of a single column
+	        						
+	        						var metadata = metadataArray[i][1];//gets the metadata to be updated per column
+	        						
+	        						//$scope.progressValue = 0;
+	        						//console.log("scope", $scope);
+	        						var id;
+	        						for(var j = 0; j < columns.length; j++) {
+	        							if(columns[j].title == title) {
+	        								id = columns[j].id;
+	        								break; // we assume there is only one match
 	        							}
-							 }
-        			  } else {
-        				  //if a column is selected
-        				  console.log("selected entity is not a table or table does not contain any columns.");
-        			  }
-			  });
-    	  } else {
-					console.log("no selected tables");
-    	  		};
+	        						}
+		        					if(id) {
+		        								//TODO handle columns with missing metadata
+		        								if(!(angular.isUndefined(metadata)))//if a particular column does not have metadata
+		        									metadata = metadata.replace(/\s/g, '');
+		        								
+		        								
+		        								//console.log("progress value before", $scope.progressValue);
+		        								//updating the column metadata(adding the aws_metadata property to the public metadata) on the server 
+		        								queryService.updateEntity($scope.queryService.user, $scope.queryService.password, id, {publicMetadata :{ 
+		        																												aws_metadata : metadata
+		        																											 }
+		        																							}
+			        							 ).then(function() {
+			        								 $scope.progressValue++;
+			        							 });								
+		        							}
+								 }
+	        			  } else {
+	        				  //if a column is selected
+	        				  console.log("selected entity is not a table or table does not contain any columns.");
+	        			  }
+				  });
+	    	  } else {
+						console.log("no selected tables");
+	    	  		};
 
         }
 
       }, true);
 	
-	 $scope.$watch('progressValue', function(){
-		 console.log("in watch progress value", $scope.progressValue);
+	//watch expression to reset the progress bar after the task has been completed
+//	 $scope.$watch('progressValue', function(){
+//		 //console.log("progress", $scope.progressValue);
 //		if($scope.progressValue == $scope.maxTasks) {
+//			//console.log("equal");
 //			setTimeout(function() {
+//				//resetting variables
 //				$scope.inProgress = false;
 //				$scope.progressValue = 0;
+//				$scope.maxTasks = 0;
 //				$scope.$apply();
-//			}, 50);
+//			}, 5000);
 //		} else {
+//			//console.log("not equal");
 //			$scope.inProgress = true;
 //		}
-	 });
+//	 });
 });		
 
 
