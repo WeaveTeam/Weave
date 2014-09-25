@@ -7,7 +7,6 @@
 </div>
 
 <div class="modal-body" >
-{{check}}
 	<table style = "width:100%">
 		<tr>
 			<td>Name of the Project</td>
@@ -23,27 +22,43 @@
 		
 		<tr>
 			<td>Project Description</td>
-			<td><textarea style = "width:100%; overflow-y : scroll;" type = "text"
+			<td><textarea style = "width:100%; overflow-y : scroll; resize : none" type = "text"
 					  ng-model = "projectDescriptionEntered" >
 			</textarea></td>
 		</tr>
+		
 		<tr>
 			<td>Add query objects (.json) files</td>
-			<td ng-if= "!uploadStatus"><font color="red" >No file uploaded</font></td>
-			<td>{{uploadStatus}}</td> 
-		</tr>
-		<tr></tr>
-		<tr>
-			<td> <label class='file-nput-btn' style="width:80px">Upload<input fileread="uploaded.QueryObject" class='file-upload' type='file'/></label></td>
+<!-- 			<td ng-if= "!uploadStatus"><font color="red" >No file uploaded</font></td> -->
+<!-- 			<td>{{uploadStatus}}</td>  -->
 			
+			<td> <label class='file-nput-btn' style="width:80px">Upload<input fileread="uploaded.QueryObject" class='file-upload' type='file'/></label></td>
 		</tr>
+		
+	
+		
+		
+		<tr>
+		<td>
+			<ul ng-repeat="file in uploadedObjects.queryObjectTitles">
+				<li>
+					<span class="prj-txt-lbl"> {{file}}</span> 
+					<button type="button" class="close" ng-click ="remove(file)">Remove</button>
+				</li>
+			</ul>
+		</td>
+		</tr>
+		
+		
 	</table>
 </div>
 
 <div class="modal-footer">
-			<button type="button" class= "btn btn-primary" ng-click = "close(projectNameEntered, projectDescriptionEntered)">
+			{{uploadStatus}}
+			<button type="button" class= "btn btn-primary" ng-click = "saveQueryObjects(projectNameEntered, projectDescriptionEntered, userNameEntered)">
 			Save
 			</button>
+		<div ng-if= "!uploadStatus"><font color="red" >No file uploaded</font></div>
 </div>
 
 
