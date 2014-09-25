@@ -104,8 +104,9 @@
 			{
 				var geomColumns:Array = input.filter(isGeomColumnOrRef);
 				var nonGeomColumns:Array = input.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
-				for each (var geomColumn:Object in geomColumns)
+				if (geomColumns.length)
 				{
+					var geomColumn:Object = geomColumns[0];
 					var gp:GeometryPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter, false);
 					if (gp)
 					{
