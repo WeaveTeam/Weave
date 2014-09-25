@@ -288,22 +288,22 @@ metadataModule.config(function($provide){
       }, true);
 	
 	//watch expression to reset the progress bar after the task has been completed
-//	 $scope.$watch('progressValue', function(){
-//		 //console.log("progress", $scope.progressValue);
-//		if($scope.progressValue == $scope.maxTasks) {
-//			//console.log("equal");
-//			setTimeout(function() {
-//				//resetting variables
-//				$scope.inProgress = false;
-//				$scope.progressValue = 0;
-//				$scope.maxTasks = 0;
-//				$scope.$apply();
-//			}, 5000);
-//		} else {
-//			//console.log("not equal");
-//			$scope.inProgress = true;
-//		}
-//	 });
+	 $scope.$watch('progressValue', function(){
+		 //console.log("progress", $scope.progressValue);
+		if($scope.progressValue == $scope.maxTasks) {
+			//console.log("equal");
+			setTimeout(function() {
+				//resetting variables
+				$scope.inProgress = false;
+				$scope.progressValue = 0;
+				$scope.maxTasks = 0;
+				$scope.$apply();
+			}, 5000);
+		} else {
+			//console.log("not equal");
+			$scope.inProgress = true;
+		}
+	 });
 });		
 
 
