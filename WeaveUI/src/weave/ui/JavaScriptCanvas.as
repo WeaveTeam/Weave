@@ -39,7 +39,7 @@ package weave.ui
 				addChild(back_buffer).addEventListener(Event.COMPLETE, handleImageComplete);
 		}
 
-		public function handleEnterFrame():void
+		private function handleEnterFrame():void
 		{
 			var interval:int = getTimer() - last_update;
 			if (rendering || interval < MIN_FRAME_INTERVAL || !elementId.value)
@@ -50,7 +50,7 @@ package weave.ui
 			WeaveAPI.StageUtils.callLater(this, updateImage);
 		}
 
-		public function updateImage():void
+		private function updateImage():void
 		{
 			if (!elementId.value)
 			{
@@ -86,7 +86,7 @@ package weave.ui
 			{
 				for each (var buffer:Image in buffers)
 					buffer.visible = buffer === back_buffer;
-				back_buffer = buffers[buffers.indexOf(buffer) ^ 1];
+				back_buffer = buffers[buffers.indexOf(back_buffer) ^ 1];
 				rendering = false;
 			}
 		}
