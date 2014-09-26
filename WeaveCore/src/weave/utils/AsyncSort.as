@@ -319,11 +319,11 @@ package weave.utils
 					for (var i:int = 0; i < n; i++)
 					{
 						var value:*;
-						if (testType == 0)
+						if (testType == 0) // random integers
 							value = uint(Math.random()*100);
-						else if (testType == 1)
+						else if (testType == 1) // random integers and NaNs
 							value = Math.random() < .5 ? NaN : uint(Math.random()*100);
-						else if (testType == 2)
+						else if (testType == 2) // random strings
 							value = 'a' + Math.random();
 						
 						array.push(value);
@@ -333,7 +333,8 @@ package weave.utils
 					_testArraysSortOn.push(arraySortOn);
 				}
 			}
-			trace("testType =", testType);
+			var desc:String = ['uint', 'uint and NaN', 'string'][testType];
+			trace("testType =", testType, '(' + desc + ')');
 		}
 		public static function test(compare:Object, testType:int = 0):void
 		{
@@ -348,8 +349,10 @@ package weave.utils
 				_debugCompareCount = 0;
 				if (compare === null)
 					array1.sort(0);
-				else
+				else if (compare is Function)
 					array1.sort(_debugCompareCounter);
+				else
+					array1.sort(compare);
 				trace('Array.sort', array1.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
 				
 				start = getTimer();
@@ -377,13 +380,15 @@ package weave.utils
 				_debugCompareCount = 0;
 				if (compare === null)
 					array1.sortOn('value', 0);
-				else
+				else if (compare is Function)
 					array1.sortOn('value', _debugCompareCounter);
+				else
+					array1.sortOn('value', compare);
 				trace('Array.sortOn', array1.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
 				
 				start = getTimer();
 				_debugCompareCount = 0;
-				sortImmediately(array2, _debugCompareFunction);
+				sortImmediately(array2, _debugCompareCounter);
 				//trace('Merge Sort', n, 'numbers;', _immediateSorter.elapsed / 1000, 'seconds;',_debugCompareCount,'comparisons');
 				trace('Merge SortOn', array2.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
 				
