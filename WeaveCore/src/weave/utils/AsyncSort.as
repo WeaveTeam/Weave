@@ -388,6 +388,20 @@ package weave.utils
 				
 				start = getTimer();
 				_debugCompareCount = 0;
+				var plucked:Array = new Array(_array.length);
+				var i:int = _array.length;
+				while (i--)
+					plucked[i] = _array[i]['value'];
+				if (compare === null)
+					plucked.sort(0);
+				else if (compare is Function)
+					plucked.sort(_debugCompareCounter);
+				else
+					plucked.sort(compare);
+				trace('Pluck & sort', plucked.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+				
+				start = getTimer();
+				_debugCompareCount = 0;
 				sortImmediately(array2, _debugCompareCounter);
 				//trace('Merge Sort', n, 'numbers;', _immediateSorter.elapsed / 1000, 'seconds;',_debugCompareCount,'comparisons');
 				trace('Merge SortOn', array2.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
