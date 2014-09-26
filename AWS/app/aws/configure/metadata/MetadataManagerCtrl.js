@@ -1,9 +1,9 @@
 var metadataModule = angular.module('aws.configure.metadata', []);
 
 // SOURCE: from stack overflow : http://stackoverflow.com/questions/25531961/angularjs-bootstrap-progressbar-max-changing
-//adding a decorator to the progressbar and bar directives provided by ui-bootstrap
+//adding a decorator that encapsulates the progressbar and bar directives provided by ui-bootstrap
 metadataModule.config(function($provide){
-	var progressDecorator = function($delegate){
+	var progressDecorator = function($delegate){//$delegate is the original service instance which is decorated
 		var directive = $delegate[0];
 		var compile = directive.compile;
 		var link = directive.link;
@@ -26,12 +26,13 @@ metadataModule.config(function($provide){
 		return $delegate;
 	};//end of progressIndicator;
 	
+	//the decorator function decorates the given service while instantiating it and returns the decorated service instance
 	$provide.decorator('progressbarDirective', progressDecorator);
     $provide.decorator('barDirective', progressDecorator);
 	
 })
 
-.controller("MetadataManagerCtrl", function($scope, queryService){			
+.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService){			
 
 	var treeData = [];
 	$scope.myData = [];
@@ -41,8 +42,7 @@ metadataModule.config(function($provide){
     $scope.fileUpload;
     
     $scope.queryService = queryService;
-    
-    console.log("scope in controller", $scope);
+    $scope.authenticationService = authenticationService;
     
     //generated when the dynatree directive loads
 	$scope.generateTree = function(element) {

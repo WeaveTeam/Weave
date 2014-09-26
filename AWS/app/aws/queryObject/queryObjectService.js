@@ -92,11 +92,16 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     	this.queryObject = angular.fromJson(sessionStorage.queryObject);
     };
 
-    this.authenticated = false;
+    /*****************needed for logging in and admin privileges*/
+//    this.user = "";
+//    this.password = "";
+   // this.authenticated = false;
     
-	this.logout = function() {
-		this.authenticated = false;
-	};
+//	this.logout = function() {
+//		this.authenticated = false;
+//	};
+	/*******************/
+	
 	var that = this; // point to this for async responses
 
 	this.queryObject = {
@@ -312,11 +317,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
 		} else {
 			if(id) {
 				aws.queryService(dataServiceURL, "getEntityChildIds", [id], function(idsArray) {
+					//console.log("idsArray", idsArray);
 					aws.queryService(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
-						
+						//console.log("dataEntirtyArray", dataEntityArray);
+						//console.log("columns", that.dataObject.columnsb);
 						
 						that.dataObject.columns = $.map(dataEntityArray, function(entity) {
-							if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {
+							if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {//will work if the column already has the aws_metadata as part of its public metadata
 								var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
 								if(metadata.hasOwnProperty("columnType")) {
 									return {
@@ -326,6 +333,15 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
 										description : metadata.description || ""
 									};
 								}
+							}
+							else{//if its doesnt have aws_metadata as part of its public metadata, create a partial aws_metadata object
+									return {
+										id : entity.id,
+										title : entity.publicMetadata.title,
+										columnType : "",
+										description : ""
+									};
+								
 							}
 						});
 						scope.$safeApply(function() {
@@ -480,13 +496,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
             return deferred.promise;
         };
         
-        this.authenticate = function(user, password) {
-
-        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
-                this.authenticated = result;
-                scope.$apply();
-            }.bind(this));
-        };
+//        this.authenticate = function(user, password) {
+//
+//        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
+//                this.authenticated = result;
+//                scope.$apply();
+//            }.bind(this));
+//        };
         
         
          // Source: http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm

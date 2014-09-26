@@ -67,12 +67,13 @@ app.run(['$rootScope', function($rootScope){
 
 angular.module('aws.directives', ['aws.directives.dualListBox',
                                   'aws.directives.fileUpload']);
-angular.module('aws.configure', ['aws.configure.metadata',
+angular.module('aws.configure', ['aws.configure.auth',
+                                 'aws.configure.metadata',
                                  'aws.configure.script']);
 
+
 // From Amith's UI
-app.controller('AWSController', function($scope, $route, $location, queryService, errorLogService) {
-	$scope.queryService = queryService;
+app.controller('AWSController', function($scope, $route, $location, errorLogService) {
 	$scope.$route = $route;
 
 });

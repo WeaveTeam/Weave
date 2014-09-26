@@ -3,7 +3,7 @@
 <!-- The pre-login interface -->
 <div ng-include src="'aws/configure/auth/login.html'"></div>
 
-<table ng-if="queryService.authenticated">
+<table ng-if="authenticationService.authenticated">
   <colgroup width="100%">
     <col width="50%" valign="top">
     <col width="50%">
