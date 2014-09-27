@@ -579,6 +579,106 @@ package weave.compiler
 		}
 		
 		/**
+		 * Sorts an Array (or Vector) of items in place using properties, lookup tables, or replacer functions.
+		 * @param array An Array (or Vector) to sort.
+		 * @param params One of several formats: A property name, lookup table, replacer function, or an Array of such parameters to sort on multiple values.
+		 * @param sortDirections Specifies sort direction(s) (1 or -1) corresponding to the params.
+		 * @param inPlace Set this to true to modify the original Array (or Vector) in place or false to return a new, sorted copy.
+		 * @param returnSortedIndexArray Set this to true to return a new Array of sorted indices.
+		 * @return Either the original Array (or Vector) or a new one.
+		 * @see Array#sortOn()
+		 */
+		public static function sortOn(array:*, params:*, sortDirections:* = undefined, inPlace:Boolean = true, returnSortedIndexArray:Boolean = false):*
+		{
+			if (array.length == 0)
+				return inPlace ? array : [];
+			
+			var values:Array = new Array(array.length);
+			var param:*;
+			var sortDirection:int;
+			var i:int;
+			if (params is Array)
+			{
+				var fields:Array = new Array(params.length);
+				var fieldOptions:Array = new Array(params.length);
+				for (var p:int = 0; p < params.length; p++)
+				{
+					if (p == 0)
+					{
+						i = array.length;
+						while (i--)
+							values[i] = new Array(params.length);
+					}
+					
+					param = params[p];
+					sortDirection = sortDirections && sortDirections[p] < 0 ? Array.DESCENDING : 0;
+					
+					i = array.length;
+					if (param === array)
+						while (i--)
+							values[i][p] = array[i];
+					else if (param is Function)
+						while (i--)
+							values[i][p] = param(array[i]);
+					else if (typeof param === 'object')
+						while (i--)
+							values[i][p] = param[array[i]];
+					else
+						while (i--)
+							values[i][p] = array[i][param];
+					
+					fields[p] = p;
+					fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(values[0][p]) | sortDirection;
+				}
+				
+				values = values.sortOn(fields, fieldOptions);
+			}
+			else
+			{
+				param = params;
+				sortDirection = sortDirections < 0 ? Array.DESCENDING : 0;
+				
+				i = array.length;
+				if (param is Function)
+					while (i--)
+						values[i] = param(array[i]);
+				else if (typeof param === 'object')
+					while (i--)
+						values[i] = param[array[i]];
+				else
+					while (i--)
+						values[i] = array[i][param];
+				
+				values = values.sort(Array.RETURNINDEXEDARRAY | guessSortMode(values[0]) | sortDirection);
+			}
+			
+			if (returnSortedIndexArray)
+				return values;
+			
+			var array2:Array = new Array(array.length);
+			i = array.length;
+			while (i--)
+				array2[i] = array[values[i]];
+			
+			if (!inPlace)
+				return array2;
+			
+			i = array.length;
+			while (i--)
+				array[i] = array2[i];
+			return array;
+		}
+		
+		/**
+		 * Guesses the appropriate Array.sort() mode based on a sample item from an Array.
+		 * @return Either Array.NUMERIC or 0.
+		 */
+		private static function guessSortMode(sampleItem:Object):int
+		{
+			return sampleItem is Number || sampleItem is Date ? Array.NUMERIC : 0;
+		}
+		
+		/**
 		 * This will return the type of item found in the Array if each item has the same type.
 		 * @param a An Array to check.
 		 * @return The type of all items in the Array, or null if the types differ. 
