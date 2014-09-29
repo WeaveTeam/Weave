@@ -26,6 +26,7 @@ package weave.core
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getTimer;
 	
 	import mx.core.UIComponentGlobals;
@@ -53,6 +54,10 @@ package weave.core
 	{
 		public function StageUtils()
 		{
+			try {
+				this.pauseForGCIfCollectionImminent = getDefinitionByName('flash.system.System')["pauseForGCIfCollectionImminent"];
+			} catch (e:Error) { }
+			
 			eventManager.throttledMouseMoveInterval = maxComputationTimePerFrame;
 			addEventCallback(Event.ENTER_FRAME, null, handleCallLater);
 			addEventCallback(Event.RENDER, null, handleCallLater);
@@ -68,6 +73,7 @@ package weave.core
 		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		public var averageFrameTime:int = 0;
 		
+		private var pauseForGCIfCollectionImminent:Function = null;
 		private const frameTimes:Array = [];
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
 		private const _taskElapsedTime:Dictionary = new Dictionary(true);
@@ -316,6 +322,8 @@ package weave.core
 			_currentTaskStopTime = allStop; // make sure _iterateTask knows when to stop
 
 			// first run the functions that should be called before anything else.
+			if (pauseForGCIfCollectionImminent != null)
+				pauseForGCIfCollectionImminent();
 			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
 			var countdown:int;
 			for (countdown = queue.length; countdown > 0; countdown--)
