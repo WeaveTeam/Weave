@@ -52,7 +52,8 @@ metadataModule.config(function($provide){
 				treeNode = { title: dataTable.title, key : dataTable.id,
 						children : [], isFolder : true
 				};
-
+				
+				
 				(function(treeNode, i, end) {
 					queryService.getDataColumnsEntitiesFromId(dataTable.id, true).then(function(dataColumns) {
 						var children = [];
@@ -177,7 +178,7 @@ metadataModule.config(function($provide){
 	  */
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-		 queryService.updateEntity($scope.queryService.user, $scope.queryService.password, $scope.selectedDataTableId, { 
+		 queryService.updateEntity($scope.authenticationService.user, $scope.authenticationService.password, $scope.selectedDataTableId, { 
 																								publicMetadata : { aws_metadata : jsonaws_metadata }
 																							  }
 		 ).then(function() {
@@ -218,7 +219,7 @@ metadataModule.config(function($provide){
  *applies metadata standards defined by user in a csv to the selected datatable 
  *updates the aws-metadata property of columns in a datatable 
  */
-.controller("MetadataFileController", function ($scope, queryService){
+.controller("MetadataFileController", function ($scope, queryService, authenticationService){
 	$scope.maxTasks;
 	$scope.progressValue = 0;
 	
@@ -263,9 +264,8 @@ metadataModule.config(function($provide){
 		        									metadata = metadata.replace(/\s/g, '');
 		        								
 		        								
-		        								//console.log("progress value before", $scope.progressValue);
 		        								//updating the column metadata(adding the aws_metadata property to the public metadata) on the server 
-		        								queryService.updateEntity($scope.queryService.user, $scope.queryService.password, id, {publicMetadata :{ 
+		        								queryService.updateEntity(authenticationService.user, authenticationService.password, id, {publicMetadata :{ 
 		        																												aws_metadata : metadata
 		        																											 }
 		        																							}
