@@ -1,5 +1,17 @@
 <div class="panel-body" ng-controller="DataTableCtrl">
 	<ul class="input-controls">
+		
+		<tr>	
+			<td>
+				<input   type="checkbox"
+						 ng-model="service.queryObject.DataTableTool.enabled"/>
+			</td>
+			
+			<td style="padding-left: 5px;">
+				Enable
+			</td>
+		</tr>
+		
 		<div class="portlet-content">
 			<!--<select style="width: 100%" id="duallistboxid" dual-list-box multiple ng-model="selected" data-placeholder="Choose Columns"
 			ng-options="opt for opt in options"></select>-->

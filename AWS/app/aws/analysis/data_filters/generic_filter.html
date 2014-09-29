@@ -1,0 +1,27 @@
+<div class="panel-body">
+	
+	<ul class="input-controls">
+
+		<div>
+			<select style="width: 100%" ui-select2="{allowClear:true}"
+					ng-model="queryService.queryObject.filters.or[$parent.$index]"
+					data-placeholder="Choose Column to Filter">
+					<option></option>
+					<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
+			</select>
+			
+			<div  ng-if="queryService.dataObject.filterType[$index] == 'continuous'" style="padding-top: 5px">
+				{{ queryService.queryObject.ByVariableFilters[$index][0] }} - {{ queryService.queryObject.ByVariableFilters[$index][1] }}
+	 			<div ui-slider="queryService.dataObject.filterOptions[$index]" ng-model="queryService.queryObject.ByVariableFilters[$index]"></div>
+			</div>
+		
+			<div ng-if="queryService.dataObject.filterType[$index] == 'categorical'" >
+	 			<select ui-select2 multiple ng-model="queryService.queryObject.ByVariableFilters[$index]" data-placeholder="Choose Filter(s)" style="width:100%">
+	 				<option value="{{cat}}" ng-repeat="cat in queryService.dataObject.filterOptions[$index]">{{cat.label}}</option>
+	 			</select>
+			</div>
+								
+		</div>
+		<br><br>
+	</ul>
+</div>

@@ -81,6 +81,14 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		WeaveService.clearSessionState();
 	};
 	
+	$scope.$watchCollection(function() {
+		return $('#weave');
+	}, function() {
+		if($('#weave').length) {
+			WeaveService.weave = $('#weave')[0];
+		}
+	});
+	
 	$scope.$watch('queryService.queryObject.Indicator', function() {
 		
 		if(queryService.queryObject.Indicator) {
@@ -289,4 +297,15 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 			queryService.queryObject.scriptOptions[input.param] = input.options[0];
 		}
 	};
+	
+	var convertToTree = function(obj) {
+		
+		if(!obj.keys) {
+			return [];
+		}
+		
+		convertTo
+		
+	}
+	
 });

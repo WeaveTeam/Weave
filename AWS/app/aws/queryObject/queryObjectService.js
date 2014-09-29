@@ -105,6 +105,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     		author : "",
 			ComputationEngine : "R",
 			Indicator : "",
+			filters : {
+				or : []
+			},
 			GeographyFilter : {},
 			scriptOptions : {},
 			TimePeriodFilter : {},
@@ -120,7 +123,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     
 	this.dataObject = {
 			dataTableList : [],
-			scriptList : []
+			scriptList : [],
+			filters : []
 	};
 
 	

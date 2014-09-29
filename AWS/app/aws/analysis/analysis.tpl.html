@@ -1,6 +1,6 @@
 <div style="height: 100%" ng-controller="AnalysisCtrl">
 	<div style="height: 100%" class="container-fluid" style="padding: 5px;">
-		<div style="width:100%; overflow-x:auto; overflow-y:hidden;">
+		<div style="width:100%;">
 			<div class="row" style="height: 30%; clear: both">
 				<!--Indicator and datatable-->
 				<div class="databox" style="width: 20%">
@@ -184,12 +184,12 @@
 	
 <!-- 				</div> -->
 			
-				<div class="databox" style="width: 15%;" ng-repeat="filter in queryService.dataObject.filters">
+				<div class="databox" style="width: 15%;" ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.dataObject.filters">
 					<!-- <div class="databox" style="width: 160px;"> -->
 	
 					<div class="panel-heading">
 						<h2>{{filter.title}}</h2>
-						<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Remove"  ng-click="removeFilter($index)" bs-tooltip> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+						<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="removeFilter($index)"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
 					</div>
 					<div class="body">
 						<div style="height: 100%"
@@ -199,13 +199,14 @@
 				</div>
 			</div>
 		</div>
+		<br><br><br>
 		<div class="row " style="height: 50%; clear:both">
 			<!-- Contains the buttons pertaining to a query and its visualizations -->
 			<div>
 				<div ng-include src="'aws/visualization/tools/tools.html'"></div>
 			</div>
 			<div>
-				<iframe src="/weave.html" style="width: 60%; height: 800px"></iframe>
+				<div id="flashContent" style="width: 60%; height: 800px; float:left"></div>
 				<pre style="width :19%; float:right; height: 800px">
 					{{queryService.queryObject}}
 				</pre>
