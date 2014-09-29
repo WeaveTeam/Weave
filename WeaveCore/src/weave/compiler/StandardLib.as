@@ -581,7 +581,12 @@ package weave.compiler
 		/**
 		 * Sorts an Array (or Vector) of items in place using properties, lookup tables, or replacer functions.
 		 * @param array An Array (or Vector) to sort.
-		 * @param params One of several formats: A property name, lookup table, replacer function, or an Array of such parameters to sort on multiple values.
+		 * @param params Specifies how to get values used to sort items in the array.
+		 *               This can either be an Array of params or a single param, each of which can be one of the following:<br>
+		 *               Array or Vector: values are looked up based on index (Such an Array must be nested in a params array rather than given alone as a single param)<br>
+		 *               Object or Dictionary: values are looked up using items in the array as keys<br>
+		 *               Property name: values are taken from items in the array using a property name<br>
+		 *               Replacer function: array items are passed through this function to get values<br>
 		 * @param sortDirections Specifies sort direction(s) (1 or -1) corresponding to the params.
 		 * @param inPlace Set this to true to modify the original Array (or Vector) in place or false to return a new, sorted copy.
 		 * @param returnSortedIndexArray Set this to true to return a new Array of sorted indices.
@@ -597,7 +602,7 @@ package weave.compiler
 			var param:*;
 			var sortDirection:int;
 			var i:int;
-			if (params is Array)
+			if (params != array && params is Array)
 			{
 				var fields:Array = new Array(params.length);
 				var fieldOptions:Array = new Array(params.length);
@@ -614,9 +619,9 @@ package weave.compiler
 					sortDirection = sortDirections && sortDirections[p] < 0 ? Array.DESCENDING : 0;
 					
 					i = array.length;
-					if (param === array)
+					if (param is Array || param is Vector)
 						while (i--)
-							values[i][p] = array[i];
+							values[i][p] = param[i];
 					else if (param is Function)
 						while (i--)
 							values[i][p] = param(array[i]);
@@ -639,7 +644,10 @@ package weave.compiler
 				sortDirection = sortDirections < 0 ? Array.DESCENDING : 0;
 				
 				i = array.length;
-				if (param is Function)
+				if (param === array || param is Vector)
+					while (i--)
+						values[i] = param[i];
+				else if (param is Function)
 					while (i--)
 						values[i] = param(array[i]);
 				else if (typeof param === 'object')
