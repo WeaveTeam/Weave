@@ -526,20 +526,15 @@ weave.WeavePath.prototype.setColumn = function(metadata, dataSourceName)
  * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.setColumns = function(metadataMapping, dataSourceName) {
-    var useDataSource = arguments.length > 1;
-    return this
-        .forEach(metadataMapping, function(value, key) {
-        	var path = this.push(key);
-        	var args = useDataSource ? [value, dataSourceName] : [value];
-        	if (Array.isArray(value))
-        	{
-        		path.setColumns.apply(path, args);
-        		while (path.getType(value.length))
-        			path.remove(value.length);
-        	}
-        	else
-        	{
-        		path.setColumn.apply(path, args);
-        	}
-        });
+	var useDataSource = arguments.length > 1;
+	this.forEach(metadataMapping, function(value, key) {
+		var path = this.push(key);
+		var func = Array.isArray(value) ? path.setColumns : path.setColumn;
+		var args = useDataSource ? [value, dataSourceName] : [value];
+		func.apply(path, args);
+	});
+	if (Array.isArray(metadataMapping))
+		while (this.getType(metadataMapping.length))
+			this.remove(metadataMapping.length);
+	return this;
 };
