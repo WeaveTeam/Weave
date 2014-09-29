@@ -3,7 +3,7 @@
  */
 
 var authenticationModule = angular.module('aws.configure.auth', []);
-
+//experimenting with another kind of angular provider factory vs service (works!!)
 authenticationModule.factory('authenticationService',['$rootScope', function authenticationServiceFactory(scope){
 	var authenticationService = {};
 	authenticationService.user;
@@ -28,7 +28,10 @@ authenticationModule.factory('authenticationService',['$rootScope', function aut
 //    
     authenticationService.logout = function(){
     	console.log("loggin out");
+    	//resetting variables
     	authenticationService.authenticated = false;
+    	authenticationService.user = "";
+    	authenticationService.password = "";
     };
    
    return authenticationService;
