@@ -50,38 +50,99 @@ metadataModule.config(function($provide){
 			for (var i = 0; i < dataTableList.length; i++) {
 				dataTable = dataTableList[i];
 				treeNode = { title: dataTable.title, key : dataTable.id,
-						children : [], isFolder : true
+						children : [], isFolder : true, isLazy : true
 				};
-				
-				
-				(function(treeNode, i, end) {
-					queryService.getDataColumnsEntitiesFromId(dataTable.id, true).then(function(dataColumns) {
-						var children = [];
-						for(var j in dataColumns) {
-							dataColumn = dataColumns[j];
-							children.push({ title : dataColumn.title, key : dataColumn.id });
-						}
-						treeNode.children = children;
-						treeData.push(treeNode);
-						if( treeData.length == end) {
-							$(element).dynatree({
-								minExpandLevel: 1,
-								children : treeData,
-								keyBoard : true,
-								onPostInit: function(isReloading, isError) {
-									this.reactivate();
-								},
-								onActivate: function(node) {
-									$scope.selectedDataTableId = node.data.key;
-									getColumnMetadata(node.data.key);//getting the metadata for a single column
-								},
-								debugLevel: 0
+				treeData.push(treeNode);
+				if( treeData.length == dataTableList.length) {
+					$(element).dynatree({
+						minExpandLevel: 1,
+						children : treeData,
+						keyBoard : true,
+						onPostInit: function(isReloading, isError) {
+							this.reactivate();
+						},
+						onActivate: function(node) {
+							//handling nodes when tables
+							//$scope.selectedDataTableId = node.data.key;
+							//console.log("node selected", node);
+							//console.log("$scope.selected", $scope.selectedDataTableId);
+
+							//handle when node is a column
+							if(node.data.publicMetadata)
+								getColumnMetadata(node.data);
+						},
+						//******************************************lazy loading*****************************************************
+						onLazyRead : function(node){
+							 var request = {
+									 jsonrpc : "2.0",
+									 method : "getEntityChildIds",
+									 parentId : node.data.key
+							 };
+						      
+							node.appendAjax({
+								url : dataServiceURL,
+								data : request,
+								dataType : "json",
+								success : function(node, status, jqxhr)//this success function is different from the regular ajax success (modified by dynatree)
+											{
+												node.childList = [];//hack for removing a 'null entry' TODO:check if this is right
+												var list = status.result;// the actual result from ajax
+												
+												var columnChildren= [];
+												//as soon as ids are returned retrieve their metadata
+												aws.queryService(dataServiceURL, 'getEntitiesById', [list], function(columnsWithMetadata){
+													for(var i=0, l=columnsWithMetadata.length; i<l; i++){
+														var singleColumn = columnsWithMetadata[i];
+								                        columnChildren.push({title: singleColumn.publicMetadata.title,
+								                            	id: singleColumn.id,
+								                            	metadata: singleColumn.publicMetadata,
+								                            	addClass : "custom1",// for a particular kind of document representation
+								                            	focus: true});
+								                        
+								                    }
+								                    node.setLazyNodeStatus(DTNodeStatus_Ok);//look at dynatree documentation
+								                    node.addChild(columnChildren);
+												});
+												
+											}
 							});
-							var node = $(element).dynatree("getRoot");
-						    // node.sortChildren(cmp, true);
-						}
+						},
+						debugLevel: 0
 					});
-				})(treeNode, i, dataTableList.length);
+					var node = $(element).dynatree("getRoot");
+				    // node.sortChildren(cmp, true);
+				}
+				
+//*********************************************************************************************unlazy loading********************************************************				
+//				(function(treeNode, i, end) {
+//					queryService.getDataColumnsEntitiesFromId(dataTable.id, true).then(function(dataColumns) {
+//						var children = [];
+//						for(var j in dataColumns) {
+//							dataColumn = dataColumns[j];
+//							children.push({ title : dataColumn.title, key : dataColumn.id });
+//						}
+//						treeNode.children = children;
+//						treeData.push(treeNode);
+//						if( treeData.length == end) {
+//							$(element).dynatree({
+//								minExpandLevel: 1,
+//								children : treeData,
+//								keyBoard : true,
+//								onPostInit: function(isReloading, isError) {
+//									this.reactivate();
+//								},
+//								onActivate: function(node) {
+//									$scope.selectedDataTableId = node.data.key;
+//									getColumnMetadata(node.data.key);//getting the metadata for a single column
+//								},
+//								debugLevel: 0
+//							});
+//							var node = $(element).dynatree("getRoot");
+//						    // node.sortChildren(cmp, true);
+//						}
+//					});
+//				})(treeNode, i, dataTableList.length);
+//*********************************************************************************************unlazy loading********************************************************
 			}
 		});
 	};
@@ -94,20 +155,33 @@ metadataModule.config(function($provide){
 	/**
 	 * retrieves the metadata for a single column
 	 * */
-	var getColumnMetadata = function (id) {
-		aws.queryService('/WeaveServices/DataService', "getEntitiesById", [id], function (result){
-			var metadata = result[0];
-			if(metadata.hasOwnProperty("publicMetadata")) {
-				if(metadata.publicMetadata.hasOwnProperty("aws_metadata")) {
-					var data = [];
-					var aws_metadata = angular.fromJson(metadata.publicMetadata.aws_metadata);//converts the json string into an object
-					data = convertToTableFormat(aws_metadata);//to use in the grid
-					setMyData(data);
-				} else {
+	var getColumnMetadata = function (columnObject) {
+		
+		if(columnObject.metadata.hasOwnProperty('aws_metadata'))
+			{
+				var data = [];
+				var aws_metadata = angular.fromJson(columnObject.metadata.aws_metadata);//converts the json string into an object
+				data = convertToTableFormat(aws_metadata);//to use in the grid
+				setMyData(data);
+			} else {
 					setMyData([]);
-				}
-			} 
-		});
+			}
+			
+		
+		//*********************used to retrieve metadata from the server******************************
+		//aws.queryService('/WeaveServices/DataService', "getEntitiesById", [[ids]], function (result){
+			//var metadata = result[0];
+//			if(metadata.hasOwnProperty("publicMetadata")) {
+//				if(metadata.publicMetadata.hasOwnProperty("aws_metadata")) {
+//					var data = [];
+//					var aws_metadata = angular.fromJson(metadata.publicMetadata.aws_metadata);//converts the json string into an object
+//					data = convertToTableFormat(aws_metadata);//to use in the grid
+//					setMyData(data);
+//				} else {
+//					setMyData([]);
+//				}
+//			} 
+		//});
 	};
 
 	/**
@@ -182,8 +256,8 @@ metadataModule.config(function($provide){
 																								publicMetadata : { aws_metadata : jsonaws_metadata }
 																							  }
 		 ).then(function() {
-     		 $scope.maxTasks = 100;
-			 $scope.progressValue = 100;
+     		 //$scope.maxTasks = 100;
+			 //$scope.progressValue = 100;
 		 });
 	 };
 	 
@@ -220,7 +294,7 @@ metadataModule.config(function($provide){
  *updates the aws-metadata property of columns in a datatable 
  */
 .controller("MetadataFileController", function ($scope, queryService, authenticationService){
-	$scope.maxTasks;
+	$scope.maxTasks= 0;
 	$scope.progressValue = 0;
 	
 	//object representation of the metadata csv uploaded 
