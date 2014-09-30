@@ -73,8 +73,9 @@ angular.module('aws.configure', ['aws.configure.auth',
 
 
 // From Amith's UI
-app.controller('AWSController', function($scope, $route, $location, errorLogService) {
+app.controller('AWSController', function($scope, $route, $location, authenticationService) {
 	$scope.$route = $route;
+	$scope.authenticationService = authenticationService;
 
 });
 
