@@ -326,7 +326,8 @@ package weave.core
 			{
 				var t:int = getTimer();
 				pauseForGCIfCollectionImminent();
-				if (getTimer() - t > maxComputationTimePerFrame)
+				t = getTimer() - t;
+				if (t > maxComputationTimePerFrame)
 					trace('paused',t,'ms for GC');
 			}
 			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
