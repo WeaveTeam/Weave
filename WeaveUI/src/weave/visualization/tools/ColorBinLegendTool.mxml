@@ -188,7 +188,7 @@
 					outerDocument.visualization.plotManager.marginTopNumber.addImmediateCallback(this, handleMarginChange);
 					
 					linkBindableProperty(outerDocument._plotter.maxColumns, legendControls.numColumns, 'value');
-					linkBindableProperty(outerDocument._plotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
+					linkBindableProperty(outerDocument._plotter.reverseOrder, legendControls.reverseOrderCheck, 'selected');
 					linkBindableProperty(outerDocument._plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 					linkBindableProperty(outerDocument._plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
 					legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
