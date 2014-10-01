@@ -583,7 +583,7 @@ package weave.visualization.layers
 				}
 				setupBitmapFilters(newPlotter, settings, tasks[0], tasks[1], tasks[2]);
 				// when spatial index is recreated, we need to update zoom
-				spatialIndex.addImmediateCallback(this, updateZoom);
+				getCallbackCollection(spatialIndex).addImmediateCallback(this, updateZoom);
 				
 				if (newPlotter is ITextPlotter)
 					settings.hack_useTextBitmapFilters = true;

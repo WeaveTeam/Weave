@@ -24,13 +24,14 @@ package weave.utils
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.api.ui.ISpatialIndex;
-	import weave.core.CallbackCollection;
 	import weave.core.StageUtils;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
@@ -46,13 +47,16 @@ package weave.utils
 	 * @author adufilie
 	 * @author kmonico
 	 */
-	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
+	public class SpatialIndex implements ILinkableObject
 	{
-		private function debugTrace(..._):void { } // comment this line to enable debugging
+		public var debug:Boolean = false;
 		
 		public function SpatialIndex()
 		{
+			this.callbacks = getCallbackCollection(this);
 		}
+		
+		private var callbacks:ICallbackCollection;
 		
 		private var _kdTree:KDTree = new KDTree(5);
 		private var _prevTriggerCounter:uint = 0; // used by iterative tasks & clear()
@@ -114,7 +118,8 @@ package weave.utils
 		 */
 		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
-			debugTrace(plotter,this,'createIndex');
+			if (debug)
+				debugTrace(plotter,this,'createIndex');
 			
 			_queryMissingBounds = queryMissingBounds;
 			
@@ -142,13 +147,14 @@ package weave.utils
 				// KDTree structure due to the given ordering of the records
 				VectorUtils.randomSort(_keysArray);
 			}
-			debugTrace(_plotter,this,'keys',_keysArray.length);
+			if (debug)
+				debugTrace(_plotter,this,'keys',_keysArray.length);
 			
 			// insert bounds-to-key mappings in the kdtree
-			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
+			_prevTriggerCounter = callbacks.triggerCounter; // used to detect change during iterations
 			_iterateAll(-1); // restart from first task
 			// normal priority because some things can be done without having a fully populated spatial index (?)
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, triggerCallbacks);
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, callbacks.triggerCallbacks);
 		}
 		
 		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2);
@@ -156,9 +162,10 @@ package weave.utils
 		private function _iterate1(stopTime:int):Number
 		{
 			// stop if callbacks were triggered since the iterations started
-			if (triggerCounter != _prevTriggerCounter)
+			if (callbacks.triggerCounter != _prevTriggerCounter)
 			{
-				debugTrace(_plotter,this,'trigger counter changed');
+				if (debug)
+					debugTrace(_plotter,this,'trigger counter changed');
 				return 0;
 			}
 			
@@ -225,11 +232,12 @@ package weave.utils
 		 */
 		public function clear():void
 		{
-			delayCallbacks();
-			debugTrace(_plotter,this,'clear');
+			callbacks.delayCallbacks();
+			if (debug)
+				debugTrace(_plotter,this,'clear');
 			
 			if (_keysArray.length > 0)
-				triggerCallbacks();
+				callbacks.triggerCallbacks();
 			
 			_boundsArray = null;
 			_keysArrayIndex = 0;
@@ -238,7 +246,7 @@ package weave.utils
 			_kdTree.clear();
 			collectiveBounds.reset();
 			
-			resumeCallbacks();
+			callbacks.resumeCallbacks();
 		}
 		
 		private static function polygonOverlapsPolyLine(polygon:Array, line:Object):Boolean
