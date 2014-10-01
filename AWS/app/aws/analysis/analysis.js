@@ -59,6 +59,8 @@ AnalysisModule.service('AnalysisService', function() {
 
 AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService, QueryHandlerService) {
 
+	setTimeout(loadFlashContent, 100);
+
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
 	$scope.WeaveService = WeaveService;
@@ -87,6 +89,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	}, function() {
 		if($('#weave').length) {
 			WeaveService.weave = $('#weave')[0];
+		} else {
+			WeaveService.weave = null;
 		}
 	});
 	
