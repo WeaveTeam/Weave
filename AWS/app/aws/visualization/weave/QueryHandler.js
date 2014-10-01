@@ -87,7 +87,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     			if(!(queryObjectToValidate.scriptOptions[f]))
     				{
     				    console.log("param", f);
-	    				alert("Script parameter at " + f + "has not been entered");
+	    				alert(f + " parameter has not been entered");
 	    				break;
     				}
     			else
@@ -102,12 +102,13 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	if(queryObjectToValidate.dataTable && queryObjectToValidate.scriptSelected && scriptOptionsComplete)
     		{
     			this.isValidated = true;
-    			this.validationUpdate = "Your query object is varified";
+    			this.validationUpdate = "Your query object is validated";
     		}
     	else
     		{
 	    		console.log("Please select a datatable, select a script and enter ALL script parameters");
-	    		this.validationUpdate = "Your query object is not varified";
+	    		this.validationUpdate = "Your query object is not validated";
+	    		this.isValidated = false;
     		
     		}
     	
