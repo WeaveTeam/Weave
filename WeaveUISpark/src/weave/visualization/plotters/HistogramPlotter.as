@@ -31,8 +31,8 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -50,6 +50,8 @@ package weave.visualization.plotters
 	 */
 	public class HistogramPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
+		public var debug:Boolean = false;
+		
 		public function HistogramPlotter()
 		{
 			clipDrawing = true;
@@ -186,6 +188,10 @@ package weave.visualization.plotters
 				initBoundsArray(output).setBounds(0, binIndex - 0.5, binHeight, binIndex + 0.5);
 			else
 				initBoundsArray(output).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
+			
+			var bounds:IBounds2D = output[0];
+			if (debug)
+				debugTrace(recordKey.localName, bounds.getWidth(), bounds.getHeight())
 		}
 		
 		/**
