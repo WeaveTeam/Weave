@@ -514,7 +514,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null):void
+		public function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null, description:String = null):void
 		{
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
@@ -539,7 +539,7 @@ package weave.core
 				_taskStartTime[iterativeTask] = getTimer();
 				_taskElapsedTime[iterativeTask] = 0;
 			}
-			WeaveAPI.ProgressIndicator.addTask(iterativeTask, relevantContext as ILinkableObject);
+			WeaveAPI.ProgressIndicator.addTask(iterativeTask, relevantContext as ILinkableObject, description);
 			
 			var useTimeParameter:Boolean = iterativeTask.length > 0;
 			

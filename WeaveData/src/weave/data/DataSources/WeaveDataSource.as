@@ -614,7 +614,7 @@ package weave.data.DataSources
 					// run hierarchy callbacks because we just modified the hierarchy.
 					_attributeHierarchy.detectChanges();
 				};
-				
+				debugTrace(result.keys.length,'keys',result.keys);
 				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType, result.keys, proxyColumn, setRecords, keysVector);
 			}
 			catch (e:Error)

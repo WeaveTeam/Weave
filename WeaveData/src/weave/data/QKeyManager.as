@@ -226,7 +226,7 @@ internal class QKeyGetter
 		
 		outputKeys.length = keyStrings.length;
 		// high priority because all visualizations depend on key sets
-		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncCallback/*, lang("Initializing {0} record identifiers", keyStrings.length)*/);
+		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncCallback, lang("Initializing {0} record identifiers", keyStrings.length));
 	}
 	
 	private var i:int = 0;

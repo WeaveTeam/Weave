@@ -70,7 +70,7 @@ package weave.data.AttributeColumns
 			arrayData = new Dictionary();
 			
 			// high priority because not much can be done without data
-			WeaveAPI.StageUtils.startTask(parentColumn, iterate, WeaveAPI.TASK_PRIORITY_HIGH, callback);
+			WeaveAPI.StageUtils.startTask(parentColumn, iterate, WeaveAPI.TASK_PRIORITY_HIGH, callback, lang("Processing {0} records", n));
 		}
 		
 		private var parentColumn:IAttributeColumn;

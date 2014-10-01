@@ -28,6 +28,7 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.getCallbackCollection;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * This is an implementation of IProgressIndicator.
@@ -43,8 +44,20 @@ package weave.core
 		public function debugTasks():Array
 		{
 			var result:Array = [];
-			for (var task:Object in _taskToProgressMap)
+			for (var task:Object in _progress)
 				result.push(debugId(task));
+			return result;
+		}
+		public function getDescriptions():Array
+		{
+			var result:Array = [];
+			for (var task:Object in _progress)
+			{
+				var desc:String = _description[task] || "Unnamed task";
+				if (desc)
+					result.push("(" + StandardLib.roundSignificant(100*_progress[task], 3) + "%) " + desc);
+			}
+			StandardLib.sort(result);
 			return result;
 		}
 		
@@ -59,14 +72,16 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function addTask(taskToken:Object, busyObject:ILinkableObject = null):void
+		public function addTask(taskToken:Object, busyObject:ILinkableObject = null, description:String = null):void
 		{
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			if (taskToken is AsyncToken && _taskToProgressMap[taskToken] === undefined)
+			if (taskToken is AsyncToken && _progress[taskToken] === undefined)
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(handleAsyncToken, handleAsyncToken, taskToken));
-
+			
+			_description[taskToken] = description;
+			
 			// add task before WeaveAPI.SessionManager.assignBusyTask()
 			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
 			
@@ -86,30 +101,33 @@ package weave.core
 		 */
 		public function hasTask(taskToken:Object):Boolean
 		{
-			return _taskToProgressMap[taskToken] !== undefined;
+			return _progress[taskToken] !== undefined;
 		}
 		
 		/**
 		 * @inheritDoc
 		 */
-		public function updateTask(taskToken:Object, percent:Number):void
+		public function updateTask(taskToken:Object, progress:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
-			if (_taskToProgressMap[taskToken] === undefined)
+			if (_progress[taskToken] === undefined)
 			{
 				// expecting NaN from addTask()
-				if (!isNaN(percent))
+				if (!isNaN(progress))
 					throw new Error("updateTask() called, but task was not previously added with addTask()");
 				if (debug)
-					_taskToStackTraceMap[taskToken] = new Error("Stack trace").getStackTrace();
+					_stackTrace[taskToken] = new Error("Stack trace").getStackTrace();
 				
 				// increase count when new task is added
 				_taskCount++;
 				_maxTaskCount++;
 			}
 			
-			_taskToProgressMap[taskToken] = percent;
-			getCallbackCollection(this).triggerCallbacks();
+			if (_progress[taskToken] !== progress)
+			{
+				_progress[taskToken] = progress;
+				getCallbackCollection(this).triggerCallbacks();
+			}
 		}
 		
 		/**
@@ -118,13 +136,14 @@ package weave.core
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
-			if (_taskToProgressMap[taskToken] === undefined)
+			if (_progress[taskToken] === undefined)
 				return;
 
-			var stackTrace:String = _taskToStackTraceMap[taskToken]; // check this when debugging
+			var stackTrace:String = _stackTrace[taskToken]; // check this when debugging
 			
-			delete _taskToProgressMap[taskToken];
-			delete _taskToStackTraceMap[taskToken];
+			delete _progress[taskToken];
+			delete _description[taskToken];
+			delete _stackTrace[taskToken];
 			_taskCount--;
 			// reset max count when count drops to 1
 			if (_taskCount == 1)
@@ -142,10 +161,10 @@ package weave.core
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for (var task:Object in _taskToProgressMap)
+			for (var task:Object in _progress)
 			{
-				var stackTrace:String = _taskToStackTraceMap[task]; // check this when debugging
-				var progress:Number = _taskToProgressMap[task];
+				var stackTrace:String = _stackTrace[task]; // check this when debugging
+				var progress:Number = _progress[task];
 				if (isFinite(progress))
 					sum += progress;
 			}
@@ -157,15 +176,17 @@ package weave.core
 
 		private var _taskCount:int = 0;
 		private var _maxTaskCount:int = 0;
-		private const _taskToProgressMap:Dictionary = new Dictionary();
-		private const _taskToStackTraceMap:Dictionary = new Dictionary();
+		private const _progress:Dictionary = new Dictionary();
+		private const _description:Dictionary = new Dictionary();
+		private const _stackTrace:Dictionary = new Dictionary();
 		
 		public function test():void
 		{
-			for(var i:Object in _taskToProgressMap)
+			for(var i:Object in _progress)
 			{
-				var stackTrace:String = _taskToStackTraceMap[i]; // check this when debugging
-				trace(stackTrace);
+				var stackTrace:String = _stackTrace[i]; // check this when debugging
+				var description:String = _description[i];
+				trace(description, stackTrace);
 			}
 		}
 	}

@@ -122,7 +122,7 @@ package weave.data.KeySets
 			_asyncKeySetIndex = 0;
 			_asyncKeyIndex = 0;
 			// high priority because all visualizations depend on key sets
-			WeaveAPI.StageUtils.startTask(busyStatus, asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
+			WeaveAPI.StageUtils.startTask(busyStatus, asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, lang("Computing the union of {0} key sets", _keySets.length));
 		}
 		
 		private function asyncIterate(stopTime:int):Number
