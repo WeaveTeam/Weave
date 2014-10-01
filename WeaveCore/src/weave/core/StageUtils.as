@@ -324,10 +324,9 @@ package weave.core
 			// first run the functions that should be called before anything else.
 			if (pauseForGCIfCollectionImminent != null)
 			{
-				var t:Number = new Date().time;
+				var t:int = getTimer();
 				pauseForGCIfCollectionImminent();
-				t = new Date().time - t;
-				if (t > maxComputationTimePerFrame)
+				if (getTimer() - t > maxComputationTimePerFrame)
 					trace('paused',t,'ms for GC');
 			}
 			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
