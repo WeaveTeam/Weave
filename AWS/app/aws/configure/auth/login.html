@@ -1,4 +1,4 @@
-<div ng-if="!queryService.authenticated" style="padding-top: 20px; 
+<div ng-if="!authenticationService.authenticated" style="padding-top: 20px; 
 	 position:absolute;
      width:300px;
      height:200px;
@@ -6,14 +6,14 @@
      top:50%;
      left:50%;
      margin:-100px 0 0 -150px;"
-     ng-enter="queryService.authenticate(queryService.user, queryService.password)">	
+     ng-enter="authenticationService.authenticate(user, password)">	
 	 <table>
 	 	<tr style="margin-bottom: 1em;">
 	 		<td>
 				 User Name: 
 			</td>
 	 		<td>
-	 			<input ng-model="queryService.user" type="text"/>
+	 			<input ng-model="user" type="text"/>
 	 		</td>
 	 	</tr>
 	 	<tr>
@@ -21,7 +21,7 @@
 	 			Password:
 	 		</td>
 	 		<td>
-		 		<input ng-model="queryService.password" type="password"/>
+		 		<input ng-model="password" type="password"/>
 	 		</td>
 	 	</tr>
 	 	<tr>
@@ -29,7 +29,7 @@
 	 		</td>
 	 		<td>
 		 		<div align="right" style="padding-top: 5px">
-				 <input type="button" value="Login" ng-click="queryService.authenticate(queryService.user, queryService.password)"/>
+					 <input type="button" value="Login" ng-click="authenticationService.authenticate(user, password)"/>
 		 		</div>
 	 		</td>
 	 	</tr>

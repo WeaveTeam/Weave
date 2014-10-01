@@ -133,7 +133,7 @@ public class ComputationalServlet extends WeaveServlet
 		
  		time2 = endTime - startTime;
 		//result.data = resultData;
- 		if(result.logs.length == 0)//only if the script has worked with no errors, then report times
+ 		if(result.logs == null)//only if the script has worked with no errors, then report times
  		{
  			result.times[0] = time1;
  			result.times[1] = time2;

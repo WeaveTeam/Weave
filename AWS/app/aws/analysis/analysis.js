@@ -57,11 +57,12 @@ AnalysisModule.service('AnalysisService', function() {
 	
 });
 
-AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService) {
+AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService, QueryHandlerService) {
 
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
 	$scope.WeaveService = WeaveService;
+	$scope.queryHandlerService = QueryHandlerService;
 	
 	$scope.IndicDescription = "";
 	$scope.varValues = [];

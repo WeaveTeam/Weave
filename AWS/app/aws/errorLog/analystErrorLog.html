@@ -1,13 +1,11 @@
-<div style="width:1000; height:200px">
-	<div class="modal-header">
+<div class="modal-header">
+	<button type="button" class="close" ng-click="close()">
+					&times;
+	</button>
           	<h4 style="color: #3276B1">Error Log</h4>
-	</div>
-	
-	<div class="modal-body" >
-		Errors go here
-	</div>
-	
-	<div class="modal-footer">
-				<button ng-click="close()" class="btn btn-primary">Close</button>
-	</div>
 </div>
+	
+<div class="modal-body" >
+		{{logs}}
+</div>
+<div class= "modal-footer"></div>

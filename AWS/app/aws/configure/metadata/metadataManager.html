@@ -1,40 +1,53 @@
 <div style="padding-left: 25px" ng-controller = "MetadataManagerCtrl" >
 
+<!-- The pre-login interface -->
 <div ng-include src="'aws/configure/auth/login.html'"></div>
 
-<table ng-if="queryService.authenticated">
+<table ng-if="authenticationService.authenticated">
   <colgroup width="100%">
     <col width="50%" valign="top">
     <col width="50%">
   </colgroup>
+  
   <tr>
     <td valign="top">
       <br>
 		<b> Data Tables </b>
 	  <br>
-      <div id="tree" dynatree style="width: 100%; height: 600px; overflow: scroll"></div>
+      <div id="tree" dynatree style="width: 100%; height: 600px; overflow: scroll"></div><!-- The actual hierarchy of tables and their columns -->
       <br>
-      <div ng-controller = 'MetadataFileController'> 
-      <input class="file-nput-btn" type="button" value="Refresh" ng-click="refresh()">
-      <file-upload label="Upload"></file-upload>
       
+      <div style = "display: table" ng-controller = 'MetadataFileController'> <!-- button controls -->
+	      <button  class = "btn btn-primary" ng-click = "refresh()">Refresh</button>
+	      <label class='file-nput-btn' style="width:80px">Upload<input fileread="metadataUploaded.file" class='file-upload' type='file'/></label>
+<!-- 	      <file-upload label="Upload"></file-upload> -->
+		  <div >
+		  Progress
+		      <progressbar ng-show = "inProgress" value="progressValue" dynamic-max = "{{maxTasks}}" animate="true">
+		      <span style="color:white; white-space:nowrap;"/>{{progressValue}}/ {{maxTasks}}</progressbar><!-- progress bar -->
+		      
+		      
+		  </div>
       </div>
 	  <br><br>
-	  <div ng-show="inProgress" style="width: 175px">
-	      <progressbar value="progressValue" max="maxTasks" animate="false"></progressbar>
-	  </div>
+	  
     </td>
+    
+    
     <td valign="top">
     	<div style="padding-top: 20px" align="right">
-	    	<input type="button" ng-click="logout()" value="Logout"/>
+	    	<input type="button" ng-click="authenticationService.logout()" value="Logout"/><!-- logout button -->
     	</div>
-		<b> Id : {{selectedColumnId}} </b>
-  		<div class="gridStyle" ng-grid="gridOptions"></div>
+    	
+		<b> Id : {{selectedDataTableId}} </b>
+  		<div class="gridStyle" ng-grid="gridOptions"></div><!-- metadata of a single column -->
         <div class="selectedItems">{{mySelections}}</div>
        <br>
-       <input type="button" value="Add" ng-click="addNewRow()">
+       
+       <input type="button" value="Add" ng-click="addNewRow()"><!-- button controls for editing metadata of a single column -->
        <input type="button" value="Delete" ng-click="removeRow()">
     </td>
   </tr>
+  
 </table>	
 </div>

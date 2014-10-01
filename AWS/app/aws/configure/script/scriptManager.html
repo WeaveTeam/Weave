@@ -2,9 +2,9 @@
 	
 	<div ng-include src="'aws/configure/auth/login.html'"></div>
 
-	<div class="container" contenteditable="false"  ng-if="queryService.authenticated">
+	<div class="container" contenteditable="false"  ng-if="authenticationService.authenticated">
 		<div class="row">
-			<input type="button" value="Logout" style="float:right;" ng-click="queryService.logout()">
+			<input type="button" value="Logout" style="float:right;" ng-click="authenticationService.logout()">
 		</div>
 		<br>
 		<div class="row" contenteditable="false">

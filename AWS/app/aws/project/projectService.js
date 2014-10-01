@@ -219,9 +219,14 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
        
    };
    
-   //this.createNewProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent){
-   this.createNewProject = function(projectBundle){
-	   that.insertQueryObjectToProject(projectBundle.userName, projectBundle.projectName, projectBundle.projectDescription,projectBundle.queryObjectTitles, projectBundle.queryObjectJsons,null)
+   this.createNewProject = function(userNameEntered, projectNameEntered,projectDescriptionEntered, queryObjectTitles, queryObjectJsons){
+   //this.createNewProject = function(projectBundle){
+	   that.insertQueryObjectToProject(userNameEntered,
+			   						   projectNameEntered,
+			   						   projectDescriptionEntered,
+			   						   queryObjectTitles,
+			   						   queryObjectJsons,
+			   						   null)
 	   .then(function(){
 		   that.data.listOfProjectsFromDatabase = [];//clear
 		   that.getListOfProjects();//fetch new list

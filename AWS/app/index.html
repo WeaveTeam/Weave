@@ -32,13 +32,14 @@
 
 	<body>
 
-		<div ng-controller="AWSController">
 
-			<header id ="header">
+		<div style="height: 100%;" ng-controller="AWSController">
+
+					<header id ="header">
 				<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
 					<div class="collapse navbar-collapse navbar-ex1-collapse">
 
-						<a class="navbar-brand" href="index.html"> <i class="glyphicon glyphicon glyphicon-tasks img-responsive"></i> <span class = "logo">Weave Analyst Workstation</span> </a>
+						<a class="navbar-brand" href="index.html"> <i class="glyphicon glyphicon glyphicon-tasks img-responsive"></i> <span class = "logo">Weave Analyst </span> </a>
 
 						<button type="button" class="navbar-toggle btn-danger" data-toggle="collapse" data-target="#navbar-to-collapse">
 							<span class="sr-only">Toggle right menu</span>
@@ -113,11 +114,11 @@
 <!-- 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 10%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a> -->
 <!-- 						</div> -->
 <!-- 						<div style="display: table ; width : 10%; padding-top : 5px"> -->
-<!-- <!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "updateVisualizations()">Update</span></a> --> -->
 <!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a> -->
-<!-- <!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;" ng-disabled> <span style="vertical-align: middle">Save</span></a> --> -->
 <!-- 						</div> -->
 						
+						<div ng-if="authenticationService.authenticated">
+							<font color="white">Signed in as: {{authenticationService.user}}</font>
 						</div>
 					</div><!-- /.navbar-collapse -->
 					
@@ -195,6 +196,7 @@
 		<script src="aws/analysis/analysis.js"></script>
 		<script src="aws/analysis/dialogCtrl.js"></script>
 
+		<script src='aws/configure/auth/authenticationService.js'></script>
 		<script src='aws/configure/metadata/MetadataManagerCtrl.js'></script>
 		<script src='aws/configure/metadata/metadataManagerService.js'></script>
 		<script src='aws/configure/script/ScriptManagerCtrl.js'></script>
@@ -206,7 +208,6 @@
 		<script src='aws/queryObject/queryObjectService.js'></script>
 		<script src='aws/project/ProjectManagementCtrl.js'></script>
 		<script src='aws/project/projectAdditionController.js'></script>
-		<script src='aws/project/databaseLogController.js'></script>
 		<script src='aws/project/project-query-button-directive.js'></script>
 		<script src='aws/project/projectService.js'></script>
 		<script src="aws/visualization/tools/barChart/barChartCtrl.js"></script>

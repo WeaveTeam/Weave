@@ -1,38 +1,112 @@
-<div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 100%;" ng-controller = "projectAdditionController" >
-	<div class="aside-dialog">
-		<div class="aside-content">
-			<div class="aside-header" ng-show="title">
-				<button type="button" class="close" ng-click="$hide()">
-
+<div class="modal-header">
+	<button type="button" class="close" ng-click="$dismiss()">
 					&times;
-				</button>
-				<span class="aside-title" ng-bind-html="title">{{title}}</span>
-			</div>
-			<div class="aside-body">
-				Name of the Project
-				<input ng-model = "projectService.projectBundle.projectName" type = "text">
-				</input>
-				<br>
-				</br>
-				Project Description<textarea ng-model = "projectService.projectBundle.projectDescription" style = "width:200px; overflow-y : scroll;" type = "text"></textarea>
-				<br>
-				</br>
-				Query Objects (.json) files to include in the project
-				<br>
-				</br>
-                    <b>{{projectService.projectBundle.uploadStatus}}</b>
-
-                    <file-upload label="Browse"></file-upload>
-			</div>
-		</div>
-	</div>
-
-
-	<div style="padding-top:40px">
-		<button type="button" class= "btn btn-primary" style = "margin-left : 380px" ng-click = "saveNewProjectToDatabase()">
-			Save
-		</button>
-
-	</div>
+	</button>
+          	<h4 style="color: #3276B1">Create a new project</h4>
+          	<h5>Choose query object(s) to add to a project</h5>
 </div>
+
+<div class="modal-body" >
+	<table style = "width:100%">
+		<tr>
+			<td>Name of the Project</td>
+			<td><input style = "width:100%; padding-bottom : 5px"
+					   ng-model = "projectNameEntered" type = "text"></td>
+		</tr>
+		
+		<tr>
+			<td>Username for the Project</td>
+			<td><input style = "width:100%; padding-bottom : 5px"
+					   ng-model = "userNameEntered" type = "text"></td>
+		</tr>
+		
+		<tr>
+			<td>Project Description</td>
+			<td><textarea style = "width:100%; overflow-y : scroll; resize : none" type = "text"
+					  ng-model = "projectDescriptionEntered" >
+			</textarea></td>
+		</tr>
+		
+		<tr>
+			<td>Add query objects (.json) files</td>
+<!-- 			<td ng-if= "!uploadStatus"><font color="red" >No file uploaded</font></td> -->
+<!-- 			<td>{{uploadStatus}}</td>  -->
+			
+			<td> <label class='file-nput-btn' style="width:80px">Upload<input fileread="uploaded.QueryObject" class='file-upload' type='file'/></label></td>
+		</tr>
+		
+	
+		
+		
+		<tr>
+		<td>
+			<ul ng-repeat="file in uploadedObjects.queryObjectTitles">
+				<li>
+					<span class="prj-txt-lbl"> {{file}}</span> 
+					<button type="button" class="close" ng-click ="remove(file)">Remove</button>
+				</li>
+			</ul>
+		</td>
+		</tr>
+		
+		
+	</table>
+</div>
+
+<div class="modal-footer">
+			{{uploadStatus}}
+			<button type="button" class= "btn btn-primary" ng-click = "saveQueryObjects(projectNameEntered, projectDescriptionEntered, userNameEntered)">
+			Save
+			</button>
+		<div ng-if= "!uploadStatus"><font color="red" >No file uploaded</font></div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <div class="aside" tabindex="1" role="dialog" style= "width: 500px; height: 100%;" ng-controller = "projectAdditionController" > -->
+<!-- 	<div class="aside-dialog"> -->
+<!-- 		<div class="aside-content"> -->
+<!-- 			<div class="aside-header" ng-show="title"> -->
+<!-- 				<button type="button" class="close" ng-click="$hide()"> -->
+
+<!-- 					&times; -->
+<!-- 				</button> -->
+<!-- 				<span class="aside-title" ng-bind-html="title">{{title}}</span> -->
+<!-- 			</div> -->
+<!-- 			<div class="aside-body"> -->
+<!-- 				Name of the Project -->
+<!-- 				<input ng-model = "projectService.projectBundle.projectName" type = "text"> -->
+<!-- 				</input> -->
+<!-- 				<br> -->
+<!-- 				</br> -->
+<!-- 				Project Description<textarea ng-model = "projectService.projectBundle.projectDescription" style = "width:200px; overflow-y : scroll;" type = "text"></textarea> -->
+<!-- 				<br> -->
+<!-- 				</br> -->
+<!-- 				Query Objects (.json) files to include in the project -->
+<!-- 				<br> -->
+<!-- 				</br> -->
+<!--                     <b>{{projectService.projectBundle.uploadStatus}}</b> -->
+
+<!--                     <file-upload label="Browse"></file-upload> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+<!-- 	</div> -->
+
+
+<!-- 	<div style="padding-top:40px"> -->
+<!-- 		<button type="button" class= "btn btn-primary" style = "margin-left : 380px" ng-click = "saveNewProjectToDatabase()"> -->
+<!-- 			Save -->
+<!-- 		</button> -->
+
+<!-- 	</div> -->
+<!-- </div> -->
 

@@ -1,8 +1,10 @@
 var scriptUploaded;
-var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']).controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService) {
+var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
+.controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService,authenticationService) {
 
 	  $scope.service = scriptManagerService;
 	  $scope.queryService = queryService;
+	  $scope.authenticationService = authenticationService;
 	  $scope.script = {};
 	  $scope.selectedScript = [];
 	  $scope.scriptMetadata = {

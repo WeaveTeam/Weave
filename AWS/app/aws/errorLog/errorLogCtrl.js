@@ -5,29 +5,33 @@
 
 var errorLogModule = angular.module('aws.errorLog', []);
 
-errorLogModule.controller('analystErrorLogCtrl', function($scope, $modal){
-	
+errorLogModule.controller('analystErrorLogCtrl', function($scope, $modal, errorLogService){
+	$scope.errorLogService = errorLogService;
 	$scope.openErrorLog = function(){
-		$modal.open({
-			 backdrop: false,
-	         backdropClick: true,
-	         dialogFade: true,
-	         keyboard: true,
-	         templateUrl: 'aws/errorLog/analystErrorLog.html',
-	         controller: 'errorLogInstanceCtrl',
-	         windowClass : 'erroLog-modal'
-		});
+		$modal.open($scope.errorLogService.errorLogModalOptions);
 	};
 });
 
-errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $modalInstance){
-	 $scope.close = function () {
+errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $modalInstance, errorLogService){
+	$scope.logs = errorLogService.logs;
+	
+	$scope.close = function () {
 		 $modalInstance.close();
 	 };
 });
 
 
 errorLogModule.service('errorLogService',[function(){
+	
+	this.errorLogModalOptions = {//TODO find out how to push error log to bottom of page
+			 backdrop: true,
+	         backdropClick: true,
+	         dialogFade: true,
+	         keyboard: true,
+	         templateUrl: 'aws/errorLog/analystErrorLog.html',
+	         controller: 'errorLogInstanceCtrl',
+	         windowClass : 'erroLog-modal'
+		};
 	
 	this.logs = "";
 	/**

@@ -2,14 +2,6 @@
 
 var app = angular.module('aws', [//'aws.router', // for app structure (can be cleaned)
                                  //'aws.analysis', 
-                                 
-                                 'aws.configure', //Both script and metadata managers
-                                 'aws.directives', // high level directives don't agree with current location
-
-                                 'aws.queryObject', // queryService.. this needs to be reconciled                               
-                                 'aws.queryObjectEditor', // Shweta's module
-                                 'aws.project',  // shweta's module
-                                 'aws.errorLog',
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
@@ -20,7 +12,13 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'ui.sortable', // Shweta Needs, comes from angular-strap???
                                  'ngRoute',
                                  'ngGrid', // Angular UI library
-                                 'mk.editablespan', // Directive for editing values. 
+                                 'mk.editablespan', // Directive for editing values.
+                                 'aws.configure', //Both script and metadata managers
+                                 'aws.directives', // high level directives don't agree with current location
+                                 'aws.queryObject', // queryService.. this needs to be reconciled                               
+                                 'aws.queryObjectEditor', // Shweta's module
+                                 'aws.project',  // shweta's module
+                                 'aws.errorLog',
                                  'aws.AnalysisModule',
                                  'aws.WeaveModule',
                                  'aws.QueryHandlerModule'
@@ -50,7 +48,7 @@ app.run(['$rootScope', function($rootScope){
 		activetab : 'analysis'
 	}).when('/metadata', {
 		templateUrl : 'aws/configure/metadata/metadataManager.html',
-		controller : 'MetadataCtrl',
+		controller : 'MetadataManagerCtrl',
 		activetab : 'metadata'
 	}).when('/script_management', {
 		templateUrl : 'aws/configure/script/scriptManager.html',
@@ -60,27 +58,29 @@ app.run(['$rootScope', function($rootScope){
 		templateUrl : 'aws/project/projectManagementPanel.html',
 		controller : 'ProjectManagementCtrl',
 		activetab : 'project_management'
-	}).when('/output_view', {
-		templateUrl : 'aws/outputView/outputViewManagementPanel.html',
-		controller : 'OutputViewManagementController',
-		activetab : 'output_view'
 	}).otherwise({
         redirectTo: '/analysis'
-    });;
+    });
+
 });
 
 
 angular.module('aws.directives', ['aws.directives.dualListBox',
                                   'aws.directives.fileUpload']);
-angular.module('aws.configure', ['aws.configure.metadata',
+angular.module('aws.configure', ['aws.configure.auth',
+                                 'aws.configure.metadata',
                                  'aws.configure.script']);
 
+
 // From Amith's UI
-app.controller('AWSController', function($scope, $route, $location) {
-	
+app.controller('AWSController', function($scope, $route, $location, authenticationService) {
 	$scope.$route = $route;
-	
+	$scope.authenticationService = authenticationService;
+
 });
+
+
+
 //var navbar_ctrl = function($scope, $route, $location) {
 //	$scope.$route = $route;
 //};
