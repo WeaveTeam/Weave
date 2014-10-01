@@ -112,24 +112,31 @@ AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 		var countyColumn = queryService.queryObject.GeographyFilter.countyColumn;
 		if(stateColumn != undefined && countyColumn != undefined && processedMetadata != undefined) {
 			if(stateColumn != "" && countyColumn != "" && processedMetadata.length) {
+				//once the state, county column have been filled AND their metadata is available, construct the tree data structure
 				geoTreeData = createGeoTreeData(processedMetadata);
 			}
 		}
 	});
 	
+	//create the data structure to be used by the dynatree library
 	var createGeoTreeData = function(metadata) {
 		var treeData = [];
-		for(var i in metadata) {
-			treeData[i] = { title : metadata[i].label, key : metadata[i].value, isFolder : true,  children : [] };
-			for(var j in metadata[i].counties) {
-				treeData[i].children.push({ title : metadata[i].counties[j].label, key : metadata[i].counties[j].value });
-			}
-		}
+		for(var i in metadata) {//looping through state metadata
+			treeData[i] = { title : metadata[i].label,
+							key : metadata[i].value, 
+							isFolder : true,  
+							children : [] };
+			
+			for(var j in metadata[i].counties) {//looping through counties
+				treeData[i].children.push({ title : metadata[i].counties[j].label, 
+											key : metadata[i].counties[j].value });
+			}//end of looping through counties
+		}//end of looping through state metadata
 		return treeData;
-	}
+	};
 	
 	$scope.$watch(function() {
-		return geoTreeData;
+		return geoTreeData;//once the data strcuture has been created, draw the dynatree using that data structure
 	}, function(){
 		if(geoTreeData) {
 			$("#geoTree").dynatree({
@@ -140,29 +147,38 @@ AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 				keyBoard : true,
 				onSelect: function(select, node) {
 					var treeSelection = {};
-					var root = $("#geoTree").dynatree("getRoot");
+					var root = $("#geoTree").dynatree("getRoot");//represents all the states in the country
 					
-					for (var i = 0; i < root.childList.length; i++) {
-						var state = root.childList[i];
-						for(var j = 0; j < state.childList.length; j++) {
-							var county = state.childList[j];
-							if(state.childList[j].bSelected) {
-								if(!treeSelection[state.data.key]) {
-									var countyKey = county.data.key;
+					for (var i = 0; i < root.childList.length; i++) {//looping through all states
+						var state = root.childList[i];//picking up a single state
+						
+						for(var j = 0; j < state.childList.length; j++) {//looping through a single state
+							var county = state.childList[j];//picking up a single county
+							
+							if(county.bSelected) {//if county is selected
+								
+								var countyKey = county.data.key;//get its key
+								var countyObj = {};
+								countyObj[countyKey] = county.data.title;//store title
+								
+								if(!treeSelection[state.data.key])//if the state object has not been created, create it
+								{
 									treeSelection[state.data.key] = {};
 									treeSelection[state.data.key].label = state.data.title;
-									var countyObj = {};
-									countyObj[countyKey] = county.data.title;
-									treeSelection[state.data.key].counties = [countyObj];
+									
+									treeSelection[state.data.key].counties = [countyObj];//add the county
+									
 								} else {
-									var countyKey = county.data.key;
-									var countyObj = {};
-									countyObj[countyKey] = county.data.title;
-									treeSelection[state.data.key].counties.push(countyObj);
+									treeSelection[state.data.key].counties.push(countyObj);//simply add the county
 								}
 							}
-						}
-					}
+							
+						}//end of looping through a single state
+						
+						
+					}//end of looping through all states
+					
+					//setting the filters
 					queryService.queryObject.GeographyFilter.filters = treeSelection;
 					
 				},
@@ -181,7 +197,7 @@ AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 			node.sortChildren(cmp, true);
 			$("#geoTree").dynatree("getTree").reload();
 		}
-	});
+	});//end of dynatree construction
 	
 	 $scope.toggleSelect = function(){
 	      $("#geoTree").dynatree("getRoot").visit(function(node){
