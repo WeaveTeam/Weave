@@ -30,6 +30,7 @@ package weave.data
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.getCallbackCollection;
+	import weave.flascc.stringHash;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
@@ -56,21 +57,22 @@ package weave.data
 				keyType = DataType.STRING;
 			
 			// get mapping of key strings to QKey weak refrences
-			var keyToQKeyRefMap:Object = _keyTypeMap[keyType] as Object;
+			var keyToQKeyRefMap:Dictionary = _keyTypeMap[keyType] as Dictionary;
 			if (keyToQKeyRefMap == null)
 			{
 				// key type not seen before, so initialize it
-				keyToQKeyRefMap = new Object();
+				keyToQKeyRefMap = new Dictionary();
 				_keyTypeMap[keyType] = keyToQKeyRefMap;
 			}
 			
 			// get QKey weak reference from key string
-			var qkeyRef:Dictionary = keyToQKeyRefMap[localName] as Dictionary
+			var hash:int = weave.flascc.stringHash(localName);
+			var qkeyRef:Dictionary = keyToQKeyRefMap[hash] as Dictionary
 			if (qkeyRef == null)
 			{
 				// Dictionary uses weak keys so QKey objects get garbage-collected
 				qkeyRef = new Dictionary(true);
-				keyToQKeyRefMap[localName] = qkeyRef;
+				keyToQKeyRefMap[hash] = qkeyRef;
 			}
 			
 			// get QKey object from weak reference
