@@ -15,22 +15,21 @@
 		<b> Data Tables </b>
 	  <br>
       <div id="tree" dynatree style="width: 100%; height: 600px; overflow: scroll"></div><!-- The actual hierarchy of tables and their columns -->
-      <br>
       
       <div style = "display: table" ng-controller = 'MetadataFileController'> <!-- button controls -->
-	      <button  class = "btn btn-primary" ng-click = "refresh()">Refresh</button>
-	      <label class='file-nput-btn' style="width:80px">Upload<input fileread="metadataUploaded.file" class='file-upload' type='file'/></label>
+	      <button  class = "file-nput-btn" style="float:left; width:49%" ng-click = "refresh()">Refresh</button>
+	      <label class='file-nput-btn' style="float:left; width:49%">Upload<input fileread="metadataUploaded.file" class='file-upload' type='file'/></label>
 <!-- 	      <file-upload label="Upload"></file-upload> -->
-		  <div >
+ 		
+      </div>
+	  <br><br>
+	 	 <div>
 		  Progress
 		      <progressbar ng-show = "inProgress" value="progressValue" dynamic-max = "{{maxTasks}}" animate="true">
 		      <span style="color:white; white-space:nowrap;"/>{{progressValue}}/ {{maxTasks}}</progressbar><!-- progress bar -->
 		      
 		      
 		  </div>
-      </div>
-	  <br><br>
-	  
     </td>
     
     
