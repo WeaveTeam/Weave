@@ -136,10 +136,11 @@
 			<footer>
 				<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl">
 					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-animation="am-slide-bottom"
-					 ng-click = "openErrorLog()">
+					 ng-click = "errorLogService.showErrorLog = true">
 							Open Error Log
 					</button>
 				</div>
+				<div ng-include src="'aws/errorLog/analystErrorLog.html'"></div>
 				
 			</footer>
 		</div>
