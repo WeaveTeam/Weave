@@ -42,6 +42,40 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 			  keepLastSelected : false,
 	  };
 	  
+	  var scripts = [
+	 				{ title : "R Scripts", children : [], isFolder : true },
+	 			
+	 				{ title : "Stata Scripts", children : [], isFolder : true }
+	 			];
+	  
+	    //generated when the dynatree directive loads
+		$scope.generateTree = function(element) {
+			
+			scriptManagerService.getListOfRScripts().then(function(rScripts) {
+				  
+				  scriptManagerService.getListOfStataScripts().then(function(stataScripts){
+					  scripts[0].children = rScripts;
+					  scripts[1].children = stataScripts;
+					  
+						$(element).dynatree({
+							minExpandLevel: 1,
+							children : scripts,
+							keyBoard : true,
+							onPostInit: function(isReloading, isError) {
+								this.reactivate();
+							},
+							onActivate: function(node) {
+								//handle when node is a column
+								if(!node.data.isFolder) {
+									$scope.selectedScript = [{Script : node.data.title}];
+									$scope.$apply();
+								}
+							},
+							debugLevel: 0
+						});
+			  });
+		  	});
+		};
 	  $scope.scriptMetadataGridOptions = {
 			  data: 'scriptMetadata.inputs',
 			  columnDefs : [{field : "param", displayName : "Parameter"},
@@ -64,27 +98,20 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  
 	  
 	  var refreshScripts = function () {
-		  scriptManagerService.getListOfRScripts().then(function(result) {
-			  $scope.rScripts = $.map(result, function(item) {
-				  return {Script : item};
-			  });
+	 	 //refreshing the hierarchy
+  		scriptManagerService.getListOfRScripts().then(function(rScripts) {
+		  scriptManagerService.getListOfStataScripts().then(function(stataScripts){
+			  scripts[0].children = rScripts;
+			  scripts[1].children = stataScripts;
+			  $("#tree").dynatree("getTree").reload();
 		  });
-	  
-	      scriptManagerService.getListOfStataScripts().then(function(result) {
-	    	  $scope.stataScripts = $.map(result, function(item) {
-	    		  return {Script : item};
-	          });
-	      });
+  		});
+	  	
 	  };
 	  
 	  $scope.refreshScripts  = refreshScripts;
 	  
 	  refreshScripts();
-	  
-	  $scope.$on("refreshScripts", function() {
-		  console.log("broadcast received");
-		  refreshScripts();
-	  });
 	  
 	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
 		  
@@ -196,13 +223,11 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 				 scriptManagerService.deleteScript($scope.selectedScript[0].Script).then(function(status) {
 					 if(status) {
 						 console.log("script deleted successfully");
-						 $scope.rScriptListOptions.selectAll(false);
-						 $scope.stataScriptListOptions.selectAll(false);
+						 $scope.selectedScript[0].Script = "";
+						 $scope.script.content = "";
+						 $scope.scriptMetadata = {};
+						 refreshScripts();
 					 }
-					 $scope.selectedScript.Script = "";
-					 $scope.script.content = "";
-					 $scope.scriptMetadata = {};
-					 refreshScripts();
 				 });
 			 }
 		 }

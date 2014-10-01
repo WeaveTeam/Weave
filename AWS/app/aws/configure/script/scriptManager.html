@@ -9,14 +9,15 @@
 		<br>
 		<div class="row" contenteditable="false">
 			<div class="col-md-3" contenteditable="false">
-				<tabset>
-				    <tab heading="R Scripts">
-						<div class="gridStyle" ng-grid="rScriptListOptions"></div>
-				    </tab>
-				    <tab heading="Stata Scripts">
-						<div class="gridStyle" ng-grid="stataScriptListOptions"></div>
-				    </tab>
-				 </tabset>
+			    <div id="tree" dynatree style="width: 100%; height: 600px; overflow: scroll"></div><!-- The actual hierarchy of tables and their columns -->
+<!-- 				<tabset> -->
+<!-- 				    <tab heading="R Scripts"> -->
+<!-- 						<div class="gridStyle" ng-grid="rScriptListOptions"></div> -->
+<!-- 				    </tab> -->
+<!-- 				    <tab heading="Stata Scripts"> -->
+<!-- 						<div class="gridStyle" ng-grid="stataScriptListOptions"></div> -->
+<!-- 				    </tab> -->
+<!-- 				 </tabset> -->
 				<div>
 					<button class="file-nput-btn" style="float:left; width:33%" ng-click="refreshScripts()">Refresh</button>
 					<button class="file-nput-btn" style="float:left; width:33%" ng-click="deteleScript()">Delete Script</button>
