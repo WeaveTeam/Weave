@@ -85,7 +85,7 @@ metadataModule.config(function($provide){
 								dataType : "json",
 								success : function(node, status, jqxhr)//this success function is different from the regular ajax success (modified by dynatree)
 											{
-												node.childList = [];//hack for removing a 'null entry' TODO:check if this is right
+												node.removeChildren();
 												var list = status.result;// the actual result from ajax
 												
 												var columnChildren= [];
@@ -287,6 +287,14 @@ metadataModule.config(function($provide){
 	    node.sortChildren(cmp, true);
 	};
     
+	
+	//functions for column statistics and distributions
+	$scope.calculateStatistics = function(){
+		//pick all numerical columns
+		//create a matrix
+		//run script
+		//display in grid
+	};
 })
 
 /*
