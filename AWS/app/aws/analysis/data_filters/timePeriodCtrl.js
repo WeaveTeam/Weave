@@ -26,13 +26,32 @@ AnalysisModule.controller('timePeriodCtrl', function($scope, queryService){
 						timeTreeData = createTimeTreeData(year_metadata, month_metadata);
 					}
 				});
-		}
+		} else if(queryService.queryObject.TimePeriodFilter.yearColumn &&
+	    	!queryService.queryObject.TimePeriodFilter.monthColumn) {
+			var yearColumn = angular.fromJson(queryService.queryObject.TimePeriodFilter.yearColumn);
+
+			queryService.getEntitiesById([yearColumn.id], true).then(function(entities) {
+				yearColumnEntity = entities[0];
+				if(yearColumnEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
+					var year_metadata; 
+					
+					year_metadata = angular.fromJson(yearColumnEntity.publicMetadata.aws_metadata).varValues;
+					timeTreeData = createTimeTreeData(year_metadata, []);
+				}
+			});
+		} // just the year column and no month column.
 	});
 	
 	var createTimeTreeData = function(year_metadata, month_metadata) {
 		var treeData = [];
 		for(var i in year_metadata) {
-			treeData[i] = { title : year_metadata[i].label, key : year_metadata[i].value, isFolder : true,  children : [] };
+			if(!month_metadata.length) {
+				console.log(month_metadata);
+				treeData[i] = { title : year_metadata[i].label, key : year_metadata[i].value, isFolder : true,  children : [] };
+			} else {
+				console.log(month_metadata);
+				treeData[i] = { title : year_metadata[i].label, key : year_metadata[i].value, isFolder : false,  children : [] };
+			}
 			for(var j in month_metadata) {
 				treeData[i].children.push({ title : month_metadata[j].label, key : month_metadata[j].value });
 			}

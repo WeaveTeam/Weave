@@ -298,14 +298,4 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 		}
 	};
 	
-	var convertToTree = function(obj) {
-		
-		if(!obj.keys) {
-			return [];
-		}
-		
-		convertTo
-		
-	}
-	
 });
