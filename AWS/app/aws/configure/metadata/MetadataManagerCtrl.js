@@ -62,10 +62,13 @@ metadataModule.config(function($provide){
 							this.reactivate();
 						},
 						onActivate: function(node) {
-							//handling nodes when tables
-							//$scope.selectedDataTableId = node.data.key;
-							//console.log("node selected", node);
-							//console.log("$scope.selected", $scope.selectedDataTableId);
+							//handling nodes when tables TODO check if handling is done correctly
+							if(!node.data.metadata)
+								{
+									$scope.selectedDataTableId = node.data.key;
+									console.log("$scope.selected", $scope.selectedDataTableId);
+								
+								}
 
 							//handle when node is a column
 							if(node.data.metadata)
