@@ -23,36 +23,65 @@ var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.sel
 AnalysisModule.service('AnalysisService', function() {
 	
 	var AnalysisService = {
-			content_tools : [{
-				id : 'Indicator',
-				title : 'Indicator',
-				template_url : 'aws/analysis/indicator/indicator.tpl.html',
-				description : 'Choose an Indicator for the Analysis',
-				category : 'indicatorfilter'
-			},
-			{
-				id : 'GeographyFilter',
-				title : 'Geography Filter',
-				template_url : 'aws/analysis/data_filters/geography.tpl.html',
-				description : 'Filter data by States and Counties',
-				category : 'datafilter'
-			},
-			{
-				id : 'TimePeriodFilter',
-				title : 'Time Period Filter',
-				template_url : 'aws/analysis/data_filters/time_period.tpl.html',
-				description : 'Filter data by Time Period',
-				category : 'datafilter'
-			},
-			{
-				id : 'ByVariableFilter',
-				title : 'By Variable Filter',
-				template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
-				description : 'Filter data by Variables',
-				category : 'datafilter'
-			}]
+							content_tools :{
+												Indicator : {
+																title : 'Indicator',
+																template_url : 'aws/analysis/indicator/indicator.tpl.html',
+																description : 'Choose an Indicator for the Analysis',
+																category : 'indicatorfilter'
+															},
+															
+												GeographyFilter : {
+																		title : 'Geography Filter',
+																		template_url : 'aws/analysis/data_filters/geography.tpl.html',
+																		description : 'Filter data by States and Counties',
+																		category : 'datafilter'
+																  },
+																  
+											    TimePeriodFilter : {
+																    	title : 'Time Period Filter',
+																		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+																		description : 'Filter data by Time Period',
+																		category : 'datafilter'
+											    					},
+											    					
+						    					ByVariableFilter : {
+											    						title : 'By Variable Filter',
+											    						template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+											    						description : 'Filter data by Variables',
+											    						category : 'datafilter'
+						    										}
+										   }
 	};
 	
+//	content_tools : [{
+//		id : 'Indicator',
+//		title : 'Indicator',
+//		template_url : 'aws/analysis/indicator/indicator.tpl.html',
+//		description : 'Choose an Indicator for the Analysis',
+//		category : 'indicatorfilter'
+//	},
+//	{
+//		id : 'GeographyFilter',
+//		title : 'Geography Filter',
+//		template_url : 'aws/analysis/data_filters/geography.tpl.html',
+//		description : 'Filter data by States and Counties',
+//		category : 'datafilter'
+//	},
+//	{
+//		id : 'TimePeriodFilter',
+//		title : 'Time Period Filter',
+//		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+//		description : 'Filter data by Time Period',
+//		category : 'datafilter'
+//	},
+//	{
+//		id : 'ByVariableFilter',
+//		title : 'By Variable Filter',
+//		template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+//		description : 'Filter data by Variables',
+//		category : 'datafilter'
+//	}]
 	return AnalysisService;
 	
 });
