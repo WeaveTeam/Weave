@@ -68,7 +68,7 @@ metadataModule.config(function($provide){
 							//console.log("$scope.selected", $scope.selectedDataTableId);
 
 							//handle when node is a column
-							if(node.data.publicMetadata)
+							if(node.data.metadata)
 								getColumnMetadata(node.data);
 						},
 						//******************************************lazy loading*****************************************************
