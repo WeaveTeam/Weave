@@ -98,7 +98,6 @@ metadataModule.config(function($provide){
 								                            	metadata: singleColumn.publicMetadata,
 								                            	addClass : "custom1",// for a particular kind of document representation
 								                            	focus: true});
-								                        
 								                    }
 								                    node.setLazyNodeStatus(DTNodeStatus_Ok);//look at dynatree documentation
 								                    node.addChild(columnChildren);
@@ -109,8 +108,6 @@ metadataModule.config(function($provide){
 						},
 						debugLevel: 0
 					});
-					var node = $(element).dynatree("getRoot");
-				    // node.sortChildren(cmp, true);
 				}
 				
 //*********************************************************************************************unlazy loading********************************************************				
