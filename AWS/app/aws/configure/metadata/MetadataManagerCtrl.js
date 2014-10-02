@@ -63,12 +63,13 @@ metadataModule.config(function($provide){
 						},
 						onActivate: function(node) {
 							//handling nodes when tables
-							//$scope.selectedDataTableId = node.data.key;
+							if(!node.data.metadata)
+								$scope.selectedDataTableId = node.data.key;
 							//console.log("node selected", node);
 							//console.log("$scope.selected", $scope.selectedDataTableId);
 
 							//handle when node is a column
-							if(node.data.publicMetadata)
+							if(node.data.metadata)
 								getColumnMetadata(node.data);
 						},
 						//******************************************lazy loading*****************************************************
