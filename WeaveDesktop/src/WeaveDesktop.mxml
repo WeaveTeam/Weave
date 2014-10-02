@@ -34,9 +34,9 @@
 				var ns:Namespace = xml.namespace();
 				this.version = xml.ns::versionNumber;
 				
-				addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, doDragEnter);
-				addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, doDragDrop);
-				addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT, doDragExit);
+				WeaveAPI.StageUtils.stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, doDragEnter);
+				WeaveAPI.StageUtils.stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, doDragDrop);
+				WeaveAPI.StageUtils.stage.addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT, doDragExit);
 			}
 			private function doDragEnter(e:NativeDragEvent):void
 			{
