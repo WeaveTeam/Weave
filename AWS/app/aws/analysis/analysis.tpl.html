@@ -146,10 +146,10 @@
 				<!--Geography filter -->
 				<div class="databox" style="width: 15%;"
 					ng-if="AnalysisService.showGeographyFilter">
-					<!-- <div class="databox" style="width: 160px;"> -->
 		
 					<div class="header panel-heading">
 						<h2>Geography filter</h2>
+						<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="AnalysisService.showGeographyFilter = false"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
 					</div>
 					<div class="body">
 						<div style="height: 100%"
@@ -165,6 +165,7 @@
 	
 					<div class="header panel-heading">
 						<h2>Time Period</h2>
+						<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="AnalysisService.showTimePeriodFilter = false"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
 					</div>
 	
 					<div class="body">
@@ -188,19 +189,23 @@
 <!-- 					</div> -->
 	
 <!-- 				</div> -->
-			
-				<div class="databox" style="width: 15%;" ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.dataObject.filters">
-					<!-- <div class="databox" style="width: 160px;"> -->
-	
-					<div class="panel-heading">
-						<h2>{{filter.title}}</h2>
-						<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="removeFilter($index)"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.dataObject.filters">
+					<div class="databox" style="width: 15%;">
+						<!-- <div class="databox" style="width: 160px;"> -->
+						<div class="panel-heading">
+							<h2>{{filter.title}}</h2>
+							<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="removeFilter($index)"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+						</div>
+						<div class="body">
+							<div style="height: 100%"
+								ng-include="filter.template_url"></div>
+						</div>
 					</div>
-					<div class="body">
-						<div style="height: 100%"
-							ng-include="filter.template_url"></div>
+					<div class="databox" style="width: 2%;">
+						<div style="position: relative; top: 50%;transform: translateY(-50%);">
+							OR
+						</div>
 					</div>
-	
 				</div>
 			</div>
 		</div>
