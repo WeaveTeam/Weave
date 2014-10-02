@@ -158,7 +158,7 @@ package weave.visualization.plotters
 			return labelColumn.getValueFromKey(sortedKeys[sortedKeyIndex], String);
 		}
 		
-		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired"))); // bars get their color from here
 
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const valueLabelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));

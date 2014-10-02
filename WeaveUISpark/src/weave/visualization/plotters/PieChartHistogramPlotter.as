@@ -94,7 +94,7 @@ package weave.visualization.plotters
 		public var _binnedData:BinnedColumn;
 		public var _filteredData:FilteredColumn;
 		
-		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired"))); // bars get their color from here
 		
 		public function get binnedData():BinnedColumn { return _binnedData; }
 		

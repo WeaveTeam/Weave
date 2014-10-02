@@ -118,7 +118,7 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
-		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		/**

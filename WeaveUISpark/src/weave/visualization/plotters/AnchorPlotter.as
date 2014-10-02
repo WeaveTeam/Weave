@@ -88,7 +88,7 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText();
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
-		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		
