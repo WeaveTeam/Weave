@@ -53,7 +53,7 @@ package weave.menus
 		
 		private var _contextMenu:ContextMenu;
 		private var root:WeaveMenuItem;
-		private var cmi_to_wmi:Dictionary = new Dictionary(); // cmi -> wmi
+		private var cmi_to_wmi:Dictionary = new Dictionary(); // ContextMenuItem -> WeaveMenuItem
 		
 		public function WeaveContextMenu(root:WeaveMenuItem)
 		{
@@ -100,7 +100,7 @@ package weave.menus
 		
 		private function getCustomItem(i:int):ContextMenuItem
 		{
-			while (!_contextMenu.customItems || _contextMenu.customItems.length <= i)
+			while (_contextMenu.customItems.length <= i)
 			{
 				var items:Array = _contextMenu.customItems;
 				var cmi:ContextMenuItem = new ContextMenuItem('');
