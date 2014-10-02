@@ -26,7 +26,7 @@ package weave.data.DataSources
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
@@ -530,76 +530,40 @@ package weave.data.DataSources
 			// it is ok if keyColIndex is -1 because getColumnValues supports -1
 			var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
 
-			var i:int;
-			var csvDataColumn:Vector.<String> = new Vector.<String>();
-			getColumnValues(parsedRows, colIndex, csvDataColumn);
-			
-			// loop through values, determine column type
-			var nullValue:String;
-			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			var isNumericColumn:Boolean = dataType == null || dataType == DataType.NUMBER;
-			if (isNumericColumn)
-			{
-				//check if it is a numeric column.
-				for each (var columnValue:String in csvDataColumn)
-				{
-					if (columnValue == null) // this is possible if rows have missing values
-						continue;
-					// if a string is 2 characters or more and begins with a '0', treat it as a string.
-					if (columnValue.length > 1 && columnValue.charAt(0) == '0' && columnValue.charAt(1) != '.')
-					{
-						isNumericColumn = false;
-						break;
-					}
-					if (!isNaN(getNumberFromString(columnValue)))
-						continue;
-					// if not numeric, compare to null values
-					if (!stringIsNullValue(columnValue))
-					{
-						// stop when it is determined that the column is not numeric
-						isNumericColumn = false;
-						break;
-					}
-				}
-			}
-
 			var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 			function setRecords():void
 			{
-				// fill in initializedProxyColumn.internalAttributeColumn based on column type (numeric or string)
+				var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());
+				var numbers:Vector.<Number> = null;
+				
+				var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
+				if (dataType == null || dataType == DataType.NUMBER)
+					numbers = stringsToNumbers(strings, dataType == DataType.NUMBER);
+				
 				var newColumn:IAttributeColumn;
-				if (isNumericColumn)
+				if (numbers)
 				{
-					var numericVector:Vector.<Number> = new Vector.<Number>(csvDataColumn.length);
-					for (i = 0; i < csvDataColumn.length; i++)
-						numericVector[i] = getNumberFromString(csvDataColumn[i]);
-	
 					newColumn = new NumberColumn(metadata);
-					(newColumn as NumberColumn).setRecords(keysVector, numericVector);
+					(newColumn as NumberColumn).setRecords(keysVector, numbers);
 				}
 				else
 				{
-					var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
-	
 					if (dataType == DataType.DATE)
 					{
 						newColumn = new DateColumn(metadata);
-						(newColumn as DateColumn).setRecords(keysVector, stringVector);
+						(newColumn as DateColumn).setRecords(keysVector, strings);
 					}
 					else
 					{
 						newColumn = new StringColumn(metadata);
-						(newColumn as StringColumn).setRecords(keysVector, stringVector);
+						(newColumn as StringColumn).setRecords(keysVector, strings);
 					}
 				}
 				proxyColumn.setInternalColumn(newColumn);
-				
-				//debugTrace(this, "initialized column", proxyColumn);
 			}
 			
 			proxyColumn.setMetadata(metadata);
-			var keyStrings:Array = [];
-			getColumnValues(parsedRows, keyColIndex, keyStrings);
+			var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
 			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType.value, keyStrings, proxyColumn, setRecords, keysVector);
 		}
 
@@ -607,8 +571,9 @@ package weave.data.DataSources
 		 * @param rows The rows to get values from.
 		 * @param columnIndex If this is -1, record index values will be returned.  Otherwise, this specifies which column to get values from.
 		 * @param outputArrayOrVector Output Array or Vector to store the values from the specified column, excluding the first row, which is the header.
+		 * @return outputArrayOrVector
 		 */		
-		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):void
+		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):*
 		{
 			outputArrayOrVector.length = rows.length - 1;
 			var i:int;
@@ -624,22 +589,41 @@ package weave.data.DataSources
 				for (i = 1; i < rows.length; i++)
 					outputArrayOrVector[i-1] = rows[i][columnIndex];
 			}
+			return outputArrayOrVector;
 		}
 		
-		private function getNumberFromString(value:String):Number
+		private function stringsToNumbers(strings:Vector.<String>, forced:Boolean):Vector.<Number>
 		{
-			if (stringIsNullValue(value))
-				return NaN;
-			// First trim out any commas since Number() does not work if numbers have commas. 
-			return Number(value.split(",").join(""));
-		}
-		
-		private function stringIsNullValue(value:String):Boolean
-		{
-			for each (var nullValue:String in nullValues)
-				if (ObjectUtil.stringCompare(value, nullValue, true) == 0)
-					return true;
-			return false;
+			var numbers:Vector.<Number> = new Vector.<Number>(strings.length);
+			var i:int = strings.length;
+			outerLoop: while (i--)
+			{
+				var string:String = StringUtil.trim(strings[i]);
+				for each (var nullValue:String in nullValues)
+				{
+					var a:String = nullValue && nullValue.toLocaleLowerCase();
+					var b:String = string && string.toLocaleLowerCase();
+					if (a == b)
+					{
+						numbers[i] = NaN;
+						continue outerLoop;
+					}
+				}
+
+				// if a string is 2 characters or more and begins with a '0', treat it as a string.
+				if (!forced && string.length > 1 && string.charAt(0) == '0' && string.charAt(1) != '.')
+					return null;
+
+				if (string.indexOf(',') >= 0)
+					string = string.split(',').join('');
+				
+				var number:Number = Number(string);
+				if (isNaN(number) && !forced)
+					return null;
+				
+				numbers[i] = number;
+			}
+			return numbers;
 		}
 		
 		private const nullValues:Array = [null, "", "null", "\\N", "NaN"];
