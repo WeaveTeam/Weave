@@ -32,7 +32,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	{
 	    function checkWeaveReady() {
 	    	
-	        var weave = popup.document.getElementById('weave');
+	        var weave = $('#weave');
 	        if (weave && weave.WeavePath) {
 	    		weave.loadFile('minimal.xml', callback.bind(this, weave));
 	        }
