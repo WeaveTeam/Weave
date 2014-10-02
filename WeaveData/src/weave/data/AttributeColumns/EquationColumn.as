@@ -175,6 +175,8 @@ package weave.data.AttributeColumns
 			if (_cachedMetadata.hasOwnProperty(propertyName))
 				return _cachedMetadata[propertyName] as String;
 			
+			_cachedMetadata[propertyName] = undefined; // prevent infinite recursion
+			
 			var value:String = metadata.value ? metadata.value[propertyName] as String : null;
 			if (value != null)
 			{
