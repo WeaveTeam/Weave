@@ -74,33 +74,32 @@ package weave.menus
 		private function handleMenuSelect(e:*):void
 		{
 			var cmi_index:int = -1;
-			var cmi:ContextMenuItem;
+			var separatorBefore:Boolean = false;
 			for each (var wmi:WeaveMenuItem in root.children)
 			{
-				if (!cmi)
-					cmi = getCustomItem(++cmi_index);
-				
 				if (wmi.type == WeaveMenuItem.TYPE_SEPARATOR)
 				{
-					cmi.separatorBefore = true;
+					separatorBefore = true;
 					continue;
 				}
 				
+				var cmi:ContextMenuItem = getCustomItem(++cmi_index);
 				cmi_to_wmi[cmi] = wmi;
 				cmi.caption = wmi.label;
 				cmi.visible = wmi.shown;
 				cmi.enabled = wmi.enabled;
-				cmi = null;
+				cmi.separatorBefore = separatorBefore;
+				separatorBefore = false;
 			}
 			
 			// hide remaining items
 			while (++cmi_index < _contextMenu.customItems.length)
-				(_contextMenu.customItems[cmi_index] as ContextMenuItem).visible = false;
+				getCustomItem(cmi_index).visible = false;
 		}
 		
-		private function getCustomItem(i:int):ContextMenuItem
+		private function getCustomItem(index:int):ContextMenuItem
 		{
-			while (_contextMenu.customItems.length <= i)
+			while (_contextMenu.customItems.length <= index)
 			{
 				var items:Array = _contextMenu.customItems;
 				var cmi:ContextMenuItem = new ContextMenuItem('');
@@ -108,7 +107,7 @@ package weave.menus
 				items.push(cmi);
 				_contextMenu.customItems = items;
 			}
-			return _contextMenu.customItems[i];
+			return _contextMenu.customItems[index] as ContextMenuItem;
 		}
 		
 		private function handleMenuItemSelect(event:ContextMenuEvent):void
