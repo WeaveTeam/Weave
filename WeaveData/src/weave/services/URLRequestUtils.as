@@ -337,7 +337,7 @@ internal class CustomURLLoader extends URLLoader
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			
-			if (failedHosts[getHost()])
+			if (failedHosts[getHost()] && JavaScript.available)
 			{
 				// don't bother trying a URLLoader with the same host that previously failed due to a security error
 				ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);

@@ -424,6 +424,9 @@ package weave.application
 			// We want FlashVars to take priority over the address bar parameters.
 			_flashVars = LoaderInfo(this.root.loaderInfo).parameters;
 			
+			if (!JavaScript.available)
+				return;
+			
 			// check address bar for any variables not found in FlashVars
 			try
 			{
