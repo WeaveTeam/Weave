@@ -23,21 +23,32 @@ package weave.menus
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 	
 	/**
-	 * Uses WeaveMenuItem to define a ContextMenu.
+	 * Uses WeaveMenuItem to define dynamic ContextMenus.
 	 * 
 	 * @see weave.menus.WeaveMenuItem
 	 */
 	public class WeaveContextMenu
 	{
 		/**
-		 * @params params Params to pass to WeaveMenuItem constructor.
+		 * Creates a dynamic ContextMenu.
+		 * @param dataProvider Either a single WeaveMenuItem
+		 *                     or an Array of WeaveMenuItems (or params to pass to the WeaveMenuItem constructor)
+		 *                     or a Function returning such an Array.
+		 * @return A dynamic ContextMenu derived from the dataProvider.
 		 * @see weave.menus.WeaveMenuItem
 		 */
-		public static function createContextMenu(params:Object):ContextMenu
+		public static function create(dataProvider:Object):ContextMenu
 		{
-			return new WeaveContextMenu(params as WeaveMenuItem || new WeaveMenuItem(params)).contextMenu;
+			if (getQualifiedClassName(dataProvider) == 'Object')
+				dataProvider = new WeaveMenuItem(dataProvider);
+			if (dataProvider is Array || dataProvider is Function)
+				dataProvider = new WeaveMenuItem({children: dataProvider});
+			if (dataProvider is WeaveMenuItem)
+				return new WeaveContextMenu(dataProvider as WeaveMenuItem).contextMenu;
+			return null;
 		}
 		
 		private var _contextMenu:ContextMenu;
