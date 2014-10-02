@@ -97,7 +97,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
 	  
 	  
-	  var refreshScripts = function () {
+	  $scope.refreshScripts = function () {
 	 	 //refreshing the hierarchy
   		scriptManagerService.getListOfRScripts().then(function(rScripts) {
 		  scriptManagerService.getListOfStataScripts().then(function(stataScripts){
@@ -109,9 +109,6 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  	
 	  };
 	  
-	  $scope.refreshScripts  = refreshScripts;
-	  
-	  refreshScripts();
 	  
 	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
 		  
