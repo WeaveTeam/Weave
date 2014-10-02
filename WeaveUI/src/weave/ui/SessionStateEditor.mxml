@@ -204,9 +204,19 @@ A text editor to change the Session State on the fly.
 				textEditor.getTextField().alwaysShowSelection = true;
 				
 				sessionNav.contextMenu = WeaveContextMenu.create([
-					{shown: sessionNav.getSelectedLinkableObject, label: lang('Copy path to selected object'), click: copyPathToClipboard},
-					{shown: sessionNav.getSelectedLinkableObject, label: lang('Watch selected object'), click: function():void { console.consoleWatch(sessionNav.getSelectedLinkableObject()); }},
-					{shown: sessionNav.getSelectedLinkableObject, label: lang('Delete selected object'), click: deleteSelectedItem}
+					{
+						shown: sessionNav.getSelectedLinkableObject,
+						label: lang('Copy path to selected object'),
+						click: copyPathToClipboard
+					}, {
+						shown: sessionNav.getSelectedLinkableObject,
+						label: lang('Watch selected object'),
+						click: function():void { console.consoleWatch(sessionNav.getSelectedLinkableObject()); }
+					}, {
+						shown: sessionNav.getSelectedLinkableObject,
+						label: lang('Delete selected object'),
+						click: deleteSelectedItem
+					}
 				]);
 		    }
 			
