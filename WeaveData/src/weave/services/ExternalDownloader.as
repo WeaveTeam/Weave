@@ -52,17 +52,10 @@ package weave.services
 			if(_initialized)
 				return;
 			
-			try
-			{
-				WeaveAPI.initializeJavaScript(JS_ExternalDownloader);
-				JavaScript.registerMethod("ExternalDownloader_callback", callback);
-				
-				_initialized = true;
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
+			WeaveAPI.initializeJavaScript(JS_ExternalDownloader);
+			JavaScript.registerMethod("ExternalDownloader_callback", callback);
+			
+			_initialized = true;
 		}
 		
 		public static function download(urlRequest:URLRequest, dataFormat:String, token:AsyncToken):void
