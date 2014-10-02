@@ -63,6 +63,8 @@ package weave.menus
 		}
 		public static function createGlobalObject(item:WeaveMenuItem):ILinkableObject
 		{
+			Weave.properties.dashboardMode.value = false;
+			
 			var classDef:Class = item.data is Array ? item.data[0] : item.data as Class;
 			var name:String = item.data is Array ? item.data[1] : null;
 			
@@ -123,8 +125,6 @@ package weave.menus
 			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, dp, callback, true);
 		}
 		
-		private static const notDash:Object = {not: Weave.properties.dashboardMode};
-		
 		public static const staticItems:Array = createItems([
 			{
 				shown: [Weave.properties.showColorController],
@@ -137,17 +137,17 @@ package weave.menus
 				click: openStaticInstance,
 				data: ProbeToolTipEditor
 			},{
-				shown: [notDash, Weave.properties.showProbeWindow],
+				shown: [Weave.properties.showProbeWindow],
 				label: lang("Show Mouseover Window"),
 				click: createGlobalObject,
 				data: [ProbeToolTipWindow, "ProbeToolTipWindow"]
 			},{
-				shown: [notDash, Weave.properties.showCollaborationEditor],
+				shown: [Weave.properties.showCollaborationEditor],
 				label: lang("Collaboration Settings"),
 				click: openStaticInstance,
 				data: CollaborationEditor
 			},{
-				shown: [notDash, Weave.properties.showAddExternalTools],
+				shown: [Weave.properties.showAddExternalTools],
 				label: lang("Add external tool..."),
 				click: AddExternalTool.show
 			}
@@ -185,7 +185,7 @@ package weave.menus
 						var items:Array = group.map(
 							function(impl:Class, i:int, a:Array):* {
 								var item:WeaveMenuItem = new WeaveMenuItem({
-									shown: [notDash, Weave.properties.getToolToggle(impl)],
+									shown: [Weave.properties.getToolToggle(impl)],
 									label: getToolItemLabel,
 									click: createGlobalObject,
 									data: impl
@@ -197,7 +197,7 @@ package weave.menus
 						);
 						if (!flatList && iGroup == groups.length - 1)
 							return {
-								shown: [notDash, function():Boolean { return this.children.length > 0 }],
+								shown: [function():Boolean { return this.children.length > 0 }],
 								label: lang('Other tools'),
 								children: items
 							};
@@ -207,12 +207,6 @@ package weave.menus
 			);
 		}
 		
-		private static const dashboardItem:WeaveMenuItem = new WeaveMenuItem({
-			shown: Weave.properties.dashboardMode,
-			label: lang("Disable dashboard mode"),
-			click: Weave.properties.dashboardMode
-		});
-			
 		public function ToolsMenu()
 		{
 			super({
@@ -223,8 +217,7 @@ package weave.menus
 				{
 					return createItems([
 						staticItems,
-						getDynamicItems("+ {0}"),
-						dashboardItem
+						getDynamicItems("+ {0}")
 					]);
 				}
 			});

@@ -231,10 +231,6 @@
 				
 				private function initCreateVis():void
 				{
-					Weave.properties.dashboardMode.addImmediateCallback(this, function():void {
-						createVis.enabled = !Weave.properties.dashboardMode.value;
-					});
-					
 					browser.explorer.fileVBox.addChildAt(createVis, 0);
 					
 					function onClick(item:WeaveMenuItem):void
