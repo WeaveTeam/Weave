@@ -134,10 +134,13 @@ package weave.core
 					target = null;
 				else
 				{
-					setLocalObjectType(className);
+					var prevTarget:ILinkableObject = target;
+					// if className is not specified, make no change unless removeMissingDynamicObjects is true
+					if (className || removeMissingDynamicObjects)
+						setLocalObjectType(className);
 					var classDef:Class = ClassUtils.getClassDefinition(className);
-					if (classDef && target is classDef)
-						WeaveAPI.SessionManager.setSessionState(target, sessionState);
+					if (!className || (classDef && target is classDef))
+						WeaveAPI.SessionManager.setSessionState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
 				}
 			}
 			finally
