@@ -98,8 +98,9 @@ package weave.menus
 		
 		/**
 		 * This can be either a Function or a LinkableBoolean.
-		 * The function can be like function():void or function(item:WeaveMenuItem):void.
-		 * The function will be called like click.call(this) or click.call(this, this) if the former produces an ArgumentError.
+		 * The Function signature can be like function():void or function(item:WeaveMenuItem):void.
+		 * Instead of reading this property directly, call runClickFunction().
+		 * @see #runClickFunction()
 		 */
 		public var click:* = null;
 		
@@ -190,7 +191,8 @@ package weave.menus
 		}
 		
 		/**
-		 * If the click property is set to a Function, it will be called.
+		 * If the click property is set to a Function, it will be called like click.call(this)
+		 *   or click.call(this, this) if the former produces an ArgumentError.
 		 * If the click property is set to a LinkableBoolean, it will be toggled.
 		 */
 		public function runClickFunction():void
