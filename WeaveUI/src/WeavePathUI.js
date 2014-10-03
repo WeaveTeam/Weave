@@ -47,7 +47,7 @@ weave.WeavePath.prototype.pushPlotter = function(plotterName, plotterType)
 {
 	var tool = this.weave.path(this._path[0]);
 	if (!checkType(tool, 'weave.visualization.tools.SimpleVisTool'))
-		this._failMessage('pushLayerSettings', "Not a compatible visualization tool", this._path);
+		this._failMessage('pushPlotter', "Not a compatible visualization tool", this._path);
 	
 	if (!plotterName)
 		plotterName = checkType(this, 'weave.visualization.layers.LayerSettings') ? this._path[this._path.length - 1] : 'plot';
