@@ -79,6 +79,7 @@
 				_plotter.groupingMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.horizontalMode.addImmediateCallback(this, updateAxisLabels);
 				_plotter.showLabels.addImmediateCallback(this, updateAxisLabels);
+				mainLayerSettings.hack_useTextBitmapFilters = true;
 				
 				initColumnLink(_plotter.colorColumn);
 				initColumnLink(_plotter.sortColumn);

@@ -19,11 +19,13 @@
 
 package weave.visualization.plotters
 {
+	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.TextFormat;
 	
+	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -40,6 +42,7 @@ package weave.visualization.plotters
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.ObjectPool;
+	import weave.visualization.layers.PlotTask;
 	
 	/**
 	 * @author adufilie
@@ -59,8 +62,6 @@ package weave.visualization.plotters
 		private const bitmapText:BitmapText = new BitmapText();
 		private const matrix:Matrix = new Matrix();
 
-		private static const tempPoint:Point = new Point(); // reusable object
-		
 		public const sortColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
@@ -161,34 +162,14 @@ package weave.visualization.plotters
 						
 						if (shouldRender)
 						{
-							if (bitmapText.angle == 0)
-							{
-								// draw almost-invisible rectangle behind text
-								bitmapText.getUnrotatedBounds(tempBounds);
-								tempBounds.getRectangle(tempRectangle);
-								// HACK -- check the pixel at (x,y) to decide how to draw the rectangular halo
-								var pixel:uint = task.buffer.getPixel(bitmapText.x, bitmapText.y);
-								var haloColor:uint = pixel ? 0x20FFFFFF : 0x02808080; // alpha 0.125 vs 0.008
-								// Check all the pixels and only set the ones that aren't set yet.
-								var pixels:Vector.<uint> = task.buffer.getVector(tempRectangle);
-								for (var p:int = 0; p < pixels.length; p++)
-								{
-									pixel = pixels[p] as uint;
-									if (!pixel)
-										pixels[p] = haloColor;
-								}
-								task.buffer.setVector(tempRectangle, pixels);
-								
-								//destination.fillRect(tempRectangle, 0x02808080); // alpha 0.008, invisible
-							}
+							drawInvisibleHalo(bitmapText, task);
 							
 							bitmapText.draw(task.buffer);
 						}
 						
 						return task.iteration / task.recordKeys.length;
 					}
-					
-					// cleanup
+
 					for each (bounds in reusableBoundsObjects)
 						ObjectPool.returnObject(bounds);
 					reusableBoundsObjects.length = 0; // important so we don't return the same bounds later
@@ -200,7 +181,56 @@ package weave.visualization.plotters
 			return (task.asyncState as Function).apply(this, arguments);
 		}
 
-		private static const tempRectangle:Rectangle = new Rectangle(); // reusable temporary object
-		private static const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
+		// reusable temporary objects
+		private static const tempRectangle:Rectangle = new Rectangle();
+		private static const tempBounds:IBounds2D = new Bounds2D();
+		private static const tempMatrix:Matrix = new Matrix();
+		private static const tempPoint:Point = new Point();
+		
+		/**
+		 * Draws an invisible background for text that will be illuminated with bitmap filters,
+		 * but only if bitmapText.angle is divisible by 90 and the task is for probing.
+		 */
+		public static function drawInvisibleHalo(bitmapText:BitmapText, task:IPlotTask):void
+		{
+			if (!(task is PlotTask) || (task as PlotTask).taskType != PlotTask.TASK_TYPE_PROBE)
+				return;
+			
+			if (!Weave.properties.enableBitmapFilters.value)
+				return;
+			
+			if (bitmapText.angle % 90)
+				return;
+			
+			bitmapText.getUnrotatedBounds(tempBounds);
+			if (bitmapText.angle % 360)
+			{
+				tempMatrix.identity();
+				tempMatrix.translate(-bitmapText.x, -bitmapText.y);
+				tempMatrix.rotate(bitmapText.angle * Math.PI / 180);
+				tempMatrix.translate(bitmapText.x, bitmapText.y);
+				tempBounds.getMinPoint(tempPoint);
+				tempBounds.setMinPoint(tempMatrix.transformPoint(tempPoint));
+				tempBounds.getMaxPoint(tempPoint);
+				tempBounds.setMaxPoint(tempMatrix.transformPoint(tempPoint));
+			}
+			
+			tempBounds.getRectangle(tempRectangle);
+			// HACK -- check a pixel to decide how to draw the rectangular halo
+			tempBounds.getCenterPoint(tempPoint);
+			var pixel:uint = task.buffer.getPixel(tempPoint.x, tempPoint.y);
+			var haloColor:uint = 0x20000000 | Weave.properties.probeInnerGlow.color.value;
+			// Check all the pixels and only set the ones that aren't set yet.
+			var pixels:Vector.<uint> = task.buffer.getVector(tempRectangle);
+			for (var p:int = 0; p < pixels.length; p++)
+			{
+				pixel = pixels[p] as uint;
+				if (!pixel)
+					pixels[p] = haloColor;
+			}
+			task.buffer.setVector(tempRectangle, pixels);
+			
+			//buffer.fillRect(tempRectangle, 0x02808080); // alpha 0.008, invisible
+		}
 	}
 }

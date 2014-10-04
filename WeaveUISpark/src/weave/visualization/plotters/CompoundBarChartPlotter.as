@@ -36,8 +36,8 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -604,6 +604,8 @@ package weave.visualization.plotters
 									_bitmapText.textFormat.color = color;
 								else
 									_bitmapText.textFormat.color = valueLabelColor.value;
+								
+								TextGlyphPlotter.drawInvisibleHalo(_bitmapText, task);
 								_bitmapText.draw(task.buffer);
 							}
 							//------------------------------------
@@ -633,8 +635,8 @@ package weave.visualization.plotters
 								var labelPos:Number = labelDataCoordinate.value;
 								if (_horizontalMode)
 								{
-									if (!(labelPos <= Infinity)) // alternative to isNaN
-										labelPos = (height >= 0) ? task.dataBounds.getXMin(): task.dataBounds.getXMax();
+									if (isNaN(labelPos))
+										labelPos = task.dataBounds.getXMin();
 									
 									tempPoint.x = labelPos;
 									tempPoint.y = (barStart + barEnd) / 2;
@@ -642,8 +644,8 @@ package weave.visualization.plotters
 								}
 								else
 								{
-									if (!(labelPos <= Infinity)) // alternative to isNaN
-										labelPos = (height >= 0) ? task.dataBounds.getYMin(): task.dataBounds.getYMax();
+									if (isNaN(labelPos))
+										labelPos = task.dataBounds.getYMin();
 									tempPoint.x = (barStart + barEnd) / 2;
 									tempPoint.y = labelPos;
 									_bitmapText.angle = 270;
@@ -663,6 +665,7 @@ package weave.visualization.plotters
 								else
 									_bitmapText.textFormat.color = labelColor.value;
 								
+								TextGlyphPlotter.drawInvisibleHalo(_bitmapText, task);
 								_bitmapText.draw(task.buffer);
 							}
 							//------------------------------------
