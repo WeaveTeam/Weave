@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -136,6 +136,7 @@ package weave.visualization.plotters
 		public const colorColumn:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const stackedMissingDataGap:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const colorIndicatesDirection:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		private var _sortByColor:Function;
 		
@@ -355,6 +356,9 @@ package weave.visualization.plotters
 							if (isNaN(h))
 								continue;
 							
+							if (colorIndicatesDirection.value)
+								h = Math.abs(h);
+							
 							totalHeight = totalHeight + h;
 						}
 						
@@ -376,6 +380,24 @@ package weave.visualization.plotters
 							}
 							if (isNaN(height)) // check again because getMean may return NaN
 								height = 0;
+							
+							var color:Number;
+							if (colorIndicatesDirection.value)
+							{
+								color = chartColors.getColorFromNorm(height < 0 ? 0 : 1)
+								height = Math.abs(height);
+							}
+							else if (_heightColumns.length == 1)
+							{
+								color = colorColumn.getValueFromKey(recordKey, Number) as Number;
+							}
+							else
+							{
+								var colorNorm:Number = i / (_heightColumns.length - 1);
+								if (reverseOrder)
+									colorNorm = 1 - colorNorm;
+								color = chartColors.getColorFromNorm(colorNorm);
+							}
 							
 							if (height >= 0)
 							{
@@ -402,7 +424,7 @@ package weave.visualization.plotters
 									barStart += i / numHeightColumns * recordWidth;
 								var barEnd:Number = barStart + barWidth;
 								
-								if ( height >= 0)
+								if (height >= 0)
 								{
 									// project data coordinates to screen coordinates
 									if (_horizontalMode)
@@ -465,15 +487,6 @@ package weave.visualization.plotters
 								// BEGIN draw graphics
 								//////////////////////////
 								graphics.clear();
-								
-								var colorNorm:Number = i / (_heightColumns.length - 1);
-								if (reverseOrder)
-									colorNorm = 1 - colorNorm;
-								var color:Number = chartColors.getColorFromNorm(colorNorm);
-								
-								// if there is one column, act like a regular bar chart and color in with a chosen color
-								if (_heightColumns.length == 1)
-									color = colorColumn.getValueFromKey(recordKey, Number) as Number;
 								
 								if (isFinite(color))
 									graphics.beginFill(color, 1);
@@ -547,8 +560,11 @@ package weave.visualization.plotters
 									// END code to draw one error bar
 									//------------------------------------
 								}
-									
-								task.buffer.draw(tempShape, null, null, null, clipRectangle);
+								
+								if (_groupingMode == PERCENT_STACK)
+									task.buffer.draw(tempShape);
+								else
+									task.buffer.draw(tempShape, null, null, null, clipRectangle);
 								//////////////////////////
 								// END draw graphics
 								//////////////////////////
@@ -757,6 +773,8 @@ package weave.visualization.plotters
 			{
 				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 				var height:Number = column.getValueFromKey(recordKey, Number);
+				if (colorIndicatesDirection.value)
+					height = Math.abs(height);
 				if (isFinite(height))
 				{
 					// not all missing
@@ -766,6 +784,8 @@ package weave.visualization.plotters
 				{
 					// use mean value for missing data gap
 					height = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMean();
+					if (colorIndicatesDirection.value)
+						height = Math.abs(height);
 				}
 
 				var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
@@ -847,6 +867,11 @@ package weave.visualization.plotters
 						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 						var max:Number = stats.getMax();
 						var min:Number = stats.getMin();
+						if (colorIndicatesDirection.value)
+						{
+							// Note: does not consider all possibilities with error bars
+							min = max = Math.max(Math.abs(min), Math.abs(max));
+						}
 						var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
 						var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
 						if (showErrorBars && positiveError && negativeError)

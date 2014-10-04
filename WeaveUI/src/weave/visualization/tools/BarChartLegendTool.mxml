@@ -52,7 +52,7 @@
 				super.inConstructor();
 				// lock dynamic objects into place
 				
-				// create bar segment legend
+				// create bar chart legend
 				_barLegendPlotter = initializePlotters(BarChartLegendPlotter, false);
 				
 				// create global color ramp legend
@@ -98,12 +98,12 @@
 				{
 					copySessionState(barChart.chartColors, _barLegendPlotter.chartColors);
 					copySessionState(barChart.heightColumns, _barLegendPlotter.columns);
+					copySessionState(barChart.colorIndicatesDirection, _barLegendPlotter.colorIndicatesDirection);
 				}
 				
-				var multiColumn:Boolean = barChart && _barLegendPlotter.columns.getObjects().length > 1;
-				// show global color ramp legend
-				_colorLegendLayerSettings.visible.value = !multiColumn;
-				visualization.plotManager.getLayerSettings(SimpleInteractiveVisualization.MAIN_PLOT_LAYER_NAME).visible.value = multiColumn;
+				var showBarLegend:Boolean = barChart && (_barLegendPlotter.columns.getObjects().length > 1 || _barLegendPlotter.colorIndicatesDirection.value);
+				_colorLegendLayerSettings.visible.value = !showBarLegend;
+				visualization.plotManager.getLayerSettings(SimpleInteractiveVisualization.MAIN_PLOT_LAYER_NAME).visible.value = showBarLegend;
 				
 				updateMarginLabel();
 			}
@@ -140,16 +140,20 @@
 					visualization.topMarginToolTip = lang("Click to select the attribute(s) used for the bars.");
 					try
 					{
-						var newTitle:String = _barLegendPlotter.legendTitleFunction.apply();
-						marginLabel.text = newTitle ? newTitle : lang("Bar Segment Colors");						
+						marginLabel.text = _barLegendPlotter.legendTitleFunction.apply() || defaultTitle;
 					}
 					catch (e:Error)
 					{
-						marginLabel.text = lang("Bar Segment Colors");
+						marginLabel.text = defaultTitle;
 					}
 					visualization.additionalProbeColumns = null;
 				}
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
+			}
+			
+			private function get defaultTitle():String
+			{
+				return lang('Bar color')
 			}
 			
 			override public function get defaultPanelTitle():String

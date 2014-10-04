@@ -125,6 +125,7 @@
 			
 			public function get heightColumns():ILinkableHashMap { return _plotter.heightColumns; }
 			public function get chartColors():ColorRamp { return _plotter.chartColors; }
+			public function get colorIndicatesDirection():LinkableBoolean { return _plotter.colorIndicatesDirection; }
 			
 			public function get plotter():CompoundBarChartPlotter {return _plotter;}
 			
@@ -477,6 +478,8 @@
 			<ui:CustomCheckBox label="{lang('Zoom to subset (bars)')}"
 							   toolTip="{lang('Enables automatic zooming to the subset of bars currently displayed')}"
 						 	   creationComplete="linkBindableProperty(_plotter.zoomToSubsetBars, event.target, 'selected')"/>
+			<ui:CustomCheckBox label="{lang('Use color to indicate positive or negative value')}"
+							   creationComplete="linkBindableProperty(_plotter.colorIndicatesDirection, event.target, 'selected')"/>
 			<ui:ColorRampEditor id="cRampEditor" toolTip="{lang('The color ramp can only be set when more than one height column is specified.')}"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Mouseover info')}">
@@ -504,6 +507,7 @@
 					_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
 					_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
 					getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
+					getCallbackCollection(_plotter.colorIndicatesDirection).addGroupedCallback(this, updateInteractivity, true);
 				}
 
 				private function updateInteractivity():void
@@ -520,7 +524,7 @@
 					}
 					else
 					{
-						cRampEditor.enabled = false;
+						cRampEditor.enabled = false || _plotter.colorIndicatesDirection.value;
 						groupMode.enabled = false;
 						colorColumnInput.enabled = true;
 					}

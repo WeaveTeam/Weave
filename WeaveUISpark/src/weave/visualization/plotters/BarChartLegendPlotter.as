@@ -53,31 +53,29 @@ package weave.visualization.plotters
 		
 		public const columns:ILinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), createColumnHashes);
 		public const chartColors:ColorRamp = newSpatialProperty(ColorRamp);
+		public const colorIndicatesDirection:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
 		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12));
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		[Bindable] public var numColumns:int = 0;
-		private var _columnOrdering:Array = [];
-		private var _columnToBounds:Dictionary = new Dictionary();
-		private var _columnToTitle:Dictionary = new Dictionary();
+		private var numColumns:int = 0;
+		private var _itemOrdering:Array = [];
+		private var _itemToTitle:Dictionary = new Dictionary();
 		private var _maxBoxSize:Number = 8;
 		
 		/**
 		 * This is the maximum number of items to draw in a single row.
-		 * @default 1 
-		 */		
+		 * @default 1
+		 */
 		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createColumnHashes);
 		
 		/**
 		 * This is an option to reverse the item order.
-		 */		
+		 */
 		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
 		
 		/**
 		 * This is the compiled function to apply to the item labels.
-		 * 
-		 * @default string
 		 */
-		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['number','string']), createColumnHashes);
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['number','string','column']), createColumnHashes);
 
 		// TODO This should go somewhere else...
 		/**
@@ -87,6 +85,8 @@ package weave.visualization.plotters
 		 */		
 		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
+		private static const NEGATIVE_POSITIVE_ITEMS:Array = [lang('Negative'), lang('Positive')];
+		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			output.setBounds(0, 0, 1, 1);
@@ -94,30 +94,38 @@ package weave.visualization.plotters
 		
 		private function createColumnHashes():void
 		{
-			_columnOrdering = [];
-			_columnToBounds = new Dictionary();
-			_columnToTitle = new Dictionary();
+			_itemOrdering = [];
+			_itemToTitle = new Dictionary();
 			var columnObjects:Array = columns.getObjects();
-			numColumns = columnObjects.length;
+			var item:Object;
+			var colTitle:String;
+			numColumns = colorIndicatesDirection.value ? 2 : columnObjects.length;
 			for (var i:int = 0; i < numColumns; ++i)
 			{
-				var column:IAttributeColumn = columnObjects[i];
-				var colTitle:String = ColumnUtils.getTitle(column);
-				var b:IBounds2D = new Bounds2D();
+				if (colorIndicatesDirection.value)
+				{
+					item = i;
+					colTitle = NEGATIVE_POSITIVE_ITEMS[i];
+				}
+				else
+				{
+					item = columnObjects[i];
+					colTitle = ColumnUtils.getTitle(item as IAttributeColumn);
+				}
 				
-				_columnOrdering.push(column);
+				_itemOrdering.push(item);
 				try
 				{
-					_columnToTitle[column] = itemLabelFunction.apply(null, [i, colTitle]);
+					_itemToTitle[item] = itemLabelFunction.apply(null, [i, colTitle, item]);
 				}
 				catch (e:Error)
 				{
-					_columnToTitle[column] = colTitle;
+					_itemToTitle[item] = colTitle;
 				}
 			}
 			
 			if (reverseOrder.value)
-				_columnOrdering = _columnOrdering.reverse(); 
+				_itemOrdering = _itemOrdering.reverse(); 
 		}
 
 		private const _itemBounds:IBounds2D = new Bounds2D();
@@ -131,8 +139,8 @@ package weave.visualization.plotters
 			var actualShapeSize:int = Math.max(_maxBoxSize, shapeSize.value);
 			for (var iColumn:int = 0; iColumn < numColumns; ++iColumn)
 			{
-				var column:IAttributeColumn = _columnOrdering[iColumn];
-				var title:String = _columnToTitle[column];
+				var item:Object = _itemOrdering[iColumn];
+				var title:String = _itemToTitle[item];
 				LegendUtils.getBoundsFromItemID(screenBounds, iColumn, _itemBounds, numColumns, maxCols);
 				LegendUtils.renderLegendItemText(destination, title, _itemBounds, actualShapeSize + margin);
 
