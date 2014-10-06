@@ -1,9 +1,9 @@
 /**
  * contains all the functions required for project management 
  */
-var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
 angular.module('aws.project')
-.service('projectService', ['$q', '$rootScope', 'WeaveService', 'QueryHandlerService', 'runQueryService', function($q, scope, WeaveService, QueryHandlerService, runQueryService){
+.service('projectService', ['$q', '$rootScope', 'WeaveService', 'QueryHandlerService', 'runQueryService', 'projectManagementURL',
+                            function($q, scope, WeaveService, QueryHandlerService, runQueryService, projectManagementURL){
 	
 	var that = this;
 	this.data= {};

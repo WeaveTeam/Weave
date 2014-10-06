@@ -73,6 +73,7 @@ angular.module('aws.configure', ['aws.configure.auth',
 //using the value provider recipe 
 app.value("dataServiceURL", '/WeaveServices/DataService');
 app.value('adminServiceURL', '/WeaveServices/AdminService');
+app.value('projectManagementURL', '/WeaveAnalystServices/ProjectManagementServlet');
 app.value('computationServiceURL', '/WeaveAnalystServices/ComputationalServlet');
 
 // From Amith's UI
