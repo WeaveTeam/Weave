@@ -32,7 +32,7 @@ metadataModule.config(function($provide){
 	
 })
 
-.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService){			
+.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService){			
 
 	var treeData = [];
 	$scope.myData = [];
@@ -62,11 +62,14 @@ metadataModule.config(function($provide){
 							this.reactivate();
 						},
 						onActivate: function(node) {
+
 							//handling nodes when tables
 							if(!node.data.metadata)
-								$scope.selectedDataTableId = node.data.key;
-							//console.log("node selected", node);
-							//console.log("$scope.selected", $scope.selectedDataTableId);
+								{
+									$scope.selectedDataTableId = node.data.key;
+									console.log("$scope.selected", $scope.selectedDataTableId);
+								
+								}
 
 							//handle when node is a column
 							if(node.data.metadata)
@@ -91,7 +94,7 @@ metadataModule.config(function($provide){
 												
 												var columnChildren= [];
 												//as soon as ids are returned retrieve their metadata
-												aws.queryService(dataServiceURL, 'getEntitiesById', [list], function(columnsWithMetadata){
+												runQueryService.queryRequest(dataServiceURL, 'getEntitiesById', [list], function(columnsWithMetadata){
 													for(var i=0, l=columnsWithMetadata.length; i<l; i++){
 														var singleColumn = columnsWithMetadata[i];
 								                        columnChildren.push({title: singleColumn.publicMetadata.title,
@@ -99,7 +102,6 @@ metadataModule.config(function($provide){
 								                            	metadata: singleColumn.publicMetadata,
 								                            	addClass : "custom1",// for a particular kind of document representation
 								                            	focus: true});
-								                        
 								                    }
 								                    node.setLazyNodeStatus(DTNodeStatus_Ok);//look at dynatree documentation
 								                    node.addChild(columnChildren);
@@ -110,8 +112,6 @@ metadataModule.config(function($provide){
 						},
 						debugLevel: 0
 					});
-					var node = $(element).dynatree("getRoot");
-				    // node.sortChildren(cmp, true);
 				}
 				
 //*********************************************************************************************unlazy loading********************************************************				
@@ -230,19 +230,6 @@ metadataModule.config(function($provide){
 
 	 };
 
-//	 $scope.$watch('progressValue', function(){
-//		 console.log("in watch progress value", $scope.progressValue);
-//		if($scope.progressValue == $scope.maxTasks) {
-//			setTimeout(function() {
-//				$scope.inProgress = false;
-//				$scope.progressValue = 0;
-//				$scope.$apply();
-//			}, 50);
-//		} else {
-//			$scope.inProgress = true;
-//		}
-//	 });
-
 	 $scope.$on('ngGridEventEndCellEdit', function(){
 		 updateMetadata($scope.myData);
 	 });
@@ -253,10 +240,13 @@ metadataModule.config(function($provide){
 	  */
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-		 queryService.updateEntity($scope.authenticationService.user, $scope.authenticationService.password, $scope.selectedDataTableId, { 
-																								publicMetadata : { aws_metadata : jsonaws_metadata }
-																							  }
-		 ).then(function() {
+
+		 queryService.updateEntity($scope.authenticationService.user, 
+				 				   $scope.authenticationService.password, 
+				 				   $scope.selectedDataTableId, 
+				 				   { 
+			 							publicMetadata : { aws_metadata : jsonaws_metadata }
+				 				   }).then(function() {
      		 //$scope.maxTasks = 100;
 			 //$scope.progressValue = 100;
 		 });
@@ -344,7 +334,7 @@ metadataModule.config(function($provide){
 		        					if(id) {
 		        								//TODO handle columns with missing metadata
 		        								if(!(angular.isUndefined(metadata)))//if a particular column does not have metadata
-		        									metadata = metadata.replace(/\s/g, '');
+		        									metadata = metadata;
 		        								
 		        								
 		        								//updating the column metadata(adding the aws_metadata property to the public metadata) on the server 
@@ -365,7 +355,6 @@ metadataModule.config(function($provide){
 	    	  } else {
 						console.log("no selected tables");
 	    	  		};
-
         }
 
       }, true);

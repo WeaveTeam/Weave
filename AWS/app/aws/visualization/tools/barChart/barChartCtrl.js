@@ -6,6 +6,6 @@ AnalysisModule.controller("BarChartCtrl", function($scope, queryService, WeaveSe
 	$scope.$watch(function() {
 		return queryService.queryObject.BarChartTool;
 	}, function () { 
-			WeaveService.BarChartTool(queryService.queryObject.BarChartTool);
+		WeaveService.BarChartTool(queryService.queryObject.BarChartTool);
 	}, true);
 });

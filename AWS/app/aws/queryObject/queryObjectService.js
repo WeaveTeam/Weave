@@ -16,73 +16,81 @@ var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
 
 var aws = {};
 
-/**
- * This function is a wrapper for making a request to a JSON RPC servlet
- * 
- * @param {string} url
- * @param {string} method The method name to be passed to the servlet
- * @param {?Array|Object} params An array of object to be passed as parameters to the method 
- * @param {Function} resultHandler A callback function that handles the servlet result
- * @param {string|number=}queryId
- * @see aws.addBusyListener
- */
-aws.queryService = function(url, method, params, resultHandler, queryId)
-{
-    var request = {
-        jsonrpc: "2.0",
-        id: queryId || "no_id",
-        method: method,
-        params: params
-    };
-    
-    $.post(url, JSON.stringify(request), handleResponse, "text");
+QueryObject.service('runQueryService', ['errorLogService','$modal', function(errorLogService, $modal){
 
-    function handleResponse(response)
-    {
-    	// parse result for target window to use correct Array implementation
-    	response = JSON.parse(response);
-    	
-        if (response.error)
-        {
-        	console.log(JSON.stringify(response, null, 3));
-        }
-        else if (resultHandler){
-            return resultHandler(response.result, queryId);
-        }
-    }
-};
-
-/**
- * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
- * @param {string} url The URL of the service.
- * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
- * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
- * @param {function(Array|Object)} resultsHandler Receives a mapping from queryId to RPC result.
- */
-aws.bulkQueryService = function(url, method, queryIdToParams, resultsHandler)
-{
-	var batch = [];
-	for (var queryId in queryIdToParams)
-		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
-	$.post(url, JSON.stringify(batch), handleBatch, "json");
-	function handleBatch(batchResponse)
+	/**
+	 * This function is a wrapper for making a request to a JSON RPC servlet
+	 * 
+	 * @param {string} url
+	 * @param {string} method The method name to be passed to the servlet
+	 * @param {?Array|Object} params An array of object to be passed as parameters to the method 
+	 * @param {Function} resultHandler A callback function that handles the servlet result
+	 * @param {string|number=}queryId
+	 * @see aws.addBusyListener
+	 */
+	this.queryRequest = function(url, method, params, resultHandler, queryId)
 	{
-		var results = Array.isArray(queryIdToParams) ? [] : {};
-		for (var i in batchResponse)
+	    var request = {
+	        jsonrpc: "2.0",
+	        id: queryId || "no_id",
+	        method: method,
+	        params: params
+	    };
+	    
+	    $.post(url, JSON.stringify(request), handleResponse, "text");
+
+	    function handleResponse(response)
+	    {
+	    	// parse result for target window to use correct Array implementation
+	    	response = JSON.parse(response);
+	    	
+	        if (response.error)
+	        {	
+	        	console.log(JSON.stringify(response, null, 3));
+	        	//log the error
+	        	errorLogService.logInErrorLog(response.error.message);
+	        	//open the error log
+	        	$modal.open(errorLogService.errorLogModalOptions);
+	        }
+	        else if (resultHandler){
+	            return resultHandler(response.result, queryId);
+	        }
+	    }
+	};
+	
+	
+	/**
+	 * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
+	 * @param {string} url The URL of the service.
+	 * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
+	 * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
+	 * @param {function(Array|Object)} resultsHandler Receives a mapping from queryId to RPC result.
+	 */
+	this.bulkQueryRequest = function(url, method, queryIdToParams, resultsHandler)
+	{
+		var batch = [];
+		for (var queryId in queryIdToParams)
+			batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
+		$.post(url, JSON.stringify(batch), handleBatch, "json");
+		function handleBatch(batchResponse)
 		{
-			var response = batchResponse[i];
-			if (response.error)
-				console.log(JSON.stringify(response, null, 3));
-			else
-				results[response.id] = response.result;
+			var results = Array.isArray(queryIdToParams) ? [] : {};
+			for (var i in batchResponse)
+			{
+				var response = batchResponse[i];
+				if (response.error)
+					console.log(JSON.stringify(response, null, 3));
+				else
+					results[response.id] = response.result;
+			}
+			if (resultsHandler)
+				resultsHandler(results);
 		}
-		if (resultsHandler)
-			resultsHandler(results);
-	}
-};
+	};
+}]);
 
 
-QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', function($q, scope, WeaveService) {
+QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService', function($q, scope, WeaveService, runQueryService) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);
@@ -92,16 +100,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     	this.queryObject = angular.fromJson(sessionStorage.queryObject);
     };
 
-    /*****************needed for logging in and admin privileges*/
-//    this.user = "";
-//    this.password = "";
-   // this.authenticated = false;
-    
-//	this.logout = function() {
-//		this.authenticated = false;
-//	};
-	/*******************/
-	
 	var that = this; // point to this for async responses
 
 	this.queryObject = {
@@ -110,7 +108,14 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     		author : "",
 			ComputationEngine : "R",
 			Indicator : "",
-			GeographyFilter : {},
+			filters : {
+				or : []
+			},
+			GeographyFilter : {
+				stateColumn:"{\"id\":2695,\"title\":\"X_STATE\",\"columnType\":\"geography\",\"description\":\"\"}",
+				countyColumn:"{\"id\":2696,\"title\":\"X_CTYCODE\",\"columnType\":\"geography\",\"description\":\"\"}",
+				metadataTable:"{\"id\":2834,\"title\":\"US FIPS Codes\",\"numChildren\":4}"
+			},
 			scriptOptions : {},
 			TimePeriodFilter : {},
 			ByVariableFilters : [],
@@ -125,7 +130,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     
 	this.dataObject = {
 			dataTableList : [],
-			scriptList : []
+			scriptList : [],
+			filters : []
 	};
 
 	
@@ -137,7 +143,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     	if(!forceUpdate) {
 			return this.dataObject.scriptList;
     	} else {
-    		aws.queryService(scriptManagementURL, 'getListOfScripts', null, function(result){
+    		runQueryService.queryRequest(scriptManagementURL, 'getListOfScripts', null, function(result){
     			that.dataObject.scriptList = result;
     		});
     	}
@@ -150,7 +156,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     this.getListOfProjectsfromDatabase = function() {
 		var deferred = $q.defer();
 
-		aws.queryService(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
+		runQueryService.queryRequest(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
     	that.dataObject.listOfProjectsFromDatabase = result;
     	
     	scope.$safeApply(function() {
@@ -174,7 +180,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     	params.queryObjectTitle = queryObjectTitle;
     	params.queryObjectContent = queryObjectContent;
 
-    	aws.queryService(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
+    	runQueryService.queryRequest(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
         	console.log("insertQueryObjectStatus", result);
         	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
         	scope.$safeApply(function() {
@@ -197,7 +203,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     	var params = {};
     	params.projectName = projectName;
 
-    	aws.queryService(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
+    	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
         	console.log("deleteProjectStatus", result);
             
         	that.dataObject.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
@@ -275,7 +281,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     	var resultVisualizations = base64String;
     	
     	
-    	aws.queryService(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
+    	runQueryService.queryRequest(projectManagementURL, 'writeSessionState', [userName, projectDescription, queryObjectTitles, queryObjectJsons, resultVisualizations, projectName], function(result){
     		console.log("adding status", result);
     		alert(queryObjectTitles + " has been added");
     	});
@@ -293,7 +299,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     		return this.dataObject.scriptMetadata;
     	}
     	if(scriptName) {
-    		aws.queryService(scriptManagementURL, 'getScriptMetadata', [scriptName], function(result){
+    		runQueryService.queryRequest(scriptManagementURL, 'getScriptMetadata', [scriptName], function(result){
     			that.dataObject.scriptMetadata = result;
     			scope.$safeApply(function() {
     				deferred.resolve(that.dataObject.scriptMetadata);
@@ -316,9 +322,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
 			return that.dataObject.columns;
 		} else {
 			if(id) {
-				aws.queryService(dataServiceURL, "getEntityChildIds", [id], function(idsArray) {
+				runQueryService.queryRequest(dataServiceURL, "getEntityChildIds", [id], function(idsArray) {
 					//console.log("idsArray", idsArray);
-					aws.queryService(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
+					runQueryService.queryRequest(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
 						//console.log("dataEntirtyArray", dataEntityArray);
 						//console.log("columns", that.dataObject.columnsb);
 						
@@ -362,7 +368,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
 			return that.dataObject.dataColumnEntities;
 		} else {
 			if(idsArray) {
-				aws.queryService(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
+				runQueryService.queryRequest(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
 					
 					that.dataObject.dataColumnEntities = dataEntityArray;
 					
@@ -391,8 +397,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
 			return that.dataObject.geometryColumns;
 		}
 		
-		aws.queryService(dataServiceURL, 'getEntityIdsByMetadata', [{"dataType" :"geometry"}, 1], function(idsArray){
-			aws.queryService(dataServiceURL, 'getEntitiesById', [idsArray], function(dataEntityArray){
+		runQueryService.queryRequest(dataServiceURL, 'getEntityIdsByMetadata', [{"dataType" :"geometry"}, 1], function(idsArray){
+			runQueryService.queryRequest(dataServiceURL, 'getEntitiesById', [idsArray], function(dataEntityArray){
 				that.dataObject.geometryColumns = $.map(dataEntityArray, function(entity) {
 					return {
 						id : entity.id,
@@ -420,7 +426,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
     	if(!forceUpdate) {
 			return that.dataObject.dataTableList;
     	} else {
-    		aws.queryService(dataServiceURL, 'getDataTableList', null, function(EntityHierarchyInfoArray){
+    		runQueryService.queryRequest(dataServiceURL, 'getDataTableList', null, function(EntityHierarchyInfoArray){
     			that.dataObject.dataTableList = EntityHierarchyInfoArray;
     			scope.$safeApply(function() {
     				deferred.resolve(that.dataObject.dataTableList);
@@ -432,32 +438,32 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
         
     this.getDataMapping = function(varValues)
     {
-	        	var deferred = $q.defer();
+        	var deferred = $q.defer();
 
-	        	callback = function(result)
-	        	{
-	         		scope.$safeApply(function(){
-	                   deferred.resolve(result);
-	     			});
+        	var callback = function(result)
+        	{
+         		scope.$safeApply(function(){
+                   deferred.resolve(result);
+         		});
+        	};
 
-	         	if (Array.isArray(varValues))
-	         	{
-	         		setTimeout(function(){ callback(varValues); }, 0);
-	         		return;
-	         	}
+         	if (Array.isArray(varValues))
+         	{
+         		setTimeout(function(){ callback(varValues); }, 0);
+         		return deferred.promise;
+         	}
 
-	         	if (typeof varValues == 'string')
-	         		varValues = {"aws_id": varValues};
-	         		aws.queryService(dataServiceURL, 'getColumn', [varValues, NaN, NaN, null],
-	             		function(columnData) {
-	             			var result = [];
-	             			for (var i in columnData.keys)
-	             				result[i] = {"value": columnData.keys[i], "label": columnData.data[i]};
-	             			callback(result);
-	             		}
-	             	);
-	        };
-
+         	//if (typeof varValues == 'string')
+         	//	varValues = {"aws_id": varValues};
+         		
+         	runQueryService.queryRequest(dataServiceURL, 'getColumn', [varValues, NaN, NaN, null],
+         		function(columnData) {
+         			var result = [];
+         			for (var i in columnData.keys) 
+         				result[i] = {"value": columnData.keys[i], "label": columnData.data[i]};
+         			callback(result);
+     			}
+     		);
 	        return deferred.promise;
     };
         
@@ -470,8 +476,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
         	if(!forceUpdate) {
       			return this.dataObject.geographyMetadata;
         	} else {
-        		aws.queryService(dataServiceURL, "getEntityChildIds", [id], function(ids){
-        			aws.queryService(dataServiceURL, "getDataSet", [ids], function(result){
+        		runQueryService.queryRequest(dataServiceURL, "getEntityChildIds", [id], function(ids){
+        			runQueryService.queryRequest(dataServiceURL, "getDataSet", [ids], function(result){
         				that.dataObject.geographyMetadata = result;
         				scope.$safeApply(function() {
             				deferred.resolve(that.dataObject.geographyMetadata);
@@ -487,7 +493,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', functio
 
         	var deferred = $q.defer();
             
-        	aws.queryService(adminServiceURL, 'updateEntity', [user, password, entityId, diff], function(){
+        	runQueryService.queryRequest(adminServiceURL, 'updateEntity', [user, password, entityId, diff], function(){
                 
             	scope.$safeApply(function(){
                     deferred.resolve();

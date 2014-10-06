@@ -6,7 +6,7 @@
 		<div style="padding-bottom: 7px"></div>
 		<div ng-repeat="item in service.dataObject.byVariableItems" class="byvariable-contents">
 			
-			<select style="width: 100%" ui-select2
+			<select style="width: 100%" ui-select2="{allowClear:true}"
 			 ng-model="service.queryObject.ByVariableColumns[$index]"
 			  data-placeholder="Choose Column to Filter"
 			  ng-click="getFilterType(service.queryObject.ByVariableColumns[$index], $index)">

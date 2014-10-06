@@ -17,6 +17,7 @@
 					<h2>Manage Query Object and Projects</h2>
 				</div>
 				<div class="widget-selectors">
+
 						<select ui-select  ng-model = "projectService.data.projectSelectorUI" style="width:200px;" ng-options = "pjt as pjt for pjt in projectService.data.listOfProjectsFromDatabase" 
 						ng-change = "getListOfQueryObjects()">
 						</select>

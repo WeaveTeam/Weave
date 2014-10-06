@@ -1,37 +1,72 @@
 <div class="panel-body" ng-controller="MapCtrl">
 	<ul class="input-controls">
-	<div>
-		<p><b> MapTool Title</b></p>
-		<input style = "width : 100%" type="text" placeholder="Default" ng-model='service.queryObject.MapTool.title'>
-	</div>
-	<br>
-	<div>
-	Select Geomtery
-	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.geometryLayer" data-placeholder="Choose Layer">
-			<option></option>
-			<option value="{{gt}}"  ng-repeat="gt in service.dataObject.geometryColumns">{{gt.title}}</option>
-		</select>
-	</div>
-	<br>
-	
-	<div>
-		<input   type="checkbox"
-							 ng-model="service.queryObject.MapTool.useKeyTypeForCSV" 
-							 data-placeholder="Choose Label Column"
-							 ng-init="service.queryObject.MapTool.useKeyTypeForCSV = true"/>
-		Use KeyType for CSV Data Source
-	</div>
-	
-	
-	<br>
-	<div>
-	Select Label
-	<select style = "width : 100%" ui-select2 ng-model="service.queryObject.MapTool.labelLayer" data-placeholder="Choose Layer">
-			<option></option>
-			<option value="{{output}}" ng-repeat="output in WeaveService.columnNames"> {{output}} </option>
-		</select>
-	</div>
-	
-	
+			<table>
+			<tr>
+				<tr>	
+					<td>
+						<input  type="checkbox"
+							 	ng-model="service.queryObject.MapTool.enabled"/>
+					</td>
+				
+					<td style="padding-left: 5px;">
+						Enable
+					</td>
+				</tr>
+				<td>
+					 Title:
+				</td>
+				<td style="padding-left: 5px;">
+							<input style = "width : 100%" type="text" placeholder="Default" ng-model='service.queryObject.MapTool.title'>
+
+				</td>
+			</tr>
+			
+			<tr>
+			
+				<td>
+						Geometry Layer:
+
+				</td>
+			
+				<td style="padding-left: 5px;">
+					<select style = "width : 100%" 
+									ui-select2="{allowClear : true}" 
+									ng-model="service.queryObject.MapTool.geometryLayer" 
+									data-placeholder="Choose Layer">
+							<option></option>
+							<option value="{{gt}}"  ng-repeat="gt in service.dataObject.geometryColumns">{{gt.title}}</option>
+					</select>
+				</td>
+			</tr>
+		
+		<tr>
+			<td>
+				<input   type="checkbox"
+						 ng-model="service.queryObject.MapTool.useKeyTypeForCSV" 
+						 data-placeholder="Choose Label Column"
+						 ng-init="service.queryObject.MapTool.useKeyTypeForCSV = true"/>
+			</td>
+			
+			<td style="padding-left: 5px;">
+				Use KeyType for CSV Data Source
+			</td>
+		</tr>
+			
+		<tr>
+			<td>
+				Label Layer
+			</td>
+			
+			<td style="padding-left: 5px;">
+				<select style = "width : 100%" 
+								ui-select2="{allowClear : true}" 
+								ng-model="service.queryObject.MapTool.labelLayer" 
+								data-placeholder="Choose Layer">
+					<option></option>
+					<option value="{{output}}" ng-repeat="output in WeaveService.columnNames"> {{output}} </option>
+				</select>
+			</td>
+		</tr>	
+	</table>
 	</ul>
 </div>

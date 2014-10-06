@@ -13,7 +13,7 @@ authenticationModule.factory('authenticationService',['$rootScope', function aut
 	//make call to server to authenticate
 	 authenticationService.authenticate = function(user, password){
 
-    	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
+		 runQueryService.queryRequest(adminServiceURL, 'authenticate', [user, password], function(result){
     		console.log("authenticated", result);
     		authenticationService.authenticated = result;
           //if accepted

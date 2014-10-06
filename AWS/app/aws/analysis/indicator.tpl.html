@@ -2,7 +2,7 @@
 	<ul class="input-controls">
 		<li>
 			<div>
-				<select ui-select2 ng-model="indicSelection" data-placeholder="Choose Indicator">
+				<select ui-select2-"{allowClear : true}" ng-model="indicSelection" data-placeholder="Choose Indicator">
 					<option></option>
 					<option value="{{indic}}" ng-repeat="indic in indicOptions">{{indic.label}}</option>
 				</select>

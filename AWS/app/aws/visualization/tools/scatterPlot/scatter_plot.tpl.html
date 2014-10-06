@@ -1,26 +1,64 @@
 <div class="panel-body" ng-controller="ScatterPlotCtrl">
 	<ul class="input-controls">
 	
-	<div>
-		<p><b> ScatterPlotTool  Title</b></p>
-		<input  style = "width : 100%" type="text" placeholder="Default" ng-model='service.queryObject.ScatterPlotTool.title'>
-	</div>
 	
-	<div>
-		X Column
-		<select style = "width : 100%" ui-select2 ng-model="service.queryObject.ScatterPlotTool.X" data-placeholder="Choose X Column">
-			<option></option>
-			<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-		</select>
-	</div>
-	
-	<div>
-		Y Column
-		<select style = "width : 100%" ui-select2 ng-model="service.queryObject.ScatterPlotTool.Y" data-placeholder="Choose Y Column">
-		<option></option>
-		<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-	</select>
-	</div>
-	</ul>
+			<table>
+			<tr>
+				<tr>	
+					<td>
+						<input   type="checkbox"
+								 ng-model="service.queryObject.ScatterPlotTool.enabled"/>
+					</td>
+					
+					<td style="padding-left: 5px;">
+						Enable
+					</td>
+				</tr>
+				<td>
+					 Title:
+				</td>
+				<td style="padding-left: 5px;">
+					<input  style = "width : 100%" type="text" placeholder="Default" 
+							ng-model='service.queryObject.ScatterPlotTool.title'>
 
+				</td>
+			</tr>
+			
+			<tr>
+			
+				<td>
+						X Column:
+
+				</td>
+			
+				<td style="padding-left: 5px;">
+					<select style = "width : 100%" 
+							ui-select2="{allowClear : true}" 
+							ng-model="service.queryObject.ScatterPlotTool.X" 
+							data-placeholder="Choose X Column">
+								<option></option>
+								<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+					</select>
+				</td>
+			</tr>
+		
+		<tr>
+			<td>
+						Y Column:
+
+			</td>
+			
+			<td style="padding-left: 5px;">
+				<select style = "width : 100%" 
+						ui-select2="{allowClear : true}" 
+						ng-model="service.queryObject.ScatterPlotTool.Y" 
+						data-placeholder="Choose Y Column">
+					<option></option>
+					<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+
+	</ul>
 </div>

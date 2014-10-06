@@ -65,7 +65,8 @@
 <!-- 							<a href="#/output_view">Output</a> -->
 <!-- 							</li> -->
 
-						</ul>
+							</ul>
+						
 						
 						<!--The right navbar -->
 						<!--Disabling for the release.  This is the login and settings dropdowns
@@ -101,7 +102,20 @@
 
 						</li>
 						</ul>-->
-						<font color="white">Release Version 0.6 - 09/11/2014</font>
+						<font color="white">Release Version 0.6 - 08/15/2014</font>
+						
+						<button class="btn btn-primary" 
+								style="width: 10%; float:right; margin-top: 10px; margin-right : 75px"
+								ng-click="runService.run(true)" 
+								ng-controller="QueryHandlerCtrl">
+								 <span style="vertical-align: right">Run</span>
+						 </button>
+<!-- 						 <div ng-controller = DialogController> -->
+<!-- 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 10%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a> -->
+<!-- 						</div> -->
+<!-- 						<div style="display: table ; width : 10%; padding-top : 5px"> -->
+<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a> -->
+<!-- 						</div> -->
 						
 						<div ng-if="authenticationService.authenticated">
 							<font color="white">Signed in as: {{authenticationService.user}}</font>
@@ -112,20 +126,29 @@
 				
 			</header>
 
-			<div style="height: 80%" class = "tab-container" >
-				<div style="height: 50%" class="ngview" ng-view>
+			<div style="height: 100%" class = "tab-container" >
+				<div ng-view style="height: 100%">
 
 				</div>
 
 			</div>
 			
 			<footer>
-				<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl">
+			<!-- modal error log -->
+			<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl">
 					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-animation="am-slide-bottom"
 					 ng-click = "openErrorLog()">
 							Open Error Log
 					</button>
-				</div>
+			</div>
+			<!-- panel error log -->
+<!-- 				<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl" > -->
+<!-- 					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-animation="am-slide-bottom" -->
+<!-- 					 ng-click = "errorLogService.showErrorLog = true"> -->
+<!-- 							Open Error Log -->
+<!-- 					</button> -->
+<!-- 				</div> -->
+<!-- 				<div ng-include src="'aws/errorLog/analystErrorLog.html'"></div> -->
 				
 			</footer>
 		</div>
@@ -197,16 +220,48 @@
 		<script src='aws/project/project-query-button-directive.js'></script>
 		<script src='aws/project/projectService.js'></script>
 		<script src="aws/visualization/tools/barChart/barChartCtrl.js"></script>
+		<script src="aws/analysis/data_filters/dataFilterCtrl.js"></script>
 		<script src="aws/analysis/data_filters/geographyCtrl.js"></script>
 		<script src="aws/analysis/data_filters/timePeriodCtrl.js"></script>
 		<script src="aws/analysis/data_filters/byVariableCtrl.js"></script>
 		<script src="aws/visualization/weave/QueryHandler.js"></script>
 		<script src="aws/visualization/weave/WeaveModule.js"></script>
+		<script src="aws/visualization/tools/toolsCtrl.js"></script>
 		<script src="aws/visualization/tools/barChart/barChartCtrl.js"></script>
 		<script src="aws/visualization/tools/dataTable/dataTableCtrl.js"></script>
 		<script src="aws/visualization/tools/mapChart/mapChartCtrl.js"></script>
 		<script src="aws/visualization/tools/scatterPlot/scatterPlotCtrl.js"></script>
 		<script src="aws/visualization/tools/color/colorCtrl.js"></script>
+		
+		<script type="text/javascript" src="/swfobject.js"></script>
+        <script type="text/javascript">
+        		var loadFlashContent = function() {
+        			var swfVersionStr = "10.2.0";
+		            // To use express install, set to playerProductInstall.swf, otherwise the empty string. 
+		            var xiSwfUrlStr = "playerProductInstall.swf";
+		            var flashvars = {};
+		            var params = {};
+		            params.quality = "high";
+		            params.bgcolor = "#869ca7";
+		            params.allowscriptaccess = "sameDomain";
+		            params.allowfullscreen = "true";
+		            params.base = window.location.protocol+"//"+window.location.host;
+		            var attributes = {};
+		            attributes.id = "weave";
+		            attributes.name = "weave";
+		            attributes.align = "middle";
+		            swfobject.embedSWF(
+		                "/weave.swf", "flashContent", 
+		                "60%", "800px", 
+		                swfVersionStr, xiSwfUrlStr, 
+		                flashvars, params, attributes);
+		            // JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
+		            swfobject.createCSS("#flashContent", "display:block;text-align:left;");
+        		};
+	            $('#flashContent').ready(function() {
+	            	setTimeout(loadFlashContent, 100);
+	            });
+        </script>
 	</body>
 
 </html>

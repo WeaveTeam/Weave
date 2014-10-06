@@ -23,73 +23,45 @@ var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.sel
 AnalysisModule.service('AnalysisService', function() {
 	
 	var AnalysisService = {
-			content_tools : [{
-				id : 'Indicator',
-				title : 'Indicator',
-				template_url : 'aws/analysis/indicator/indicator.tpl.html',
-				description : 'Choose an Indicator for the Analysis',
-				category : 'indicatorfilter'
-			},
-			{
-				id : 'GeographyFilter',
-				title : 'Geography Filter',
-				template_url : 'aws/analysis/data_filters/geography.tpl.html',
-				description : 'Filter data by States and Counties',
-				category : 'datafilter'
-			},
-			{
-				id : 'TimePeriodFilter',
-				title : 'Time Period Filter',
-				template_url : 'aws/analysis/data_filters/time_period.tpl.html',
-				description : 'Filter data by Time Period',
-				category : 'datafilter'
-			},
-			{
-				id : 'ByVariableFilter',
-				title : 'By Variable Filter',
-				template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
-				description : 'Filter data by Variables',
-				category : 'datafilter'
-			}],
-			
-			tool_list : [
-			         	{
-			        		id : 'BarChartTool',
-			        		title : 'Bar Chart Tool',
-			        		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
-			        		description : 'Display Bar Chart in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-
-			        	}, {
-			        		id : 'MapTool',
-			        		title : 'Map Tool',
-			        		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
-			        		description : 'Display Map in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-			        	}, {
-			        		id : 'DataTableTool',
-			        		title : 'Data Table Tool',
-			        		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
-			        		description : 'Display a Data Table in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-			        	}, {
-			        		id : 'ScatterPlotTool',
-			        		title : 'Scatter Plot Tool',
-			        		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
-			        		description : 'Display a Scatter Plot in Weave',
-			        		category : 'visualization',
-			        		enabled : false
-			        	}]
+							content_tools :{
+												Indicator : {
+																title : 'Indicator',
+																template_url : 'aws/analysis/indicator/indicator.tpl.html',
+																description : 'Choose an Indicator for the Analysis',
+																category : 'indicatorfilter'
+															},
+															
+												GeographyFilter : {
+																		title : 'Geography Filter',
+																		template_url : 'aws/analysis/data_filters/geography.tpl.html',
+																		description : 'Filter data by States and Counties',
+																		category : 'datafilter'
+																  },
+																  
+											    TimePeriodFilter : {
+																    	title : 'Time Period Filter',
+																		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+																		description : 'Filter data by Time Period',
+																		category : 'datafilter'
+											    					},
+											    					
+						    					ByVariableFilter : {
+											    						title : 'By Variable Filter',
+											    						template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+											    						description : 'Filter data by Variables',
+											    						category : 'datafilter'
+						    										}
+										   }
 	};
 	
+
 	return AnalysisService;
 	
 });
 
 AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService, QueryHandlerService) {
+
+	setTimeout(loadFlashContent, 100);
 
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
@@ -114,35 +86,49 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		WeaveService.clearSessionState();
 	};
 	
-	$scope.$watch('queryService.queryObject.Indicator', function() {
-		if(queryService.queryObject.Indicator) {
-			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
+	$scope.$watchCollection(function() {
+		return $('#weave');
+	}, function() {
+		if($('#weave').length) {
+			WeaveService.weave = $('#weave')[0];
+		} else {
+			WeaveService.weave = null;
 		}
+	});
+	
+	$scope.$watch('queryService.queryObject.Indicator', function() {
 		
 		if(queryService.queryObject.Indicator) {
+			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
 			queryService.getEntitiesById([angular.fromJson(queryService.queryObject.Indicator).id], true).then(function (result) {
 				if(result.length) {
 					var resultMetadata = result[0];
 					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
 						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
 						if(metadata.hasOwnProperty("varValues")) {
-							$scope.varValues = metadata.varValues;
+							queryService.getDataMapping(metadata.varValues).then(function(result) {
+								$scope.varValues = result;
+							});
 						}
 					}
 				}
 			});
+		} else {
+			// delete description and table if the indicator is clear
+			$scope.IndicDescription = "";
+			$scope.varValues = [];
 		}
 	});
 	
-	$scope.$watchCollection(function() {
-		return $.map(AnalysisService.tool_list, function(tool) {
-			return tool.enabled;
-		});
-	}, function() {
-		$.map(AnalysisService.tool_list, function(tool) {
-			queryService.queryObject[tool.id].enabled = tool.enabled;
-		});
-	});
+//	$scope.$watchCollection(function() {
+//		return $.map(AnalysisService.tool_list, function(tool) {
+//			return tool.enabled;
+//		});
+//	}, function() {
+//		$.map(AnalysisService.tool_list, function(tool) {
+//			queryService.queryObject[tool.id].enabled = tool.enabled;
+//		});
+//	});
 	
 	$scope.$watch(function () {
 		return queryService.queryObject.BarChartTool.enabled;
@@ -318,4 +304,5 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 			queryService.queryObject.scriptOptions[input.param] = input.options[0];
 		}
 	};
+	
 });
