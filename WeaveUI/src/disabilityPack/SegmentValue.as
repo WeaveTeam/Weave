@@ -29,6 +29,7 @@ package disabilityPack
 	import weave.api.reportError;
 	import weave.editors.Disability;
 	import weave.services.WeaveRServlet;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.RResult;
 	
 	/** 
@@ -37,10 +38,6 @@ package disabilityPack
 	
 	public class SegmentValue
 	{
-		import weave.services.DelayedAsyncInvocation;
-		import weave.services.DelayedAsyncResponder;
-		
-		
 		public var Segment:Array; 
 		public var corr:Number;
 		public var fTests:Array;
@@ -112,7 +109,7 @@ package disabilityPack
 				return;
 			}
 			query = Rservice.runScript(null,["dataX", "dataY"], [dataX, Segment], ["segment","corr", "intercept", "slope", "grubbs"], RdecisionScript, "", false, true, false);
-			DelayedAsyncResponder.addResponder(query, handleRScript, handleRunScriptFault, null);
+			addAsyncResponder(query, handleRScript, handleRunScriptFault, null);
 		}
 		
 		public function split():void
@@ -200,10 +197,10 @@ package disabilityPack
 				}
 				
 				query = Rservice.runScript(null,["dataX1", "dataY1"], [dataX1, dataY1], ["ftest"], FdecisionScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleFtestScript, handleRunScriptFault, null);
+				addAsyncResponder(query, handleFtestScript, handleRunScriptFault, null);
 				
 				query = Rservice.runScript(null,["dataX1", "dataY1"], [dataX2, dataY2],["ftest"], FdecisionScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleFtestScript, handleRunScriptFault, null);
+				addAsyncResponder(query, handleFtestScript, handleRunScriptFault, null);
 				fDecisionCount+=2;
 			}
 			if(entered == false)

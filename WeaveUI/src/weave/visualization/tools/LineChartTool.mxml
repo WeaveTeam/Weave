@@ -41,7 +41,6 @@
 			import weave.api.setSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
-			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -120,7 +119,7 @@
 				linkSessionState(visualization.plotManager.marginRightNumber, labelPlotter.maxWidth);
 			}
 
-			public function getPlotter():ParallelCoordinatesPlotter
+			public function getPlotter():OldParallelCoordinatesPlotter
 			{
 				return _plotter;
 			}

@@ -25,8 +25,8 @@ package weave.menus
 	import mx.controls.Alert;
 	
 	import weave.Weave;
-	import weave.api.detectLinkableObjectChange;
 	import weave.editors.WeavePropertiesEditor;
+	import weave.ui.DisabilityOptions;
 	import weave.ui.DraggablePanel;
 
 	public class WindowMenu extends WeaveMenuItem

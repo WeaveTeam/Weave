@@ -27,12 +27,7 @@ package weave.visualization.tools
 	import mx.core.UIComponent;
 	
 	import weave.Weave;
-	import weave.api.copySessionState;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
-	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
@@ -48,13 +43,7 @@ package weave.visualization.tools
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.FilteredColumn;
-<<<<<<< HEAD
-	import weave.data.AttributeColumns.ReferencedColumn;
-=======
 	import weave.editors.Disability;
->>>>>>> 5578129... squashed commits from disability branch ff5f121036c8288fcff42782c7338f130caae56b
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -62,7 +51,6 @@ package weave.visualization.tools
 	import weave.ui.Paragraph;
 	import weave.ui.PenTool;
 	import weave.utils.ColumnUtils;
-	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
 	import weave.visualization.plotters.SimpleAxisPlotter;

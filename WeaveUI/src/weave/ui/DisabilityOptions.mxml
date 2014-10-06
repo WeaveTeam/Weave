@@ -25,12 +25,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author hbyrne
 -->
 
-<ControlPanel xmlns="weave.ui.*"
-			  xmlns:mx="http://www.adobe.com/2006/mxml"
-			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			  width="400" height="400" backgroundColor="#EFF4BC" horizontalScrollPolicy="off"
-			  implements="weave.api.core.ILinkableObject" sessionPanelCoordsAsPercentages="false"
-			  title="Disability Options" verticalScrollPolicy="off">
+<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+			  backgroundColor="#EFF4BC"
+			  title="Disability Options">
 	<mx:HDividedBox id="disabilityOptions" width="100%" height="100%" paddingBottom="{padding}"
 					paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}">
 		<mx:TabNavigator height="100%" borderStyle="inset">
@@ -56,32 +53,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					<mx:Script>
 						<![CDATA[
-							import flash.external.ExternalInterface;
-							import mx.accessibility.CheckBoxAccImpl;
 							import mx.controls.CheckBox;
-							import mx.controls.Menu;
-							import mx.controls.TextArea;
 							import mx.controls.TextInput;
-							import mx.core.IUIComponent;
-							
-							import mx.events.DragEvent;
 							import mx.events.FlexEvent;
-							import mx.managers.DragManager;
-							import weave.Weave;
-							import weave.api.WeaveAPI;
-							import weave.api.core.IDisposableObject;
-							import weave.api.core.ILinkableObject;
-							import weave.api.detectLinkableObjectChange;
-							import weave.api.linkBindableProperty;
-							import weave.api.newDisposableChild;
 							
-							import weave.api.newLinkableChild;
-							import weave.api.registerLinkableChild;
-							import weave.api.reportError;      
+							import weave.Weave;
+							import weave.api.linkBindableProperty;
 							import weave.core.LinkableString;
-							import weave.core.SessionManager;
-							import weave.editors.Disability;
-							import weave.ui.ControlPanel;
 							
 							
 							
@@ -94,24 +72,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							private var appendBasic:Boolean = false;
 							
-							static public var Instance : DisabilityOptions;
-							
 							private var selectedCheckBoxLabelArray : Array = [];
-							
-							override protected function constructor():void
-							{
-								super.constructor();
-								
-								panelWidth.value = "70%";
-								panelHeight.value = "70%";
-								panelX.value = "15%";
-								panelY.value = "15%";
-								
-								Instance = this;
-								
-								
-								
-							}
 							
 							override protected function childrenCreated():void
 							{
@@ -138,7 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							protected function panelRemovedEventHandler(event:Event):void
 							{  
-								var Name : String = WeaveAPI.getRegisteredImplementationDisplayName(event.currentTarget as Class) || getQualifiedClassName(event.currentTarget).split(':').pop();
+								var Name : String = WeaveAPI.ClassRegistry.getDisplayName(event.currentTarget as Class) || getQualifiedClassName(event.currentTarget).split(':').pop();
 								
 								updateCheckBoxes();      
 							}

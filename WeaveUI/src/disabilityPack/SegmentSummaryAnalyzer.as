@@ -8,11 +8,11 @@ package disabilityPack
 	import weave.api.reportError;
 	import weave.editors.Disability;
 	import weave.services.WeaveRServlet;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.RResult;
 	
 	public class SegmentSummaryAnalyzer
 	{
-		import weave.services.DelayedAsyncInvocation;
 		import weave.services.DelayedAsyncResponder;
 		
 		private var query:AsyncToken;
@@ -55,7 +55,7 @@ package disabilityPack
 			Rservice= new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
 			query = Rservice.runScript(null,["dataX1", "dataY1", "mIndex"], [sumSegments[curSumSegmentIndex].getDataValues(), mRegressionModels[curRegModelToCompare].dataValues, sumSegments[curSumSegmentIndex].getIndex()],["ftest", "index"], _RScript, "", false, false, false);
-			DelayedAsyncResponder.addResponder(query, handleRScript, handleRunScriptFault, null);
+			addAsyncResponder(query, handleRScript, handleRunScriptFault, null);
 		}
 		
 		private function handleRScript(event:ResultEvent, token:Object):void
@@ -89,7 +89,7 @@ package disabilityPack
 					{
 						//trace("gitti " + sumSegments[curSumSegmentIndex].getIndex());
 						query =  Rservice.runScript(null,["dataX1", "dataY1", "mIndex"], [sumSegments[curSumSegmentIndex].getDataValues(), mRegressionModels[curRegModelToCompare].dataValues, sumSegments[curSumSegmentIndex].getIndex()],["ftest", "index"], _RScript, "", false, false, false);
-						DelayedAsyncResponder.addResponder(query, handleRScript, handleRunScriptFault, null);
+						addAsyncResponder(query, handleRScript, handleRunScriptFault, null);
 					}
 					
 					
@@ -103,7 +103,7 @@ package disabilityPack
 					{
 						//trace("gitti " + mIndex);
 						query =  Rservice.runScript(null,["dataX1", "dataY1", "mIndex"], [sumSegments[curSumSegmentIndex].getDataValues(), mRegressionModels[curRegModelToCompare].dataValues, mIndex],["ftest", "index"], _RScript, "", false, false, false);
-						DelayedAsyncResponder.addResponder(query, handleRScript, handleRunScriptFault, null);
+						addAsyncResponder(query, handleRScript, handleRunScriptFault, null);
 					}
 					else
 					{
@@ -114,7 +114,7 @@ package disabilityPack
 						{
 						//	trace("gitti " + sumSegments[curSumSegmentIndex].getIndex());
 							query =  Rservice.runScript(null,["dataX1", "dataY1", "mIndex"], [sumSegments[curSumSegmentIndex].getDataValues(), mRegressionModels[curRegModelToCompare].dataValues, sumSegments[curSumSegmentIndex].getIndex()],["ftest", "index"], _RScript, "", false, false, false);
-							DelayedAsyncResponder.addResponder(query, handleRScript, handleRunScriptFault, null);
+							addAsyncResponder(query, handleRScript, handleRunScriptFault, null);
 						}			
 					}
 				}
@@ -127,7 +127,7 @@ package disabilityPack
 				{
 					//trace("gitti " + mIndex);
 					query =  Rservice.runScript(null,["dataX1", "dataY1", "mIndex"], [sumSegments[curSumSegmentIndex].getDataValues(), mRegressionModels[curRegModelToCompare].dataValues, mIndex],["ftest", "index"], _RScript, "", false, false, false);
-					DelayedAsyncResponder.addResponder(query, handleRScript, handleRunScriptFault, null);
+					addAsyncResponder(query, handleRScript, handleRunScriptFault, null);
 				}
 				else
 				{
@@ -138,7 +138,7 @@ package disabilityPack
 					{
 					//	trace("gitti " + sumSegments[curSumSegmentIndex].getIndex());
 						query =  Rservice.runScript(null,["dataX1", "dataY1", "mIndex"], [sumSegments[curSumSegmentIndex].getDataValues(), mRegressionModels[curRegModelToCompare].dataValues, sumSegments[curSumSegmentIndex].getIndex()],["ftest", "index"], _RScript, "", false, false, false);
-						DelayedAsyncResponder.addResponder(query, handleRScript, handleRunScriptFault, null);
+						addAsyncResponder(query, handleRScript, handleRunScriptFault, null);
 					}			
 				}
 				
