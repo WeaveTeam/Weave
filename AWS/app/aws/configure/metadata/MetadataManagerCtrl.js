@@ -32,7 +32,7 @@ metadataModule.config(function($provide){
 	
 })
 
-.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService){			
+.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService, dataServiceURL){			
 
 	var treeData = [];
 	$scope.myData = [];

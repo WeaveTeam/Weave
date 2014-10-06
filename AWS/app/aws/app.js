@@ -70,7 +70,8 @@ angular.module('aws.directives', ['aws.directives.dualListBox',
 angular.module('aws.configure', ['aws.configure.auth',
                                  'aws.configure.metadata',
                                  'aws.configure.script']);
-
+//using the value provider recipe 
+app.value("dataServiceURL", '/WeaveServices/DataService');
 
 // From Amith's UI
 app.controller('AWSController', function($scope, $route, $location, authenticationService) {
