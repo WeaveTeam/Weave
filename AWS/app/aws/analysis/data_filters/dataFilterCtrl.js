@@ -19,7 +19,7 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService){
 	
 	$scope.getFilter = function(id) {
 		console.log(id);
-		aws.queryService(dataServiceURL, "getEntitiesById", [[id]], function(entity) {
+		runQueryService.queryRequest(dataServiceURL, "getEntitiesById", [[id]], function(entity) {
 			console.log(entity[0]);
 			if(entity[0].publicMetadata.hasOwnProperty("aws_metadata")) {
 				var metadata = angular.fromJson(entity[0].publicMetadata.aws_metadata);

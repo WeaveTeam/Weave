@@ -1,4 +1,4 @@
-angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$rootScope', function($q, scope) {
+angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$rootScope','runQueryService', function($q, scope, runQueryService) {
      
 	  var scriptServiceURL = "/WeaveAnalystServices/ScriptManagementServlet";
 	  
@@ -6,7 +6,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'getScript', [scriptName], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'getScript', [scriptName], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -19,7 +19,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'deleteScript', [scriptName], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'deleteScript', [scriptName], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -32,7 +32,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'getListOfScripts', null, function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'getListOfScripts', null, function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -45,7 +45,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'getListOfRScripts', null, function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'getListOfRScripts', null, function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -58,7 +58,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'getListOfStataScripts', null, function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'getListOfStataScripts', null, function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -71,7 +71,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'getScriptMetadata', [scriptName], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'getScriptMetadata', [scriptName], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -83,7 +83,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	  this.saveScriptMetadata = function (scriptName, metadata) {
 		  
 		  var deferred = $q.defer();
-		  aws.queryService(scriptServiceURL, 'saveScriptMetadata', [scriptName, metadata], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'saveScriptMetadata', [scriptName, metadata], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -94,7 +94,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	  
 	  this.scriptExists = function (scriptName) {
 		  var deferred = $q.defer();
-		  aws.queryService(scriptServiceURL, 'scriptExists', [scriptName], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'scriptExists', [scriptName], function(result) {
 			  scope.$apply(function() {
 		            deferred.resolve(result);
 		          });
@@ -105,7 +105,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	  this.saveScriptContent = function (scriptName, content) {
 		  
 		  var deferred = $q.defer();
-		  aws.queryService(scriptServiceURL, 'saveScriptContent', [scriptName, content], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'saveScriptContent', [scriptName, content], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -115,7 +115,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	  
 	  this.renameScript = function(oldScriptName, newScriptName, content, metadata) {
 		  var deferred = $q.defer();
-		  aws.queryService(scriptServiceURL, 'renameScript', [oldScriptName, newScriptName, content, metadata], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'renameScript', [oldScriptName, newScriptName, content, metadata], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
@@ -127,7 +127,7 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 		  
 		  var deferred = $q.defer();
 		  
-		  aws.queryService(scriptServiceURL, 'uploadNewScript', [scriptName, content, metadata], function(result) {
+		  runQueryService.queryRequest(scriptServiceURL, 'uploadNewScript', [scriptName, content, metadata], function(result) {
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
