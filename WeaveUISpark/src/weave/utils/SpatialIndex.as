@@ -59,11 +59,11 @@ package weave.utils
 		private var callbacks:ICallbackCollection;
 		
 		private var _kdTree:KDTree = new KDTree(5);
-		private var _prevTriggerCounter:uint = 0; // used by iterative tasks & clear()
 		private const _keysArray:Array = []; // of IQualifiedKey
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
 		
+		private var _restarted:Boolean = false; // used by async code
 		private var _queryMissingBounds:Boolean; // used by async code
 		private var _keysArrayIndex:int; // used by async code
 		private var _keysIndex:int; // used by async code
@@ -121,24 +121,36 @@ package weave.utils
 			if (debug)
 				debugTrace(plotter,this,'createIndex');
 			
+			_plotter = plotter;
 			_queryMissingBounds = queryMissingBounds;
+			_restarted = true;
+			
+			_iterateAll(-1); // restart from first task
+			// normal priority because some things can be done without having a fully populated spatial index (?)
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, callbacks.triggerCallbacks);
+		}
+		
+		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate0, _iterate1, _iterate2);
+
+		private function _iterate0():Number
+		{
+			_restarted = false;
 			
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
 			
-			if (plotter is IPlotterWithGeometries)
+			if (_plotter is IPlotterWithGeometries)
 				_keyToGeometriesMap = new Dictionary();
 			else 
 				_keyToGeometriesMap = null;
 			
 			_keysArray.length = 0; // hack to prevent callbacks
 			clear();
-			_plotter = plotter;
-
+			
 			// make a copy of the keys vector
-			if (plotter)
-				VectorUtils.copy(plotter.filteredKeySet.keys, _keysArray);			
+			if (_plotter)
+				VectorUtils.copy(_plotter.filteredKeySet.keys, _keysArray);			
 			
 			// if auto-balance is disabled, randomize insertion order
 			if (!_kdTree.autoBalance)
@@ -150,27 +162,15 @@ package weave.utils
 			if (debug)
 				debugTrace(_plotter,this,'keys',_keysArray.length);
 			
-			// insert bounds-to-key mappings in the kdtree
-			_prevTriggerCounter = callbacks.triggerCounter; // used to detect change during iterations
-			_iterateAll(-1); // restart from first task
-			// normal priority because some things can be done without having a fully populated spatial index (?)
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, callbacks.triggerCallbacks);
+			return 1;
 		}
-		
-		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2);
 		
 		private function _iterate1(stopTime:int):Number
 		{
-			// stop if callbacks were triggered since the iterations started
-			if (callbacks.triggerCounter != _prevTriggerCounter)
-			{
-				if (debug)
-					debugTrace(_plotter,this,'trigger counter changed');
-				return 0;
-			}
-			
 			for (; _keysIndex < _keysArray.length; _keysIndex++)
 			{
+				if (_restarted)
+					return 0;
 				if (getTimer() > stopTime)
 					return _keysIndex / _keysArray.length;
 				
@@ -179,6 +179,8 @@ package weave.utils
 				if (!boundsArray)
 					_keyToBoundsMap[key] = boundsArray = [];
 				
+				// this may trigger callbacks, which would cause us to skip the new key
+				// at index 0 if we did not have _iterate0 as part of the async task
 				_plotter.getDataBoundsFromRecordKey(key, boundsArray);
 				
 				if (_keyToGeometriesMap != null)
@@ -187,7 +189,8 @@ package weave.utils
 					_keyToGeometriesMap[key] = geoms;
 				}
 			}
-			return 1;
+			
+			return _restarted ? 0 : 1;
 		}
 			
 		private function _iterate2(stopTime:int):Number
@@ -208,6 +211,8 @@ package weave.utils
 				}
 				for (; _boundsArrayIndex < _boundsArray.length; _boundsArrayIndex++) // iterate on nested array
 				{
+					if (_restarted)
+						return 0;
 					if (getTimer() > stopTime)
 						return _keysArrayIndex / _keysArray.length;
 					
@@ -224,7 +229,8 @@ package weave.utils
 				// all done with nested array
 				_boundsArray = null;
 			}
-			return 1;
+			
+			return _restarted ? 0 : 1;
 		}
 		
 		/**
