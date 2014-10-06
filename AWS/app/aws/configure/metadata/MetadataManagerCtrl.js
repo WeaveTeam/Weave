@@ -32,7 +32,7 @@ metadataModule.config(function($provide){
 	
 })
 
-.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService){			
+.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService){			
 
 	var treeData = [];
 	$scope.myData = [];
@@ -93,7 +93,7 @@ metadataModule.config(function($provide){
 												
 												var columnChildren= [];
 												//as soon as ids are returned retrieve their metadata
-												aws.queryService(dataServiceURL, 'getEntitiesById', [list], function(columnsWithMetadata){
+												runQueryService.queryRequest(dataServiceURL, 'getEntitiesById', [list], function(columnsWithMetadata){
 													for(var i=0, l=columnsWithMetadata.length; i<l; i++){
 														var singleColumn = columnsWithMetadata[i];
 								                        columnChildren.push({title: singleColumn.publicMetadata.title,
