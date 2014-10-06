@@ -12,11 +12,11 @@
 
 var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
 
-var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
+//var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
 
 var aws = {};
 
-QueryObject.service('runQueryService', ['errorLogService','$modal', function(errorLogService, $modal){
+QueryObject.service('runQueryService', ['errorLogService','$modal','projectManagementURL', function(errorLogService, $modal, projectManagementURL){
 
 	/**
 	 * This function is a wrapper for making a request to a JSON RPC servlet
@@ -150,74 +150,74 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	}
     };
 
-    /**
-     * This function wraps the async aws getListOfProjects function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.getListOfProjectsfromDatabase = function() {
-		var deferred = $q.defer();
-
-		runQueryService.queryRequest(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
-    	that.dataObject.listOfProjectsFromDatabase = result;
-    	
-    	scope.$safeApply(function() {
-            deferred.resolve(result);
-        });
-    	
-    });
-        
-        return deferred.promise;
-        
-    };
+//    /**
+//     * This function wraps the async aws getListOfProjects function into an angular defer/promise
+//     * So that the UI asynchronously wait for the data to be available...
+//     */
+//    this.getListOfProjectsfromDatabase = function() {
+//		var deferred = $q.defer();
+//
+//		runQueryService.queryRequest(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
+//    	that.dataObject.listOfProjectsFromDatabase = result;
+//    	
+//    	scope.$safeApply(function() {
+//            deferred.resolve(result);
+//        });
+//    	
+//    });
+//        
+//        return deferred.promise;
+//        
+//    };
+//    
     
-    
-    this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
-      	
-    	var deferred = $q.defer();
-    	var params = {};
-    	params.userName = userName;
-    	params.projectName = projectName;
-    	params.projectDescription = projectDescription;
-    	params.queryObjectTitle = queryObjectTitle;
-    	params.queryObjectContent = queryObjectContent;
-
-    	runQueryService.queryRequest(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
-        	console.log("insertQueryObjectStatus", result);
-        	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
-        	scope.$safeApply(function() {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
-    };
-    
-    /**
-     * This function wraps the async aws deleteproject function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.deleteProject = function(projectName) {
-          	
-    	var deferred = $q.defer();
-    	var params = {};
-    	params.projectName = projectName;
-
-    	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
-        	console.log("deleteProjectStatus", result);
-            
-        	that.dataObject.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
-        	scope.$safeApply(function() {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        return deferred.promise;
-        
-    };
-    
+//    this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
+//      	
+//    	var deferred = $q.defer();
+//    	var params = {};
+//    	params.userName = userName;
+//    	params.projectName = projectName;
+//    	params.projectDescription = projectDescription;
+//    	params.queryObjectTitle = queryObjectTitle;
+//    	params.queryObjectContent = queryObjectContent;
+//
+//    	runQueryService.queryRequest(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
+//        	console.log("insertQueryObjectStatus", result);
+//        	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
+//        	scope.$safeApply(function() {
+//                deferred.resolve(result);
+//            });
+//        	
+//        });
+//        
+//        return deferred.promise;
+//        
+//    };
+//    
+//    /**
+//     * This function wraps the async aws deleteproject function into an angular defer/promise
+//     * So that the UI asynchronously wait for the data to be available...
+//     */
+//    this.deleteProject = function(projectName) {
+//          	
+//    	var deferred = $q.defer();
+//    	var params = {};
+//    	params.projectName = projectName;
+//
+//    	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
+//        	console.log("deleteProjectStatus", result);
+//            
+//        	that.dataObject.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
+//        	scope.$safeApply(function() {
+//                deferred.resolve(result);
+//            });
+//        	
+//        });
+//        
+//        return deferred.promise;
+//        
+//    };
+//    
     
     this.getSessionState = function(params){
     	if(!(weaveWindow.closed)){
