@@ -4,7 +4,8 @@
 
 var authenticationModule = angular.module('aws.configure.auth', []);
 //experimenting with another kind of angular provider factory vs service (works!!)
-authenticationModule.factory('authenticationService',['$rootScope', 'runQueryService', function authenticationServiceFactory(scope, runQueryService){
+authenticationModule
+.factory('authenticationService',['$rootScope', 'runQueryService', 'adminServiceURL', function authenticationServiceFactory(scope, runQueryService, adminServiceURL){
 	var authenticationService = {};
 	authenticationService.user;
 	authenticationService.password;

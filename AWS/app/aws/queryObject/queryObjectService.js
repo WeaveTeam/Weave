@@ -8,7 +8,7 @@
 
 //var dataServiceURL = '/WeaveServices/DataService';
 
-var adminServiceURL = '/WeaveServices/AdminService';
+//var adminServiceURL = '/WeaveServices/AdminService';
 
 var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
 
@@ -90,8 +90,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 }]);
 
 
-QueryObject.
-service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService','dataServiceURL', function($q, scope, WeaveService, runQueryService, dataServiceURL) {
+QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService','dataServiceURL', 'adminServiceURL',
+                         function($q, scope, WeaveService, runQueryService, dataServiceURL, adminServiceURL) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);

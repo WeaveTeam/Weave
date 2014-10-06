@@ -72,6 +72,7 @@ angular.module('aws.configure', ['aws.configure.auth',
                                  'aws.configure.script']);
 //using the value provider recipe 
 app.value("dataServiceURL", '/WeaveServices/DataService');
+app.value('adminServiceURL', '/WeaveServices/AdminService');
 
 // From Amith's UI
 app.controller('AWSController', function($scope, $route, $location, authenticationService) {
