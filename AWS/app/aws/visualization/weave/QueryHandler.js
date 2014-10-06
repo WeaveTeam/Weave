@@ -30,16 +30,21 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 
 	this.waitForWeave = function(popup, callback)
 	{
-	    function checkWeaveReady() {
-	    	
-	        var weave = $('#weave');
+		function checkWeaveReady() {
+			var weave;
+			if(popup) {
+				weave = popup.document.getElementById('weave');
+			} else {
+				weave = document.getElementById('weave');
+			}
 	        if (weave && weave.WeavePath) {
 	    		weave.loadFile('minimal.xml', callback.bind(this, weave));
 	        }
 	        else
 	            setTimeout(checkWeaveReady, 50);
 	    }
-	    	checkWeaveReady();
+	    
+		checkWeaveReady();
 	};
 
 	
@@ -53,6 +58,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	var deferred = $q.defer();
     	//setTimeout(function(){this.isValidated = false;console.log("reached here",this.isValidated );}, 3000);
     	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
+    		console.log("result", result);
 //    		if(result.logs != null){
 //    			errorLogService.logInErrorLog(result.logs[0]);
 //    			$modal.open(errorLogService.errorLogModalOptions);
@@ -103,7 +109,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     			this.isValidated = true;
     			this.validationUpdate = "Your query object is validated";
     		}
-    	else
+    		else
     		{
 	    		console.log("Please select a datatable, select a script and enter ALL script parameters");
 	    		this.validationUpdate = "Your query object is not validated";
@@ -125,7 +131,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 		var queryObject = queryService.queryObject;
 		//running an initial validation
 		this.validateScriptExecution(queryObject);
-		console.log("validattion",this.isValidated );
+		console.log("validation",this.isValidated );
 		if(this.isValidated)
 		{
 			for(var key in queryObject.scriptOptions) {
@@ -154,7 +160,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 							scriptInputs[key] = input;
 						break;
 					default:
-						console.log("unknown script input type");
+						console.log("unknown script input type ", input);
 				}
 			}
 			
@@ -281,40 +287,51 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			
 
 			this.runScript(scriptName, scriptInputs, null).then(function(resultData) {
-				if(!angular.isUndefined(resultData.data))//only if something is returned open weave
+				if(queryService.dataObject.openInNewWindow) {
+					if(!angular.isUndefined(resultData.data))//only if something is returned open weave
 					{
-						WeaveService.addCSVData(resultData.data);
-						WeaveService.columnNames = resultData.data[0];
-						that.isValidated = false;
-						that.validationUpdate = "Ready for validation";
-//						if(!weaveWindow || weaveWindow.closed) {
-//							weaveWindow = $window.open("/weave.html?",
-//									"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-//						}
-//						that.waitForWeave(weaveWindow , function(weave) {
-//							//WeaveService.weave = weave;
-//							WeaveService.addCSVData(resultData.data);
-//							WeaveService.columnNames = resultData.data[0];
-//							
-//							//updates required for updating query object validation and to enable visualization widget controls
-//							//that.displayVizMenu = true;
-//							that.isValidated = false;
-//							that.validationUpdate = "Ready for validation";
-//							
-//							scope.$apply();//re-fires the digest cycle and updates the view
-//						});
+						if(!weaveWindow || weaveWindow.closed) {
+							weaveWindow = $window.open("/weave.html?",
+									"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+						}
+						that.waitForWeave(weaveWindow , function(weave) {
+							WeaveService.weave = weave;
+							WeaveService.addCSVData(resultData.data);
+							WeaveService.columnNames = resultData.data[0];
+							
+							//updates required for updating query object validation and to enable visualization widget controls
+							that.displayVizMenu = true;
+							that.isValidated = false;
+							that.validationUpdate = "Ready for validation";
+							
+							scope.$apply();//re-fires the digest cycle and updates the view
+						});
 					}
+				} else {
+					if(!angular.isUndefined(resultData.data))//only if something is returned open weave
+					{
+						that.waitForWeave(null , function(weave) {
+							WeaveService.weave = weave;
+							WeaveService.addCSVData(resultData.data);
+							WeaveService.columnNames = resultData.data[0];
+							
+							//updates required for updating query object validation and to enable visualization widget controls
+							that.isValidated = false;
+							that.validationUpdate = "Ready for validation";
+							scope.$apply();//re-fires the digest cycle and updates the view
+						});
+					}
+				}
 				
 			});
 		}
 	
 	};
-	
-	
 }]);
 
 qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService) {
 	
 	$scope.service = queryService;
 	$scope.runService = QueryHandlerService;
+	
 });

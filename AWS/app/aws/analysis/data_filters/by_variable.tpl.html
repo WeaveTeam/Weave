@@ -17,7 +17,7 @@
 			<a style="display: inline-block;" ng-click='removeByVariable($index)'>Remove</a>
 			<div  ng-if="service.dataObject.filterType[$index] == 'continuous'" style="padding-top: 5px">
 				{{ service.queryObject.ByVariableFilters[$index][0] }} - {{ service.queryObject.ByVariableFilters[$index][1] }}
-	 			<div ui-slider="service.dataObject.filterOptions[$index]" ng-model="service.queryObject.ByVariableFilters[$index]"></div>
+	 			<div ui-slider ng-model="service.queryObject.ByVariableFilters[$index]"></div>
 			</div>
 		
 			<div ng-if="service.dataObject.filterType[$index] == 'categorical'" >

@@ -117,6 +117,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				countyColumn:"{\"id\":2696,\"title\":\"X_CTYCODE\",\"columnType\":\"geography\",\"description\":\"\"}",
 				metadataTable:"{\"id\":2834,\"title\":\"US FIPS Codes\",\"numChildren\":4}"
 			},
+			openInNewWindow : false,
 			scriptOptions : {},
 			TimePeriodFilter : {},
 			ByVariableFilters : [],

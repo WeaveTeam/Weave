@@ -1,19 +1,20 @@
 <div class="panel-body" ng-controller="GeographyCtrl">
 	<ul class="input-controls">
 		
-		<div style="display: inline-block">
-			<div style="display: list-item">
-					<select style="width: 48%; float:left" ui-select2 ng-model="service.queryObject.GeographyFilter.stateColumn" data-placeholder="State Column">
-						<option></option>
-						<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'geography'}">{{col.title}}</option>
-					</select>
-			</div>
-			<div style="display: list-item; padding-top: 5px;">
-				<select style="width: 48%; float:right" ui-select2 ng-model="service.queryObject.GeographyFilter.countyColumn" data-placeholder="County Column">
+		<div>
+			<div  style="float:left; width: 48%;>
+				<select ui-select2  style="float:left; width: 48%; ng-model="service.queryObject.GeographyFilter.stateColumn" data-placeholder="State Column">
 					<option></option>
-					<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'geography' }">{{col.title}}</option>
-				</select>	
+					<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'geography'}">{{col.title}}</option>
+				</select>
 			</div>
+		<div style="float:left; width: 48%;">
+			<select ui-select2 style="float:left; width: 48%;" ng-model="service.queryObject.GeographyFilter.countyColumn" data-placeholder="County Column">
+				<option></option>
+				<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'geography' }">{{col.title}}</option>
+			</select>
+		</div>
+				
 <!-- 			<div style="display: list-item; padding-top: 5px;"> -->
 <!-- 				<select style="width: 100%" ui-select2 ng-model="service.queryObject.GeographyFilter.metadataTable" data-placeholder="Metadata Table"> -->
 <!-- 					<option></option> -->
@@ -21,7 +22,6 @@
 <!-- 				</select> -->
 <!-- 			</div> -->
 		</div>
-		
 		
 		<p style="margin-top: 5px;">
 			<a ng-click='selectAll()'>Select all</a> -
