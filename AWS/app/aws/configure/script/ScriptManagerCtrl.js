@@ -7,7 +7,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	               
 	               { title : "Stata Scripts", children : [], isFolder : true }
 	               ];
-	//needed for population options in the metadata grid
+	  //needed for population options in the metadata grid
 	  $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
 	  $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
 	  
@@ -61,7 +61,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		  	});
 		};
 		
-		
+	//data structure that populates the metadata grid
 	  $scope.scriptMetadataGridOptions = {
 			  data: 'scriptMetadata.inputs',
 			  columnDefs : [{field : "param", displayName : "Parameter"},
@@ -98,8 +98,8 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  //
 	  $scope.$watchCollection('scriptMetadata.inputs', function() {
 		    if($scope.scriptMetadata.inputs && $scope.selectedScript) {
+		    	//returns the metadata of a script if it already exists else creates a metadata data file
 				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
-					  console.log("savescriptMetadata", result);
 					  if(!result) {
 						  $scope.statusColor = "red";
 						  $scope.status = "Error saving script metadata";
@@ -153,8 +153,8 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		  // every time editScript is turnOff, we should save the changes.
 		  if(!$scope.editDesc) {
 			  $scope.EditDoneDesc = "Edit";
-				if($scope.scriptMetadata.description && $scope.selectedScript[0].Script) {
-					scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+				if($scope.scriptMetadata.description && $scope.selectedScript) {
+					scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
 						 if(!result) {
 							 $scope.statusColor = "red";
 							 $scope.status = "Error saving script metadata";
@@ -178,9 +178,10 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  };
 	  
 	  
-	  //script METADATA editing
+	  //script METADATA grid editing
 	  $scope.addNewRow = function () {
 		 $scope.scriptMetadata.inputs.push({param: '...', type: ' ', columnType : ' ', options : ' ', description : '...'});
+		 //so? do we add this object to the scriptMetadata json on the server??
 	 };
 	
 	 $scope.removeRow = function() {
@@ -225,7 +226,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		 }
 	 };
 	 
-	 //this is the modal for the modal wizard for creating and saving new scripts
+	 //this is the modal for the wizard for creating and saving new scripts
     $scope.saveNewScript = function (content, metadata) {
     	$modal.open({
 			 backdrop: false,
