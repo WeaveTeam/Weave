@@ -1,79 +1,37 @@
 <div class="panel-body">
 	
 	<ul class="input-controls" style="height:100%">
-		<div ng-show="addSecond">
-			<input type="checkbox" ng-model="nest"> Nest</input>
+		<div>
+			<input type="checkbox" ng-model="queryService.dataObject.filters[$parent.$index].addSecond"
+								   ng-change="removeSecond($parent.$index)">Second Level</input>
 		</div>
-		<div ng-show="!addSecond">
-			<input type="checkbox" ng-model="addSecond"> Add Second Level</input>
+		<select style="width: 100%" ui-select2="{allowClear:true}"
+				ng-model="queryService.queryObject.filters.or[$parent.$index].columns[0]"
+				data-placeholder="Column"
+				ng-change="updateFilterView($parent.$index)"
+				<option></option>
+				<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
+		</select>
+		<div ng-show="queryService.dataObject.filters[$parent.$index].filter1.type == 'continuous'">
+			{{ }} - {{ }}
+			<div ui-slider ng-model="service.queryObject.ByVariableFilters[$index]"></div>
 		</div>
-		<div style="height:95%" ng-show='!nest'>
-			<div style="height:40%">
-				<select style="width: 100%" ui-select2="{allowClear:true}"
-						ng-model="queryService.queryObject.filters.or[$parent.$index]"
-						data-placeholder="Column"
-						ng-click=getFilter(queryService.queryObject.filters.or[$parent.$index].id)>
-						<option></option>
-						<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
-				</select>
-				
-				<div  ng-if="filterType == 'continuous'" style="padding-top: 5px">
-					{{ service.queryObject.ByVariableFilters[$index][0] }} - {{ service.queryObject.ByVariableFilters[$index][1] }}
-		 			<div ui-slider="service.dataObject.filterOptions[$index]" ng-model="service.queryObject.ByVariableFilters[$index]"></div>
-				</div>
-			
-				<div ng-if="filterType == 'categorical'" >
-		 			<select ui-select2 multiple ng-model="service.queryObject.ByVariableFilters[$index]" data-placeholder="Choose Filter(s)" style="width:100%">
-		 				<option value="{{cat}}" ng-repeat="cat in service.dataObject.filterOptions[$index]">{{cat.label}}</option>
-		 			</select>
-				</div>
-			
-			</div>
-			
-			<div ng-if="addSecond" style="text-align: center">
-					AND
-			</div>
-			
-			<div ng-if="addSecond" style = "height:40%">
-					
-				<select style="width: 100%" ui-select2="{allowClear:true}"
-					ng-model="queryService.queryObject.filters.or[$parent.$index]"
-					data-placeholder="Column"
-					ng-click=getFilter(queryService.queryObject.filters.or[$parent.$index].id)>
-					<option></option>
-					<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
-				</select>
-				
-				<div  ng-if="filterType == 'continuous'" style="padding-top: 5px">
-					{{ service.queryObject.ByVariableFilters[$index][0] }} - {{ service.queryObject.ByVariableFilters[$index][1] }}
-	 				<div ui-slider="service.dataObject.filterOptions[$index]" ng-model="service.queryObject.ByVariableFilters[$index]"></div>
-				</div>
 		
-				<div ng-if="filterType == 'categorical'" >
-	 				<select ui-select2 multiple ng-model="service.queryObject.ByVariableFilters[$index]" data-placeholder="Choose Filter(s)" style="width:100%">
-	 					<option value="{{cat}}" ng-repeat="cat in service.dataObject.filterOptions[$index]">{{cat.label}}</option>
-	 				</select>
-				</div>
-			</div>
+		<select ng-if="queryService.dataObject.filters[$parent.$index].addSecond" style="width: 100%" ui-select2="{allowClear : true, dropdownAutoWidth : true}"
+				ng-model="queryService.queryObject.filters.or[$parent.$index].columns[1]"
+				data-placeholder="Column"
+				ng-change="updateFilterView($parent.$index)"
+				<option></option>
+				<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
+		</select>
+		<div ng-show="queryService.dataObject.filters[$parent.$index].filter2.type == 'continuous'">
+			{{ }} - {{ }}
+			<div ui-slider ng-model="service.queryObject.ByVariableFilters[$index]"></div>	
 		</div>
-		<div style="height:95%" ng-show='nest'>
-			<select style="width: 100%" ui-select2="{allowClear:true}"
-						ng-model="queryService.queryObject.filters.or[$parent.$index]"
-						data-placeholder="Column"
-						ng-click=getFilter(queryService.queryObject.filters.or[$parent.$index].id)>
-						<option></option>
-						<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
-			</select>
-			<select style="width: 100%" ui-select2="{allowClear:true}"
-					ng-model="queryService.queryObject.filters.or[$parent.$index]"
-					data-placeholder="Column"
-					ng-click=getFilter(queryService.queryObject.filters.or[$parent.$index].id)>
-					<option></option>
-					<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
-			</select>
-			
-     		<div id="tree" dynatree style="width: 100%; height: 175px; overflow: hidden"></div><!-- The actual hierarchy of tables and their columns -->
-		
-		</div>
+
+   		<div ng-show="queryService.dataObject.filters[$parent.$index].filter1.type == 'categorical' ||
+   					  queryService.dataObject.filters[$parent.$index].filter2.type == 'categorical'" 
+   					  id="tree" dynatree style="width: 100%; height: 175px; overflow: hidden">
+   		</div>
 	</ul>
 </div>

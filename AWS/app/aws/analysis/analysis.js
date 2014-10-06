@@ -51,7 +51,38 @@ AnalysisModule.service('AnalysisService', function() {
 											    						description : 'Filter data by Variables',
 											    						category : 'datafilter'
 						    										}
-										   }
+										   },
+										   tool_list : [
+											         	{
+											        		id : 'BarChartTool',
+											        		title : 'Bar Chart Tool',
+											        		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
+											        		description : 'Display Bar Chart in Weave',
+											        		category : 'visualization',
+											        		enabled : false
+
+											        	}, {
+											        		id : 'MapTool',
+											        		title : 'Map Tool',
+											        		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
+											        		description : 'Display Map in Weave',
+											        		category : 'visualization',
+											        		enabled : false
+											        	}, {
+											        		id : 'DataTableTool',
+											        		title : 'Data Table Tool',
+											        		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
+											        		description : 'Display a Data Table in Weave',
+											        		category : 'visualization',
+											        		enabled : false
+											        	}, {
+											        		id : 'ScatterPlotTool',
+											        		title : 'Scatter Plot Tool',
+											        		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+											        		description : 'Display a Scatter Plot in Weave',
+											        		category : 'visualization',
+											        		enabled : false
+											        	}]
 	};
 	
 
@@ -62,11 +93,31 @@ AnalysisModule.service('AnalysisService', function() {
 AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService, QueryHandlerService) {
 
 	setTimeout(loadFlashContent, 100);
-
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
 	$scope.WeaveService = WeaveService;
 	$scope.queryHandlerService = QueryHandlerService;
+	
+	$scope.$watch(function() {
+		return queryService.dataObject.openInNewWindow;
+	}, function() {
+		if(!queryService.dataObject.openInNewWindow) {
+			if(weaveWindow) {
+				// save the session state.
+				
+				weaveWindow.close();
+			}
+			setTimeout(loadFlashContent, 100);
+			// checkweaveready and restore session station into embedded weave.
+		} else {
+			
+			// check if there is a result data, meaning there is a current analysis
+			// if that's the case, save embedded weave session state
+			// open the weave window, checkweaveready and restore the session state.
+			
+			
+		}
+	});
 	
 	$scope.IndicDescription = "";
 	$scope.varValues = [];
