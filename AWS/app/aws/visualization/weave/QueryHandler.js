@@ -7,8 +7,8 @@ var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 var weaveWindow;
 
-qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService', '$window', '$modal',
-                                 function($q, scope, queryService, WeaveService, errorLogService, $window, $modal) {
+qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService', '$window', '$modal',
+                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService, $window, $modal) {
 	
 	//this.weaveWindow;
 	var scriptInputs = {};
@@ -52,12 +52,11 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
         
     	var deferred = $q.defer();
     	//setTimeout(function(){this.isValidated = false;console.log("reached here",this.isValidated );}, 3000);
-    	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
-    		console.log("result", errorLogService);
-    		if(result.logs != null){
-    			errorLogService.logInErrorLog(result.logs[0]);
-    			$modal.open(errorLogService.errorLogModalOptions);
-    		}
+    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
+//    		if(result.logs != null){
+//    			errorLogService.logInErrorLog(result.logs[0]);
+//    			$modal.open(errorLogService.errorLogModalOptions);
+//    		}
 
     		scope.$safeApply(function() {
 				deferred.resolve(result);
@@ -274,7 +273,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 //			} else {
 //				filters = null;
 //			}
-			
+//			
 			scriptName = queryObject.scriptSelected;
 			// var stringifiedQO = JSON.stringify(queryObject);
 			// console.log("query", stringifiedQO);
@@ -284,22 +283,26 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			this.runScript(scriptName, scriptInputs, null).then(function(resultData) {
 				if(!angular.isUndefined(resultData.data))//only if something is returned open weave
 					{
+						WeaveService.addCSVData(resultData.data);
+						WeaveService.columnNames = resultData.data[0];
+						that.isValidated = false;
+						that.validationUpdate = "Ready for validation";
 //						if(!weaveWindow || weaveWindow.closed) {
 //							weaveWindow = $window.open("/weave.html?",
 //									"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 //						}
-						that.waitForWeave(weaveWindow , function(weave) {
-							//WeaveService.weave = weave;
-							WeaveService.addCSVData(resultData.data);
-							WeaveService.columnNames = resultData.data[0];
-							
-							//updates required for updating query object validation and to enable visualization widget controls
-							//that.displayVizMenu = true;
-							that.isValidated = false;
-							that.validationUpdate = "Ready for validation";
-							
-							scope.$apply();//re-fires the digest cycle and updates the view
-						});
+//						that.waitForWeave(weaveWindow , function(weave) {
+//							//WeaveService.weave = weave;
+//							WeaveService.addCSVData(resultData.data);
+//							WeaveService.columnNames = resultData.data[0];
+//							
+//							//updates required for updating query object validation and to enable visualization widget controls
+//							//that.displayVizMenu = true;
+//							that.isValidated = false;
+//							that.validationUpdate = "Ready for validation";
+//							
+//							scope.$apply();//re-fires the digest cycle and updates the view
+//						});
 					}
 				
 			});
