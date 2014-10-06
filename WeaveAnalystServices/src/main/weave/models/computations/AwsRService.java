@@ -29,8 +29,6 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 		
 	}
 	
-	//public static ArrayList<String> logs = new ArrayList<String>();
-	
 	protected static RConnection getRConnection() throws RemoteException
 	{	
 		RConnection rConnection = null; // establishing R connection		
@@ -51,14 +49,9 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 	// and the columns, along with their filters.
 	public ScriptResult runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception, RserveException
 	{
-		ArrayList<String> logs = new ArrayList<String>();
-		//empty logs before every run 
-		//logs.clear();
-		
 		RConnection rConnection = null;
 		Object results = null;
 		ScriptResult finalResult = new ScriptResult();
-		//ArrayList<String> logs = new ArrayList<String>();
 		String [] columnNames = null;
 		try
 		{
@@ -77,12 +70,8 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 		
 			REXP evalValue = rConnection.parseAndEval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 			if (evalValue.inherits("try-error"))//handling errors when script fails
-			{
-				System.out.println("Error: " + evalValue.asString());
-				logs.add("Error in script :: " + evalValue.asString());
-				//finalResult.logs = logs.toArray(finalResult.logs);//if logs set the logs
+				throw new RemoteException(evalValue.asString());
 				
-			}
 			else//when script succeeds
 			{
 				
@@ -90,29 +79,22 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 				columnNames = new String[names.size()];
 				names.toArray(columnNames);
 				results = rexp2javaObj(evalValue);
+				results = convertToRowResults(results, columnNames);
+				finalResult.data = results;
 				// clear R Objects
 				rConnection.eval("rm(list=ls())");
 			}
 		}
 		catch (Exception e)	{
 			e.printStackTrace();
-			logs.add(e.getMessage());
-			//throw new RemoteException("Unable to run script", e);
+			throw new RemoteException("Unable to run script", e);
 			
 		}
-		
 		
 		finally{
 			
 			if (rConnection != null)
 				rConnection.close();
-			if(logs.isEmpty())//success
-				{
-					results = convertToRowResults(results, columnNames);
-					finalResult.data = results;//setting the data(actual result)
-				}
-			else
-				finalResult.logs = logs.toArray(new String[logs.size()]);
 		}
 
 		return finalResult;

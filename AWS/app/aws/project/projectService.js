@@ -2,7 +2,8 @@
  * contains all the functions required for project management 
  */
 var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
-angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'WeaveService', 'QueryHandlerService', function($q, scope, WeaveService, QueryHandlerService){
+angular.module('aws.project')
+.service('projectService', ['$q', '$rootScope', 'WeaveService', 'QueryHandlerService', 'runQueryService', function($q, scope, WeaveService, QueryHandlerService, runQueryService){
 	
 	var that = this;
 	this.data= {};
@@ -24,7 +25,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
    
     this.getListOfProjects = function() {
     	var deferred = $q.defer();
-		aws.queryService(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
+    	runQueryService.queryRequest(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
 			that.data.listOfProjectsFromDatabase = result;
         
 			scope.$safeApply(function() {
@@ -40,7 +41,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
      */
     this.getListOfQueryObjects = function(projectName) {
     	var deferred = $q.defer();
-    	aws.queryService(projectManagementURL, 'getListOfQueryObjects', [projectName], function(AWSQueryObjectCollection){
+    	runQueryService.queryRequest(projectManagementURL, 'getListOfQueryObjects', [projectName], function(AWSQueryObjectCollection){
     		that.data.returnedQueryObjects = [];
     		if(!(angular.isUndefined(AWSQueryObjectCollection)))
     			{    			
@@ -94,7 +95,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
    	 var deferred = $q.defer();
    	 queryObject = angular.toJson(queryObject);
    	 console.log("stringified queryObject", queryObject);
-   	 aws.queryService(projectManagementURL, 'getSessionState', [queryObject], function(result){
+   	 runQueryService.queryRequest(projectManagementURL, 'getSessionState', [queryObject], function(result){
     		
    		 that.data.weaveSessionState = result;
    		 
@@ -135,7 +136,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
    this.deleteProject = function(projectName) {
     console.log("currently selectec project", projectName);
    	var deferred = $q.defer();
-   	aws.queryService(projectManagementURL, 'deleteProjectFromDatabase', [projectName], function(result){
+   	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [projectName], function(result){
            
        	that.data.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
        	
@@ -165,7 +166,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
     */
    this.deleteQueryObject = function(projectName, queryObjectTitle){
 	   var deferred = $q.defer();
-		aws.queryService(projectManagementURL, 'deleteQueryObjectFromProject', [projectName, queryObjectTitle], function(result){
+	   runQueryService.queryRequest(projectManagementURL, 'deleteQueryObjectFromProject', [projectName, queryObjectTitle], function(result){
 	       	that.data.deleteQueryObjectStatus = result;
 	       	console.log("in the service",that.data.deleteQueryObjectStatus );
 	       	
@@ -197,7 +198,7 @@ angular.module('aws.project').service('projectService', ['$q', '$rootScope', 'We
  
    	var deferred = $q.defer();
 
-   	aws.queryService(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [userName,
+   	runQueryService.queryRequest(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [userName,
    	                                                                                          projectName,
    	                                                                                          projectDescription,
    	                                                                                          queryObjectTitles,

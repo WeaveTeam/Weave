@@ -7,8 +7,8 @@ var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 var weaveWindow;
 
-qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService', '$window', '$modal',
-                                 function($q, scope, queryService, WeaveService, errorLogService, $window, $modal) {
+qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService', '$window', '$modal',
+                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService, $window, $modal) {
 	
 	//this.weaveWindow;
 	var scriptInputs = {};
@@ -57,7 +57,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
         
     	var deferred = $q.defer();
     	//setTimeout(function(){this.isValidated = false;console.log("reached here",this.isValidated );}, 3000);
-    	aws.queryService(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
+    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
     		console.log("result", result);
 //    		if(result.logs != null){
 //    			errorLogService.logInErrorLog(result.logs[0]);
@@ -279,7 +279,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 //			} else {
 //				filters = null;
 //			}
-			
+//			
 			scriptName = queryObject.scriptSelected;
 			// var stringifiedQO = JSON.stringify(queryObject);
 			// console.log("query", stringifiedQO);

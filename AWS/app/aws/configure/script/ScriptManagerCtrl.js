@@ -1,12 +1,22 @@
 var scriptUploaded;
 var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
 .controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService,authenticationService) {
-
+	//needed for dynatree
+	var scripts = [
+	               { title : "R Scripts", children : [], isFolder : true },
+	               
+	               { title : "Stata Scripts", children : [], isFolder : true }
+	               ];
+	  //needed for population options in the metadata grid
+	  $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
+	  $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
+	  
+	  
 	  $scope.service = scriptManagerService;
 	  $scope.queryService = queryService;
 	  $scope.authenticationService = authenticationService;
 	  $scope.script = {};
-	  $scope.selectedScript = [];
+	  $scope.selectedScript;
 	  $scope.scriptMetadata = {
 			  inputs : [],
 			  description : ""
@@ -21,34 +31,8 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  $scope.EditDone = "Edit";
 	  $scope.EditDoneDesc = "Edit";
 	  $scope.inputsAsString = "";
-	  
-	  $scope.rScriptListOptions = {
-			  data: 'rScripts',
-			  columnDefs: [{field: 'Script', displayName: ''}],
-			  selectedItems: $scope.selectedScript,
-			  multiSelect: false,
-			  enableRowSelection: true,
-			  headerRowHeight:0,
-			  keepLastSelected : false,
-	      };
-	      
-	  $scope.stataScriptListOptions = {
-			  data: 'stataScripts',
-			  columnDefs: [{field: 'Script', displayName: ''}],
-			  selectedItems: $scope.selectedScript,
-			  multiSelect: false,
-			  enableRowSelection: true,
-			  headerRowHeight:0,
-			  keepLastSelected : false,
-	  };
-	  
-	  var scripts = [
-	 				{ title : "R Scripts", children : [], isFolder : true },
-	 			
-	 				{ title : "Stata Scripts", children : [], isFolder : true }
-	 			];
-	  
-	    //generated when the dynatree directive loads
+
+	  //creates the tree for scripts 
 		$scope.generateTree = function(element) {
 			
 			scriptManagerService.getListOfRScripts().then(function(rScripts) {
@@ -67,7 +51,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 							onActivate: function(node) {
 								//handle when node is a column
 								if(!node.data.isFolder) {
-									$scope.selectedScript = [{Script : node.data.title}];
+									$scope.selectedScript = node.data.title;
 									$scope.$apply();
 								}
 							},
@@ -76,6 +60,8 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 			  });
 		  	});
 		};
+		
+	//data structure that populates the metadata grid
 	  $scope.scriptMetadataGridOptions = {
 			  data: 'scriptMetadata.inputs',
 			  columnDefs : [{field : "param", displayName : "Parameter"},
@@ -92,49 +78,62 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 			  selectedItems : $scope.selectedRow,
 			  enableSorting : false,
 	  };
-	  
-	  $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
-	  $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
-	  
-	  
-	  var refreshScripts = function () {
-	 	 //refreshing the hierarchy
-  		scriptManagerService.getListOfRScripts().then(function(rScripts) {
-		  scriptManagerService.getListOfStataScripts().then(function(stataScripts){
-			  scripts[0].children = rScripts;
-			  scripts[1].children = stataScripts;
-			  $("#tree").dynatree("getTree").reload();
-		  });
-  		});
-	  	
-	  };
-	  
-	  $scope.refreshScripts  = refreshScripts;
-	  
-	  refreshScripts();
-	  
+	 
+//********************************************************************Watches*******************************************************
+	  //when a script is selected
 	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
-		  
-		  if(newVal.length && newVal[0].Script) {
-			  scriptManagerService.getScriptMetadata(newVal[0].Script).then(function(result) {
+		  if(newVal) {
+			  //retrieve its metadata
+			  scriptManagerService.getScriptMetadata(newVal).then(function(result) {
 				  $scope.scriptMetadata.description = result.description;
 				  $scope.scriptMetadata.inputs = result.inputs;
+				  console.log("script metadata inputs", $scope.scriptMetadata.inputs);
 			  });
-			  
-			  scriptManagerService.getScript(newVal[0].Script).then(function(result) {
+			  //get the actual content of the script
+			  scriptManagerService.getScript(newVal).then(function(result) {
 				  $scope.script.content = result;
 			  });
 		  }
       });
+	  //
+	  $scope.$watchCollection('scriptMetadata.inputs', function() {
+		    if($scope.scriptMetadata.inputs && $scope.selectedScript) {
+		    	//returns the metadata of a script if it already exists else creates a metadata data file
+				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+					  if(!result) {
+						  $scope.statusColor = "red";
+						  $scope.status = "Error saving script metadata";
+					  }
+				  });
+			  }
+      });
 	  
+	  /*** two way binding ***/
+//	  $scope.$watch('inputsAsString', function() {
+//		  if($scope.inputsAsString) {
+//			  $scope.scriptMetadata.inputs = angular.fromJson($scope.inputsAsString); 
+//		  }
+//	  });
+//	  $scope.$watch('scriptMetadata.inputs', function () {
+//		  if($scope.scriptMetadata.inputs) {
+//			  $scope.inputsAsString = angular.toJson($scope.scriptMetadata.inputs, true); 
+//		  }
+//	  }, true);
+	  /***********************/
+	  
+//***********************************************************************************************************************************
+	  
+	  
+	  /***TEXT EDITING functions*******/
+	  //this function permits a user to edit a script on the server 
 	  $scope.toggleEdit = function() {
 		$scope.editScript = !$scope.editScript;
 		
 		// every time editScript is turnOff, we should save the changes.
 		if(!$scope.editScript) {
 			$scope.EditDone = "Edit";
-			if($scope.script.content && $scope.selectedScript[0].Script) {
-				scriptManagerService.saveScriptContent($scope.selectedScript[0].Script,  $scope.script.content).then(function (result) {
+			if($scope.script.content && $scope.selectedScript) {
+				scriptManagerService.saveScriptContent($scope.selectedScript,  $scope.script.content).then(function (result) {
 					if(result) {
 						console.log("script modified successfully");
 					} else {
@@ -147,15 +146,15 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 			$scope.EditDone = "Done";
 		}
 	  };
-	  
+	  //this function permits a user to edit script description on the server
 	  $scope.toggleEditDesc = function() {
 		  $scope.editDesc = !$scope.editDesc;
 		  
 		  // every time editScript is turnOff, we should save the changes.
 		  if(!$scope.editDesc) {
 			  $scope.EditDoneDesc = "Edit";
-				if($scope.scriptMetadata.description && $scope.selectedScript[0].Script) {
-					scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+				if($scope.scriptMetadata.description && $scope.selectedScript) {
+					scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
 						 if(!result) {
 							 $scope.statusColor = "red";
 							 $scope.status = "Error saving script metadata";
@@ -167,18 +166,6 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	  		}
 	  };
 	  
-	  $scope.$watchCollection('scriptMetadata.inputs', function() {
-		  if($scope.selectedScript.length) {
-			  if($scope.scriptMetadata.inputs && $scope.selectedScript[0].Script) {
-				  scriptManagerService.saveScriptMetadata($scope.selectedScript[0].Script, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
-					  if(!result) {
-						  $scope.statusColor = "red";
-						  $scope.status = "Error saving script metadata";
-					  }
-				  });
-			  }
-		  }
-      });
 	  
 	  $scope.toggleJsonView = function() {
 		  $scope.viewasjson = !$scope.viewasjson;
@@ -190,21 +177,11 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		  }
 	  };
 	  
-	  /*** two way binding ***/
-	  $scope.$watch('inputsAsString', function() {
-		  if($scope.inputsAsString) {
-			  $scope.scriptMetadata.inputs = angular.fromJson($scope.inputsAsString); 
-		  }
-	  });
-	  $scope.$watch('scriptMetadata.inputs', function () {
-		  if($scope.scriptMetadata.inputs) {
-			  $scope.inputsAsString = angular.toJson($scope.scriptMetadata.inputs, true); 
-		  }
-	  }, true);
-	  /***********************/
 	  
+	  //script METADATA grid editing
 	  $scope.addNewRow = function () {
 		 $scope.scriptMetadata.inputs.push({param: '...', type: ' ', columnType : ' ', options : ' ', description : '...'});
+		 //so? do we add this object to the scriptMetadata json on the server??
 	 };
 	
 	 $scope.removeRow = function() {
@@ -217,22 +194,39 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		 }
 	 };
 	 
+	 
+	 
+	//refreshing scripts
+	  $scope.refreshScripts = function () {
+	 	 //refreshing the hierarchy
+ 		scriptManagerService.getListOfRScripts().then(function(rScripts) {
+		  scriptManagerService.getListOfStataScripts().then(function(stataScripts){
+			  scripts[0].children = rScripts;
+			  scripts[1].children = stataScripts;
+			  $("#tree").dynatree("getTree").reload();
+		  });
+ 		});
+	  	
+	  };
+	  
+	 //deleting scripts on the server
 	 $scope.deteleScript = function () {
-		 if($scope.selectedScript.length) {
-			 if($scope.selectedScript[0].Script) {
-				 scriptManagerService.deleteScript($scope.selectedScript[0].Script).then(function(status) {
+		 if($scope.selectedScript) {
+			 if($scope.selectedScript) {
+				 scriptManagerService.deleteScript($scope.selectedScript).then(function(status) {
 					 if(status) {
 						 console.log("script deleted successfully");
-						 $scope.selectedScript[0].Script = "";
+						 $scope.selectedScript = "";
 						 $scope.script.content = "";
 						 $scope.scriptMetadata = {};
-						 refreshScripts();
+						 $scope.refreshScripts();
 					 }
 				 });
 			 }
 		 }
 	 };
 	 
+	 //this is the modal for the wizard for creating and saving new scripts
     $scope.saveNewScript = function (content, metadata) {
     	$modal.open({
 			 backdrop: false,
@@ -243,6 +237,9 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	         controller: 'AddScriptDialogInstanceCtrl',
 		});
     };
+   
+    
+    //this controller deals with the scripting wizard
 }).controller('AddScriptDialogInstanceCtrl', function ($rootScope, $scope, $modalInstance, scriptManagerService) {
 	  
 	 $scope.fileName = "";

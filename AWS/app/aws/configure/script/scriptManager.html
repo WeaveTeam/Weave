@@ -20,12 +20,12 @@
 <!-- 				 </tabset> -->
 				<div>
 					<button class="file-nput-btn" style="float:left; width:33%" ng-click="refreshScripts()">Refresh</button>
-					<button class="file-nput-btn" style="float:left; width:33%" ng-click="deteleScript()">Delete Script</button>
+					<button class="file-nput-btn" style="float:left; width:33%" ng-click="deleteScript()">Delete Script</button>
 					<button class="file-nput-btn" style="float:left; width:30%" ng-click="saveNewScript()">New...</button>
 				</div>
 			</div>
 			
-			<div class="col-md-9" contenteditable="false" ng-if="selectedScript.length">
+			<div class="col-md-9" contenteditable="false" ng-if="selectedScript">
 				<div class="well">
 					<table style="display:block">
 						<font color="{{statusColor}}">{{status}}</font>
@@ -34,7 +34,7 @@
 								<b>Script:</b>
 							</td>
 							<td width="100%">
-								<input type="text" ng-model='selectedScript[0].Script' disabled style="width:100%"/>
+								<input type="text" ng-model='selectedScript' disabled style="width:100%"/>
 							</td>
 						</tr>
 						<tr>
@@ -44,7 +44,7 @@
 							<br><br>
 							<td width="100%">
 								<div class="well">
-									 <input type="button" value="{{EditDoneDesc}}" ng-click="toggleEditDesc()" style="float:right;">
+									 <input type="button" value="{{EditDoneDesc}}" ng-click="toggleEditDesc()" style="float:right;"><!-- TODO replace EditDoneDesc with ng-class -->
 									<pre ng-show="!editDesc" style="width: 100%; height:100px; resize:none; overflow: scroll">{{scriptMetadata.description}}</pre>
 									<textarea ng-show="editDesc" ng-model="scriptMetadata.description"
 																		style="width: 100%; 
@@ -103,4 +103,5 @@
 				</div>
 		</div>
 	</div>
+</div>
 </div>
