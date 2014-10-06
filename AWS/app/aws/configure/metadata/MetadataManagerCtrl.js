@@ -32,7 +32,7 @@ metadataModule.config(function($provide){
 	
 })
 
-.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService){			
+.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService, metadataManagerService){			
 
 	var treeData = [];
 	$scope.myData = [];
@@ -43,6 +43,9 @@ metadataModule.config(function($provide){
     
     $scope.queryService = queryService;
     $scope.authenticationService = authenticationService;
+    
+    //calculate and display vital statistics of all numerical columns
+    metadataManagerService.calculateStatistics();
     
     //generated when the dynatree directive loads
 	$scope.generateTree = function(element) {
@@ -277,15 +280,7 @@ metadataModule.config(function($provide){
 		var node = $("#tree").dynatree("getRoot");
 	    node.sortChildren(cmp, true);
 	};
-    
-	
-	//functions for column statistics and distributions
-	$scope.calculateStatistics = function(){
-		//pick all numerical columns
-		//create a matrix
-		//run script
-		//display in grid
-	};
+  
 })
 
 /*
