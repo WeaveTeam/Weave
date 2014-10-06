@@ -1,0 +1,916 @@
+<Weave encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn2">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn3">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource3</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn4">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource3</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn5">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource4</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn6">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource4</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn7">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource5</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn8">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource5</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Obese 1984" csvColumn="Percent Obese 1984"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn9">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource6</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn10">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource6</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Disability 2012" csvColumn="Percent Disability 2012"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn11">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource7</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn12">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource7</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Disability 2012" csvColumn="Percent Disability 2012"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
+  <WeaveProperties name="WeaveProperties">
+    <backgroundColor>13421772</backgroundColor>
+    <collabServerIP>demo.oicweave.org</collabServerIP>
+    <collabServerName>ivpr-vm</collabServerName>
+    <collabServerPort>5222</collabServerPort>
+    <collabServerRoom/>
+    <collabSpectating>false</collabSpectating>
+    <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+    <dashboardMode>false</dashboardMode>
+    <dashedSelectionBox>5,5</dashedSelectionBox>
+    <dataInfoURL/>
+    <debugScreenBounds>false</debugScreenBounds>
+    <defaultTextFormat>
+      <bold>false</bold>
+      <color>0</color>
+      <font>Sophia Nubian</font>
+      <italic>false</italic>
+      <size>11</size>
+      <underline>false</underline>
+    </defaultTextFormat>
+    <disabilityAltText>An empty instance of Weave.</disabilityAltText>
+    <disabilityHashMap encoding="dynamic">
+      <LinkableString name="Line Chart of Country, %Communist"/>
+      <LinkableString name="Scatter Plot of US State FIPS Code -vs- Percent Obese (BMI >= 30) (2010)"/>
+      <LinkableString name="Scatter Plot of Percent Obese (BMI >= 30) (2010) -vs- Percent Obese (BMI >= 30) (1995)"/>
+      <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2000), Percent Obese (BMI >= 30) (2005)"/>
+      <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2010)"/>
+      <LinkableString name="Line Chart of Percent Obese 1995, Percent Obese 2000, Percent Obese 2005, Percent Obese 2010"/>
+      <LinkableString name="Line Chart of Percent Obese 2000, Percent Obese 2005, Percent Obese 2010"/>
+      <LinkableString name="Line Chart of Percent Obese 1995, Percent Obese 1996, Percent Obese 1997, Percent Obese 1998, Percent Obese 1999, Percent Obese 2000, Percent Obese 2001, Percent Obese 2002, Percent Obese 2003, Percent Obese 2004, Percent Obese 2005, Percent Obese 2006, Percent Obese 2007"/>
+      <LinkableString name="Line Chart of Percent Obese 1984, Percent Obese 1985, Percent Obese 1986, Percent Obese 1987, Percent Obese 1988, Percent Obese 1989, Percent Obese 1990, Percent Obese 1991, Percent Obese 1992, Percent Obese 1993, Percent Obese 1994, Percent Obese 1995, Percent Obese 1996, Percent Obese 1997, Percent Obese 1998, Percent Obese 1999, Percent Obese 2000, Percent Obese 2001, Percent Obese 2002, Percent Obese 2003, Percent Obese 2004, Percent Obese 2005, Percent Obese 2006, Percent Obese 2007, Percent Obese 2008, Percent Obese 2009, Percent Obese 2010, Percent Obese 2011, Percent Obese 2012, Percent Obese 2013"/>
+      <LinkableString name="Line Chart of Percent Disability 2010, Percent Disability 2011, Percent Disability 2012"/>
+    </disabilityHashMap>
+    <disabilityLongAltText/>
+    <disabilitySystemText>This image is a line chart. The line chart displays 2 data points and shows 1 major trends. The first segment is a stable trend21.3 to 21.3. This segment begins at Percent Disability 2010 and ends at Percent Disability 2011. Overall, from the first point to the last point, the y axis value on this line chart rises  from 21.3 to 21.3.</disabilitySystemText>
+    <enableAboutMenu>true</enableAboutMenu>
+    <enableAddDataSource>true</enableAddDataSource>
+    <enableAddNewDatasource>true</enableAddNewDatasource>
+    <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+    <enableAnnotation>true</enableAnnotation>
+    <enableAxisToolTips>true</enableAxisToolTips>
+    <enableBitmapFilters>true</enableBitmapFilters>
+    <enableBrowseData>true</enableBrowseData>
+    <enableCascadeAllWindows>true</enableCascadeAllWindows>
+    <enableClearCurrentSelection>true</enableClearCurrentSelection>
+    <enableCloseAllWindows>true</enableCloseAllWindows>
+    <enableCollaborationBar>false</enableCollaborationBar>
+    <enableCreateSubsets>true</enableCreateSubsets>
+    <enableDataMenu>true</enableDataMenu>
+    <enableDrawCircle>true</enableDrawCircle>
+    <enableDynamicTools>true</enableDynamicTools>
+    <enableEditDataSource>true</enableEditDataSource>
+    <enableEditDatasources>true</enableEditDatasources>
+    <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+    <enableExportCSV>true</enableExportCSV>
+    <enableExportToolImage>true</enableExportToolImage>
+    <enableFullScreen>false</enableFullScreen>
+    <enableGeometryProbing>true</enableGeometryProbing>
+    <enableLoadMyData>true</enableLoadMyData>
+    <enableManageSavedSelections>true</enableManageSavedSelections>
+    <enableManageSavedSubsets>true</enableManageSavedSubsets>
+    <enableMarker>true</enableMarker>
+    <enableMenuBar>true</enableMenuBar>
+    <enableMinimizeAllWindows>true</enableMinimizeAllWindows>
+    <enableMouseWheel>true</enableMouseWheel>
+    <enableNewDataset>true</enableNewDataset>
+    <enableNewUserWizard>true</enableNewUserWizard>
+    <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
+    <enablePenTool>true</enablePenTool>
+    <enableProbeAnimation>true</enableProbeAnimation>
+    <enableProbeLines>true</enableProbeLines>
+    <enableProbeToolTip>true</enableProbeToolTip>
+    <enableRefreshHierarchies>true</enableRefreshHierarchies>
+    <enableRemoveSubsets>true</enableRemoveSubsets>
+    <enableRestoreAllMinimizedWindows>true</enableRestoreAllMinimizedWindows>
+    <enableRightClick>true</enableRightClick>
+    <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
+    <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
+    <enableSearchForRecord>true</enableSearchForRecord>
+    <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
+    <enableSelectionsMenu>true</enableSelectionsMenu>
+    <enableSessionMenu>true</enableSessionMenu>
+    <enableShowAllRecords>true</enableShowAllRecords>
+    <enableSubsetControls>true</enableSubsetControls>
+    <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
+    <enableSubsetsMenu>true</enableSubsetsMenu>
+    <enableTileAllWindows>true</enableTileAllWindows>
+    <enableToolAttributeEditing>true</enableToolAttributeEditing>
+    <enableToolControls>true</enableToolControls>
+    <enableToolProbe>true</enableToolProbe>
+    <enableToolSelection>true</enableToolSelection>
+    <enableUserPreferences>true</enableUserPreferences>
+    <enableWindowMenu>true</enableWindowMenu>
+    <eventListeners encoding="dynamic"/>
+    <geometryMetadataRequestMode>xyz</geometryMetadataRequestMode>
+    <geometryMinimumScreenArea>1</geometryMinimumScreenArea>
+    <macroLibraries>weave.api::WeaveAPI</macroLibraries>
+    <macros encoding="dynamic"/>
+    <maxComputationTimePerFrame>100</maxComputationTimePerFrame>
+    <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
+    <pageTitle>Open Indicators Weave</pageTitle>
+    <panelTitleTextFormat>
+      <bold>false</bold>
+      <color>16777215</color>
+      <font>Verdana</font>
+      <italic>false</italic>
+      <size>10</size>
+      <underline>false</underline>
+    </panelTitleTextFormat>
+    <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
+    <probeInnerGlow>
+      <alpha>1</alpha>
+      <blurX>5</blurX>
+      <blurY>5</blurY>
+      <color>16777215</color>
+      <strength>10</strength>
+    </probeInnerGlow>
+    <probeLineFormatter>str = replace(lpad(string, 8, "\t"), "\t", "  ");
+str + " (" + title + ")"</probeLineFormatter>
+    <probeOuterGlow>
+      <alpha>1</alpha>
+      <blurX>3</blurX>
+      <blurY>3</blurY>
+      <color>0</color>
+      <strength>3</strength>
+    </probeOuterGlow>
+    <probeToolTipBackgroundAlpha>1</probeToolTipBackgroundAlpha>
+    <probeToolTipBackgroundColor>NaN</probeToolTipBackgroundColor>
+    <probeToolTipFontColor>0</probeToolTipFontColor>
+    <probeToolTipMaxWidth>400</probeToolTipMaxWidth>
+    <recordsTooltipLocation>Lower left</recordsTooltipLocation>
+    <rServiceURL>/WeaveServices/RService</rServiceURL>
+    <searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
+Google|http://www.google.com/search?q=
+Google Images|http://images.google.com/images?q=
+Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
+    <SecondaryKeyNumColumn_useGlobalMinMaxValues>true</SecondaryKeyNumColumn_useGlobalMinMaxValues>
+    <selectionAlphaAmount>0.5</selectionAlphaAmount>
+    <selectionBlurringAmount>4</selectionBlurringAmount>
+    <selectionDropShadow>
+      <alpha>0.5</alpha>
+      <angle>45</angle>
+      <blurX>4</blurX>
+      <blurY>4</blurY>
+      <color>0</color>
+      <distance>2</distance>
+      <strength>1</strength>
+    </selectionDropShadow>
+    <selectionMode>rectangle</selectionMode>
+    <showAddAllButton>true</showAddAllButton>
+    <showCollaborationEditor>false</showCollaborationEditor>
+    <showCollaborationMenuItem>true</showCollaborationMenuItem>
+    <showColorController>true</showColorController>
+    <showCopyright>true</showCopyright>
+    <showDisabilityOptions>true</showDisabilityOptions>
+    <showEquationEditor>true</showEquationEditor>
+    <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+    <showProbeToolTipEditor>true</showProbeToolTipEditor>
+    <showProbeWindow>true</showProbeWindow>
+    <showRevertButton>true</showRevertButton>
+    <showSelectedRecordsText>true</showSelectedRecordsText>
+    <showSessionHistoryControls>true</showSessionHistoryControls>
+    <showVisToolCloseDialog>false</showVisToolCloseDialog>
+    <startupJavaScript/>
+    <toolInteractions>
+      <pan>alt,drag</pan>
+      <probe>move</probe>
+      <select>drag</select>
+      <selectAdd>ctrl,drag</selectAdd>
+      <selectAll>ctrl,dclick</selectAll>
+      <selectRemove>ctrl,shift,drag</selectRemove>
+      <zoom>shift,drag
+wheel</zoom>
+      <zoomIn>dclick</zoomIn>
+      <zoomOut>shift,dclick</zoomOut>
+      <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
+    </toolInteractions>
+    <toolToggles encoding="dynamic">
+      <LinkableBoolean name="RamachandranPlotTool">false</LinkableBoolean>
+      <LinkableBoolean name="Histogram2DTool">true</LinkableBoolean>
+      <LinkableBoolean name="AttributeMenuTool">true</LinkableBoolean>
+      <LinkableBoolean name="CompoundBarChartTool">true</LinkableBoolean>
+      <LinkableBoolean name="ColorBinLegendTool">true</LinkableBoolean>
+      <LinkableBoolean name="ColormapHistogramTool">true</LinkableBoolean>
+      <LinkableBoolean name="CompoundRadVizTool">true</LinkableBoolean>
+      <LinkableBoolean name="CustomTool">true</LinkableBoolean>
+      <LinkableBoolean name="DataTableTool">true</LinkableBoolean>
+      <LinkableBoolean name="DimensionSliderTool">true</LinkableBoolean>
+      <LinkableBoolean name="GaugeTool">true</LinkableBoolean>
+      <LinkableBoolean name="GraphTool">true</LinkableBoolean>
+      <LinkableBoolean name="HistogramTool">true</LinkableBoolean>
+      <LinkableBoolean name="LineChartTool">true</LinkableBoolean>
+      <LinkableBoolean name="MapTool">true</LinkableBoolean>
+      <LinkableBoolean name="PieChartTool">true</LinkableBoolean>
+      <LinkableBoolean name="PieChartHistogramTool">true</LinkableBoolean>
+      <LinkableBoolean name="RTextEditor">true</LinkableBoolean>
+      <LinkableBoolean name="RadVizTool">true</LinkableBoolean>
+      <LinkableBoolean name="ScatterPlotTool">true</LinkableBoolean>
+      <LinkableBoolean name="ThermometerTool">true</LinkableBoolean>
+      <LinkableBoolean name="TimeSliderTool">true</LinkableBoolean>
+      <LinkableBoolean name="DataStatisticsTool">true</LinkableBoolean>
+      <LinkableBoolean name="SchafersMissingDataTool">true</LinkableBoolean>
+    </toolToggles>
+    <version>1.0 Beta (DEV)</version>
+    <windowSnapGridSize>1%</windowSnapGridSize>
+    <workspaceHeight>NaN</workspaceHeight>
+    <workspaceMultiplier>1</workspaceMultiplier>
+    <workspaceWidth>NaN</workspaceWidth>
+  </WeaveProperties>
+  <ColorColumn name="defaultColorColumn">
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorBinColumn"/>
+    </internalDynamicColumn>
+    <ramp>0x0000ff,0x00ff00,0xff0000</ramp>
+    <recordColors/>
+  </ColorColumn>
+  <BinnedColumn name="defaultColorBinColumn">
+    <binningDefinition encoding="dynamic">
+      <SimpleBinningDefinition>
+        <numberOfBins>10</numberOfBins>
+        <overrideBinNames/>
+      </SimpleBinningDefinition>
+    </binningDefinition>
+    <internalDynamicColumn encoding="dynamic">
+      <GlobalObjectReference name="defaultColorDataColumn"/>
+    </internalDynamicColumn>
+  </BinnedColumn>
+  <FilteredColumn name="defaultColorDataColumn">
+    <filter encoding="dynamic">
+      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+    </filter>
+    <internalDynamicColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>CSVDataSource7</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </internalDynamicColumn>
+  </FilteredColumn>
+  <KeyFilter name="defaultSubsetKeyFilter">
+    <excluded/>
+    <included encoding="csv">CSVDataSource2,28</included>
+    <includeMissingKeys>false</includeMissingKeys>
+    <includeMissingKeyTypes>true</includeMissingKeyTypes>
+  </KeyFilter>
+  <KeySet encoding="dynamic" name="defaultSelectionKeySet"/>
+  <KeySet encoding="dynamic" name="defaultProbeKeySet"/>
+  <KeySet name="alwaysHighlightKeySet"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
+  <CSVDataSource name="CSVDataSource2">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource2" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource2" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource2" csvColumn="Percent Obese (BMI >= 30) (1995)" title="Percent Obese (BMI >= 30) (1995)"/>
+        <attribute keyType="CSVDataSource2" csvColumn="Percent Obese (BMI >= 30) (2010)" title="Percent Obese (BMI >= 30) (2010)"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Obese (BMI &gt;= 30) (1995),Percent Obese (BMI &gt;= 30) (2010)
+28,Mississippi,19.5,34.5</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource2</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 2010" title="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Obese 2010,Percent Obese 2005,Percent Obese 2000,Percent Obese 1995
+10,Delaware,28.7,23.5,16.6,17.1</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource3">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource3" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource3" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 2010" title="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Obese 2010,Percent Obese 2005,Percent Obese 2000,Percent Obese 1995
+10,Delaware,28.7,23.5,16.6,17.1</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource3</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource4">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource4" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource4" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2006" title="Percent Obese 2006"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2004" title="Percent Obese 2004"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2003" title="Percent Obese 2003"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2002" title="Percent Obese 2002"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2001" title="Percent Obese 2001"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1999" title="Percent Obese 1999"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1998" title="Percent Obese 1998"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1997" title="Percent Obese 1997"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1996" title="Percent Obese 1996"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Obese 2007,Percent Obese 2006,Percent Obese 2005,Percent Obese 2004,Percent Obese 2003,Percent Obese 2002,Percent Obese 2001,Percent Obese 2000,Percent Obese 1999,Percent Obese 1998,Percent Obese 1997,Percent Obese 1996,Percent Obese 1995
+10,Delaware,28.2,26,23.5,21.1,24,22.4,20.8,16.6,17.5,17.2,18.8,17.7,17.1</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource4</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource5">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource5" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource5" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2013" title="Percent Obese 2013"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2012" title="Percent Obese 2012"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2011" title="Percent Obese 2011"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2010" title="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2009" title="Percent Obese 2009"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2008" title="Percent Obese 2008"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2006" title="Percent Obese 2006"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2004" title="Percent Obese 2004"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2003" title="Percent Obese 2003"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2002" title="Percent Obese 2002"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2001" title="Percent Obese 2001"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1999" title="Percent Obese 1999"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1998" title="Percent Obese 1998"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1997" title="Percent Obese 1997"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1996" title="Percent Obese 1996"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1994" title="Percent Obese 1994"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1993" title="Percent Obese 1993"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1992" title="Percent Obese 1992"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1991" title="Percent Obese 1991"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1990" title="Percent Obese 1990"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1989" title="Percent Obese 1989"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1988" title="Percent Obese 1988"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1987" title="Percent Obese 1987"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1986" title="Percent Obese 1986"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1985" title="Percent Obese 1985"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1984" title="Percent Obese 1984"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Obese 2013,Percent Obese 2012,Percent Obese 2011,Percent Obese 2010,Percent Obese 2009,Percent Obese 2008,Percent Obese 2007,Percent Obese 2006,Percent Obese 2005,Percent Obese 2004,Percent Obese 2003,Percent Obese 2002,Percent Obese 2001,Percent Obese 2000,Percent Obese 1999,Percent Obese 1998,Percent Obese 1997,Percent Obese 1996,Percent Obese 1995,Percent Obese 1994,Percent Obese 1993,Percent Obese 1992,Percent Obese 1991,Percent Obese 1990,Percent Obese 1989,Percent Obese 1988,Percent Obese 1987,Percent Obese 1986,Percent Obese 1985,Percent Obese 1984
+10,Delaware,15,17,20,25,32,30,28.2,26,23.5,21.1,24,22.4,20.8,16.6,17.5,17.2,18.8,17.7,17.1,15,14,30,28,26,25,24,23,27,26,28</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource5</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource6">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource6" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource6" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource6" csvColumn="Percent Disability 2010" title="Percent Disability 2010"/>
+        <attribute keyType="CSVDataSource6" csvColumn="Percent Disability 2011" title="Percent Disability 2011"/>
+        <attribute keyType="CSVDataSource6" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Disability 2010,Percent Disability 2011,Percent Disability 2012
+1,Alabama,25.9,23.6,23.6
+2,Alaska,20.2,21.6,21.6
+4,Arizona,22.1,21.1,21.1
+5,Arkansas,24.7,23.2,23.2
+6,California,18.1,24.7,24.7
+8,Colorado,20.6,23.1,23.1
+9,Connecticut,16.6,27.3,27.3
+10,Delaware,21.4,21.3,21.3</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource6</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource7">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource7" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource7" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2010" title="Percent Disability 2010"/>
+        <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2011" title="Percent Disability 2011"/>
+        <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Disability 2010,Percent Disability 2011,Percent Disability 2012
+1,Alabama,25.9,23.6,23.6
+2,Alaska,20.2,21.6,21.6
+4,Arizona,22.1,21.1,21.1
+5,Arkansas,24.7,23.2,23.2
+6,California,18.1,24.7,24.7
+8,Colorado,20.6,23.1,23.1
+9,Connecticut,16.6,27.3,27.3</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource7</keyType>
+    <url/>
+  </CSVDataSource>
+  <LineChartTool name="LineChartTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <plotManager>
+          <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+          <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
+          <enableFixedAspectRatio>false</enableFixedAspectRatio>
+          <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+          <layerSettings encoding="dynamic">
+            <LayerSettings name="yAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="xAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="plot">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>true</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="label">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+          </layerSettings>
+          <marginBottom>100</marginBottom>
+          <marginLeft>60</marginLeft>
+          <marginRight>80</marginRight>
+          <marginTop>20</marginTop>
+          <maxZoomLevel>16</maxZoomLevel>
+          <minScreenSize>128</minScreenSize>
+          <minZoomLevel>0</minZoomLevel>
+          <overrideXMax>NaN</overrideXMax>
+          <overrideXMin>0</overrideXMin>
+          <overrideYMax>40</overrideYMax>
+          <overrideYMin>0</overrideYMin>
+          <plotters encoding="dynamic">
+            <SimpleAxisPlotter name="yAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>0</xMax>
+                <xMin>0</xMin>
+                <yMax>40</yMax>
+                <yMin>0</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>40</axisLineMaxValue>
+              <axisLineMinValue>0</axisLineMinValue>
+              <forceTickCount>false</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>bottom</labelVerticalAlign>
+              <labelWordWrapSize>80</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>5</tickCountRequested>
+              <tickMaxValue>NaN</tickMaxValue>
+              <tickMinValue>NaN</tickMinValue>
+            </SimpleAxisPlotter>
+            <SimpleAxisPlotter name="xAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>2</xMax>
+                <xMin>0</xMin>
+                <yMax>0</yMax>
+                <yMin>0</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>2</axisLineMaxValue>
+              <axisLineMinValue>0</axisLineMinValue>
+              <forceTickCount>true</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>top</labelVerticalAlign>
+              <labelWordWrapSize>80</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>3</tickCountRequested>
+              <tickMaxValue>NaN</tickMaxValue>
+              <tickMinValue>NaN</tickMinValue>
+            </SimpleAxisPlotter>
+            <ParallelCoordinatesPlotter name="plot">
+              <columns encoding="dynamic">
+                <ReferencedColumn name="ReferencedColumn3">
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2010" title="Percent Disability 2010"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+                <ReferencedColumn name="ReferencedColumn4">
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2011" title="Percent Disability 2011"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+                <ReferencedColumn name="ReferencedColumn5">
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </columns>
+              <curveType>none</curveType>
+              <enableGroupBy>false</enableGroupBy>
+              <groupBy encoding="dynamic"/>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <lineStyle>
+                <alpha>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <caps>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </caps>
+                <color>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+                <joints>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </joints>
+                <miterLimit>
+                  <defaultValue>3</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </miterLimit>
+                <pixelHinting>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </pixelHinting>
+                <scaleMode>
+                  <defaultValue>normal</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </scaleMode>
+                <weight>
+                  <defaultValue>3</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <NormalizedColumn>
+                      <internalDynamicColumn encoding="dynamic"/>
+                      <max>5</max>
+                      <min>1</min>
+                    </NormalizedColumn>
+                  </internalDynamicColumn>
+                </weight>
+              </lineStyle>
+              <normalize>false</normalize>
+              <shapeBorderColor>0</shapeBorderColor>
+              <shapeBorderThickness>1</shapeBorderThickness>
+              <shapeSize>5</shapeSize>
+              <shapeToDraw>Solid Circle</shapeToDraw>
+              <xData encoding="dynamic"/>
+              <xValues/>
+              <yData encoding="dynamic"/>
+              <zoomToSubset>false</zoomToSubset>
+            </ParallelCoordinatesPlotter>
+            <TextGlyphPlotter name="label">
+              <angle>
+                <defaultValue>0</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </angle>
+              <bold>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </bold>
+              <color>
+                <defaultValue>0</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </color>
+              <dataX encoding="dynamic">
+                <AlwaysDefinedColumn>
+                  <defaultValue>2</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </AlwaysDefinedColumn>
+              </dataX>
+              <dataY encoding="dynamic">
+                <ReferencedColumn>
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </dataY>
+              <destinationProjection/>
+              <font>
+                <defaultValue>Sophia Nubian</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </font>
+              <hAlign>
+                <defaultValue>left</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </hAlign>
+              <hideOverlappingText>true</hideOverlappingText>
+              <italic>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </italic>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <maxWidth>80</maxWidth>
+              <size>
+                <defaultValue>11</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </size>
+              <sortColumn encoding="dynamic">
+                <ReferencedColumn>
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </sortColumn>
+              <sourceProjection/>
+              <text encoding="dynamic">
+                <ReferencedColumn>
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute keyType="CSVDataSource3" csvColumn="State" title="State"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </text>
+              <underline>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </underline>
+              <vAlign>
+                <defaultValue>middle</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </vAlign>
+              <xScreenOffset>0</xScreenOffset>
+              <yScreenOffset>10</yScreenOffset>
+              <zoomToSubset>false</zoomToSubset>
+            </TextGlyphPlotter>
+          </plotters>
+          <zoomBounds>
+            <xMax>2</xMax>
+            <xMin>0</xMin>
+            <yMax>40</yMax>
+            <yMin>0</yMin>
+          </zoomBounds>
+        </plotManager>
+        <zoomFactor>2</zoomFactor>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <enableBorders>true</enableBorders>
+    <enableMoveResize>true</enableMoveResize>
+    <enableSubMenu>false</enableSubMenu>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>60%</panelHeight>
+    <panelStyleList/>
+    <panelTitle/>
+    <panelWidth>55%</panelWidth>
+    <panelX>5%</panelX>
+    <panelY>4%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+  </LineChartTool>
+</Weave>

@@ -84,6 +84,12 @@ package weave.menus
 			},
 			TYPE_SEPARATOR,
 			{
+				shown: Weave.properties.showDisabilityOptions,
+				label: lang("Disability Options"),
+				click: function():void { DraggablePanel.openStaticInstance(DisabilityOptions); }
+			},
+			TYPE_SEPARATOR,
+			{
 				shown: Weave.properties.enableFullScreen,
 				label: function():String
 				{

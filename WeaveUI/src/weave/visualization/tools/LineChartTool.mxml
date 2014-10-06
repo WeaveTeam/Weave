@@ -120,6 +120,11 @@
 				linkSessionState(visualization.plotManager.marginRightNumber, labelPlotter.maxWidth);
 			}
 
+			public function getPlotter():ParallelCoordinatesPlotter
+			{
+				return _plotter;
+			}
+			
 			override public function initSelectableAttributes(input:Array):void
 			{
 				const MAX_DEFAULT_COLUMNS:int = 10;

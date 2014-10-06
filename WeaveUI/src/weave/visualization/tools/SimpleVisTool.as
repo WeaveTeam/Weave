@@ -50,7 +50,11 @@ package weave.visualization.tools
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+<<<<<<< HEAD
 	import weave.data.AttributeColumns.ReferencedColumn;
+=======
+	import weave.editors.Disability;
+>>>>>>> 5578129... squashed commits from disability branch ff5f121036c8288fcff42782c7338f130caae56b
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -101,6 +105,7 @@ package weave.visualization.tools
 		internal var layersEditor:LayerListComponent;
 		internal var axesEditor:SimpleAxisEditor;
 		internal var windowEditor:WindowSettingsEditor;
+		protected var disability : Disability;
 		
 		override protected function createChildren():void
 		{
@@ -158,8 +163,11 @@ package weave.visualization.tools
 			windowEditor = new WindowSettingsEditor();
 			windowEditor.target = this;
 			
+			disability = new Disability();
+			disability.target = this;
+			
 			if (controlPanel)
-				controlPanel.children = [layersEditor, axesEditor, windowEditor];
+				controlPanel.children = [layersEditor, axesEditor, windowEditor, disability];
 		}
 		
 		private function handleBindableTitle(value:String):void

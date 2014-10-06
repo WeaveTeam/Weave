@@ -244,6 +244,12 @@ package weave
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const showAddExternalTools:LinkableBoolean = new LinkableBoolean(false); // Show Add External Tools dialog in tools menu.
 		
+		public const showDisabilityOptions:LinkableBoolean = new LinkableBoolean(true)// Show Disability Options tools menu
+		public const disabilityAltText:LinkableString = new LinkableString();
+		public const disabilityHashMap:LinkableHashMap = new LinkableHashMap();
+		public const disabilityLongAltText:LinkableString = new LinkableString();
+		public const disabilitySystemText:LinkableString = new LinkableString();
+
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
 		public function getToolToggle(classDef:Class):LinkableBoolean
 		{
