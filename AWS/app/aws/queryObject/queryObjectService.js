@@ -10,13 +10,13 @@
 
 //var adminServiceURL = '/WeaveServices/AdminService';
 
-var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
+//var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
 
 //var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
 
 var aws = {};
 
-QueryObject.service('runQueryService', ['errorLogService','$modal','projectManagementURL', function(errorLogService, $modal, projectManagementURL){
+QueryObject.service('runQueryService', ['errorLogService','$modal', function(errorLogService, $modal){
 
 	/**
 	 * This function is a wrapper for making a request to a JSON RPC servlet
@@ -90,8 +90,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal','projectManag
 }]);
 
 
-QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService','dataServiceURL', 'adminServiceURL',
-                         function($q, scope, WeaveService, runQueryService, dataServiceURL, adminServiceURL) {
+QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService','dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL',
+                         function($q, scope, WeaveService, runQueryService, dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);

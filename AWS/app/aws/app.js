@@ -70,10 +70,12 @@ angular.module('aws.directives', ['aws.directives.dualListBox',
 angular.module('aws.configure', ['aws.configure.auth',
                                  'aws.configure.metadata',
                                  'aws.configure.script']);
+
 //using the value provider recipe 
 app.value("dataServiceURL", '/WeaveServices/DataService');
 app.value('adminServiceURL', '/WeaveServices/AdminService');
 app.value('projectManagementURL', '/WeaveAnalystServices/ProjectManagementServlet');
+app.value('scriptManagementURL', '/WeaveAnalystServices/ScriptManagementServlet');
 app.value('computationServiceURL', '/WeaveAnalystServices/ComputationalServlet');
 
 // From Amith's UI
