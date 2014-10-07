@@ -98,6 +98,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	$scope.WeaveService = WeaveService;
 	$scope.queryHandlerService = QueryHandlerService;
 	
+	//getting the list of datatables
+	queryService.getDataTableList(true);
+	
 	$scope.$watch(function() {
 		return queryService.dataObject.openInNewWindow;
 	}, function() {
@@ -251,7 +254,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 	// This sets the service variable to the queryService 
 	$scope.service = queryService;
 	
-	queryService.getDataTableList(true);
 	queryService.getListOfScripts(true);
 
 	//  clear script options when script changes
