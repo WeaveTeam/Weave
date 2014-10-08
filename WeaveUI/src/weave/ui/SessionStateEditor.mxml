@@ -845,11 +845,24 @@ A text editor to change the Session State on the fly.
 					Weave.properties.enableSessionHistoryControls.value = true;
 				}
 			}
+			
+			private static var _lastKeyboardEvent:KeyboardEvent = null;
+			
 			private static function handleKeyDown():void
 			{
 				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+				if( _lastKeyboardEvent && _lastKeyboardEvent.keyCode == event.keyCode )
+					return;
+				
+				_lastKeyboardEvent = event;
 				if (event.keyCode == Keyboard.F8) // F8 to show profile data
 					openConsole();
+				else if( event.keyCode == Keyboard.ENTER && event.ctrlKey )
+					Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value;
+			}
+			private static function handleKeyUp():void
+			{
+				_lastKeyboardEvent = null;
 			}
 			private static function openConsole():void
 			{
@@ -905,6 +918,7 @@ A text editor to change the Session State on the fly.
 			public static function initializeShortcuts():void
 			{
 				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_UP, null, handleKeyUp);
 				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
 			}
 		]]>
