@@ -257,11 +257,13 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 	queryService.getListOfScripts(true);
 
 	//  clear script options when script changes
-	$scope.$watch('service.queryObject.scriptSelected', function(newVal, oldVal) {
-		if(newVal != oldVal) {
+	$scope.$watchCollection(function() {
+		return [queryService.queryObject.scriptSelected,
+                queryService.queryObject.dataTable];
+	}, function() {
+			console.log("resetting");
 			queryService.queryObject.scriptOptions = {};
-		}
-	});
+	}, true);
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {
