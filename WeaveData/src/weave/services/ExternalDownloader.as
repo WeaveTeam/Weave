@@ -140,7 +140,7 @@ package weave.services
 				var fault:Fault;
 				if (_errors[id])
 				{
-					fault = new Fault(lang("Malformed URL"), qt.urlRequest.url);
+					fault = new Fault(lang("Unable to access URL"), qt.urlRequest.url);
 					fault.rootCause = _errors[id];
 				}
 				else
