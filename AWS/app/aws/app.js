@@ -21,7 +21,8 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'aws.errorLog',
                                  'aws.AnalysisModule',
                                  'aws.WeaveModule',
-                                 'aws.QueryHandlerModule'
+                                 'aws.QueryHandlerModule',
+                                 'aws.utils'
                                ]); 
 
 app.run(['$rootScope', function($rootScope){
