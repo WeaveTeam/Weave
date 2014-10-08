@@ -944,6 +944,19 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			}
 			else
 			{
+				// ignore blank rows
+				boolean allEmpty = true;
+				for (String value : rows[row])
+				{
+					if (!Strings.isEmpty(value))
+					{
+						allEmpty = false;
+						break;
+					}
+				}
+				if (allEmpty)
+					continue;
+				
 				int prevRow = map.get(key);
 				String msg = String.format(
 						"Found duplicate key (%s) on rows %s and %s of \"%s\"\n" +
