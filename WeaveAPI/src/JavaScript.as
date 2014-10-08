@@ -567,40 +567,41 @@ package
 				}
 			}
 			
+			const CODE_PARAM:String = '__code_from_flash__';
+			const ARGS_PARAM:String = '__arguments_from_flash__';
+			
 			// if the code references "this", we need to use Function.apply() to make the symbol work as expected
-			var appliedCode:String = '(function(){\n' + code.join('\n') + '\n}).apply(' + JS_this + ')';
+			var appliedCode:String;
+			if (json)
+				appliedCode = '(function(){\n' + code.join('\n') + '\n}).apply(' + JS_this + ')';
+			else
+				appliedCode = '(function(' + pNames.join(',') + '){\n' + code.join('\n') + '\n}).apply(' + JS_this + ', ' + ARGS_PARAM + ')';
 			
 			var result:* = undefined;
 			var prevMarshallExceptions:Boolean = ExternalInterface.marshallExceptions;
 			ExternalInterface.marshallExceptions = !!marshallExceptions;
 			try
 			{
+				// stringify results
 				if (json)
-				{
-					// stringify results
 					appliedCode = 'JSON.stringify(' + appliedCode + ', ' + JS_this + '.' + JSON_REPLACER + ')';
-					
-					// work around unescaped backslash bug
-					if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
-						appliedCode = appliedCode.split('\\').join('\\\\');
-					
-					// we need to use "eval" in order to receive syntax errors
-					var evalFunc:String = 'window.eval';
-					if (!marshallExceptions)
-						evalFunc = 'function(code){ try { return window.eval(code); } catch (e) { e.message += "\\n" + code; if (typeof console != "undefined") console.error(e); } }';
-					var resultJson:String = ExternalInterface.call(evalFunc, appliedCode) as String;
-					
-					// parse stringified results
-					if (resultJson)
-						result = json.parse(resultJson, _jsonReviver);
-				}
-				else
-				{
-					// JSON is unavailable, so we settle with the flawed ExternalInterface.call() parameters feature.
-					var wrappedCode:String = 'function(' + pNames.join(',') + '){ return ' + appliedCode + '; }';
-					pValues.unshift(wrappedCode);
-					result = ExternalInterface.call.apply(null, pValues);
-				}
+				
+				// work around unescaped backslash bug
+				if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
+					appliedCode = appliedCode.split('\\').join('\\\\');
+				
+				// we need to use eval() in order to receive syntax errors
+				const TRY_CODE:String = 'return ' + (json ? 'window.eval' : 'eval') + '(' + CODE_PARAM + ');';
+				const CATCH_CODE:String = marshallExceptions
+					? 'if (e.toString() == "[object Error]") e.toString = function(){ return this.name + ": " + this.message; }; throw e;'
+					: 'e.message += "\\n" + code; if (typeof console != "undefined") console.error(e);';
+				
+				var evalFunc:String = 'function(' + CODE_PARAM + ', ' + ARGS_PARAM + '){ try {\n' + TRY_CODE + '\n} catch (e) {\n' + CATCH_CODE + '\n} }';
+				result = ExternalInterface.call(evalFunc, appliedCode, pValues);
+				
+				// parse stringified results
+				if (json && result)
+					result = json.parse(result, _jsonReviver);
 			}
 			catch (e:*)
 			{
