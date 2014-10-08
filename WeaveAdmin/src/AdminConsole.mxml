@@ -127,45 +127,6 @@
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;
-			/**
-			 * The mapping for the flash vars.
-			 */
-			private var _flashVars:Object;
-			private var _initialized:Boolean = false;
-			private function handlePreInitialize():void
-			{
-				if(!root)
-				{
-					callLater(handlePreInitialize);
-					return;					
-				}
-
-				// We want FlashVars to take priority over the address bar parameters.
-				_flashVars = LoaderInfo(this.root.loaderInfo).parameters;
-				
-				// check address bar for any variables not found in FlashVars
-				try
-				{
-					weaveTrace(ExternalInterface.call("window.location.search.substring", 1));
-					var urlParams:URLVariables = new URLVariables(ExternalInterface.call("window.location.search.substring", 1)); // text after '?'
-					for (var key:String in urlParams)
-						if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
-							_flashVars[key] = urlParams[key];
-				}
-////					if(_flashVars["adminServiceURL"])
-////					{
-////						Admin.instance.service = new WeaveAdminService(_flashVars["adminServiceURL"]+"/WeaveServices");
-////					}else
-////					{
-////						Admin.instance.service = new WeaveAdminService("/WeaveServices");
-////					}
-//					Admin.instance.service = new WeaveAdminService("/WeaveServices");
-//					_initialized = true;
-//				}
-//				/* URLVariables throws an error when there are no name-value pairs */
-				catch(e:Error) {} 
-				
-			}
 			
 			private function handleCreationComplete():void
 			{
