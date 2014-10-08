@@ -43,7 +43,12 @@ void stringHash()
 {
 	// expand buffer if necessary (max length of a utf-8 char is 6 bytes)
 	size_t as3str_len;
-	inline_nonreentrant_as3("%0 = str.length;" : "=r"(as3str_len));
+	inline_nonreentrant_as3(
+		"if (str == null)"
+		"    return 0;"
+		"%0 = str.length;"
+		: "=r"(as3str_len)
+	);
 	if (findstr_maxlen < as3str_len * 6)
 	{
 		if (findstr)
