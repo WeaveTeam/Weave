@@ -857,8 +857,6 @@ A text editor to change the Session State on the fly.
 				_lastKeyboardEvent = event;
 				if (event.keyCode == Keyboard.F8) // F8 to show profile data
 					openConsole();
-				else if( event.keyCode == Keyboard.ENTER && event.ctrlKey )
-					Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value;
 			}
 			private static function handleKeyUp():void
 			{
