@@ -1,0 +1,11 @@
+<div class= 'tool-bar'>
+	<input ng-model ="searchOption" placeholder = "Choose an Indicator">
+	{{columnFilter}}
+		<table>
+			    <ul ng-repeat="obj in queryService.dataObject.columns | filter : { columnType : columnfilter }| filter:searchOption">
+			      <li ng-model = "q" ng-click = "check(obj)">{{obj.title}}</td>
+			    </ul>
+	 	 </table>
+</div>
+<!-- so we will need to provide an array which will be used to loop over for e.g. an array of objects
+also we will need a variable that will contain the object property that we wish to display in the list for e.g. object.propertyX or object.propertyY-->

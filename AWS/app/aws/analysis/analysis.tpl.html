@@ -19,18 +19,23 @@
 							ng-model="queryService.dataObject.displayAsQuestions">
 						Display As Questions</input>
 	
-						<div style="width: 100%; margin-top: 10px;">
-							<select popover="Choose indicator" popover-trigger="mouseenter"
-								style="width: 100%;"
-								ui-select2="{allowClear : true, dropdownAutoWidth : true}"
-								ng-model="queryService.queryObject.Indicator"
-								data-placeholder="Choose Indicator">
-								<option></option>
-								<option value="{{indicator}}"
-									ng-repeat="indicator in queryService.dataObject.columns | filter : { columnType : 'indicator' }">{{queryService.dataObject.displayAsQuestions
-									&& (indicator.description) || (indicator.title)}}</option>
-							</select>
+<!-- 						<div style="width: 100%; margin-top: 10px;"> -->
+<!-- 							<select popover="Choose indicator" popover-trigger="mouseenter" -->
+<!-- 								style="width: 100%;" -->
+<!-- 								ui-select2="{allowClear : true, dropdownAutoWidth : true}" -->
+<!-- 								ng-model="queryService.queryObject.Indicator" -->
+<!-- 								data-placeholder="Choose Indicator"> -->
+<!-- 								<option></option> -->
+<!-- 								<option value="{{indicator}}" -->
+<!-- 									ng-repeat="indicator in queryService.dataObject.columns | filter : { columnType : 'indicator' }">{{queryService.dataObject.displayAsQuestions -->
+<!-- 									&& (indicator.description) || (indicator.title)}}</option> -->
+<!-- 							</select> -->
+<!-- 						</div> -->
+						<div aws-select-directive columnfilter= "indicator" ng-controller = "specialSelectCtrl">
 						</div>
+
+						
+
 						<br> {{IndicDescription}} <br>
 						<br>
 						<table border="border: 1px solid #0000FF" width="100%">
