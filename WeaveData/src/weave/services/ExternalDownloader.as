@@ -29,6 +29,7 @@ package weave.services
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.reportError;
@@ -140,8 +141,9 @@ package weave.services
 				var fault:Fault;
 				if (_errors[id])
 				{
-					fault = new Fault(lang("Unable to access URL"), qt.urlRequest.url);
-					fault.rootCause = _errors[id];
+					var e:Error = _errors[id];
+					fault = new Fault(e.name, StringUtil.trim(e.message) + " URL: " + qt.urlRequest.url);
+					fault.rootCause = e;
 				}
 				else
 				{

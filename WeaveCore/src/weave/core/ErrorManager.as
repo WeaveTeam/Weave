@@ -126,6 +126,7 @@ package weave.core
 					if (errorString == 'Error')
 						errorString = "Communication error";
 				}
+				errorString = StandardLib.replace(errorString, 'Error: Error:', 'Error:');
 				
 				return errorString;
 			}
