@@ -14,12 +14,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * The code below assumes it is being executed within a function(){} where the 'weave' variable is defined.
+ * The Weave instance.
  * @namespace weave
- * @description The Weave instance.
- * @private
+ * @name weave
  */
-
 //"use strict";
 
 //------------------------------------------------------------
@@ -131,6 +129,7 @@ weave.loadFile = function(url, callback, noCacheHack)
  * @param basePath An optional Array (or multiple parameters) specifying the path to an object in the session state.
  *                 A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
  * @return A WeavePath object.
+ * @see  weave.WeavePath
  */
 weave.path = function(/*...basePath*/)
 {
