@@ -56,14 +56,21 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     this.runScript = function(scriptName, inputs, filters) {
         
     	var deferred = $q.defer();
-    	//setTimeout(function(){this.isValidated = false;console.log("reached here",this.isValidated );}, 3000);
-    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName, inputs, filters], function(result){	
-    		console.log("result", result);
-//    		if(result.logs != null){
-//    			errorLogService.logInErrorLog(result.logs[0]);
-//    			$modal.open(errorLogService.errorLogModalOptions);
-//    		}
 
+    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName], function(result){	
+    		scope.$safeApply(function() {
+				deferred.resolve(result);
+			});
+		});
+    	
+        return deferred.promise;
+    };
+    
+    this.getDataFromServer = function(inputs, filters) {
+    	
+    	var deferred = $q.defer();
+
+    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, filters], function(result){	
     		scope.$safeApply(function() {
 				deferred.resolve(result);
 			});
@@ -131,7 +138,13 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 		var queryObject = queryService.queryObject;
 		//running an initial validation
 		this.validateScriptExecution(queryObject);
+		
 		console.log("validation",this.isValidated );
+		
+		
+		var scriptInputs = {};
+		
+		
 		if(this.isValidated)
 		{
 			for(var key in queryObject.scriptOptions) {
@@ -284,45 +297,56 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			// var stringifiedQO = JSON.stringify(queryObject);
 			// console.log("query", stringifiedQO);
 			// console.log(JSON.parse(stringifiedQO));
-			
-
-			this.runScript(scriptName, scriptInputs, null).then(function(resultData) {
-				if(queryService.dataObject.openInNewWindow) {
-					if(!angular.isUndefined(resultData.data))//only if something is returned open weave
-					{
-						if(!weaveWindow || weaveWindow.closed) {
-							weaveWindow = $window.open("/weave.html?",
-									"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+			queryService.dataObject.queryStatus = "loading data from database...";
+			this.getDataFromServer(scriptInputs, null).then(function(success) {
+				if(success) {
+					queryService.dataObject.queryStatus = "running script...";
+					that.runScript(scriptName).then(function(resultData) {
+						queryService.dataObject.queryStatus = "done.";
+						if(queryService.dataObject.openInNewWindow) {
+							if(!angular.isUndefined(resultData))//only if something is returned open weave
+							{
+								if(!weaveWindow || weaveWindow.closed) {
+									weaveWindow = $window.open("/weave.html?",
+											"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+								}
+								that.waitForWeave(weaveWindow , function(weave) {
+									WeaveService.weave = weave;
+									WeaveService.addCSVData(resultData);
+									WeaveService.columnNames = resultData[0];
+									
+									//updates required for updating query object validation and to enable visualization widget controls
+									that.displayVizMenu = true;
+									that.isValidated = false;
+									that.validationUpdate = "Ready for validation";
+									
+									scope.$apply();//re-fires the digest cycle and updates the view
+								});
+							} else {
+								console.log("Script results are null or undefined");
+							}
+						} else {
+							if(!angular.isUndefined(resultData))//only if something is returned open weave
+							{
+								that.waitForWeave(null , function(weave) {
+									WeaveService.weave = weave;
+									WeaveService.addCSVData(resultData);
+									WeaveService.columnNames = resultData[0];
+									
+									//updates required for updating query object validation and to enable visualization widget controls
+									that.isValidated = false;
+									that.validationUpdate = "Ready for validation";
+									scope.$apply();//re-fires the digest cycle and updates the view
+								});
+							} else {
+								console.log("Script results are null or undefined");
+							}
 						}
-						that.waitForWeave(weaveWindow , function(weave) {
-							WeaveService.weave = weave;
-							WeaveService.addCSVData(resultData.data);
-							WeaveService.columnNames = resultData.data[0];
-							
-							//updates required for updating query object validation and to enable visualization widget controls
-							that.displayVizMenu = true;
-							that.isValidated = false;
-							that.validationUpdate = "Ready for validation";
-							
-							scope.$apply();//re-fires the digest cycle and updates the view
-						});
-					}
+						
+					});
 				} else {
-					if(!angular.isUndefined(resultData.data))//only if something is returned open weave
-					{
-						that.waitForWeave(null , function(weave) {
-							WeaveService.weave = weave;
-							WeaveService.addCSVData(resultData.data);
-							WeaveService.columnNames = resultData.data[0];
-							
-							//updates required for updating query object validation and to enable visualization widget controls
-							that.isValidated = false;
-							that.validationUpdate = "Ready for validation";
-							scope.$apply();//re-fires the digest cycle and updates the view
-						});
-					}
+					console.log("There was an error getting the data from the database.");
 				}
-				
 			});
 		}
 	

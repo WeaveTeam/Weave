@@ -47,11 +47,10 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 	// essentially this function should eventually be our main run script function.
 	// in the request object, there will be: the script name
 	// and the columns, along with their filters.
-	public ScriptResult runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception, RserveException
+	public Object runScript(String scriptAbsPath, StringMap<Object> scriptInputs) throws Exception, RserveException
 	{
 		RConnection rConnection = null;
 		Object results = null;
-		ScriptResult finalResult = new ScriptResult();
 		String [] columnNames = null;
 		try
 		{
@@ -80,7 +79,6 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 				names.toArray(columnNames);
 				results = rexp2javaObj(evalValue);
 				results = convertToRowResults(results, columnNames);
-				finalResult.data = results;
 				// clear R Objects
 				rConnection.eval("rm(list=ls())");
 			}
@@ -97,7 +95,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 				rConnection.close();
 		}
 
-		return finalResult;
+		return results;
 		
 	}
 

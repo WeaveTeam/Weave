@@ -211,6 +211,7 @@
 		</div>
 		<br><br><br>
 		<input type="checkbox" ng-model="queryService.dataObject.openInNewWindow"> Show Weave in separate window</input>
+		{{queryService.dataObject.queryStatus}}
 		<div class="row " style="height: 50%; clear:both" ng-if="!queryService.dataObject.openInNewWindow">
 			<!-- Contains the buttons pertaining to a query and its visualizations -->
 			<div>

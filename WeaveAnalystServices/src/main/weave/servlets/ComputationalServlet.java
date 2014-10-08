@@ -38,6 +38,8 @@ public class ComputationalServlet extends WeaveServlet
 	private String stataScriptsPath = "";
 	private String rScriptsPath = "";
 	private AwsRService rService = null;
+	private StringMap<Object> scriptInputs;
+	
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
@@ -51,19 +53,9 @@ public class ComputationalServlet extends WeaveServlet
 
 	private static final long serialVersionUID = 1L;
 
-	public Object runScript(String scriptName, StringMap<Object> scriptInputs, NestedColumnFilters filters) throws Exception
+	public boolean getDataFromServer(StringMap<Object> scriptInputs, NestedColumnFilters filters) throws Exception
 	{
-		Object resultData = null;
-		ScriptResult result = new ScriptResult();
 		
- 		long startTime = 0; 
- 		long endTime = 0;
- 		long time1 = 0;
- 		long time2 = 0;
- 		
- 		// Start the timer for the data request
- 		startTime = System.currentTimeMillis();
-
  		StringMap<Object> input = new StringMap<Object>();
  		ArrayList<Integer> colIds = new ArrayList<Integer>();
  		ArrayList<String> colNames = new ArrayList<String>();
@@ -80,7 +72,7 @@ public class ComputationalServlet extends WeaveServlet
 			} else if (value instanceof StringMap<?>){
 				// collect the names and id for single query below
 				colNames.add(key);
-				colIds.add((Integer) ((Double) ( (StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
+				colIds.add((Integer) ((Double) ((StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
 			} else if (value instanceof ArrayList) {
 				
 				ArrayList<Integer> ids = new ArrayList<Integer>();
@@ -109,36 +101,29 @@ public class ComputationalServlet extends WeaveServlet
 			}
 		}
 		
-		endTime = System.currentTimeMillis();
-		
-		time1 = endTime - startTime;
-		
-		startTime = System.currentTimeMillis();
+		this.scriptInputs = input;
+		return true;
+	}
+	
+	public Object runScript(String scriptName) throws Exception
+	{
+		Object resultData = null;
 		
 		if(AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.R) 
 		{
 			try {
 				rService = new AwsRService();
-				result = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), input);
+				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), scriptInputs);
 			} catch(Exception e) 
 			{
 				throw (e);
 			}
 		} else {
-			resultData = AwsStataService.runScript(scriptName, input,
+			resultData = AwsStataService.runScript(scriptName, scriptInputs,
 					 programPath, tempDirPath, stataScriptsPath);
 
 		}
-		endTime = System.currentTimeMillis();
-		
- 		time2 = endTime - startTime;
-		//result.data = resultData;
-// 		if(result.logs == null)//only if the script has worked with no errors, then report times
-// 		{
- 			result.times[0] = time1;
- 			result.times[1] = time2;
- 		//}
  	
-		return result;
+		return resultData;
 	}
 }
