@@ -638,7 +638,7 @@ weave.WeavePath.prototype.getValue = function(script_or_variableName)
  */
 weave.WeavePath.prototype.toString = function()
 {
-	var pathStr = JSON && JSON.stringify ? JSON.stringify(this._path) : this._path.toString();
+	var pathStr = typeof JSON != 'undefined' && JSON.stringify ? JSON.stringify(this._path) : this._path.toString();
 	return "WeavePath(" + pathStr + ")";
 };
 
@@ -673,7 +673,7 @@ weave.WeavePath.prototype._failMessage = function(methodName, message, path)
 	var str = 'WeavePath.' + methodName + '(): ' + message;
 	if (path)
 	{
-		var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
+		var pathStr = typeof JSON != 'undefined' && JSON.stringify ? JSON.stringify(path) : path;
 		str += ' (path: ' + pathStr + ')';
 	}
 	throw new Error(str);

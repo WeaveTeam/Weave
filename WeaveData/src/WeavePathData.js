@@ -2,6 +2,9 @@
  * This assumes that WeavePath.js has already been loaded. */
 /* "use strict"; */
 
+if (!weave.WeavePath)
+	return;
+
 weave.WeavePath.prototype.probe_keyset = weave.path("defaultProbeKeySet");
 weave.WeavePath.prototype.selection_keyset = weave.path("defaultSelectionKeySet");
 weave.WeavePath.prototype.subset_filter = weave.path("defaultSubsetKeyFilter");
@@ -46,7 +49,7 @@ weave.WeavePath.Keys.stringToQKey = function(s)
 
 weave.WeavePath.Keys._getKeyBuffers = function (pathArray)
 {
-    var path_key = JSON.stringify(pathArray);
+    var path_key = typeof JSON != 'undefined' ? JSON.stringify(pathArray) : pathArray;
 
     var key_buffers_dict = this._key_buffers || (this._key_buffers = {});
     var key_buffers = key_buffers_dict[path_key] || (key_buffers_dict[path_key] = {});

@@ -138,6 +138,18 @@ package
 		public static const available:Boolean = ExternalInterface.available;
 		
 		/**
+		 * This will be true if both Flash Player and the web browser support JSON.
+		 * If this is false, extendJson() will not work.
+		 * @see #extendJson()
+		 */
+		public static function get jsonAvailable():Boolean
+		{
+			if (!initialized)
+				initialize();
+			return json != null;
+		}
+		
+		/**
 		 * The "id" property of this Flash object.
 		 * Use this as a reliable alternative to ExternalInterface.objectID, which may be null in some cases even if the Flash object has an "id" property.
 		 */
@@ -207,7 +219,10 @@ package
 			
 			try
 			{
-				json = getDefinitionByName("JSON");
+				if (ExternalInterface.call('function(){ return typeof JSON == "undefined"; }'))
+					trace("The web browser does not have JSON support.");
+				else
+					json = getDefinitionByName("JSON");
 			}
 			catch (e:Error)
 			{
@@ -394,6 +409,7 @@ package
 		 * @param replacer function(key:String, value:*):* ; Replaces an Object with a JSON-serializable representation. 
 		 * @param reviver function(key:String, value:*):* ; Revives an Object from its JSON representation.
 		 * @param needsReviving function(key:String, value:*):Boolean ; Determines if a value requires reviving in JavaScript once replaced in ActionScript.
+		 * @see #jsonAvailable
 		 * 
 		 * @example Example JavaScript code (func1 and func2 should be function definitions)
 		 * <listing version="3.0">
@@ -405,6 +421,8 @@ package
 		 */
 		public static function extendJson(replacer:Function, reviver:Function, needsReviving:Function):void
 		{
+			if (!jsonAvailable)
+				throw new Error("JSON extensions are not available.");
 			var extension:Object = {};
 			extension[JSON_REPLACER] = replacer;
 			extension[JSON_REVIVER] = reviver;
@@ -569,7 +587,7 @@ package
 					// we need to use "eval" in order to receive syntax errors
 					var evalFunc:String = 'window.eval';
 					if (!marshallExceptions)
-						evalFunc = 'function(code){ try { return window.eval(code); } catch (e) { e.message += "\\n" + code; console.error(e); } }';
+						evalFunc = 'function(code){ try { return window.eval(code); } catch (e) { e.message += "\\n" + code; if (typeof console != "undefined") console.error(e); } }';
 					var resultJson:String = ExternalInterface.call(evalFunc, appliedCode) as String;
 					
 					// parse stringified results
