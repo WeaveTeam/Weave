@@ -31,7 +31,10 @@
 <!-- 									&& (indicator.description) || (indicator.title)}}</option> -->
 <!-- 							</select> -->
 <!-- 						</div> -->
-						<div aws-select-directive columnfilter= "indicator" ng-controller = "specialSelectCtrl">
+
+						<div ng-controller = 'specialCtrl'>
+						<aws-select-directive arrayOfObjects = "adds" columnfilter= "indicator">
+						</aws-select-directive>
 						</div>
 
 						

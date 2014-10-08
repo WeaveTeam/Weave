@@ -120,6 +120,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		}
 	});
 	
+	
 //	$scope.$watchCollection(function() {
 //		return $.map(AnalysisService.tool_list, function(tool) {
 //			return tool.enabled;
