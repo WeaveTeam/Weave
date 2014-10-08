@@ -1,0 +1,1531 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:DraggablePanel
+	xmlns="weave.ui.infomap.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:ui="weave.ui.*"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	borderThickness="0"
+	title="InfoMap Prototype"
+	clipContent="true"
+	autoLayout="true"
+	paddingLeft="5"
+	paddingTop="5"
+	backgroundSize="100%"
+	dragDrop="dragDropHandler(event)"
+	dragEnter="dragEnterHandler(event)"
+	implements="weave.api.ui.IVisTool" xmlns:ui1="weave.ui.infomap.ui.*"
+	>
+	<mx:Style>
+		.loadingTextStyle {
+			fontFamily:"GeosansLight";
+			fontSize: 24;
+		}
+	</mx:Style>
+	<mx:Script>
+		<![CDATA[
+			import com.cartogrammar.drawing.DashedLine;
+			
+			import mx.controls.Alert;
+			import mx.controls.List;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.events.DragEvent;
+			import mx.managers.DragManager;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.Base64Encoder;
+			import mx.utils.StringUtil;
+			
+			import spark.components.Label;
+			
+			import weave.Weave;
+			import weave.api.copySessionState;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnReference;
+			import weave.api.data.IDataSource;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableDescendants;
+			import weave.api.linkBindableProperty;
+			import weave.api.newDisposableChild;
+			import weave.api.newLinkableChild;
+			import weave.api.registerDisposableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.services.IWeaveEntityService;
+			import weave.api.services.beans.Entity;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.UIUtils;
+			import weave.core.WeaveXMLDecoder;
+			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.DataSources.CSVDataSource;
+			import weave.data.DataSources.GoogleSearchDataSource;
+			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.data.DataSources.WeaveDataSource;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			import weave.primitives.ColorRamp;
+			import weave.primitives.DateRangeFilter;
+			import weave.services.InfoMapAdminInterface;
+			import weave.services.WeaveDataServlet;
+			import weave.services.addAsyncResponder;
+			import weave.ui.infomap.InfoMapLoader;
+			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.BitmapUtils;
+			import weave.utils.ColumnUtils;
+			import weave.utils.DateUtils;
+			import weave.utils.NumberUtils;
+			import weave.utils.PopUpUtils;
+			import weave.utils.VectorUtils;
+			
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, InfoMapPanel, "InfoMaps Tool");
+			WeaveXMLDecoder.includePackages(InfoMapPanel);
+			/**
+			 * @public
+			 * This is mapping of a link to a node where each node is a defined by a query of keywords,operator and filters
+			 * */
+			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+			
+			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject(InfoMapsDataSource.SOURCE_NAME,InfoMapsDataSource, true);
+			
+			public const googleSearchDataSource:GoogleSearchDataSource = Weave.root.requestObject(GoogleSearchDataSource.SOURCE_NAME, GoogleSearchDataSource, true);
+			
+			public const defaultNodeBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(13421772),null,true);
+			
+			public const selectedNodeBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(39168),null,true);
+			
+			public const defaultThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(000000));
+			
+			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
+			
+			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10092492));
+			
+			public const entityColumnsHashmap:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
+			
+			private const relatedColumnsHashmap:LinkableHashMap = new LinkableHashMap();
+			
+			/**
+			 * @public
+			 * This is mapping of a link to a document object. 
+			 * All the nodes within this panel will point to document objects in this map only.
+			 * When a query is made by each node, the documents retrieved are stored in this map.
+			 * */
+//			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+//			public const docsCSVDataSource:CSVDataSource = newLinkableChild(this,CSVDataSource);
+//			public static const DOC_KEYTYPE:String = "infomapDocURL";
+			
+			/**
+			 * @public
+			 * this search keyword will apply to all the nodes within the panel
+			 * This is not a query keyword. This is used only to search within the documents
+			 * of each node.
+			 * */
+			public const globalSearchKeyword:LinkableString = new LinkableString('');
+			
+			public const globalDateFilter:DateRangeFilter = new DateRangeFilter();
+			
+			public const globalSortByOption:LinkableString = registerLinkableChild(this,new LinkableString());
+			
+			public const globalFilterByOption:LinkableString = registerLinkableChild(this,new LinkableString());
+			
+			public const backgroundImageName:LinkableString = registerLinkableChild(this,new LinkableString(''),handleBackgroundImageChange);
+
+			private static var _selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
+				
+				UIUtils.linkDisplayObjects(map,nodes,false);
+				
+				registerDisposableChild(this,globalSearchKeyword);
+				registerDisposableChild(this,globalDateFilter);
+				
+				_subset = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+				
+				Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
+				
+				map.addEventListener(MouseEvent.MOUSE_UP,handleMouseEvents);
+				
+				
+				_entityKeySet.addGroupedCallback(this,parseRecordsSelectionQueryResponse,false);
+				
+				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
+				
+				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseEvents);
+				map.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseEvents);
+				
+				internalColorRamp.value = '<colorRamp name="Dark2" tags="ColorBrewer,basic,qualitative,printer-friendly">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>';
+				
+				linkBindableProperty(defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
+				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
+				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
+				
+//				globalSearchKeyword.addGroupedCallback(this,handleGlobalSearch);
+				
+//				_infomapSubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK]);
+//				
+//				_infomapSubMenu.addSubSubMenuItems("Add",["Query Node","Map Node"],[addInfoMapNode,addInfoMapLink]);
+//				_infomapSubMenu.addSubSubMenuItems("Show", ["Related Data records","Show related Documents"],[showRelatedDataRecords,showRelatedDocuments]);
+//				_infomapSubMenu.addSubSubMenuItems("Sort By", [QueryObject.SORT_BY_RELEVANCE,QueryObject.SORT_BY_DATE_PUBLISHED,QueryObject.SORT_BY_DATE_ADDED],
+//					[sortNodesBy,sortNodesBy,sortNodesBy],[[QueryObject.SORT_BY_RELEVANCE,nodes.getObjects()],[QueryObject.SORT_BY_DATE_PUBLISHED,nodes.getObjects()],[QueryObject.SORT_BY_DATE_ADDED,nodes.getObjects()]]);
+//				_infomapSubMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterNodesBy,filterNodesBy,filterNodesBy],
+//						[[QueryObject.FILTER_BY_NONE,nodes.getObjects()],[QueryObject.FILTER_BY_BOOKS,nodes.getObjects()],[QueryObject.FILTER_BY_PAPERS,nodes.getObjects()]]);
+//				//_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+//				_infomapSubMenu.addSubMenuItem("Extract Entities",extractEntityColumns);
+				
+				sideMenu.addQueryButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{addInfoMapNode();})
+				sideMenu.extractEntitiesButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{extractEntityColumns();})
+				
+				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
+//				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
+				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler);
+				
+				entityColumnsList.reverseButton.enabled = false;
+				entityColumnsList.reverseButton.visible = false;
+				
+				sourceType.dataProvider = QueryObject.filterByOptions;
+				sourceType.selectedItem = globalFilterByOption.value;
+				linkBindableProperty(globalFilterByOption,sourceType,"selectedItem");
+				
+				sortByComboBox.dataProvider = QueryObject.sortByOptions.concat("New Documents");
+				sortByComboBox.selectedItem = globalSortByOption.value;
+				linkBindableProperty(globalSortByOption,sortByComboBox,"selectedItem");
+				
+				nodes.addGroupedCallback(this,handleNodes,true);
+				sideMenu.addEventListener(MouseEvent.CLICK,handleMouseClickOnSideMenu);
+				enableSubMenu.value = false;
+			}
+			
+			/* points to the current selected to apply the sidemenu operations on */
+			public var currentNode:NodeHandler = null;
+			
+			private function handleNodes():void
+			{
+				var n:Array =nodes.getObjects();
+				
+				/* check if current node is removed, if so point it to null */
+				if(currentNode !=null)
+				{
+					//if current node is not found
+					if(!nodes.getName(currentNode))
+					{
+						currentNode = null;
+					}
+				}
+				
+				/* if only one node is present in the panel make it the current node */
+				if(n.length == 1)
+				{
+					currentNode = n[0];
+				}
+				
+				if(n.length >0)
+				{
+//					sideMenu.nodeSelector.visible = true;
+					sideMenu.m.visible = true;
+				}
+				else
+				{
+//					sideMenu.nodeSelector.visible = false;
+					sideMenu.m.visible = false;
+				}
+			}
+			
+			private function handleMouseClickOnSideMenu(event:Event=null):void
+			{
+				/* added a call to handleNodes to hide the toggle button */
+				handleNodes();
+				
+				var nodesToOperateOn:Array = [];
+				
+//				if(sideMenu.nodeSelectorGroup.selectedValue == "All") // apply to all nodes
+//				{
+//					nodesToOperateOn = nodes.getObjects();	
+//				}
+//				else // apply to current node only
+//				{
+//					if(currentNode == null) //if current node is empty 
+//						return;
+//					
+//					nodesToOperateOn = [currentNode];
+//				}
+				
+				if(event.target is spark.components.Label)
+				{
+					var labelText:String = event.target.text;
+					
+					if(QueryObject.filterByOptions.indexOf(labelText) != -1)
+					{
+						filterNodesBy(labelText,nodesToOperateOn);
+						return;
+					}
+					
+					else if(QueryObject.sortByOptions.indexOf(labelText) != -1)
+					{
+						sortNodesBy(labelText,nodesToOperateOn);
+						return;
+					}
+					
+					else if(NodeHandler.views.indexOf(labelText) != -1)
+					{
+						for each (var node:NodeHandler in nodesToOperateOn)
+						{
+							if(node.enablePinView.value)
+							{
+								node.currentView.value = labelText;
+							}
+						}
+					}
+					
+					else if (labelText == "New Documents")
+					{
+						for each (var n:NodeHandler in nodesToOperateOn)
+						{
+							if(n.enablePinView.value)
+							{
+								n.toggleShowNewDocsOnTop();
+							}
+						}
+					}
+					
+					else if(labelText == "Topics")
+					{
+						for each (var n3:NodeHandler in nodesToOperateOn)
+						{
+								n3.showClusters();
+						}
+					}
+					
+				}
+			}
+			private function filterNodesBy(option:String,nodesArray:Array):void
+			{
+				if(option == QueryObject.FILTER_BY_NONE)
+					option == "";
+				globalFilterByOption.value = option;
+				for each (var node:NodeHandler in nodesArray)
+				{
+					node.previousQuery.sources.value = option;
+				}
+			}
+			
+			private function globalFilterByUpdate():void {				
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					if (sourceType.selectedItem == QueryObject.FILTER_BY_NONE)
+						node.previousQuery.sources.value = "";		
+					else
+						node.previousQuery.sources.value = sourceType.selectedLabel;
+				}
+			}
+			
+			private function handleGlobalSortByUpdate():void {
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					if (sortByComboBox.selectedItem == "New Documents")
+					{
+						node.showNewDocumentsOnTop.value = true;						
+					}
+					else
+					{
+						node.showNewDocumentsOnTop.value = false;
+						node.previousQuery.sortBy.value = sortByComboBox.selectedLabel;
+					}
+				}
+			}
+			
+			private function sortNodesBy(option:String,nodesArray:Array):void
+			{
+				globalSortByOption.value = option;
+				for each (var node:NodeHandler in nodesArray)
+				{
+					node.previousQuery.sortBy.value = option;
+				}
+			}
+//			private var _firstLoad:Boolean = true;
+//			private function handleEntityColumnHashmap():void
+//			{
+//				if(entityColumnsHashmap.getObjects().length == 0 && _firstLoad)
+//					extractEntityColumns();
+//				_firstLoad = false;
+//			}
+			private var _loadingText:InfoMapsProgressBar = null;
+			private var _referencedColumns:Array = [];
+			private function extractEntityColumns():void
+			{
+				_tempEntityColumns.removeAllObjects();
+				
+				// Get all the referenced Columns
+				_referencedColumns = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root,ReferencedColumn);
+				
+				if (!_referencedColumns.length)
+					return;
+				
+				_checkedDataSources = new Dictionary();
+				_loadingText = new InfoMapsProgressBar();
+				
+				addChild(_loadingText);
+				
+				_loadingText.label= "Selecting Entity Columns";
+				
+				_itemCount = 0;
+				_totalItems = 0;
+				/* Iterate through each referenced column and get its parent */
+				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_LOW);
+			}
+			
+			private var _itemCount:int = 0;
+			private var _totalItems:int = 0;
+			private var _checkedDataSources:Dictionary = null;
+			private function _iterateReferencedColumns():Number
+			{
+				if(_referencedColumns.length == 0)
+					return 1;
+				
+				var col:ReferencedColumn = _referencedColumns.pop() as ReferencedColumn;
+				var dataSource:IDataSource = col.getDataSource();
+				
+				// get siblings of the column
+				if (dataSource is WeaveDataSource)
+				{
+					_totalItems++;
+					var service:IWeaveEntityService = (dataSource as WeaveDataSource).entityCache.getService();
+					var colID:int = StandardLib.asNumber(col.getMetadata('weaveEntityId'));
+					addAsyncResponder(service.getEntities([colID]), function(event:ResultEvent, _:*):void {
+						var columnEntities:Array = event.result as Array;
+						var parentIds:Array = VectorUtils.flatten(columnEntities.map(function(entity:Entity, ..._):*{ return entity.parentIds; }));
+						addAsyncResponder(service.getEntities(parentIds), function(event:ResultEvent, _:*):void {
+							var parentEntities:Array = event.result as Array;
+							var siblingIds:Array = VectorUtils.flatten(parentEntities.map(function(entity:Entity, ..._):*{ return entity.childIds; }));
+							addAsyncResponder(service.getEntities(siblingIds), function(event:ResultEvent, _:*):void {
+								_itemCount++;
+								var siblingEntities:Array = event.result as Array;
+								for each (var entity:Entity in siblingEntities)
+								{
+									if (entity.publicMetadata.dataType == 'string')
+									{
+										var objName:String = "";
+										if (entity.publicMetadata.name)
+											objName = entity.publicMetadata.name;
+										else if (entity.publicMetadata.title)
+											objName = entity.publicMetadata.title;
+										objName += "-" + entity.id;
+										if (!_tempEntityColumns.getObject(objName))
+										{
+											var col:ReferencedColumn = _tempEntityColumns.requestObject(objName, ReferencedColumn, false);
+											col.setColumnReference(dataSource, entity.id);
+										}
+									}
+									if (entity.publicMetadata.dataType != null && entity.publicMetadata.dataType != 'geometry')
+									{
+										if (entity.publicMetadata.name)
+											_columnsText += " " + entity.publicMetadata.name;
+										else if (entity.publicMetadata.title)
+											_columnsText += " " + entity.publicMetadata.title;
+									}
+								}
+								finishEntitySelection();
+							}, handleWeaveDataServiceError);
+						}, handleWeaveDataServiceError);
+					}, handleWeaveDataServiceError);
+				}
+				else if (dataSource is CSVDataSource)
+				{
+					if(!_checkedDataSources[dataSource])
+					{
+						_checkedDataSources[dataSource] = true;
+						var columnNames:Array = (dataSource as CSVDataSource).getColumnIds();
+						for each (var colname:* in columnNames)
+						{
+							var attrCol:IAttributeColumn = (dataSource as CSVDataSource).getColumnById(colname);
+							var attrColKeys:Array = attrCol.keys;
+							var minTest:Number = Math.min(attrColKeys.length,3);
+							var isEntityColumn:Boolean = false;
+							for(var count:int = 0; count < minTest; count++)
+							{
+								var check:Boolean = testForValidEntity(attrCol.getValueFromKey(attrColKeys[count]));
+								isEntityColumn = isEntityColumn || check;
+							}
+							if(isEntityColumn)
+							{
+								(dataSource as CSVDataSource).putColumnInHashMap(colname,_tempEntityColumns);
+							}
+						}
+					}
+				}
+				if (_referencedColumns.length == 0)
+				{
+					finishEntitySelection();
+					return 1;
+				}
+				else 
+					return 0;
+			}
+			
+			private function testForValidEntity(val:String):Boolean
+			{
+				var regex:RegExp = /.*[a-zA-Z]+.*/g;
+				return regex.test(val);
+			}
+			
+			private function handleWeaveDataServiceError(event:FaultEvent, token:Object):void
+			{
+				reportError(event);
+			}
+			
+			private var _columnsText:String = "";
+			private const _tempEntityColumns:LinkableHashMap = newDisposableChild(this,LinkableHashMap);
+			
+			private var _entityColumnList:EntityColumnsList = null;
+			private function finishEntitySelection():void
+			{
+				/* If all the children for all the parent IDs have been iterated we are done with Entity Selection */
+				if (_itemCount >= _totalItems)
+				{
+					if(_entityColumnList == null)
+					{
+						_entityColumnList = PopUpManager.createPopUp(this,EntityColumnsList,true) as EntityColumnsList;					
+					}
+					if(_entityColumnList.parent == null)//if it Popup.remove was called on this object, add it again
+					{
+						PopUpManager.addPopUp(_entityColumnList,this,true);
+					}
+					_entityColumnList.entityColumnsHashmap = _tempEntityColumns;
+					_entityColumnList.continueButton.addEventListener(MouseEvent.CLICK,handleContinueButtonClick);
+					_entityColumnList.finishButton.addEventListener(MouseEvent.CLICK,handleFinishButtonClick);
+					_entityColumnList.addEventListener(CloseEvent.CLOSE,handleClose);
+					PopUpManager.centerPopUp(_entityColumnList);
+					
+					if(contains(_loadingText))
+						removeChild(_loadingText);
+				}
+				else
+					_loadingText.setProgress(_itemCount, _totalItems);
+			}
+			
+			private function handleClose(event:CloseEvent):void
+			{
+				PopUpManager.removePopUp(event.target as IFlexDisplayObject);
+				if(contains(_loadingText))
+					removeChild(_loadingText);
+			}
+			
+			private function handleGetChildEntitiesFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error getting Child Entities");				
+			}
+			
+			private function handleContinueButtonClick(event:Event):void
+			{
+				copyEntityColumnsFromList();
+				addAsyncResponder(InfoMapAdminInterface.instance.extractKeywords(_columnsText),handleExtractKeywordsResult,handleExtractKeywordsFault);
+				_loadingText.label = "Extracting related keywords...";
+				_loadingText.setProgress(1,2); // setting progress to half
+				
+			}
+			
+			private function handleFinishButtonClick(event:Event=null):void
+			{
+				copyEntityColumnsFromList();
+				if(contains(_loadingText))
+					removeChild(_loadingText);
+			}
+			
+			private function copyEntityColumnsFromList():void
+			{
+				PopUpManager.removePopUp(_entityColumnList);
+				entityColumnsHashmap.delayCallbacks();
+				copySessionState(_entityColumnList.entityColumnsHashmap,entityColumnsHashmap);
+				entityColumnsHashmap.resumeCallbacks();
+			}
+			
+			private var _relatedKeywordsList:RelatedKeywordsList = null
+			private function handleExtractKeywordsResult(event:ResultEvent,token:Object=null):void
+			{
+				_relatedKeywordsList = PopUpManager.createPopUp(this,RelatedKeywordsList,true) as RelatedKeywordsList;
+				relatedKeywords.value = (event.result as Array).join(",");
+				_relatedKeywordsList.keywords = relatedKeywords.value;
+				PopUpManager.centerPopUp(_relatedKeywordsList);
+				_loadingText.setProgress(2,2); // setting progress to half
+				_relatedKeywordsList.finishButton.addEventListener(MouseEvent.CLICK,handleRelatedKeywordsContinue);
+				_relatedKeywordsList.addEventListener(CloseEvent.CLOSE,handleClose);
+				
+			}
+			
+			private function handleExtractKeywordsFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error getting Extracted Keywords");	
+			}
+			
+			private function handleRelatedKeywordsContinue(event:Event):void
+			{
+				relatedKeywords.value = _relatedKeywordsList.keywords;
+				updatePanelTitle();
+				if(contains(_loadingText))
+					removeChild(_loadingText);
+				PopUpManager.removePopUp(_relatedKeywordsList);
+				if(_callQueryNodeLater)
+				{
+					addQueryNodeUsingSelectedRecords();
+				}
+			}
+			private function handleGlobalKeyInput(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					globalSearchKeyword.value = globalSearchTextInput.text;
+				}
+			}
+			
+//			private function handleGlobalSearch():void
+//			{
+//				for each(var n:NodeHandler in nodes.getObjects())
+//				{
+//					n.filterBy(globalSearchKeyword.value);
+//				}
+//			}
+			
+//			private var _infomapSubMenu:SubMenu = null;
+			private function dragEnterHandler(event:DragEvent):void
+			{
+				if(event.dragInitiator is DocThumbnailComponent || event.dragInitiator is List)
+				{
+					DragManager.acceptDragDrop(this);
+				}
+			}
+			
+			private function dragDropHandler(event:DragEvent):void
+			{
+				
+				var t:DocThumbnailComponent;
+				
+				if(event.dragInitiator is List)
+				{
+					var list:List = (event.dragInitiator as List);
+					var node:NodeHandler = (list.parent.parent as AbstractListView).parentNode;
+					t = node.thumbnails.getObject((list.selectedItem as IQualifiedKey).localName) as DocThumbnailComponent; 
+				}
+				else{
+					t =	event.dragInitiator as DocThumbnailComponent; 
+				}
+				
+				//if the parent is a NodeHandler set hasBeenMoved to true and add it as a child to the InfoMapPanel
+				if(!(t.parent == this.map))
+				{
+					map.addChild(t);
+//					t.hasBeenMoved.value = true;	
+				}
+				
+				//move the thumbnail to the new location
+				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
+				t.move(localPoint.x,localPoint.y);
+				
+//				t.xPos.value = t.x;
+//				t.yPos.value = t.y;
+				
+				t.pos.setSessionState({x:t.x,y:t.y});
+				
+				t.height = 50;
+				t.width= 50;
+				
+			}
+			
+			private function showRelatedDataRecords():void
+			{
+				var nodeHandlers:Array = nodes.getObjects();
+				for each (var node:NodeHandler in nodeHandlers)
+				{
+					node.showRelatedRecords();
+				}
+			}
+			
+			private function showRelatedDocuments():void
+			{
+				var nodeHandlers:Array = nodes.getObjects();
+				for each (var node:NodeHandler in nodeHandlers)
+				{
+					node.showRelatedDocuments();
+				}
+			}
+			
+			// ToDo Remove old code
+			private var _subset:KeyFilter;
+			private function removeSelectedDocuments():void
+			{
+				var selectedDocs:Array = getSelectedDocumentKeys();
+				
+				_subset.excludeKeys(selectedDocs);
+				
+				_selectedKeySet.clearKeys();
+			}
+			
+			
+			
+			private function showAllDocuments():void
+			{
+//				var excludedKeys:Array =  _subset.excluded.keys;
+//				var dockeys:Array = [];
+//				
+//				for each(var key:IQualifiedKey in excludedKeys)
+//				{
+//					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+//						dockeys.push(key);
+//				}
+//				_subset.excluded.removeKeys(dockeys);
+				
+				//clearing all keys for now
+				_subset.replaceKeys(true,true);
+			}
+			
+			// ToDo Remove old code
+			private function getSelectedDocumentURLs():Array
+			{
+				var selectedKeys:Array = _selectedKeySet.keys;
+				var selectedDocs:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						selectedDocs.push(key.localName);
+				}
+				
+				return selectedDocs;
+			}
+			
+			// ToDo Remove old code
+			private function getSelectedDocumentKeys():Array
+			{
+				var selectedKeys:Array = _selectedKeySet.keys;
+				var selectedDocs:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						selectedDocs.push(key);
+				}
+				
+				return selectedDocs;
+			}
+			
+			private function handleMatchedEntities(event:ResultEvent,token:Object=null):void
+			{
+				var entities:Array = event.result as Array;
+				var keys:Array = [];
+				for each(var entity:String in entities)
+				{
+					//get all entity attribute columns of selected keytype
+					var attrCols:Array = getLinkableDescendants(Weave.root,IAttributeColumn);
+					
+					for each (var attrCol:IAttributeColumn in attrCols)
+					{
+						var entityValue:String = attrCol.getMetadata("isEntity");
+						if(entityValue == "true")
+						{
+							for each (var key:IQualifiedKey in attrCol.keys)
+							{
+								var value:String = ColumnUtils.getString(attrCol,key);
+								if(value.toLowerCase() == entity.toLowerCase())
+								{
+									keys.push(key);
+									break; //assuming that there will be only one such entity value in a column. This assumption could be wrong.
+								}
+							}
+						}
+					}
+				}
+				
+				if(!keys.length == 0)
+					_selectedKeySet.addKeys(keys);
+//				else
+//					_selectedKeySet.clearKeys();
+				
+//				Alert.show((event.result as Array).toString());
+			}
+			
+			private function handleMatchedEntitiesFault(event:FaultEvent,token:Object=null):void
+			{
+				WeaveAPI.ErrorManager.reportError(event.type);
+			}
+			
+			
+			private var selectionKeywords:LinkableString = new LinkableString("",null,false);
+			private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
+			private function validateDashedLine():void
+			{
+				_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
+			}
+			
+//			private var _selectionRectangleGraphicsCleared:Boolean = true;
+			private var dragStartX:Number;
+			private var dragStartY:Number;
+			private var sprite:Sprite =  new Sprite();
+			private var _startDrag:Boolean = false;
+			private function handleMouseEvents(event:MouseEvent):void
+			{
+				var localPoint:Point;
+				if(event.type == MouseEvent.MOUSE_DOWN)
+				{
+					/* Set the starting point of the Drag Coordinates */
+					localPoint= map.globalToLocal(new Point(event.stageX,event.stageY));
+					
+					dragStartX = localPoint.x;
+					dragStartY = localPoint.y;
+					_startDrag = true;
+				}
+				
+				/* If the Mouse is moving and primary button is down then draw the selection rectangle */
+				if(event.type == MouseEvent.MOUSE_MOVE && event.buttonDown && _startDrag)
+				{
+					if(sprite)
+						sprite.graphics.clear();
+					
+					map.rawChildren.addChild(sprite);
+					
+					var g:Graphics = sprite.graphics;
+					
+					_dashedLine.graphics = g; 
+					
+					_dashedLine.lineStyle(2, 0x00ff00, .75);
+					
+					localPoint = map.globalToLocal(new Point(event.stageX,event.stageY));
+					
+					var w:Number = localPoint.x - dragStartX;
+					var h:Number = localPoint.y - dragStartY;
+					
+					_dashedLine.drawRect(dragStartX, dragStartY, w, h);
+					
+					var selectionRect:Rectangle = sprite.getRect(map);
+					
+					map.graphics.clear();
+					
+					var currentNodes:Array = nodes.getObjects();
+					
+					var selectedKeys:Array = [];
+					
+					for (var i:int = 0; i<currentNodes.length; i++)
+					{
+						if(currentNodes[i] is LinkToInfoMapComponent)
+							continue;
+						var node:NodeHandler = currentNodes[i];
+						var currentDocs:Array = node.thumbnails.getObjects();
+						
+						
+						for each (var t:DocThumbnailComponent in currentDocs)
+						{
+							/* Only test for selection of document if it is moved, in which case it is somewhere on  the panel canvas OR
+							   if it belongs to the node and it is in Points view. Selection is enabled only in the points mode currently*/
+							if(node.movedThumbNails.getObject(t.docURL.value) || node.currentView.value == NodeHandler.POINTS_VIEW)
+							{
+								var r:Rectangle = t.getRect(map);
+								var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t.docURL.value);
+								if(t.visible == true && selectionRect.intersects(r))
+								{
+									//							map.graphics.lineStyle(1,0);
+									//							map.graphics.drawRect(r.x,r.y,r.width,r.height);
+									selectedKeys.push(key);
+								}
+							}
+						}
+					}
+					
+					_selectedKeySet.replaceKeys(selectedKeys);
+				}
+				
+				if(event.type == MouseEvent.MOUSE_UP)
+				{
+					_startDrag = false;
+					//clear any selection rectangle created on mouse drag
+					if(sprite)
+					{
+						sprite.graphics.clear();
+						if(map.rawChildren.contains(sprite))
+							map.rawChildren.removeChild(sprite);
+					}
+					
+					/* if */
+					
+					if((DraggablePanel.getTopPanel() is InfoMapPanel))
+						return;
+					
+					
+					var keywords:Array = InfoMapLoader.extractKeywordsFromSelection();
+					selectionKeywords.value = keywords.join(" ");
+				}
+			}
+			
+			
+			private function getUniqueKeywordsFromArray(keywords:Array):Array
+			{
+				//get unique keywords from extracted values 
+				var dict:Dictionary = new Dictionary();
+				
+				for each(var word:String in keywords)
+				{
+					if(dict[word] == undefined)
+						dict[word] = word;
+				}
+				
+				var uniqueEntityValues:Array = []
+				for each(var prop:String in dict)
+				{
+					uniqueEntityValues.push(prop);	
+				}
+				
+				return uniqueEntityValues;
+			}
+			
+			private var _selectionLoader:URLLoader = null;
+			private var _entityKeySet:KeySet = new KeySet();
+			
+			private function parseRecordsSelectionQueryResponse():void
+			{
+				var selectedDocs:Array = _entityKeySet.keys;
+				for each (var key:IQualifiedKey in selectedDocs)
+				{
+					if(infoMapsDataSource.containsDoc(key))
+						_selectedKeySet.addKeys(selectedDocs);
+				}
+			}
+			
+			
+			private function handleRequestError(event:IOErrorEvent):void
+			{
+				WeaveAPI.ErrorManager.reportError(event.text);
+			}
+			
+		
+			
+//			private function refreshNodes(event:TimerEvent):void
+//			{
+//				var handlers:Array = nodes.getObjects();
+//				
+//				for (var i:int = 0;i<handlers.length;i++)
+//				{
+//					if(handlers[i] is NodeHandler)
+//						(handlers[i] as NodeHandler).checkForNewDocuments();
+//					
+//				}
+//			}
+			
+			
+			private function handlePanelResize():void
+			{
+				map.validateNow();
+			}
+			
+			private function addInfoMapLink(mapName:String=null):void
+			{
+				var className:String = getQualifiedClassName(LinkToInfoMapComponent).split("::")[1];
+				var linkNodeName:String = nodes.generateUniqueName(className);
+				var linkNode:LinkToInfoMapComponent = new LinkToInfoMapComponent();
+				linkNode = nodes.requestObject(linkNodeName,LinkToInfoMapComponent,false);
+				linkNode.mapNameTextArea.text = mapName;
+				
+			}
+			
+			private var internalColorRamp:ColorRamp = new ColorRamp();
+			private var internalMin:Number = 0;
+			private var internalMax:Number = 13;
+			public function addInfoMapNode(query:String=null,op:String=null):void
+			{
+				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
+				var nodeName:String = nodes.generateUniqueName(className);
+				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				
+				nodeHandler.nodeBase.width = 200;//starting off with wide text area
+				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+				
+				if(globalSortByOption.value)
+					nodeHandler.previousQuery.sortBy.value =globalSortByOption.value;
+				if(globalFilterByOption.value)
+					nodeHandler.previousQuery.sources.value = globalFilterByOption.value;
+				
+				if(query)
+				{
+					nodeHandler.applyKeywords(query);
+				}
+			}
+			
+			public function addQuery(query:String):void
+			{
+				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
+				var nodeName:String = nodes.generateUniqueName(className);
+				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				
+				nodeHandler.nodeBase.width = 200;//starting off with wide text area
+				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+				
+				nodeHandler.applyKeywords(query);
+			}
+			
+			private var _callQueryNodeLater:Boolean = false;
+			public function addQueryNodeUsingSelectedRecords():void
+			{
+				if(entityColumnsHashmap.getObjects().length == 0)
+				{
+					_callQueryNodeLater = true;
+					return;
+				}
+				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
+				var nodeName:String = nodes.generateUniqueName(className);
+				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				
+				nodeHandler.nodeBase.width = 200;//starting off with wide text area
+				
+				//TODO: test to see if this goes beyond panel
+				nodeHandler.x = 50 * (nodes.getNames().length);
+				nodeHandler.y = 50 * (nodes.getNames().length);
+				
+				
+				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+				
+				if(globalSortByOption.value)
+					nodeHandler.previousQuery.sortBy.value =globalSortByOption.value;
+				if(globalFilterByOption.value)
+					nodeHandler.previousQuery.sources.value = globalFilterByOption.value;
+				updatePanelTitle();
+				nodeHandler.applyKeywordsFromSelection();
+			}
+
+			
+			private var loader:URLLoader = null;
+			private function addRssFeed():void
+			{
+				var url:String = feedURL.text;
+				url = StringUtil.trim(url);
+				if(url == "")
+				{
+					errorMsg.visible = true;
+					return;	
+				}
+				
+				var title:String = feedTitle.text;
+				title = StringUtil.trim(title);
+				if(title == "")
+				{
+					errorMsg.visible = true;	
+					return;
+				}	
+								
+				InfoMapAdminInterface.instance.addRssFeed(feedTitle.text,feedURL.text);
+				sortByTitle();
+				
+				errorMsg.visible = false;
+			}
+			
+			private function deleteRssFeed():void
+			{
+				if(grid.selectedItem == null)
+					return;
+
+				PopUpUtils.confirm(
+					this,
+					"Confirm delete",
+					'Delete Feed entry:  "'+(grid.selectedItem as Array)[0]+'"?',
+					del
+				);
+				
+				function del():void{
+					
+					var url:String = (grid.selectedItem as Array)[1];
+					
+					if (url =="")
+						return;
+					
+					InfoMapAdminInterface.instance.deleteRssFeed(url);
+					sortByTitle();
+				}
+			}
+			
+			private function sortByTitle():void
+			{
+				/* var dp:ArrayCollection = grid.dataProvider as ArrayCollection;
+				var sort:Sort = new Sort();
+				var sortF:SortField = new SortField("Title",true,false);
+				sort.fields = [sortF];
+				dp.sort = sort; */
+			} 
+			
+			
+			
+			private function handleDateFilter():void
+			{
+				DateFilterComponent.openInstance(this,globalDateFilter);
+			}
+			
+			private var _fileLoader:FileReference = null;
+			/**
+			 * browseForfiles: opens up a file browser window to upload CSV files 
+			 **/
+			private function browse():void
+			{
+				if(_fileLoader == null)
+				{
+					_fileLoader = new FileReference();
+					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
+					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+				}
+				
+				_fileLoader.browse();
+			}
+			
+			
+			private function handleDatasetSelected(event:Event):void
+			{
+				_fileLoader.load();
+			}
+			
+			private function handleBackgroundImageChange():void
+			{
+				if(backgroundImageName.value)
+					map.setStyle("backgroundImage","/infomap_images/"+ backgroundImageName.value+".png");
+			}
+			
+			private var _mapImage:BitmapData
+			private var imgLoader:Loader = new Loader();
+			private function handleDatasetLoaded(event:Event):void
+			{
+				imageURL.text = _fileLoader.name.substr(0,_fileLoader.name.length-4);
+				
+				imgLoader.contentLoaderInfo.addEventListener(Event.COMPLETE,handleLoaderComplete);
+				imgLoader.loadBytes(_fileLoader.data);
+				
+				
+			}
+			
+			private function handleLoaderComplete(event:Event):void
+			{
+				var imgBitMap:Bitmap = Bitmap(imgLoader.content);
+				
+				BitmapUtils.drawCenteredIcon(map.graphics,map.x+map.width/2,map.y+map.height/2,imgBitMap.bitmapData);
+			}
+			
+			private function saveImage(event:Event):void
+			{
+				
+								
+				var _byteArray:ByteArray = new ByteArray();
+				_byteArray.writeBytes(_fileLoader.data as ByteArray);
+				var encoder:Base64Encoder = new Base64Encoder();
+				encoder.encodeBytes(_byteArray);
+				
+				var request:URLRequest = new URLRequest('/ImageService/Base64ImageService/'+imageURL.text);
+				var encoderStr:String = encoder.drain();
+				request.method = URLRequestMethod.POST;
+				request.data = encoderStr;
+				trace('sent byteArray:', encoderStr.length);
+				WeaveAPI.URLRequestUtils.getURL(this,request, handleImageSave, handleImageSaveFault, null, URLLoaderDataFormat.BINARY);
+
+			}
+			
+			private function handleImageSave(event:ResultEvent,token:Object=null):void
+			{
+				Alert.show("Image saved as " + event.result,"Saved");
+				
+				backgroundImageName.value = imageURL.text;
+				
+			}
+			
+			private function handleImageSaveFault(event:ResultEvent,token:Object=null):void
+			{
+				Alert.show("Image could not be saved" + event.message,"Error");	
+			}
+			
+			
+			private function clearImage():void
+			{
+				map.graphics.clear();
+				backgroundImageName.value = "";				
+			}
+			
+			private var _fileReference:FileReferenceList = new FileReferenceList();
+//			private var _fileReferenceList:FileReferenceList = new FileReferenceList();
+			
+			private function browseAndUpload():void
+			{
+				var fileTypes:Array = [new FileFilter("Text Files", "*.doc; *.docx; *.txt; *.csv; *.pdf")];
+				_fileReference.browse(fileTypes);
+//				_fileReference.
+			}
+			
+			private function callDropBox(event:ResultEvent,token:Object = null):void
+			{
+				ExternalInterface.call(event.result as String);
+			}
+			
+			private function faultDropBox(event:FaultEvent,token:Object = null):void
+			{
+				
+			}
+			
+			[Bindable] private var fileUploadCount:int = 0;
+			[Bindable] private var targetFileUploadCount:int = 0;
+			private function folderSelectHanlder(event:Event):void
+			{
+				/* if(!username.text)
+				{
+					Alert.show("Please enter an username to associate with the files","Error");
+					return;
+				}
+				
+				var file:FileReference;
+				var selectedFiles:Array = _fileReference.fileList;
+				fileUploadCount = 0;
+				targetFileUploadCount = selectedFiles.length;
+				for (var i:int = 0; i < selectedFiles.length; i++)
+				{
+					file = selectedFiles[i] as FileReference;
+					file.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
+					if(file.size > 10000000)
+					{
+						WeaveAPI.ErrorManager.reportError("Error", "Cannot Upload file " + file.name + ". Maximum file size is 10 MB");
+						return;
+					}
+					try{
+						
+						file.load();
+					}
+					catch(e:Error)
+					{
+						WeaveAPI.ErrorManager.reportError(e.message);
+					}
+				} */
+			} 
+			
+			private function folderErrorHandler(event:IOErrorEvent):void
+			{
+				var fileRef:FileReference = event.target as FileReference;
+				WeaveAPI.ErrorManager.reportError(
+					"File upload failed",
+					"File: " + fileRef.name + "\n" + "Size: " + fileRef.size + "\n" + event.text);
+			}
+			
+			
+			/* private function fileLoadCompleteHandler(event:Event):void
+			{
+				if ((event.target as FileReference).data == null)
+					return;
+				if(!username.text)
+				{
+					Alert.show("Please enter an username to associate with the files","Error");
+					return;
+				}
+				InfoMapAdminInterface.instance.addDocumentToSolr(username.text,event.target as FileReference);
+				fileUploadCount++; //TODO Check for file index status.
+			} */
+			
+			private function handleSourceTypeChange():void
+			{
+//				if(sourceType.selectedItem == "ALL")
+//				{
+//					globalFilterByOption.value = "";
+//				}
+//				else if(sourceType.selectedItem == "Books")
+//				{
+//					globalFilterByOption.value = "Books";
+//				}
+				globalFilterByUpdate();
+			}
+			
+			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString("",validateCSVString));
+			
+			private function updatePanelTitle():void
+			{
+				if(relatedKeywords.value)
+					panelTitle.value = "InfoMapPanel with keywords " + relatedKeywords.value;
+				else
+					panelTitle.value = "InfoMapPanel with no keywords ";
+			}
+			
+			private var _csvRegEx:RegExp = /^,|,$|(,,+)/;
+			private function validateCSVString(value:*):Boolean
+			{
+				if(value)
+				{
+					return !_csvRegEx.test(value as String);
+				}
+				return true;
+			}
+			
+			private function applyRelatedKeywords():void
+			{
+				if(relatedKeywords.value != StringUtil.trim(relatedKeywordsTextArea.text))
+				{
+					relatedKeywords.value = StringUtil.trim(relatedKeywordsTextArea.text);
+					updatePanelTitle();
+					for each(var node:NodeHandler in nodes.getObjects())
+					{
+						node.refreshQuery();
+					}
+				}
+				relatedKeywordsButton.enabled = false;
+			}
+			
+			private var startDateStr:String = '';
+			private var endDateStr:String = '';
+			
+			private function handleStartDateChange():void
+			{
+				startDateStr = startRange.selectedDate.toDateString();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			private function handleEndDateChange():void
+			{
+				endDateStr = endRange.selectedDate.toDateString();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			
+			private function handleClearDates():void
+			{
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					//clearning dates in filterObject
+					node.previousQuery.dateFilter.endDate.value = '';
+					node.previousQuery.dateFilter.startDate.value = '';
+				}
+				
+				startRange.selectedDate = null;
+				endRange.selectedDate = null;
+				startRange.invalidateDisplayList();
+				endRange.invalidateDisplayList();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			private function handleDateFilterComboBoxChange():void
+			{
+				//we set this to empty string so that a query is after the end date is set and before the start date is set
+				startDateStr = '';
+				
+				endDateStr = 'NOW';
+				if(rangeComboBox.selectedItem == 'Since Last 1 Day')
+				{
+					startDateStr = 'NOW-01DAY';
+				}else if(rangeComboBox.selectedItem == 'Since Last 3 Days')
+				{
+					startDateStr = 'NOW-03DAYS';
+				}else if(rangeComboBox.selectedItem == 'Since Last Week')
+				{
+					startDateStr = 'NOW-07DAYS';
+				}else if(rangeComboBox.selectedItem == 'Since Last Month')
+				{
+					startDateStr = 'NOW-01MONTH';
+				}else if(rangeComboBox.selectedItem == 'Since Last Year')
+				{
+					startDateStr = 'NOW-12MONTHS';
+				}else if(rangeComboBox.selectedItem == '--Choose--')
+				{
+					//					handleClearDates();
+					//					return;
+				}
+				
+				startRange.selectedDate = DateUtils.getDateFromString(startDateStr);
+				endRange.selectedDate = DateUtils.getDateFromString(endDateStr);
+			}
+			
+			// we only want to make a query if both dates are set. 
+			private function handleDateChange():void
+			{
+				if(startDateStr == '' || endDateStr == '')
+					return;
+				
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					getCallbackCollection(node.previousQuery.dateFilter).delayCallbacks();
+					node.previousQuery.dateFilter.startDate.value = startDateStr;
+					node.previousQuery.dateFilter.endDate.value = endDateStr;
+					getCallbackCollection(node.previousQuery.dateFilter).resumeCallbacks();				 
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<!--the resize code is required so that the content is clipped by the canvas-->
+	<mx:Canvas backgroundImage="" id="map" clipContent="true" width="100%" height="100%" autoLayout="false" 
+			   verticalScrollPolicy="off" horizontalScrollPolicy="off" 
+			   resize="map.scrollRect=new Rectangle(0,0,map.width,map.height);handlePanelResize();"><!--For clipping the content at the edges-->
+				<mx:HBox width="100%" paddingLeft="5" paddingTop="5" horizontalAlign="right">
+					<!--<mx:HBox>
+						<mx:ComboBox id="nodeComboBox" dataProvider="{['Add a Query Node','Add a Map Node']}" fontWeight="bold" change="handleNodeComboBoxChange()"/>
+						<mx:TextInput keyUp="handleKeyUp(event)" id="keywordsInput" enabled="true" cornerRadius="5" borderStyle="solid" toolTip="Separate your keywords by space to apply the operator correctly"/>
+						<mx:Button label="Add" id="addNodeButton" click="handleAddNodeButtonClick()"/>
+					</mx:HBox>-->
+					<!--<mx:HBox>
+						<mx:Label text="Operator: "/>
+						<mx:RadioButtonGroup id="operatorButton" enabled="true"/>
+						<mx:RadioButton groupName="operatorButton" value="OR" label="OR"/>
+						<mx:RadioButton groupName="operatorButton" value="AND" label="AND" selected="true"/>
+					</mx:HBox>
+					<mx:HBox>
+						<mx:Label text="Date Range: "/>
+						<mx:TextInput  cornerRadius="5" borderStyle="solid" editable="false" id="startDateText" width="75" />
+							<mx:Label text="TO"/>
+						<mx:TextInput  cornerRadius="5" borderStyle="solid" editable="false" id="endDateText" width="75"/>
+						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Select" click="handleDateFilter()"/>
+						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Clear" click="clearDateFilter()"/>
+					</mx:HBox>-->
+					<mx:HBox visible="false">
+							<mx:Label fontWeight="bold" text="Search in Nodes:"/>
+							<mx:TextInput id="globalSearchTextInput" keyDown="handleGlobalKeyInput(event)" borderStyle="solid" cornerRadius="5" width="200" />
+							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter" click="handleDateFilter()"/>
+							<mx:Spacer width="50"/>
+					</mx:HBox>
+				</mx:HBox>
+				
+			<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="0"/>
+		
+		</mx:Canvas>
+	<ui:ControlPanel id="ctrlPanel">
+		<mx:VBox label="Basic Settings">
+			<mx:HBox>
+				<mx:Label text="Set Background Image: "/>
+				<mx:TextInput editable="false" id="imageURL"/>
+				<mx:Button label="Browse" click="browse()"/>
+				<mx:Button label="Clear" click="clearImage()"/>
+				<mx:Button label="Save" click="saveImage(event)"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Source Type: " fontWeight="bold" width="150"/>					
+				<mx:ComboBox id="sourceType"/>
+				<mx:Button id="applyeSourceType" label="Apply" click="handleSourceTypeChange()"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Sorted By: " fontWeight="bold" width="150"/>
+				<mx:ComboBox id="sortByComboBox"/>
+				<mx:Button id="applyeSortBy" label="Apply" click="handleGlobalSortByUpdate()"/>
+			</mx:HBox>
+			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically" 
+						 creationComplete="linkBindableProperty(Weave.properties.enableAutoSave,event.target,'selected')"/>
+			<mx:Spacer height="50"/>
+			<mx:HBox>
+				<mx:VBox>
+					<mx:HBox>
+						<mx:ColorPicker id="defaultNodeColorPicker"/>
+						<mx:Label width="150" text="Default Node Color"/>				
+					</mx:HBox>
+					
+					<mx:HBox>
+						<mx:ColorPicker id="selectedNodeColorPicker"/>
+						<mx:Label width="150" text="Selected Node Color"/>				
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VBox>
+					<mx:HBox>
+						<mx:ColorPicker id="defaultThumbnailBorderPicker"/>
+						<mx:Label width="200" text="Default Thumbnail Border Color"/>				
+					</mx:HBox>
+					
+					<mx:HBox>
+						<mx:ColorPicker id="selectedThumbnailBorderPicker"/>
+						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
+					</mx:HBox>
+					<mx:HBox>
+						<mx:ColorPicker id="thumbnailGlowColorPicker"/>
+						<mx:Label width="200" text="New Thumbnail Border Color"/>				
+					</mx:HBox>
+				</mx:VBox>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:VBox>
+					<mx:Label fontWeight="normal" text="Start Date"/>				
+					<mx:DateChooser id="startRange" change="handleStartDateChange()" showToday="false"/>
+				</mx:VBox>
+				<mx:VBox>
+					<mx:Label fontWeight="normal" text="End Date"/>
+					<mx:DateChooser id="endRange" change="handleEndDateChange()" showToday="false"/>
+				</mx:VBox>
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:ComboBox change="handleDateFilterComboBoxChange()" id="rangeComboBox"/> <!--The Combo Box is not linked to the filterObject-->
+				<mx:Button label="Remove Date Filter" click="handleClearDates()"/>
+				<mx:Button label="Apply Date Filter" click="handleDateChange()"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox label="Entity Selection">
+			<mx:Accordion width="100%" height="100%">
+				<mx:VBox label="Set Entity Columns" width="100%" height="100%" paddingLeft="10" paddingTop="10">
+					<ui:ColumnListComponent width="100%" id="entityColumnsList" hashMap="{entityColumnsHashmap}"/>
+				</mx:VBox>
+				<mx:VBox width="100%" height="100%" label="Set Keywords">
+					<mx:HBox>
+						<mx:Label fontWeight="bold" text="Current Keywords: "/>
+						<ui:HelpComponent content="Add keywords to use as a part of the queries. Separate the keywords by commas"/>
+ 					</mx:HBox>
+					<mx:TextArea id="relatedKeywordsTextArea" width="100%" cornerRadius="5" change="{relatedKeywordsButton.enabled = true}" 
+								 creationComplete='{event.currentTarget.text = relatedKeywords.value}'/>
+					<mx:Button id="relatedKeywordsButton" label="Apply" enabled="false" click="applyRelatedKeywords()" />
+					<!--<mx:Button label="Select Related Columns" click='{AttributeSelectorPanel.openDefaultSelector(relatedColumnsHashmap,"Select Related Columns")}'/>-->
+				</mx:VBox>
+			</mx:Accordion>
+		</mx:VBox>
+		<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
+		<mx:Label text="Enter RSS Feed: " />
+		<mx:HBox>
+			<mx:Label text="Title"/>
+			<mx:TextInput width="100" id="feedTitle" borderStyle="solid" cornerRadius="5" />
+			<mx:Label text="URL"/>
+			<mx:TextInput width="300" id="feedURL" borderStyle="solid" cornerRadius="5" />
+			<mx:Button label="Add" click="addRssFeed()" />
+		</mx:HBox>	
+		<mx:Label id="errorMsg" color="red" fontWeight="bold" text="Both fields are required." visible="false"/>
+			<mx:DataGrid id="grid" dataProvider="{InfoMapAdminInterface.instance.rssFeeds}" width="100%">
+				<mx:columns>
+					<mx:DataGridColumn dataField="0" sortDescending="true" headerText="Title"/>
+					<mx:DataGridColumn dataField="1" headerText="URL"/>
+				</mx:columns>
+			</mx:DataGrid>
+		<mx:HBox width="100%">
+			<!--mx:Button label="Index Now" click="infoMapsDataSource.startIndexing()" / ToDo yenfu-->
+			<mx:Button label="Index Now" click="InfoMapAdminInterface.instance.indexRssFeeds()" />
+			<mx:Spacer width="100%"/>
+			<mx:Button  label="Delete Selected Feed" click="deleteRssFeed()"/>
+		</mx:HBox>
+			<mx:TextArea backgroundColor="0xCCCCCC" borderThickness="0" editable="false" width="500" height="100%" fontWeight="bold" text="The indexing is scheduled to run every hour. You can hit the Index Now button if you want to index your feeds you added recently. Please allow 10 -15 minutes for the results to show up."/>
+		</mx:VBox>
+		<!--<mx:VBox id="uploadFilesPanel" label="Index Local Files">
+			<mx:HBox>
+				<mx:Label text="Enter username: "/>
+				<mx:TextInput width="200" id="username" />
+			</mx:HBox>
+			<mx:HBox>
+				<ui:TextInputWithPrompt id="fileNameInput" prompt="Select files/folder."/>
+				<mx:Button label="Upload File" click="browseAndUpload();"/>
+				<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files indexed' : ''}"/>
+			</mx:HBox>
+		</mx:VBox>-->
+	</ui:ControlPanel>
+</ui:DraggablePanel>

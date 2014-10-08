@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This component is used for handling node operations.
+It has a text area which diplays the keywords.
+It has 4 icons to:
+Close/Delete the node
+Edit the keyword
+Search within the node.
+Filter by Date
+Info to provide a tooltip describing the node (like number of documents found)
+
+-->
+<mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		width="{view.width}" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
+	<mx:Canvas id="view" width="100%" height="100%">
+		
+	</mx:Canvas>
+	<mx:HBox id="navBox" horizontalScrollPolicy="off" clipContent="false" horizontalAlign="center" verticalAlign="middle">
+		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowLeft.png')"  id="prevButton" toolTip="Prev" click="prev()"/>
+		<mx:Label id="indexText" textAlign="center"/>
+		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowRight.png')"  id="nextButton" toolTip="Next" click="next()"/>
+	</mx:HBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getTimer;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.controls.listClasses.IListItemRenderer;
+			import mx.core.DragSource;
+			import mx.core.UIComponent;
+			import mx.core.mx_internal;
+			import mx.events.DragEvent;
+			import mx.events.ListEvent;
+			import mx.managers.DragManager;
+			
+			import org.igniterealtime.xiff.events.OutgoingDataEvent;
+			
+			import weave.Weave;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.disposeObject;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerDisposableChild;
+			import weave.api.registerLinkableChild;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.StageUtils;
+			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.data.KeySets.FilteredKeySet;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			import weave.data.KeySets.SortedKeySet;
+			import weave.ui.SubMenu;
+			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.CustomCursorManager;
+			import weave.utils.VectorUtils;
+			import weave.visualization.layers.InteractiveVisualization;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				startIndex.addGroupedCallback(this,updateList,true);
+				getCallbackCollection(listFilters).addGroupedCallback(this,handleFilterChanges,true);
+			}
+			
+			public static var SELECTION_TEXT:String = "SELECTION";
+			public var parentNode:NodeHandler = null;
+			
+			public function get listFilters():ILinkableHashMap
+			{
+				return ((filteredKeySet.keyFilter).requestLocalObject(KeyFilter,true) as KeyFilter).filters;
+			}
+			
+			
+			public const filteredKeySet:FilteredKeySet = registerLinkableChild(this,new FilteredKeySet());
+			
+			private var _keys:KeySet = null;
+			public function set keys(value:Array):void
+			{
+				if(_keys != null)
+				{
+					disposeObject(_keys);
+				}
+
+				_keys = registerLinkableChild(this,new KeySet());
+				filteredKeySet.setSingleKeySource(_keys);
+				
+				_keys.replaceKeys(value);
+				_orderedKeys = value.concat();
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			public function get keys():Array
+			{
+				return _orderedKeySet.keys;
+			}
+			
+			private var _orderedKeys:Array = [];
+			/* 0 is both numbers are NaN. 1 if only a is a NaN. -1 if only b is a NaN. 1 if a is less than b. -1 if a is greater than b.*/
+			private function keysCompareFunction(key1:IQualifiedKey, key2:IQualifiedKey):int
+			{
+				var numeric1:int = _orderedKeys.indexOf(key1);
+				var numeric2:int = _orderedKeys.indexOf(key2);
+				if(numeric1 == -1 && numeric2 == -1)
+					return 0;
+				if(numeric1 == -1)
+					return 1;
+				if(numeric2 == -1)
+					return -1;
+				
+				if(numeric1 < numeric2)
+					return -1;
+				if(numeric1 > numeric2)
+					return 1;
+				
+				return 0;
+			}
+			
+			
+			private const _orderedKeySet:SortedKeySet = registerLinkableChild(this, new SortedKeySet(filteredKeySet,keysCompareFunction));
+				
+			public function applyFilter(name:String,keys:Array):void
+			{
+				var f:KeyFilter = listFilters.getObject(name) as KeyFilter;
+				if(f)
+				{
+					f.replaceKeys(false,true,keys);
+				}
+				else
+				{
+					var names:Array = listFilters.getNames();
+					names.push(name);
+					f= listFilters.requestObject(name,KeyFilter,false) as KeyFilter;
+					f.replaceKeys(false,true,keys);
+					listFilters.setNameOrder(names);
+				}
+				updateList(); /* the callback for listfilters does call updateList but before the keys are replaced. So we force call updateList */
+			}
+			
+			public function removeFilter(name:String):void
+			{
+				listFilters.removeObject(name);
+				var filterLabels:Array = parentNode.nodeBase.filterStatus.getChildren();
+				for each(var d:DisplayObject in filterLabels)
+				{
+					if(d is FilterLabelUI)
+					{
+						if((d as FilterLabelUI).filterName.text == name)
+						{
+							parentNode.nodeBase.filterStatus.removeChild(d);
+							break;
+						}
+					}
+				}
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			protected function handleFilterChanges():void
+			{
+				if(parentNode.nodeBase.filterStatus == null)
+					return;
+				var fls:Array = parentNode.nodeBase.filterStatus.getChildren();
+				for each(var fl:DisplayObject in fls)
+				{
+					if(fl is FilterLabelUI)
+					{
+						parentNode.nodeBase.filterStatus.removeChild(fl);
+					}
+				}
+				var filterNames:Array = listFilters.getNames(); 
+				for(var i:int = 0; i < filterNames.length; i++)
+				{
+					var filterLabel:FilterLabelUI = parentNode.nodeBase.filterStatus.addChild(new FilterLabelUI()) as FilterLabelUI;
+					filterLabel.filterName.text = filterNames[i];
+					filterLabel.deleteButton.addEventListener(MouseEvent.CLICK,handleFilterLabelClick);
+				}
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			protected function handleFilterLabelClick(event:MouseEvent):void
+			{
+				var filterLabel:FilterLabelUI = (event.target.parent as FilterLabelUI);
+				removeFilter(filterLabel.filterName.text);
+				if(parentNode.nodeBase.filterStatus.contains(filterLabel))
+					parentNode.nodeBase.filterStatus.removeChild(filterLabel);
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+//			public var enableList:Boolean = true;
+//			public function showList():void
+//			{
+//				enableList = true;
+//				updateList();
+//			}
+//			
+//			public function showThumbnails():void
+//			{
+//				enableList = false;
+//				updateList();
+//			}
+			
+			public var startIndex:LinkableNumber = new LinkableNumber(0);
+			
+			private var resultsRowCount:int = 10;
+			private var _spacing:int = 2;
+			
+			/* abstract */protected function updateList():void{}
+			/* abstract*/public function redrawList():void{}
+			
+			private function prev():void
+			{
+				//if startIndex is less than row count we don't want index to go below 0
+				if(startIndex.value <resultsRowCount)
+				{
+					startIndex.value = 0;
+					return;
+				}
+				startIndex.value -= resultsRowCount;
+				
+			}
+			
+			private function next():void
+			{
+				if(startIndex.value + resultsRowCount >= keys.length)
+				{
+					return;//nothing more to show
+				}
+				
+				startIndex.value += resultsRowCount;
+			}
+			
+			private var _listMaxLength:int = 10;
+			
+			
+			protected function updateIndexText():void
+			{
+				var includedKeys:Array = keys;
+				if(includedKeys.length == 0)
+				{
+					navBox.visible = false;
+					//indexText.text = "No documents found.";
+					return;
+				}
+				navBox.visible = true;
+				
+				var st:int = startIndex.value+1;
+				
+				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0
+				
+				if((startIndex.value + resultsRowCount) < includedKeys.length)
+				{
+					var et:int = startIndex.value + resultsRowCount; 					
+					indexText.text += et.toString();
+				}
+				else
+					indexText.text += includedKeys.length;
+				
+				indexText.text += " of " + includedKeys.length;
+			}
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

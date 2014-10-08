@@ -75,6 +75,7 @@ package
 	import weave.ui.SchafersMissingDataTool;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.annotation.SessionedTextBox;
+	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -127,7 +128,7 @@ package
 	{
 		[Embed(source="WeavePathUI.js", mimeType="application/octet-stream")]
 		public static const WeavePathUI:Class;
-
+		
 		private static var _:* = function():void
 		{
 			SessionStateEditor.initializeShortcuts();
@@ -191,6 +192,7 @@ package
 				GaugeTool,
 				HistogramTool,
 				Histogram2DTool,
+				InfoMapPanel,
 				GraphTool,
 				LineChartTool,
 				DimensionSliderTool,

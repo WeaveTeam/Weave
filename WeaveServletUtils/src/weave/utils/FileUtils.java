@@ -27,6 +27,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
+import java.net.URL;
+import java.net.URLConnection;
+import java.security.MessageDigest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -56,7 +60,46 @@ public class FileUtils
 		in.close();
 		out.close();
 	}
+	public static Boolean copyFileFromURL(String url, String destination)
+	{
+		InputStream in = null;
+		FileOutputStream out = null;
+		try{
+			URL l = new URL(url);
+			URLConnection c = l.openConnection();
+			c.connect();
+
+			in = c.getInputStream();
+
+			out =new FileOutputStream(destination);
+
+			copy(in, out);
+			in.close();
+			out.close();
+			return true;
+		}catch(Exception e)
+		{
+			System.out.println("Error copying file from URL: " + url);
+			return false;
+		}
+	}
 	
+	public static String generateUniqueNameFromURL(String url)
+	{
+		//generate unique name from URL
+		String imgName = null;
+		try{
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.reset();
+			byte[] message = md.digest(url.toString().getBytes());
+			BigInteger number = new BigInteger(1, message);
+			imgName = number.toString();
+		}catch(Exception e){
+			System.out.println("Error Generating unique name");
+			e.printStackTrace();
+		}
+		return imgName;
+	}
 	/**
 	 * This will set readable/writable to false for everyone except the owner of the file.
 	 * @param file

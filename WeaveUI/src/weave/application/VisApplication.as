@@ -46,6 +46,8 @@ package weave.application
 	import mx.effects.Fade;
 	import mx.events.EffectEvent;
 	import mx.managers.PopUpManager;
+	import mx.managers.ToolTipManager;
+	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.URLUtil;
@@ -76,6 +78,7 @@ package weave.application
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
 	import weave.menus.SessionMenu;
+	import weave.services.InfoMapAdminInterface;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
@@ -91,6 +94,7 @@ package weave.application
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
+	import weave.ui.infomap.InfoMapLoader;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.VectorUtils;
@@ -514,6 +518,22 @@ package weave.application
 			
 			PopUpManager.createPopUp(this, WeaveProgressBar);
 
+			saveSessionTimer.addEventListener(TimerEvent.TIMER,saveInfoMapsSessionState);
+			Weave.properties.enableAutoSave.addGroupedCallback(this,function():void{
+				if(Weave.properties.enableAutoSave.value)
+				{
+					saveSessionTimer.start();
+				}
+				else
+				{
+					if(saveSessionTimer.running)
+					{
+						saveSessionTimer.stop();
+						saveCurrentSession();//to make sure the enableAutoSave value is saved.
+					}
+				}
+			},true);
+				
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
 		}
@@ -616,6 +636,45 @@ package weave.application
 						Weave.fileName
 					);
 				}
+			);
+		}
+		
+		private var saveSessionTimer:Timer = new Timer(5000);
+		
+		private function saveInfoMapsSessionState(event:Event=null):void
+		{
+			if(!Weave.properties.enableAutoSave.value)
+				return;
+			
+			if (!detectLinkableObjectChange(saveInfoMapsSessionState,Weave.history))
+				return;
+			
+			saveCurrentSession();
+		}
+		
+		private function saveCurrentSession():void
+		{
+			var fileName:String = getFlashVarFile().split("/").pop();
+			
+			if(fileName == '')
+				return;
+			
+			fileName = Weave.fixWeaveFileName(fileName, true);
+			
+			var content:ByteArray= Weave.createWeaveFileContent();
+			
+			var token:AsyncToken = InfoMapAdminInterface.instance.saveWeaveFile(content,fileName);
+			
+			token.addAsyncResponder(
+				function(event:ResultEvent, token:Object = null):void
+				{
+					//reportError("Session State Saved" + event.result);
+				},
+				function(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event.fault, "Unable to Save Session State");
+				},
+				null
 			);
 		}
 		
@@ -954,7 +1013,10 @@ package weave.application
 						"4 exportMenuItems"
 					);
 				}
-				
+				if(Weave.properties.enableInfoMap.value)
+				{
+					InfoMapLoader.createContextMenuItems(this);
+				}
 				// Add context menu items for handling search queries
 				if (Weave.properties.enableSearchForRecord.value)
 					SearchEngineUtils.createContextMenuItems(this);

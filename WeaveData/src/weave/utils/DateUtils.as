@@ -1,0 +1,212 @@
+package weave.utils
+{
+	import com.hurlant.util.asn1.parser.boolean;
+	
+	import mx.formatters.DateFormatter;
+	
+	import org.igniterealtime.xiff.events.BookmarkChangedEvent;
+	
+	import weave.primitives.DateRangeFilter;
+
+	public class DateUtils
+	{
+		
+		private static var tempDate:Date;
+		public static function getCurrentDate():Date
+		{
+			tempDate = new Date();
+			var currentDate:Date = new Date();
+			tempDate.setDate(currentDate.getDate());
+			tempDate.setMonth(currentDate.getMonth());
+			tempDate.setFullYear(currentDate.getFullYear());
+			
+			return tempDate;
+		}
+		
+		private static var dateFormatter:DateFormatter;
+		public static function getCurrentDateInStringFormat(format:String='MM/DD/YYYY'):String
+		{
+			dateFormatter = new DateFormatter();
+			dateFormatter.formatString = format;
+			
+			return dateFormatter.format(getCurrentDate());
+		}
+		
+		public static function getDateInStringFormat(date:Date,format:String='MM/DD/YYYY'):String
+		{
+			dateFormatter = new DateFormatter();
+			dateFormatter.formatString = format;
+			
+			return dateFormatter.format(date);
+		}
+		
+		private static var validDateWords:Array = ['now','day','days','month','months'];
+		private static var validDateOperators:Array = ['+','-']
+		
+		public static const millisecondsPerMinute:uint = 1000 * 60;
+		public static const millisecondsPerHour:uint = 1000 * 60 * 60;
+		public static const millisecondsPerDay:uint = 1000 * 60 * 60 * 24;
+		//assumes 31 days
+		public static const millisecondsPerMonth:uint = 1000 * 60 * 60 * 24 * 31;
+		
+		/**
+		 * This function takes a string and converts it to a date object. This uses the Flex's
+		 * standard date formater if the string is in the standard date string format.
+		 * Else it assumes the string format uses the NOW keyword.
+		 * @param str The Date in String format
+		 * 
+		 * @return The Date object.
+		 * */
+		public static function getDateFromString(str:String):Date
+		{
+			if(!str)
+				return null;
+			
+			//if it does not start with now then use dateformatter to format the date
+			if(str.substr(0,3).toLowerCase() != 'now')
+				return DateFormatter.parseDateString(str);
+			
+			if(str.toLowerCase() == 'now')
+				return getCurrentDate();
+			
+			
+			var currentDate:Date = getCurrentDate();
+			
+			var operator:String = str.substr(3,1);
+			
+			//checking for valid operator
+			if(validDateOperators.indexOf(operator) == -1)
+				return null;
+			
+			var digit:Number = Number(str.substr(4,2));
+			
+			if(isNaN(digit))
+				return null;
+			
+			var modifier:String = str.substr(6);
+			
+			//checking if valid date keyword is used
+			if(validDateWords.indexOf(modifier.toLowerCase()) == -1)
+				return null;
+			
+			var dateInMS:Number = currentDate.getTime();
+			
+			if(operator == '+')
+			{
+				dateInMS = dateInMS + digit * getDateKeywordInMS(modifier);
+			}else if (operator == '-')
+			{
+				dateInMS = dateInMS - digit * getDateKeywordInMS(modifier);
+			}
+			
+			tempDate = new Date();
+			tempDate.setTime(dateInMS);
+			
+			return tempDate;
+		}
+		
+		/**
+		 * This function takes a date parameter and checks to see if it is within the range of the
+		 * start and end dates.
+		 * @param date The Date object we want to check
+		 * @param start The start date of the range
+		 * @param end The end date of the range
+		 * 
+		 * @return Boolean value.
+		 * */
+		public static function isDateWithinRange(date:Date,start:Date,end:Date):Boolean
+		{
+			var dateInMS:Number = date.getTime();
+			
+			var startInMS:Number = start.getTime();
+			
+			var endInMS:Number = end.getTime();
+			
+			if(startInMS <= dateInMS)
+				if(endInMS >= dateInMS)
+					return true;
+			return false;
+		}
+		
+		
+		/**
+		 * This function takes a date parameter in string format and checks to see if it is within the range of the
+		 * start and end dates.
+		 * @param date The date we want to check in String format 
+		 * @param start The start date of the range in String format 
+		 * @param end The end date of the range in String format 
+		 * 
+		 * @return Boolean value.
+		 * */
+		public static function isDateStringWithinRange(date:String,start:String,end:String):Boolean
+		{
+			var d:Date = getDateFromString(date);
+			var s:Date = getDateFromString(start);
+			var e:Date = getDateFromString(end);
+			
+			return isDateWithinRange(d,s,e);			
+		}
+		/**
+		 *Compares two dates in string format and returns true if they are same 
+		 * @param dateStr1 the first date parameter in String format
+		 * @param dateStr2 the second date parameter in String format
+		 * @return true if they are the same else false
+		 * 
+		 */		
+		public static function compareDate(dateStr1:String,dateStr2:String):Boolean
+		{
+			var date1:Date = getDateFromString(dateStr1);
+			var date2:Date = getDateFromString(dateStr2);
+			
+			if((date1.time - date2.time) ==0)
+				return true;
+			else
+				return false;
+			
+		}
+		
+		public static function getDateFilterStringForSolr(dateFilter:DateRangeFilter):String
+		{
+			var dateFilterString:String = null;
+			
+			//applying date filters if set
+			if(dateFilter)
+			{
+				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '' &&
+					dateFilter.startDate.value != null && dateFilter.endDate.value != null)
+				{
+					
+					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
+					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
+					
+					
+					//Solr requires the date format to be ISO 8601 Standard Compliant
+					//It should be in the form: 1995-12-31T23:59:59Z 
+					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
+					
+					//For start date we append 00:00:00 to set time to start of the day
+					sStr = sStr + 'T00:00:00Z';
+					
+					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
+					
+					//For end date we append 23:59:59 to set time to end of day
+					eStr = eStr + 'T23:59:59Z';
+					
+					dateFilterString = "date_added:["+sStr+" TO "+eStr + "]";
+				}
+			}
+			
+			return dateFilterString;
+		}
+		
+		private static function getDateKeywordInMS(key:String):uint
+		{
+			if(key.toLowerCase() == 'day' || key.toLowerCase() == 'days')
+				return millisecondsPerDay;
+			if(key.toLowerCase() == 'month' || key.toLowerCase() == 'months')
+				return millisecondsPerMonth;
+			
+			return null;
+		}
+	}
+}

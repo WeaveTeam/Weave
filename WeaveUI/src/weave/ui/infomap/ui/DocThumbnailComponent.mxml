@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This is a Flex Image component modified to adjust to act as a thumbnail for infomap
+so that it can be moved, selected, handle filters.
+-->
+<mx:Box xmlns:mx="http://www.adobe.com/2006/mxml"
+	   			paddingBottom="2"
+				paddingLeft="2"
+				paddingRight="2"
+				paddingTop="2"
+				implements="weave.api.core.ILinkableObject"
+				doubleClickEnabled="true"
+				doubleClick="handleDoubleClick(event)"
+				mouseDown="handleMouseDown(event)"
+				mouseUp="handleMouseUp(event)"
+				borderStyle="solid"
+				cornerRadius="5"
+				borderColor="black"
+				dragComplete="handleDragComplete(event)"
+				horizontalScrollPolicy="off"
+				verticalScrollPolicy="off" width="100%">
+	<mx:Image id="img" width="100%" height="100%"/>
+	<mx:Canvas id="point" height="100%" verticalScrollPolicy="off" clipContent="false"/>
+	<mx:Script>
+		<![CDATA[
+			import flash.text.engine.GroupElement;
+			
+			import mx.controls.Label;
+			import mx.core.DragSource;
+			import mx.core.mx_internal;
+			import mx.events.DragEvent;
+			import mx.events.MoveEvent;
+			import mx.managers.DragManager;
+			import mx.managers.IFocusManagerComponent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.Weave;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableOwner;
+			import weave.api.getLinkableRoot;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.services.IURLRequestToken;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableDisplayObject;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
+			import weave.core.SessionManager;
+			import weave.core.StageUtils;
+			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.data.KeySets.KeySet;
+			import weave.primitives.DateRangeFilter;
+			import weave.services.URLRequestUtils;
+			import weave.ui.infomap.core.FilterableInfoMapNode;
+			import weave.ui.infomap.core.IInfoMapNode;
+			import weave.ui.infomap.core.MovedThumbnailPosition;
+			import weave.ui.infomap.core.SelectableInfoMapDocument;
+			import weave.ui.infomap.layout.IInfoMapNodeLayout;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.BitmapUtils;
+			import weave.utils.CustomCursorManager;
+			import weave.utils.DateUtils;
+			
+			/**
+			 * @public
+			 * This variable sets the width of this image.
+			 * */
+//			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
+			/**
+			 * @public
+			 * This variable sets the height of this image.
+			 * */
+//			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
+			/**
+			 * @public
+			 * This variable sets the alpha/transparency of this image.
+			 * */
+//			public const imageAlpha:LinkableNumber = registerLinkableChild(this,new LinkableNumber(1.0));
+			/**
+			 * @public
+			 * This variable sets default border color of this image when it is not selected. Not currently Used.
+			 * */
+//			public const defaultBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00000000));
+			/**
+			 * @public
+			 * This variable sets the color of the border of this image when the document is selected.
+			 * */
+//			public const selectedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
+			/**
+			 * @public
+			 * This variable sets the color of the glow filter for highlighting new documents.
+			 * */
+//			public const glowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
+			
+			/**
+			 * @public
+			 * This variable highlights the document. Used for highlighing new document.s
+			 * */
+			public const highlighted:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false),highlightDoc);
+			
+			
+			/**
+			 * @public
+			 * This variable sets the thickness of the border of this image.
+			 * */
+//			public const borderThickness:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			/**
+			 * @public
+			 * This variable sets the x position of this image.
+			 * */
+//			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			/**
+			 * @public
+			 * This variable sets the y position of this image.
+			 * */
+//			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			public const pos:LinkableVariable = newLinkableChild(this,LinkableVariable);
+			
+			/**
+			 * @public
+			 * This variable is set when the thumbnail is moved.
+			 * This helps an IInfoMapNodeLayout to decide if it 
+			 * needs to re-compute the position of this image.
+			 * */
+//			public const hasBeenMoved:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
+			
+			public const docURL:LinkableString = newLinkableChild(this,LinkableString);
+			
+			public var titleLabel:Label = new Label();
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+//				linkBindableProperty(imageWidth,this,"width");
+//				linkBindableProperty(imageHeight,this,"height");	
+//				linkBindableProperty(imageAlpha,img,"alpha");
+				
+				
+//				selectedBorderColor.addGroupedCallback(this,setMode);
+//				defaultBorderColor.addGroupedCallback(this,setMode);
+				
+				pos.addGroupedCallback(this,handleMode,true);//set to true so that it is called if set from session state
+				
+				point.addChild(titleLabel);
+				
+				setStyle("borderThickness", 1.5);
+//				setStyle("borderColor",defaultBorderColor.value);
+				
+			}
+			
+			private function handleMode():void
+			{
+				var p:Object = pos.getSessionState();
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
+				{
+					if(!parent)
+					{
+						var hashMap:LinkableHashMap = getLinkableOwner(this) as LinkableHashMap;
+						var nodeHandler:ILinkableObject = getLinkableOwner(hashMap);
+						var panelHashMap:ILinkableObject = getLinkableOwner(nodeHandler) as ILinkableObject;
+						var panel:InfoMapPanel = getLinkableOwner(panelHashMap) as InfoMapPanel;
+						var root:ILinkableObject = getLinkableRoot(this);
+						panel.map.addChild(this);
+					}
+					
+					showImage();
+				}
+				else
+				{
+//					if(parent)
+//					{
+//						parent.removeChild(this);
+//					}
+				}
+			}
+			
+			private function showImage():void
+			{
+				handleImage();
+				img.visible = true;
+				//					img.includeInLayout = true;
+				
+				point.visible = false;
+				//					point.includeInLayout = false;
+				
+				setStyle("borderStyle","solid");
+				setStyle("borderThickness", 1.5);
+				
+				height = 55;
+				width= 55;
+				
+				img.width = 50;
+				img.height = 50;
+				point.width = 0;
+				point.height = 0;
+			}
+			
+			private function showPoint():void
+			{
+				img.visible = false;
+				img.width = 0;
+				img.height = 0;
+				height= 6;
+				width= 6;
+//				setStyle("borderThickness", 0);
+				
+				point.visible = true; 
+//				var g:Graphics = point.graphics;
+//				g.clear();
+//				g.lineStyle(1,0,1.0);
+//				g.beginFill(defaultBorderColor.value,1.0);
+//				g.drawCircle(0,0,3);	
+			}
+			
+			private var token:IURLRequestToken;
+			
+			private var _imageURL:String = null;
+			private function handleImage():void
+			{
+				//temporary fix. Fault event is not called when thumbnail is not found.
+				if(!parent)
+				{
+					return callLater(handleImage);
+				}
+				
+				img.source = _noImage;
+				
+//				if(_imageURL && checkIfValidURL(_imageURL))
+//				{
+//					trace("requesting 2 " + _imageURL,debugId(this));
+//					token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest,_imageURL);
+//				}
+				
+				if(docURL.value)
+				{
+					var source:InfoMapsDataSource = Weave.root.getObject("InfoMaps Data Source") as InfoMapsDataSource;
+									
+					if(source)
+					{
+						source.getColumnById("imgURL").addImmediateCallback(this, handleImageURLFromColumn, true);
+						
+					}
+					
+				}
+			}
+			
+			/**
+			 * if the imgName tag from Solr is empty, the url return was "http://129.63.16.86:8080/thumbnails/"
+			 * While this has been fixed, this function is added for old session states.
+			 * So if a request for an above URL is made, it is ignored
+			 * 
+			 * @returns true if URL has a valid image extension
+			 **/
+			private function checkIfValidURL(imageurl:String):Boolean
+			{
+				var matchArray:Array = imageurl.match(/(.jpg|.jpeg|.png)$/g);
+				return (matchArray.length >0); 
+			}
+			
+			private function handleImageURLFromColumn():void
+			{
+				var source:InfoMapsDataSource = Weave.root.getObject("InfoMaps Data Source") as InfoMapsDataSource;
+				
+				//if URL is already set don't do anything. This is to avoid callbacks for csv sources
+				_imageURL = source.getImageURLForURL(docURL.value);
+				if(_imageURL == null || !checkIfValidURL(_imageURL))
+					return;
+//				trace("requesting 1 " + _imageURL,debugId(this));
+				token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest,_imageURL);
+			}
+			
+			public function dispose():void
+			{
+				//if this image is disposed, then we cancel the image content request
+				if(token)
+					token.cancelRequest();
+			}
+			
+			//There is no option to add borders to a Flex Image Component. As a workaround, we override the updateDisplayList,
+			//so if the doc object is selected we draw a rectangle around the image to act as border.
+			//Solution from :http://www.flexer.info/2008/06/10/how-to-make-an-image-with-border/
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+			}
+			
+			private function handleImageRequest(event:ResultEvent,token:Object=null):void
+			{
+//				trace("found " + token);
+				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
+					return;
+				try{
+					if(isFinite(height) && isFinite(width))
+						img.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,width,height));
+				}catch(e:Error){
+					reportError(e);
+				}
+			}
+			
+			[Embed(source='/weave/resources/images/no-image.gif')]
+			private var _noImage:Class;
+			private function handleImageFaultRequest(event:FaultEvent,token:Object=null):void
+			{
+				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
+					return;
+//				trace("not found " + token);
+				img.source = _noImage;
+			}
+			
+			private var _mouseOver:Boolean = false;
+			private function handleMouseOver(event:MouseEvent):void
+			{
+				_mouseOver = true;
+				if(!event.buttonDown)
+				{
+					var p:Object = pos.getSessionState();
+					if(p && (!isNaN(p.x) && !isNaN(p.y)))
+					{
+						setStyle("borderStyle","none");
+					}
+//					this.invalidateDisplayList();
+					showDocSummary(event);
+				}
+			}
+			
+			
+			
+			private function handleDoubleClick(event:Event):void
+			{
+				if(docURL.value == "")
+					return;
+				var link:String = docURL.value;
+				var linkLen:int = link.length;
+				var linkExtension:String = link.substring(linkLen-3,linkLen);
+//				if(linkExtension == "pdf")
+//				{
+//					link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+//				}
+//				else{
+//					link = docURL.value;
+//				}
+				link = docURL.value;
+				navigateToURL(new URLRequest(link));
+			}
+			
+			private var dragged:Boolean = false;
+			private var _mouseDown:Boolean = false;
+			private var _lastMouseDownPoint:Point = new Point();
+			private function handleMouseDown(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				highlighted.value = false;
+				timer.stop();
+				removeDocSummary();
+				_mouseDown = true;
+				_lastMouseDownPoint.x = event.localX;
+				_lastMouseDownPoint.y = event.localY;
+				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+			}
+			
+			private function handleMouseMove(event:MouseEvent):void
+			{
+				dragged = true;	
+//				this.startDrag();
+//				var dragInitiator:InfoMapPanel = getLinkableOwner(getLinkableOwner(this.parent as NodeHandler) as LinkableHashMap) as InfoMapPanel;
+				var dragInitiator:DocThumbnailComponent = this;
+				var ds:DragSource = new DragSource();
+				var imgCopy:Image = new Image();
+//				imgCopy.width = width;
+//				imgCopy.height = height;
+//				imgCopy.source = new Bitmap((img.source as Bitmap).bitmapData);
+				
+				var bd:BitmapData = new BitmapData(width,height,true,0x000000);
+				var m: Matrix = new Matrix();
+				bd.draw(this,m );
+				imgCopy.source = new Bitmap(bd);
+				
+				
+				DragManager.doDrag(dragInitiator, ds, event,imgCopy);
+				stage.addEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
+			}
+			
+			private function handleDragComplete(event:DragEvent):void
+			{
+				DragManager.mx_internal::dragProxy.visible= false; //this disables the drop animation
+				
+				var parentNH:NodeHandler = null;
+				/* The relatedObject could be the InfoMapsPanel or 
+				the NodeBaseComponent of the NodeHandler for the query node this belongs to */
+				
+				/* if it is a NodeBaseComponent, "add" it back to the query node and remove from moved thumbnails */
+				if(event.relatedObject is NodeBaseComponent) 
+				{
+					parentNH = event.relatedObject.parent as NodeHandler;
+					parentNH.movedThumbNails.removeObject(docURL.value) as MovedThumbnailPosition;
+					this.parent.removeChild(this);
+					pos.setSessionState({});
+					/* If it is not a moved out thumbnail, remove mouse over and out event listeners*/
+					if(hasEventListener(MouseEvent.MOUSE_OVER))
+					{
+						removeEventListener(MouseEvent.MOUSE_OVER,handleMouseOver);
+					}
+					if(hasEventListener(MouseEvent.MOUSE_OUT))
+					{
+						removeEventListener(MouseEvent.MOUSE_OUT,handleMouseOut);
+					}
+				}
+				/* else do a regular move */
+				else
+				{
+					this.move(x- _lastMouseDownPoint.x ,y - _lastMouseDownPoint.y);
+					handleMove();					
+				}
+			}
+			
+			override public function move(x:Number, y:Number):void
+			{
+				super.move(x,y);
+			}
+			
+			/* Made this function public. So that when this component is dragged from a list it is added to the movedThumbnails  */
+			public function handleMove():void
+			{
+				pos.setSessionState({x:x,y:y});
+				
+				var parentNH:NodeHandler = null;
+				var mtp:MovedThumbnailPosition = null;
+				
+				if((this.parent.parent) is InfoMapPanel)
+				{
+					var parentMap:InfoMapPanel = (this.parent.parent) as InfoMapPanel; //better way ?
+					
+					var nodeHandlers:Array = parentMap.nodes.getObjects();
+					for each (var n:NodeHandler in nodeHandlers)
+					{
+						if(n.thumbnails.getObject(docURL.value) == this)
+						{
+							parentNH = n;
+							break;
+						}
+					}
+					
+			}else if(this.parent.parent is ThumbnailsLayout)
+				{
+					parentNH = this.parent.parent.parent as NodeHandler;
+				}
+				
+				//set the movedThumbnailPosition for the thumbnail
+				mtp = parentNH.movedThumbNails.requestObject(docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
+				
+				mtp.xPos.value = x;
+				mtp.yPos.value = y;
+				
+				/* We add en event listener for mouse over and mouse out when it is a moved out thumbnail */
+				if(!hasEventListener(MouseEvent.MOUSE_OVER))
+				{
+					addEventListener(MouseEvent.MOUSE_OVER,handleMouseOver);
+				}
+				if(!hasEventListener(MouseEvent.MOUSE_OUT))
+				{
+					addEventListener(MouseEvent.MOUSE_OUT,handleMouseOut);
+				}
+				
+			}
+			
+			/*Different from move. We are only laying out the thumbnail in a desired position without instructing a move so that \
+			we don't have to worry if the thumbnail hasBeenMoved or not*/
+			public function positionThumbnail(xPos:Number,yPos:Number):void
+			{
+				move(xPos,yPos);
+				showImage();
+			}
+			
+			/*Different from move. We are only laying out the thumbnail in a desired position without instructing a move so that \
+			we don't have to worry if the thumbnail hasBeenMoved or not*/
+			public function positionPoint(xPos:Number,yPos:Number):void
+			{
+				move(xPos,yPos);
+				showPoint();
+			}
+			
+			private function handleStageMouseUp(event:MouseEvent):void
+			{
+				if(_mouseDown && stage != null)
+				{
+					stage.removeEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
+					handleMouseUp();
+				}
+			}
+			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			private function handleMouseUp(event:MouseEvent=null):void
+			{
+				//if the mouse is not down on this do nothing
+				if(!_mouseDown)
+					return;
+				
+				_mouseDown = false;
+				this.stopDrag();
+				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				
+//				this.invalidateDisplayList();
+				//if it is drag move then we do nothing, else the mouseUp is a selection
+				if(dragged)
+				{
+					dragged = false;
+					return;
+				}
+
+				
+				var p:Object = pos.getSessionState();
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
+				{
+					setStyle("borderStyle","solid");
+				}
+				removeDocSummary();
+ 				toggleSelection();
+			}
+			
+			private function toggleSelection():void
+			{
+				
+				//if the mouse is down on this do nothing
+				if(_mouseDown)
+					return;
+				
+//				var lastMouseEvent:Event = WeaveAPI.StageUtils.event;
+//				
+//				if(lastMouseEvent.type == MouseEvent.DOUBLE_CLICK)
+//					return;
+				
+				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL.value);
+				
+				if(_selection.containsKey(key))
+				{
+					_selection.removeKeys([key]);
+//					point.filters = [selectionBlur];
+				}
+				else
+				{
+					_selection.addKeys([key]);
+//					point.filters = [shadow];
+				}
+			}
+			
+			
+			private function handleMouseOut(event:Event=null):void
+			{
+				_mouseOver = false;
+				
+				//fix for buggy drag-drop
+				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				
+				var p:Object = pos.getSessionState();
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
+				{
+					setStyle("borderStyle","solid");
+				}
+//				this.invalidateDisplayList();
+				
+				removeDocSummary();
+			}
+
+			private	var docPreview:DocumentSummaryComponent;
+			private function showDocSummary(event:MouseEvent):void
+			{
+				var hashMap:LinkableHashMap = getLinkableOwner(this) as LinkableHashMap;
+				var nodeHandler:ILinkableObject = getLinkableOwner(hashMap);
+				DocumentSummaryComponent.show(event.stageX,event.stageY,docURL.value,this,nodeHandler as NodeHandler);
+				
+			}
+			
+			private function removeDocSummary(event:Event=null):void
+			{
+				DocumentSummaryComponent.hide();
+			}
+			
+			private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
+			private var selectionBlur:BlurFilter = new BlurFilter(Weave.properties.selectionBlurringAmount.value,Weave.properties.selectionBlurringAmount.value,3);
+			
+			public static const DEFAULT_MODE:String = "default";
+			public static const SELECTED_MODE:String = "selected";
+			public static const UNSELECTED_MODE:String = "unselected";
+			
+			private var _selected:Boolean = false;
+			public function setMode(mode:String="default"):void
+			{
+				
+				if(mode=="selected")
+				{
+					_selected = true;
+					filters = [shadow];
+				}else if(mode=="unselected")
+				{
+					_selected = false;
+					filters = [selectionBlur];
+					/* if it is highlighted we stop the glowing to make sure only selected documents have higher alpha*/
+					if(highlighted.value)
+						timer.stop();
+				}else if(mode=="default")
+				{
+					_selected = false;
+					filters=[];
+					/* In case timer was stopped to show  selected/unselected we restart timer to back to its default glow mode */
+					if(highlighted.value)
+						timer.start();
+				}
+				
+							
+				//this will force a call to the updateDisplayList which will draw a border around this image
+				this.invalidateDisplayList();
+			}
+			
+			private var glowFilter:GlowFilter = new GlowFilter(10092492);
+			private var timer:Timer = new Timer(125);
+			private function startGlow():void
+			{
+				filters = [glowFilter];
+				timer.addEventListener(TimerEvent.TIMER,changeGlow);
+				timer.start();
+			}
+			
+			private function highlightDoc():void
+			{
+				if(highlighted.value)
+					startGlow();
+				else
+					filters = [];
+			}
+			
+			private function changeGlow(event:TimerEvent):void
+			{
+				glowFilter.alpha = 0.125 + (event.target.currentCount % 8) *0.125;
+				glowFilter.color = 10092492;
+				if(_selected)
+				{
+					filters=[shadow,glowFilter];
+				}
+				else
+				{
+					filters=[glowFilter];
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<!--<mx:Image id="img"/>-->
+</mx:Box>
+
+				

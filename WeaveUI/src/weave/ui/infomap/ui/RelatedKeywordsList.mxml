@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow width="400" height="400" title="Selected Keywords" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" xmlns:ui1="weave.ui.infomap.ui.*" showCloseButton="true">
+	<mx:VBox width="100%" height="100%" horizontalAlign="right">
+		<mx:List width="100%" borderThickness="0" id="relatedKeywordsList" height="100%" dataProvider="{relatedKeywordsArrayCollection}">
+			<mx:itemRenderer>
+				<mx:Component>
+					<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
+						
+						<mx:Script>
+							<![CDATA[
+								private function handleSelectionChange():void
+								{
+									data.selected = this.selected;
+								}
+							]]>
+						</mx:Script>
+					</mx:CheckBox>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:List>
+		<mx:HBox width="100%">
+			<mx:Label text="Add keywords: "/>
+			<ui:HelpComponent content="If you would like to add more keywords not present in the list,type them in the text area below and separate the keywords by commas"/> 
+		</mx:HBox>
+		<ui1:CommaSeparatedTextInput width="100%" id="additionalKeywords"/>
+
+		<mx:Button enabled="{!additionalKeywords.isError}" id="finishButton" label="Finish"/>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			import weave.data.CSVParser;
+
+			[Bindable]
+			private var relatedKeywordsArrayCollection:ArrayCollection = new ArrayCollection();
+			
+			public function set keywords(value:String):void
+			{
+				var relatedKeywordsArray:Array = [];
+				var words:Array = value.split(',');
+				for(var i:int = 0; i <words.length; i++)
+				{
+					var k:RelatedKeywordsListItemObject = new RelatedKeywordsListItemObject();
+					k.label = words[i];
+					k.selected = false;
+					relatedKeywordsArray.push(k);								
+				}
+				
+				relatedKeywordsArrayCollection.source = relatedKeywordsArray;
+			}
+			private var _csvRegEx:RegExp = /^,|,$|(,,+)/;
+			public function get keywords():String
+			{
+				var keywordObjects:Array = relatedKeywordsArrayCollection.source;
+				var temp:Array = [];
+				var value:String = "";
+				for(var i:int = 0; i <keywordObjects.length; i++)
+				{
+					if(keywordObjects[i].selected)
+					{
+						temp.push(keywordObjects[i].label);	
+					}
+				}
+				
+				value = temp.join(",");
+				
+				
+				if(additionalKeywords.commaSeparatedString)
+				{
+					value = value? value + "," + additionalKeywords.commaSeparatedString:additionalKeywords.commaSeparatedString;
+				}
+				
+				return value;
+			}
+			
+		]]>
+	</mx:Script>
+</mx:TitleWindow>

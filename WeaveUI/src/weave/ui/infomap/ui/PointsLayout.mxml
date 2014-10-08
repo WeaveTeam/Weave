@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="300" height="200"
+		   xmlns:infomap="weave.ui.infomap.*" 
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off"
+		   clipContent="false"
+		   mouseMove="handleMouseOver(event)"
+		   rollOut="handleRollOut(event)">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Text;
+			import mx.utils.ArrayUtil;
+			
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.VectorUtils;
+			
+			private var _parentNode:NodeHandler = null;
+			
+			private var _keywordsOfEachTopic:Array = [];
+			public function drawPoints(urlsOfEachTopic:Array, keywordsOfEachTopic:Array, parentNode:NodeHandler):void
+			{
+				removeAllChildren();
+				_keywordsOfEachTopic = keywordsOfEachTopic.concat();
+				var g:Graphics = this.graphics;
+				g.clear();
+				
+				_parentNode = parentNode;
+				
+				var urlsArray:Array = [];
+				
+				var maxI:int = 0;
+				var minI:int = 0;
+				var len:int = urlsOfEachTopic.length -1; 
+				
+				if(len >1)//do swapping for largest and smallest array only for more than 1 subtopics
+				{
+					
+					for (var count:int=1; count<urlsOfEachTopic.length; count++)
+					{
+						if(urlsOfEachTopic[maxI].length<urlsOfEachTopic[count].length)
+							maxI = count;
+						if(urlsOfEachTopic[minI].length>urlsOfEachTopic[count].length)
+							minI = count;
+					}
+					
+					
+					//swapping largest array to first position
+					var temp:Array = [];
+					VectorUtils.copy(urlsOfEachTopic[0],temp);
+					VectorUtils.copy(urlsOfEachTopic[maxI],urlsOfEachTopic[0]);
+					VectorUtils.copy(temp,urlsOfEachTopic[maxI]);
+					
+					//swapping smallest array to last position
+					temp = [];
+					VectorUtils.copy(urlsOfEachTopic[len],temp);
+					VectorUtils.copy(urlsOfEachTopic[minI],urlsOfEachTopic[len]);
+					VectorUtils.copy(temp,urlsOfEachTopic[minI]);
+				}
+				
+				_urlsOfEachTopic = urlsOfEachTopic;
+				_currentIteration = 0;
+				_currentTopic = 0;
+				WeaveAPI.StageUtils.startTask(this,_iterate,WeaveAPI.TASK_PRIORITY_LOW);
+//					g.lineStyle(1);
+//					g.drawCircle(xDisplacement,yDisplacement,radius);
+					
+//					for(var j:int=0; j <(urlsOfEachTopic[i] as Array).length; j++)
+//					{
+//						var t:DocThumbnailComponent = parentNode.thumbnails.getObject(urlsOfEachTopic[i][j]) as DocThumbnailComponent;
+//						if(t.hasBeenMoved.value)
+//							continue;
+//						//Read http://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+//						var theta:Number = 2*Math.PI*Math.random();
+//						var u:Number = Math.random() + Math.random();
+//						var dist:Number = u>1?2-u:u;
+//						
+//						var xPos:Number = (Math.cos(theta) * dist * radius) + (xDisplacement);
+//						var yPos:Number = (Math.sin(theta) * dist * radius) + (yDisplacement);
+////						trace(xPos,xPos);
+//						addChild(t);
+//						t.positionPoint(xPos,yPos);
+////						count++;
+//					}
+					
+			}
+			
+			
+			private var _urlsOfEachTopic:Array;
+			private var _currentTopic:Number;
+			private var _currentURLSToPlot:Array;
+			private var _currentRadius:Number;
+			private var _currentIteration:Number;
+			private var _currentXDisplacement:Number;
+			private var _currentYDisplacement:Number;
+			
+			private var _topicsTextWidth:Number = 100;			
+			private function _iterate():Number
+			{
+				//iterating through each topic
+				if(_currentTopic>=_urlsOfEachTopic.length)
+					return 1;
+				
+				//hardcoding positons of circular regions of each topic					
+				if(_currentTopic==0)
+				{
+					_currentXDisplacement = 50;
+					_currentYDisplacement = 50;
+				}else if(_currentTopic ==1)
+				{
+					_currentXDisplacement = 150;
+					_currentYDisplacement = 50;
+				}else if(_currentTopic ==2)
+				{
+					_currentXDisplacement = 50;
+					_currentYDisplacement = 150;
+				}else if(_currentTopic ==3)
+				{
+					_currentXDisplacement = 250;
+					_currentYDisplacement = 50;
+				}else if(_currentTopic ==4)
+				{
+					_currentXDisplacement = 250;
+					_currentYDisplacement = 100;
+				}
+				
+				_currentURLSToPlot = _urlsOfEachTopic[_currentTopic];
+				_currentRadius = Math.round(_currentURLSToPlot.length);
+				
+				if(_currentRadius>50)
+					_currentRadius= 50;
+				
+				if(_currentRadius<20)
+					_currentRadius= 20;
+				
+				if(_currentIteration < _currentURLSToPlot.length)
+				{
+					_currentURLSToPlot = _urlsOfEachTopic[_currentTopic];
+					var t:DocThumbnailComponent = _parentNode.thumbnails.getObject(_currentURLSToPlot[_currentIteration]) as DocThumbnailComponent;
+					var pos:Object = t.pos.getSessionState();
+					if(!pos || isNaN(pos.x) || isNaN(pos.y))
+					{
+						//Read http://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+						var theta:Number = 2*Math.PI*Math.random();
+						var u:Number = Math.random() + Math.random();
+						var dist:Number = u>1?2-u:u;
+						
+						var xPos:Number = (Math.cos(theta) * dist * _currentRadius) + (_currentXDisplacement);
+						var yPos:Number = (Math.sin(theta) * dist * _currentRadius) + (_currentYDisplacement);
+						//						trace(xPos,xPos);
+						addChild(t);
+						t.positionPoint(xPos,yPos);
+					}
+					_currentIteration++;
+				 }
+				if(_currentIteration >= _currentURLSToPlot.length)
+				{
+					
+					var topicText:Text = new Text();
+					topicText.text = (_keywordsOfEachTopic[_currentTopic] as Array).join(',');
+					topicText.setStyle("fontSize","10");
+					topicText.width = _topicsTextWidth;
+					topicText.x = _currentXDisplacement - topicText.width/2;
+					topicText.y = _currentYDisplacement;
+					topicText.mouseChildren = false;
+					addChild(topicText);
+					
+					_currentTopic++;
+					_currentIteration = 0;
+				}
+				return _currentTopic/_urlsOfEachTopic.length;
+			}
+			
+			private function handleMouseOver(event:MouseEvent):void
+			{
+				if(event.target is DocThumbnailComponent)
+				{
+					DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,(event.target as DocThumbnailComponent).docURL.value,
+						this,this.parent as NodeHandler);
+				}
+				else
+				{
+					DocumentSummaryComponent.hide();
+				}
+			}
+			
+			private function handleRollOut(event:MouseEvent):void
+			{
+				DocumentSummaryComponent.hide();
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

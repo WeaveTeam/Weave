@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:ui="weave.ui.*"
+		 title="Entity Selection Wizard"
+		 width="400" height="400" cornerRadius="10" showCloseButton="true">
+	
+	<mx:Accordion width="100%" height="100%">
+		<mx:VBox label="Set Entity Columns">
+			
+		</mx:VBox>
+		<mx:VBox label="Set Keywords">
+			
+		</mx:VBox>
+	</mx:Accordion>
+	
+	<mx:ControlBar>
+		<mx:Button label="Done"/>
+	</mx:ControlBar>
+	
+</mx:TitleWindow>
