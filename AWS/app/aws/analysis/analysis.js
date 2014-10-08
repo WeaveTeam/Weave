@@ -240,6 +240,49 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		}
 	});
 	
+	
+	$scope.$watchCollection(function() {
+		return [queryService.queryObject.scriptSelected,
+		        queryService.queryObject.dataTable,
+		        queryService.queryObject.scriptOptions
+		        ];
+	}, function () {
+		
+		if(!queryService.queryObject.dataTable.hasOwnProperty("id")) {
+			queryService.dataObject.validationStatus = "Data table has not been selected.";
+			queryService.dataObject.isQueryValid = false;
+		} else {
+			if(!queryService.queryObject.scriptSelected) {
+				queryService.dataObject.validationStatus = "Script has not been selected.";
+				queryService.dataObject.isQueryValid = false;
+			} else {
+				
+				$scope.$watch(function() {
+					return queryService.queryObject.scriptOptions;
+				}, function () {
+					var g = 0;
+					var counter = Object.keys(queryService.queryObject.scriptOptions).length;
+					for(var f in queryService.queryObject.scriptOptions) {
+						//var check = queryObjectToValidate.scriptOptions[f];
+						if(!queryService.queryObject.scriptOptions[f]) {
+							queryService.dataObject.validationStatus = "'" + f + "'" + " has not been selected";
+							queryService.dataObject.isQueryValid = false;
+
+							break;
+						}
+						else
+							g++;
+					}
+					
+					if(g == counter) {
+						queryService.dataObject.validationStatus = "Query is valid";
+						queryService.dataObject.isQueryValid = true;
+					}
+				}, true);
+			}
+		}
+	}, true);
+	
 });
 
 
@@ -260,10 +303,16 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.scriptSelected,
                 queryService.queryObject.dataTable];
-	}, function() {
-			console.log("resetting");
-			queryService.queryObject.scriptOptions = {};
-	}, true);
+	}, function(newVal, oldVal) {
+		
+			// this check is necessary because when angular changes tabs, it triggers changes
+			// for the script selected or data table even if the user may not have change them.
+			if(!angular.equals(newVal[0], oldVal[0]) && !angular.equals(newVal[1], oldVal[1])) {
+				queryService.queryObject.scriptOptions = {};
+			}
+	});
+	
+	
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {

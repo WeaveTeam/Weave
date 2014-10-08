@@ -572,16 +572,16 @@ background-color: #4C4F53;
 	color: white;
 }
 
-/*the red one*/
-/* .invalidate { */
-/*     padding-top: 5px; */
-/*     padding-bottom: 5px; */
-/*     font-size : 17px; */
-/*     border-radius: 10px; */
-/* 	color: #fff; */
-/* 	background-color: #d9534f; */
-/* 	border-color: #d43f3a; */
-/* } */
+/* the red one */
+.invalidateB {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size : 17px;
+    border-radius: 10px;
+	color: #fff;
+	background-color: #d9534f;
+	border-color: #d43f3a;
+}
 
 .invalidate {
 	width : 20px;
@@ -596,16 +596,16 @@ background-color: #4C4F53;
 /* 	border:1px solid #000; */
 	background : #5bb75b;
 }
-/*the blue one*/
-/* .validate { */
-/*     padding-top: 5px; */
-/*     padding-bottom: 5px; */
-/*     font-size : 17px; */
-/*     border-radius: 10px; */
-/*     color: #fff; */
-/* 	background-color: #428bca; */
-/* 	border-color: #357ebd; */
-/* } */
+/* the blue one */
+.validateB {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size : 17px;
+    border-radius: 10px;
+    color: #fff;
+	background-color: #428bca;
+	border-color: #357ebd;
+}
 
 
 .panel-heading > h2 {

@@ -123,9 +123,9 @@
 						<!-- Tell us the validation status of a query object -->
 						<div style = "display :table" ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
 							 <div style = "display : table-cell" 
-							 ng-class="{'validate' : runService.isValidated, 'invalidate' : !runService.isValidated}">
+							 ng-class="{'validate' : service.dataObject.queryDone, 'invalidate' : !service.dataObject.queryDone}">
 							 </div>
-							 <div style= "display : table-cell; padding-left : 5px">{{runService.validationUpdate}}</div>
+							 <div style= "display : table-cell; padding-left : 5px">{{service.dataObject.queryStatus}}</div>
 						 </div> 
 					</div>
 	
@@ -211,7 +211,6 @@
 		</div>
 		<br><br><br>
 		<input type="checkbox" ng-model="queryService.dataObject.openInNewWindow"> Show Weave in separate window</input>
-		{{queryService.dataObject.queryStatus}}
 		<div class="row " style="height: 50%; clear:both" ng-if="!queryService.dataObject.openInNewWindow">
 			<!-- Contains the buttons pertaining to a query and its visualizations -->
 			<div>
