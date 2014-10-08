@@ -250,6 +250,8 @@ package
 					"for (var i in symbols)",
 					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
 					
+					"if (!Array.isArray) Array.isArray = function(arg) { return Object.prototype.toString.call(arg) === '[object Array]'; };",
+					
 					"function cacheProxyFunction(id) {",
 					"    var func = function() {",
 					"        var params = Array.prototype.slice.call(arguments);",
