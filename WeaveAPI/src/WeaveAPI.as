@@ -356,9 +356,6 @@ package
 		
 		private static function addJsonExtension():void
 		{
-			if (!JavaScript.jsonAvailable)
-				return;
-
 			JavaScript.extendJson(_jsonReplacer, _jsonReviver, _needsReviving);
 			JavaScript.exec(
 				{

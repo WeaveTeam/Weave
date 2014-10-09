@@ -138,18 +138,6 @@ package
 		public static const available:Boolean = ExternalInterface.available;
 		
 		/**
-		 * This will be true if both Flash Player and the web browser support JSON.
-		 * If this is false, extendJson() will not work.
-		 * @see #extendJson()
-		 */
-		public static function get jsonAvailable():Boolean
-		{
-			if (!initialized)
-				initialize();
-			return json != null;
-		}
-		
-		/**
 		 * The "id" property of this Flash object.
 		 * Use this as a reliable alternative to ExternalInterface.objectID, which may be null in some cases even if the Flash object has an "id" property.
 		 */
@@ -229,77 +217,93 @@ package
 				trace("Your version of Flash Player (" + Capabilities.version + " " + Capabilities.playerType + ") does not have native JSON support.");
 			}
 			
-			if (json)
-			{
-				ExternalInterface.addCallback(JSON_CALL, _jsonCall);
-				exec(
+			ExternalInterface.addCallback(JSON_CALL, _jsonCall);
+			exec(
+				{
+					"JSON_FUNCTION_PREFIX": JSON_FUNCTION_PREFIX,
+					"JSON_EXTENSIONS": JSON_EXTENSIONS,
+					"JSON_REPLACER": JSON_REPLACER,
+					"JSON_REVIVER": JSON_REVIVER,
+					"JSON_SUFFIX": JSON_SUFFIX,
+					"JSON_LOOKUP": JSON_LOOKUP,
+					"JSON_CALL": JSON_CALL
+				},
+				POLYFILLS,
+				<![CDATA[
+					var flash = this;
+				
+					var replace, revive;
+					if (typeof JSON != 'undefined')
 					{
-						"JSON_FUNCTION_PREFIX": JSON_FUNCTION_PREFIX,
-						"JSON_EXTENSIONS": JSON_EXTENSIONS,
-						"JSON_REPLACER": JSON_REPLACER,
-						"JSON_REVIVER": JSON_REVIVER,
-						"JSON_SUFFIX": JSON_SUFFIX,
-						"JSON_LOOKUP": JSON_LOOKUP,
-						"JSON_CALL": JSON_CALL
-					},
-					"var flash = this;",
-					"var functionCounter = 0;",
-					"var lookup = flash[JSON_LOOKUP] = {};",
-					"var extensions = flash[JSON_EXTENSIONS] = [];",
-					"var symbols = [NaN, Infinity, -Infinity];",
-					"for (var i in symbols)",
-					"    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];",
+						replace = function(value) { return JSON.stringify(value, flash[JSON_REPLACER]); };
+						revive = function(value) { return JSON.parse(value, flash[JSON_REVIVER]); };
+					}
+					else
+					{
+						var mapReplace = function(value){ return flash[JSON_REPLACER]('', value); };
+						var mapRevive = function(value){ return flash[JSON_REVIVER]('', value); };
+						replace = function(value) { return Array.isArray(value) ? value.map(mapReplace) : mapReplace(value); };
+						revive = function(value) { return Array.isArray(value) ? value.map(mapRevive) : mapRevive(value); };
+					}
+				
+					var functionCounter = 0;
+					var lookup = flash[JSON_LOOKUP] = {};
+					var extensions = flash[JSON_EXTENSIONS] = [];
+					var symbols = [NaN, Infinity, -Infinity];
+					for (var i in symbols)
+					    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];
 					
-					"if (!Array.isArray) Array.isArray = function(arg) { return Object.prototype.toString.call(arg) === '[object Array]'; };",
+					function cacheProxyFunction(id) {
+					    var func = function() {
+					        var params = Array.prototype.slice.call(arguments);
+					        var paramsJson = replace(params);
+					        try {
+					            var resultJson = flash[JSON_CALL](id, paramsJson);
+					        } catch (e) {
+								var e2 = new Error();
+								e2.name = e.name;
+								e2.message = e.message;
+								throw e2;
+					        }
+					        return revive(resultJson);
+					    };
+					    func[JSON_FUNCTION_PREFIX] = id;
+					    return lookup[id] = func;
+					}
+	
+					flash[JSON_REPLACER] = function(key, value) {
+					    if (typeof value === 'function') {
+					        if (!value[JSON_FUNCTION_PREFIX]) {
+					            var id = JSON_FUNCTION_PREFIX + (--functionCounter);
+					            value[JSON_FUNCTION_PREFIX] = id;
+					            lookup[id] = value;
+					        }
+					        value = value[JSON_FUNCTION_PREFIX];
+					    }
+					    else if (typeof value === 'number' && !isFinite(value))
+					        value = value + JSON_SUFFIX;
+					    else if (Array.isArray(value) && !(value instanceof Array))
+					        value = Array.prototype.slice.call(value);
+					    for (var i in extensions)
+					        if (typeof extensions[i] === 'object' && typeof extensions[i].replacer === 'function')
+					            value = extensions[i].replacer.call(flash, key, value);
+					    return value;
+					};
 					
-					"function cacheProxyFunction(id) {",
-					"    var func = function() {",
-					"        var params = Array.prototype.slice.call(arguments);",
-					"        var paramsJson = JSON.stringify(params, flash[JSON_REPLACER]);",
-					"        try {",
-					"            var resultJson = flash[JSON_CALL](id, paramsJson);",
-					"        } catch (e) {",
-					"            throw new Error(e);",
-					"        }",
-					"        return JSON.parse(resultJson, flash[JSON_REVIVER]);",
-					"    };",
-					"    func[JSON_FUNCTION_PREFIX] = id;",
-					"    return lookup[id] = func;",
-					"}",
-
-					"flash[JSON_REPLACER] = function(key, value) {",
-					"    if (typeof value === 'function') {",
-					"        if (!value[JSON_FUNCTION_PREFIX]) {",
-					"            var id = JSON_FUNCTION_PREFIX + (--functionCounter);",
-					"            value[JSON_FUNCTION_PREFIX] = id;",
-					"            lookup[id] = value;",
-					"        }",
-					"        value = value[JSON_FUNCTION_PREFIX];",
-					"    }",
-					"    else if (typeof value === 'number' && !isFinite(value))",
-					"        value = value + JSON_SUFFIX;",
-					"    else if (Array.isArray(value) && !(value instanceof Array))",
-					"        value = Array.prototype.slice.call(value);",
-					"    for (var i in extensions)",
-					"        if (typeof extensions[i] === 'object' && typeof extensions[i].replacer === 'function')",
-					"            value = extensions[i].replacer.call(flash, key, value);",
-					"    return value;",
-					"};",
-					
-					"flash[JSON_REVIVER] = function(key, value) {",
-					"    if (typeof value === 'string') {",
-					"        if (lookup.hasOwnProperty(value))",
-					"            value = lookup[value];",
-					"        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)",
-					"            value = cacheProxyFunction(value);",
-					"    }",
-					"    for (var i in extensions)",
-					"        if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')",
-					"            value = extensions[i].reviver.call(flash, key, value);",
-					"    return value;",
-					"};"
-				);
-			}
+					flash[JSON_REVIVER] = function(key, value) {
+					    if (typeof value === 'string') {
+					        if (lookup.hasOwnProperty(value))
+					            value = lookup[value];
+					        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
+					            value = cacheProxyFunction(value);
+					    }
+					    for (var i in extensions)
+					        if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')
+					            value = extensions[i].reviver.call(flash, key, value);
+					    return value;
+					};
+				]]>
+			);
 		}
 		
 		/**
@@ -308,7 +312,7 @@ package
 		 * @param paramsJson An Array of parameters to pass to the method, stringified with JSON.
 		 * @return The result of calling the method, stringified with JSON.
 		 */
-		private static function _jsonCall(methodId:String, paramsJson:String):String
+		private static function _jsonCall(methodId:String, paramsJson:Object):Object
 		{
 			ExternalInterface.marshallExceptions = true; // let the external code handle errors
 			
@@ -316,16 +320,28 @@ package
 			if (method == null)
 				throw new Error('No method with id="' + methodId + '"');
 			
-			var params:Array = json.parse(paramsJson, _jsonReviver);
+			var params:Array;
+			if (json)
+				params = json.parse(paramsJson, _jsonReviver);
+			else
+				params = (paramsJson as Array).map(_mapJsonReviver);
+			
 			var result:* = method.apply(null, params);
-			var resultJson:String = json.stringify(result, _jsonReplacer) || 'undefined';
+			
+			var resultJson:*;
+			if (json)
+				resultJson = json.stringify(result, _jsonReplacer) || 'undefined';
+			else
+				resultJson = _jsonReplacer('', result);
 			
 			// work around unescaped backslash bug
-			if (backslashNeedsEscaping && resultJson.indexOf('\\') >= 0)
-				resultJson = resultJson.split('\\').join('\\\\');
-	
+			if (resultJson is String && backslashNeedsEscaping && (resultJson as String).indexOf('\\') >= 0)
+				resultJson = (resultJson as String).split('\\').join('\\\\');
+			
 			return resultJson;
 		}
+		
+		private static function _mapJsonReviver(value:*, i:*, a:*):* { return _jsonReviver('', value); }
 		
 		/**
 		 * Preserves primitive values not supported by JSON: NaN, Infinity, -Infinity
@@ -423,8 +439,6 @@ package
 		 */
 		public static function extendJson(replacer:Function, reviver:Function, needsReviving:Function):void
 		{
-			if (!jsonAvailable)
-				throw new Error("JSON extensions are not available.");
 			var extension:Object = {};
 			extension[JSON_REPLACER] = replacer;
 			extension[JSON_REVIVER] = reviver;
@@ -441,13 +455,6 @@ package
 		{
 			if (!initialized)
 				initialize();
-			
-			// backwards compatibility
-			if (!json)
-			{
-				ExternalInterface.addCallback(methodName, method);
-				return;
-			}
 			
 			exec(
 				{
@@ -552,6 +559,7 @@ package
 						else
 						{
 							// JSON unavailable
+							value = _jsonReplacer('', value);
 							
 							// work around unescaped backslash bug
 							// this backwards compatibility code doesn't handle Strings inside Objects.
@@ -587,6 +595,8 @@ package
 				// stringify results
 				if (json)
 					appliedCode = 'JSON.stringify(' + appliedCode + ', ' + JS_this + '.' + JSON_REPLACER + ')';
+				else
+					appliedCode = JS_this + '.' + JSON_REPLACER + '("", ' + appliedCode + ')';
 				
 				// work around unescaped backslash bug
 				if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
@@ -602,8 +612,15 @@ package
 				result = ExternalInterface.call(evalFunc, appliedCode, pValues);
 				
 				// parse stringified results
-				if (json && result)
-					result = json.parse(result, _jsonReviver);
+				if (json)
+				{
+					if (result)
+						result = json.parse(result, _jsonReviver);
+				}
+				else
+				{
+					result = _jsonReviver('', result);
+				}
 			}
 			catch (e:*)
 			{
@@ -622,5 +639,100 @@ package
 			
 			return result;
 		}
+		
+		private static const POLYFILLS:String = <![CDATA[
+			if (!Array.isArray)
+				Array.isArray = function(arg) { return Object.prototype.toString.call(arg) === '[object Array]'; };
+	
+			if (!Array.prototype.map)
+				Array.prototype.map = function(callback, thisArg) {
+					var T, A, k;
+					if (this == null)
+						throw new TypeError(" this is null or not defined");
+					var O = Object(this);
+					var len = O.length >>> 0;
+					if (typeof callback !== "function")
+						throw new TypeError(callback + " is not a function");
+					if (arguments.length > 1)
+						T = thisArg;
+					A = new Array(len);
+					k = 0;
+					while (k < len) {
+						var kValue, mappedValue;
+						if (k in O) {
+							kValue = O[k];
+							mappedValue = callback.call(T, kValue, k, O);
+							A[k] = mappedValue;
+						}
+						// d. Increase k by 1.
+						k++;
+					}
+					return A;
+				};
+			
+			if (!Object.keys)
+				Object.keys = (function () {
+					'use strict';
+					var hasOwnProperty = Object.prototype.hasOwnProperty,
+					hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+					dontEnums = [
+						'toString',
+						'toLocaleString',
+						'valueOf',
+						'hasOwnProperty',
+						'isPrototypeOf',
+						'propertyIsEnumerable',
+						'constructor'
+					],
+					dontEnumsLength = dontEnums.length;
+					
+					return function (obj) {
+						if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+							throw new TypeError('Object.keys called on non-object');
+						}
+						
+						var result = [], prop, i;
+						
+						for (prop in obj) {
+							if (hasOwnProperty.call(obj, prop)) {
+								result.push(prop);
+							}
+						}
+						
+						if (hasDontEnumBug) {
+							for (i = 0; i < dontEnumsLength; i++) {
+								if (hasOwnProperty.call(obj, dontEnums[i])) {
+									result.push(dontEnums[i]);
+								}
+							}
+						}
+						return result;
+					};
+				}());
+			
+			if (!Function.prototype.bind)
+				Function.prototype.bind = function (oThis) {
+					if (typeof this !== "function") {
+						// closest thing possible to the ECMAScript 5
+						// internal IsCallable function
+						throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+					}
+					
+					var aArgs = Array.prototype.slice.call(arguments, 1), 
+						fToBind = this, 
+						fNOP = function () {},
+						fBound = function () {
+							return fToBind.apply(this instanceof fNOP && oThis
+								? this
+								: oThis,
+								aArgs.concat(Array.prototype.slice.call(arguments)));
+						};
+					
+					fNOP.prototype = this.prototype;
+					fBound.prototype = new fNOP();
+					
+					return fBound;
+				};
+		]]>;
 	}
 }
