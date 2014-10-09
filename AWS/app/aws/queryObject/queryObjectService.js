@@ -127,7 +127,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			MapTool : { enabled : false },
 			ScatterPlotTool : { enabled : false },
 			DataTableTool : { enabled : false },
-			ColorColumn : {column : ""},
+			ColorColumn : {column : "",  showColorLegend : false},
 			keyColumn : {name : ""}
 	};    		
     
