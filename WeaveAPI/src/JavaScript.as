@@ -226,14 +226,15 @@ package
 					"JSON_REVIVER": JSON_REVIVER,
 					"JSON_SUFFIX": JSON_SUFFIX,
 					"JSON_LOOKUP": JSON_LOOKUP,
-					"JSON_CALL": JSON_CALL
+					"JSON_CALL": JSON_CALL,
+					"useJson": json != null
 				},
 				POLYFILLS,
 				<![CDATA[
 					var flash = this;
 				
 					var replace, revive;
-					if (typeof JSON != 'undefined')
+					if (useJson)
 					{
 						replace = function(value) { return JSON.stringify(value, flash[JSON_REPLACER]); };
 						revive = function(value) { return JSON.parse(value, flash[JSON_REVIVER]); };
