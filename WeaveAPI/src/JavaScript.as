@@ -251,56 +251,56 @@ package
 					var extensions = flash[JSON_EXTENSIONS] = [];
 					var symbols = [NaN, Infinity, -Infinity];
 					for (var i in symbols)
-					    lookup[symbols[i] + JSON_SUFFIX] = symbols[i];
+						lookup[symbols[i] + JSON_SUFFIX] = symbols[i];
 					
 					function cacheProxyFunction(id) {
-					    var func = function() {
-					        var params = Array.prototype.slice.call(arguments);
-					        var paramsJson = replace(params);
-					        try {
-					            var resultJson = flash[JSON_CALL](id, paramsJson);
-					        } catch (e) {
+						var func = function() {
+							var params = Array.prototype.slice.call(arguments);
+							var paramsJson = replace(params);
+							try {
+								var resultJson = flash[JSON_CALL](id, paramsJson);
+							} catch (e) {
 								var e2 = new Error();
 								e2.name = e.name;
 								e2.message = e.message;
 								throw e2;
-					        }
-					        return revive(resultJson);
-					    };
-					    func[JSON_FUNCTION_PREFIX] = id;
-					    return lookup[id] = func;
+							}
+							return revive(resultJson);
+						};
+						func[JSON_FUNCTION_PREFIX] = id;
+						return lookup[id] = func;
 					}
 	
 					flash[JSON_REPLACER] = function(key, value) {
-					    if (typeof value === 'function') {
-					        if (!value[JSON_FUNCTION_PREFIX]) {
-					            var id = JSON_FUNCTION_PREFIX + (--functionCounter);
-					            value[JSON_FUNCTION_PREFIX] = id;
-					            lookup[id] = value;
-					        }
-					        value = value[JSON_FUNCTION_PREFIX];
-					    }
-					    else if (typeof value === 'number' && !isFinite(value))
-					        value = value + JSON_SUFFIX;
-					    else if (Array.isArray(value) && !(value instanceof Array))
-					        value = Array.prototype.slice.call(value);
-					    for (var i in extensions)
-					        if (typeof extensions[i] === 'object' && typeof extensions[i].replacer === 'function')
-					            value = extensions[i].replacer.call(flash, key, value);
-					    return value;
+						if (typeof value === 'function') {
+							if (!value[JSON_FUNCTION_PREFIX]) {
+								var id = JSON_FUNCTION_PREFIX + (--functionCounter);
+								value[JSON_FUNCTION_PREFIX] = id;
+								lookup[id] = value;
+							}
+							value = value[JSON_FUNCTION_PREFIX];
+						}
+						else if (typeof value === 'number' && !isFinite(value))
+							value = value + JSON_SUFFIX;
+						else if (Array.isArray(value) && !(value instanceof Array))
+							value = Array.prototype.slice.call(value);
+						for (var i in extensions)
+							if (typeof extensions[i] === 'object' && typeof extensions[i].replacer === 'function')
+								value = extensions[i].replacer.call(flash, key, value);
+						return value;
 					};
 					
 					flash[JSON_REVIVER] = function(key, value) {
-					    if (typeof value === 'string') {
-					        if (lookup.hasOwnProperty(value))
-					            value = lookup[value];
-					        else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
-					            value = cacheProxyFunction(value);
-					    }
-					    for (var i in extensions)
-					        if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')
-					            value = extensions[i].reviver.call(flash, key, value);
-					    return value;
+						if (typeof value === 'string') {
+							if (lookup.hasOwnProperty(value))
+								value = lookup[value];
+							else if (value.substr(0, JSON_FUNCTION_PREFIX.length) == JSON_FUNCTION_PREFIX)
+								value = cacheProxyFunction(value);
+						}
+						for (var i in extensions)
+							if (typeof extensions[i] === 'object' && typeof extensions[i].reviver === 'function')
+								value = extensions[i].reviver.call(flash, key, value);
+						return value;
 					};
 				]]>
 			);
