@@ -1,25 +1,14 @@
-<!-- <div class = 'tool-bar'> -->
-<!-- 	<select style = "width : 100%"> -->
-<!-- 	<option></option> -->
-<!-- 	<input ng-model ="searchOption"> -->
-<!-- 	<option  -->
-<!-- 			ng-repeat="obj in queryService.dataObject.columns | filter : { columnType : columnfilter }">{{obj.title}}</option> -->
-<!-- 	</select> -->
-<!-- </div> -->
-
-
-
 <div class= 'tool-bar'>
 <div>
 	<input ng-model ="searchOption" placeholder = "Choose a(n) '{{columnfilter}}'">
 	<button><span class= "glyphicon glyphicon-chevron-down" id= "searchIcon" ng-click = "clear()"></span></button>
 	<p ng-if= "selectedItem.title">{{selectedItem.title}}</p>	
 </div>
-		
-			    <ul ng-repeat="obj in arrayOfObjects">
-			      <li ng-click = "check(obj)">{{obj}}hello</td>
+		<div>
+			    <ul ng-repeat="obj in collection | filter : { columnType : columnfilter }| filter:searchOption">
+			      <li ng-click = "check(obj)">{{obj.title}}</td>
 			    </ul>
-	 	 
+	 	 </div>
 </div>
 <!-- so we will need to provide an array which will be used to loop over for e.g. an array of objects
 also we will need a variable that will contain the object property that we wish to display in the list for e.g. object.propertyX or object.propertyY-->

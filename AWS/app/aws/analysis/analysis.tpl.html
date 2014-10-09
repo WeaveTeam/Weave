@@ -32,9 +32,12 @@
 <!-- 							</select> -->
 <!-- 						</div> -->
 
-						<div ng-controller = 'specialCtrl'>
-						<aws-select-directive arrayOfObjects = "adds" columnfilter= "indicator">
-						</aws-select-directive>
+						<div>
+						Select an indicator
+						<div aws-select-directive= ""
+											  collection = "queryService.dataObject.columns" 
+											  columnfilter= indicator>
+						</div>
 						</div>
 
 						
