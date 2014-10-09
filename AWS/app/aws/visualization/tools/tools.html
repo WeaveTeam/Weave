@@ -35,6 +35,7 @@ font-size: 14px;">
 								<option value="{{output}}"
 								ng-repeat="output in WeaveService.columnNames">{{output}}</option>
 						</select>
+						<input type="checkbox" ng-model="service.queryObject.ColorColumn.showColorLegend"> Show Color Legend </input>
 					</div>
 			</accordion-group>
 		</accordion>

@@ -6,6 +6,7 @@ AnalysisModule.controller("ColorCtrl", function($scope, queryService, WeaveServi
 	$scope.$watch(function(){
 		return queryService.queryObject.ColorColumn;
 	}, function(){
+		console.log(queryService.queryObject.ColorColumn);
 		WeaveService.ColorColumn(queryService.queryObject.ColorColumn);
 	}, true);
 	

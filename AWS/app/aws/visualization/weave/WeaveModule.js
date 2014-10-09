@@ -158,9 +158,15 @@ AnalysisModule.service("WeaveService", function() {
 	
 	this.ColorColumn = function(state){
 		if(ws.weave && ws.weave.path) {
+			console.log(state);
 			if(state.column)
 			{
 				ws.weave.path('defaultColorDataColumn').setColumn(state.column, ws.dataSourceName);
+			}
+			if(state.showColorLegend)
+			{
+				ws.weave.path("ColorBinLegendTool").request('ColorBinLegendTool')
+				.state({panelX : "80%", panelY : "0%"});
 			}
 		}
 	};
