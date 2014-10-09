@@ -579,6 +579,7 @@ package
 			
 			const CODE_PARAM:String = '__code_from_flash__';
 			const ARGS_PARAM:String = '__arguments_from_flash__';
+			const RESULT_VAR:String = '__result_for_flash__';
 			
 			// if the code references "this", we need to use Function.apply() to make the symbol work as expected
 			var appliedCode:String;
@@ -592,23 +593,21 @@ package
 			ExternalInterface.marshallExceptions = !!marshallExceptions;
 			try
 			{
-				// stringify results
-				if (json)
-					appliedCode = 'JSON.stringify(' + appliedCode + ', ' + JS_this + '.' + JSON_REPLACER + ')';
-				else
-					appliedCode = JS_this + '.' + JSON_REPLACER + '("", ' + appliedCode + ')';
-				
-				// work around unescaped backslash bug
-				if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
-					appliedCode = appliedCode.split('\\').join('\\\\');
-				
 				// we need to use eval() in order to receive syntax errors
-				const TRY_CODE:String = 'return ' + (json ? 'window.eval' : 'eval') + '(' + CODE_PARAM + ');';
+				const TRY_CODE:String = json
+					? 'return JSON.stringify(window.eval(' + CODE_PARAM + '), ' + JS_this + '.' + JSON_REPLACER + ');'
+					: 'var ' + RESULT_VAR + ' = eval(' + CODE_PARAM + '); return ' + JS_this + '.' + JSON_REPLACER + '("", ' + RESULT_VAR + ');';
+				
 				const CATCH_CODE:String = marshallExceptions
 					? 'if (e.toString() == "[object Error]") e.toString = function(){ return this.name + ": " + this.message; }; throw e;'
 					: 'e.message += "\\n" + code; if (typeof console != "undefined") console.error(e);';
 				
 				var evalFunc:String = 'function(' + CODE_PARAM + ', ' + ARGS_PARAM + '){ try {\n' + TRY_CODE + '\n} catch (e) {\n' + CATCH_CODE + '\n} }';
+				
+				// work around unescaped backslash bug
+				if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
+					appliedCode = appliedCode.split('\\').join('\\\\');
+				
 				result = ExternalInterface.call(evalFunc, appliedCode, pValues);
 				
 				// parse stringified results
