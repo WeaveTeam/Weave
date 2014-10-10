@@ -19,7 +19,7 @@ function queryService(url, method, params, resultHandler, queryId)
 	function handleResponse(response)
 	{
 		if (response.error)
-			console.log(JSON.stringify(response, null, 3));
+			console.error(JSON.stringify(response, null, 3));
 		else if (resultHandler)
 			resultHandler(response.result, queryId);
 	}
@@ -48,7 +48,7 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 		{
 			var response = batchResponse[i];
 			if (response.error)
-				console.log(JSON.stringify(response, null, 3));
+				console.error(JSON.stringify(response, null, 3));
 			else
 				results[response.id] = response.result;
 		}
@@ -125,7 +125,7 @@ function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
 			});
 		});
 	});
-	function fail() { console.log("No matching column found (" + [dataTableTitle, columnTitle] + ")"); }
+	function fail() { console.error("No matching column found (" + [dataTableTitle, columnTitle] + ")"); }
 }
 
 /**
