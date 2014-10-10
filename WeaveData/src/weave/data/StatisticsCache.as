@@ -24,7 +24,6 @@ package weave.data
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
@@ -70,11 +69,7 @@ package weave.data
 			var stats:IColumnStatistics = _columnToStats[column] as IColumnStatistics;
 			if (!stats)
 			{
-				// special case for column wrappers that do not alter the data in any way
-				if (isSpecialCase(column))
-					stats = new ColumnStatisticsWrapper(column as IColumnWrapper, this);
-				else
-					stats = new ColumnStatistics(column);
+				stats = new ColumnStatistics(column);
 				
 				// when the column is disposed, the stats should be disposed
 				_columnToStats[column] = registerDisposableChild(column, stats);
@@ -84,144 +79,19 @@ package weave.data
 		
 		private var _DynamicColumn:String = getQualifiedClassName(DynamicColumn);
 		private var _ReferencedColumn:String = getQualifiedClassName(ReferencedColumn);
-		private function isSpecialCase(column:IAttributeColumn):Boolean
-		{
-			if (DynamicColumn.cache)
-				return false;
-			return (column is DynamicColumn && getQualifiedClassName(column) == _DynamicColumn)
-				|| (column is ReferencedColumn && getQualifiedClassName(column) == _ReferencedColumn);
-		}
-	}
-}
-import weave.api.data.IColumnWrapper;
-import weave.api.data.IStatisticsCache;
-import weave.api.registerDisposableChild;
-import weave.core.SessionManager;
-
-internal class ColumnStatisticsWrapper implements IColumnStatistics
-{
-	public function ColumnStatisticsWrapper(columnWrapper:IColumnWrapper, statsCache:IStatisticsCache)
-	{
-		registerDisposableChild(columnWrapper, this);
-		this.columnWrapper = columnWrapper;
-		this.statsCache = statsCache;
-		columnWrapper.addImmediateCallback(this, getStats);
-	}
-	
-	private var triggerCounter:uint = 0;
-	private var columnWrapper:IColumnWrapper;
-	private var statsCache:IStatisticsCache;
-	private var stats:IColumnStatistics;
-	private function getStats():IColumnStatistics
-	{
-		if (triggerCounter != columnWrapper.triggerCounter)
-		{
-			triggerCounter = columnWrapper.triggerCounter;
-			var internalColumn:IAttributeColumn = columnWrapper.getInternalColumn();
-			var newStats:IColumnStatistics = internalColumn ? statsCache.getColumnStatistics(internalColumn) : null;
-			if (stats != newStats)
-			{
-				if (stats)
-					(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, stats);
-				stats = newStats;
-				if (stats)
-					(WeaveAPI.SessionManager as SessionManager).registerLinkableChild(this, stats);
-			}
-		}
-		return stats;
-	}
-	
-	/**
-	 * @param key
-	 * @return A number between 0 and 1, or NaN 
-	 */		
-	public function getNorm(key:IQualifiedKey):Number
-	{
-		return getStats() ? stats.getNorm(key) : undefined;
-	}
-	
-	/**
-	 * @return The minimum numeric value defined in the column.
-	 */
-	public function getMin():Number
-	{
-		return getStats() ? stats.getMin() : undefined;
-	}
-	
-	/**
-	 * @return The maximum numeric value defined in the column.
-	 */
-	public function getMax():Number
-	{
-		return getStats() ? stats.getMax() : undefined;
-	}
-	
-	/**
-	 * @return The count of the records having numeric values defined in the column.
-	 */
-	public function getCount():Number
-	{
-		return getStats() ? stats.getCount() : undefined;
-	}
-	
-	/**
-	 * @return The sum of all the numeric values defined in the column.
-	 */
-	public function getSum():Number
-	{
-		return getStats() ? stats.getSum() : undefined;
-	}
-	
-	/**
-	 * @return The sum of the squared numeric values defined in the column.
-	 */
-	public function getSquareSum():Number
-	{
-		return getStats() ? stats.getSquareSum() : undefined;
-	}
-	
-	/**
-	 * @return The mean value of all the numeric values defined in the column.
-	 */
-	public function getMean():Number
-	{
-		return getStats() ? stats.getMean() : undefined;
-	}
-	
-	/**
-	 * @return The variance of the numeric values defined in the column.
-	 */
-	public function getVariance():Number
-	{
-		return getStats() ? stats.getVariance() : undefined;
-	}
-	
-	/**
-	 * @return The standard deviation of the numeric values defined in the column.
-	 */
-	public function getStandardDeviation():Number
-	{
-		return getStats() ? stats.getStandardDeviation() : undefined;
-	}
-	
-	/**
-	 * @return A Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.
-	 */
-	public function getRunningTotals():Dictionary
-	{
-		return getStats() ? (stats as ColumnStatistics).getRunningTotals() : undefined;
 	}
 }
 
 import flash.utils.Dictionary;
+import flash.utils.getTimer;
 
 import weave.api.data.ColumnMetadata;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnStatistics;
 import weave.api.data.IQualifiedKey;
 import weave.api.getCallbackCollection;
+import weave.api.registerDisposableChild;
 import weave.compiler.StandardLib;
-import flash.utils.getTimer;
 
 internal class ColumnStatistics implements IColumnStatistics
 {
@@ -309,6 +179,22 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
+	 * @inheritDoc
+	 */
+	public function getMedian():Number
+	{
+		return validateCache(getMedian);
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function getSortIndex():Dictionary
+	{
+		return validateCache(getSortIndex);
+	}
+	
+	/**
 	 * Gets a Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.
 	 */
 	public function getRunningTotals():Dictionary
@@ -359,10 +245,17 @@ internal class ColumnStatistics implements IColumnStatistics
 	private var count:Number;
 	private var sum:Number;
 	private var squareSum:Number;
-	private var runningTotals:Dictionary;
 	private var mean:Number;
 	private var variance:Number;
 	private var standardDeviation:Number;
+	
+	//TODO - make runningTotals use sorted order instead of original key order
+	private var runningTotals:Dictionary;
+	
+	private var outKeys:Array;
+	private var outNumbers:Array;
+	private var sortIndex:Dictionary; // IQualifiedKey -> int
+	private var median:Number;
 	
 	private function asyncStart():void
 	{
@@ -370,15 +263,22 @@ internal class ColumnStatistics implements IColumnStatistics
 		prevTriggerCounter = column.triggerCounter;
 		i = 0;
 		keys = column.keys;
-		min = NaN;
-		max = NaN;
+		min = Infinity; // so first value < min
+		max = -Infinity; // so first value > max
 		count = 0;
 		sum = 0;
 		squareSum = 0;
-		runningTotals = new Dictionary(true);
 		mean = NaN;
 		variance = NaN;
 		standardDeviation = NaN;
+		
+		outKeys = new Array(keys.length);
+		outNumbers = new Array(keys.length);
+		sortIndex = new Dictionary(true);
+		median = NaN;
+		
+		runningTotals = new Dictionary(true);
+		
 		// high priority because preparing data is often a prerequisite for other things
 		WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
 	}
@@ -393,7 +293,7 @@ internal class ColumnStatistics implements IColumnStatistics
 			return 1;
 		}
 		
-		for (; i < keys.length; i++)
+		for (; i < keys.length; ++i)
 		{
 			if (getTimer() > stopTime)
 				return i / keys.length;
@@ -404,15 +304,20 @@ internal class ColumnStatistics implements IColumnStatistics
 			// skip keys that do not have an associated numeric value in the column.
 			if (isFinite(value))
 			{
-				count++;
 				sum += value;
-				runningTotals[key] = sum;
 				squareSum += value * value;
 				
-				if (isNaN(min) || value < min)
+				if (value < min)
 					min = value;
-				if (isNaN(max) || value > max)
+				if (value > max)
 					max = value;
+				
+				//TODO - make runningTotals use sorted order instead of original key order
+				runningTotals[key] = sum;
+				
+				outKeys[count] = key;
+				outNumbers[count] = value;
+				++count;
 			}
 		}
 		return 1;
@@ -420,20 +325,31 @@ internal class ColumnStatistics implements IColumnStatistics
 	
 	private function asyncComplete():void
 	{
+		if (count == 0)
+			min = max = NaN;
 		mean = sum / count;
 		variance = squareSum / count - mean * mean;
 		standardDeviation = Math.sqrt(variance);
+		
+		outKeys.length = count;
+		outNumbers.length = count;
+		// Array.sort() is very fast when no compare function is given.
+		var outIndices:Array = outNumbers.sort(Array.NUMERIC | Array.RETURNINDEXEDARRAY);
+		median = outNumbers[outIndices[int(count / 2)]];
+		i = count;
+		while (--i >= 0)
+			sortIndex[outKeys[i]] = outIndices[i];
 		
 		// BEGIN code to get custom min,max
 		var tempNumber:Number;
 		try {
 			tempNumber = StandardLib.asNumber(column.getMetadata(ColumnMetadata.MIN));
-			if (!isNaN(tempNumber))
+			if (isFinite(tempNumber))
 				min = tempNumber;
 		} catch (e:Error) { }
 		try {
 			tempNumber = StandardLib.asNumber(column.getMetadata(ColumnMetadata.MAX));
-			if (!isNaN(tempNumber))
+			if (isFinite(tempNumber))
 				max = tempNumber;
 		} catch (e:Error) { }
 		// END code to get custom min,max
@@ -447,6 +363,8 @@ internal class ColumnStatistics implements IColumnStatistics
 		cache[getMean] = mean;
 		cache[getVariance] = variance;
 		cache[getStandardDeviation] = standardDeviation;
+		cache[getMedian] = median;
+		cache[getSortIndex] = sortIndex;
 		cache[getRunningTotals] = runningTotals;
 		
 		//trace('stats calculated', debugId(this), debugId(column), String(column));
