@@ -243,10 +243,12 @@ package
 					}
 					else
 					{
-						var mapReplace = function(value) { return flash[JSON_REPLACER]('', value); };
-						var mapRevive = function(value) { return flash[JSON_REVIVER]('', value); };
-						toJson = function(value) { return Array.isArray(value) ? value.map(mapReplace) : mapReplace(value); };
-						fromJson = function(value) { return Array.isArray(value) ? value.map(mapRevive) : mapRevive(value); };
+						toJson = function(value) {
+							return Array.isArray(value) ? value.map(toJson) : flash[JSON_REPLACER]('', value);
+						};
+						fromJson = function(value) {
+							return Array.isArray(value) ? value.map(fromJson) : flash[JSON_REVIVER]('', value);
+						};
 					}
 				
 					var functionCounter = 0;
