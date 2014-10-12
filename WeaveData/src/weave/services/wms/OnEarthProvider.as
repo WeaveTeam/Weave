@@ -357,7 +357,7 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			StandardLib.sort(tiles, tileSortingComparison);
+			sortTiles(tiles);
 			return tiles;
 		}
 

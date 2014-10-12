@@ -54,21 +54,6 @@ package weave.utils
 		 */
 		private static const tempBounds:IBounds2D = new Bounds2D();
 
-		private static function sortOnImportance(v1:VertexChainLink, v2:VertexChainLink):int
-		{
-			var a:Number = v1.importance;
-			var b:Number = v2.importance;
-			if (isNaN(a))
-				return isNaN(b) ? 0 : 1;
-			if (isNaN(b))
-				return -1;
-			if (a < b)
-				return -1;
-			if (a > b)
-				return 1;
-			return 0;
-		}
-		
 		/**
 		 * Sorts points by importance value, removes least important points first.
 		 * @param firstVertex The first vertex in a chain.
@@ -114,7 +99,7 @@ package weave.utils
 					sortArray[index] = vertex;
 					vertex = vertex.next;
 				}
-				StandardLib.sort(sortArray, sortOnImportance);
+				StandardLib.sortOn(sortArray, VertexChainLink.IMPORTANCE);
 				
 				// in sorted order, extract each point as long as its
 				// surrounding points have not been invalidated

@@ -24,9 +24,13 @@ package weave.data.AttributeColumns
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableWatcher;
+	import weave.data.KeySets.SortedKeySet;
 	import weave.data.QKeyManager;
 	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
@@ -38,53 +42,53 @@ package weave.data.AttributeColumns
 	 */
 	public class SortedIndexColumn extends DynamicColumn implements IAttributeColumn, IPrimitiveColumn
 	{
-		/**
-		 * This is used to store the sorted list of keys.
-		 */
-		private var _keys:Array = [];
-		/**
-		 * This object maps a key to the index of that key in the sorted list of keys.
-		 */
-		private var _keyToIndexMap:Dictionary = new Dictionary(true);
-		private var _column:IAttributeColumn = null;
+		public function SortedIndexColumn()
+		{
+			this.addImmediateCallback(this, _updateStats);
+		}
+		
+		private var _sortedKeys:Array;
+		private var _sortIndex:Dictionary;
+		private var _column:IAttributeColumn;
 		private var _triggerCount:uint = 0;
-		private var _asyncSort:AsyncSort = newLinkableChild(this, AsyncSort, handleSorted);
+		private const _statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+		
+		private function _updateStats():void
+		{
+			_column = getInternalColumn();
+			_statsWatcher.target = _column && WeaveAPI.StatisticsCache.getColumnStatistics(_column);
+		}
+		
+		private function get _stats():IColumnStatistics
+		{
+			return _statsWatcher.target as IColumnStatistics;
+		}
 		
 		private function validate():void
 		{
-			_keys = super.keys.concat();
-			_column = getInternalColumn();
-			_asyncSort.beginSort(_keys, sortByNumericValue);
-		}
-		private function handleSorted():void
-		{
-			_triggerCount++; // account for _asyncSort trigger
-			_keyToIndexMap = VectorUtils.createLookup(_keys);
+			if (_column)
+			{
+				_sortIndex = _stats.getSortIndex();
+				if (_sortIndex)
+					_sortedKeys = StandardLib.sortOn(_column.keys, _sortIndex, null, false);
+				else
+					_sortedKeys = _column.keys;
+			}
+			else
+			{
+				_sortIndex = null;
+				_sortedKeys = [];
+			}
+			
+			_triggerCount = triggerCounter;
 		}
 
-		/**
-		 * This function is used to sort a list of keys.
-		 * @param key1 The first key identifying a Number to compare.
-		 * @param key2 The second key identifying a Number to compare.
-		 * @return The compare result used to sort a list of keys.
-		 */
-		private function sortByNumericValue(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			var val1:Number = _column.getValueFromKey(key1, Number);
-			var val2:Number = _column.getValueFromKey(key2, Number);
-			// if numeric values are equal, compare the keys
-			return ObjectUtil.numericCompare(val1, val2)
-				|| QKeyManager.keyCompare(key1, key2);
-		}
-		
 		override public function get keys():Array
 		{
 			if (_triggerCount != triggerCounter)
-			{
-				_triggerCount = triggerCounter;
 				validate();
-			}
-			return _keys;
+			
+			return _sortedKeys;
 		}
 		
 		/**
@@ -95,15 +99,15 @@ package weave.data.AttributeColumns
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (_triggerCount != triggerCounter)
-			{
-				_triggerCount = triggerCounter;
 				validate();
-			}
 			
-			if (dataType == String)
-				return _column ? _column.getValueFromKey(key, String) : '';
+			if (!_column)
+				return dataType == String ? '' : undefined;
 			
-			return _column ? Number(_keyToIndexMap[key]) : undefined;
+			if (dataType == Number)
+				return _sortIndex ? Number(_sortIndex[key]) : NaN;
+			
+			return _column.getValueFromKey(key, dataType);
 		}
 		
 		/**
@@ -113,15 +117,11 @@ package weave.data.AttributeColumns
 		public function deriveStringFromNumber(index:Number):String
 		{
 			if (_triggerCount != triggerCounter)
-			{
-				_triggerCount = triggerCounter;
 				validate();
-			}
 			
-			index = Math.round(index);
-			if (!_column || index < 0 || index >= _keys.length)
+			if (!_column || index < 0 || index >= _sortedKeys.length || int(index) != index)
 				return '';
-			return _column.getValueFromKey(_keys[index], String);
+			return _column.getValueFromKey(_sortedKeys[index], String);
 		}
 	}
 }

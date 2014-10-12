@@ -44,6 +44,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -138,7 +139,9 @@ package weave.visualization.plotters
 		public const stackedMissingDataGap:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const colorIndicatesDirection:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
-		private var _sortByColor:Function;
+		private const _colorColumnStatsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+		private var _sortedKeysByBinIndex:Array = [];
+		private var _sortCopyByColor:Function;
 		
 		public function sortAxisLabelFunction(value:Number):String
 		{
@@ -222,7 +225,7 @@ package weave.visualization.plotters
 		{
 			if (!groupBySortColumn.value)
 				return;
-			var colorChanged:Boolean = detectLinkableObjectChange(sortBins, colorColumn);
+			var colorChanged:Boolean = detectLinkableObjectChange(sortBins, colorColumn, _colorColumnStatsWatcher);
 			var binsChanged:Boolean = detectLinkableObjectChange(sortBins, _binnedSortColumn);
 			
 			if (colorChanged)
@@ -239,13 +242,15 @@ package weave.visualization.plotters
 					if (column is IColumnWrapper)
 						column = (column as IColumnWrapper).getInternalColumn();
 				}
-				_sortByColor = SortedKeySet.generateCompareFunction([column]);
+				_colorColumnStatsWatcher.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column) : null;
+				_sortCopyByColor = SortedKeySet.generateSortCopyFunction([column]);
 			}
 			
 			if (colorChanged || binsChanged)
 			{
+				_sortedKeysByBinIndex.length = _binnedSortColumn.numberOfBins;
 				for (var i:int = 0; i < _binnedSortColumn.numberOfBins; i++)
-					StandardLib.sort(_binnedSortColumn.getKeysFromBinIndex(i), _sortByColor);
+					_sortedKeysByBinIndex[i] = _sortCopyByColor(_binnedSortColumn.getKeysFromBinIndex(i));
 			}
 		}
 				
@@ -336,7 +341,7 @@ package weave.visualization.plotters
 						var barWidth:Number = _groupingMode == GROUP ? recordWidth / numHeightColumns : recordWidth;
 						if (_groupBySortColumn)
 						{
-							var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
+							var keysInBin:Array = _sortedKeysByBinIndex[sortedIndex];
 							if (keysInBin)
 							{
 								var index:int = keysInBin.indexOf(recordKey);
@@ -750,7 +755,7 @@ package weave.visualization.plotters
 			if (_groupBySortColumn)
 			{
 				// separate the bounds for each record when grouping by sort column
-				var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
+				var keysInBin:Array = _sortedKeysByBinIndex[sortedIndex]; // already sorted
 				if (keysInBin)
 				{
 					var index:int = keysInBin.indexOf(recordKey);

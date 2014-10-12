@@ -123,6 +123,11 @@ package weave.services.wms
 		}
 
 		/**
+		 * The zoomLevel property name.
+		 */
+		public static const ZOOM_LEVEL:String = 'zoomLevel';
+		
+		/**
 		 * This function gets the zoom level of this tile. By default, the zoom level is 
 		 * defined as the area of the bounding box divided by the pixel area 
 		 * of the image. The zoom level may be manually set.

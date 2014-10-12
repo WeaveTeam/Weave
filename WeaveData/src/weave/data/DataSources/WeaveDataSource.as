@@ -409,13 +409,8 @@ package weave.data.DataSources
 				var idOrder:Object = {}; // id -> index
 				for (i = 0; i < entityIds.length; i++)
 					idOrder[entityIds[i]] = i;
-				StandardLib.sort(
-					entities,
-					function(entity1:Entity, entity2:Entity):int
-					{
-						return ObjectUtil.numericCompare(idOrder[entity1.id], idOrder[entity2.id]);
-					}
-				);
+				function getEntityIndex(entity:Entity):int { return idOrder[entity.id]; }
+				StandardLib.sortOn(entities, getEntityIndex);
 				
 				// append list of attributes
 				for (i = 0; i < entities.length; i++)

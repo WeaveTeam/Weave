@@ -666,7 +666,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				keys = keys.filter(function(key:String, i:*, a:*):Boolean {
 					return metadata[key] != null && metadata[key] != '';
 				});
-				StandardLib.sort(keys, keySort);
+				StandardLib.sort(keys, keyCompare);
 				return updateChildren(keys, function(node:MetadataNode, key:String):void {
 					node.metadata = metadata;
 					node.params = key;
@@ -686,7 +686,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		'created', 'publish-date',
 		'last_modified', 'revision_timestamp'
 	];
-	private function keySort(a:Object, b:Object):int
+	private function keyCompare(a:Object, b:Object):int
 	{
 		var order:Array = _KEY_ORDER;
 		var ia:int = order.indexOf(a);

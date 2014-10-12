@@ -145,12 +145,12 @@
 					columnTitle = ColumnUtils.getTitle(column);
 					
 					//TODO - make this asynchronous
-					_valueMap = {};
+					var valueMap:Object = {};
 					for each (var key:IQualifiedKey in column.keys)
-						_valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
+						valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
 					
-					var valueList:Array = VectorUtils.getKeys(_valueMap);
-					StandardLib.sort(valueList, sortNumerically);
+					var valueList:Array = VectorUtils.getKeys(valueMap);
+					StandardLib.sortOn(valueList, valueMap);
 					
 					filterValue.dataProvider = valueList;
 				}
@@ -160,12 +160,6 @@
 					filterValue.dataProvider = null;
 				}
 				handleFilter();
-			}
-			
-			private var _valueMap:Object;
-			private function sortNumerically(a:String, b:String):int
-			{
-				return ObjectUtil.numericCompare(_valueMap[a], _valueMap[b]);
 			}
 		]]>
 	</mx:Script>

@@ -581,7 +581,7 @@ package weave.data.DataSources
 			{
 				// generate keys 0,1,2,3,...
 				for (i = 1; i < rows.length; i++)
-					outputArrayOrVector[i-1] = String(i);
+					outputArrayOrVector[i-1] = i;
 			}
 			else
 			{

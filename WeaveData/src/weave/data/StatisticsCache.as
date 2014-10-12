@@ -317,6 +317,12 @@ internal class ColumnStatistics implements IColumnStatistics
 	
 	private function asyncComplete():void
 	{
+		if (busy)
+		{
+			getCallbackCollection(this).triggerCallbacks();
+			return;
+		}
+		
 		if (count == 0)
 			min = max = NaN;
 		mean = sum / count;
@@ -330,7 +336,7 @@ internal class ColumnStatistics implements IColumnStatistics
 		median = outNumbers[outIndices[int(count / 2)]];
 		i = count;
 		while (--i >= 0)
-			sortIndex[outKeys[i]] = outIndices[i];
+			sortIndex[outKeys[outIndices[i]]] = i;
 		
 		// BEGIN code to get custom min,max
 		var tempNumber:Number;

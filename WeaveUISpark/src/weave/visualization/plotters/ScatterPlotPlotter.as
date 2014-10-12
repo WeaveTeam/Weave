@@ -35,9 +35,9 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -122,7 +122,10 @@ package weave.visualization.plotters
 			if (_extraKeyDependencies)
 				columns = columns.concat(_extraKeyDependencies);
 			
-			_filteredKeySet.setColumnKeySources(columns, [-1], null, _keyInclusionLogic);
+			// sort size descending, all others ascending
+			var sortDirections:Array = columns.map(function(c:*, i:int, a:*):int { return i == 0 ? -1 : 1; });
+			
+			_filteredKeySet.setColumnKeySources(columns, sortDirections, null, _keyInclusionLogic);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void

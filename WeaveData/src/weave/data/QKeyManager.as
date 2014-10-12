@@ -19,13 +19,13 @@
 
 package weave.data
 {
+	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.DataType;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
+	import weave.compiler.StandardLib;
 	import weave.flascc.stringHash;
 	
 	/**
@@ -81,6 +81,8 @@ package weave.data
 					// QKey not created for this key yet (or it has been garbage-collected)
 					qkey = new QKey(keyType, localName);
 					keyLookup[hash] = qkey;
+					keyTypeLookup[qkey] = keyType;
+					localNameLookup[qkey] = localName;
 				}
 				
 				output[i] = qkey;
@@ -156,17 +158,27 @@ package weave.data
 		 * keyType -> Object( localName -> IQualifiedKey )
 		 */
 		private const _keys:Object = {};
+		
+		/**
+		 * Maps IQualifiedKey to keyType - faster than reading the keyType property of a QKey
+		 */
+		public const keyTypeLookup:Dictionary = new Dictionary(true);
+		
+		/**
+		 * Maps IQualifiedKey to localName - faster than reading the localName property of a QKey
+		 */
+		public const localNameLookup:Dictionary = new Dictionary(true);
 
 		/**
-		 * This will compare two keys.
-		 * @param key1
-		 * @param key2
-		 * @return -1, 0, or 1
-		 */		
-		public static function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		 * This makes a sorted copy of an Array of keys.
+		 * @param An Array of IQualifiedKeys.
+		 * @return A sorted copy of the keys.
+		 */
+		public static function keySortCopy(keys:Array):Array
 		{
-			return ObjectUtil.stringCompare(key1.keyType, key2.keyType)
-				|| ObjectUtil.stringCompare(key1.localName, key2.localName);
+			var qkm:QKeyManager = WeaveAPI.QKeyManager as QKeyManager;
+			var params:Array = [qkm.keyTypeLookup, qkm.localNameLookup];
+			return StandardLib.sortOn(keys, params, null, false);
 		}
 	}
 }
@@ -177,21 +189,21 @@ package weave.data
  */
 internal class QKey implements IQualifiedKey
 {
-	public function QKey(keyType:String, key:*)
+	public function QKey(keyType:String, localName:*)
 	{
-		_keyType = keyType;
-		_localName = key;
+		kt = keyType;
+		ln = localName;
 	}
 	
-	private var _keyType:String; // namespace
-	private var _localName:*; // localname/record identifier
+	private var kt:String;
+	private var ln:*;
 	
 	/**
 	 * This is the namespace of the QKey.
 	 */
 	public function get keyType():String
 	{
-		return _keyType;
+		return kt;
 	}
 	
 	/**
@@ -199,14 +211,14 @@ internal class QKey implements IQualifiedKey
 	 */
 	public function get localName():String
 	{
-		return _localName;
+		return ln;
 	}
 	
 	// This is a String containing both the namespace and the local name of the QKey
 	//	public function toString():String
 	//	{
 	//		// The # sign is used in anticipation that a key type will be a URI.
-	//		return _keyType + '#' + _key;
+	//		return kt + '#' + ln;
 	//	}
 }
 

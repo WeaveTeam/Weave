@@ -211,7 +211,6 @@
 				import weave.core.UIUtils;
 				import weave.data.AttributeColumns.KeyColumn;
 				import weave.data.AttributeColumns.ProxyColumn;
-				import weave.ui.CustomDataGrid.DataGridColumnForQKey;
 				import weave.utils.PopUpUtils;
 				
 				private static const padding:int = 8;

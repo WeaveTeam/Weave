@@ -27,6 +27,7 @@ package weave.services.wms
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
+	import weave.compiler.StandardLib;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -186,18 +187,9 @@ package weave.services.wms
 			return _imageHeight;
 		}
 		
-		/**
-		 * used for sorting an array of WMSTiles.
-		 */
-		protected function tileSortingComparison(a:WMSTile, b:WMSTile):int
+		protected function sortTiles(tiles:Array):void
 		{
-			// if a is lower quality (lower zoomLevel), it goes before
-			if (a.zoomLevel < b.zoomLevel)
-				return -1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return 1;			
+			StandardLib.sortOn(tiles, WMSTile.ZOOM_LEVEL);
 		}
 	}
 }
