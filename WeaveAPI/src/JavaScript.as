@@ -262,14 +262,7 @@ package
 						var func = function() {
 							var params = Array.prototype.slice.call(arguments);
 							var paramsJson = toJson(params);
-							try {
-								var resultJson = flash[JSON_CALL](id, paramsJson);
-							} catch (e) {
-								var e2 = new Error();
-								e2.name = e.name;
-								e2.message = e.message;
-								throw e2;
-							}
+							var resultJson = flash[JSON_CALL](id, paramsJson);
 							return fromJson(resultJson);
 						};
 						func[JSON_FUNCTION_PREFIX] = id;
