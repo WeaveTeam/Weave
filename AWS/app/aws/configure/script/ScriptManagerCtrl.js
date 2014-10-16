@@ -81,7 +81,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 
 //********************************************************************Watches*******************************************************
 	  //when a script is selected
-	  $scope.$watchCollection('selectedScript', function(newVal, oldVal) {
+	  $scope.$watch('selectedScript', function(newVal, oldVal) {
 		  if(newVal) {
 			  //retrieve its metadata
 			  scriptManagerService.getScriptMetadata(newVal).then(function(result) {
@@ -212,17 +212,16 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	 //deleting scripts on the server
 	 $scope.deteleScript = function () {
 		 if($scope.selectedScript) {
-			 if($scope.selectedScript) {
-				 scriptManagerService.deleteScript($scope.selectedScript).then(function(status) {
-					 if(status) {
-						 console.log("script deleted successfully");
-						 $scope.selectedScript = "";
-						 $scope.script.content = "";
-						 $scope.scriptMetadata = {};
-						 $scope.refreshScripts();
-					 }
-				 });
-			 }
+			 console.log($scope.selectedScript);
+			 scriptManagerService.deleteScript($scope.selectedScript).then(function(status) {
+				 if(status) {
+					 console.log("script deleted successfully");
+					 $scope.selectedScript = "";
+					 $scope.script.content = "";
+					 $scope.scriptMetadata = {};
+					 $scope.refreshScripts();
+				 }
+			 });
 		 }
 	 };
 	 
@@ -357,7 +356,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 							$scope.uploadSuccessful = "failure";
 						}
 					});
-					$scope.$broadcast('refreshScripts'); // tell the other controller to refresh the list of scripts
+					$scope.$parent.$parent.refreshScripts(); // tell the other controller to refresh the list of scripts
 				}
 			}
 				

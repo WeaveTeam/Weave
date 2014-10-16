@@ -179,7 +179,7 @@ AnalysisModule.service("WeaveService", function() {
 			}
 			else
 			{
-				if(! angular.isUndefined(ws.weave))
+				if(!angular.isUndefined(ws.weave))
 				ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
 			}
 		}

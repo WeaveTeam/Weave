@@ -90,7 +90,7 @@ AnalysisModule.service('AnalysisService', function() {
 	
 });
 
-AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService, QueryHandlerService) {
+AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService, QueryHandlerService, $window) {
 
 	setTimeout(loadFlashContent, 100);
 	$scope.queryService = queryService;
@@ -101,13 +101,17 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	//getting the list of datatables
 	queryService.getDataTableList(true);
 	
+//	$scope.$watch('WeaveService.weaveWindow.closed', function() {
+//		queryService.dataObject.openInNewWindow = WeaveService.weaveWindow.closed;
+//	});
+	
 	$scope.$watch(function() {
 		return queryService.dataObject.openInNewWindow;
 	}, function() {
 		if(!queryService.dataObject.openInNewWindow) {
-			if(WeaveService.weaveWindow) {
+			if(WeaveService.weaveWindow && !WeaveService.weaveWindow.closed) {
 				// save the session state.
-				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getSessionState();
+				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
 				WeaveService.weaveWindow.close();
 			}
 			setTimeout(loadFlashContent, 100); // reload weave object in main window.
@@ -115,7 +119,12 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 			// checkweaveready and restore session station into embedded weave.
 			QueryHandlerService.waitForWeave(null, function (weave) {
 				WeaveService.weave = weave;
-				WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+				if(queryService.dataObject.weaveSessionState) {
+					setTimeout(function () {
+						WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+					}, 100);
+					
+				}
 			});
 		} else {
 			
@@ -124,7 +133,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 			// open the weave window, checkweaveready and restore the session state.
 			if(queryService.dataObject.resultData)
 			{
-				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getSessionState();
+				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
 				
 				if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
 					WeaveService.weaveWindow = $window.open("/weave.html?",
@@ -137,7 +146,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 						that.isValidated = false;
 						that.validationUpdate = "Ready for validation";
 						
-						scope.$apply();//re-fires the digest cycle and updates the view
+						//scope.$apply();//re-fires the digest cycle and updates the view
 					});
 				}
 			}
