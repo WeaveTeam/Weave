@@ -44,12 +44,11 @@ package weave.visualization.plotters
 		{
 			bitmapText.x = screenBounds.getXCenter();
 			bitmapText.y = screenBounds.getYCenter();
-			bitmapText.width = screenBounds.getXCoverage();
-			bitmapText.height = screenBounds.getYCoverage();
+			bitmapText.maxWidth = screenBounds.getXCoverage();
+			bitmapText.maxHeight = screenBounds.getYCoverage();
 			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
 			textFormat.copyTo(bitmapText.textFormat);
-			bitmapText.textFormat.align = BitmapText.HORIZONTAL_ALIGN_CENTER;
 			try
 			{
 				bitmapText.text = textFunction.apply(this, [dependency.target]);
