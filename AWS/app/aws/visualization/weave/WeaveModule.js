@@ -3,7 +3,7 @@ AnalysisModule.service("WeaveService", function() {
 	
 	this.weave;
 	var ws = this;
-	
+	this.weaveWindow;
 	this.dataSourceName;
 	
 	this.columnNames = [];

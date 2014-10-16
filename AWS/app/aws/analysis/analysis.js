@@ -96,7 +96,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 	$scope.queryService = queryService;
 	$scope.AnalysisService = AnalysisService;
 	$scope.WeaveService = WeaveService;
-	$scope.queryHandlerService = QueryHandlerService;
+	$scope.QueryHandlerService = QueryHandlerService;
 	
 	//getting the list of datatables
 	queryService.getDataTableList(true);
@@ -105,19 +105,42 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 		return queryService.dataObject.openInNewWindow;
 	}, function() {
 		if(!queryService.dataObject.openInNewWindow) {
-			if(weaveWindow) {
+			if(WeaveService.weaveWindow) {
 				// save the session state.
-				
-				weaveWindow.close();
+				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getSessionState();
+				WeaveService.weaveWindow.close();
 			}
-			setTimeout(loadFlashContent, 100);
+			setTimeout(loadFlashContent, 100); // reload weave object in main window.
+			
 			// checkweaveready and restore session station into embedded weave.
+			QueryHandlerService.waitForWeave(null, function (weave) {
+				WeaveService.weave = weave;
+				WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+			});
 		} else {
 			
 			// check if there is a result data, meaning there is a current analysis
 			// if that's the case, save embedded weave session state
 			// open the weave window, checkweaveready and restore the session state.
-			
+			if(queryService.dataObject.resultData)
+			{
+				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getSessionState();
+				
+				if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
+					WeaveService.weaveWindow = $window.open("/weave.html?",
+							"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+					QueryHandlerService.waitForWeave(WeaveService.weaveWindow , function(weave) {
+						WeaveService.weave = weave;
+						WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+						//updates required for updating query object validation and to enable visualization widget controls
+						that.displayVizMenu = true;
+						that.isValidated = false;
+						that.validationUpdate = "Ready for validation";
+						
+						scope.$apply();//re-fires the digest cycle and updates the view
+					});
+				}
+			}
 			
 		}
 	});

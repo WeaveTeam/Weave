@@ -5,12 +5,11 @@
 //var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
 
 var qh_module = angular.module('aws.QueryHandlerModule', []);
-var weaveWindow;
 
 qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService','computationServiceURL', '$window', '$modal',
                                  function($q, scope, queryService, WeaveService, errorLogService,runQueryService,computationServiceURL, $window, $modal) {
 	
-	//this.weaveWindow;
+	//this.WeaveService.weaveWindow;
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
@@ -316,14 +315,14 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 								{
 									time2 = new Date().getTime() - startTimer;
 									queryService.dataObject.queryDone = true;
-									console.log(time1, time2);
+									queryService.dataObject.resultData = resultData;
 									queryService.dataObject.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
 									if(queryService.dataObject.openInNewWindow) {
-										if(!weaveWindow || weaveWindow.closed) {
-											weaveWindow = $window.open("/weave.html?",
+										if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
+											WeaveService.weaveWindow = $window.open("/weave.html?",
 													"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 										}
-										that.waitForWeave(weaveWindow , function(weave) {
+										that.waitForWeave(WeaveService.weaveWindow , function(weave) {
 											WeaveService.weave = weave;
 											WeaveService.addCSVData(resultData);
 											WeaveService.columnNames = resultData[0];
