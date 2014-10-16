@@ -23,6 +23,7 @@ package weave.menus
 	import flash.net.navigateToURL;
 	
 	import weave.Weave;
+	import weave.compiler.StandardLib;
 
 	public class HelpMenu extends WeaveMenuItem
 	{
@@ -30,6 +31,8 @@ package weave.menus
 		{
 			navigateToURL(new URLRequest(item.data as String), "_blank");
 		}
+		private static const VERSION:String = 'version';
+		
 		public function HelpMenu()
 		{
 			super({
@@ -51,7 +54,13 @@ package weave.menus
 					},
 					TYPE_SEPARATOR,
 					{
-						label: lang("Weave version: {0}", Weave.properties.version.value),
+						label: function():String {
+							var version:String = Weave.properties.version.value;
+							var app:Object = WeaveAPI.topLevelApplication;
+							if (app && app.hasOwnProperty(VERSION))
+								version = StandardLib.substitute("{0} ({1})", version, app[VERSION]);
+							return lang("Weave version: {0}", version);
+						},
 						enabled: false
 					}
 				]

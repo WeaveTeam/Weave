@@ -15,13 +15,13 @@
 
 package weave.api.ui
 {
-	/**
-	 * NOTE:
-	 * This is a temporary interface just to get everything working.
-	 * 
-	 * @author adufilie
-	 */
-	public interface ISpatialIndex
+	public interface IInitSelectableAttributes extends ISelectableAttributes
 	{
+		/**
+		 * This will initialize the selectable attributes using a list of columns and/or column references.
+		 * Tools can override this function for different behavior.
+		 * @param input An Array of IAttributeColumn and/or IColumnReference objects
+		 */
+		function initSelectableAttributes(input:Array):void;
 	}
 }

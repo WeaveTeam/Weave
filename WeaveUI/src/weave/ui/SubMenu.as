@@ -156,9 +156,12 @@ package weave.ui
 			super.dataProvider = value;
 		}
 		
+		public var matchParentWidth:Boolean = false;
+		public var alignRight:Boolean = false;
+		
 		public function showSubMenu():void
 		{
-			if (!dataProvider)
+			if (!dataProvider || !_uiParent.enabled)
 				return;
 			
 			var stage:Stage = WeaveAPI.StageUtils.stage;
@@ -169,16 +172,22 @@ package weave.ui
 			
 			var parentGlobal:Point = _uiParent.localToGlobal(new Point(0, 0));
 			var parentHeight:Number = _uiParent.height;
+			var parentWidth:Number = _uiParent.width;
 			
 			setStyle("openDuration", 0);
+			width = matchParentWidth ? parentWidth : NaN;
 			popUpMenu(this, _uiParent, rootItem || dataProvider);
 			
 			// first show menu below parent so the width and height get calculated
 			show(parentGlobal.x, parentGlobal.y + parentHeight);
 			
+			if (alignRight)
+				x = x + parentWidth - width;
+			
 			var global:Point = this.parent.localToGlobal(new Point(x, y));
 			// make sure we are on stage in x coordinates
 			global.x = StandardLib.constrain(global.x, xMin, xMax - measuredWidth);
+			
 			// if we extend below the stage and there is more room above, move above the parent
 			var moreRoomAbove:Boolean = parentGlobal.y - yMin > yMax - (parentGlobal.y + parentHeight);
 			var extendsBelowStage:Boolean = global.y + measuredHeight > yMax;

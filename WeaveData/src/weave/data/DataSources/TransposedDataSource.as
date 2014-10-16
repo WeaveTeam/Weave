@@ -41,7 +41,7 @@ package weave.data.DataSources
 	
 	public class TransposedDataSource extends AbstractDataSource_old
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, TransposedDataSource, "Transposed data");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, TransposedDataSource, "Transposed table");
 		
 		public function TransposedDataSource()
 		{
@@ -51,7 +51,7 @@ package weave.data.DataSources
 			internalData = new InternalData(this);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsChange);
 			metadata.childListCallbacks.addImmediateCallback(this, setColumnKeySources);
-			filteredKeySet.keyFilter.globalName = 'defaultSubsetKeyFilter';
+			filteredKeySet.keyFilter.targetPath = ['defaultSubsetKeyFilter'];
 		}
 		
 		public const filteredKeySet:IFilteredKeySet = newLinkableChild(this, FilteredKeySet);
@@ -186,7 +186,7 @@ package weave.data.DataSources
 				proxyColumn.setInternalColumn(new TransposedRecord(this, internalData, null, propertyName));
 			}
 			else
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				proxyColumn.dataUnavailable();
 		}
 	}
 }

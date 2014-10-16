@@ -23,7 +23,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
 	xmlns:ui="weave.ui.*"
-	sessionPanelCoordsAsPercentages="false"
+	enablePercentageCoords="false"
 	escapeKeyClosesPanel="true"
 	title="{lang('Add new data source')}">
 	<mx:VBox initialize="UIUtils.pad(event, 8, 100, 100)">
@@ -40,16 +40,18 @@
 			import mx.core.Container;
 			
 			import weave.api.data.IDataSource;
+			import weave.api.data.IDataSource_File;
 			import weave.api.disposeObject;
 			import weave.api.newDisposableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IDataSourceEditor;
 			import weave.core.ClassUtils;
 			import weave.core.UIUtils;
+			import weave.menus.SessionMenu;
 
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				panelWidth.value = "700";
 				panelHeight.value = "500";
@@ -61,6 +63,8 @@
 				
 				dataSourceType = _dataSourceType;
 			}
+			
+			public function get editor():IDataSourceEditor { return _editor; }
 			
 			private var _editor:IDataSourceEditor;
 			private var _dataSourceType:Class;
@@ -97,9 +101,19 @@
 				var ds:IDataSource = _editor.createDataSource();
 				if (ds)
 				{
+					removePanel();
+					
+					// if this is the only data source and it's a file, try to initialize as a template
+					var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource_File);
+					if (sources.length == 1 && sources[0] == ds)
+					{
+						if (SessionMenu.initTemplate(ds as IDataSource_File))
+							return;
+					}
+					
+					// otherwise, open the DataSourceManager
 					var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager);
 					dsm.browse(ds);
-					removePanel();
 				}
 			}
 			

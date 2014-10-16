@@ -23,7 +23,7 @@ package weave.primitives
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.utils.AsyncSort;
+	import weave.compiler.StandardLib;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -372,7 +372,7 @@ package weave.primitives
 			{
 				KDTree.compareNodesSortDimension = sortDimension;
 				KDTree.compareNodesDescending = sortDirection == DESCENDING;
-				AsyncSort.sortImmediately(queryResult, KDTree.compareNodes);
+				StandardLib.sort(queryResult, KDTree.compareNodes);
 				
 				// replace nodes with objects in queryResult
 				for (i = queryResult.length; i--;)

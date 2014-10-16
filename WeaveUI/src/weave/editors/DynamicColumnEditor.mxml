@@ -104,8 +104,19 @@
 			private function handleDataSource():void
 			{
 				var ds:IDataSource = dataSourceWatcher.target as IDataSource;
-				explorer.rootNode = ds ? ds.getHierarchyRoot() : null;
-				explorer.folderView.showRoot = !!ds;
+				if (ds)
+				{
+					var root:IWeaveTreeNode = ds.getHierarchyRoot();
+					explorer.rootNode = root;
+					explorer.folderView.showRoot = true;
+					if (!root.hasChildBranches())
+						explorer.expandPathAndSelectNode(root);
+				}
+				else
+				{
+					explorer.rootNode = null;
+					explorer.folderView.showRoot = false;
+				}
 			}
 			
 			private const entityNodeSearch:EntityNodeSearch = newLinkableChild(this, EntityNodeSearch);

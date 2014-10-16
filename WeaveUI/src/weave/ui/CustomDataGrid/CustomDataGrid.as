@@ -41,7 +41,7 @@ package weave.ui.CustomDataGrid
 	 * which was introduced in Flex 3.6 SDK. The issue is the lockedColumnContent is instantiated
 	 * and contains invalid data when the lockedColumnCount is 0.
 	 * 
-	 * Also, uses AsyncSort.sortImmediately() instead of Array.sort() via CustomSort.
+	 * Also, uses StandardLib.sort() instead of Array.sort() via CustomSort.
 	 * 
 	 * Added getColumn().
 	 * 
@@ -57,6 +57,7 @@ package weave.ui.CustomDataGrid
 			headerClass = CustomDataGridHeader;
 			// add this event listener before the one in super()
 			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
+			setStyle('defaultDataGridItemRenderer', CustomDataGridItemRenderer);
 			super();
 		}
 		private var in_destroyItemEditor:Boolean = false;
@@ -95,11 +96,17 @@ package weave.ui.CustomDataGrid
 			return c ? super.columnWordWrap(c) : false;
 		}
 		
+		/**
+		 * Set this to true to use an internal ISort implementation that does not sort.
+		 * Use this option if you plan to sort externally but still want the column headers to indicate the sorting direction.
+		 */
+		public var useNoSort:Boolean = false;
+		
 		private function headerReleaseHandler(event:DataGridEvent):void
 		{
 			var c:DataGridColumn = columns[event.columnIndex];
-			if (c.sortable && !(collection.sort is CustomSort))
-				collection.sort = new CustomSort(collection.sort);
+			if (c.sortable && !(collection.sort is (useNoSort ? NoSort : CustomSort)))
+				collection.sort = useNoSort ? new NoSort() : new CustomSort(collection.sort);
 		}
 		
 		public function drawItemForced(item:Object,
@@ -211,8 +218,20 @@ package weave.ui.CustomDataGrid
 		 */
 		public function setRows(tableWithHeader:Array):void
 		{
-			// make a copy of the data
-			var rows:Array = tableWithHeader.map(function(row:Array, i:int, a:Array):Array { return row.concat(); });
+			// make sure we have at least one row (for the header)
+			if (!tableWithHeader || !tableWithHeader.length)
+				tableWithHeader = [[]];
+			
+			// make a copy of the data and find the max row length
+			var rowLength:int = 0;
+			var rows:Array = tableWithHeader.map(function(row:Array, i:int, a:Array):Array {
+				rowLength = Math.max(rowLength, row.length);
+				return row.concat();
+			});
+			// expand rows to match max row length
+			rows.forEach(function(row:Array, i:int, a:Array):void {
+				row.length = rowLength;
+			});
 			var header:Array = rows.shift();
 			
 			dataProvider = null;
@@ -259,4 +278,43 @@ package weave.ui.CustomDataGrid
 			return rows;
 		}
 	}
+}
+
+import mx.collections.ISort;
+import mx.collections.ISortField;
+
+/**
+ * Does no sorting whatsoever.
+ */
+internal class NoSort implements ISort
+{
+	private var _fields:Array = [];
+	public function get fields():Array
+	{
+		return _fields;
+	}
+	public 	function set fields(value:Array):void
+	{
+		_fields = value;
+	}
+	public function reverse():void
+	{
+		for each (var sortField:ISortField in _fields)
+			sortField.reverse();
+	}
+	
+	private var _unique:Boolean = false;
+	public function get unique():Boolean { return _unique; }
+	public function set unique(value:Boolean):void { _unique = value; }
+	
+	private var _compareFunction:Function;
+	public function get compareFunction():Function { return _compareFunction; }
+	public function set compareFunction(value:Function):void { _compareFunction = value;}
+	
+	public function findItem(items:Array, values:Object, mode:String, returnInsertionIndex:Boolean = false, compareFunction:Function = null):int
+	{
+		return -1;
+	}
+	public function propertyAffectsSort(property:String):Boolean { return false; }
+	public function sort(items:Array):void { }
 }

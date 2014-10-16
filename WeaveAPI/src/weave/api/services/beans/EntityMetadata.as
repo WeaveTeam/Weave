@@ -28,6 +28,7 @@ package weave.api.services.beans
 				ColumnMetadata.KEY_TYPE,
 				ColumnMetadata.DATA_TYPE,
 				ColumnMetadata.PROJECTION,
+				ColumnMetadata.AGGREGATION,
 				ColumnMetadata.DATE_FORMAT,
 				ColumnMetadata.MIN,
 				ColumnMetadata.MAX,

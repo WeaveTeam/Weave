@@ -31,6 +31,7 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -47,9 +48,9 @@ package weave.data.DataSources
 	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
 	
-	public class GeoJSONDataSource extends AbstractDataSource
+	public class GeoJSONDataSource extends AbstractDataSource implements IDataSource_File
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON file");
  		
 		public function GeoJSONDataSource()
 		{
@@ -142,7 +143,7 @@ package weave.data.DataSources
 				}
 				catch (e:Error)
 				{
-					throw new Error("Your version of Flash Player (" + Capabilities.version + ") does not have native JSON support.");
+					throw new Error("GeoJSON: Your version of Flash Player (" + Capabilities.version + " " + Capabilities.playerType + ") does not have native JSON support.");
 				}
 				
 				// parse the json
@@ -182,7 +183,7 @@ package weave.data.DataSources
 				var meta:Object = {};
 				meta[ColumnMetadata.TITLE] = WeaveAPI.globalHashMap.getName(this);
 				
-				var rootChildren:Array = null;
+				var rootChildren:Array = [];
 				if (jsonData)
 				{
 					// include empty string for the geometry column
@@ -225,7 +226,7 @@ package weave.data.DataSources
 			var metadata:Object = getMetadataForProperty(propertyName);
 			if (!metadata || !jsonData || (propertyName && jsonData.propertyNames.indexOf(propertyName) < 0))
 			{
-				proxyColumn.setInternalColumn(null);
+				proxyColumn.dataUnavailable();
 				return;
 			}
 			proxyColumn.setMetadata(metadata);
@@ -257,7 +258,8 @@ package weave.data.DataSources
 					gc.setGeometries(keys, geoms);
 					proxyColumn.setInternalColumn(gc);
 				}
-				WeaveAPI.StageUtils.startTask(proxyColumn, initGeoms, WeaveAPI.TASK_PRIORITY_2_BUILDING, setGeoms);
+				// high priority because not much can be done without data
+				WeaveAPI.StageUtils.startTask(proxyColumn, initGeoms, WeaveAPI.TASK_PRIORITY_HIGH, setGeoms);
 			}
 			else
 			{
@@ -288,7 +290,7 @@ package weave.data.DataSources
 			{
 				meta = {};
 				meta[GEOJSON_PROPERTY_NAME] = '';
-				meta[ColumnMetadata.TITLE] = GEOM_COLUMN_TITLE;
+				meta[ColumnMetadata.TITLE] = getGeomColumnTitle();
 				meta[ColumnMetadata.KEY_TYPE] = getKeyType();
 				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
 				meta[ColumnMetadata.PROJECTION] = getProjection();
@@ -308,7 +310,11 @@ package weave.data.DataSources
 			return meta;
 		}
 		private static const GEOJSON_PROPERTY_NAME:String = 'geoJsonPropertyName';
-		private static const GEOM_COLUMN_TITLE:String = 'the_geom';
+		
+		private function getGeomColumnTitle():String
+		{
+			return lang("{0} geometry", WeaveAPI.globalHashMap.getName(this));
+		}
 	}
 }
 
@@ -345,7 +351,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 	public function equals(other:IWeaveTreeNode):Boolean
 	{
 		var that:DataSourceNode = other as DataSourceNode;
-		if (that && this.source == that.source && StandardLib.arrayCompare(this.idFields, that.idFields) == 0)
+		if (that && this.source == that.source && StandardLib.compare(this.idFields, that.idFields) == 0)
 		{
 			if (idFields && idFields.length)
 			{
@@ -356,7 +362,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 				return true;
 			}
 			// check all fields
-			return StandardLib.compareDynamicObjects(this.metadata, that.metadata) == 0;
+			return StandardLib.compare(this.metadata, that.metadata) == 0;
 		}
 		return false;
 	}
@@ -383,7 +389,7 @@ internal class DataSourceNode implements IWeaveTreeNode, IColumnReference
 	}
 	public function getColumnMetadata():Object
 	{
-		return metadata;
+		return children ? null : metadata;
 	}
 }
 

@@ -35,7 +35,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
@@ -52,7 +52,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class ScatterPlotPlotter extends AbstractGlyphPlotter implements IObjectWithSelectableAttributes
+	public class ScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
 		
@@ -122,7 +122,7 @@ package weave.visualization.plotters
 			if (_extraKeyDependencies)
 				columns = columns.concat(_extraKeyDependencies);
 			
-			_filteredKeySet.setColumnKeySources(columns, [true], null, _keyInclusionLogic);
+			_filteredKeySet.setColumnKeySources(columns, [-1], null, _keyInclusionLogic);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void

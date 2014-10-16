@@ -28,7 +28,7 @@
 				layout="horizontal"
 				autoLayout="true"
 				creationComplete="draggablepanel1_creationCompleteHandler(event)"
-				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
+				implements="weave.api.ui.IVisTool_R" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
 	
 	<mx:VBox paddingLeft="10" paddingRight="5" paddingTop="5" paddingBottom="20" width="100%" height="100%">
 		<mx:MenuBar id="ROptions" labelField="@label" fontWeight="bold" cornerRadius="8" itemClick="menuItemClickHandler(event)"
@@ -333,7 +333,6 @@
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.ui.DataMiningEditors.PamClusteringEditor;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 
 			//WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
@@ -390,10 +389,10 @@
 			private var rPreload:DataPreloadInR = DataPreloadInR.getDataPreloadInRinstance(fillingResult);//used for calculating certain statistics as soon as data is loaded
 			private var normBinAndStatResult:Array = new Array();//object returned from R which contains stats, distributions 
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();				
-				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
+				super.inConstructor();				
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 				

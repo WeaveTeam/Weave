@@ -19,17 +19,18 @@
 
 package weave.menus
 {
-	import flash.display.DisplayObject;
-	
 	import weave.Weave;
 	import weave.api.data.IDataSource;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.data.IDataSource_File;
+	import weave.api.data.IDataSource_Service;
+	import weave.api.data.IDataSource_Transform;
+	import weave.api.ui.ISelectableAttributes;
+	import weave.core.ClassUtils;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
-	import weave.ui.NewUserWizard;
-	import weave.ui.WizardPanel;
+	import weave.ui.EquationEditor;
 
 	public class DataMenu extends WeaveMenuItem
 	{
@@ -39,12 +40,8 @@ package weave.menus
 			WeaveAPI.topLevelApplication['visApp']['exportCSV']();
 		}
 		
-		public static const staticItems:Array = createItems(
+		public static const staticItems:Array = createItems([
 			{
-				shown: Weave.properties.enableLoadMyData,
-				label: lang("Load my data"),
-				click: function():void { WizardPanel.createWizard(WeaveAPI.topLevelApplication as DisplayObject, new NewUserWizard()); }
-			},{
 				shown: Weave.properties.enableBrowseData,
 				label: lang("Browse Data"),
 				click: AttributeSelectorPanel.open
@@ -65,11 +62,11 @@ package weave.menus
 				shown: Weave.properties.enableExportCSV,
 				label: lang("Export CSV from all visualizations"),
 				click: exportCSV,
-				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IObjectWithSelectableAttributes).length > 0; }
+				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(ISelectableAttributes).length > 0; }
 			}
-		);
+		]);
 		
-		public static function getDynamicItems(labelFormat:String = null):Array
+		public static function getDynamicItems(labelFormat:String = null, alwaysShow:Boolean = false):Array
 		{
 			function getLabel(item:WeaveMenuItem):String
 			{
@@ -84,18 +81,33 @@ package weave.menus
 				adsp.dataSourceType = item.data as Class;
 			}
 			return createItems(
-				WeaveAPI.ClassRegistry.getImplementations(IDataSource).map(
-					function(impl:Class, ..._):* {
-						return {
-							shown: Weave.properties.enableManageDataSources,
-							label: getLabel,
-							click: onClick,
-							data: impl
-						};
+				ClassUtils.partitionClassList(
+					WeaveAPI.ClassRegistry.getImplementations(IDataSource),
+					IDataSource_File,
+					IDataSource_Service,
+					IDataSource_Transform
+				).map(
+					function(group:Array, i:*, a:*):Array {
+						return group.map(
+							function(impl:Class, i:*, a:*):Object {
+								return {
+									shown: {or: [alwaysShow, Weave.properties.enableManageDataSources]},
+									label: getLabel,
+									click: onClick,
+									data: impl
+								};
+							}
+						)
 					}
 				)
 			);
 		}
+		
+		public static const equationColumnItem:WeaveMenuItem = new WeaveMenuItem({
+			shown: [Weave.properties.showEquationEditor],
+			label: lang("Equation Column Editor"),
+			click: function():void { DraggablePanel.openStaticInstance(EquationEditor); }
+		});
 		
 		public function DataMenu()
 		{
@@ -104,11 +116,11 @@ package weave.menus
 				label: lang("Data"),
 				children: function():Array
 				{
-					return createItems(
+					return createItems([
 						staticItems,
-						TYPE_SEPARATOR,
-						getDynamicItems("Add {0}")
-					);
+						getDynamicItems("+ {0}"),
+						equationColumnItem
+					]);
 				}
 			});
 		}

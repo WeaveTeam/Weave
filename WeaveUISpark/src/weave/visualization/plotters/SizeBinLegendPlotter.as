@@ -34,7 +34,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
@@ -129,7 +128,7 @@ package weave.visualization.plotters
 						circleRadiuses[i] = number;
 				}
 				// sort numerically
-				AsyncSort.sortImmediately(circleRadiuses, ObjectUtil.numericCompare);
+				StandardLib.sort(circleRadiuses);
 			}
 
 			normalizedCircleRadiuses = new Array();

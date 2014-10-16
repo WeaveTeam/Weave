@@ -18,7 +18,7 @@ package
 		else
 		{
 			$.backlog = [args];
-			WeaveAPI.StageUtils.callLater(null, $.flush, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+			WeaveAPI.StageUtils.callLater(null, $.flush);
 		}
 	}
 }

@@ -19,17 +19,14 @@
 
 package weave.data
 {
-	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.DataType;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
-	import weave.api.getCallbackCollection;
+	import weave.flascc.stringHash;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
@@ -42,8 +39,6 @@ package weave.data
 	 */
 	public final class QKeyManager implements IQualifiedKeyManager
 	{
-		private var _callbackCollection:ICallbackCollection = getCallbackCollection(this as ILinkableObject);
-		
 		/**
 		 * Get the QKey object for a given key type and key.
 		 *
@@ -51,44 +46,45 @@ package weave.data
 		 */
 		public function getQKey(keyType:String, localName:String):IQualifiedKey
 		{
+			_keyBuffer[0] = localName;
+			getQKeys_range(keyType, _keyBuffer, 0, 1, _keyBuffer);
+			return _keyBuffer[0] as IQualifiedKey;
+		}
+		
+		private const _keyBuffer:Array = []; // holds one key
+		
+		/**
+		 * @param output An output Array or Vector for IQualifiedKeys.
+		 */
+		public function getQKeys_range(keyType:String, keyStrings:Array, iStart:uint, iEnd:uint, output:*):void
+		{
 			// if there is no keyType specified, use the default
 			if (!keyType)
 				keyType = DataType.STRING;
 			
-			// get mapping of key strings to QKey weak refrences
-			var keyToQKeyRefMap:Object = _keyTypeMap[keyType] as Object;
-			if (keyToQKeyRefMap == null)
+			// get mapping of key strings to QKey weak references
+			var keyLookup:Object = _keys[keyType] as Object;
+			if (keyLookup === null)
 			{
 				// key type not seen before, so initialize it
-				keyToQKeyRefMap = new Object();
-				_keyTypeMap[keyType] = keyToQKeyRefMap;
+				keyLookup = {};
+				_keys[keyType] = keyLookup;
 			}
 			
-			// get QKey weak reference from key string
-			var qkeyRef:Dictionary = keyToQKeyRefMap[localName] as Dictionary
-			if (qkeyRef == null)
+			for (var i:int = iStart; i < iEnd; i++)
 			{
-				// Dictionary uses weak keys so QKey objects get garbage-collected
-				qkeyRef = new Dictionary(true);
-				keyToQKeyRefMap[localName] = qkeyRef;
-			}
-			
-			// get QKey object from weak reference
-			var qkey:QKey = null;
-			for (var qkeyObj:* in qkeyRef)
-				qkey = qkeyObj;
-			
-			if (qkey == null)
-			{
-				// QKey not created for this key yet (or it has been garbage-collected)
-				qkey = new QKey(keyType, localName);
-				qkeyRef[qkey] = null; //save weak reference
+				var localName:* = keyStrings[i];
+				var hash:int = stringHash(localName); // using stringHash improves lookup speed for a large number of strings
+				var qkey:* = keyLookup[hash];
+				if (qkey === undefined)
+				{
+					// QKey not created for this key yet (or it has been garbage-collected)
+					qkey = new QKey(keyType, localName);
+					keyLookup[hash] = qkey;
+				}
 				
-				// trigger callbacks whenever a new key is created
-				_callbackCollection.triggerCallbacks();
+				output[i] = qkey;
 			}
-			
-			return qkey;
 		}
 		
 		/**
@@ -98,14 +94,8 @@ package weave.data
 		 */
 		public function getQKeys(keyType:String, keyStrings:Array):Array
 		{
-			_callbackCollection.delayCallbacks();
-			
-			var i:int = keyStrings.length;
-			var keys:Array = new Array(i);
-			while (i--)
-				keys[i] = getQKey(keyType, keyStrings[i]);
-			
-			_callbackCollection.resumeCallbacks();
+			var keys:Array = new Array(keyStrings.length);
+			getQKeys_range(keyType, keyStrings, 0, keyStrings.length, keys);
 			return keys;
 		}
 		
@@ -134,19 +124,7 @@ package weave.data
 		 */
 		public function getQKeysAsync(keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
 		{
-			outputKeys.length = keyStrings.length;
-			var i:int = 0;
-			function iterate(stopTime:int):Number
-			{
-				for (; i < keyStrings.length; i++)
-				{
-					if (getTimer() > stopTime)
-						return i / keyStrings.length;
-					outputKeys[i] = getQKey(keyType, keyStrings[i]);
-				}
-				return 1;
-			};
-			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncCallback);
+			new QKeyGetter(this, keyType, keyStrings, relevantContext, asyncCallback, outputKeys);
 		}
 
 		/**
@@ -157,7 +135,7 @@ package weave.data
 		public function getAllKeyTypes():Array
 		{
 			var types:Array = [];
-			for (var type:String in _keyTypeMap)
+			for (var type:String in _keys)
 				types.push(type);
 			return types;
 		}
@@ -169,16 +147,15 @@ package weave.data
 		public function getAllQKeys(keyType:String):Array
 		{
 			var qkeys:Array = [];
-			for each (var qkeyRef:Dictionary in _keyTypeMap[keyType])
-				for (var qkey:* in qkeyRef)
-					qkeys.push(qkey);
+			for each (var qkey:IQualifiedKey in _keys[keyType])
+				qkeys.push(qkey);
 			return qkeys;
 		}
 		
 		/**
-		 * keyType -> Object( localName -> Dictionary( IQualifiedKey -> true ) )
+		 * keyType -> Object( localName -> IQualifiedKey )
 		 */
-		private const _keyTypeMap:Object = new Object();
+		private const _keys:Object = {};
 
 		/**
 		 * This will compare two keys.
@@ -194,23 +171,21 @@ package weave.data
 	}
 }
 
-import weave.api.data.IQualifiedKey;
-
 /**
  * This class is internal to QKeyManager because instances
  * of QKey should not be instantiated outside QKeyManager.
  */
 internal class QKey implements IQualifiedKey
 {
-	public function QKey(keyType:String, key:String)
+	public function QKey(keyType:String, key:*)
 	{
 		_keyType = keyType;
 		_localName = key;
 	}
-
+	
 	private var _keyType:String; // namespace
-	private var _localName:String; // localname/record identifier
-
+	private var _localName:*; // localname/record identifier
+	
 	/**
 	 * This is the namespace of the QKey.
 	 */
@@ -218,7 +193,7 @@ internal class QKey implements IQualifiedKey
 	{
 		return _keyType;
 	}
-
+	
 	/**
 	 * This is local record identifier in the namespace of the QKey.
 	 */
@@ -226,11 +201,50 @@ internal class QKey implements IQualifiedKey
 	{
 		return _localName;
 	}
-		
+	
 	// This is a String containing both the namespace and the local name of the QKey
-//	public function toString():String
-//	{
-//		// The # sign is used in anticipation that a key type will be a URI.
-//		return _keyType + '#' + _key;
-//	}
+	//	public function toString():String
+	//	{
+	//		// The # sign is used in anticipation that a key type will be a URI.
+	//		return _keyType + '#' + _key;
+	//	}
+}
+
+import flash.utils.getTimer;
+
+import weave.api.data.IQualifiedKey;
+import weave.data.QKeyManager;
+
+internal class QKeyGetter
+{
+	public function QKeyGetter(manager:QKeyManager, keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>)
+	{
+		this.manager = manager;
+		this.keyType = keyType;
+		this.keyStrings = keyStrings;
+		this.outputKeys = outputKeys;
+		
+		outputKeys.length = keyStrings.length;
+		// high priority because all visualizations depend on key sets
+		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncCallback, lang("Initializing {0} record identifiers", keyStrings.length));
+	}
+	
+	private var i:int = 0;
+	private var manager:QKeyManager;
+	private var keyType:String;
+	private var keyStrings:Array;
+	private var outputKeys:Vector.<IQualifiedKey>;
+	private const batch:uint = 5000;
+	
+	private function iterate(stopTime:int):Number
+	{
+		for (; i < keyStrings.length; i += batch)
+		{
+			if (getTimer() > stopTime)
+				return i / keyStrings.length;
+			
+			manager.getQKeys_range(keyType, keyStrings, i, Math.min(i + batch, keyStrings.length), outputKeys);
+		}
+		return 1;
+	}
 }

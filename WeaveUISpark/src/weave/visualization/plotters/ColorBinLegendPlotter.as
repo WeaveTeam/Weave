@@ -32,7 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
@@ -58,7 +58,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter, IObjectWithSelectableAttributes
+	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter, ISelectableAttributes
 	{
 		public function ColorBinLegendPlotter()
 		{
@@ -119,9 +119,8 @@ package weave.visualization.plotters
 		
 		/**
 		 * This is an option to reverse the item order.
-		 * @default true
 		 */
-		public const ascendingOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true), createHashMaps);
+		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
 		
 		/**
 		 * This is the compiled function to apply to the item labels.
@@ -168,7 +167,7 @@ package weave.visualization.plotters
 			for (var iBin:int = 0; iBin < numBins; ++iBin)
 			{
 				// get the adjusted position and transpose inside the row
-				var adjustedIBin:int = (ascendingOrder.value) ? (maxNumBins - 1 - iBin) : (fakeNumBins + iBin);
+				var adjustedIBin:int = (reverseOrder.value) ? (fakeNumBins + iBin) : (maxNumBins - 1 - iBin);
 				var row:int = adjustedIBin / maxCols;
 				var col:int = adjustedIBin % maxCols;
 				var b:IBounds2D = new Bounds2D();
@@ -270,7 +269,7 @@ package weave.visualization.plotters
 				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, _shapeSize + labelGap);
 
 				// draw circle
-				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
+				var iColorIndex:int = reverseOrder.value ? (binCount - 1 - iBin) : iBin;
 				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
 				var xMin:Number = tempBounds.getXNumericMin(); 
 				var yMin:Number = tempBounds.getYNumericMin();
@@ -338,6 +337,6 @@ package weave.visualization.plotters
 		}
 		
 		// backwards compatibility
-		[Deprecated(replacement="ascendingOrder")] public function set reverseOrder(value:Boolean):void { ascendingOrder.value = value; }
+		[Deprecated(replacement="reverseOrder")] public function set ascendingOrder(value:Boolean):void { reverseOrder.value = !value; }
 	}
 }

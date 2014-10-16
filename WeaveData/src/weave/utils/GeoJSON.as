@@ -150,7 +150,7 @@ package weave.utils
 			return array
 				&& array.length >= 4
 				&& array.every(isPositionCoords)
-				&& StandardLib.arrayCompare(array[0], array[array.length - 1]) == 0;
+				&& StandardLib.compare(array[0], array[array.length - 1]) == 0;
 		}
 		private static function isPolygonCoords(coords:Object, ..._):Boolean
 		{

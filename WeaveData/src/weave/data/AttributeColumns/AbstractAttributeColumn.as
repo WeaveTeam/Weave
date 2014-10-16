@@ -19,10 +19,13 @@
 
 package weave.data.AttributeColumns
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.CallbackCollection;
 	import weave.utils.ColumnUtils;
+	import weave.utils.Dictionary2D;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
@@ -30,7 +33,6 @@ package weave.data.AttributeColumns
 	 * This object contains a mapping from keys to data values.
 	 * 
 	 * @author adufilie
-	 * @author abaumann
 	 */
 	public class AbstractAttributeColumn extends CallbackCollection implements IAttributeColumn
 	{
@@ -91,25 +93,61 @@ package weave.data.AttributeColumns
 		
 		// 'abstract' functions, should be defined with override when extending this class
 
-		public /* abstract */ function get keys():Array
+		/**
+		 * Used by default getValueFromKey() implementation. Must be explicitly initialized.
+		 */
+		protected var dataTask:ColumnDataTask;
+		
+		/**
+		 * Used by default getValueFromKey() implementation. Must be explicitly initialized.
+		 */
+		protected var dataCache:Dictionary2D;
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get keys():Array
+		{
+			return dataTask.uniqueKeys;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function containsKey(key:IQualifiedKey):Boolean
+		{
+			return dataTask.arrayData[key] !== undefined;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
+		{
+			var array:Array = dataTask.arrayData[key] as Array;
+			if (!array)
+				return dataType === String ? '' : undefined;
+			
+			if (!dataType || dataType === Array)
+				return array;
+			
+			var cache:Dictionary = dataCache.dictionary[dataType] as Dictionary;
+			if (!cache)
+				dataCache.dictionary[dataType] = cache = new Dictionary();
+			var value:* = cache[key];
+			if (value === undefined)
+				cache[key] = value = dataType(generateValue(key, dataType));
+			return value;
+		}
+		
+		/**
+		 * Used by default getValueFromKey() implementation to cache values.
+		 */
+		protected /* abstract */ function generateValue(key:IQualifiedKey, dataType:Class):Object
 		{
 			return null;
 		}
 		
-		public /* abstract */ function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
-		{
-			return NaN;
-		}
-		
-		/**
-		 * @param key A key to test.
-		 * @return true if the key exists in this IKeySet.
-		 */
-		public /* abstract */ function containsKey(key:IQualifiedKey):Boolean
-		{
-			return false;
-		}
-
 		public function toString():String
 		{
 			return debugId(this) + '(' + ColumnUtils.getTitle(this) + ')';

@@ -38,7 +38,7 @@ SchafersMissingDataImputation
 <DraggablePanel xmlns="weave.ui.*"
 				xmlns:mx="http://www.adobe.com/2006/mxml"
 				x="15%" y="15%" width="70%" height="70%" autoLayout="true" backgroundColor="#EFF4BC"
-				horizontalScrollPolicy="off" implements="weave.api.ui.IVisTool" layout="horizontal"
+				horizontalScrollPolicy="off" implements="weave.api.ui.IVisTool_R" layout="horizontal"
 				title="Schafers Missing Data Imputation" verticalScrollPolicy="off">
 	<mx:HBox width="100%" height="100%" paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
@@ -112,8 +112,11 @@ SchafersMissingDataImputation
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.disposeObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
@@ -126,8 +129,7 @@ SchafersMissingDataImputation
 			import weave.services.beans.RResult;
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ProbeTextUtils;
-			import weave.visualization.tools.DataTableTool;
+			import weave.visualization.tools.AdvancedTableTool;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SchafersMissingDataTool, "Schafers Missing Data Imputation Tool");
 			
@@ -140,16 +142,26 @@ SchafersMissingDataImputation
 			}
 			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			private var _service:WeaveRServlet;
+			private function get Rservice():WeaveRServlet
+			{
+				if (detectLinkableObjectChange(this, Weave.properties.rServiceURL))
+				{
+					if (_service)
+						disposeObject(_service);
+					_service = registerDisposableChild(this, new WeaveRServlet(Weave.properties.rServiceURL.value));
+				}
+				return _service;
+			}
 			public const inputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const outputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const assignTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();				
-				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
+				super.inConstructor();				
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 			}
@@ -178,7 +190,7 @@ SchafersMissingDataImputation
 			
 			private var headings:Array = new Array();
 			//private var currentDataGrid:DataGrid = null;
-			private var dataTB:DataTableTool ;
+			private var dataTB:AdvancedTableTool ;
 			
 			
 			 private function handleRunScriptResult(event:ResultEvent, keys:Array):void
@@ -276,7 +288,7 @@ SchafersMissingDataImputation
 						var dataTBName:String = Weave.root.getName(this) + "DataTableTool";
 						if(Weave.root.getObject(dataTBName)==null)
 						{
-							dataTB = Weave.root.requestObject(dataTBName,DataTableTool,false);
+							dataTB = Weave.root.requestObject(dataTBName,AdvancedTableTool,false);
 							dataTB.columns.removeAllObjects();
 							
 						}
@@ -554,5 +566,22 @@ SchafersMissingDataImputation
 			
 		]]>
 	</mx:Script>
-	
+	<editorFactory>
+		<mx:Component>
+			<ControlPanel>
+				<mx:VBox label="Settings">
+					<Indent label="{lang('Weave RService URL')}">
+						<TextInputWithPrompt id="urlInput" prompt="/WeaveServices/RService" width="100%"
+											 creationComplete="linkBindableProperty(Weave.properties.rServiceURL, urlInput, 'text')"/>
+					</Indent>
+				</mx:VBox>
+				<mx:Script>
+					<![CDATA[
+						import weave.Weave;
+						import weave.api.linkBindableProperty;
+					]]>
+				</mx:Script>
+			</ControlPanel>
+		</mx:Component>
+	</editorFactory>
 </DraggablePanel>

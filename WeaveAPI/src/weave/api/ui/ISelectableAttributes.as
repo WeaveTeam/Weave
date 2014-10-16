@@ -20,7 +20,7 @@ package weave.api.ui
 	/**
 	 * An object with a list of named DynamicColumn and/or ILinkableHashMap objects that an AttributeSelectorPanel can link to.
 	 */
-	public interface IObjectWithSelectableAttributes extends ILinkableObject
+	public interface ISelectableAttributes extends ILinkableObject
 	{
 		/**
 		 * This function should be defined with override by subclasses.

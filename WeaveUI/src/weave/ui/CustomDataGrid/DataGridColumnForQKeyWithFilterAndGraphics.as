@@ -19,37 +19,26 @@
 
 package weave.ui.CustomDataGrid
 {
-	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.core.ClassFactory;
 	
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.registerDisposableChild;
 	import weave.core.LinkableBoolean;
 	import weave.data.KeySets.KeySet;
-	import weave.data.KeySets.SortedKeySet;
 	import weave.utils.ColumnUtils;
 	
-	public class CustomDataGridColumn extends DataGridColumn implements IDisposableObject
+	public class DataGridColumnForQKeyWithFilterAndGraphics extends DataGridColumnForQKey implements IDisposableObject
 	{
-		public function CustomDataGridColumn(attrColumn:IAttributeColumn, showColors:LinkableBoolean, colorFunction:Function)
+		public function DataGridColumnForQKeyWithFilterAndGraphics(attrColumn:IAttributeColumn, showColors:LinkableBoolean, colorFunction:Function)
 		{
-			registerDisposableChild(attrColumn, this);
-			
-			this.attrColumn = attrColumn;
+			super(attrColumn);
 			this.showColors = showColors;
 			this.colorFunction = colorFunction;
+			this.itemRenderer = new ClassFactory(DataGridQKeyRendererWithGraphics);
 			
-			labelFunction = extractDataFunction;
-			sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]);
-			headerWordWrap = true;
-			
-			this.itemRenderer = new ClassFactory(CustomDataGridCell);
-			
-			this.minWidth = 0;
-			
+			registerDisposableChild(attrColumn, this);
 			attrColumn.addImmediateCallback(this, handleColumnChange, true);
 		}
 		
@@ -74,7 +63,6 @@ package weave.ui.CustomDataGrid
 		public var colorFunction:Function = null;
 		public var selectionKeySet:KeySet = Weave.defaultSelectionKeySet;
 		public var probeKeySet:KeySet = Weave.defaultProbeKeySet;
-		public var attrColumn:IAttributeColumn = null;
 		public var showColors:LinkableBoolean = null;
 		
 		protected var _filterComponent:IFilterComponent;	
@@ -94,11 +82,6 @@ package weave.ui.CustomDataGrid
 		private function handleColumnChange():void
 		{
 			headerText = ColumnUtils.getTitle(attrColumn);
-		}
-		
-		private function extractDataFunction(item:Object, column:DataGridColumn):String
-		{
-			return attrColumn.getValueFromKey(item as IQualifiedKey, String) as String;
 		}
 	}
 }

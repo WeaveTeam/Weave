@@ -39,5 +39,5 @@
 	<Indent id="columnsBox" label="{lang('Number of columns')}">
 		<mx:NumericStepper id="numColumns" minimum="1"/>
 	</Indent>
-	<mx:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
+	<mx:CheckBox id="reverseOrderCheck" label="{lang('Reverse item order')}"/>
 </mx:VBox>

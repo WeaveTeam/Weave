@@ -117,7 +117,7 @@
 				//TODO - why does this rootNode approach cause file selection to malfunction?
 //				fileView.refreshDataProvider(folder);
 //				var newOpenItems:Array = [folder];
-//				if (StandardLib.arrayCompare(fileView.openItems, newOpenItems))
+//				if (StandardLib.compare(fileView.openItems, newOpenItems))
 //					fileView.openItems = newOpenItems;
 			}
 			

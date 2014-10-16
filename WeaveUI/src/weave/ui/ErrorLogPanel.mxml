@@ -43,6 +43,7 @@
 			import weave.Weave;
 			import weave.api.core.IErrorManager;
 			import weave.api.getCallbackCollection;
+			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.utils.DebugUtils;
@@ -100,6 +101,10 @@
 							for each (var lb:LinkableBoolean in allMenuToggles)
 								if (!lb.value)
 									return true;
+							for each (var dp:DraggablePanel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
+								for each (lb in [dp.enableBorders, dp.enableMoveResize, dp.enableZOrder, dp.minimizable, dp.maximizable, dp.closeable])
+									if (!lb.value)
+										return true;
 							return false;
 						}
 					},{
@@ -125,6 +130,8 @@
 			{
 				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
+					if (errorIndex == 0)
+						console.log.text += StandardLib.substitute('\r\rWeave {0}; Flash {1}', Weave.properties.version.value, Capabilities.version);
 					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
 					console.log.text += '\r\r' + ErrorManager.errorToString(error);
 				}

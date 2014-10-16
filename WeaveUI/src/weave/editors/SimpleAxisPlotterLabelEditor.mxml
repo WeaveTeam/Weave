@@ -26,7 +26,7 @@
 		 direction="horizontal"
 		 creationPolicy="all" >
 	
-	<mx:VBox horizontalAlign="center">
+	<mx:VBox horizontalAlign="center" verticalGap="4">
 		<mx:Label text="{lang('Label properties')}"/>
 		<mx:HRule width="100%"/>
 		<ui:IndentTextInput label="{lang('Wrap size:')}" id="labelWordWrapSize" inputWidth="60"/>
@@ -39,9 +39,10 @@
 		<ui:Indent label="{lang('Vertical offset:')}">
 			<mx:NumericStepper id="axisLabelVerticalDistance" minimum="-50" maximum="50" stepSize="5" width="60"/>
 		</ui:Indent>
-		<ui:Indent label="{lang('Quantity:')}">
+		<ui:Indent label="{lang('Requested count:')}">
 			<mx:NumericStepper id="tickCountStepper" maximum="100" minimum="0" stepSize="1" width="60"/>
 		</ui:Indent>
+		<ui:CustomCheckBox id="forceTickCount" label="{lang('Force label count')}" width="100%"/>
 		<ui:Indent label="{lang('Alignment:')}" verticalAlign="top">
 			<ui:AlignmentControl id="labelAlign" toolTip="{lang('Axis label alignment')}"/>
 		</ui:Indent>
@@ -119,6 +120,7 @@
 					linkBindableProperty(plotter.axesColor, axisColorPicker, 'selectedColor');
 					linkBindableProperty(plotter.axesThickness, axisThicknessStepper, 'value');
 					linkBindableProperty(plotter.axesAlpha, axisAlphaStepper, 'value');
+					linkBindableProperty(plotter.forceTickCount, forceTickCount, 'selected');
 				}
 			}
 			public function hasPendingChanges():Boolean { return false; }

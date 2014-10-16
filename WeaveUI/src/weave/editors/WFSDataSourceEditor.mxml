@@ -50,7 +50,7 @@
 			{
 				super.createChildren();
 				
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("WFSDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(WFSDataSource));
 			}
 			
 			[Bindable] private var target:WFSDataSource = null;

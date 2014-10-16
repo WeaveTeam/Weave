@@ -60,9 +60,8 @@ package weave.api.core
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed, the specified method will not be called.
 		 * @param method The function to call later.
 		 * @param parameters The parameters to pass to the function.
-		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 */
-		function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void;
+		function callLater(relevantContext:Object, method:Function, parameters:Array = null):void;
 		
 		/**
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed.
@@ -148,9 +147,10 @@ package weave.api.core
 		 * </listing>
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
+		 * @param description A description for the task.
 		 * @see WeaveAPI
 		 */
-		function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null):void;
+		function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null, description:String = null):void;
 		
 		/**
 		 * This is the stage.

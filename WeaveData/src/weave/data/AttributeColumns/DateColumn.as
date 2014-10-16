@@ -130,7 +130,8 @@ package weave.data.AttributeColumns
 			_uniqueKeys.length = 0;
 			_reportedError = false;
 			
-			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, _asyncComplete);
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, _asyncComplete);
 		}
 		
 		private function errorHandler(e:*):void

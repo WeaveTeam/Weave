@@ -24,16 +24,22 @@
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
 		 xmlns:settings="weave.ui.settings.*"
+		 implements="weave.api.ui.IVisTool_Basic"
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.HistogramPlotter;
@@ -43,9 +49,9 @@
 			
 			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// lock dynamic objects into place
 				initializePlotters(HistogramPlotter, true);
@@ -56,8 +62,6 @@
 				visualization.plotManager.marginTop.value    = "10";
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "10";
-				
-				plotter.fillStyle.color.internalDynamicColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
 
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
@@ -73,46 +77,22 @@
 				ColumnUtils.initSelectableAttributes([plotter.fillStyle.color], input);
 			}
 			
-			override protected function childrenCreated():void
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, null, null), handleAttributesToIncludeInProbe, true);
+			private function handleAttributesToIncludeInProbe():void
 			{
-				super.childrenCreated();
-				columnToAggregateComponent.dynamicObject = plotter.columnToAggregate;
-				plotter.columnToAggregate.addGroupedCallback(this, function():void {
-					agMethodCombo.enabled = plotter.columnToAggregate.getInternalColumn() != null;
-				}, true);
+				visualization.additionalProbeColumns = SelectableAttributesCheckBoxList.getSelectedAttributeColumns(this, attributesToIncludeInProbe);
 			}
-			
-			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
-
-			private function updateProbeColumns():void
+			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
 			{
-				visualization.additionalProbeColumns = [];
-				if (includeToolAttributesInProbe.value)
-				{
-					if (plotter.internalBinnedColumn && plotter.internalBinnedColumn.getInternalColumn())
-						visualization.additionalProbeColumns.push(plotter.internalBinnedColumn.getInternalColumn());
-				}
+				attributesToIncludeInProbe.setSessionState(value ? getSelectableAttributeNames() : []);
 			}
 			
 			override public function get defaultPanelTitle():String
 			{
 				return lang("Histogram of {0}", ColumnUtils.getTitle(plotter.fillStyle.color));
 			}
-
-			private function handleDynamicColorColumnChange():void
-			{
-				updateProbeColumns();
-				if (!parent)
-					return callLater(handleDynamicColorColumnChange);
-				
-				if (plotter.internalColorColumn)
-					cRampEditor.colorRamp = plotter.internalColorColumn.ramp;
-				else
-					cRampEditor.colorRamp = null;
-				
-				binEditor.setTarget(plotter.internalBinnedColumn);
-				dataColumnComponent.columnWrapper = plotter.fillStyle.color;
-			}
+			
+			public const heightAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10));
 			
 			private function getHeightAxisLabel(number:Number):String
 			{
@@ -132,8 +112,6 @@
 					visualization.bottomMarginColumn = plotter.columnToAggregate;
 					visualization.leftMarginColumn = plotter.fillStyle.color;
 					visualization.enableProbeLine(true, false);
-					xAxisPlotter.forceTickCount.value = false;
-					yAxisPlotter.forceTickCount.value = true;
 					
 				}
 				else
@@ -143,10 +121,9 @@
 					visualization.bottomMarginColumn = plotter.fillStyle.color;
 					visualization.leftMarginColumn = plotter.columnToAggregate;
 					visualization.enableProbeLine(false, true);
-					xAxisPlotter.forceTickCount.value = true;
-					yAxisPlotter.forceTickCount.value = false;
 				}
 				
+				unlinkSessionState(heightAxisTickCountRequested, binAxisPlotter.tickCountRequested);
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
 				{
@@ -161,9 +138,12 @@
 					binAxisPlotter.tickMaxValue.value = NaN;	
 					binAxisPlotter.setLabelFunction(null, null);
 				}
+				binAxisPlotter.forceTickCount.value = true;
 				
 				heightAxisPlotter.tickMinValue.value = NaN;
 				heightAxisPlotter.tickMaxValue.value = NaN;
+				heightAxisPlotter.forceTickCount.value = false;
+				linkSessionState(heightAxisTickCountRequested, heightAxisPlotter.tickCountRequested);
 				
 				var binAxisTitle:String = ColumnUtils.getTitle(plotter.fillStyle.color);
 				var heightAxisTitle:String = lang("Number of records");
@@ -193,8 +173,7 @@
 			}
 		]]>
 	</mx:Script>
-
-	<ui:ControlPanel>
+	<editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Basic')}">
 			<ui:DynamicColumnComponent id="dataColumnComponent"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
@@ -203,15 +182,46 @@
 			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
 			<ui:Indent label="{lang('Height aggregation method')}">
 				<ui:CustomComboBox id="agMethodCombo" dataProvider="{HistogramPlotter.ENUM_AGGREGATION_METHODS}" labelFunction="lang"
-								   creationComplete="linkBindableProperty(plotter.aggregationMethod, event.target, 'selectedItem');"/>
+								   creationComplete="linkBindableProperty(outerDocument.plotter.aggregationMethod, event.target, 'selectedItem');"/>
 			</ui:Indent>
-			<ui:CustomCheckBox label="{lang('Draw horizontal bars')}" creationComplete="linkBindableProperty(plotter.horizontalMode, event.target, 'selected');"/>
+			<ui:CustomCheckBox label="{lang('Draw horizontal bars')}" creationComplete="linkBindableProperty(outerDocument.plotter.horizontalMode, event.target, 'selected');"/>
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
-						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+						 creationComplete="linkBindableProperty(outerDocument.plotter.drawPartialBins, event.target, 'selected');"/>
+			<ui:SelectableAttributesCheckBoxList id="selectedAttrList" creationComplete="selectedAttrList.setup(outerDocument, outerDocument.attributesToIncludeInProbe)"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
-	</ui:ControlPanel>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				import weave.visualization.plotters.HistogramPlotter;
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					columnToAggregateComponent.dynamicObject = outerDocument.plotter.columnToAggregate;
+					outerDocument.plotter.columnToAggregate.addGroupedCallback(this, function():void {
+						agMethodCombo.enabled = outerDocument.plotter.columnToAggregate.getInternalColumn() != null;
+					}, true);
+					
+					outerDocument.plotter.fillStyle.color.internalDynamicColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
+				}
+				
+				private function handleDynamicColorColumnChange():void
+				{
+					if (!parent)
+						return callLater(handleDynamicColorColumnChange);
+					
+					if (outerDocument.plotter.internalColorColumn)
+						cRampEditor.colorRamp = outerDocument.plotter.internalColorColumn.ramp;
+					else
+						cRampEditor.colorRamp = null;
+					
+					binEditor.setTarget(outerDocument.plotter.internalBinnedColumn);
+					dataColumnComponent.columnWrapper = outerDocument.plotter.fillStyle.color;
+				}
+				
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

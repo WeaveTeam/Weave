@@ -61,6 +61,7 @@ package weave.ui
 		}
 		
 		/**
+		 * 
 		 * @param editor This can be either a List or a DataGrid.
 		 */
 		public function set view(editor:ListBase):void
@@ -98,25 +99,30 @@ package weave.ui
 			var dataGrid:DataGrid = _editor as DataGrid;
 			if (dataGrid)
 			{
-				dataGrid.editable = true;
-				dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
-				dataGrid.draggableColumns = false;
-				
-				_nameColumn = new DataGridColumn();
-				_nameColumn.sortable = false;
-				_nameColumn.editable = true;
-				_nameColumn.labelFunction = getObjectName;
-				_nameColumn.showDataTips = true;
-				_nameColumn.dataTipFunction = nameColumnDataTip;
-				setNameColumnHeader();
-				
-				_valueColumn = new DataGridColumn();
-				_valueColumn.sortable = false;
-				_valueColumn.editable = false;
-				_valueColumn.headerText = lang("Value");
-				_valueColumn.labelFunction = getItemLabel;
-				
-				dataGrid.columns = [_nameColumn, _valueColumn];
+				dataGrid.sortableColumns = false;
+				// keep existing columns if there are any
+				if (!dataGrid.columns.length)
+				{
+					dataGrid.editable = true;
+					dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
+					dataGrid.draggableColumns = false;
+					
+					_nameColumn = new DataGridColumn();
+					_nameColumn.sortable = false;
+					_nameColumn.editable = true;
+					_nameColumn.labelFunction = getObjectName;
+					_nameColumn.showDataTips = true;
+					_nameColumn.dataTipFunction = nameColumnDataTip;
+					setNameColumnHeader();
+					
+					_valueColumn = new DataGridColumn();
+					_valueColumn.sortable = false;
+					_valueColumn.editable = false;
+					_valueColumn.headerText = lang("Value");
+					_valueColumn.labelFunction = getItemLabel;
+					
+					dataGrid.columns = [_nameColumn, _valueColumn];
+				}
 			}
 			else if (_editor)
 			{
@@ -133,7 +139,7 @@ package weave.ui
 			if (!_nameColumn)
 				return;
 			if (hashMap && hashMap.getNames().length)
-				_nameColumn.headerText = lang("Name (Click to edit)")
+				_nameColumn.headerText = lang("Name (Click below to edit)")
 			else
 				_nameColumn.headerText = lang("Name");
 		}
@@ -290,8 +296,6 @@ package weave.ui
 		{
 			if (hashMap)
 				return hashMap.getName(item as ILinkableObject);
-			if (dynamicObject)
-				return dynamicObject.globalName;
 			return null;
 		}
 		
@@ -502,8 +506,6 @@ package weave.ui
 		{
 			if (hashMap)
 				return hashMap.getName(item as ILinkableObject);
-			if (dynamicObject)
-				return dynamicObject.globalName;
 			return null;
 		}
 		
@@ -520,9 +522,6 @@ package weave.ui
 				
 				if (hashMap && newValue && hashMap.getNames().indexOf(newValue) < 0)
 					hashMap.renameObject(oldName, newValue);
-				
-				if (dynamicObject && newValue != dynamicObject.globalName)
-					dynamicObject.globalName = newValue;
 			}
 		}
 	}

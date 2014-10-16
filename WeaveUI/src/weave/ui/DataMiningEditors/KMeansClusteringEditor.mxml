@@ -57,7 +57,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.WeaveRServlet;
 			import weave.services.beans.KMeansClusteringResult;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 			
 			//to do: take input as columns and as subsets from vizs
@@ -76,10 +75,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var kMeansRandomSets:NumberInputComponent;
 			private var kMeansAlgo:ChoiceInputComponent;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
-				var columns:Array = ProbeTextUtils.getColumnsOfMostCommonKeyType();
+				super.inConstructor();
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					inputColumns.requestObjectCopy(null, columns[i]);
 			}

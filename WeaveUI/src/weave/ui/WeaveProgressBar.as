@@ -77,6 +77,7 @@ package weave.ui
 		{
 			var pendingCount:int = WeaveAPI.ProgressIndicator.getTaskCount();
 			var tempString:String = pendingCount + " Background Task" + (pendingCount == 1 ? '' : 's');
+			//tempString += '\n' + (WeaveAPI.ProgressIndicator as ProgressIndicator).getDescriptions().join('\n');
 			
 			label = tempString;
 			

@@ -65,9 +65,7 @@ package weave.data
 
 			//ProjProjection.defs['aeac-us'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=37.25 +lat_2=40.25 +lat_0=36 +lon_0=-72 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
 			
-			ProjProjection.defs['EPSG:26986'] = "+title=NAD83 / Massachusetts Mainland +proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs";
 			ProjProjection.defs['EPSG:102736'] = "+title=NAD 1983 StatePlane Tennessee FIPS 4100 Feet +proj=lcc +lat_1=35.25 +lat_2=36.41666666666666 +lat_0=34.33333333333334 +lon_0=-86 +x_0=600000.0000000001 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs";
-			ProjProjection.defs["EPSG:3638"] = "+title=NAD83(NSRS2007) / Ohio South +proj=lcc +lat_1=40.03333333333333 +lat_2=38.73333333333333 +lat_0=38 +lon_0=-82.5 +x_0=600000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
 			ProjProjection.defs['VANDG'] = "+title=Van Der Grinten +proj=vandg +x_0=0 +y_0=0 +lon_0=0";
 			
 			var ba:ByteArray = (new ProjDatabase()) as ByteArray;
@@ -439,7 +437,7 @@ internal class WorkerThread implements IDisposableObject
 		numGeoms = 0;
 		for (var i:int = 0; i < keys.length; i++)
 		{
-			var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
+			var value:Array = unprojectedColumn.getValueFromKey(keys[i], Array) as Array;
 			if (value)
 				numGeoms += value.length;
 			values.push(value);
@@ -456,7 +454,10 @@ internal class WorkerThread implements IDisposableObject
 		if (numGeoms == 0)
 			asyncComplete();
 		else
-			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, asyncComplete);
+		{
+			// TODO - assess priority assignment
+			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
+		}
 	}
 	
 	/**

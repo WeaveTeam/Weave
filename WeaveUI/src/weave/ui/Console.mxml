@@ -100,16 +100,25 @@
 				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, target as Array);
 			}
 			private const watchLookup:Dictionary = new Dictionary(true);
-			private function consoleWatch(target:Object = null, debugString:String = null):void
+			public function consoleWatch(target:Object = null, callbackReturnsString:Function = null):void
 			{
-				if (!target || !debugString)
+				if (!target)
 				{
-					consoleTrace('Usage: consoleWatch( target , "{ <CODE> }" )');
+					consoleTrace('Usage: consoleWatch(target, optional_callbackReturnsString)');
 					return;
 				}
+				
 				var linkableTarget:ILinkableObject = getObject(target);
 				consoleUnwatch(linkableTarget);
-				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
+				var callback:Function = function():void {
+					var str:String = '';
+					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, linkableTarget) || []
+					if (path.length)
+						str += " " + Compiler.stringify(path.pop());
+					if (callbackReturnsString != null)
+						str += ': ' + callbackReturnsString();
+					debugTrace(linkableTarget, str);
+				};
 				watchLookup[linkableTarget] = callback;
 				getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
 			}

@@ -32,6 +32,7 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -69,7 +70,7 @@ package weave.data.DataSources
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveDataSource extends AbstractDataSource_old implements IDataRowSource
+	public class WeaveDataSource extends AbstractDataSource_old implements IDataSource_Service, IDataRowSource
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 		
@@ -514,7 +515,7 @@ package weave.data.DataSources
 			var msg:String = "Error retrieving column: " + Compiler.stringify(column.getProxyMetadata()) + ' (' + event.fault.faultString + ')';
 			reportError(event.fault, msg, column);
 			
-			column.setInternalColumn(ProxyColumn.undefinedColumn);
+			column.dataUnavailable();
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{
@@ -560,7 +561,7 @@ package weave.data.DataSources
 				// stop if no data
 				if (result.data == null)
 				{
-					proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+					proxyColumn.dataUnavailable();
 					return;
 				}
 				
@@ -578,7 +579,8 @@ package weave.data.DataSources
 							proxyColumn.setInternalColumn(newGeometricColumn);
 						};
 						var pgGeomTask:Function = PGGeomUtil.newParseTask(result.data, geometriesVector);
-						WeaveAPI.StageUtils.startTask(proxyColumn, pgGeomTask, WeaveAPI.TASK_PRIORITY_3_PARSING, createGeomColumn);
+						// high priority because not much can be done without data
+						WeaveAPI.StageUtils.startTask(proxyColumn, pgGeomTask, WeaveAPI.TASK_PRIORITY_HIGH, createGeomColumn);
 					}
 					else if (result.thirdColumn != null)
 					{

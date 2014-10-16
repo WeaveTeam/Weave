@@ -60,7 +60,7 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("CKANDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(CKANDataSource));
 			}
 			
 			[Bindable] private var target:CKANDataSource = null;

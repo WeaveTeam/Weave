@@ -24,19 +24,21 @@ package weave.data.AttributeColumns
 	import mx.utils.StringUtil;
 	
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.ProxyObject;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
@@ -88,6 +90,7 @@ package weave.data.AttributeColumns
 		 * This is all the keys in all the variables columns
 		 */
 		private var _allKeys:Array = null;
+		private var _allKeysLookup:Dictionary;
 		private var _allKeysTriggerCount:uint = 0;
 		/**
 		 * This is a cache of metadata values derived from the metadata session state.
@@ -144,7 +147,17 @@ package weave.data.AttributeColumns
 		/**
 		 * This holds the metadata for the column.
 		 */
-		public const metadata:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
+		public const metadata:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyMetadata));
+		
+		private function verifyMetadata(value:Object):Boolean
+		{
+			return typeof value == 'object';
+		}
+
+		/**
+		 * Specify whether or not we should filter the keys by the column's keyType.
+		 */
+		public const filterByKeyType:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		/**
 		 * This function intercepts requests for dataType and title metadata and uses the corresponding linkable variables.
@@ -161,6 +174,8 @@ package weave.data.AttributeColumns
 			
 			if (_cachedMetadata.hasOwnProperty(propertyName))
 				return _cachedMetadata[propertyName] as String;
+			
+			_cachedMetadata[propertyName] = undefined; // prevent infinite recursion
 			
 			var value:String = metadata.value ? metadata.value[propertyName] as String : null;
 			if (value != null)
@@ -223,26 +238,6 @@ package weave.data.AttributeColumns
 		}
 		
 		/**
-		 * This function gets called when dataType changes and sets _defaultDataType.
-		 */
-		private function cacheDefaultDataType():void
-		{
-			var _dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
-			if (_dataType == DataType.GEOMETRY)
-				_defaultDataType = null;
-			else if (_dataType == DataType.NUMBER)
-				_defaultDataType = Number;
-			else if (_dataType == DataType.STRING)
-				_defaultDataType = String;
-			else if (_dataType == DataType.DATE)
-				_defaultDataType = Date;
-			else if (_dataType) // any other data type is treated as a foreign keyType
-				_defaultDataType = IQualifiedKey;
-			else
-				_defaultDataType = null;
-		}
-		
-		/**
 		 * This function creates an object in the variables LinkableHashMap if it doesn't already exist.
 		 * If there is an existing object associated with the specified name, it will be kept if it
 		 * is the specified type, or replaced with a new instance of the specified type if it is not.
@@ -264,9 +259,19 @@ package weave.data.AttributeColumns
 			if (_allKeysTriggerCount != variables.triggerCounter)
 			{
 				_allKeys = null;
+				_allKeysLookup = new Dictionary(true);
 				_allKeysTriggerCount = variables.triggerCounter; // prevent infinite recursion
-				
-				_allKeys = ColumnUtils.getAllKeys(variables.getObjects(IAttributeColumn));
+
+				var variableColumns:Array = variables.getObjects(IKeySet);
+
+				_allKeys = ColumnUtils.getAllKeys(variableColumns);
+
+				if (filterByKeyType.value && (_allKeys.length > 0))
+				{
+					var keyType:String = this.getMetadata(ColumnMetadata.KEY_TYPE);
+					_allKeys = _allKeys.filter(new KeyFilterFunction(keyType).filter);
+				}
+				VectorUtils.fillKeys(_allKeysLookup, _allKeys);
 			}
 			return _allKeys || [];
 		}
@@ -277,7 +282,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return !StandardLib.isUndefined(getValueFromKey(key));
+			return keys && _allKeysLookup[key];
 		}
 
 		private function variableGetter(name:String):*
@@ -307,8 +312,6 @@ package weave.data.AttributeColumns
 			
 			_cacheTriggerCount = triggerCounter;
 			_compileError = null;
-			
-			cacheDefaultDataType();
 			
 			try
 			{
@@ -356,7 +359,7 @@ package weave.data.AttributeColumns
 			
 			// if dataType not specified, use default type specified in metadata
 			if (dataType == null)
-				dataType = _defaultDataType;
+				dataType = Array;
 			
 			var value:* = _constantResult;
 			if (!_equationIsConstant)
@@ -370,6 +373,7 @@ package weave.data.AttributeColumns
 					_equationResultCache.set(key, dataType, UNDEFINED);
 					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
+					var prevKey:IQualifiedKey = EquationColumnLib.currentRecordKey;
 					EquationColumnLib.currentRecordKey = key;
 					try
 					{
@@ -385,6 +389,10 @@ package weave.data.AttributeColumns
 							reportError(e);
 						}
 						//value = e;
+					}
+					finally
+					{
+						EquationColumnLib.currentRecordKey = prevKey;
 					}
 					
 					// save value in cache
@@ -460,5 +468,22 @@ package weave.data.AttributeColumns
 		//---------------------------------
 		// backwards compatibility
 		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadataProperty(ColumnMetadata.TITLE, value); }
+	}
+}
+
+import weave.api.data.IQualifiedKey;
+
+internal class KeyFilterFunction
+{
+	public function KeyFilterFunction(keyType:String)
+	{
+		this.keyType = keyType;
+	}
+	
+	public var keyType:String;
+	
+	public function filter(key:IQualifiedKey, i:int, a:Array):Boolean
+	{
+		return key.keyType == this.keyType;
 	}
 }

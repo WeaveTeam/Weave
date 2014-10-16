@@ -202,7 +202,7 @@ package weave.services
 					var contentRequestToken:ContentAsyncResponder = new ContentAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token);
 					var resultEvent:ResultEvent = ResultEvent.createEvent(content);
 					// wait one frame and make sure to call contentResult() instead of result().
-					WeaveAPI.StageUtils.callLater(relevantContext, contentRequestToken.contentResult, [resultEvent], WeaveAPI.TASK_PRIORITY_3_PARSING);
+					WeaveAPI.StageUtils.callLater(relevantContext, contentRequestToken.contentResult, [resultEvent]);
 					return contentRequestToken;
 				}
 			}
@@ -337,7 +337,7 @@ internal class CustomURLLoader extends URLLoader
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			
-			if (failedHosts[getHost()])
+			if (failedHosts[getHost()] && JavaScript.available)
 			{
 				// don't bother trying a URLLoader with the same host that previously failed due to a security error
 				ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);

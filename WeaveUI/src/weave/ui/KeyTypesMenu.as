@@ -29,10 +29,15 @@ package weave.ui
 		
 		public function KeyTypesMenu()
 		{
-			editable = true; 
-			getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this,handleQKeyManagerChange);
-			handleQKeyManagerChange();
+			editable = true;
+			updateKeyTypes();
 			EventUtils.doubleBind(this, 'selectedKeyType', this, 'text');
+		}
+		
+		override public function open():void
+		{
+			updateKeyTypes();
+			super.open();
 		}
 		
 		/**
@@ -78,7 +83,7 @@ package weave.ui
 		 **/
 		[Bindable] public var selectedKeyType:String = null;
 		
-		private function handleQKeyManagerChange():void
+		private function updateKeyTypes():void
 		{
 			var keytypes:Array = WeaveAPI.QKeyManager.getAllKeyTypes();
 			for each(var keytype:String in keytypes)

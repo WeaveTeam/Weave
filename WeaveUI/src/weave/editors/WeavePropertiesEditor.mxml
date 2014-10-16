@@ -58,18 +58,18 @@
 		
 		<mx:VBox width="100%">
 			<ui:Indent label="{lang('Max computation time per frame')}">
-				<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="200" stepSize="10"/>
+				<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="300" stepSize="10"/>
 			</ui:Indent>
 			
 			<mx:Label text="{lang('Asynchronous task time allocation (milliseconds):')}"/>
-			<ui:Indent label="{lang('Render')}">
-				<mx:HSlider id="renderAlloc" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+			<ui:Indent label="{lang('High priority')}">
+				<mx:HSlider id="allocHigh" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
-			<ui:Indent label="{lang('Build')}">
-				<mx:HSlider id="buildAlloc" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+			<ui:Indent label="{lang('Normal priority')}">
+				<mx:HSlider id="allocNormal" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
-			<ui:Indent label="{lang('Parse')}">
-				<mx:HSlider id="parseAlloc" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+			<ui:Indent label="{lang('Low priority')}">
+				<mx:HSlider id="allocLow" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
 		</mx:VBox>
 		
@@ -78,8 +78,7 @@
 		<mx:HBox>
 			<ui:CustomCheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
 			<ui:HelpComponent>
-				This will include "Add Data Filter" as an option in the tools menu
-				and show experimental filtering controls in the attribute selector.
+				This will include "Add Data Filter" as an option in the tools menu.
 			</ui:HelpComponent>
 		</mx:HBox>
 	</mx:VBox>
@@ -120,9 +119,9 @@
 				linkBindableProperty(Weave.properties.maxComputationTimePerFrame, maxComputationTime, 'value');
 				
 				// time allocation
-				renderAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_1_RENDERING);
-				buildAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_2_BUILDING);
-				parseAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_3_PARSING);
+				allocHigh.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_HIGH);
+				allocNormal.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_NORMAL);
+				allocLow.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_LOW);
 				
 				if (!JavaScript.available)
 					startup.visible = startup.includeInLayout = false;
@@ -131,8 +130,8 @@
 			private function setAlloc(event:Event):void
 			{
 				var slider:HSlider = event.currentTarget as HSlider;
-				var sliderIndex:int = [renderAlloc, buildAlloc, parseAlloc].indexOf(slider);
-				var priority:int = [WeaveAPI.TASK_PRIORITY_1_RENDERING, WeaveAPI.TASK_PRIORITY_2_BUILDING, WeaveAPI.TASK_PRIORITY_3_PARSING][sliderIndex];
+				var sliderIndex:int = [allocHigh, allocNormal, allocLow].indexOf(slider);
+				var priority:int = [WeaveAPI.TASK_PRIORITY_HIGH, WeaveAPI.TASK_PRIORITY_NORMAL, WeaveAPI.TASK_PRIORITY_LOW][sliderIndex];
 				(WeaveAPI.StageUtils as StageUtils).setTaskPriorityTimeAllocation(priority, slider.value);
 			}
 		]]>

@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -59,7 +60,7 @@ package weave.data.DataSources
 	/**
 	 * @author adufilie
 	 */
-	public class DBFDataSource extends AbstractDataSource
+	public class DBFDataSource extends AbstractDataSource implements IDataSource_File
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
 		
@@ -116,6 +117,10 @@ package weave.data.DataSources
 		
 		public static const DBF_COLUMN_NAME:String = 'name';
 		public static const THE_GEOM_COLUMN:String = 'the_geom';
+		private function getGeomColumnTitle():String
+		{
+			return lang("{0} geometry", WeaveAPI.globalHashMap.getName(this));
+		}
 		
 		/**
 		 * Called when the DBF file is downloaded from the URL
@@ -253,6 +258,11 @@ package weave.data.DataSources
 			
 			// override proxy metadata
 			metadata = getColumnMetadata(columnName);
+			if (!metadata)
+			{
+				proxyColumn.dataUnavailable();
+				return;
+			}
 			proxyColumn.setMetadata(metadata);
 
 			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value)));
@@ -301,17 +311,22 @@ package weave.data.DataSources
 		}
 		public function getColumnMetadata(columnName:String):Object
 		{
+			if (!columnName)
+				return null;
+			
 			var meta:Object = {};
 			meta[DBF_COLUMN_NAME] = columnName;
-			meta[ColumnMetadata.TITLE] = columnName;
 			meta[ColumnMetadata.KEY_TYPE] = getKeyType();
 			meta[ColumnMetadata.PROJECTION] = projection.value;
 			if (columnName == THE_GEOM_COLUMN)
 			{
+				meta[ColumnMetadata.TITLE] = getGeomColumnTitle();
 				meta[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
+				return meta;
 			}
-			else
+			else if (dbfHeader)
 			{
+				meta[ColumnMetadata.TITLE] = columnName;
 				for each (var field:DbfField in dbfHeader.fields)
 				{
 					if (field.name == columnName)
@@ -322,11 +337,11 @@ package weave.data.DataSources
 							meta[ColumnMetadata.DATA_TYPE] = dataType;
 						if (dataType == DataType.DATE)
 							meta[ColumnMetadata.DATE_FORMAT] = "YYYYMMDD";
-						break;
+						return meta;
 					}
 				}
 			}
-			return meta;
+			return null;
 		}
 		private function getColumnValues(columnName:String):Array
 		{

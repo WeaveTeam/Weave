@@ -28,7 +28,7 @@ package weave.core
 	{
 		public function UntypedLinkableVariable(defaultValue:Object = null, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
-			super(null, verifier, defaultValue, defaultValueTriggersCallbacks);
+			super(null, verifier, arguments.length ? defaultValue : undefined, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():Object

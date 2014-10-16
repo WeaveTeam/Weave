@@ -24,11 +24,9 @@ package weave.api.data
 	 * getQKey() with the same parameters will be the same object, so IQualifiedKeys can be compared
 	 * with the == operator or used as keys in a Dictionary.
 	 * 
-	 * The callbacks for this class should be triggered whenever a new key is created.
-	 * 
 	 * @author adufilie
 	 */
-	public interface IQualifiedKeyManager extends ILinkableObject
+	public interface IQualifiedKeyManager
 	{
 		/**
 		 * Get the QKey object for a given key type and key.

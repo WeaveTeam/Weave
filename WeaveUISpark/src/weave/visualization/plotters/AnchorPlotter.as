@@ -88,7 +88,7 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText();
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
-		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		
@@ -203,7 +203,7 @@ package weave.visualization.plotters
 					graphics.beginFill(anchorColorMap[key.localName]);
 				else if (doCDLayout)
 				{
-					//color the dimensional anchors according to the class hey belong to
+					//color the dimensional anchors according to the class they belong to
 					var classStr:String = getClassFromAnchor(key.localName);
 					var cc:ColorColumn = Weave.defaultColorColumn;
 					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;

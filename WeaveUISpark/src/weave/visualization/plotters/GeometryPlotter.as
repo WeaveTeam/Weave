@@ -39,7 +39,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -62,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IObjectWithSelectableAttributes
+	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
 		
@@ -133,7 +133,7 @@ package weave.visualization.plotters
 			var notGeoms:Boolean = false;
 			
 			// the column value may contain a single geom or an array of geoms
-			var value:* = column.getValueFromKey(recordKey);
+			var value:* = column.getValueFromKey(recordKey, Array);
 			if (value is Array)
 			{
 				geoms = value; // array of geoms
@@ -158,7 +158,7 @@ package weave.visualization.plotters
 		
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
 		{
-			var value:* = geometryColumn.getValueFromKey(recordKey);
+			var value:* = geometryColumn.getValueFromKey(recordKey, Array);
 			var geoms:Array = null;
 			var notGeoms:Boolean = false;
 			
@@ -310,7 +310,7 @@ package weave.visualization.plotters
 			{
 				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				var geoms:Array = null;
-				var value:* = geometryColumn.getValueFromKey(recordKey);
+				var value:* = geometryColumn.getValueFromKey(recordKey, Array);
 				if (value is Array)
 					geoms = value;
 				else if (value is GeneralizedGeometry)
@@ -492,7 +492,7 @@ package weave.visualization.plotters
 			tempPoint.x = Math.round(tempPoint.x);
 			tempPoint.y = Math.round(tempPoint.y);
 			
-			var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
+			var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key, BitmapData) || _missingImage;
 			var w:Number = bitmapData.width;
 			var h:Number = bitmapData.height;
 			tempMatrix.identity();

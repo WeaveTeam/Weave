@@ -31,12 +31,47 @@ package weave.menus
 	{
 		/**
 		 * Initializes an Array of WeaveMenuItems using an Array of objects to pass to the constructor.
-		 * Any Arrays passed in will be flattened.
-		 * @param params Item descriptors.
+		 * Any Arrays passed in will be flattened and surrounded by separators.
+		 * @param items An Array of item descriptors.
 		 */
-		public static function createItems(...params):Array
+		public static function createItems(items:Array):Array
 		{
-			return WeaveTreeItem.createItems(WeaveMenuItem, params);
+			var flattened:Array = [];
+			for each (var param:Object in items)
+			{
+				if (param is Array)
+				{
+					var groupedItems:Array = WeaveTreeItem.createItems(WeaveMenuItem, param as Array);
+					_pushSeparator(flattened);
+					flattened.push.apply(flattened, groupedItems);
+					_pushSeparator(flattened);
+				}
+				else
+				{
+					flattened.push(param);
+				}
+			}
+			
+			// make sure the list of items does not end in a separator
+			_pushSeparator(flattened);
+			flattened.pop();
+			
+			return WeaveTreeItem.createItems(WeaveMenuItem, flattened);
+		}
+		
+		/**
+		 * Makes sure a non-empty output array ends in a non-redundant separator.
+		 */
+		private static function _pushSeparator(output:Array):void
+		{
+			if (!output.length)
+				return;
+			var last:Object = output[output.length - 1];
+			if (last == TYPE_SEPARATOR)
+				return;
+			if (last is WeaveMenuItem && (last as WeaveMenuItem).type == TYPE_SEPARATOR)
+				return;
+			output.push(TYPE_SEPARATOR);
 		}
 
 		public static const TYPE_SEPARATOR:String = "separator";
@@ -63,8 +98,9 @@ package weave.menus
 		
 		/**
 		 * This can be either a Function or a LinkableBoolean.
-		 * The function can be like function():void or function(item:WeaveMenuItem):void.
-		 * The function will be called like click.call(this) or click.call(this, this) if the former produces an ArgumentError.
+		 * The Function signature can be like function():void or function(item:WeaveMenuItem):void.
+		 * Instead of reading this property directly, call runClickFunction().
+		 * @see #runClickFunction()
 		 */
 		public var click:* = null;
 		
@@ -155,7 +191,8 @@ package weave.menus
 		}
 		
 		/**
-		 * If the click property is set to a Function, it will be called.
+		 * If the click property is set to a Function, it will be called like click.call(this)
+		 *   or click.call(this, this) if the former produces an ArgumentError.
 		 * If the click property is set to a LinkableBoolean, it will be toggled.
 		 */
 		public function runClickFunction():void

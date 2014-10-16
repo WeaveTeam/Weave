@@ -851,7 +851,7 @@ package weave.visualization.layers
 			
 			
 			// TEMPORARY HACK - Weave.defaultSelectionKeySet
-			var hack_noSelectionChangeSinceMouseDown:Boolean = WeaveAPI.SessionManager.computeDiff(hack_mouseDownSelectionState, getSessionState(Weave.defaultSelectionKeySet)) == null;
+			var hack_noSelectionChangeSinceMouseDown:Boolean = WeaveAPI.SessionManager.computeDiff(hack_mouseDownSelectionState, getSessionState(Weave.defaultSelectionKeySet)) === undefined;
 			
 			// if mouse is released and selection hasn't changed since mouse down, clear selection
 			if (_mouseMode == InteractionController.SELECT && !WeaveAPI.StageUtils.mouseButtonDown && hack_noSelectionChangeSinceMouseDown)
@@ -975,7 +975,7 @@ package weave.visualization.layers
 		}
 
 		/**
-		 * An array of additional columns to be displayed in the probe tooltip for this visualization instance 
+		 * An array of additional columns (or ILinkableHashMaps containing columns) to be displayed in the probe tooltip for this visualization instance 
 		 */		
 		public var additionalProbeColumns:Array = null;
 		

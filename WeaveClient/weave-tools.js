@@ -19,7 +19,7 @@ function queryService(url, method, params, resultHandler, queryId)
 	function handleResponse(response)
 	{
 		if (response.error)
-			console.log(JSON.stringify(response, null, 3));
+			console.error(JSON.stringify(response, null, 3));
 		else if (resultHandler)
 			resultHandler(response.result, queryId);
 	}
@@ -48,7 +48,7 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 		{
 			var response = batchResponse[i];
 			if (response.error)
-				console.log(JSON.stringify(response, null, 3));
+				console.error(JSON.stringify(response, null, 3));
 			else
 				results[response.id] = response.result;
 		}
@@ -125,53 +125,7 @@ function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
 			});
 		});
 	});
-	function fail() { console.log("No matching column found (" + [dataTableTitle, columnTitle] + ")"); }
-}
-
-/**
- * @deprecated Consider using weave.path([...]).setColumn(metadata[, dataSourceName]) instead.
- * @example weave.path('defaultColorDataColumn').setColumn({weaveEntityId: 123, sqlParams: [1,2,3]})
- *
- * 
- * This will create or update a DynamicColumn to refer to an attribute column on a Weave data server.
- * @param {Weave} weave A Weave instance.
- * @param {Array|WeavePath} path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
- * @param {number} columnId The id of an attribute column on a Weave server (visible through the Admin Console and in its configuration tables)
- *                          or a set of metadata used to uniquely identify the column.  If a metadata object is used, the idFields property of
- *                          the WeaveDataSource must be set accordingly to specify which fields will be used to uniquely identify columns.
- * @param {string=} dataSourceName The name of an existing WeaveDataSource object in the Weave session state.
- * @param {Array=} sqlParams optional set of parameters to use that correspond to the '?' placeholders in the SQL query on the server.
- */
-function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
-{
-	// convert an Array to a WeavePath object
-	if (Array.isArray(path))
-		path = weave.path(path);
-	
-	if (!dataSourceName)
-		dataSourceName = weave.evaluateExpression([], 'this.getNames(WeaveDataSource)[0]', null, ['weave.data.DataSources::WeaveDataSource']);
-	
-	var metadata = {"sqlParams": sqlParams};
-	if (typeof columnId == 'object')
-		for (var k in columnId)
-			metadata[k] = columnId[k];
-	else
-		metadata['weaveEntityId'] = columnId;
-	
-	path.setColumn(metadata, dataSourceName);
-}
-
-/**
- * This will show or hide a layer on a visualization.
- * @param {Object} weave Weave instance
- * @param {string} toolName String
- * @param {string} layerName String
- * @param {boolean} enable true to show, false to hide
- * @return {boolean} true on success
- */
-function enableWeaveVisLayer(weave, toolName, layerName, enable)
-{
-	return weave.setSessionState([toolName,'children','visualization','plotManager','layerSettings',layerName,'visible'], enable);
+	function fail() { console.error("No matching column found (" + [dataTableTitle, columnTitle] + ")"); }
 }
 
 /**
@@ -269,4 +223,55 @@ function weaveAdminUpdateColumns(user, pass, tableId, entityUpdater) {
 			)
 		});
 	});
+}
+
+
+////////////////////////////////////////////////////////////////
+
+
+/**
+ * @deprecated Consider using weave.path([...]).setColumn(metadata[, dataSourceName]) instead.
+ * @example weave.path('defaultColorDataColumn').setColumn({weaveEntityId: 123, sqlParams: [1,2,3]})
+ *
+ * 
+ * This will create or update a DynamicColumn to refer to an attribute column on a Weave data server.
+ * @param {Weave} weave A Weave instance.
+ * @param {Array|WeavePath} path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
+ * @param {number} columnId The id of an attribute column on a Weave server (visible through the Admin Console and in its configuration tables)
+ *                          or a set of metadata used to uniquely identify the column.  If a metadata object is used, the idFields property of
+ *                          the WeaveDataSource must be set accordingly to specify which fields will be used to uniquely identify columns.
+ * @param {string=} dataSourceName The name of an existing WeaveDataSource object in the Weave session state.
+ * @param {Array=} sqlParams optional set of parameters to use that correspond to the '?' placeholders in the SQL query on the server.
+ */
+function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
+{
+	// convert an Array to a WeavePath object
+	if (Array.isArray(path))
+		path = weave.path(path);
+	
+	if (!dataSourceName)
+		dataSourceName = weave.evaluateExpression([], 'this.getNames(WeaveDataSource)[0]', null, ['weave.data.DataSources::WeaveDataSource']);
+	
+	var metadata = {"sqlParams": sqlParams};
+	if (typeof columnId == 'object')
+		for (var k in columnId)
+			metadata[k] = columnId[k];
+	else
+		metadata['weaveEntityId'] = columnId;
+	
+	path.setColumn(metadata, dataSourceName);
+}
+
+/**
+ * @deprecated Replacement code: weave.path(toolName).pushLayerSettings(layerName).state('visible', enable)
+ * 
+ * This will show or hide a layer on a visualization.
+ * @param {Object} weave Weave instance
+ * @param {string} toolName String
+ * @param {string} layerName String
+ * @param {boolean} enable true to show, false to hide
+ */
+function enableWeaveVisLayer(weave, toolName, layerName, enable)
+{
+	weave.path(toolName).pushLayerSettings(layerName).state('visible', enable);
 }

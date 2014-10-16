@@ -401,13 +401,15 @@ public class RServiceUsingRserve
 			rConnection.assign("y", dataY);
 			if(flag) 
 			{
-				script = "cdoutput <- t.test(x,y, var.equal = TRUE)\n" +
+				script = "obj <- try(t.test(x, y, var.equal = TRUE, na.rm = TRUE), silent=TRUE)\n" +
+						"if(is(obj, \"try-error\")) { statistic <- 0 \n  pvalue <- 0} else { cdoutput <- obj\n" +
 						"statistic <- cdoutput$statistic\n" +
-						"pvalue <- cdoutput$p.value";
+						"pvalue <- cdoutput$p.value}";
 			} else {
-				script = "cdoutput <- t.test(x,y, var.equal = FALSE)\n" +
-				"statistic <- cdoutput$statistic\n" +
-				"pvalue <- cdoutput$p.value"; 
+				script = "obj <- try(t.test(x, y, var.equal = FALSE, na.rm = TRUE), silent=TRUE)\n" +
+						"if(is(obj, \"try-error\")) { statistic <- 0 \n  pvalue <- 0} else { cdoutput <- obj\n" +
+						"statistic <- cdoutput$statistic\n" +
+						"pvalue <- cdoutput$p.value}";
 			}
 			
 			rConnection.eval(script);

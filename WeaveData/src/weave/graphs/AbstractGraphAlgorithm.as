@@ -86,7 +86,7 @@ package weave.graphs
 				{
 					var key:IQualifiedKey = nodesKeys[i];
 					var newNode:IGraphNode = new GraphNode();
-					newNode.id = nodesColumn.getValueFromKey(key);
+					newNode.id = nodesColumn.getValueFromKey(key, String);
 					newNode.key = key;
 					_keyToNode[key] = newNode;
 					idToNodeKey[newNode.id] = key;
@@ -101,8 +101,8 @@ package weave.graphs
 				for (i = 0; i < edgesKeys.length; ++i)
 				{
 					var edgeKey:IQualifiedKey = edgesKeys[i];
-					var idSource:String = edgeSources.getValueFromKey(edgeKey);
-					var idTarget:String = edgeTargets.getValueFromKey(edgeKey);
+					var idSource:String = edgeSources.getValueFromKey(edgeKey, String);
+					var idTarget:String = edgeTargets.getValueFromKey(edgeKey, String);
 					var newEdge:GraphEdge = new GraphEdge();
 					var source:IGraphNode = _keyToNode[ idToNodeKey[idSource] ];
 					var target:IGraphNode = _keyToNode[ idToNodeKey[idTarget] ];

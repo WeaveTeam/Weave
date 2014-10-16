@@ -24,6 +24,8 @@ package weave.core
 	
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
@@ -54,6 +56,7 @@ package weave.core
 		{
 			super(StandardLib.unIndent(defaultValue));
 			macroLibraries.addImmediateCallback(this, triggerCallbacks, false, true);
+			getCallbackCollection(macros).addImmediateCallback(this, handleMacros, false, true);
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
 			_paramNames = paramNames && paramNames.concat();
@@ -66,6 +69,12 @@ package weave.core
 		private var _paramNames:Array = null;
 		private var _isFunctionDefinition:Boolean = false;
 		private var _triggerCount:uint = 0;
+		
+		private function handleMacros():void
+		{
+			if (getLinkableOwner(this) != macros)
+				triggerCallbacks();
+		}
 
 		/**
 		 * This is used as a placeholder to prevent re-compiling erroneous code.
@@ -227,7 +236,7 @@ package weave.core
 				});
 			
 			// if we don't have any changes, use the original array
-			if (StandardLib.arrayCompare(array, state as Array) == 0)
+			if (StandardLib.compare(array, state) == 0)
 				return true;
 			
 			// use the new array

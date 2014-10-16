@@ -35,7 +35,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -62,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class CompoundRadVizPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class CompoundRadVizPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function CompoundRadVizPlotter()
 		{
@@ -118,7 +118,7 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
-		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		/**
@@ -164,7 +164,7 @@ package weave.visualization.plotters
 			{
 				var keySources:Array = _columns.concat();
 				keySources.unshift(radiusColumn);
-				setColumnKeySources(keySources, [true]);
+				setColumnKeySources(keySources, [-1]);
 			
 				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					

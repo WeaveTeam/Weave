@@ -26,13 +26,14 @@ package weave.data.DataSources
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
@@ -63,9 +64,9 @@ package weave.data.DataSources
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource_old
+	public class CSVDataSource extends AbstractDataSource_old implements IDataSource_File
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
 
 		public function CSVDataSource()
 		{
@@ -82,7 +83,7 @@ package weave.data.DataSources
 		/**
 		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
 		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
-		 */		
+		 */
 		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
 		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
 		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
@@ -119,13 +120,11 @@ package weave.data.DataSources
 		{
 			// save parsedRows only if csvData has non-null session state
 			var rows:Array = csvData.getSessionState() as Array;
-			if (rows != null && rows.length)
-			{
-				// clear url value when we specify csvData session state
-				if (url.value)
-					url.value = null;
+			// clear url value when we specify csvData session state
+			if (url.value && rows != null && rows.length)
+				url.value = null;
+			if (!url.value)
 				handleParsedRows(rows);
-			}
 		}
 		
 		/**
@@ -351,7 +350,7 @@ package weave.data.DataSources
 		
 		private function handleServletResponse(event:ResultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			var data:Array = event.result as Array;
 			if (!data)
@@ -367,7 +366,7 @@ package weave.data.DataSources
 		}
 		private function handleServletError(event:FaultEvent, sessionState:Object):void
 		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
 				return;
 			reportError(event);
 		}
@@ -414,7 +413,11 @@ package weave.data.DataSources
 			if (metadata.hasOwnProperty(METADATA_COLUMN_INDEX))
 				return new CSVColumnNode(this, metadata[METADATA_COLUMN_INDEX]);
 			if (metadata.hasOwnProperty(METADATA_COLUMN_NAME))
-				return new CSVColumnNode(this, getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]));
+			{
+				var index:int = getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]);
+				if (index >= 0)
+					return new CSVColumnNode(this, index);
+			}
 			
 			return null;
 		}
@@ -489,7 +492,7 @@ package weave.data.DataSources
 
 			// get column id from metadata
 			var columnId:Object = metadata[METADATA_COLUMN_INDEX];
-			if (columnId)
+			if (columnId != null)
 			{
 				columnId = int(columnId);
 			}
@@ -515,91 +518,62 @@ package weave.data.DataSources
 				colIndex = colNames.indexOf(columnId);
 				colName = String(columnId);
 			}
+			if (colIndex < 0)
+			{
+				proxyColumn.dataUnavailable(lang("No such column: {0}", columnId));
+				return;
+			}
+			
 			if (!metadata[ColumnMetadata.TITLE])
 				metadata[ColumnMetadata.TITLE] = colName;
 			
 			// it is ok if keyColIndex is -1 because getColumnValues supports -1
 			var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
 
-			var i:int;
-			var csvDataColumn:Vector.<String> = new Vector.<String>();
-			getColumnValues(parsedRows, colIndex, csvDataColumn);
-			
-			// loop through values, determine column type
-			var nullValue:String;
-			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			var isNumericColumn:Boolean = dataType == null || dataType == DataType.NUMBER;
-			if (isNumericColumn)
-			{
-				//check if it is a numeric column.
-				for each (var columnValue:String in csvDataColumn)
-				{
-					if (columnValue == null) // this is possible if rows have missing values
-						continue;
-					// if a string is 2 characters or more and begins with a '0', treat it as a string.
-					if (columnValue.length > 1 && columnValue.charAt(0) == '0' && columnValue.charAt(1) != '.')
-					{
-						isNumericColumn = false;
-						break;
-					}
-					if (!isNaN(getNumberFromString(columnValue)))
-						continue;
-					// if not numeric, compare to null values
-					if (!stringIsNullValue(columnValue))
-					{
-						// stop when it is determined that the column is not numeric
-						isNumericColumn = false;
-						break;
-					}
-				}
-			}
-
 			var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 			function setRecords():void
 			{
-				// fill in initializedProxyColumn.internalAttributeColumn based on column type (numeric or string)
+				var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());
+				var numbers:Vector.<Number> = null;
+				
+				var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
+				if (dataType == null || dataType == DataType.NUMBER)
+					numbers = stringsToNumbers(strings, dataType == DataType.NUMBER);
+				
 				var newColumn:IAttributeColumn;
-				if (isNumericColumn)
+				if (numbers)
 				{
-					var numericVector:Vector.<Number> = new Vector.<Number>(csvDataColumn.length);
-					for (i = 0; i < csvDataColumn.length; i++)
-						numericVector[i] = getNumberFromString(csvDataColumn[i]);
-	
 					newColumn = new NumberColumn(metadata);
-					(newColumn as NumberColumn).setRecords(keysVector, numericVector);
+					(newColumn as NumberColumn).setRecords(keysVector, numbers);
 				}
 				else
 				{
-					var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
-	
 					if (dataType == DataType.DATE)
 					{
 						newColumn = new DateColumn(metadata);
-						(newColumn as DateColumn).setRecords(keysVector, stringVector);
+						(newColumn as DateColumn).setRecords(keysVector, strings);
 					}
 					else
 					{
 						newColumn = new StringColumn(metadata);
-						(newColumn as StringColumn).setRecords(keysVector, stringVector);
+						(newColumn as StringColumn).setRecords(keysVector, strings);
 					}
 				}
 				proxyColumn.setInternalColumn(newColumn);
-				
-				//debugTrace(this, "initialized column", proxyColumn);
 			}
 			
 			proxyColumn.setMetadata(metadata);
-			var keyStrings:Array = [];
-			getColumnValues(parsedRows, keyColIndex, keyStrings);
+			var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
 			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType.value, keyStrings, proxyColumn, setRecords, keysVector);
 		}
 
 		/**
 		 * @param rows The rows to get values from.
 		 * @param columnIndex If this is -1, record index values will be returned.  Otherwise, this specifies which column to get values from.
-		 * @return A list of values from the specified column, excluding the first row, which is the header.
+		 * @param outputArrayOrVector Output Array or Vector to store the values from the specified column, excluding the first row, which is the header.
+		 * @return outputArrayOrVector
 		 */		
-		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):void
+		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):*
 		{
 			outputArrayOrVector.length = rows.length - 1;
 			var i:int;
@@ -615,22 +589,41 @@ package weave.data.DataSources
 				for (i = 1; i < rows.length; i++)
 					outputArrayOrVector[i-1] = rows[i][columnIndex];
 			}
+			return outputArrayOrVector;
 		}
 		
-		private function getNumberFromString(value:String):Number
+		private function stringsToNumbers(strings:Vector.<String>, forced:Boolean):Vector.<Number>
 		{
-			if (stringIsNullValue(value))
-				return NaN;
-			// First trim out any commas since Number() does not work if numbers have commas. 
-			return Number(value.split(",").join(""));
-		}
-		
-		private function stringIsNullValue(value:String):Boolean
-		{
-			for each (var nullValue:String in nullValues)
-				if (ObjectUtil.stringCompare(value, nullValue, true) == 0)
-					return true;
-			return false;
+			var numbers:Vector.<Number> = new Vector.<Number>(strings.length);
+			var i:int = strings.length;
+			outerLoop: while (i--)
+			{
+				var string:String = StringUtil.trim(strings[i]);
+				for each (var nullValue:String in nullValues)
+				{
+					var a:String = nullValue && nullValue.toLocaleLowerCase();
+					var b:String = string && string.toLocaleLowerCase();
+					if (a == b)
+					{
+						numbers[i] = NaN;
+						continue outerLoop;
+					}
+				}
+
+				// if a string is 2 characters or more and begins with a '0', treat it as a string.
+				if (!forced && string.length > 1 && string.charAt(0) == '0' && string.charAt(1) != '.')
+					return null;
+
+				if (string.indexOf(',') >= 0)
+					string = string.split(',').join('');
+				
+				var number:Number = Number(string);
+				if (isNaN(number) && !forced)
+					return null;
+				
+				numbers[i] = number;
+			}
+			return numbers;
 		}
 		
 		private const nullValues:Array = [null, "", "null", "\\N", "NaN"];
@@ -691,6 +684,13 @@ internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
 		return children;
 	}
 	
-	public function getDataSource():IDataSource { return source; }
-	public function getColumnMetadata():Object { return source.generateMetadataForColumnId(source.getColumnIds()[columnIndex]); }
+	public function getDataSource():IDataSource
+	{
+		return source;
+	}
+	public function getColumnMetadata():Object
+	{
+		var id:Object = source.getColumnIds()[columnIndex];
+		return id != null && source.generateMetadataForColumnId(id);
+	}
 }
