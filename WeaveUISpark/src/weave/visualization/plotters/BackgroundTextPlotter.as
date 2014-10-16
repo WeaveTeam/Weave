@@ -20,7 +20,6 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
-	import flash.geom.Point;
 	
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -40,13 +39,11 @@ package weave.visualization.plotters
 		public const textFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('target && target.getSessionState()', true, false, ['target']));
 		public const dependency:LinkableDynamicObject = newLinkableChild(this, LinkableDynamicObject);
 		private const bitmapText:BitmapText = new BitmapText();
-		private static const tempPoint:Point = new Point();
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			screenBounds.getCenterPoint(tempPoint);
-			bitmapText.x = tempPoint.x;
-			bitmapText.y = tempPoint.y;
+			bitmapText.x = screenBounds.getXCenter();
+			bitmapText.y = screenBounds.getYCenter();
 			bitmapText.width = screenBounds.getXCoverage();
 			bitmapText.height = screenBounds.getYCoverage();
 			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
