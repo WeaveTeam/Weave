@@ -333,6 +333,12 @@
 				return value is Number || value is String || value == null;
 			}
 			
+			public function getSelectedLabel():String
+			{
+				var column:IAttributeColumn = choices.getObject(selectedAttribute.value) as IAttributeColumn;
+				return choiceLabelFunction(column);
+			}
+			
 			private function choiceLabelFunction(column:IAttributeColumn):String
 			{
 				var result:String = ColumnUtils.getTitle(column);
