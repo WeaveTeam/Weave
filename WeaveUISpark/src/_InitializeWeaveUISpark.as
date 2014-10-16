@@ -22,6 +22,7 @@ package
 	import weave.core.ClassUtils;
 	import weave.core.WeaveXMLDecoder;
 	import weave.visualization.plotters.AxisLabelPlotter;
+	import weave.visualization.plotters.BackgroundTextPlotter;
 	import weave.visualization.plotters.CustomGlyphPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
@@ -51,6 +52,7 @@ package
 		// reference these tools so they will run their static initialization code
 		([
 			AxisLabelPlotter,
+			BackgroundTextPlotter,
 			CustomGlyphPlotter,
 			GeometryLabelPlotter,
 			GeometryPlotter,
