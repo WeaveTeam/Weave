@@ -27,7 +27,7 @@ errorLogModule.service('errorLogService',[function(){
 	         backdropClick: true,
 	         dialogFade: true,
 	         keyboard: true,
-	         templateUrl: 'aws/errorLog/analystErrorLog.html',
+	         templateUrl: 'src/errorLog/analystErrorLog.html',
 	         controller: 'errorLogInstanceCtrl',
 	         windowClass : 'erroLog-modal'
 		};

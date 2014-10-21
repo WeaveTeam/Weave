@@ -52,7 +52,7 @@ projectModule.controller("projectAdditionController", function($scope, $modal, p
 	         backdropClick: false,
 	         dialogFade: true,
 	         keyboard: true,
-	         templateUrl: 'aws/project/projectAdditionPanel.html',
+	         templateUrl: 'src/project/projectAdditionPanel.html',
 	         controller: 'pjtAddtionInstanceCtrl',
 	         resolve :{
 	        	 projectNameEntered : function(){return $scope.projectNameEntered;},
