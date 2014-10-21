@@ -26,28 +26,28 @@ AnalysisModule.service('AnalysisService', function() {
 							content_tools :{
 												Indicator : {
 																title : 'Indicator',
-																template_url : 'aws/analysis/indicator/indicator.tpl.html',
+																template_url : 'src/analysis/indicator/indicator.tpl.html',
 																description : 'Choose an Indicator for the Analysis',
 																category : 'indicatorfilter'
 															},
 															
 												GeographyFilter : {
 																		title : 'Geography Filter',
-																		template_url : 'aws/analysis/data_filters/geography.tpl.html',
+																		template_url : 'src/analysis/data_filters/geography.tpl.html',
 																		description : 'Filter data by States and Counties',
 																		category : 'datafilter'
 																  },
 																  
 											    TimePeriodFilter : {
 																    	title : 'Time Period Filter',
-																		template_url : 'aws/analysis/data_filters/time_period.tpl.html',
+																		template_url : 'src/analysis/data_filters/time_period.tpl.html',
 																		description : 'Filter data by Time Period',
 																		category : 'datafilter'
 											    					},
 											    					
 						    					ByVariableFilter : {
 											    						title : 'By Variable Filter',
-											    						template_url : 'aws/analysis/data_filters/by_variable.tpl.html',
+											    						template_url : 'src/analysis/data_filters/by_variable.tpl.html',
 											    						description : 'Filter data by Variables',
 											    						category : 'datafilter'
 						    										}
@@ -56,7 +56,7 @@ AnalysisModule.service('AnalysisService', function() {
 											         	{
 											        		id : 'BarChartTool',
 											        		title : 'Bar Chart Tool',
-											        		template_url : 'aws/visualization/tools/barChart/bar_chart.tpl.html',
+											        		template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html',
 											        		description : 'Display Bar Chart in Weave',
 											        		category : 'visualization',
 											        		enabled : false
@@ -64,21 +64,21 @@ AnalysisModule.service('AnalysisService', function() {
 											        	}, {
 											        		id : 'MapTool',
 											        		title : 'Map Tool',
-											        		template_url : 'aws/visualization/tools/mapChart/map_chart.tpl.html',
+											        		template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html',
 											        		description : 'Display Map in Weave',
 											        		category : 'visualization',
 											        		enabled : false
 											        	}, {
 											        		id : 'DataTableTool',
 											        		title : 'Data Table Tool',
-											        		template_url : 'aws/visualization/tools/dataTable/data_table.tpl.html',
+											        		template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
 											        		description : 'Display a Data Table in Weave',
 											        		category : 'visualization',
 											        		enabled : false
 											        	}, {
 											        		id : 'ScatterPlotTool',
 											        		title : 'Scatter Plot Tool',
-											        		template_url : 'aws/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+											        		template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
 											        		description : 'Display a Scatter Plot in Weave',
 											        		category : 'visualization',
 											        		enabled : false

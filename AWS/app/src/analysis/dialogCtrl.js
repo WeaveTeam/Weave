@@ -5,7 +5,7 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
           backdropClick: true,
           dialogFade: true,
           keyboard: true,
-          templateUrl: 'aws/analysis/savingOutputsModal.html',
+          templateUrl: 'src/analysis/savingOutputsModal.html',
           controller: 'DialogInstanceCtrl',
           resolve:
           {

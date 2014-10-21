@@ -43,19 +43,19 @@ app.run(['$rootScope', function($rootScope){
 	
 	// Also from Amith's UI
 	$routeProvider.when('/analysis', {
-		templateUrl : 'aws/analysis/analysis.tpl.html',
+		templateUrl : 'src/analysis/analysis.tpl.html',
 		controller : 'AnalysisCtrl',
 		activetab : 'analysis'
 	}).when('/metadata', {
-		templateUrl : 'aws/configure/metadata/metadataManager.html',
+		templateUrl : 'src/configure/metadata/metadataManager.html',
 		controller : 'MetadataManagerCtrl',
 		activetab : 'metadata'
 	}).when('/script_management', {
-		templateUrl : 'aws/configure/script/scriptManager.html',
+		templateUrl : 'src/configure/script/scriptManager.html',
 		controller : 'ScriptManagerCtrl',
 		activetab : 'script_management'
 	}).when('/project_management', {
-		templateUrl : 'aws/project/projectManagementPanel.html',
+		templateUrl : 'src/project/projectManagementPanel.html',
 		controller : 'ProjectManagementCtrl',
 		activetab : 'project_management'
 	}).otherwise({
