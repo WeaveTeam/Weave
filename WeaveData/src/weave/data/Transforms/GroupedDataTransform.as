@@ -232,6 +232,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 		_dataColumn = registerLinkableChild(this, dataColumn);
 		_keys = keys;
 		_cacheTriggerCounter = 0;
+		triggerCallbacks();
 	}
 	
 	override public function getMetadata(propertyName:String):String
