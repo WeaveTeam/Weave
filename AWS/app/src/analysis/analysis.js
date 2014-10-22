@@ -90,7 +90,7 @@ AnalysisModule.service('AnalysisService', function() {
 	
 });
 
-AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, AnalysisService, WeaveService, QueryHandlerService, $window) {
+AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService, AnalysisService, WeaveService, QueryHandlerService, $window) {
 
 	setTimeout(loadFlashContent, 100);
 	$scope.queryService = queryService;
@@ -104,6 +104,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, queryService, Analysi
 //	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 //		queryService.dataObject.openInNewWindow = WeaveService.weaveWindow.closed;
 //	});
+	
+	$scope.getDataTable = function(term, done) {
+		var values = queryService.dataObject.dataTableList;
+		done($filter('filter')(values, {title:term}, 'title'));
+	};
+	
+	$scope.dataTableId = function(item) {
+		return item.id;
+	};
+	
+	$scope.dataTableText = function(item) {
+		return item.title;
+	};
 	
 	$scope.$watch(function() {
 		return queryService.dataObject.openInNewWindow;

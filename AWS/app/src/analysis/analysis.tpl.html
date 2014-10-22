@@ -9,13 +9,16 @@
 						<h2>Indicator</h2>
 					</div>
 					<div class="body" style="width: 100%">
-						<select popover="Select Data Table" popover-trigger="mouseenter"
+						<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
 							style="width: 100%" ng-model="queryService.queryObject.dataTable"
-							ng-options="dt.title for dt in queryService.dataObject.dataTableList track by dt.id"
+							simple-query="getDataTable"
 							data-placeholder="Select Datatable"
+							allow-clear="true"
+							to-id="dataTableId" to-text="dataTableText"
 							ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
-							<option value="">Select Data Table</option>
-						</select> <input type="checkbox"
+						</input> 
+						
+						<input type="checkbox"
 							ng-model="queryService.dataObject.displayAsQuestions">
 						Display As Questions</input>
 	
