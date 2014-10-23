@@ -64,19 +64,19 @@ angular.module('aws.configure.metadata').service("metadataManagerService", ['$q'
 		"}\n" +
 		"finalStatResult <- getAllColumnStats(frame)\n";
 	 
-     this.calculateStatistics = function(){
-    	 //if the dataset is the same then cache the statistics
-    	 
-    		//functions for column statistics and distributions
-    		
-    			//pick all numerical columns
-    			//create a matrix
-    			//run script
-    	 		runQueryService.queryRequest(computationServiceURL, 'calculateColumnStats', [matrix], function(result){
-    	 			console.log("got the stats", result);
-    	 			that.data.columnStats = result;
-    	 		});
-    			//display in grid
-     };
+//     this.calculateStatistics = function(){
+//    	 //if the dataset is the same then cache the statistics
+//    	 
+//    		//functions for column statistics and distributions
+//    		
+//    			//pick all numerical columns
+//    			//create a matrix
+//    			//run script
+//    	 		runQueryService.queryRequest(computationServiceURL, 'calculateColumnStats', [matrix], function(result){
+//    	 			console.log("got the stats", result);
+//    	 			that.data.columnStats = result;
+//    	 		});
+//    			//display in grid
+//     };
     
 }]);

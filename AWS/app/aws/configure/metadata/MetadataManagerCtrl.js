@@ -45,7 +45,7 @@ metadataModule.config(function($provide){
     $scope.authenticationService = authenticationService;
     
     //calculate and display vital statistics of all numerical columns
-    metadataManagerService.calculateStatistics();
+    //metadataManagerService.calculateStatistics();
     
     //generated when the dynatree directive loads
 	$scope.generateTree = function(element) {
