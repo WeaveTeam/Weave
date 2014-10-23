@@ -18,6 +18,7 @@ var tryParseJSON = function(jsonString){
     return false;
 };
 
+
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
 AnalysisModule.service('AnalysisService', function() {
@@ -104,6 +105,33 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 //	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 //		queryService.dataObject.openInNewWindow = WeaveService.weaveWindow.closed;
 //	});
+	
+	var buildTree2 = function (node, key) {
+		return {
+			title : key || node || '',
+			value : node,
+			isFolder : !!(typeof node == 'object' && node),
+			children : (typeof node == 'object' && node)
+				? Object.keys(node).map(function(key) { return buildTree2(node[key], key); })
+				: null
+		};	
+	};
+	
+	var queryObjectTreeData = buildTree2(queryService.queryObject);
+	queryObjectTreeData.title = "Query Object";
+	console.log(queryObjectTreeData);
+	
+	$('#queryObjTree').dynatree({
+		minExpandLevel: 1,
+		children : queryObjectTreeData,
+		keyBoard : true,
+		onPostInit: function(isReloading, isError) {
+			this.reactivate();
+		},
+		debugLevel: 0
+	});
+	
+	 $("#queryObjectPanel" ).draggable();
 	
 	$scope.getDataTable = function(term, done) {
 		var values = queryService.dataObject.dataTableList;
