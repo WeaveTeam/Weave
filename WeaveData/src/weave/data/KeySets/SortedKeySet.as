@@ -127,7 +127,7 @@ package weave.data.KeySets
 		}
 		
 		/**
-		 * Generates a function like </code>function(keys:Array):Array</code> that returns a sorted copy of an Array of keys.
+		 * Generates a function like <code>function(keys:Array):Array</code> that returns a sorted copy of an Array of keys.
 		 * Note that the resulting sort function depends on WeaveAPI.StatisticsManager, so the sort function should be called
 		 * again when statistics change for any of the columns you provide.
 		 * @param columns An Array of IAttributeColumns or Functions mapping IQualifiedKeys to Numbers.
