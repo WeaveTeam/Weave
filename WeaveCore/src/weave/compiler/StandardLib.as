@@ -598,11 +598,6 @@ package weave.compiler
 		 */
 		public static function sortOn(array:*, params:*, sortDirections:* = undefined, inPlace:Boolean = true, returnSortedIndexArray:Boolean = false):*
 		{
-			var time_read:Array = [];
-			var time_slice:int;
-			var time_sort:int;
-			var time_init:int;
-			
 			if (array.length == 0)
 				return inPlace ? array : [];
 			
@@ -611,83 +606,47 @@ package weave.compiler
 			var sortDirection:int;
 			var i:int;
 			
-//			var t:int;
-//			t = getTimer();
 			// expand _sortBuffer as necessary
 			for (i = _sortBuffer.length; i < array.length; i++)
 				_sortBuffer[i] = [];
-//			time_init = getTimer() - t;
 			
-			if (params != array && params is Array)
+			// If there is only one param, wrap it in an array.
+			// Array.sortOn() is preferred over Array.sort() in this case
+			// since an undefined value will crash Array.sort(Array.NUMERIC).
+			if (params === array || !(params is Array))
 			{
-				var fields:Array = new Array(params.length);
-				var fieldOptions:Array = new Array(params.length);
-				for (var p:int = 0; p < params.length; p++)
-				{
-//					t = getTimer();
-					
-					param = params[p];
-					sortDirection = sortDirections && sortDirections[p] < 0 ? Array.DESCENDING : 0;
-					
-					i = array.length;
-					if (param is Array || param is Vector)
-						while (i--)
-							_sortBuffer[i][p] = param[i];
-					else if (param is Function)
-						while (i--)
-							_sortBuffer[i][p] = param(array[i]);
-					else if (typeof param === 'object')
-						while (i--)
-							_sortBuffer[i][p] = param[array[i]];
-					else
-						while (i--)
-							_sortBuffer[i][p] = array[i][param];
-					
-//					time_read[p] = getTimer() - t;
-					
-					fields[p] = p;
-					fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer[0][p]) | sortDirection;
-				}
-				
-//				t = getTimer();
-				values = _sortBuffer.slice(0, array.length)
-//				time_slice = getTimer() - t;
-				
-//				t = getTimer();
-				values = values.sortOn(fields, fieldOptions);
-//				time_sort = getTimer() - t;
-				
-//				debugTrace(
-//					'sorted',values.length,
-//					'params',params.map(function(o:*,i:*,a:*):*{return debugId(o);}).join(','),
-//					'init',time_init,
-//					'read',time_read.join(','),
-//					'slice',time_slice,
-//					'sort',time_sort
-//				);
+				params = [params];
+				if (sortDirections)
+					sortDirections = [sortDirections];
 			}
-			else
+			
+			var fields:Array = new Array(params.length);
+			var fieldOptions:Array = new Array(params.length);
+			for (var p:int = 0; p < params.length; p++)
 			{
-				param = params;
-				sortDirection = sortDirections < 0 ? Array.DESCENDING : 0;
+				param = params[p];
+				sortDirection = sortDirections && sortDirections[p] < 0 ? Array.DESCENDING : 0;
 				
-				values = new Array(array.length);
 				i = array.length;
-				if (param === array || param is Vector)
+				if (param is Array || param is Vector)
 					while (i--)
-						values[i] = param[i];
+						_sortBuffer[i][p] = param[i];
 				else if (param is Function)
 					while (i--)
-						values[i] = param(array[i]);
+						_sortBuffer[i][p] = param(array[i]);
 				else if (typeof param === 'object')
 					while (i--)
-						values[i] = param[array[i]];
+						_sortBuffer[i][p] = param[array[i]];
 				else
 					while (i--)
-						values[i] = array[i][param];
+						_sortBuffer[i][p] = array[i][param];
 				
-				values = values.sort(Array.RETURNINDEXEDARRAY | guessSortMode(values[0]) | sortDirection);
+				fields[p] = p;
+				fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer[0][p]) | sortDirection;
 			}
+			
+			values = _sortBuffer.slice(0, array.length);
+			values = values.sortOn(fields, fieldOptions);
 			
 			if (returnSortedIndexArray)
 				return values;
