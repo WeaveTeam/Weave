@@ -33,9 +33,9 @@ package weave.services.wms
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
-	import weave.utils.AsyncSort;
 
 	/**
 	 * This class handles the requests for tiles from NASA's OnEarth WMS.
@@ -357,22 +357,8 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			sortTiles(tiles);
 			return tiles;
-		}
-		
-		/**
-		 * This is a private method used for sorting an array of WMSTiles.
-		 */ 
-		private function tileSortingComparison(a:WMSTile, b:WMSTile):int
-		{
-			// if a is higher quality (less data/screen => smaller value), it succeeds b
-			if (a.zoomLevel < b.zoomLevel)
-				return 1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return -1;			
 		}
 
 		override public function getAllowedBounds(output:IBounds2D):void

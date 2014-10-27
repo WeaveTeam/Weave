@@ -157,7 +157,7 @@
 					for each (var tag:String in String(xml.@tags).split(','))
 						if (!tagsLookup[tag])
 							tags.push(tagsLookup[tag] = tag);
-				AsyncSort.sortImmediately(tags, AsyncSort.compareCaseInsensitive);
+				tags.sort(Array.CASEINSENSITIVE);
 				tags.unshift(ALL);
 				filterCombo.dataProvider = tags;
 				colorRampList.dataProvider.filterFunction = filterColormaps;

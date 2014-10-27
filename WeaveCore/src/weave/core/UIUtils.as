@@ -42,7 +42,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.ILinkableLayoutManager;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 
 	/**
 	 * This is an all-static class containing functions related to UI and ILinkableObjects.
@@ -53,6 +53,21 @@ package weave.core
 	public class UIUtils
 	{
 		public static var debug:Boolean = false;
+		
+		/**
+		 * Links a LinkableBoolean's session state to a component's <code>visible</code> and <code>includeInLayout</code> properties.
+		 * @param relevantContext The context in which the linking remains relevant (usually <code>this</code>).
+		 * @param shownState The LinkableBoolean.
+		 * @param component The UIComponent.
+		 * @param invert Set to true if shownState should be negated.
+		 */
+		public static function linkVisibility(relevantContext:Object, shownState:LinkableBoolean, component:Object, invert:Boolean = false):void
+		{
+			var target:UIComponent = UIComponent(component);
+			shownState.addGroupedCallback(relevantContext, function():void {
+				target.visible = target.includeInLayout = shownState.value != invert;
+			}, true);
+		}
 		
 		/**
 		 * This function determines if a particular component or one of its children has input focus.

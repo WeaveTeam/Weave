@@ -29,7 +29,7 @@ package weave.core
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.StandardLib;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
@@ -118,11 +118,11 @@ package weave.core
 				if (object is ILinkableHashMap)
 					return (object as ILinkableHashMap).getNames();
 				if (object is ILinkableDynamicObject)
-					return [(object as ILinkableDynamicObject).globalName];
+					return [null];
 				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 			}
 			
-			externalWarning("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
+			externalError("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
 			return null;
 		}
 		

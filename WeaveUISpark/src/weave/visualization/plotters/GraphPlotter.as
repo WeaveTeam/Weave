@@ -337,12 +337,12 @@ package weave.visualization.plotters
 
 		private function drawNode(node:IGraphNode, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			var nodeRadius:Number = sizeColumn.getValueFromKey(node.key);
+			var nodeRadius:Number = sizeColumn.getValueFromKey(node.key, Number);
 			if (StandardLib.isUndefined(nodeRadius))
 				nodeRadius = radius.value;
 			tempShape.graphics.clear();
 			lineStyle.beginLineStyle(node.key, tempShape.graphics);
-			tempShape.graphics.beginFill(fillStyle.color.getValueFromKey(node.key));
+			tempShape.graphics.beginFill(fillStyle.color.getValueFromKey(node.key, Number));
 			
 			screenPoint.x = node.position.x;
 			screenPoint.y = node.position.y;

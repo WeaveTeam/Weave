@@ -111,7 +111,7 @@ package weave.core
 			{
 				// increase the recursion count while the function is running
 				entry.recursionCount++;
-				callback();
+				callback.apply();
 				entry.recursionCount--;
 			}
 		}
@@ -298,7 +298,7 @@ package weave.core
 			{
 				var entry:CallbackEntry = _disposeCallbackEntries.shift() as CallbackEntry;
 				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
-					entry.callback();
+					entry.callback.apply();
 			}
 		}
 		
@@ -576,7 +576,7 @@ internal class GroupedCallbackEntry extends CallbackEntry
 		if (recursionCount == 0)
 		{
 			recursionCount++;
-			callback();
+			callback.apply();
 			recursionCount--;
 		}
 		// avoid delayed recursion

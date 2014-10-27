@@ -14,14 +14,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * The code below assumes it is being executed within a function(){} where the 'weave' variable is defined.
- * @namespace weave
- * @description The Weave instance.
- * @private
- */
-
-/**
  * Makes a URL request and calls weave.ExternalDownloader_callback() when done.
+ * @private
  * @param {string} id Identifies the request
  * @param {string} method Either "GET" or "POST"
  * @param {string} url The URL

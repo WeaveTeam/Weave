@@ -19,24 +19,22 @@
 
 package weave.data.AttributeColumns
 {
-	import flash.system.Capabilities;
-	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
+	import weave.api.data.Aggregation;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
-	import weave.core.StageUtils;
+	import weave.primitives.Dictionary2D;
 	import weave.utils.AsyncSort;
 	
 	/**
-	 * StringColumn
-	 * 
 	 * @author adufilie
 	 */
 	public class StringColumn extends AbstractAttributeColumn implements IPrimitiveColumn
@@ -44,78 +42,39 @@ package weave.data.AttributeColumns
 		public function StringColumn(metadata:Object = null)
 		{
 			super(metadata);
+			
+			dataTask = new ColumnDataTask(this, filterStringValue, handleDataTaskComplete);
+			dataCache = new Dictionary2D();
+			getCallbackCollection(_asyncSort).addImmediateCallback(this, handleSortComplete);
 		}
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == ColumnMetadata.DATA_TYPE)
+			var value:String = super.getMetadata(propertyName);
+			if (!value && propertyName == ColumnMetadata.DATA_TYPE)
 				return DataType.STRING;
-			return super.getMetadata(propertyName);
+			return value;
 		}
 
 		/**
-		 * This is a list of unique keys this column defines values for.
-		 */
-		override public function get keys():Array
-		{
-			return _uniqueKeys;
-		}
-
-		/**
-		 * @param key A key to test.
-		 * @return true if the key exists in this IKeySet.
-		 */
-		override public function containsKey(key:IQualifiedKey):Boolean
-		{
-			return _keyToUniqueStringIndexMapping[key] != undefined;
-		}
-		
-		private const _uniqueKeys:Array = new Array();
-		/**
-		 * uniqueStrings
-		 * Derived from the record data, this is a list of all existing values in the dimension, each appearing once, sorted alphabetically.
+		 * Sorted list of unique string values.
 		 */
 		private const _uniqueStrings:Vector.<String> = new Vector.<String>();
-
-		/**
-		 * This maps keys to index values in the _uniqueStrings vector.
-		 * This effectively stores the column data.
-		 */
-		private var _keyToUniqueStringIndexMapping:Dictionary = new Dictionary();
-
-		/**
-		 * This maps keys to index values in the _uniqueStrings vector.
-		 * This effectively stores the column data after applying the function 
-		 * from the NUMBER metadata.
-		 */
-		private var _keyToNumberMapping:Dictionary = new Dictionary();
-		/**
-		 * This serves as the inverse of _keyToNumberMapping.
-		 */		
-		private var _numberToKeyMapping:Dictionary = new Dictionary();
 		
+		/**
+		 * String -> index in sorted _uniqueStrings
+		 */
+		private var _uniqueStringLookup:Object;
+
 		public function setRecords(keys:Vector.<IQualifiedKey>, stringData:Vector.<String>):void
 		{
-			if (keys.length > stringData.length)
-			{
-				reportError("Array lengths differ");
-				return;
-			}
+			dataTask.begin(keys, stringData);
+			_asyncSort.abort();
 			
-			_i1 = 0;
-			_i3 = 0;
-			_i4 = 0;
-			_keys = keys;
-			_stringData = stringData;
-			_keyToStringMap = new Dictionary();
-			_stringToIndexMap = {};
-			_uniqueKeys.length = 0;
 			_uniqueStrings.length = 0;
-			_keyToUniqueStringIndexMapping = new Dictionary();
-			_numberToKeyMapping = new Dictionary();
+			_uniqueStringLookup = {};
 			_stringToNumberFunction = null;
 			_numberToStringFunction = null;
-			_reportedDuplicate = false;
 			
 			// compile the number format function from the metadata
 			var numberFormat:String = getMetadata(ColumnMetadata.NUMBER);
@@ -123,7 +82,7 @@ package weave.data.AttributeColumns
 			{
 				try
 				{
-					_stringToNumberFunction = compiler.compileToFunction(numberFormat, null, errorHandler, false, [ColumnMetadata.STRING]);
+					_stringToNumberFunction = compiler.compileToFunction(numberFormat, null, errorHandler, false, [ColumnMetadata.STRING, 'array']);
 				}
 				catch (e:Error)
 				{
@@ -144,9 +103,6 @@ package weave.data.AttributeColumns
 					reportError(e);
 				}
 			}
-			
-			_iterateAll(-1); // restart from first task
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_3_PARSING, _asyncComplete);
 		}
 		
 		private function errorHandler(e:*):void
@@ -162,133 +118,87 @@ package weave.data.AttributeColumns
 		
 		private var _lastError:String;
 		
-		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2, _iterate3, _iterate4);
-		
-		// temp variables for async task
-		private var _i1:int;
-		private var _i3:int;
-		private var _i4:int;
-		private var _keys:Vector.<IQualifiedKey>;
-		private var _stringData:Vector.<String>;
-		private var _stringToIndexMap:Object;
-		private var _reportedDuplicate:Boolean = false;
-		
 		// variables that do not get reset after async task
 		private static const compiler:Compiler = new Compiler();
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
-		private var _keyToStringMap:Dictionary;
 		
-		private function _asyncComplete():void
+		private function filterStringValue(value:String):Boolean
 		{
-			_keys = null;
-			_stringData = null;
-			_stringToIndexMap = null;
+			if (!value)
+				return false;
 			
-			triggerCallbacks();
-		}
-		
-		private function _iterate1(stopTime:int):Number
-		{
-			// copy new records to dataMap, overwriting any existing records
-			
-			for (; _i1 < _keys.length; _i1++)
+			// keep track of unique strings
+			if (_uniqueStringLookup[value] === undefined)
 			{
-				if (getTimer() > stopTime)
-					return _i1 / _keys.length;
-				
-				// get values for this iteration
-				var key:IQualifiedKey = _keys[_i1];
-				var value:String = _stringData[_i1];
-				
-				// skip missing values
-				if (!value)
-					continue;
-				// keep track of unique keys
-				if (_keyToStringMap[key] === undefined)
-				{
-					_uniqueKeys.push(key);
-					// save key-to-data mapping
-					_keyToStringMap[key] = value;
-				}
-				else if (!_reportedDuplicate)
-				{
-					_reportedDuplicate = true;
-					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-					var str:String = StandardLib.substitute(fmt, key.localName, Compiler.stringify(_metadata));
-					if (Capabilities.isDebugger)
-						reportError(str);
-				}
-				// keep track of unique strings
-				if (_stringToIndexMap[value] === undefined)
-				{
-					_uniqueStrings.push(value);
-					// initialize mapping
-					_stringToIndexMap[value] = -1;
-				}
+				_uniqueStrings.push(value);
+				// initialize mapping
+				_uniqueStringLookup[value] = -1;
 			}
 			
+			return true;
+		}
+		
+		private function handleDataTaskComplete():void
+		{
 			// begin sorting unique strings previously listed
 			_asyncSort.beginSort(_uniqueStrings, AsyncSort.compareCaseInsensitive);
-			
-			return 1;
 		}
+		
 		private const _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
-		private function _iterate2(stopTime:int):Number
+		
+		private function handleSortComplete():void
 		{
-			// wait for async sort to finish
-			return _asyncSort.result ? 1 : 0;
+			if (!_asyncSort.result)
+				return;
+			
+			_i = 0;
+			_numberToString = {};
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
 		}
-		private function _iterate3(stopTime:int):Number
+		
+		private var _i:int;
+		private var _numberToString:Object = {};
+		private var _stringToNumber:Object = {};
+		
+		private function _iterate(stopTime:int):Number
 		{
-			for (; _i3 < _uniqueStrings.length; _i3++)
+			for (; _i < _uniqueStrings.length; _i++)
 			{
 				if (getTimer() > stopTime)
-					return _i3 / _uniqueStrings.length;
+					return _i / _uniqueStrings.length;
 				
-				// save string-to-index mapping
-				_stringToIndexMap[_uniqueStrings[_i3] as String] = _i3;
-			}
-			return 1;
-		}
-		private function _iterate4(stopTime:int):Number
-		{
-			for (; _i4 < _uniqueKeys.length; _i4++)
-			{
-				if (getTimer() > stopTime)
-					return _i4 / _uniqueKeys.length;
-				
-				var key:IQualifiedKey = _uniqueKeys[_i4] as IQualifiedKey;
-				var string:String = _keyToStringMap[key] as String;
-				var index:int = int(_stringToIndexMap[string]);
-				_keyToUniqueStringIndexMapping[key] = index;
+				var string:String = _uniqueStrings[_i];
+				_uniqueStringLookup[string] = _i;
 				
 				if (_stringToNumberFunction != null)
 				{
-					var number:Number = _stringToNumberFunction(string);
-					_keyToNumberMapping[key] = number;
-					// save reverse lookup
-					_numberToKeyMapping[number] = key;
-				}
-				else
-				{
-					_keyToNumberMapping[key] = index;
+					var number:Number = StandardLib.asNumber(_stringToNumberFunction(string));
+					_stringToNumber[string] = number;
+					_numberToString[number] = string;
 				}
 			}
 			return 1;
+		}
+		
+		private function asyncComplete():void
+		{
+			// cache needs to be cleared after async task completes because some values may have been cached while the task was busy
+			dataCache = new Dictionary2D();
+			triggerCallbacks();
 		}
 
 		// find the closest string value at a given normalized value
 		public function deriveStringFromNumber(number:Number):String
 		{
-			if (getMetadata(ColumnMetadata.NUMBER))
+			if (_metadata && _metadata[ColumnMetadata.NUMBER])
 			{
+				if (_numberToString.hasOwnProperty(number))
+					return _numberToString[number];
+				
 				if (_numberToStringFunction != null)
-					return _numberToStringFunction(number);
-
-				var key:IQualifiedKey = _numberToKeyMapping[number] as IQualifiedKey;
-				if (key)
-					return getValueFromKey(key, String);
+					return _numberToString[number] = StandardLib.asString(_numberToStringFunction(number));
 			}
 			else if (number == int(number) && 0 <= number && number < _uniqueStrings.length)
 			{
@@ -297,25 +207,24 @@ package weave.data.AttributeColumns
 			return '';
 		}
 		
-		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
+		override protected function generateValue(key:IQualifiedKey, dataType:Class):Object
 		{
-			if (dataType == Number)
+			var array:Array = dataTask.arrayData[key];
+			
+			if (dataType === String)
+				return aggregate(array, _metadata ? _metadata[ColumnMetadata.AGGREGATION] : null) || '';
+			
+			var string:String = getValueFromKey(key, String);
+			
+			if (dataType === Number)
 			{
-				var numericValue:Number = _keyToNumberMapping[key];
-				return numericValue;
+				if (_stringToNumberFunction != null)
+					return Number(_stringToNumber[string]);
+				
+				return Number(_uniqueStringLookup[string]);
 			}
 			
-			if (dataType == null)
-				dataType = String;
-			
-			var index:Number = _keyToUniqueStringIndexMapping[key];
-			
-			if (isNaN(index))
-				return '' as dataType;
-			
-			var string:String = _keyToStringMap[key] as String;
-			
-			if (dataType == IQualifiedKey)
+			if (dataType === IQualifiedKey)
 			{
 				var type:String = _metadata ? _metadata[ColumnMetadata.DATA_TYPE] : null;
 				if (!type)
@@ -323,12 +232,57 @@ package weave.data.AttributeColumns
 				return WeaveAPI.QKeyManager.getQKey(type, string);
 			}
 			
-			return string as dataType;
+			return null;
 		}
-
+		
 		override public function toString():String
 		{
 			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
 		}
+		
+		/**
+		 * Aggregates an Array of Strings into a single String.
+		 * @param strings An Array of Strings.
+		 * @param aggregation One of the constants in weave.api.data.Aggregation.
+		 * @return An aggregated String.
+		 * @see weave.api.data.Aggregation
+		 */		
+		public static function aggregate(strings:Array, aggregation:String):String
+		{
+			if (!strings)
+				return undefined;
+			
+			if (!aggregation)
+				aggregation = Aggregation.DEFAULT;
+			
+			switch (aggregation)
+			{
+				case Aggregation.SAME:
+					var first:String = strings[0];
+					for each (var value:String in strings)
+						if (value != first)
+							return AMBIGUOUS_DATA;
+					return first;
+				
+				case Aggregation.FIRST:
+					return strings[0];
+				
+				case Aggregation.LAST:
+					return strings[strings.length - 1];
+				
+				default:
+					return undefined;
+			}
+		}
+		
+		public static function getSupportedAggregationModes():Array
+		{
+			return [Aggregation.SAME, Aggregation.FIRST, Aggregation.LAST];
+		}
+		
+		/**
+		 * The string displayed when data for a record is ambiguous.
+		 */
+		public static const AMBIGUOUS_DATA:String = lang("Ambiguous data");
 	}
 }

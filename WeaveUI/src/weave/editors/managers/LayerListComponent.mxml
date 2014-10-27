@@ -51,13 +51,13 @@
 						</mx:HBox>
 						<ui:CustomCheckBox label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
 						<ui:Paragraph id="lbl" textAlign="center"/>
-						<ui:MenuButton label="{lang('Edit...')}" data="{[
+						<ui:MenuButton label="{lang('Edit...')}" toolTip="{lang('Double-click to edit properties')}" initialize="event.target.data = [
 							{label: lang('Edit properties'), click: openSettingsPanel},
 							{label: lang('Edit session state'), click: openSessionEditor},
 							{label: lang('Rename'), click: rename, shown: objectIsNotLocked},
 							WeaveMenuItem.TYPE_SEPARATOR,
 							{label: lang('Delete'), click: remove, shown: objectIsNotLocked}
-						]}"/>
+						];" doubleClickEnabled="true" doubleClick="openSettingsPanel()"/>
 						<mx:Script>
 							<![CDATA[
 								import mx.core.UIComponent;
@@ -203,14 +203,14 @@
 	<mx:CheckBox label="{lang('Enable zoom and pan')}"
 				 creationComplete="linkBindableProperty(_visTool.visualization.enableZoomAndPan, event.target, 'selected');"/>
 	-->
-	<ui:Indent label="{lang('Override auto zoom:')}">
+	<ui:Indent label="{overrideZoomLabel}">
 		<ui:TextInputWithPrompt id="overrideXMin" prompt="{lang('xMin')}" width="100%"/>
 		<mx:VBox width="100%">
 			<ui:TextInputWithPrompt id="overrideYMax" prompt="{lang('yMax')}" width="100%"/>
 			<ui:TextInputWithPrompt id="overrideYMin" prompt="{lang('yMin')}" width="100%"/>
 		</mx:VBox>
 		<ui:TextInputWithPrompt id="overrideXMax" prompt="{lang('xMax')}" width="100%"/>
-		<mx:Button label="{lang('Use current zoom')}" click="setOverrideCoords(true)"/>
+		<mx:Button id="useCurrentZoom" label="{lang('Use current zoom')}" click="setOverrideCoords(true)"/>
 		<mx:Button label="{lang('Reset')}" click="setOverrideCoords(false)"/>
 	</ui:Indent>
 	<mx:Script>
@@ -237,6 +237,7 @@
 				return !ac || !ac.length;
 			}
 			
+			[Bindable] private var overrideZoomLabel:String;
 			[Bindable] internal var _visualization:Visualization = null;
 			public const controller:VariableListController = newDisposableChild(this, VariableListController);
 			
@@ -259,6 +260,12 @@
 			{
 				_visualization = value;
 				controller.hashMap = _visualization.plotManager.plotters;
+				_visualization.plotManager.enableAutoZoomToExtent.addGroupedCallback(this, function():void {
+					if (_visualization.plotManager.enableAutoZoomToExtent.value)
+						overrideZoomLabel = lang("Override auto zoom:");
+					else
+						overrideZoomLabel = lang("Override full extent:");
+				}, true);
 			}
 			public function get visualization():Visualization
 			{
@@ -275,6 +282,7 @@
 					linkBindableProperty(_visualization.plotManager.overrideYMin, overrideYMin, 'text');
 					linkBindableProperty(_visualization.plotManager.overrideXMax, overrideXMax, 'text');
 					linkBindableProperty(_visualization.plotManager.overrideYMax, overrideYMax, 'text');
+					UIUtils.linkVisibility(this, _visualization.plotManager.enableAutoZoomToExtent, useCurrentZoom, true);
 				}
 				
 				controller.reverse = true;

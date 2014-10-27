@@ -23,7 +23,7 @@ package weave.data
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.IDataSource;
 	import weave.compiler.Compiler;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 	import weave.utils.WeakReference;
 	
 	/**

@@ -281,7 +281,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * Add keys to this dictionary for deprecated library replacements.
+		 * Add keys to this dictionary for deprecated library replacements using dot notation rather than "::" package notation.
 		 */
 		public static const deprecatedClassReplacements:Object = {};
 		
@@ -293,6 +293,8 @@ package weave.compiler
 		 */
 		private static function getDefinition(name:String):Object
 		{
+			if (name.indexOf("::") >= 0)
+				name = StandardLib.replace(name, "::", ".");
 			return deprecatedClassReplacements[name] as Class || getDefinitionByName(name);
 		}
 		
@@ -985,7 +987,7 @@ package weave.compiler
 			for (i = 0; i < tokens.length; i++)
 			{
 				call = tokens[i] as CompiledFunctionCall;
-				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject)
+				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject && !isFunctionHeader(tokens[i - 1]))
 					tokens.splice(i - 1, 2, new CompiledFunctionCall(tokens[i - 1], call.compiledParams));
 			}
 			
@@ -1461,8 +1463,8 @@ package weave.compiler
 				}
 				
 				var compiledCall:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
-				// if there is a compiled token to the left, this is a function call (unless the token is a call to operator ';')
-				if (leftBracket == '(' && compiledToken && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
+				// if there is a compiled token to the left, this is a function call (unless the token is a function header or is a call to operator ';')
+				if (leftBracket == '(' && compiledToken && !isFunctionHeader(compiledToken) && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
 				{
 					if (open >= 2)
 					{
@@ -1491,6 +1493,9 @@ package weave.compiler
 				if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
 					separator = '('; // statement params
 				tokens.splice(open, 2, compileOperator(separator, compiledParams));
+				
+				if (token === FUNCTION && leftBracket == '(')
+					tokens.splice(open - 1, 2, compileFunctionHeader(FUNCTION, tokens[open]));
 			}
 		}
 		
@@ -2178,6 +2183,11 @@ package weave.compiler
 			
 			var i:int;
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
+			
+			// function headers should not appear alone
+			if (isFunctionHeader(call))
+				compileFunctionDefinition(call, null); // this will throw an appropriate error
+				
 			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
 			if (!call.compiledMethod)
 				throw new Error("Misplaced variable declaration");
@@ -2748,7 +2758,7 @@ package weave.compiler
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES],
 								false,
-								method == operators['=>'] || cascadeThisScope ? builtInSymbolTable['this'] : null
+								method == operators['=>'] || (cascadeThisScope && bindThis !== null) ? builtInSymbolTable['this'] : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)

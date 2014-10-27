@@ -150,11 +150,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//LinkableHashmap of the InfoMapBackgroundImages that have been laoded.
 			public const backgroundImagesEncoded:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
-			override protected function constructor():void
-			{
-				super.constructor();
-			}
-			
 			private static var _selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			
 			override protected function childrenCreated():void
@@ -410,7 +405,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_itemCount = 0;
 				_totalItems = 0;
 				/* Iterate through each referenced column and get its parent */
-				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_3_PARSING);
+				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_NORMAL);
 			}
 			
 			private var _itemCount:int = 0;

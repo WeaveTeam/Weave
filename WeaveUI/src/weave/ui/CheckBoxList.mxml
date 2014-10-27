@@ -66,7 +66,7 @@ automatically be updated to correspond to changes in dataProvider item order.
 				
 				// when data changes, reorder selection booleans to match the new order of the data items.
 				var newData:Array = VectorUtils.getArrayFromCollection(collection);
-				if (StandardLib.arrayCompare(_prevData, newData))
+				if (StandardLib.compare(_prevData, newData))
 				{
 					var newSelection:Array = new Array(newData.length);
 					for (var newIndex:int = 0; newIndex < newData.length; newIndex++)

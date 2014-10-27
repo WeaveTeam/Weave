@@ -20,10 +20,17 @@
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
+		<mx:Canvas label="{lang('List')}">
+			<mx:List id="choiceList" width="100%" height="100%"
+					 labelFunction="choiceLabelFunction"
+					 change="handleAttrSelected(choiceList.selectedIndex);"
+					 backgroundAlpha="0" borderStyle="none"
+					 />
+		</mx:Canvas>
 		<mx:Canvas label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
@@ -31,13 +38,6 @@
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
 							change="if (alwaysShowPrompt.value) choiceCombo.selectedIndex = -1;"
 							/>
-		</mx:Canvas>
-		<mx:Canvas label="{lang('List')}">
-			<mx:List id="choiceList" width="100%" height="100%"
-					 labelFunction="choiceLabelFunction"
-					 change="handleAttrSelected(choiceList.selectedIndex);"
-					 backgroundAlpha="0" borderStyle="none"
-					 />
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
@@ -47,7 +47,7 @@
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Horizontal Slider')}">
 			<mx:HBox verticalAlign="middle" width="100%" height="100%">
-				<mx:VBox visible="{showPlayButtonCheck.selected}" includeInLayout="{showPlayButtonCheck.selected}" horizontalAlign="center">
+				<mx:VBox creationComplete="UIUtils.linkVisibility(this, showPlayButton, event.target)" horizontalAlign="center">
 					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
 					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 				</mx:VBox>
@@ -59,12 +59,12 @@
 		</mx:Canvas>
 	</CustomViewStack>
 	
-	<ControlPanel>
+	<editorFactory><mx:Component><ControlPanel>
 		<mx:VBox width="100%" label="{lang('Settings')}">
 			<Indent label="{lang('Visualization tool')}">
 				<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
 								labelFunction="{toolLabelFunction}"
-								valueCommit="if (UIUtils.hasFocus(targetToolCombo)) targetToolPath.setSessionState(_stringToPath[targetToolCombo.selectedItem]);" />
+								valueCommit="if (UIUtils.hasFocus(targetToolCombo)) outerDocument.targetToolPath.setSessionState(_stringToPath[targetToolCombo.selectedItem]);" />
 				<HelpComponent>
 					Select the visualization tool that you want the attribute menu to be linked to.
 				</HelpComponent>
@@ -72,14 +72,14 @@
 			<Indent label="{lang('Visualization attribute')}">
 				<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
 								initialize="targetAttributeCombo.labelFunction = lang;"
-								valueCommit="if (UIUtils.hasFocus(targetAttributeCombo)) targetAttribute.setSessionState(targetAttributeCombo.selectedItem);"/>
+								valueCommit="if (UIUtils.hasFocus(targetAttributeCombo)) outerDocument.targetAttribute.setSessionState(targetAttributeCombo.selectedItem);"/>
 				<HelpComponent>
 					Select the visualization attribute that you want the menu to be linked to.
 				</HelpComponent>
 			</Indent>
 			<Indent label="{lang('Menu layout')}">
-				<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
-								dataProvider="{layouts}"/>
+				<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{AttributeMenuTool.layoutLabelFunction}"
+								dataProvider="{AttributeMenuTool.layouts}"/>
 				<HelpComponent>
 					Select the layout for the attribute menu.
 				</HelpComponent>
@@ -88,28 +88,144 @@
 					visible="{layoutCombo.selectedItem == 'HSlider'}"
 					includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
 				<mx:CheckBox id="showPlayButtonCheck" label="{lang('Show play button')}"
-							 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
+							 creationComplete="linkBindableProperty(outerDocument.showPlayButton, showPlayButtonCheck, 'selected');"/>
 				<mx:CheckBox id="autoPlayRepeatCheck" label="{lang('Loop')}"
-							 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
+							 creationComplete="linkBindableProperty(outerDocument.autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
 			</Indent>
 			<Indent label="Layout options" translate="true"
 					visible="{layoutCombo.selectedItem == 'ComboBox'}"
 					includeInLayout="{layoutCombo.selectedItem == 'ComboBox'}">
 				<Indent label="Prompt" translate="true">
 					<mx:TextInput width="100%"
-								  creationComplete="linkBindableProperty(prompt, event.target, 'text')"/>
+								  creationComplete="linkBindableProperty(outerDocument.prompt, event.target, 'text')"/>
 					<CustomCheckBox label="{lang('Always show')}"
-									creationComplete="linkBindableProperty(alwaysShowPrompt, event.target, 'selected')"/>
+									creationComplete="linkBindableProperty(outerDocument.alwaysShowPrompt, event.target, 'selected')"/>
 				</Indent>
 			</Indent>
 			<ColumnListComponent id="choicesComponent" label="{lang('Attributes to appear in the menu')}" />
 			<Indent label="{lang('Label function')}">
-				<mx:TextInput width="100%" creationComplete="linkBindableProperty(labelFunction, event.target, 'text');"/>
-				<mx:Button label="{lang('Reset')}" click="labelFunction.value = DEFAULT_LABEL_FUNCTION;"/>
+				<mx:TextInput width="100%" creationComplete="linkBindableProperty(outerDocument.labelFunction, event.target, 'text');"/>
+				<mx:Button label="{lang('Reset')}" click="outerDocument.labelFunction.value = outerDocument.DEFAULT_LABEL_FUNCTION;"/>
 			</Indent>
 		</mx:VBox>
-		<editors:WindowSettingsEditor target="{this}"/>
-	</ControlPanel>
+		<editors:WindowSettingsEditor target="{outerDocument}"/>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.core.ILinkableHashMap;
+				import weave.api.core.ILinkableObject;
+				import weave.api.data.IColumnWrapper;
+				import weave.api.getCallbackCollection;
+				import weave.api.linkBindableProperty;
+				import weave.api.ui.ISelectableAttributes;
+				import weave.compiler.Compiler;
+				import weave.compiler.StandardLib;
+				import weave.core.SessionManager;
+				import weave.core.UIUtils;
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					choicesComponent.hashMap = outerDocument.choices;
+					linkBindableProperty(outerDocument.layoutMode, layoutCombo, 'selectedItem');
+					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleGlobalListChange, true);
+					getCallbackCollection(outerDocument.toolWatcher).addGroupedCallback(this, handleToolChange);
+					outerDocument.targetAttribute.addImmediateCallback(this, handleTargetAttributeChange);
+					handleToolChange();
+				}
+
+				private var _prevDescendants:Array;
+				
+				// called whenever a global object gets added/removed/reordered
+				private function handleGlobalListChange():void
+				{
+					// update the list of tools
+					var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, ISelectableAttributes);
+					// two filter passes because the filter function may modify the array on the first pass
+					descendants = descendants.filter(outerDocument.filterDescendants).filter(outerDocument.filterDescendants).map(objectToPathString);
+					StandardLib.sort(descendants);
+					if (StandardLib.compare(_prevDescendants, descendants) != 0)
+						targetToolCombo.dataProvider = _prevDescendants = descendants;
+					// make sure the correct item is selected
+					targetToolCombo.selectedItem = pathToString(outerDocument.targetToolPath.getSessionState() as Array);
+				}
+				
+				private var _stringToPath:Object = {};
+				private function pathToString(path:Array, i:int = 0, a:Array = null):String
+				{
+					var str:String = Compiler.stringify(path);
+					_stringToPath[str] = path;
+					return str;
+				}
+				private function objectToPathString(object:ILinkableObject, i:int, a:Array):String
+				{
+					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object);
+					return pathToString(path);
+				}
+				
+				private function toolLabelFunction(str:String):String
+				{
+					var path:Array = _stringToPath[str];
+					if (!path)
+						return null;
+					
+					if (path.length == 1)
+						return path[0];
+					
+					// ["MapTool", "children", "visualization", "plotManager", "plotters", "Rectangles"]
+					if (path.length == 6 && StandardLib.compare(path.slice(1, 5), ["children", "visualization", "plotManager", "plotters"]) == 0)
+						return lang("{0} (Layer: {1})", path[0], path[5]);
+					
+					return str;
+				}
+				
+				private var _attrs:Array = [];
+				private var _attrNames:Array = [];
+				private function handleToolChange():void
+				{
+					if (!parent)
+					{
+						callLater(handleToolChange)
+						return;
+					}
+					// make sure the correct item is selected
+					targetToolCombo.selectedItem = pathToString(outerDocument.targetToolPath.getSessionState() as Array);
+					
+					var tool:ISelectableAttributes = outerDocument.getTargetTool();
+					// update the list of available attributes
+					if (tool)
+					{
+						var names:Array = tool.getSelectableAttributeNames() || [];
+						var attrs:Array = tool.getSelectableAttributes() || [];
+						if (StandardLib.compare(names, _attrNames) || StandardLib.compare(attrs, _attrs))
+						{
+							_attrs = attrs;
+							targetAttributeCombo.dataProvider = _attrNames = names;
+						}
+					}
+					else if (_attrNames.length)
+					{
+						_attrs = [];
+						targetAttributeCombo.dataProvider = _attrNames = [];
+					}
+					
+					// after we set the data provider, we have to make sure the correct item is selected
+					handleTargetAttributeChange();
+				}
+				
+				private function handleTargetAttributeChange():void
+				{
+					var index:Number = outerDocument.targetAttributeIndex;
+					var obj:Object = _attrs[index];
+					// is it a compatible object?
+					var compatible:Boolean = obj is IColumnWrapper || obj is ILinkableHashMap;
+					
+					// make sure the correct item is selected
+					targetAttributeCombo.selectedIndex = compatible ? index : -1;
+				}
+			]]>
+		</mx:Script>
+	</ControlPanel></mx:Component></editorFactory>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
@@ -126,7 +242,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.Compiler;
@@ -147,7 +263,7 @@
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
-			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
+			internal const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
 			private function handlePlayClick():void
 			{
@@ -208,7 +324,7 @@
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IObjectWithSelectableAttributes), handleToolChange, true);
+			internal const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ISelectableAttributes), handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
 			
@@ -217,7 +333,12 @@
 				return value is Number || value is String || value == null;
 			}
 			
-			// used to label the choices
+			public function getSelectedLabel():String
+			{
+				var column:IAttributeColumn = choices.getObject(selectedAttribute.value) as IAttributeColumn;
+				return choiceLabelFunction(column);
+			}
+			
 			private function choiceLabelFunction(column:IAttributeColumn):String
 			{
 				var result:String = ColumnUtils.getTitle(column);
@@ -235,18 +356,18 @@
 				return result;
 			}
 			
-			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
-			private static const layoutLabels:Array = [lang('Combo Box'), lang('List'), lang('Vertical Slider'), lang('Horizontal Slider')];
+			internal static const layouts:Array = ["List", "ComboBox", "VSlider", "HSlider"];
+			internal static const layoutLabels:Array = [lang('List'), lang('Combo Box'), lang('Vertical Slider'), lang('Horizontal Slider')];
 			private static function verifyLayoutMode(value:String):Boolean { return layouts.indexOf(value) >= 0; }
 			
-			private function layoutLabelFunction(inputString:String):String
+			internal static function layoutLabelFunction(inputString:String):String
 			{
 				return layoutLabels[layouts.indexOf(inputString)];
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// have a default dynamic title
 				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
@@ -255,7 +376,6 @@
 				copySessionState(ProbeTextUtils.probedColumns, choices);
 			}
 			
-			// called after children have been created
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -268,9 +388,9 @@
 				
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
-				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleGlobalListChange, true);
+				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, validateToolWatcherTarget, true);
 				targetToolPath.addGroupedCallback(this, validateToolWatcherTarget, true);
-				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
+				targetAttribute.addImmediateCallback(this, handleSelectedAttributeChange, true);
 				choices.addGroupedCallback(this, handleChoicesChange, true);
 				showPlayButton.addImmediateCallback(this, stopPlay);
 				
@@ -279,9 +399,6 @@
 					panelTitle.value = StandardLib.replace(panelTitle.value || '', "targetAttribute.value", "targetAttributeName");
 				});
 				
-				choicesComponent.hashMap = choices;
-				
-				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 				layoutMode.addImmediateCallback(this, handleLayoutMode);
 				linkBindableProperty(prompt, choiceCombo, 'prompt');
 			}
@@ -299,9 +416,9 @@
 			}
 			
 			// this returns the tool object corresponding to the selected item in the toolCombo
-			public function getTargetTool():IObjectWithSelectableAttributes
+			public function getTargetTool():ISelectableAttributes
 			{
-				return toolWatcher.target as IObjectWithSelectableAttributes;
+				return toolWatcher.target as ISelectableAttributes;
 			}
 			
 			public function get targetAttributeName():String
@@ -320,24 +437,7 @@
 				return _attrNames.indexOf(ta);
 			}
 			
-			private var _prevDescendants:Array;
-			
-			// called whenever a global object gets added/removed/reordered
-			private function handleGlobalListChange():void
-			{
-				// update the list of tools
-				var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, IObjectWithSelectableAttributes);
-				// two filter passes because the filter function may modify the array on the first pass
-				descendants = descendants.filter(filterDescendants).filter(filterDescendants).map(objectToPathString);
-				StandardLib.sort(descendants);
-				if (StandardLib.arrayCompare(_prevDescendants, descendants) != 0)
-					targetToolCombo.dataProvider = _prevDescendants = descendants;
-				// make sure the correct item is selected
-				targetToolCombo.selectedItem = pathToString(targetToolPath.getSessionState() as Array);
-				validateToolWatcherTarget();
-			}
-			
-			private function filterDescendants(that:IObjectWithSelectableAttributes, i:int, all:Array):Boolean
+			internal function filterDescendants(that:ISelectableAttributes, i:int, all:Array):Boolean
 			{
 				if (!that || that == this)
 					return false;
@@ -362,45 +462,16 @@
 			 */
 			public static const hack_skipToolTargets:Dictionary = new Dictionary(true);
 			
-			private var _stringToPath:Object = {};
-			private function pathToString(path:Array, i:int = 0, a:Array = null):String
-			{
-				var str:String = Compiler.stringify(path);
-				_stringToPath[str] = path;
-				return str;
-			}
-			private function objectToPathString(object:ILinkableObject, i:int, a:Array):String
-			{
-				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object);
-				return pathToString(path);
-			}
-			
-			private function toolLabelFunction(str:String):String
-			{
-				var path:Array = _stringToPath[str];
-				if (!path)
-					return null;
-				
-				if (path.length == 1)
-					return path[0];
-				
-				// ["MapTool", "children", "visualization", "plotManager", "plotters", "Rectangles"]
-				if (path.length == 6 && StandardLib.arrayCompare(path.slice(1, 5), ["children", "visualization", "plotManager", "plotters"]) == 0)
-					return lang("{0} (Layer: {1})", path[0], path[5]);
-				
-				return str;
-			}
-			
 			private function validateToolWatcherTarget():void
 			{
 				toolWatcher.targetPath = targetToolPath.getSessionState() as Array;
 				
 				// backwards compatibility
-				var tool:IObjectWithSelectableAttributes = getTargetTool();
+				var tool:ISelectableAttributes = getTargetTool();
 				if (tool && tool.getSelectableAttributes().length == 0)
 				{
 					var sm:ISessionManager = WeaveAPI.SessionManager;
-					var descendants:Array = sm.getLinkableDescendants(tool, IObjectWithSelectableAttributes);
+					var descendants:Array = sm.getLinkableDescendants(tool, ISelectableAttributes);
 					descendants = descendants.filter(filterDescendants).filter(filterDescendants);
 					if (descendants.length)
 					{
@@ -419,45 +490,21 @@
 					callLater(handleToolChange)
 					return;
 				}
-				// make sure the correct item is selected
-				targetToolCombo.selectedItem = pathToString(targetToolPath.getSessionState() as Array);
 				
-				var tool:IObjectWithSelectableAttributes = getTargetTool();
+				var tool:ISelectableAttributes = getTargetTool();
 				// update the list of available attributes
 				if (tool)
 				{
-					var names:Array = tool.getSelectableAttributeNames() || [];
-					var attrs:Array = tool.getSelectableAttributes() || [];
-					if (StandardLib.arrayCompare(names, _attrNames) || StandardLib.arrayCompare(attrs, _attrs))
-					{
-						_attrs = attrs;
-						targetAttributeCombo.dataProvider = _attrNames = names;
-					}
+					_attrNames = tool.getSelectableAttributeNames() || [];
+					_attrs = tool.getSelectableAttributes() || [];
 				}
 				else if (_attrNames.length)
 				{
+					_attrNames = [];
 					_attrs = [];
-					targetAttributeCombo.dataProvider = _attrNames = [];
 				}
 				
 				// after we set the data provider, we have to make sure the correct item is selected
-				handleTargetAttributeChange();
-			}
-			
-			// called when the target attr changes
-			private function handleTargetAttributeChange():void
-			{
-				var index:Number = targetAttributeIndex;
-				var obj:Object = _attrs[index];
-				// is it a compatible object?
-				var compatible:Boolean = obj is IColumnWrapper || obj is ILinkableHashMap;
-				
-				// make sure the correct item is selected
-				targetAttributeCombo.selectedIndex = compatible ? index : -1;
-				// clear the choice
-				//				choiceCombo.selectedIndex = -1;
-				//				choiceList.selectedIndex = -1;
-				
 				handleSelectedAttributeChange();
 			}
 			
@@ -503,7 +550,7 @@
 				
 				var selectedAttr:IAttributeColumn = choices.getObject(selectedName) as IAttributeColumn;
 				
-				var tool:IObjectWithSelectableAttributes = getTargetTool();
+				var tool:ISelectableAttributes = getTargetTool();
 				// do nothing if there is no tool
 				if (!tool)
 					return;

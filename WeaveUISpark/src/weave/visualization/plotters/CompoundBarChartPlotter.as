@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -36,14 +36,15 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -55,7 +56,6 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.primitives.Range;
-	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
@@ -67,7 +67,7 @@ package weave.visualization.plotters
 	 * @author adufilie
 	 * @author kmanohar
 	 */
-	public class CompoundBarChartPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class CompoundBarChartPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function CompoundBarChartPlotter()
 		{
@@ -137,8 +137,11 @@ package weave.visualization.plotters
 		public const colorColumn:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const stackedMissingDataGap:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const colorIndicatesDirection:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
-		private var _sortByColor:Function;
+		private const _colorColumnStatsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+		private var _sortedKeysByBinIndex:Array = [];
+		private var _sortCopyByColor:Function;
 		
 		public function sortAxisLabelFunction(value:Number):String
 		{
@@ -159,7 +162,7 @@ package weave.visualization.plotters
 			return labelColumn.getValueFromKey(sortedKeys[sortedKeyIndex], String);
 		}
 		
-		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired"))); // bars get their color from here
 
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const valueLabelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
@@ -222,7 +225,7 @@ package weave.visualization.plotters
 		{
 			if (!groupBySortColumn.value)
 				return;
-			var colorChanged:Boolean = detectLinkableObjectChange(sortBins, colorColumn);
+			var colorChanged:Boolean = detectLinkableObjectChange(sortBins, colorColumn, _colorColumnStatsWatcher);
 			var binsChanged:Boolean = detectLinkableObjectChange(sortBins, _binnedSortColumn);
 			
 			if (colorChanged)
@@ -239,13 +242,15 @@ package weave.visualization.plotters
 					if (column is IColumnWrapper)
 						column = (column as IColumnWrapper).getInternalColumn();
 				}
-				_sortByColor = SortedKeySet.generateCompareFunction([column]);
+				_colorColumnStatsWatcher.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column) : null;
+				_sortCopyByColor = SortedKeySet.generateSortCopyFunction([column]);
 			}
 			
 			if (colorChanged || binsChanged)
 			{
+				_sortedKeysByBinIndex.length = _binnedSortColumn.numberOfBins;
 				for (var i:int = 0; i < _binnedSortColumn.numberOfBins; i++)
-					AsyncSort.sortImmediately(_binnedSortColumn.getKeysFromBinIndex(i), _sortByColor);
+					_sortedKeysByBinIndex[i] = _sortCopyByColor(_binnedSortColumn.getKeysFromBinIndex(i));
 			}
 		}
 				
@@ -336,7 +341,7 @@ package weave.visualization.plotters
 						var barWidth:Number = _groupingMode == GROUP ? recordWidth / numHeightColumns : recordWidth;
 						if (_groupBySortColumn)
 						{
-							var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
+							var keysInBin:Array = _sortedKeysByBinIndex[sortedIndex];
 							if (keysInBin)
 							{
 								var index:int = keysInBin.indexOf(recordKey);
@@ -355,6 +360,9 @@ package weave.visualization.plotters
 							
 							if (isNaN(h))
 								continue;
+							
+							if (colorIndicatesDirection.value)
+								h = Math.abs(h);
 							
 							totalHeight = totalHeight + h;
 						}
@@ -377,6 +385,24 @@ package weave.visualization.plotters
 							}
 							if (isNaN(height)) // check again because getMean may return NaN
 								height = 0;
+							
+							var color:Number;
+							if (colorIndicatesDirection.value)
+							{
+								color = chartColors.getColorFromNorm(height < 0 ? 0 : 1)
+								height = Math.abs(height);
+							}
+							else if (_heightColumns.length == 1)
+							{
+								color = colorColumn.getValueFromKey(recordKey, Number) as Number;
+							}
+							else
+							{
+								var colorNorm:Number = i / (_heightColumns.length - 1);
+								if (reverseOrder)
+									colorNorm = 1 - colorNorm;
+								color = chartColors.getColorFromNorm(colorNorm);
+							}
 							
 							if (height >= 0)
 							{
@@ -403,7 +429,7 @@ package weave.visualization.plotters
 									barStart += i / numHeightColumns * recordWidth;
 								var barEnd:Number = barStart + barWidth;
 								
-								if ( height >= 0)
+								if (height >= 0)
 								{
 									// project data coordinates to screen coordinates
 									if (_horizontalMode)
@@ -466,15 +492,6 @@ package weave.visualization.plotters
 								// BEGIN draw graphics
 								//////////////////////////
 								graphics.clear();
-								
-								var colorNorm:Number = i / (_heightColumns.length - 1);
-								if (reverseOrder)
-									colorNorm = 1 - colorNorm;
-								var color:Number = chartColors.getColorFromNorm(colorNorm);
-								
-								// if there is one column, act like a regular bar chart and color in with a chosen color
-								if (_heightColumns.length == 1)
-									color = colorColumn.getValueFromKey(recordKey, Number) as Number;
 								
 								if (isFinite(color))
 									graphics.beginFill(color, 1);
@@ -548,8 +565,11 @@ package weave.visualization.plotters
 									// END code to draw one error bar
 									//------------------------------------
 								}
-									
-								task.buffer.draw(tempShape, null, null, null, clipRectangle);
+								
+								if (_groupingMode == PERCENT_STACK)
+									task.buffer.draw(tempShape);
+								else
+									task.buffer.draw(tempShape, null, null, null, clipRectangle);
 								//////////////////////////
 								// END draw graphics
 								//////////////////////////
@@ -605,6 +625,8 @@ package weave.visualization.plotters
 									_bitmapText.textFormat.color = color;
 								else
 									_bitmapText.textFormat.color = valueLabelColor.value;
+								
+								TextGlyphPlotter.drawInvisibleHalo(_bitmapText, task);
 								_bitmapText.draw(task.buffer);
 							}
 							//------------------------------------
@@ -634,8 +656,8 @@ package weave.visualization.plotters
 								var labelPos:Number = labelDataCoordinate.value;
 								if (_horizontalMode)
 								{
-									if (!(labelPos <= Infinity)) // alternative to isNaN
-										labelPos = (height >= 0) ? task.dataBounds.getXMin(): task.dataBounds.getXMax();
+									if (isNaN(labelPos))
+										labelPos = task.dataBounds.getXMin();
 									
 									tempPoint.x = labelPos;
 									tempPoint.y = (barStart + barEnd) / 2;
@@ -643,8 +665,8 @@ package weave.visualization.plotters
 								}
 								else
 								{
-									if (!(labelPos <= Infinity)) // alternative to isNaN
-										labelPos = (height >= 0) ? task.dataBounds.getYMin(): task.dataBounds.getYMax();
+									if (isNaN(labelPos))
+										labelPos = task.dataBounds.getYMin();
 									tempPoint.x = (barStart + barEnd) / 2;
 									tempPoint.y = labelPos;
 									_bitmapText.angle = 270;
@@ -664,6 +686,7 @@ package weave.visualization.plotters
 								else
 									_bitmapText.textFormat.color = labelColor.value;
 								
+								TextGlyphPlotter.drawInvisibleHalo(_bitmapText, task);
 								_bitmapText.draw(task.buffer);
 							}
 							//------------------------------------
@@ -732,7 +755,7 @@ package weave.visualization.plotters
 			if (_groupBySortColumn)
 			{
 				// separate the bounds for each record when grouping by sort column
-				var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
+				var keysInBin:Array = _sortedKeysByBinIndex[sortedIndex]; // already sorted
 				if (keysInBin)
 				{
 					var index:int = keysInBin.indexOf(recordKey);
@@ -755,6 +778,8 @@ package weave.visualization.plotters
 			{
 				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 				var height:Number = column.getValueFromKey(recordKey, Number);
+				if (colorIndicatesDirection.value)
+					height = Math.abs(height);
 				if (isFinite(height))
 				{
 					// not all missing
@@ -764,6 +789,8 @@ package weave.visualization.plotters
 				{
 					// use mean value for missing data gap
 					height = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMean();
+					if (colorIndicatesDirection.value)
+						height = Math.abs(height);
 				}
 
 				var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
@@ -845,6 +872,11 @@ package weave.visualization.plotters
 						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 						var max:Number = stats.getMax();
 						var min:Number = stats.getMin();
+						if (colorIndicatesDirection.value)
+						{
+							// Note: does not consider all possibilities with error bars
+							min = max = Math.max(Math.abs(min), Math.abs(max));
+						}
 						var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
 						var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
 						if (showErrorBars && positiveError && negativeError)

@@ -43,7 +43,7 @@
  */
 void readZip() __attribute__((used,
 	annotate("as3sig:public function readZip(byteArray:ByteArray, filterFilePathsToReadAsObject:Function = null):Object"),
-	annotate("as3package:weave.utils"),
+	annotate("as3package:weave.flascc"),
 	annotate("as3import:flash.utils.ByteArray")));
 void readZip()
 {
@@ -66,7 +66,7 @@ void readZip()
  */
 void openZip() __attribute__((used,
 	annotate("as3sig:internal function openZip(byteArray:ByteArray):uint"),
-	annotate("as3package:weave.utils"),
+	annotate("as3package:weave.flascc"),
 	annotate("as3import:flash.utils.ByteArray")));
 void openZip()
 {
@@ -102,7 +102,7 @@ void openZip()
  */
 void listFiles() __attribute__((used,
 	annotate("as3sig:internal function listFiles(_zip_archive:uint):Array"),
-	annotate("as3package:weave.utils")));
+	annotate("as3package:weave.flascc")));
 void listFiles()
 {
 	mz_zip_archive *zip_archive;
@@ -123,7 +123,7 @@ void listFiles()
 
 void readFile() __attribute__((used,
 	annotate("as3sig:internal function readFile(_zip_archive:uint, _fileName:String):ByteArray"),
-	annotate("as3package:weave.utils"),
+	annotate("as3package:weave.flascc"),
 	annotate("as3import:flash.utils.ByteArray")));
 void readFile()
 {
@@ -149,7 +149,7 @@ void readFile()
 
 void readObject() __attribute__((used,
 		annotate("as3sig:internal function readObject(_zip_archive:uint, _fileName:String):Object"),
-		annotate("as3package:weave.utils")));
+		annotate("as3package:weave.flascc")));
 void readObject()
 {
 	mz_zip_archive *zip_archive;
@@ -176,7 +176,7 @@ void readObject()
 
 void closeZip() __attribute__((used,
 	annotate("as3sig:internal function closeZip(_zip_archive:uint):Boolean"),
-	annotate("as3package:weave.utils")));
+	annotate("as3package:weave.flascc")));
 void closeZip()
 {
 	mz_zip_archive *zip_archive;
@@ -195,7 +195,7 @@ void closeZip()
  */
 void writeZip() __attribute__((used,
 		annotate("as3sig:public function writeZip(files:Object):ByteArray"),
-		annotate("as3package:weave.utils"),
+		annotate("as3package:weave.flascc"),
 		annotate("as3import:flash.utils.ByteArray")));
 void writeZip()
 {
@@ -245,7 +245,7 @@ void writeZip()
 
 void writeFile() __attribute__((used,
 		annotate("as3sig:internal function writeFile(_zip_archive:uint, _fileName:String, _fileContent:Object):Boolean"),
-		annotate("as3package:weave.utils"),
+		annotate("as3package:weave.flascc"),
 		annotate("as3import:flash.utils.ByteArray")));
 void writeFile()
 {

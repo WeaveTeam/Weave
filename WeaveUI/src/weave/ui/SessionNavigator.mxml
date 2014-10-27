@@ -19,10 +19,6 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<!--	Sesisoned Column References Navigator
-*  @author skolman
-*  
--->
 <ui:CustomTree xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		 width="100%" height="100%" 
 		 disclosureOpenIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureOpen')" 
@@ -199,7 +195,6 @@
 				}
 				return null;
 			}
-			
 			
 			override public function expandItem(item:Object, open:Boolean, animate:Boolean=false, dispatchEvent:Boolean=false, cause:Event=null):void
 			{			

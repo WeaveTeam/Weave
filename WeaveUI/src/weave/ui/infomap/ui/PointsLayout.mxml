@@ -59,7 +59,7 @@
 				_urlsOfEachTopic = urlsOfEachTopic;
 				_currentIteration = 0;
 				_currentTopic = 0;
-				WeaveAPI.StageUtils.startTask(this,_iterate,WeaveAPI.TASK_PRIORITY_3_PARSING);
+				WeaveAPI.StageUtils.startTask(this,_iterate,WeaveAPI.TASK_PRIORITY_NORMAL);
 //					g.lineStyle(1);
 //					g.drawCircle(xDisplacement,yDisplacement,radius);
 					

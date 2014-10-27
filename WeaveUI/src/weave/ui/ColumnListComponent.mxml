@@ -26,7 +26,7 @@
 		 implements="weave.api.core.ILinkableObject">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
-		<HelpComponent content="{helpContent}" visible="{!!helpContent}" includeInLayout="{!!helpContent}"/>
+		<HelpComponent id="help" visible="false" includeInLayout="false"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
 			<mx:Button label="{lang('Open selector...')}" click="openSelector()"/>
@@ -40,13 +40,11 @@
 						click="controller.hashMap.setNameOrder(controller.hashMap.getNames().reverse());"/>
 		<mx:Spacer width="100%"/>
 		<mx:Button
-			label="{lang('Remove all')}"
-			toolTip="{lang('Click here to remove all attributes from the list.')}"
-			click="controller.removeAllItems()"
+			label="{lang('Select all')}"
+			click="_internalList.selectedItems = VectorUtils.getArrayFromCollection(_internalList.dataProvider as ICollectionView).reverse()"
 			enabled="{_internalList.dataProvider.length > 0}"/>
 		<mx:Button
 			label="{lang('Remove selected')}"
-			toolTip="{lang('Click here to remove one or more selected attributes in the list above.')}"
 			click="controller.removeSelectedItems()"
 			enabled="{_internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
@@ -64,12 +62,26 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.core.LinkableWatcher;
 			import weave.ui.CustomDataGrid.CustomDataGrid;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
 			
-			[Bindable] public var helpContent:*;
+			public function set helpContent(value:*):void
+			{
+				if (!help)
+					initialize();
+				help.content = value;
+				help.visible = help.includeInLayout = true;
+			}
+			public function set helpContentHtml(value:*):void
+			{
+				if (!help)
+					initialize();
+				help.htmlText = value;
+				help.visible = help.includeInLayout = true;
+			}
 			
 			/**
 			 * This code will be executed at the time the object is being created.
@@ -85,7 +97,7 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				showVariableNames = showVariableNames;
+				internalList = _internalList || new List();
 				controller.labelFunction = getItemLabel;
 				getCallbackCollection(controller).addGroupedCallback(this, function():void {
 					reverseButton.buttonMode = reverseButton.enabled = (
@@ -110,6 +122,12 @@
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
 			private const ownerWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
 			
+			private var _overrideOwner:ISelectableAttributes;
+			public function set overrideOwner(value:ISelectableAttributes):void
+			{
+				ownerWatcher.target = _overrideOwner = value;
+			}
+			
 			public function set listHeight(value:Number):void
 			{
 				_listHeight = value;
@@ -126,17 +144,28 @@
 				}
 			}
 			
+			private var _showVariableNames:*;
+			
 			public function get showVariableNames():Boolean
 			{
-				return controller.view is DataGrid;
+				return _showVariableNames is Boolean
+					? _showVariableNames
+					: controller.view is DataGrid;
 			}
 			
 			public function set showVariableNames(value:Boolean):void
 			{
-				_internalList = value
-					? controller.view as DataGrid || new CustomDataGrid()
-					: controller.view as List || new List();
+				_showVariableNames = value;
 				
+				if (!_internalList)
+					internalList = value
+						? controller.view as DataGrid || new CustomDataGrid()
+						: controller.view as List || new List();
+			}
+			
+			public function set internalList(value:ListBase):void
+			{
+				_internalList = value;
 				if (controller.view != _internalList)
 				{
 					if (controller.view && controller.view.parent == this)
@@ -165,7 +194,7 @@
 					callLater(updateLabel);
 					return;
 				}
-				var tool:IObjectWithSelectableAttributes = ownerWatcher.target as IObjectWithSelectableAttributes;
+				var tool:ISelectableAttributes = ownerWatcher.target as ISelectableAttributes;
 				if (!tool)
 					return;
 				var names:Array = tool.getSelectableAttributeNames();
@@ -177,14 +206,14 @@
 			
 			private function openSelector():void
 			{
-				AttributeSelectorPanel.open(controller.hashMap, label, showVariableNames);
+				AttributeSelectorPanel.open(controller.hashMap, label, showVariableNames, _overrideOwner);
 			}
 			
 			public function set hashMap(value:ILinkableHashMap):void
 			{
 				enabled = !!value;
 				controller.hashMap = value;
-				ownerWatcher.target = AttributeSelectorPanel.getOwnerWithSelectableAttributes(value);
+				ownerWatcher.target = _overrideOwner || AttributeSelectorPanel.getOwnerWithSelectableAttributes(value);
 				updateLabel();
 			}
 			public function get hashMap():ILinkableHashMap

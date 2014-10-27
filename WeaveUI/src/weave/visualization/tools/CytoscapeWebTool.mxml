@@ -2,7 +2,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
-		 implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+		 implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
 		 layout="vertical">
 		<mx:VBox>
 
@@ -74,20 +74,21 @@
 
 			public const _cytoscapeReady:LinkableBoolean = newDisposableChild(this, LinkableBoolean);
 
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
-				_nodeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-				_edgeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				super.inConstructor();
+				_nodeFilteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
+				_edgeFilteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn]);
 				_edgeFilteredKeys.setColumnKeySources([edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeColorColumn, edgeWeightColumn]);
-
-				_nodeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
-				_edgeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
 			}
 			public function cytoscapeReady():void
 			{
 				_cytoscapeReady.value = true;
+				_probe.addGroupedCallback(this, function ():void { WeaveAPI.StageUtils.startTask(this, handleProbeChange, WeaveAPI.TASK_PRIORITY_NORMAL); });
+				_selection.addGroupedCallback(this, handleSelectionChange);
+				_nodeFilteredKeys.addGroupedCallback(this, handleSubsetChange, true);
+				_edgeFilteredKeys.addGroupedCallback(this, handleSubsetChange, true);
 				if (_primitiveEdges != null && _primitiveNodes != null && _primitiveLayout != null)
 				{
 					sendNetworkToCytoscape();
@@ -96,16 +97,19 @@
 
 			private function raiseCytoscape():void
 			{
-				ExternalInterface.call(
-				"function (weaveID, toolname) {\
-					var weave = weaveID ? document.getElementById(weaveID) : document;\
-					weave.external_tools[toolname].focus();\
-					}", 
-						ExternalInterface.objectID, _toolName);
+				if (!_cytoscapeReady.value)
+					return;
+				JavaScript.exec(
+					{
+						"catch": reportError,
+						"toolname": _toolName
+					},
+					"this.external_tools[toolname].focus();"
+				);
 			}
 			private function launchTimeout(event:TimerEvent):void
 			{
-				if (!_cytoscapeReady)
+				if (!_cytoscapeReady.value)
 				{
 					Alert.show(lang("This external tool failed to load. Try disabling your popup blocker for this site to prevent this from happening in the future."), _toolName + " " + lang("Error"), Alert.OK);
 				}
@@ -121,20 +125,18 @@
 			private function launchCytoscape():void
 			{
 				var windowFeatures:String = "menubar=no,status=no,toolbar=no";
-				var success:Boolean = ExternalInterface.call(
-					"function (weaveID, toolname, url, name, features) {\
-					 var weave = weaveID ? document.getElementById(weaveID) : document;\
-					 if (weave.external_tools == undefined)\
-					     weave.external_tools = {};\
-					 var popup = window.open(url, toolname, features);\
-					 weave.external_tools[toolname] = popup;\
-					 return !!popup;\
-					}", 
-					ExternalInterface.objectID,
-					_toolName,
-					"CytoscapeWebPopout.html",
-					_toolName,
-					windowFeatures
+				var success:Boolean = JavaScript.exec(
+					{
+						"catch": reportError,
+						"toolname": _toolName,
+						"url": "CytoscapeWebPopout.html",
+						"features": windowFeatures
+					},
+					"if (!this.external_tools)",
+					"    this.external_tools = {};",
+					"var popup = window.open(url, toolname, features);",
+					"this.external_tools[toolname] = popup;",
+					"return !!popup;"
 				);
 				if (!success)
 					reportError("Popup blocked by web browser");
@@ -147,33 +149,49 @@
 
 			private function handleProbeChange():Number
 			{
-				ExternalInterface.call(
-					"function (weaveID, toolname, elements) {\
-						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.external_tools[toolname].probe(elements);\
-						}",
-						ExternalInterface.objectID, _toolName, _probe.keys);
+				if (!_cytoscapeReady.value)
+					return 1;
+				JavaScript.exec(
+					{
+						"catch": reportError,
+						"toolname": _toolName,
+						"elements": _probe.keys
+					},
+					"this.external_tools[toolname].probe(elements);"
+				);
 				return 1;
 			}
-			private function handleSelectionChange():Number
+			private function handleSelectionChange():void
 			{
-				ExternalInterface.call(
-					"function (weaveID, toolname, elements) {\
-						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.external_tools[toolname].select(elements);\
-						}",
-						ExternalInterface.objectID, _toolName, _selection.keys);
-				return 1;
+				if (!_cytoscapeReady.value)
+				{
+					callLater(handleSelectionChange);
+					return;
+				}
+				JavaScript.exec(
+					{
+						"catch": reportError,
+						"toolname": _toolName,
+						"elements": _selection.keys
+					},
+					"this.external_tools[toolname].select(elements);"
+				);
 			}
-			public function handleSubsetChange():Number
+			public function handleSubsetChange():void
 			{
-				ExternalInterface.call(
-					"function (weaveID, toolname, elements) {\
-						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.external_tools[toolname].subset(elements);\
-						}",
-						ExternalInterface.objectID, _toolName, _nodeFilteredKeys.keys.concat(_edgeFilteredKeys.keys));
-				return 1;
+				if (!_cytoscapeReady.value)
+				{
+					callLater(handleSubsetChange);
+					return;
+				}
+				JavaScript.exec(
+					{
+						"catch": reportError,
+						"toolname": _toolName,
+						"elements": _nodeFilteredKeys.keys.concat(_edgeFilteredKeys.keys)
+					},
+					"this.external_tools[toolname].subset(elements);"
+				);
 			}
 
 			private const _networkSchema:Object = {
@@ -274,37 +292,50 @@
 
 			private function sendNetworkToCytoscape():void
 			{
-				if (_cytoscapeReady.value == false)
+				if (!_cytoscapeReady.value || _primitiveNodes == null || _primitiveEdges == null)
+				{
+					callLater(sendNetworkToCytoscape);
 					return;
-				if (_primitiveNodes == null || _primitiveEdges == null)
-					return;
+				}
 				var parameters:Object = {};
 				var element_to_key_types:Object = {nodes: _nodeKeyType, edges: _edgeKeyType};
 				var primitiveElements:Array = _primitiveNodes.concat(_primitiveEdges);
 
 				parameters.dataSchema = _networkSchema;
 				parameters.layout = _primitiveLayout;
-				ExternalInterface.call(
-					"function (weaveID, toolname, records, element_to_key_types, parameters) {\
-						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.external_tools[toolname].raw_output;\
-						weave.external_tools[toolname].load_data(records, element_to_key_types, null);\
-						weave.external_tools[toolname].launch(parameters);\
-						}",
-						ExternalInterface.objectID, _toolName, primitiveElements, element_to_key_types, parameters);
+				JavaScript.exec(
+					{
+						"catch": reportError,
+						"toolname": _toolName,
+						"records": primitiveElements,
+						"element_to_key_types": element_to_key_types,
+						"parameters": parameters
+					},
+					"this.external_tools[toolname].raw_output;",
+					"this.external_tools[toolname].load_data(records, element_to_key_types, null);",
+					"this.external_tools[toolname].launch(parameters);"
+				);
 			}
 
 			private function handleGraphLayoutChange():void
 			{
+				if (!_cytoscapeReady.value)
+				{
+					callLater(handleGraphLayoutChange);
+					return;
+				}
 				_primitiveLayout = {
 					name: layoutType.value, 
-					options: {seed: layoutSeed.value, weightAttr:"weight"}};
-				ExternalInterface.call(
-					"function (weaveID, toolname, layout) {\
-						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.external_tools[toolname].vis.layout(layout);\
-						}",
-						ExternalInterface.objectID, _toolName, _primitiveLayout);
+					options: {seed: layoutSeed.value, weightAttr:"weight"}
+				};
+				JavaScript.exec(
+					{
+						"catch": reportError,
+						"toolname": _toolName,
+						"layout": _primitiveLayout
+					},
+					'this.external_tools[toolname].vis.layout(layout);'
+				);
 			}
 
 			override protected function childrenCreated():void
@@ -321,8 +352,6 @@
 				edgeLabelComponent.dynamicObject = edgeLabelColumn;
 				edgeWeightComponent.dynamicObject = edgeWeightColumn;
 				
-				_probe.addGroupedCallback(this, function ():void { WeaveAPI.StageUtils.startTask(this, handleProbeChange, WeaveAPI.TASK_PRIORITY_2_BUILDING)});
-				_selection.addGroupedCallback(this, handleSelectionChange);
 				_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
 			}
 			

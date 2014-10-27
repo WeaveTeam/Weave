@@ -52,7 +52,7 @@
 				BindingUtils.bindSetter(handleBindableValues, rangeSlider, 'values');
 			}
 			
-			public function mapColumnToFilter(col:CustomDataGridColumn):void
+			public function mapColumnToFilter(col:DataGridColumnForQKeyWithFilterAndGraphics):void
 			{
 				 _columnWatcher.target = col ? col.attrColumn : null;
 				 _statsWatcher.target = col ? WeaveAPI.StatisticsCache.getColumnStatistics(col.attrColumn) : null;
@@ -109,7 +109,7 @@
 					min = stats.getMin();
 				if (isNaN(max))
 					max = stats.getMax();
-				if (StandardLib.arrayCompare(rangeSlider.values, [min,max]) != 0)
+				if (StandardLib.compare(rangeSlider.values, [min,max]) != 0)
 					rangeSlider.values = [min, max];
 				
 				lbl.text = lang("[{0}, {1}]", min, max);
@@ -131,6 +131,8 @@
 			
 			public function filterFunction(key:Object):Boolean
 			{
+				if (!column)
+					return true;
 				var value:Number = column.getValueFromKey(key as IQualifiedKey, Number);
 				var min:Number = minimum.value;
 				var max:Number = maximum.value;

@@ -3,7 +3,7 @@
                    xmlns:mx="http://www.adobe.com/2006/mxml"
                    xmlns:ui="weave.ui.*" 
                    xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.IObjectWithSelectableAttributes"
+                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
                    title="{lang('Tree')}" xmlns:editors="weave.editors.*">
 <ui:CustomTree width="100%" height="100%" id="treeView" allowMultipleSelection="true" dataDescriptor="{new ParentColumnTreeDescriptor()}"/>
 <mx:Script>
@@ -15,6 +15,7 @@
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.newLinkableChild;
 	import weave.api.ui.IVisTool;
@@ -28,6 +29,7 @@
 public const parentColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleParentChange, true);
 public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleLabelColumnChange, true);
 public const iconColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleIconColumnChange, true);
+public const sortColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleIconColumnChange, true);
 
 public const enableProbing:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 public const probeIncludesChildren:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
@@ -48,9 +50,9 @@ private var dataDescriptor:ParentColumnTreeDescriptor;
 
 WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TreeTool, "Tree Tool");
 
-override protected function constructor():void
+override protected function inConstructor():void
 {
-    super.constructor();
+    super.inConstructor();
     
 }
 
@@ -123,7 +125,7 @@ private function columnLabelFunction(item:Object):String
     var label:String;
     if (labelColumn.getInternalColumn())
     {
-        label = labelColumn.getValueFromKey(item as IQualifiedKey);
+        label = labelColumn.getValueFromKey(item as IQualifiedKey, String);
     }
     else
     {
@@ -177,10 +179,12 @@ override protected function childrenCreated():void
     parentColumnComponent.dynamicObject = parentColumn;
     labelColumnComponent.dynamicObject = labelColumn;
     iconColumnComponent.dynamicObject = iconColumn;
+    sortColumnComponent.dynamicObject = sortColumn;
 
     _columnUnion.addKeySetDependency(parentColumn);
     _columnUnion.addKeySetDependency(labelColumn);
     _columnUnion.addKeySetDependency(iconColumn);
+    _columnUnion.addKeySetDependency(sortColumn);
 
     dataDescriptor = treeView.dataDescriptor as ParentColumnTreeDescriptor;
 
@@ -200,7 +204,9 @@ override protected function childrenCreated():void
     linkBindableProperty(probeIncludesChildren, probeIncludesChildrenCheckBox, "selected");
     linkBindableProperty(selectIncludesChildren, selectIncludesChildrenCheckBox, "selected");
     linkBindableProperty(expandToShowSelected, expandToShowSelectedCheckBox, "selected");
-
+	
+	// sorting depends on column statistics
+	getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(sortColumn)).addGroupedCallback(this, handleIconColumnChange, true);
 }
 
 private function handleIconColumnChange():void
@@ -227,13 +233,13 @@ private function handleLabelColumnChange():void
 }
 private function refresh():void
 {
-    dataDescriptor.updateCache(parentColumn, _columnUnion);
+    dataDescriptor.updateCache(parentColumn, _columnUnion, sortColumn);
     treeView.dataProvider = dataDescriptor.getChildren(null);
     treeView.invalidateDisplayList();
 }
 private function handleParentChange():void
 {
-    dataDescriptor.updateCache(parentColumn, _columnUnion );
+    dataDescriptor.updateCache(parentColumn, _columnUnion, sortColumn);
     treeView.dataProvider = dataDescriptor.getChildren(null);
 
     return;
@@ -241,12 +247,12 @@ private function handleParentChange():void
 
 public function getSelectableAttributes():Array
 {
-    return [parentColumn, labelColumn, iconColumn];
+    return [parentColumn, labelColumn, sortColumn, iconColumn];
 }
 
 public function getSelectableAttributeNames():Array
 {
-    return ['Parent', 'Label', 'Icon'];
+    return ['Parent', 'Label', 'Sort' ,'Icon'];
 }
 
 ]]>
@@ -255,9 +261,10 @@ public function getSelectableAttributeNames():Array
         <mx:VBox label="{lang('Attributes')}">
             <ui:DynamicColumnComponent id="parentColumnComponent"/>
             <ui:DynamicColumnComponent id="labelColumnComponent"/>
-            <ui:DynamicColumnComponent id="iconColumnComponent" visible="true"/>
+            <ui:DynamicColumnComponent id="iconColumnComponent" includeInLayout="{iconMappingGrid.enabled}" visible="{iconMappingGrid.enabled}"/>
+            <ui:DynamicColumnComponent id="sortColumnComponent" visible="true"/>
             <ui:Indent>
-                <mx:VBox>
+                <mx:VBox includeInLayout="{iconMappingGrid.enabled}" visible="{iconMappingGrid.enabled}">
                     <mx:Label text="{lang('Icon Column Value Mapping')}" enabled="{iconMappingGrid.enabled}"/>
                     <mx:DataGrid id="iconMappingGrid" enabled="false"/>
                 </mx:VBox>

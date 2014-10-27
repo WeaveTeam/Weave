@@ -118,7 +118,6 @@ A text editor to change the Session State on the fly.
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.INavigatorContent;
 			import mx.core.mx_internal;
-			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
 			import mx.utils.ObjectUtil;
 			
@@ -136,6 +135,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.compiler.Compiler;
+			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.StageUtils;
@@ -143,6 +143,7 @@ A text editor to change the Session State on the fly.
 			import weave.core.WeaveXMLEncoder;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
+			import weave.menus.WeaveContextMenu;
 			import weave.utils.DebugUtils;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
@@ -168,9 +169,9 @@ A text editor to change the Session State on the fly.
 			private const _nameColumn:DataGridColumn = new DataGridColumn(NAME_FIELD);
 			private const _valueColumn:DataGridColumn = new DataGridColumn(VALUE_FIELD);
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				_nameColumn.headerText = lang(NAME_FIELD);
 				_valueColumn.headerText = lang(VALUE_FIELD);
 			}
@@ -201,7 +202,28 @@ A text editor to change the Session State on the fly.
 				loadSelectedSessionObjectInView();
 				
 				textEditor.getTextField().alwaysShowSelection = true;
+				
+				sessionNav.contextMenu = WeaveContextMenu.create([
+					{
+						shown: isObjectSelected,
+						label: lang('Copy path to selected object'),
+						click: copyPathToClipboard
+					}, {
+						shown: isObjectSelected,
+						label: lang('Watch selected object'),
+						click: function():void { console.consoleWatch(sessionNav.getSelectedLinkableObject()); }
+					}, {
+						shown: isObjectSelected,
+						label: lang('Delete selected object'),
+						click: deleteSelectedItem
+					}
+				]);
 		    }
+			
+			private function isObjectSelected():Boolean
+			{
+				return sessionNav.getSelectedLinkableObject() != null;
+			}
 			
 			public function setRootObject(rootObject:ILinkableObject):void
 			{
@@ -386,7 +408,7 @@ A text editor to change the Session State on the fly.
 
 		    private function linkSelectedObject():void
 		    {
-				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
+				var dynamicObject:LinkableDynamicObject = sessionNav.getSelectedLinkableObject() as LinkableDynamicObject;
 		    	if (dynamicObject)
 		    	{
 		    		dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
@@ -399,7 +421,7 @@ A text editor to change the Session State on the fly.
 				if (selectedItem)
 					console.context = selectedItem.object;
 				
-				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
+				var dynamicObject:LinkableDynamicObject = sessionNav.getSelectedLinkableObject() as LinkableDynamicObject;
 				if (dynamicObject)
 				{
 					linkNameInput.text = dynamicObject.globalName;
@@ -506,34 +528,31 @@ A text editor to change the Session State on the fly.
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 					if (hashMap || dynamicObject)
-						Alert.show(lang("Delete Selected Item?"), lang("Confirm Delete"), mx.controls.Alert.YES| mx.controls.Alert.NO, this, deleteSelectedItem)
+						PopUpUtils.confirm(this, lang("Confirm Delete"), lang("Delete Selected Item?"), deleteSelectedItem, null, lang('Delete'), lang('Cancel'));
 				}
 			}
 			
-			private function deleteSelectedItem(event:CloseEvent):void
+			private function deleteSelectedItem():void
 			{
-				if (event.detail == Alert.YES)
-				{
-					var item:Object = sessionNav.selectedItem;
-					if (!item)
-						return;
-					var parent:ILinkableObject = getLinkableOwner(item.object);
-					if (!parent)
-						return;
-					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
-					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
-					
-					var oldObject:ILinkableObject = item.object;
-					if (hashMap)
-						hashMap.removeObject(hashMap.getName(oldObject));
-					else if (dynamicObject)
-						dynamicObject.removeObject();
-					
-					if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(oldObject))
-						refresh();
-					else
-						Alert.show(lang("Object is locked and cannot be deleted."), lang("Delete Failed"));
-				}
+				var item:Object = sessionNav.selectedItem;
+				if (!item)
+					return;
+				var parent:ILinkableObject = getLinkableOwner(item.object);
+				if (!parent)
+					return;
+				var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+				var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+				
+				var oldObject:ILinkableObject = item.object;
+				if (hashMap)
+					hashMap.removeObject(hashMap.getName(oldObject));
+				else if (dynamicObject)
+					dynamicObject.removeObject();
+				
+				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(oldObject))
+					refresh();
+				else
+					Alert.show(lang("Object is locked and cannot be deleted."), lang("Delete Failed"));
 			}
 
 			private function handleDataGridChange(event:DataGridEvent):void
@@ -826,11 +845,22 @@ A text editor to change the Session State on the fly.
 					Weave.properties.enableSessionHistoryControls.value = true;
 				}
 			}
+			
+			private static var _lastKeyboardEvent:KeyboardEvent = null;
+			
 			private static function handleKeyDown():void
 			{
 				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+				if( _lastKeyboardEvent && _lastKeyboardEvent.keyCode == event.keyCode )
+					return;
+				
+				_lastKeyboardEvent = event;
 				if (event.keyCode == Keyboard.F8) // F8 to show profile data
 					openConsole();
+			}
+			private static function handleKeyUp():void
+			{
+				_lastKeyboardEvent = null;
 			}
 			private static function openConsole():void
 			{
@@ -886,6 +916,7 @@ A text editor to change the Session State on the fly.
 			public static function initializeShortcuts():void
 			{
 				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_UP, null, handleKeyUp);
 				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
 			}
 		]]>

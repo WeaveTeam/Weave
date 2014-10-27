@@ -136,7 +136,7 @@ import mx.rpc.events.ResultEvent;
 import weave.api.core.IDisposableObject;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
-import weave.utils.AsyncSort;
+import weave.flascc.FlasCC;
 
 /**
  * @private
@@ -192,7 +192,7 @@ internal class Library implements IDisposableObject
 		{
 			_asyncToken = new AsyncToken();
 			// notify the responder one frame later
-			WeaveAPI.StageUtils.callLater(this, _notifyResponders, null, WeaveAPI.TASK_PRIORITY_0_IMMEDIATE);
+			WeaveAPI.StageUtils.callLater(this, _notifyResponders);
 		}
 		
 		_asyncToken.addResponder(new AsyncResponder(asyncResultHandler, asyncFaultHandler, token));
@@ -219,7 +219,7 @@ internal class Library implements IDisposableObject
 		try
 		{
 			// Extract the files from the SWC archive
-			var swc:Object = weave.utils.readZip(event.result as ByteArray);
+			var swc:Object = FlasCC.call(weave.flascc.readZip, event.result as ByteArray);
 			if (!swc)
 				throw new Error("Unable to read SWC archive");
 			_library_swf = swc["library.swf"];
@@ -294,7 +294,7 @@ internal class Library implements IDisposableObject
 		{
 			_classQNames.push(id.split(':').join('.'));
 		}
-		AsyncSort.sortImmediately(_classQNames);
+		StandardLib.sort(_classQNames);
 		
 		// iterate over all the classes, initializing them
 		var index:int = 0;
@@ -333,7 +333,8 @@ internal class Library implements IDisposableObject
 			}
 			return 1;
 		}
-		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_3_PARSING, _notifyResponders);
+		// immediate priority because we want a quick startup time
+		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_IMMEDIATE, _notifyResponders);
 	}
 	
 	/**

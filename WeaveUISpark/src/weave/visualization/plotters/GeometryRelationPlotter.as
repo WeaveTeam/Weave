@@ -71,7 +71,7 @@ package weave.visualization.plotters
 		 */
 		protected function getGeomCoords(geomKey:IQualifiedKey, output:Point):Boolean
 		{
-			var geoms:Array = geometryColumn.getValueFromKey(geomKey) as Array;
+			var geoms:Array = geometryColumn.getValueFromKey(geomKey, Array) as Array;
 			var geom:GeneralizedGeometry;
 			if (geoms && geoms.length)
 				geom = geoms[0] as GeneralizedGeometry;

@@ -105,9 +105,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			public var plotter:IndividualRecordToolPlotter = null;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// lock dynamic objects into place
 				plotter = initializePlotters(IndividualRecordToolPlotter, true);
@@ -149,7 +149,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 				
 				//Top UI code. Sets up the keyfilters for seeing if a record has been selected, probed, or subsetted.
-				_recordKeySubset.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				_recordKeySubset.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 				
 				_recordKeySubset.setColumnKeySources([profilePicturesColumn,firstProfileColumn,secondProfileColumn,thirdProfileColumn,fourthProfileColumn,fifthProfileColumn]);
 				

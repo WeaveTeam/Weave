@@ -233,6 +233,10 @@ package weave.visualization.layers
 				if (detectLinkableObjectChange(_spatialIndex.createIndex, _plotter.spatialCallbacks))
 					_spatialIndex.createIndex(_plotter, _layerSettings.hack_includeMissingRecordBounds);
 
+				// if scale is undefined, request geometry detail because this may affect zoomBounds
+				if (isNaN(_zoomBounds.getXScale()))
+					hack_requestGeometryDetail();
+
 				visible = _layerSettings.isZoomBoundsWithinVisibleScale(_zoomBounds);
 			}
 			
@@ -256,7 +260,8 @@ package weave.visualization.layers
 			{
 				if (debug)
 					trace(this, 'begin async rendering');
-				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_1_RENDERING, asyncComplete);
+				// normal priority because rendering is not often a prerequisite for other tasks
+				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
 				
 				// assign secondary busy task in case async task gets cancelled due to busy dependencies
 				WeaveAPI.SessionManager.assignBusyTask(_dependencies, this);
@@ -468,6 +473,8 @@ package weave.visualization.layers
 		
 		private function hack_requestGeometryDetail():void
 		{
+			_zoomBounds.getDataBounds(_dataBounds);
+			_zoomBounds.getScreenBounds(_screenBounds);
 			var minImportance:Number = _dataBounds.getArea() / _screenBounds.getArea();
 			
 			// find nested StreamedGeometryColumn objects

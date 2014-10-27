@@ -23,11 +23,11 @@ package weave.api.ui
 	public interface IEditorManager
 	{
 		/**
-		 * This function will register an ILinkableObjectEditor Class corresponding to an ILinkableObject Class.
-		 * @param objType A Class that implements ILinkableObject
+		 * This function will register an ILinkableObjectEditor Class corresponding to an object or Class implementing ILinkableObject.
+		 * @param linkableObjectOrClass An object or Class implementing ILinkableObject.
 		 * @param editorType The corresponding Class implementing ILinkableObjectEditor
 		 */
-		function registerEditor(objType:Class, editorType:Class):void;
+		function registerEditor(linkableObjectOrClass:Object, editorType:Class):void;
 		
 		/**
 		 * Gets the class that was previously registered for 

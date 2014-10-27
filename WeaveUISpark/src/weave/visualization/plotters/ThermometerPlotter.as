@@ -26,10 +26,10 @@ package weave.visualization.plotters
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	
-	public class ThermometerPlotter extends MeterPlotter implements IObjectWithSelectableAttributes
+	public class ThermometerPlotter extends MeterPlotter implements ISelectableAttributes
 	{
 		public function getSelectableAttributeNames():Array
 		{

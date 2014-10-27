@@ -39,10 +39,11 @@ package weave.visualization.tools
 	import weave.api.getLinkableDescendants;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IInitSelectableAttributes;
 	import weave.api.ui.ILinkableContainer;
-	import weave.api.ui.IObjectWithSelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IVisTool;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -67,17 +68,17 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisTool, IObjectWithSelectableAttributes, ILinkableContainer
+	public class SimpleVisTool extends DraggablePanel implements IVisTool, IInitSelectableAttributes, ILinkableContainer
 	{
 		public function SimpleVisTool()
 		{
 			// Don't put any code here.
-			// Put code in the constructor() function instead.
+			// Put code in the inConstructor() function instead.
 		}
 
-		override protected function constructor():void
+		override protected function inConstructor():void
 		{
-			super.constructor();
+			super.inConstructor();
 			
 			// lock an InteractiveVisualization onto the panel
 			_visualization = children.requestObject("visualization", SimpleInteractiveVisualization, true);
@@ -89,10 +90,6 @@ package weave.visualization.tools
 			}
 			getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 		}
-		override protected function afterConstructor():void
-		{
-			initSelectableAttributes(ProbeTextUtils.getColumnsOfMostCommonKeyType());
-		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
 		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
@@ -101,9 +98,9 @@ package weave.visualization.tools
 		private var visTitle:Paragraph; // For display of title inside the window area
 		protected var visCanvas:Canvas; // For linkDisplayObjects
 		private var _visualization:SimpleInteractiveVisualization;
-		protected var layersEditor:LayerListComponent;
-		protected var axesEditor:SimpleAxisEditor;
-		protected var windowEditor:WindowSettingsEditor;
+		internal var layersEditor:LayerListComponent;
+		internal var axesEditor:SimpleAxisEditor;
+		internal var windowEditor:WindowSettingsEditor;
 		
 		override protected function createChildren():void
 		{
@@ -112,7 +109,7 @@ package weave.visualization.tools
 			
 			super.createChildren();
 			
-			toolVBox = new VBox()
+			toolVBox = new VBox();
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
 			toolVBox.setStyle("verticalGap", 0);
@@ -120,7 +117,6 @@ package weave.visualization.tools
 			
 			visTitle = new Paragraph();
 			visTitle.setStyle('textAlign', 'center');
-			visTitle.setStyle('fontWeight', 'bold');
 			updateTitleLabel();
 			
 			visCanvas = new Canvas();
@@ -137,6 +133,18 @@ package weave.visualization.tools
 				visCanvas.addChild(flexChildren[i]);
 			
 			this.addChild(toolVBox);
+		}
+		
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
+			
+			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
+		}
+		
+		override protected function initControlPanel():void
+		{
+			super.initControlPanel();
 			
 			layersEditor = new LayerListComponent();
 			layersEditor.visualization = visualization;
@@ -150,16 +158,7 @@ package weave.visualization.tools
 			windowEditor.target = this;
 			
 			if (controlPanel)
-			{
 				controlPanel.children = [layersEditor, axesEditor, windowEditor];
-			}
-		}
-		
-		override protected function childrenCreated():void
-		{
-			super.childrenCreated();
-			
-			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
 		}
 		
 		private function handleBindableTitle(value:String):void
@@ -181,10 +180,10 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributeNames():Array
 		{
-			var obj:IObjectWithSelectableAttributes = mainPlotter as IObjectWithSelectableAttributes;
+			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
 			if (!obj)
 			{
-				var descendants:Array = getLinkableDescendants(this, IObjectWithSelectableAttributes);
+				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
 				if (descendants.length == 1)
 					obj = descendants[0];
 			}
@@ -197,10 +196,10 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributes():Array
 		{
-			var obj:IObjectWithSelectableAttributes = mainPlotter as IObjectWithSelectableAttributes;
+			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
 			if (!obj)
 			{
-				var descendants:Array = getLinkableDescendants(this, IObjectWithSelectableAttributes);
+				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
 				if (descendants.length == 1)
 					obj = descendants[0];
 			}
@@ -292,15 +291,12 @@ package weave.visualization.tools
 		}
 		
 		/**
-		 * This will initialize the selectable attributes using a list of columns and/or column references.
-		 * Tools can override this function for different behavior.
-		 * @param input An Array of IAttributeColumn and/or IColumnReference objects
+		 * @inheritDoc
 		 */
 		public function initSelectableAttributes(input:Array):void
 		{
 			ColumnUtils.initSelectableAttributes(getSelectableAttributes(), input);
 		}
-		
 		
 		/**
 		 * This function will return an array of IQualifiedKey objects which overlap

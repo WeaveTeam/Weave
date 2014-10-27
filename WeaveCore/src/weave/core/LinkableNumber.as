@@ -30,7 +30,7 @@ package weave.core
 		{
 			// Note: Calling super() will set all the default values for member variables defined in the super class,
 			// which means we can't set _sessionStateInternal = NaN here.
-			super(Number, verifier, defaultValue, defaultValueTriggersCallbacks);
+			super(Number, verifier, arguments.length ? defaultValue : undefined, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():Number

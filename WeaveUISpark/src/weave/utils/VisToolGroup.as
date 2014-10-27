@@ -36,16 +36,16 @@ package weave.utils
 	 */
 	public class VisToolGroup implements ILinkableObject
 	{
-		public const globalColorColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ColorColumn));
-		public const globalProbeKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
-		public const globalSelectionKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
-		public const globalSubsetKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
+		public const colorColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ColorColumn));
+		public const probeKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
+		public const selectionKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
+		public const subsetKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
 		
-		public function getColorColumn():ColorColumn { return globalColorColumn.internalObject as ColorColumn; }
+		public function getColorColumn():ColorColumn { return colorColumn.internalObject as ColorColumn; }
 		public function getColorBinColumn():BinnedColumn { return getColorColumn().getInternalColumn() as BinnedColumn; }
 		public function getColorDataColumn():FilteredColumn { return getColorBinColumn().getInternalColumn() as FilteredColumn; }
-		public function getProbe():IKeySet { return globalProbeKeySet.internalObject as IKeySet; }
-		public function getSelection():IKeySet { return globalSelectionKeySet.internalObject as IKeySet; }
-		public function getSubset():IKeyFilter { return globalSubsetKeyFilter.internalObject as IKeyFilter; }
+		public function getProbe():IKeySet { return probeKeySet.internalObject as IKeySet; }
+		public function getSelection():IKeySet { return selectionKeySet.internalObject as IKeySet; }
+		public function getSubset():IKeyFilter { return subsetKeyFilter.internalObject as IKeyFilter; }
 	}
 }

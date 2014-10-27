@@ -24,6 +24,7 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
@@ -34,9 +35,9 @@ package weave.data.DataSources
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
 	
-	public class CKANDataSource extends AbstractDataSource
+	public class CKANDataSource extends AbstractDataSource implements IDataSource_Service
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CKANDataSource, "CKAN site");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CKANDataSource, "CKAN server");
 		
 		public function CKANDataSource()
 		{
@@ -139,7 +140,7 @@ package weave.data.DataSources
 				proxyColumn.setInternalColumn(dataSource.getAttributeColumn(metadata));
 			}
 			else
-				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				proxyColumn.dataUnavailable();
 		}
 		
 		public static const PARAMS_CKAN_ID:String = 'ckan_id';
@@ -665,7 +666,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				keys = keys.filter(function(key:String, i:*, a:*):Boolean {
 					return metadata[key] != null && metadata[key] != '';
 				});
-				StandardLib.sort(keys, keySort);
+				StandardLib.sort(keys, keyCompare);
 				return updateChildren(keys, function(node:MetadataNode, key:String):void {
 					node.metadata = metadata;
 					node.params = key;
@@ -685,7 +686,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 		'created', 'publish-date',
 		'last_modified', 'revision_timestamp'
 	];
-	private function keySort(a:Object, b:Object):int
+	private function keyCompare(a:Object, b:Object):int
 	{
 		var order:Array = _KEY_ORDER;
 		var ia:int = order.indexOf(a);

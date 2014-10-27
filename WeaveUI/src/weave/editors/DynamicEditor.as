@@ -36,7 +36,7 @@ package weave.editors
 	import weave.api.core.ILinkableVariable;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.linkBindableProperty;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -94,7 +94,7 @@ package weave.editors
 				var input:IndentTextInput = new IndentTextInput();
 				input.translate = true;
 				input.label = label;
-				linkBindableProperty(ln, input, 'text', 250);
+				linkBindableProperty(ln, input, 'text', 250, true);
 				return input;
 			}
 			
@@ -103,7 +103,7 @@ package weave.editors
 			{
 				var codeEditor:CodeEditor = new CodeEditor();
 				codeEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(event:Event):void {
-					linkBindableProperty(lv, event.target, 'text', 500)
+					linkBindableProperty(lv, event.target, 'text', 500, true)
 					
 					var eb:ExpandButton = ExpandButton.makeExpandable(codeEditor, false, 24);
 					eb.addEventListener(MouseEvent.CLICK, function(e:Event):void {
@@ -143,7 +143,7 @@ package weave.editors
 				var clc:ColumnListComponent = new ColumnListComponent();
 				clc.label = label;
 				clc.hashMap = lhm;
-				clc.listHeight = 96;
+				clc.listHeight = 160;
 				return clc;
 			}
 			
@@ -182,7 +182,7 @@ package weave.editors
 			}
 			
 			// editors for enumerated selectable attributes should appear first
-			var owsa:IObjectWithSelectableAttributes = target as IObjectWithSelectableAttributes;
+			var owsa:ISelectableAttributes = target as ISelectableAttributes;
 			if (owsa)
 			{
 				var lookup:Dictionary = VectorUtils.createLookup(subtrees, OBJECT);
@@ -237,5 +237,48 @@ package weave.editors
 			indent.addChild(vbox);
 			return indent;
 		}
+	}
+}
+
+import flash.display.DisplayObject;
+
+import mx.binding.utils.BindingUtils;
+
+import weave.api.core.ILinkableVariable;
+import weave.api.getCallbackCollection;
+import weave.core.ClassUtils;
+import weave.core.UIUtils;
+import weave.utils.EventUtils;
+
+internal class JsonSynchronizer
+{
+	public static function available():Boolean
+	{
+		return ClassUtils.getClassDefinition('JSON') != null;
+	}
+	
+	public function JsonSynchronizer(linkableVariable:ILinkableVariable, host:DisplayObject, prop:String)
+	{
+		this.lv = linkableVariable;
+		this.host = host;
+		this.prop = prop;
+		
+		getCallbackCollection(lv).addImmediateCallback(host, handleObject, true);
+		BindingUtils.bindSetter(EventUtils.generateDelayedCallback(linkableVariable, handleJson, 500, true), this.host, this.prop);
+	}
+	
+	public var JSON:Object = ClassUtils.getClassDefinition('JSON');
+	public var lv:ILinkableVariable;
+	public var host:Object;
+	public var prop:String;
+	
+	private function handleObject():void
+	{
+		host[prop] = JSON.stringify(lv.getSessionState());
+	}
+	
+	private function handleJson(value:* = null):void
+	{
+		lv.setSessionState(JSON.parse(value));
 	}
 }

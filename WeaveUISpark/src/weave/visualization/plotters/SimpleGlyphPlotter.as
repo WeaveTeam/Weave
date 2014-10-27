@@ -46,7 +46,7 @@ package weave.visualization.plotters
 		public function SimpleGlyphPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-			setColumnKeySources([screenSize, dataX, dataY], [true, false, false]);
+			setColumnKeySources([screenSize, dataX, dataY], [-1, 1, -1]);
 		}
 		
 		private static const LEFT:String = 'left', CENTER:String = 'center', RIGHT:String = 'right';

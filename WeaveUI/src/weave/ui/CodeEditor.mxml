@@ -46,6 +46,20 @@
 				textField.defaultTextFormat = tf;
 			}
 			
+			//TODO - indent new line when pressing enter key
+			/*
+			keyDown="handleKeyDown(event)"
+			private function handleKeyDown(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.ENTER)
+				{
+					var tabs = ""; //TODO
+					textField.replaceSelectedText(tabs + '\n');
+					event.preventDefault();
+				}
+			}
+			*/
+			
 			private function handleKeyFocusChange(event:*):void
 			{
 				event.preventDefault();

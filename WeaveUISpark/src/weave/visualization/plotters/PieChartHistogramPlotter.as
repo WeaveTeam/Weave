@@ -32,7 +32,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -48,7 +48,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class PieChartHistogramPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class PieChartHistogramPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function PieChartHistogramPlotter()
 		{
@@ -94,7 +94,7 @@ package weave.visualization.plotters
 		public var _binnedData:BinnedColumn;
 		public var _filteredData:FilteredColumn;
 		
-		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired"))); // bars get their color from here
 		
 		public function get binnedData():BinnedColumn { return _binnedData; }
 		

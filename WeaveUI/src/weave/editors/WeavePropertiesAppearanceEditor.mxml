@@ -30,10 +30,10 @@
 	<ui:Indent id="fontIndent" label="{lang('Window title font:')}" group="{fontIndent}">
 		<ui:FontControl id="windowTitleFontControl"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Visualization font:')}" group="{fontIndent}">
-		<ui:FontControl id="visFontControl" embeddedFontsOnly="true"/>
+	<ui:Indent label="{lang('Visualization title font:')}" group="{fontIndent}">
+		<ui:FontControl id="visTitleFontControl" embeddedFontsOnly="true"/>
 		<ui:HelpComponent>
-			These font settings are used for axis labels and inside the visualization area.
+			These font settings are used for the title that appears above a visualization (when enabled).
 			Only embedded fonts are supported at this time.
 		</ui:HelpComponent>
 	</ui:Indent>
@@ -44,21 +44,31 @@
 			Only embedded fonts are supported at this time.
 		</ui:HelpComponent>
 	</ui:Indent>
-	<ui:Indent label="{lang('Visualization title font:')}" group="{fontIndent}">
-		<ui:FontControl id="visTitleFontControl" embeddedFontsOnly="true"/>
+	<ui:Indent label="{lang('Visualization font:')}" group="{fontIndent}">
+		<ui:FontControl id="visFontControl" embeddedFontsOnly="true"/>
 		<ui:HelpComponent>
-			These font settings are used for the title that appears above a visualization (when enabled).
+			These font settings are used for axis labels and inside the visualization area.
 			Only embedded fonts are supported at this time.
 		</ui:HelpComponent>
 	</ui:Indent>
 	<ui:Indent label="{lang('Background color:')}" group="{fontIndent}">
 		<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	<ui:CustomCheckBox label="{lang('Enable dashboard mode')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
-				 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+	<mx:HBox>
+	<ui:CustomCheckBox label="{lang('Enable dashboard mode')}"
+					   creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+	   <ui:HelpComponent>
+			Dashboard mode hides titlebars and borders on panels.
+		</ui:HelpComponent>
+	</mx:HBox>
 
 	<ui:Indent label="{lang('Window grid snapping:')}">
 		<ui:TextInputWithPrompt prompt="pixel or percent" width="100" creationComplete="linkBindableProperty(Weave.properties.windowSnapGridSize, event.target, 'text', 500);"/>
+		<ui:HelpComponent>
+			If you set this to a percentage value like "1%", all panels will use percentage coordinates and reposition when the browser is resized.
+			
+			If you set this to an integer like "5", all panels will use absolute pixel coordinates, meaning they will not be repositioned when the browser window is resized.
+		</ui:HelpComponent>
 	</ui:Indent>
 	<ui:Indent label="{lang('Fixed workspace size:')}">
 		<ui:TextInputWithPrompt prompt="width" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceWidth, event.target, 'text', 500);"/>

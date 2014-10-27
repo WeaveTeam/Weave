@@ -35,18 +35,20 @@
 					   width="100%" minWidth="22"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.ObjectUtil;
+			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.unlinkBindableProperty;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.ControlPanel;
-			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
 
 			[Bindable] private var columnTitle:String;
 			private function getEnableLabel(columnTitle:String):String
@@ -145,13 +147,10 @@
 					//TODO - make this asynchronous
 					var valueMap:Object = {};
 					for each (var key:IQualifiedKey in column.keys)
-						valueMap[column.getValueFromKey(key, String)] = true;
+						valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
 					
-					var valueList:Array = [];
-					for (var string:String in valueMap)
-						valueList.push(string);
-					
-					AsyncSort.sortImmediately(valueList, AsyncSort.compareCaseInsensitive);
+					var valueList:Array = VectorUtils.getKeys(valueMap);
+					StandardLib.sortOn(valueList, valueMap);
 					
 					filterValue.dataProvider = valueList;
 				}

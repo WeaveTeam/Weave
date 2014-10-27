@@ -31,7 +31,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -46,7 +46,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class PieChartPlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class PieChartPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function PieChartPlotter()
 		{
@@ -139,7 +139,7 @@ package weave.visualization.plotters
 			_tempPoint.x += cos * 10 * screenBounds.getXDirection();
 			_tempPoint.y += sin * 10 * screenBounds.getYDirection();
 			
-			_bitmapText.text = label.getValueFromKey(recordKey);
+			_bitmapText.text = label.getValueFromKey(recordKey, String);
 			
 			_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			

@@ -32,6 +32,7 @@ package weave.data.DataSources
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
@@ -46,7 +47,7 @@ package weave.data.DataSources
 	 * @author skolman
 	 * @author adufile
 	 */
-	public class XLSDataSource extends AbstractDataSource_old
+	public class XLSDataSource extends AbstractDataSource_old implements IDataSource_File
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, XLSDataSource, "XLS file");
 
@@ -128,9 +129,15 @@ package weave.data.DataSources
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			var colName:String = String(proxyColumn.getMetadata("name"));
-			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],colName);
-			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],keyColName.value);
+			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0], colName);
+			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0], keyColName.value);
 
+			if (colIndex < 0)
+			{
+				proxyColumn.dataUnavailable(lang("No such column: {0}", colName));
+				return;
+			}
+			
 			var xlsDataColumn:Vector.<String> = getColumnValues(colIndex);
 			var keyStringsArray:Array = VectorUtils.copy(getColumnValues(keyColIndex), []);
 			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, keyStringsArray);

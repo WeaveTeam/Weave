@@ -48,9 +48,9 @@
 			private var _sizeBinLegendLayerSettings:LayerSettings;
 			private var _colorLegendLayerSettings:LayerSettings;			
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				
 				_sizeBinLegendPlotter = initializePlotters(SizeBinLegendPlotter, false);

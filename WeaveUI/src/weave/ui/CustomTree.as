@@ -275,6 +275,7 @@ package weave.ui
 		private var _dataProvider:Object; // remembers previous value that was passed to "set dataProvider"
 		private var _rootItem:Object;
 		
+		[Bindable("collectionChange")]
 		override public function set dataProvider(value:Object):void
 		{
 			_dataProvider = value;

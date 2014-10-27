@@ -19,8 +19,10 @@
 
 package
 {
+	import weave.core.ClassUtils;
 	import weave.core.WeaveXMLDecoder;
 	import weave.visualization.plotters.AxisLabelPlotter;
+	import weave.visualization.plotters.BackgroundTextPlotter;
 	import weave.visualization.plotters.CustomGlyphPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
@@ -29,9 +31,11 @@ package
 	import weave.visualization.plotters.Histogram2DPlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
 	import weave.visualization.plotters.IndividualRecordToolPlotter;
+	import weave.visualization.plotters.OldParallelCoordinatesPlotter;
 	import weave.visualization.plotters.RectanglePlotter;
 	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SimpleGlyphPlotter;
+	import weave.visualization.plotters.SimpleParallelCoordinatesPlotter;
 	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
 
@@ -49,6 +53,7 @@ package
 		// reference these tools so they will run their static initialization code
 		([
 			AxisLabelPlotter,
+			BackgroundTextPlotter,
 			CustomGlyphPlotter,
 			GeometryLabelPlotter,
 			GeometryPlotter,
@@ -56,6 +61,7 @@ package
 			GridLinePlotter,
 			Histogram2DPlotter,
 			ImageGlyphPlotter,
+			SimpleParallelCoordinatesPlotter,
 			RectanglePlotter,
 			ScatterPlotPlotter,
 			IndividualRecordToolPlotter,
@@ -78,5 +84,7 @@ package
 			"weave.visualization.plotters",
 			"weave.visualization.plotters.styles"
 		);
+		
+		ClassUtils.registerDeprecatedClass("weave.visualization.plotters.ParallelCoordinatesPlotter", OldParallelCoordinatesPlotter);
 	}
 }

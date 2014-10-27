@@ -26,7 +26,8 @@ package weave.data
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
 	import weave.api.getCallbackCollection;
-	import weave.utils.AsyncSort;
+	import weave.compiler.StandardLib;
+	import weave.flascc.FlasCC;
 
 	/**
 	 * Parses and generates CSV-encoded data.
@@ -38,11 +39,24 @@ package weave.data
 		private static const CRLF:String = '\r\n';
 		private static const tempBuffer:ByteArray = new ByteArray();
 		
+		private static function flascc_parseCSV(input:Object, delimiter:String=",", quote:String='"', removeBlankLines:Boolean=true, parseTokens:Boolean=true, output:Array=null):Array
+		{
+			return FlasCC.call(weave.flascc.parseCSV, input, delimiter, quote, removeBlankLines, parseTokens, output);
+		}
+		private static function flascc_createCSV(rows:*, delimiter:String=",", quote:String='"', tempBuffer:ByteArray=null):String
+		{
+			return FlasCC.call(weave.flascc.createCSV, rows, delimiter, quote, tempBuffer);
+		}
+		
 		/**
-		 * @param delimiter
-		 * @param quote
-		 * @param asyncMode If this is set to true, parseCSV() will work asynchronously and trigger callbacks when it finishes.
-		 *                  Note that if asyncMode is enabled, you can only parse one CSV string at a time. 
+		 * Creates a CSVParser.
+		 * @param asyncMode If this is set to true, parseCSV() will work asynchronously
+		 *                  and trigger callbacks when it finishes.
+		 *                  If this is set to false, no callback collection will be generated
+		 *                  for this instance of CSVParser as a result of calling its methods.
+		 *                  Note that if asyncMode is enabled, you can only parse one CSV string at a time.
+		 * @param delimiter A single character for the delimiter
+		 * @param quote A single character for the quote
 		 */		
 		public function CSVParser(asyncMode:Boolean = false, delimiter:String = ',', quote:String = '"')
 		{
@@ -81,11 +95,12 @@ package weave.data
 			{
 				this.csvData = csvData;
 				this.csvDataArray = [];
-				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_3_PARSING, parseDone);
+				// high priority because preparing data is often the first thing we need to do
+				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_HIGH, parseDone);
 			}
 			else
 			{
-				csvDataArray = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
+				csvDataArray = flascc_parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
 			}
 			
 			return csvDataArray;
@@ -96,7 +111,7 @@ package weave.data
 			// This isn't actually asynchronous at the moment, but moving the code to
 			// FlasCC made it so much faster that it won't matter most of the time.
 			// The async code structure is kept in case we want to make it asynchronous again in the future.
-			weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
+			flascc_parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
 			csvData = null;
 			return 1;
 		}
@@ -115,7 +130,7 @@ package weave.data
 			if (csvData == null)
 				return null;
 			
-			var rows:Array = weave.utils.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
+			var rows:Array = flascc_parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
 			if (rows.length == 0)
 				return rows;
 			if (rows.length == 1)
@@ -129,7 +144,7 @@ package weave.data
 		 */
 		public function createCSV(rows:Array):String
 		{
-			return weave.utils.createCSV(rows, delimiter, quote, tempBuffer);
+			return flascc_createCSV(rows, delimiter, quote, tempBuffer);
 		}
 		
 		/**
@@ -137,7 +152,7 @@ package weave.data
 		 */
 		public function createCSVRow(row:Array):String
 		{
-			return weave.utils.createCSV([row], delimiter, quote, tempBuffer);
+			return flascc_createCSV([row], delimiter, quote, tempBuffer);
 		}
 		
 		/**
@@ -239,7 +254,7 @@ package weave.data
 			if (fields == null)
 			{
 				fields = getRecordFieldNames(records, allowBlankColumns, headerDepth);
-				AsyncSort.sortImmediately(fields);
+				StandardLib.sort(fields);
 			}
 			
 			var r:int;

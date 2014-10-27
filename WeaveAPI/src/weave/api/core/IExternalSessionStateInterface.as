@@ -57,7 +57,7 @@ package weave.api.core
 		 * This function gets a list of names of children of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
 		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-		 * @return An Array of names of sessioned children of the object referred to by objectPath, or null if the object doesn't exist.
+		 * @return An Array of names of sessioned children of the object referred to by objectPath.
 		 */
 		function getChildNames(objectPath:Array):Array;
 
@@ -113,16 +113,6 @@ package weave.api.core
 		 * This function will evaluate an expression using the compiler. An object path may be passed as the first parameter
 		 * to act as the <code>this</code> pointer for the expression, or libraries may be included by passing an array of fully 
 		 * qualified names.
-		 * 
-		 * <br><br>
-		 * Examples: 
-		 * <br>
-		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'toggleControlPanel()')</code>
-		 * <br> 
-		 * <code> document.getElementById('weave').evaluateExpression(['MyScatterPlot'], 'move(new_x, new_y)', {new_x : 400, new_y : 300})</code>
-		 * <br>
-		 * <code> document.getElementById('weave').evaluateExpression(null, 'openDefaultEditor()', null, ['weave.ui::SessionStateEditor'])</code>
-		 * <br> <br>
 		 * 
 		 * Note that any code written for this function depends on the implementation of the ActionScript
 		 * code inside Weave, which is subject to change. 

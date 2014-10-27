@@ -2,10 +2,19 @@
  * This assumes that WeavePath.js has already been loaded. */
 /* "use strict"; */
 
+if (!weave.WeavePath)
+	return;
+
 weave.WeavePath.prototype.probe_keyset = weave.path("defaultProbeKeySet");
 weave.WeavePath.prototype.selection_keyset = weave.path("defaultSelectionKeySet");
 weave.WeavePath.prototype.subset_filter = weave.path("defaultSubsetKeyFilter");
 
+/**
+ * Defines static methods and lookup tables that manage conversion between Weave QualifiedKeys and DOM-friendly generated alphanumeric keys.
+ * Also defines buffers so that we can ratelimit manipulation of keysets.
+ * Alphanumeric keys should not be considered stable across sessions and should not be stored in the session state.
+ * @namespace
+ */
 weave.WeavePath.Keys = {};
 
 weave.WeavePath.Keys._qkeys_to_numeric = {};
@@ -13,6 +22,12 @@ weave.WeavePath.Keys._numeric_to_qkeys = {};
 weave.WeavePath.Keys._numeric_key_idx = 0;
 weave.WeavePath.Keys._keyIdPrefix = "WeaveQKey";
 
+/** 
+ * Retrieves or allocates the index for the given QualifiedKey object based on its localName and keyType properties
+ * @private 
+ * @param  {object} key A QualifiedKey object (containing keyType and localName properties) to be converted.
+ * @return {number}     The existing or newly-allocated index for the qualified key.
+ */
 weave.WeavePath.Keys.qkeyToIndex = function(key)
 {
     var local_map = this._qkeys_to_numeric[key.keyType] || (this._qkeys_to_numeric[key.keyType] = {});
@@ -27,26 +42,49 @@ weave.WeavePath.Keys.qkeyToIndex = function(key)
 
     return local_map[key.localName];
 };
-
+/**
+ * Retrieves the corresponding qualified key object from its numeric index.
+ * @private
+ * @param  {number} index The numeric index, as received from qkeyToIndex
+ * @return {object}       The corresponding QualifiedKey object.
+ */
 weave.WeavePath.Keys.indexToQKey = function (index)
 {
     return this._numeric_to_qkeys[index];
 };
 
+/**
+ * Retrieves an alphanumeric string unique to a QualifiedKey
+ * This is also available as an alias on the WeavePath object.
+ * @param  {object} key The QualifiedKey object to convert.
+ * @return {string}     The corresponding alphanumeric key.
+ */
 weave.WeavePath.Keys.qkeyToString = function(key)
 {
     return this._keyIdPrefix + this.qkeyToIndex(key);
 };
 
+/**
+ * Retrieves the QualifiedKey object corresponding to a given alphanumeric string.
+ * This is also available as an alias on the WeavePath object.
+ * @param  {string} s The keystring to convert.
+ * @return {object}   The corresponding QualifiedKey
+ */
 weave.WeavePath.Keys.stringToQKey = function(s) 
 {
     idx = s.substr(this._keyIdPrefix.length);
     return this.indexToQKey(idx);
 };
 
+/**
+ * Gets the key add/remove buffers for a specific session state path.
+ * @private
+ * @param  {Array} pathArray A raw session state path.
+ * @return {object}           An object containing the key add/remove queues for the given path.
+ */
 weave.WeavePath.Keys._getKeyBuffers = function (pathArray)
 {
-    var path_key = JSON.stringify(pathArray);
+    var path_key = typeof JSON != 'undefined' ? JSON.stringify(pathArray) : pathArray;
 
     var key_buffers_dict = this._key_buffers || (this._key_buffers = {});
     var key_buffers = key_buffers_dict[path_key] || (key_buffers_dict[path_key] = {});
@@ -57,7 +95,11 @@ weave.WeavePath.Keys._getKeyBuffers = function (pathArray)
 
     return key_buffers;
 };
-
+/**
+ * Flushes the key add/remove buffers for a specific session state path. 
+ * @private
+ * @param  {Array} pathArray The session state path to flush.         
+ */
 weave.WeavePath.Keys._flushKeys = function (pathArray)
 {
     var key_buffers = this._getKeyBuffers(pathArray);
@@ -75,7 +117,11 @@ weave.WeavePath.Keys._flushKeys = function (pathArray)
 
     key_buffers.timeout_id = null;
 }.bind(weave.WeavePath.Keys);
-
+/**
+ * Set a timeout to flush the add/remove key buffers for a given session state path if one isn't already in progress.
+ * @private
+ * @param  {Array} pathArray The session state path referencing a KeySet to flush.
+ */
 weave.WeavePath.Keys._flushKeysLater = function(pathArray)
 {
     var key_buffers = this._getKeyBuffers(pathArray);
@@ -83,6 +129,12 @@ weave.WeavePath.Keys._flushKeysLater = function(pathArray)
         key_buffers.timeout_id = window.setTimeout(weave.WeavePath.Keys._flushKeys, 25, pathArray);
 };
 
+/**
+ * Queue keys to be added to a specified path.
+ * @private
+ * @param {Array} pathArray      The session state path referencing a KeySet
+ * @param {Array} keyStringArray The set of keys to add.
+ */
 weave.WeavePath.Keys._addKeys = function(pathArray, keyStringArray)
 {
     var key_buffers = this._getKeyBuffers(pathArray);
@@ -96,6 +148,12 @@ weave.WeavePath.Keys._addKeys = function(pathArray, keyStringArray)
     this._flushKeysLater(pathArray);
 };
 
+/**
+ * Queue keys to be removed from a specified path.
+ * @private
+ * @param {Array} pathArray      The session state path referencing a KeySet
+ * @param {Array} keyStringArray The set of keys to remove.
+ */
 weave.WeavePath.Keys._removeKeys = function(pathArray, keyStringArray)
 {
     var key_buffers = this._getKeyBuffers(pathArray);
@@ -120,6 +178,7 @@ weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(we
  * See initProperties for documentation of the property_descriptor object.
  * @param callback_pass If false, create object, verify type, and set default value; if true, add callback;
  * @param property_descriptor An object containing, minimally, a 'name' property defining the name of the session state element to be created.
+ * @private
  * @return The current WeavePath object.
  */
 weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, property_descriptor)
@@ -182,9 +241,9 @@ weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, prop
  * 'callback': A function to be called when this session state item (or a child of it) changes.
  * 'triggerNow': Specify whether to trigger the callback after it is added; defaults to 'true.'
  * 'immediate': Specify whether to execute the callback in immediate (once per change) or grouped (once per frame) mode.
- * @param property_descriptor_array An array of property descriptor objects, each minimally containing a 'name' property.
- * @param manifest An object to populate with name->path relationships for convenience.
- * @return The current WeavePath object.
+ * @param {Array} property_descriptor_array An array of property descriptor objects, each minimally containing a 'name' property.
+ * @param {object} manifest An object to populate with name->path relationships for convenience.
+ * @return {weave.WeavePath} The current WeavePath object.
  */
 weave.WeavePath.prototype.initProperties = function(property_descriptor_array, manifest)
 {
@@ -203,7 +262,10 @@ weave.WeavePath.prototype.initProperties = function(property_descriptor_array, m
 };
 
 /**
- * Gets a mapping from child name to a WeavePath for that child.
+ * Constructs and returns an object containing keys corresponding to the children of the session state object referenced by this path, the values of which are new WeavePath objects.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {object} An object containing keys corresponding to the children of the session state object.
  */
 weave.WeavePath.prototype.getProperties = function(/*...relativePath*/)
 {
@@ -212,6 +274,12 @@ weave.WeavePath.prototype.getProperties = function(/*...relativePath*/)
     return result;
 };
 
+/**
+ * Returns an array of alphanumeric strings uniquely corresponding to the KeySet referenced by this path.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {Array} An array of alphanumeric strings corresponding to the keys contained by the KeySet.
+ */
 weave.WeavePath.prototype.getKeys = function(/*...relativePath*/)
 {
     var args = this._A(arguments, 1);
@@ -220,6 +288,12 @@ weave.WeavePath.prototype.getKeys = function(/*...relativePath*/)
     return raw_keys.map(this.qkeyToString);
 };
 
+/**
+ * Forces a flush of the add/remove key buffers for the KeySet specified by this path.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
 weave.WeavePath.prototype.flushKeys = function (/*...relativePath*/)
 {
     var args = this._A(arguments, 1);
@@ -231,7 +305,13 @@ weave.WeavePath.prototype.flushKeys = function (/*...relativePath*/)
     }
     return this;
 };
-
+/**
+ * Adds the specified keys to the KeySet at this path. These will not be added immediately, but are queued with flush timeout of approx. 25 ms.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} [keyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
 weave.WeavePath.prototype.addKeys = function (/*...relativePath, keyStringArray*/)
 {
     var args = this._A(arguments, 2);
@@ -245,7 +325,13 @@ weave.WeavePath.prototype.addKeys = function (/*...relativePath, keyStringArray*
     }
     return this;
 };
-
+/**
+ * Removes the specified keys to the KeySet at this path. These will not be removed immediately, but are queued with a flush timeout of approx. 25 ms.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} [keyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
 weave.WeavePath.prototype.removeKeys = function (/*...relativePath, keyStringArray*/)
 {
     var args = this._A(arguments, 2);
@@ -260,6 +346,13 @@ weave.WeavePath.prototype.removeKeys = function (/*...relativePath, keyStringArr
     return this;
 };
 
+/**
+ * Adds a callback to the KeySet specified by this path which will return information about which keys were added or removed to/from the set.
+ * @param {Function} callback           A callback function which will receive an object containing two fields,
+ *                                       'added' and 'removed' which contain a list of the keys which changed in the referenced KeySet
+ * @param {boolean}  [triggerCallbackNow] Whether to trigger the callback immediately after it is added.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
 weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbackNow)
 {
     function wrapper()
@@ -286,7 +379,13 @@ weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbac
 
     return this;
 };
-
+/**
+ * Replaces the contents of the KeySet at this path with the specified keys.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
 weave.WeavePath.prototype.setKeys = function(/*...relativePath, keyStringArray*/)
 {
     var args = this._A(arguments, 2);
@@ -301,6 +400,13 @@ weave.WeavePath.prototype.setKeys = function(/*...relativePath, keyStringArray*/
     };
     return this;
 };
+/**
+ * Intersects the specified keys with the KeySet at this path.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {Array} The keys which exist in both the keyStringArray and in the KeySet at this path.
+ */
 
 weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArray*/)
 {
@@ -321,7 +427,7 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
 
 /**
  * Retrieves a list of records defined by a mapping of property names to column paths or by an array of column names.
- * @param pathMapping An object containing a mapping of desired property names to column paths or an array of child names.
+ * @param {object} pathMapping An object containing a mapping of desired property names to column paths or an array of child names.
  * pathMapping can be one of three different forms:
  * An array of column names corresponding to children of the WeavePath this method is called from, e.g., path.retrieveRecords(["x", "y"]);
  * the column names will also be used as the corresponding property names in the resultant records.
@@ -329,8 +435,8 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
  * path.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
  * If it is null, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
  * The alphanumeric QualifiedKey for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
- * @param keySetPath A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
- * @return An array of record objects.
+ * @param {weave.WeavePath} [keySetPath] A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
+ * @return {Array} An array of record objects.
  */
 weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 {
@@ -366,40 +472,6 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
             return record;
         });
 };
-
-/**
- * Sets a human-readable label for an ILinkableObject to be used in editors.
- * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
- *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
- * @param The human-readable label for an ILinkableObject.
- * @return The current WeavePath object.
- */
-weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
-{
-    var args = this._A(arguments, 2);
-    if (this._assertParams('setLabel', args))
-    {
-        var label = args.pop();
-        var path = this._path.concat(args);
-        this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.setLabel(this, label)", {"label": label}, null, "");
-    }
-    return this;
-};
-
-/**
- * Gets the previously-stored human-readable label for an ILinkableObject.
- * @param relativePath An optional Array (or multiple parameters) specifying child names relative to the current path.
- *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
- * @return The human-readable label for an ILinkableObject.
- */
-weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
-{
-    var args = this._A(arguments, 1);
-    var path = this._path.concat(args);
-    return this.weave.evaluateExpression(path, "WeaveAPI.EditorManager.getLabel(this)");
-};
-
-/* Functions used by retrieveRecords */
 
 /**
  * @private
@@ -479,4 +551,96 @@ var listChainsAndPaths = function(obj, prefix, output)
         }
     }
     return output;
+};
+
+var getLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.getLabel");
+var setLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.setLabel");
+
+/**
+ * Sets a human-readable label for an ILinkableObject to be used in editors.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {string} label The human-readable label for an ILinkableObject.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.label = function(/*...relativePath, label*/)
+{
+    var args = this._A(arguments, 2);
+    if (this._assertParams('setLabel', args))
+    {
+        var label = args.pop();
+        setLabel(this.push(args), label);
+    }
+    return this;
+};
+
+/**
+ * Gets the previously-stored human-readable label for an ILinkableObject.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {string} The human-readable label for an ILinkableObject.
+ */
+weave.WeavePath.prototype.getLabel = function(/*...relativePath*/)
+{
+    var args = this._A(arguments, 1);
+    return getLabel(this.push(args));
+};
+
+var EDC = 'weave.data.AttributeColumns::ExtendedDynamicColumn';
+var DC = 'weave.data.AttributeColumns::DynamicColumn';
+var RC = 'weave.data.AttributeColumns::ReferencedColumn';
+var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {types: [EDC, DC, RC]});
+var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]', null, ['weave.api.data.IDataSource']);
+
+/**
+ * Sets the metadata for a column at the current path.
+ * @param {object} metadata The metadata identifying the column. The format depends on the data source.
+ * @param {string} [dataSourceName] (Optional) The name of the data source in the session state.
+ *                       If ommitted, the first data source in the session state will be used.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.setColumn = function(metadata, dataSourceName)
+{
+	var type = this.getType();
+	if (!type)
+		this.request(type = RC);
+	else
+		type = getColumnType(this);
+	
+	if (!type)
+		this._failMessage('setColumn', 'Not a compatible column object', this._path);
+	
+	var path = this;
+	if (type == EDC)
+		path = path.push('internalDynamicColumn', null).request(RC);
+	else if (type == DC)
+		path = path.push(null).request(RC);
+	path.state({
+		"metadata": metadata,
+		"dataSourceName": arguments.length > 1 ? dataSourceName : getFirstDataSourceName()
+	});
+	
+	return this;
+};
+
+/**
+ * Sets the metadata for multiple columns that are children of the current path.
+ * @param metadataMapping An object mapping child names (or indices) to column metadata.
+ *                        An Array of column metadata objects may be given for a LinkableHashMap.
+ * @param {string} [dataSourceName] The name of the data source in the session state.
+ *                       If ommitted, the first data source in the session state will be used.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.setColumns = function(metadataMapping, dataSourceName) {
+	var useDataSource = arguments.length > 1;
+	this.forEach(metadataMapping, function(value, key) {
+		var path = this.push(key);
+		var func = Array.isArray(value) ? path.setColumns : path.setColumn;
+		var args = useDataSource ? [value, dataSourceName] : [value];
+		func.apply(path, args);
+	});
+	if (Array.isArray(metadataMapping))
+		while (this.getType(metadataMapping.length))
+			this.remove(metadataMapping.length);
+	return this;
 };

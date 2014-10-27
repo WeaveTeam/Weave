@@ -7,9 +7,6 @@ package weave.ui.infomap
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.charts.chartClasses.InstanceCache;
-	import mx.core.IFlexDisplayObject;
-	import mx.managers.PopUpManager;
 	import mx.utils.StringUtil;
 	
 	import weave.Weave;
@@ -18,12 +15,8 @@ package weave.ui.infomap
 	import weave.api.getLinkableDescendants;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.CustomContextMenuManager;
-	import weave.ui.DraggablePanel;
-	import weave.ui.WizardPanel;
-	import weave.ui.infomap.ui.EntitySelectionWizard;
 	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.utils.ColumnUtils;
-	import weave.utils.ProbeTextUtils;
 
 	public class InfoMapLoader
 	{

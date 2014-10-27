@@ -45,8 +45,6 @@
 		<![CDATA[
 			import avmplus.DescribeType;
 			
-			import flash.utils.getDefinitionByName;
-			
 			import mx.containers.VBox;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
@@ -62,11 +60,10 @@
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
-			import weave.core.ClassUtils;
 			import weave.core.WeaveXMLDecoder;
+			import weave.primitives.MethodChainProxy;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
-			import weave.utils.MethodChainProxy;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -75,11 +72,7 @@
 			/**
 			 * This is the context in which expressions will be evaluated (The "this" argument passed to Function.apply).
 			 */
-			public function set context(value:Object):void
-			{
-				_context = value;
-			}
-			private var _context:Object = null;
+			public var context:Object;
 
 			override protected function childrenCreated():void
 			{
@@ -100,16 +93,25 @@
 				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, target as Array);
 			}
 			private const watchLookup:Dictionary = new Dictionary(true);
-			private function consoleWatch(target:Object = null, debugString:String = null):void
+			public function consoleWatch(target:Object = null, callbackReturnsString:Function = null):void
 			{
-				if (!target || !debugString)
+				if (!target)
 				{
-					consoleTrace('Usage: consoleWatch( target , "{ <CODE> }" )');
+					consoleTrace('Usage: consoleWatch(target, optional_callbackReturnsString)');
 					return;
 				}
+				
 				var linkableTarget:ILinkableObject = getObject(target);
 				consoleUnwatch(linkableTarget);
-				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
+				var callback:Function = function():void {
+					var str:String = '';
+					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, linkableTarget) || []
+					if (path.length)
+						str += " " + Compiler.stringify(path.pop());
+					if (callbackReturnsString != null)
+						str += ': ' + callbackReturnsString();
+					debugTrace(linkableTarget, str);
+				};
 				watchLookup[linkableTarget] = callback;
 				getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
 			}
@@ -255,7 +257,7 @@
 					var obj:ICompiledObject = compiler.compileToObject(input.text);
 					//decompiled = compiler.decompileObject(obj);
 					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
-					result = func.apply(_context);
+					result = func.apply(context);
 					if (shouldReportError)
 						result = String(shouldReportError);
 				}

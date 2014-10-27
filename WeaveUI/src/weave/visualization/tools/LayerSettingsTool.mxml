@@ -23,7 +23,7 @@
 <ui:DraggablePanel xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" xmlns:editors="weave.editors.*"
-			   implements="weave.api.ui.IVisTool" xmlns:managers="weave.editors.managers.*"
+			   implements="weave.api.ui.IVisTool_Utility" xmlns:managers="weave.editors.managers.*"
 			   >
 	<mx:List id="list"
 			 initialize="UIUtils.pad(event, 2, 100, 100)"
@@ -160,6 +160,7 @@
 	</mx:List>
 	<mx:Script>
 		<![CDATA[
+			import weave.menus.ToolsMenu;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.detectLinkableObjectChange;
 			import weave.visualization.layers.LayerSettings;
@@ -187,9 +188,9 @@
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, LayerSettingsTool, "Layer Settings Tool");
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 			}
 			
 			override protected function childrenCreated():void
@@ -203,10 +204,8 @@
 				list.dropEnabled = false;
 				
 				getCallbackCollection(controller).addGroupedCallback(this, updateShownCheckboxList, true);
-				
-				targetCombo.labelFunction = getTargetLabel;
-				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, updateTargetCombo, true);
-				BindingUtils.bindSetter(handleShownCheckBoxListSelection, shownCheckBoxList, 'selection');
+				if (targetPath.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					setTarget(getPossibleTargets()[0]);
 			}
 			
 			public const targetPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyPath), handlePlotManagerPath);
@@ -219,13 +218,23 @@
 				watcher.targetPath = targetPath.getSessionState() as Array;
 			}
 			
-			private const watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, handleWatcher, handlePanelTitleChange));
+			internal function getPossibleTargets():Array
+			{
+				return WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, PlotManager);
+			}
+
+			internal function setTarget(target:ILinkableObject):void
+			{
+				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, target);
+				targetPath.setSessionState(path);
+				shownLayers.setSessionState(null);
+			}
+			
+			internal const watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, handleWatcher, handlePanelTitleChange));
 			private function handleWatcher():void
 			{
 				var pm:PlotManager = watcher.target as PlotManager || getLinkableDescendants(watcher.target, PlotManager)[0] as PlotManager;
 				controller.hashMap = pm ? pm.layerSettings : null
-				if (targetCombo.selectedItem != watcher.target)
-					targetCombo.selectedItem = watcher.target;
 			}
 			
 			internal const controller:VariableListController = newDisposableChild(this, VariableListController);
@@ -238,7 +247,7 @@
 				updateShownCheckboxList();
 			}
 			
-			private function get layerNames():Array
+			internal function get layerNames():Array
 			{
 				if (!controller.hashMap)
 					return [];
@@ -248,7 +257,9 @@
 					names = names.reverse();
 				return names;
 			}
-			private var _prevLayerNames:Array;
+			
+			[Bindable] internal var _prevLayerNames:Array;
+			[Bindable] internal var _shownLayersSelection:Array;
 			
 			public const shownLayers:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Object, verifyShownLayers), updateShownCheckboxList, true);
 			private function verifyShownLayers(value:Object):Boolean
@@ -264,14 +275,14 @@
 				}
 				
 				// Only reset dataProvider if necessary.
-				if (StandardLib.arrayCompare(_prevLayerNames, layerNames))
-					shownCheckBoxList.dataProvider = _prevLayerNames = layerNames;
+				if (StandardLib.compare(_prevLayerNames, layerNames))
+					_prevLayerNames = layerNames;
 				
 				// Only reset selection if necessary.
 				var state:Object = shownLayers.getSessionState();
 				var newSelection:Array = VectorUtils.getItems(state, layerNames, []);
-				if (StandardLib.arrayCompare(shownCheckBoxList.selection, newSelection) != 0)
-					shownCheckBoxList.selection = newSelection;
+				if (StandardLib.compare(_shownLayersSelection, newSelection) != 0)
+					_shownLayersSelection = newSelection;
 				
 				// Only reset filterFunction if necessary because it causes a refresh.
 				// Behavior filter function only depends on shownLayers.
@@ -289,7 +300,7 @@
 			public const showSelectableCheck:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showAlphaSlider:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
-			private function getTargetLabel(target:ILinkableObject):String
+			internal function getTargetLabel(target:ILinkableObject):String
 			{
 				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, target);
 				if (!path)
@@ -298,38 +309,6 @@
 				var ancestor:ILinkableObject = WeaveAPI.globalHashMap.getObject(path[0]);
 				var label:String = WeaveAPI.EditorManager.getLabel(ancestor);
 				return label || path[0];
-			}
-			private function updateTargetCombo():void
-			{
-				targetCombo.dataProvider = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, PlotManager);
-				targetCombo.selectedItem = watcher.target;
-				
-				if (targetPath.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
-				{
-					targetCombo.selectedIndex = 0;
-					handleTargetComboChange();
-				}
-			}
-			private function handleTargetComboChange():void
-			{
-				var target:ILinkableObject = targetCombo.selectedItem as ILinkableObject;
-				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, target);
-				targetPath.setSessionState(path);
-				shownLayers.setSessionState(null);
-			}
-			
-			private function handleShownCheckBoxListSelection(selection:Array):void
-			{
-				if (UIUtils.hasFocus(shownCheckBoxList))
-				{
-					var state:Object = {};
-					var names:Array = layerNames;
-					var selection:Array = shownCheckBoxList.selection;
-					for (var i:int = 0; i < names.length; i++)
-						if (selection[i] is Boolean)
-							state[names[i]] = selection[i];
-					shownLayers.setSessionState(state);
-				}
 			}
 			
 			override public function get defaultPanelTitle():String
@@ -341,26 +320,76 @@
 			}
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
+	<ui:editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Settings')}">
 			<ui:Indent label="Target visualization tool" translate="true">
-				<ui:CustomComboBox id="targetCombo" prompt="{lang('Select a visualization tool...')}" change="if (UIUtils.hasFocus(targetCombo)) handleTargetComboChange()"/>
+				<ui:CustomComboBox id="targetCombo"
+								   prompt="{lang('Select a visualization tool...')}"
+								   change="if (UIUtils.hasFocus(targetCombo)) outerDocument.setTarget(targetCombo.selectedItem as ILinkableObject)"/>
 			</ui:Indent>
 			
 			<mx:Label text="{lang('Show these controls:')}"/>
 			<mx:VBox paddingLeft="20">
-				<ui:CustomCheckBox label="{lang('Visibility toggle')}" creationComplete="linkBindableProperty(showVisibleCheck, event.target, 'selected')"/>
-				<ui:CustomCheckBox label="{lang('Alpha slider')}" creationComplete="linkBindableProperty(showAlphaSlider, event.target, 'selected')"/>
-				<ui:CustomCheckBox label="{lang('Selectability toggle')}" creationComplete="linkBindableProperty(showSelectableCheck, event.target, 'selected')"/>
+				<ui:CustomCheckBox label="{lang('Visibility toggle')}" creationComplete="linkBindableProperty(outerDocument.showVisibleCheck, event.target, 'selected')"/>
+				<ui:CustomCheckBox label="{lang('Alpha slider')}" creationComplete="linkBindableProperty(outerDocument.showAlphaSlider, event.target, 'selected')"/>
+				<ui:CustomCheckBox label="{lang('Selectability toggle')}" creationComplete="linkBindableProperty(outerDocument.showSelectableCheck, event.target, 'selected')"/>
 			</mx:VBox>
 			
 			<mx:Label text="{lang('Show controls for these layers:')}"/>
 			<mx:VBox paddingLeft="20">
-				<ui:CheckBoxList id="shownCheckBoxList" defaultSelectedState="true"/>
+				<ui:CheckBoxList id="shownCheckBoxList" defaultSelectedState="true" dataProvider="{outerDocument._prevLayerNames}" selection="{outerDocument._shownLayersSelection}"/>
 			</mx:VBox>
 			
-			<ui:CustomCheckBox label="{lang('Order layers from foreground to background')}" creationComplete="linkBindableProperty(listForegroundFirst, event.target, 'selected')"/>
+			<ui:CustomCheckBox label="{lang('Order layers from foreground to background')}" creationComplete="linkBindableProperty(outerDocument.listForegroundFirst, event.target, 'selected')"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
-	</ui:ControlPanel>
+		<mx:Script>
+			<![CDATA[
+				import mx.binding.utils.BindingUtils;
+				
+				import weave.api.core.ILinkableObject;
+				import weave.api.getCallbackCollection;
+				import weave.api.linkBindableProperty;
+				import weave.core.CallbackCollection;
+				import weave.core.SessionManager;
+				import weave.core.UIUtils;
+				import weave.visualization.layers.PlotManager;
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					getCallbackCollection(outerDocument.watcher).addImmediateCallback(this, function():void {
+						if (targetCombo.selectedItem != outerDocument.watcher.target)
+							targetCombo.selectedItem = outerDocument.watcher.target;
+					}, true);
+					
+					targetCombo.labelFunction = outerDocument.getTargetLabel;
+					BindingUtils.bindSetter(handleShownCheckBoxListSelection, shownCheckBoxList, 'selection');
+					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleTreeCallback, true);
+				}
+
+				private function handleShownCheckBoxListSelection(selection:Array):void
+				{
+					if (UIUtils.hasFocus(shownCheckBoxList))
+					{
+						var state:Object = {};
+						var names:Array = outerDocument.layerNames;
+						var selection:Array = shownCheckBoxList.selection;
+						for (var i:int = 0; i < names.length; i++)
+							if (selection[i] is Boolean)
+								state[names[i]] = selection[i];
+						outerDocument.shownLayers.setSessionState(state);
+					}
+				}
+				
+				private function handleTreeCallback():void
+				{
+					targetCombo.dataProvider = outerDocument.getPossibleTargets();
+					targetCombo.selectedItem = outerDocument.watcher.target;
+				}
+				
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></ui:editorFactory>
 </ui:DraggablePanel>

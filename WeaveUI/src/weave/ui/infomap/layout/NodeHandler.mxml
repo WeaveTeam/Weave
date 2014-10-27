@@ -942,7 +942,7 @@
 				_reusableThumbnailsToPlotArray = [];
 				_currentNewDocsCount = 0;
 				_thumbnailCount = 0;
-				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_3_PARSING,_completeThumbnailsIteration);
+				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_NORMAL,_completeThumbnailsIteration);
 			}
 			
 			private var _thumbnailCount:Number = 0;
@@ -1109,7 +1109,7 @@
 					return;
 				
 				_totalT = docKeySet.keys.length;
-				WeaveAPI.StageUtils.startTask(this,_iterateClearDocs,WeaveAPI.TASK_PRIORITY_3_PARSING,_finalClearDocs);
+				WeaveAPI.StageUtils.startTask(this,_iterateClearDocs,WeaveAPI.TASK_PRIORITY_NORMAL,_finalClearDocs);
 				//stopGlow();
 			}
 			

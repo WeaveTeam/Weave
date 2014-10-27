@@ -34,7 +34,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IObjectWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -49,7 +49,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class RectanglePlotter extends AbstractPlotter implements IObjectWithSelectableAttributes
+	public class RectanglePlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
 		
@@ -60,7 +60,7 @@ package weave.visualization.plotters
 			
 			setColumnKeySources(
 				[xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset],
-				[false, false, true, true]
+				[1, 1, -1, -1]
 			);
 		}
 		
@@ -136,7 +136,7 @@ package weave.visualization.plotters
 			var dataCol:IAttributeColumn = trueXfalseY ? xData : yData;
 			if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY)
 			{
-				var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
+				var geoms:Array = dataCol.getValueFromKey(recordKey, Array) as Array;
 				var geom:GeneralizedGeometry;
 				if (geoms && geoms.length)
 					geom = geoms[0] as GeneralizedGeometry;

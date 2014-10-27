@@ -9,6 +9,8 @@ package weave.visualization.tools
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IKeySet;
     import weave.api.data.IQualifiedKey;
+    import weave.compiler.StandardLib;
+    import weave.data.KeySets.SortedKeySet;
 
 
     public class ParentColumnTreeDescriptor implements ITreeDataDescriptor
@@ -16,15 +18,24 @@ package weave.visualization.tools
         private var cachedTreeInfo:Dictionary = null;
         private var rootNodes:ArrayCollection = null;
 
-        public function updateCache(parentColumn:IAttributeColumn, allKeys:IKeySet):void
+		/**
+		 * NOTE: record sorting in this function depends on WeaveAPI.StatisticsCache.getColumnStatistics(sortColumn)
+		 * @param parentColumn
+		 * @param allKeys Note: This function modifies the keys in place
+		 * @param sortColumn 
+		 */
+        public function updateCache(parentColumn:IAttributeColumn, allKeys:IKeySet, sortColumn:IAttributeColumn):void
         {
             cachedTreeInfo = new Dictionary();
 
             rootNodes = new ArrayCollection([]);
+			
+		 	// NOTE: this sort depends on WeaveAPI.StatisticsCache
+            var orderedKeys:Array = SortedKeySet.generateSortCopyFunction([sortColumn])(allKeys.keys);
 
-            for (var index:String in allKeys.keys)
+            for (var index:String in orderedKeys)
             {
-                var key:IQualifiedKey = allKeys.keys[index] as IQualifiedKey;
+                var key:IQualifiedKey = orderedKeys[index] as IQualifiedKey;
                 var localName:String = parentColumn.getValueFromKey(key, String);
                 var keyType:String = key.keyType;
                 var parent_key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(keyType, localName);
@@ -41,8 +52,6 @@ package weave.visualization.tools
                     cachedTreeInfo[parent_key].list.addItem(key);
                 }
             }
-
-            return;
         }
 
         public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean

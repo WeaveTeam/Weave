@@ -60,42 +60,37 @@ package weave.radviz
 			ClassToColumnMap = new Dictionary();//create a new one for every different column selected
 			
 			var attrType:String = ColumnUtils.getDataType(selectedColumn);// check if column has numercial or categorical values 
-			if(attrType == "string")
-			{ 
 				//Step 2 Looping thru the keys in the found column and populating the type dictionary
-				for(var g:int = 0; g < selectedColumn.keys.length; g++)
-				{
-					var mkey:IQualifiedKey = selectedColumn.keys[g] as IQualifiedKey;
-					
-					var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
-					
-					
-					if(!ClassToColumnMap.hasOwnProperty(type))// && !tAndpMapping.hasOwnProperty(type))
-					{
-						ClassToColumnMap[type] = new ClassInfoObject();
-						//tAndpMapping[type] = new Array();
-						
-					}
-					
-					var infoObject:ClassInfoObject = ClassToColumnMap[type];
-					for (var f:int = 0; f < colObjects.length; f ++)//filling in the type columnMapping with arrays
-					{
-						if(!infoObject.columnMapping.hasOwnProperty(columnNames[f]))							 
-							
-							infoObject.columnMapping[columnNames[f]] = new Array();
-					}
-					
-					for(var b:int = 0; b < normalizedColumns.length; b++)
-					{
-						var tempEntry:Number = (normalizedColumns[b] as IAttributeColumn).getValueFromKey(mkey,Number);
-						var zz:Array = infoObject.columnMapping[columnNames[b]] as Array ;
-						zz.push(tempEntry);
-					}
-					
-				}//ClassToColumnMap gets filled 
+			for(var g:int = 0; g < selectedColumn.keys.length; g++)
+			{
+				var mkey:IQualifiedKey = selectedColumn.keys[g] as IQualifiedKey;
 				
-			}
-			
+				var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
+				
+				
+				if(!ClassToColumnMap.hasOwnProperty(type))// && !tAndpMapping.hasOwnProperty(type))
+				{
+					ClassToColumnMap[type] = new ClassInfoObject();
+					//tAndpMapping[type] = new Array();
+					
+				}
+				
+				var infoObject:ClassInfoObject = ClassToColumnMap[type];
+				for (var f:int = 0; f < colObjects.length; f ++)//filling in the type columnMapping with arrays
+				{
+					if(!infoObject.columnMapping.hasOwnProperty(columnNames[f]))							 
+						
+						infoObject.columnMapping[columnNames[f]] = new Array();
+				}
+				
+				for(var b:int = 0; b < normalizedColumns.length; b++)
+				{
+					var tempEntry:Number = (normalizedColumns[b] as IAttributeColumn).getValueFromKey(mkey,Number);
+					var zz:Array = infoObject.columnMapping[columnNames[b]] as Array ;
+					zz.push(tempEntry);
+				}
+				
+			}//ClassToColumnMap gets filled 
 		}
 		
 		

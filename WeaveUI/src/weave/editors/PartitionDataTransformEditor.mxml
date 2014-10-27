@@ -25,7 +25,7 @@
     verticalScrollPolicy="off"
     horizontalScrollPolicy="off"
     creationPolicy="all"
-    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
+    implements="weave.api.core.ILinkableObject, weave.api.ui.IDataSourceEditor, weave.api.ui.ISelectableAttributes" xmlns:ui="weave.ui.*"
     >
     <mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
     <ui:Indent label="{lang('Source Name')}" visible="{!target}" includeInLayout="{!target}">
@@ -34,15 +34,14 @@
                                 prompt="{lang('Enter a name')}"
                                 errorString="{sourceName.text ? null : lang('Required')}"/>
     </ui:Indent>
-    <ui:DynamicColumnComponent 
-        label="Partition source column" id="partitionColumnEditor">
+    <ui:DynamicColumnComponent id="partitionColumnEditor">
         <ui:helpContent>
             Each unique value in this column will produce a corresponding group containing all the keys which correspond to those values.
         </ui:helpContent>
     </ui:DynamicColumnComponent>
-    <ui:ColumnListComponent id="inputColumnsEditor" showVariableNames="false" label="{lang('Columns to partition')}">
+    <ui:ColumnListComponent id="inputColumnsEditor" showVariableNames="false">
         <ui:helpContent>
-            Each column selected here will have several corresponding columns created, one for each value in the partition source column.
+            Each column selected here will have several corresponding columns created, one for each value in the "Partition by" column.
         </ui:helpContent>
     </ui:ColumnListComponent>
     <mx:Script>
@@ -63,6 +62,15 @@
             
             private const partitionColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
             private const inputColumns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			
+			public function getSelectableAttributes():Array
+			{
+				return [partitionColumn, inputColumns];
+			}
+			public function getSelectableAttributeNames():Array
+			{
+				return ["Partition by", "Columns to partition"];
+			}
             
             [Bindable] private var target:PartitionDataTransform = null;
             
@@ -74,7 +82,7 @@
 
                 inputColumnsEditor.hashMap = inputColumns;
                 
-                sourceName.text = WeaveAPI.globalHashMap.generateUniqueName("PartitionDataTransform");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(PartitionDataTransform));
             }
             
             public function setTarget(object:ILinkableObject):void
@@ -97,10 +105,15 @@
                 }
             }
             
+			private function hasDiff(a:ILinkableObject, b:ILinkableObject):Boolean
+			{
+				return WeaveAPI.SessionManager.computeDiff(getSessionState(a), getSessionState(b)) !== undefined;
+			}
+			
             public function hasPendingChanges():Boolean
             {
-                return !!WeaveAPI.SessionManager.computeDiff(getSessionState(inputColumns), getSessionState(target.inputColumns))
-                    || !!WeaveAPI.SessionManager.computeDiff(getSessionState(partitionColumn), getSessionState(target.partitionColumn));
+                return hasDiff(inputColumns, target.inputColumns)
+                    || hasDiff(partitionColumn, target.partitionColumn);
             }
             
             public function applyChanges():void
@@ -111,7 +124,7 @@
             
             public function createDataSource():IDataSource
             {
-                if (!sourceName.text)
+                if (!sourceName.text || !partitionColumn.getInternalColumn() || !inputColumns.getNames().length)
                 {
                     Alert.show(lang("Please fill all required fields"), lang("Error"));
                     return null;

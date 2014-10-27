@@ -22,13 +22,15 @@ package weave.utils
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.IBitmapDrawable;
+	import flash.external.ExternalInterface;
 	import flash.geom.Matrix;
 	import flash.utils.ByteArray;
 	
 	import mx.core.IFlexDisplayObject;
 	import mx.graphics.ImageSnapshot;
 	import mx.graphics.codec.PNGEncoder;
-	import mx.utils.Base64Encoder;
+	
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * BitmapUtils
@@ -185,12 +187,7 @@ package weave.utils
 //			var byteArray:ByteArray = new ByteArray();
 //			byteArray.writeObject(data.getPixels(data.rect));
 			
-			var byteArray:ByteArray = ImageSnapshot.captureImage(component).data; 
-			var encoder:Base64Encoder = new Base64Encoder();
-			encoder.insertNewLines = false;
-			encoder.encodeBytes(byteArray);
-			
-			return encoder.drain();
+			return StandardLib.btoa(ImageSnapshot.captureImage(component).data);
 		}
 		
 //		/**
@@ -215,6 +212,24 @@ package weave.utils
 		{		
 			var bitmap:BitmapData = getBitmapDataFromComponent(component);
 			return new PNGEncoder().encode(bitmap);
+		}
+		
+		/**
+		 * @param javaScriptImgExpression A JavaScript expression which gets a pointer to the img tag.
+		 *                                The expression can use a "weave" variable as a pointer to Weave.
+		 * @param bitmapData The BitmapData to use as the img source.
+		 */
+		public static function setHtmlImgSource(javaScriptImgExpression:String, bitmapData:BitmapData):void
+		{
+			var base64data:String = bitmapData ? StandardLib.btoa(new PNGEncoder().encode(bitmapData)) : '';
+			ExternalInterface.marshallExceptions = false;
+			ExternalInterface.call(
+				"function(base64data) {" +
+				"  var weave = " + JavaScript.JS_this + ";" +
+				"  (" + javaScriptImgExpression + ").src = 'data:image/png;base64,' + base64data;" +
+				"}",
+				base64data
+			);
 		}
 	}
 }

@@ -35,12 +35,16 @@
 				width="100%"
 				useHandCursor="true"
 				dataProvider="{selectableAttributeNames.map(translateAttrName)}"
-				itemClick="linkToObject(selectableAttributes[event.index]);"/>
+				itemClick="linkToObject(selectableAttributes[event.index], selectableAttributeNames[event.index], _overrideOwner);"/>
 		</mx:HBox>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
+				<mx:Button
+					label="{lang('Select all')}"
+					click="editor.explorer.fileView.selectedItems = VectorUtils.getArrayFromCollection(editor.explorer.fileView.dataProvider as ICollectionView).reverse()"
+					enabled="{editor.explorer.fileView.dataProvider.length > 0}"/>
 				<mx:Button label="{lang('Add selected')}" click="addSelected()" enabled="{editor.explorer.fileView.selectedItem}"/>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
@@ -48,27 +52,45 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ICollectionView;
 			import mx.controls.Label;
 			
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableDescendants;
 			import weave.api.getLinkableOwner;
+			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IObjectWithSelectableAttributes;
+			import weave.api.ui.ISelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.editors.managers.DataSourceManager;
+			import weave.menus.DataMenu;
+			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
 			
-			override protected function constructor():void
+			/**
+			 * Used as a dummy target for the editor so it will try to find a node in the hierarchy.
+			 */
+			private const localDynamicColumn:DynamicColumn = newDisposableChild(this, DynamicColumn);
+			
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
+				
+				subMenuButton.data = WeaveMenuItem.createItems([
+					{
+						label: lang("Manage data sources"),
+						click: function():void { DraggablePanel.openStaticInstance(DataSourceManager); }
+					},
+					subMenuButton.data
+				]);
 				
 				minimizable.value = true;
 				maximizable.value = true;
@@ -112,11 +134,6 @@
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 			}
 			
-			override public function dispose():void
-			{
-				super.dispose();
-			}
-			
 			private function addSelected():void
 			{
 				var columns:Array = editor.addMultipleColumns(columnList.hashMap, true);
@@ -127,7 +144,7 @@
 			private var selectableAttributes:Array = [];
 			[Bindable] private var selectableAttributeNames:Array = [];
 			
-			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IObjectWithSelectableAttributes), handleToolImmediately);
+			private const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ISelectableAttributes), handleToolImmediately);
 			
 			private function handleToolImmediately():void
 			{
@@ -140,16 +157,16 @@
 				if (!parent)
 					toolWatcher.target = null;
 				
-				var tool:IObjectWithSelectableAttributes = toolWatcher.target as IObjectWithSelectableAttributes;
+				var tool:ISelectableAttributes = toolWatcher.target as ISelectableAttributes;
 				if (tool)
 				{
 					var attrs:Array = tool.getSelectableAttributes();
 					var names:Array = tool.getSelectableAttributeNames();
 					
-					if (StandardLib.arrayCompare(attrs, selectableAttributes))
+					if (StandardLib.compare(attrs, selectableAttributes))
 						selectableAttributes = attrs;
 					
-					if (StandardLib.arrayCompare(names, selectableAttributeNames))
+					if (StandardLib.compare(names, selectableAttributeNames))
 						selectableAttributeNames = names;
 					
 					var index:int = attrs.indexOf(_linkedObject);
@@ -181,17 +198,26 @@
 			 * The last object that was passed in to linkToObject()
 			 */
 			private var _linkedObject:ILinkableObject = null;
-			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
+			/**
+			 * The last owner that was passed in to linkToObject()
+			 */
+			private var _overrideOwner:ISelectableAttributes;
+			
+			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null, owner:ISelectableAttributes = null):void
 			{
 				_linkedObject = columnOrHashMap;
+				_overrideOwner = owner;
 				
-				editor.setTarget(ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
+				var target:DynamicColumn = columnOrHashMap is IColumnWrapper
+					? ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper)
+					: localDynamicColumn;
+				editor.setTarget(target);
 				columnList.hashMap = columnOrHashMap as ILinkableHashMap;
 				
 				editor.explorer.fileView.allowMultipleSelection = !!columnList.hashMap;
 				columnList.visible = columnList.includeInLayout = !!columnList.hashMap;
 
-				var tool:IObjectWithSelectableAttributes = getOwnerWithSelectableAttributes(columnOrHashMap);
+				var tool:ISelectableAttributes = owner || getOwnerWithSelectableAttributes(columnOrHashMap);
 				toolWatcher.target = tool;
 				// make sure we call handleTool() later
 				getCallbackCollection(toolWatcher).triggerCallbacks();
@@ -209,23 +235,19 @@
 						title = lang(DEFAULT_TITLE);
 				}
 				
-				if (columnList.hashMap)
+				if (target == localDynamicColumn)
 				{
 					// copy the session state from the first ReferencedColumn we find.
-					var columns:Array = columnList.hashMap.getObjects(IAttributeColumn);
-					for each (var column:IAttributeColumn in columns)
-					{
-						if (column is DynamicColumn)
-							column = (column as DynamicColumn).getInternalColumn();
-						if (column is ReferencedColumn)
-						{
-							copySessionState(column, editor.referencedColumn);
-							break;
-						}
-					}
-					
-					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
+					var descendants:Array = getLinkableDescendants(columnOrHashMap, ReferencedColumn);
+					if (!descendants.length && tool)
+						descendants = getLinkableDescendants(tool);
+					if (!descendants.length)
+						descendants = getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn);
+					if (descendants.length)
+						localDynamicColumn.requestLocalObjectCopy(descendants[0] as ReferencedColumn);
 				}
+				
+				columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
 			}
 			
 			override public function removePanel():void
@@ -236,24 +258,24 @@
 			
 			///////////////////////////////////////////////////////////////////////
 			
-			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):AttributeSelectorPanel
+			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false, owner:ISelectableAttributes = null):AttributeSelectorPanel
 			{
 				var instance:AttributeSelectorPanel = DraggablePanel.openStaticInstance(AttributeSelectorPanel);
 				
-				instance.linkToObject(columnOrHashMap, title);
+				instance.linkToObject(columnOrHashMap, title, owner);
 				instance.columnList.showVariableNames = showVariableNames;
 				
 				instance.reposition();
 				instance.copyCoordinatesFromSessionedProperties();
 				return instance;
 			}
-			public static function getOwnerWithSelectableAttributes(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IObjectWithSelectableAttributes
+			public static function getOwnerWithSelectableAttributes(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):ISelectableAttributes
 			{
 				var owner:ILinkableObject = getLinkableOwner(selectableAttribute);
-				while (owner && !(owner is IObjectWithSelectableAttributes))
+				while (owner && !(owner is ISelectableAttributes))
 					owner = getLinkableOwner(owner);
 				
-				var tool:IObjectWithSelectableAttributes = owner as IObjectWithSelectableAttributes;
+				var tool:ISelectableAttributes = owner as ISelectableAttributes;
 
 				if (evenIfNotInSelectableAttributes)
 					return tool;

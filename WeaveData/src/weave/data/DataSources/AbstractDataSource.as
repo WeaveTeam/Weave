@@ -171,8 +171,8 @@ package weave.data.DataSources
 			if (initializationComplete)
 			{
 				_proxyColumns[column] = false; // no longer pending
-				WeaveAPI.StageUtils.callLater(column, requestColumnFromSource, [column]);
-				WeaveAPI.StageUtils.callLater(column, WeaveAPI.ProgressIndicator.removeTask, [column]);
+				WeaveAPI.ProgressIndicator.removeTask(column);
+				requestColumnFromSource(column);
 			}
 			else
 			{

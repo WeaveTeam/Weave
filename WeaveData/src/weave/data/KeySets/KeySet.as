@@ -59,14 +59,6 @@ package weave.data.KeySets
 		}
 		
 		/**
-		 * Changed to use StandardLib.arrayCompare().
-		 */
-		override protected function sessionStateEquals(otherSessionState:*):Boolean
-		{
-			return StandardLib.arrayCompare(_sessionStateInternal, otherSessionState) == 0;
-		}
-		
-		/**
 		 * This flag is used to avoid recursion while the keys are being synchronized with the session state.
 		 */		
 		private var _currentlyUpdating:Boolean = false;

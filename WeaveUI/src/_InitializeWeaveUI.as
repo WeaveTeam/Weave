@@ -20,6 +20,8 @@
 package
 {
 	import weave.api.ui.IEditorManager;
+	import weave.api.ui.ISelectableAttributes;
+	import weave.core.ClassUtils;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -35,18 +37,22 @@ package
 	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.NumberDataFilter;
 	import weave.data.KeySets.StringDataFilter;
+	import weave.data.Transforms.ForeignDataMappingTransform;
+	import weave.data.Transforms.GroupedDataTransform;
 	import weave.data.Transforms.PartitionDataTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
 	import weave.editors.DynamicColumnEditor;
+	import weave.editors.ForeignDataMappingTransformEditor;
 	import weave.editors.GeoJSONDataSourceEditor;
 	import weave.editors.GeometryLabelPlotterEditor;
 	import weave.editors.GeometryPlotterEditor;
 	import weave.editors.GeometryRelationPlotterEditor;
 	import weave.editors.GraphMLDataSourceEditor;
 	import weave.editors.GridLinePlotterEditor;
+	import weave.editors.GroupedDataTransformEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.PartitionDataTransformEditor;
@@ -66,9 +72,10 @@ package
 	import weave.ui.DataFilter;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
+	import weave.ui.SchafersMissingDataTool;
 	import weave.ui.SessionStateEditor;
+	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.infomap.ui.InfoMapPanel;
-	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -79,6 +86,7 @@ package
 	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
+	import weave.visualization.tools.AdvancedTableTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -88,7 +96,6 @@ package
 	import weave.visualization.tools.CytoscapeWebTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
-	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.GraphTool;
@@ -99,6 +106,7 @@ package
 	import weave.visualization.tools.LayerSettingsTool;
 	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
+	import weave.visualization.tools.ParallelCoordinatesTool;
 	import weave.visualization.tools.PieChartHistogramTool;
 	import weave.visualization.tools.PieChartTool;
 	import weave.visualization.tools.RInterfaceTool;
@@ -106,18 +114,22 @@ package
 	import weave.visualization.tools.RadVizToolEditor;
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.TableTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 	import weave.visualization.tools.TreeTool;
 
 	/**
-	 * Referencing this class will register WeaveAPI singleton implementations.
+	 * Referencing this class will register other classes in this library with WeaveAPI.
 	 * 
 	 * @author adufilie
 	 */
 	public class _InitializeWeaveUI
 	{
+		[Embed(source="WeavePathUI.js", mimeType="application/octet-stream")]
+		public static const WeavePathUI:Class;
+
 		private static var _:* = function():void
 		{
 			SessionStateEditor.initializeShortcuts();
@@ -139,7 +151,9 @@ package
 			em.registerEditor(CSVDataSource, CSVDataSourceEditor);
 			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
 			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
+            em.registerEditor(GroupedDataTransform, GroupedDataTransformEditor);
 			em.registerEditor(PartitionDataTransform, PartitionDataTransformEditor);
+			em.registerEditor(ForeignDataMappingTransform, ForeignDataMappingTransformEditor);
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
@@ -175,7 +189,7 @@ package
 				CytoscapeWebTool,
 				SchafersMissingDataTool,
 				DataFilter,
-				DataTableTool,
+				AdvancedTableTool,
 				GaugeTool,
 				HistogramTool,
 				Histogram2DTool,
@@ -190,6 +204,7 @@ package
 				RadVizTool,
 				RTextEditor,
 				ScatterPlotTool,
+				TableTool,
 				ThermometerTool,
 				TimeSliderTool,
 				TransposedTableTool,
@@ -199,6 +214,7 @@ package
 				TreeTool,
 				KeyMappingTool,
 				LayerSettingsTool,
+				ParallelCoordinatesTool
 			]);
 			
 			/**
@@ -221,6 +237,12 @@ package
 				"weave.visualization.plotters",
 				"weave.visualization.plotters.styles"
 			);
+			
+			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
+			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
+			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
+			ClassUtils.registerDeprecatedClass("weave.visualization.tools.DataTableTool", AdvancedTableTool);
+			ClassUtils.registerDeprecatedClass("weave.api.ui.IObjectWithSelectableAttributes", ISelectableAttributes);
 		}();
 	}
 }

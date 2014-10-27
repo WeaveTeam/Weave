@@ -241,7 +241,7 @@ zoom</zoom>
       <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
     </toolInteractions>
     <version>1.0 Beta (DEV)</version>
-    <windowSnapGridSize>1</windowSnapGridSize>
+    <windowSnapGridSize>1%</windowSnapGridSize>
     <workspaceHeight>NaN</workspaceHeight>
     <workspaceMultiplier>1</workspaceMultiplier>
     <workspaceWidth>NaN</workspaceWidth>

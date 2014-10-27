@@ -19,21 +19,22 @@
 
 package weave.data.KeySets
 {
-	import mx.utils.ObjectUtil;
+	import flash.utils.getTimer;
 	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
-	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.data.QKeyManager;
-	import weave.utils.AsyncSort;
+	import weave.utils.DebugUtils;
 	
 	/**
 	 * This provides the keys from an existing IKeySet in a sorted order.
@@ -43,30 +44,43 @@ package weave.data.KeySets
 	 */
 	public class SortedKeySet implements IKeySet
 	{
-		public static var debug:Boolean = false;
-		
 		/**
 		 * @param keySet An IKeySet to sort.
-		 * @param compare A function that compares two IQualifiedKey objects and returns an integer.
+		 * @param sortCopyFunction A function that accepts an Array of IQualifiedKeys and returns a new, sorted copy.
 		 * @param dependencies A list of ILinkableObjects that affect the result of the compare function.
+		 *                     If any IAttributeColumns are provided, the corresponding IColumnStatistics will also
+		 *                     be added as dependencies.
 		 */		
-		public function SortedKeySet(keySet:IKeySet, keyCompare:Function = null, dependencies:Array = null)
+		public function SortedKeySet(keySet:IKeySet, sortCopyFunction:Function = null, dependencies:Array = null)
 		{
 			_keySet = keySet;
-			_compare = keyCompare || QKeyManager.keyCompare;
-			
-			getCallbackCollection(_asyncSort).addImmediateCallback(this, _handleSorted);
+			_sortCopyFunction = sortCopyFunction as Function || QKeyManager.keySortCopy as Function;
 			
 			for each (var object:ILinkableObject in dependencies)
+			{
 				registerLinkableChild(_dependencies, object);
+				if (object is IAttributeColumn)
+				{
+					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(object as IAttributeColumn);
+					registerLinkableChild(_dependencies, stats);
+				}
+			}
 			registerLinkableChild(_dependencies, _keySet);
-			_dependencies.addImmediateCallback(this, _validate, true);
-			
-			if (debug)
-				getCallbackCollection(this).addImmediateCallback(this, _firstCallback);
 		}
 		
-		private function _firstCallback():void { debugTrace(this,'trigger',keys.length,'keys'); }
+		private var _triggerCounter:uint = 0;
+		private var _dependencies:ICallbackCollection = newLinkableChild(this, CallbackCollection);
+		private var _keySet:IKeySet;
+		private var _sortCopyFunction:Function = QKeyManager.keySortCopy;
+		private var _sortedKeys:Array = [];
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function containsKey(key:IQualifiedKey):Boolean
+		{
+			return _keySet.containsKey(key);
+		}
 		
 		/**
 		 * This is the list of keys from the IKeySet, sorted.
@@ -78,79 +92,80 @@ package weave.data.KeySets
 			return _sortedKeys;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
-		public function containsKey(key:IQualifiedKey):Boolean
-		{
-			return _keySet.containsKey(key);
-		}
-		
-		private var _triggerCounter:uint = 0;
-		private var _dependencies:ICallbackCollection = newDisposableChild(this, CallbackCollection);
-		private var _keySet:IKeySet;
-		private var _compare:Function;
-		private var _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
-		private var _sortedKeys:Array = [];
-		private var _prevSortedKeys:Array = [];
-		
 		private function _validate():void
 		{
 			_triggerCounter = _dependencies.triggerCounter;
-
-			// if actively sorting, don't overwrite previous keys
-			if (!linkableObjectIsBusy(_asyncSort))
-				_prevSortedKeys = _sortedKeys;
+			if (linkableObjectIsBusy(this))
+				return;
 			
-			// begin sorting a copy of the new keys
-			_sortedKeys = _keySet.keys.concat();
-			_asyncSort.beginSort(_sortedKeys, _compare);
+			WeaveAPI.StageUtils.startTask(this, _asyncTask, WeaveAPI.TASK_PRIORITY_NORMAL, _asyncComplete);
 		}
 		
-		private function _handleSorted():void
+		private static const EMPTY_ARRAY:Array = []
+		
+		private function _asyncTask():Number
 		{
-			if (StandardLib.arrayCompare(_prevSortedKeys, _sortedKeys) != 0)
-				getCallbackCollection(this).triggerCallbacks();
+			// first try sorting an empty array to trigger any column statistics requests
+			_sortCopyFunction(EMPTY_ARRAY);
+			
+			// stop if any async tasks were started
+			if (linkableObjectIsBusy(_dependencies))
+				return 1;
+			
+			// sort the keys
+			_sortedKeys = _sortCopyFunction(_keySet.keys);
+			
+			return 1;
+		}
+		
+		private function _asyncComplete():void
+		{
+			if (linkableObjectIsBusy(_dependencies) || _triggerCounter != _dependencies.triggerCounter)
+				return;
+			
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
-		 * This funciton generates a compare function that will compare IQualifiedKeys based on the corresponding values in the specified columns.
-		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
-		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns.
+		 * Generates a function like <code>function(keys:Array):Array</code> that returns a sorted copy of an Array of keys.
+		 * Note that the resulting sort function depends on WeaveAPI.StatisticsManager, so the sort function should be called
+		 * again when statistics change for any of the columns you provide.
+		 * @param columns An Array of IAttributeColumns or Functions mapping IQualifiedKeys to Numbers.
+		 * @param sortDirections Sort directions (-1, 0, 1)
+		 * @return A function that returns a sorted copy of an Array of keys.
 		 */
-		public static function generateCompareFunction(columns:Array, descendingFlags:Array = null):Function
+		public static function generateSortCopyFunction(columns:Array, sortDirections:Array = null):Function
 		{
-			var i:int;
-			var column:IAttributeColumn;
-			var result:int;
-			var n:int = columns.length;
-			var desc:Array = descendingFlags ? descendingFlags.concat() : [];
-			desc.length = n;
-			
-			// when any of the columns are disposed, disable the compare function
-			for each (column in columns)
-				column.addDisposeCallback(null, function():void { n = 0; });
-			
-			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
+			return function(keys:Array):Array
 			{
-				for (i = 0; i < n; i++)
+				var params:Array = [];
+				var directions:Array = [];
+				var lastDirection:int = 1;
+				for (var i:int = 0; i < columns.length; i++)
 				{
-					column = columns[i] as IAttributeColumn;
-					if (!column)
-						continue;
-					var value1:* = column.getValueFromKey(key1, Number);
-					var value2:* = column.getValueFromKey(key2, Number);
-					result = ObjectUtil.numericCompare(value1, value2);
-					if (result != 0)
+					var param:Object = columns[i];
+					if (param is IAttributeColumn)
 					{
-						if (desc[i])
-							return -result;
-						return result;
+						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(param as IAttributeColumn);
+						param = stats.getSortIndex();
 					}
+					if (!param || param is IKeySet)
+						continue;
+					if (sortDirections && !sortDirections[i])
+						continue;
+					lastDirection = (sortDirections ? sortDirections[i] : 1)
+					params.push(param);
+					directions.push(lastDirection);
 				}
-				return QKeyManager.keyCompare(key1, key2);
-			}
+				var qkm:QKeyManager = WeaveAPI.QKeyManager as QKeyManager;
+				params.push(qkm.keyTypeLookup, qkm.localNameLookup);
+				directions.push(lastDirection, lastDirection);
+				
+				//var t:int = getTimer();
+				var result:Array = StandardLib.sortOn(keys, params, directions, false);
+				//trace('sorted',keys.length,'keys in',getTimer()-t,'ms',DebugUtils.getCompactStackTrace(new Error()));
+				return result;
+			};
 		}
 	}
 }

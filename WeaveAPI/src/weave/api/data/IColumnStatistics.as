@@ -15,6 +15,8 @@
 
 package weave.api.data
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.core.ILinkableObject;
 
 	/**
@@ -24,7 +26,7 @@ package weave.api.data
 	 */
 	public interface IColumnStatistics extends ILinkableObject
 	{
-		//TODO(?): median,range,coefficient of variance,midrange
+		//TODO(?): range,coefficient of variance,midrange
 		
 		/**
 		 * Gets the numeric value for a given key normalized between 0 and 1.
@@ -72,5 +74,15 @@ package weave.api.data
 		 * Gets the standard deviation of the numeric values defined in the column.
 		 */
 		function getStandardDeviation():Number;
+		
+		/**
+		 * Gets the median value of all the numeric values defined in the column.
+		 */
+		function getMedian():Number;
+		
+		/**
+		 * Gets a Dictionary mapping IQualifiedKeys to sort indices derived from sorting the numeric values in the column.
+		 */
+		function getSortIndex():Dictionary;
 	}
 }

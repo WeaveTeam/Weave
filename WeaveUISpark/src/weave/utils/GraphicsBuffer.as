@@ -21,6 +21,8 @@ package weave.utils
 {
 	import flash.display.BitmapData;
 	import flash.display.Shape;
+	
+	import weave.primitives.MethodChainProxy;
 
 	/**
 	 * This is a class uses method chaining to draw vector graphics onto a destination BitmapData.

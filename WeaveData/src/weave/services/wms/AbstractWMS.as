@@ -27,6 +27,7 @@ package weave.services.wms
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
+	import weave.compiler.StandardLib;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -113,7 +114,7 @@ package weave.services.wms
 			if (index >= 0)
 				_pendingTiles.splice(index, 1);
 			
-			WeaveAPI.StageUtils.callLater(this, getCallbackCollection(this).triggerCallbacks);
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -184,6 +185,11 @@ package weave.services.wms
 		public function getImageHeight():int
 		{
 			return _imageHeight;
+		}
+		
+		protected function sortTiles(tiles:Array):void
+		{
+			StandardLib.sortOn(tiles, WMSTile.ZOOM_LEVEL);
 		}
 	}
 }
