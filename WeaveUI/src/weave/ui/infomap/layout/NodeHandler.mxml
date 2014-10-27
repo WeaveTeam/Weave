@@ -2432,7 +2432,7 @@
 					cytoscapeCSVArray.push(
 						[
 							((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString(),
-							((columnData[i] as Array)[topicIndex] as String).substring(0,columnName.indexOf("_")),
+							(columnNames[topicIndex] as String).substring(0,(columnNames[topicIndex] as String).indexOf("_")),
 							((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString()
 						]
 					);
