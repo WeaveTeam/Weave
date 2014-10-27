@@ -48,7 +48,8 @@ package weave.core
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
+	import weave.primitives.WeaveTreeItem;
 
 	/**
 	 * This is a collection of core functions in the Weave session framework.
@@ -217,7 +218,7 @@ package weave.core
 		public static const TREE_LABEL:String = 'label';
 		public static const TREE_OBJECT:String = 'object';
 		public static const TREE_CHILDREN:String = 'children';
-
+		
 		/**
 		 * @param root The linkable object to be placed at the root node of the tree.
 		 * @return A tree of nodes with the properties "label", "object", and "children"

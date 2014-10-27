@@ -35,7 +35,7 @@ package weave.data
 	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.Bounds2D;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 	
 	/**
 	 * An interface for reprojecting columns of geometries and individual coordinates.

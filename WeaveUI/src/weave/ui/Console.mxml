@@ -61,9 +61,9 @@
 			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
 			import weave.core.WeaveXMLDecoder;
+			import weave.primitives.MethodChainProxy;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
-			import weave.utils.MethodChainProxy;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;

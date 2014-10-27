@@ -46,6 +46,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.Dictionary2D;
 	import weave.primitives.ZoomBounds;
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
@@ -53,7 +54,6 @@ package weave.visualization.plotters
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
-	import weave.utils.Dictionary2D;
 	import weave.utils.ZoomUtils;
 
 	/**
