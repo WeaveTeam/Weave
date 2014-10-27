@@ -8,7 +8,7 @@
 		<select style="width: 100%" ui-select2="{allowClear:true}"
 				ng-model="queryService.queryObject.filters.or[$parent.$index].columns[0]"
 				data-placeholder="Column"
-				ng-change="updateFilterView($parent.$index)"
+				ng-change="updateFilterView($parent.$index)">
 				<option></option>
 				<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
 		</select>
@@ -20,7 +20,7 @@
 		<select ng-if="queryService.dataObject.filters[$parent.$index].addSecond" style="width: 100%" ui-select2="{allowClear : true, dropdownAutoWidth : true}"
 				ng-model="queryService.queryObject.filters.or[$parent.$index].columns[1]"
 				data-placeholder="Column"
-				ng-change="updateFilterView($parent.$index)"
+				ng-change="updateFilterView($parent.$index)">
 				<option></option>
 				<option value="{{col}}" ng-repeat="col in queryService.dataObject.columns"> {{col.title}}</option>
 		</select>
