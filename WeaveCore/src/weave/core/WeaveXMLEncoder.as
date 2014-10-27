@@ -162,7 +162,7 @@ package weave.core
 			try
 			{
 				if (obj.hasOwnProperty(LinkableXML.XML_STRING))
-					obj = XML(obj[LinkableXML.XML_STRING]);
+					obj = LinkableXML.xmlFromState(obj);
 			}
 			catch (e:Error)
 			{

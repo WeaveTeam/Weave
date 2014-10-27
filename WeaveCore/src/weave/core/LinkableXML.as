@@ -32,18 +32,15 @@ package weave.core
 	 */
 	public class LinkableXML extends LinkableVariable
 	{
-		public function LinkableXML(allowNull:Boolean = true)
+		public function LinkableXML()
 		{
 			super(String, verifyXMLString);
-			_allowNull = allowNull;
 		}
-		
-		private var _allowNull:Boolean;
 		
 		private function verifyXMLString(value:String):Boolean
 		{
 			if (value == null)
-				return _allowNull;
+				return true;
 			
 			try {
 				XML(value);
@@ -107,7 +104,7 @@ package weave.core
 		{
 			// return an XMLString wrapper object for use with WeaveXMLEncoder.
 			var result:Object = {};
-			result[XML_STRING] = _sessionStateExternal;
+			result[XML_STRING] = _sessionStateExternal || null;
 			return result;
 		}
 		
