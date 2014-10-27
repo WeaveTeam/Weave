@@ -65,14 +65,16 @@ metadataModule.config(function($provide){
 							//handling nodes when tables TODO check if handling is done correctly
 							if(!node.data.metadata)
 								{
-									$scope.selectedDataTableId = node.data.key;
+									$scope.selectedDataTableId = parseInt(node.data.key);
 									console.log("$scope.selected", $scope.selectedDataTableId);
 								
 								}
 
 							//handle when node is a column
-							if(node.data.metadata)
+							if(node.data.metadata){
+								$scope.selectedDataTableId = node.data.id;
 								getColumnMetadata(node.data);
+							}
 						},
 						//******************************************lazy loading*****************************************************
 						onLazyRead : function(node){
@@ -239,16 +241,21 @@ metadataModule.config(function($provide){
 	  */
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-
-		 queryService.updateEntity($scope.authenticationService.user, 
+		 console.log("updating metadata", $scope.selectedDataTableId);
+		 
+		 if(angular.isDefined($scope.selectedDataTableId))
+			 {
+						 queryService.updateEntity($scope.authenticationService.user, 
 				 				   $scope.authenticationService.password, 
 				 				   $scope.selectedDataTableId, 
 				 				   { 
-			 							publicMetadata : { aws_metadata : jsonaws_metadata }
+										publicMetadata : { aws_metadata : jsonaws_metadata }
 				 				   }).then(function() {
-     		 //$scope.maxTasks = 100;
-			 //$scope.progressValue = 100;
-		 });
+				 					   	//$scope.maxTasks = 100;
+				 					   //$scope.progressValue = 100;
+				 				   });
+			 }
+		 
 	 };
 	 
 	 /**
