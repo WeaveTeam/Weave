@@ -80,7 +80,9 @@ Info to provide a tooltip describing the node (like number of documents found)
 			private var _sortCopyKeys:Function;
 			private function sortCopyKeys(keys:Array):Array
 			{
-				return _sortCopyKeys(keys);
+				if (_sortCopyKeys != null)
+					return _sortCopyKeys(keys);
+				return [];
 			}
 		
 			private const _orderedKeySet:SortedKeySet = registerLinkableChild(this, new SortedKeySet(filteredKeySet,sortCopyKeys));

@@ -61,42 +61,42 @@ package weave.data.DataSources
 		
 		public function getTitleForKey(key:IQualifiedKey):String
 		{
-			return getKeyValueForColumn("title",key) as String;
+			return getKeyValueForColumn("title",key);
 		}
 		
 		public function getDescriptionForKey(key:IQualifiedKey):String
 		{
-			return getKeyValueForColumn("description",key) as String;
+			return getKeyValueForColumn("description",key) ;
 		}
 		
 		public function getImageURLForKey(key:IQualifiedKey):String
 		{
-			return getKeyValueForColumn("imgURL",key) as String;
+			return getKeyValueForColumn("imgURL",key) ;
 		}
 		
 		public function getDatePublishedForKey(key:IQualifiedKey):String
 		{
-			return getKeyValueForColumn("date_published",key) as String;
+			return getKeyValueForColumn("date_published",key) ;
 		}
 		
 		public function getDateAddedForKey(key:IQualifiedKey):String
 		{
-			return getKeyValueForColumn("date_added",key) as String;
+			return getKeyValueForColumn("date_added",key) ;
 		}
 		
 		
-		private function getColumnValueForURL(csvColumnName:String,url:String):*
+		private function getColumnValueForURL(csvColumnName:String,url:String):String
 		{
 			var col:IAttributeColumn = getColumnById(csvColumnName);
 			
 			var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(DOC_KEYTYPE,url);
 			
-			return col.getValueFromKey(key);
+			return col.getValueFromKey(key, String);
 		}
 		
 		public function getTitleForURL(url:String):String
 		{
-			return getColumnValueForURL("title",url) as String;
+			return getColumnValueForURL("title",url) ;
 		}
 		
 		public function getDescriptionForURL(url:String,keywords:Array):AsyncToken
@@ -116,17 +116,17 @@ package weave.data.DataSources
 		
 		public function getImageURLForURL(url:String):String
 		{
-			return getColumnValueForURL("imgURL",url) as String;
+			return getColumnValueForURL("imgURL",url) ;
 		}
 		
 		public function getDatePublishedForURL(url:String):String
 		{
-			return getColumnValueForURL("date_published",url) as String;
+			return getColumnValueForURL("date_published",url) ;
 		}
 		
 		public function getDateAddedForURL(url:String):String
 		{
-			return getColumnValueForURL("date_added",url) as String;
+			return getColumnValueForURL("date_added",url) ;
 		}
 		
 //		public function queryDataSources(queryTerms:Array):void

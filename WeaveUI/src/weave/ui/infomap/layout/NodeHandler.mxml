@@ -99,6 +99,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
+			import weave.utils.ProbeTextUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.tools.CompoundBarChartTool;
@@ -2404,8 +2405,8 @@
 				//Cytoscape setup.
 				object2 = Weave.root.requestObject(_clusterCytoscapeName, CytoscapeWebTool, false);
 				//Initial central node.
-				cytoscapeCSVArray.push(new Array("document","Edge Sources","Edge Targets"));
-				cytoscapeCSVArray.push(new Array("Topics","0","0"));
+				cytoscapeCSVArray.push(["document","Edge Sources","Edge Targets"]);
+				cytoscapeCSVArray.push(["Topics","0","0"]);
 				
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2416,7 +2417,7 @@
 					{
 						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
 						//Following the central node, setup all of the topic nodes.
-						cytoscapeCSVArray.push(new Array(columnName.substring(0,columnName.indexOf("_")),"0",cytoscapeCSVArray.length.toString()));
+						cytoscapeCSVArray.push([columnName.substring(0,columnName.indexOf("_")),"0",cytoscapeCSVArray.length.toString()]);
 					}
 					count++;
 				}
@@ -2435,7 +2436,17 @@
 						}
 					}
 					//Add node name and edge information to growing Cytoscape array datasource. The last j-index is the document link name.
-					cytoscapeCSVArray.push(new Array(((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString(),topicIndex.toString(),cytoscapeCSVArray.length.toString()));
+					cytoscapeCSVArray.push(
+						[
+							(
+								(columnData[i] as Array)[
+									(columnData[i] as Array).length-1
+								] as String
+							).toString(),
+							topicIndex.toString(),
+							cytoscapeCSVArray.length.toString()
+						]
+					);
 				}
 				//Setup the actual Cytoscape DataSource now that we have the array ready.
 				tempCytoscapeCSVDataSource.setCSVData(cytoscapeCSVArray);
@@ -2448,7 +2459,7 @@
 				
 				object.panelTitle.value = 'Document Clustered by Labels';
 				object.enableProbeLines.value = true;
-				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
+				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",ProbeTextUtils.probedColumns);
 				if (object is DraggablePanel)
 					(object as DraggablePanel).restorePanel();
 				

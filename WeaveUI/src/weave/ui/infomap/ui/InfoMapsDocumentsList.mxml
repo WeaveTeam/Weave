@@ -42,25 +42,27 @@
 									 toolTip="" width="100%"> 
 				<mx:Script>
 					<![CDATA[
-					import com.modestmaps.core.Coordinate;
-					
-					import mx.controls.ColorPicker;
-					import mx.core.UITextField;
-					import mx.core.mx_internal;
-					import mx.events.DragEvent;
-					import mx.managers.CursorManager;
-					
-					import weave.core.StageUtils;
-					import weave.data.DataSources.InfoMapsDataSource;
-					import weave.ui.infomap.layout.NodeHandler;
-					import weave.utils.CustomCursorManager;
-					import weave.visualization.layers.InteractiveVisualization;
+						import com.modestmaps.core.Coordinate;
+						
+						import mx.controls.ColorPicker;
+						import mx.core.UITextField;
+						import mx.core.mx_internal;
+						import mx.events.DragEvent;
+						import mx.managers.CursorManager;
+						
+						import weave.api.reportError;
+						import weave.core.StageUtils;
+						import weave.data.DataSources.InfoMapsDataSource;
+						import weave.ui.infomap.layout.NodeHandler;
+						import weave.utils.CustomCursorManager;
+						import weave.visualization.layers.InteractiveVisualization;
 					
 					private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
 					
 					override protected function childrenCreated():void
 					{
-					infomapDataSource.getColumnByName("title").addImmediateCallback(outerDocument,updateLabelText);
+						super.childrenCreated();
+						infomapDataSource.getColumnByName("title").addImmediateCallback(outerDocument,updateLabelText);
 					}
 					
 					private var _mouseDown:Boolean = false;
@@ -131,13 +133,18 @@
 					
 					private function updateLabelText():void
 					{
-					//the list was blinking because the label used to be set from empty to the text again because
-					//the column is busy still getting the data
-					//so we test it to only update the labels when it has the data. 
-					if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnByName("title")))
-					return;
-					if(data != null)
-					this.text = infomapDataSource.getTitleForURL(data.localName);
+						//the list was blinking because the label used to be set from empty to the text again because
+						//the column is busy still getting the data
+						//so we test it to only update the labels when it has the data. 
+						if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnByName("title")))
+							return;
+						
+						if(data != null)
+						{
+							try {
+							this.text = infomapDataSource.getTitleForURL(data.localName);
+							} catch (e:Error) { reportError(e); }
+						}
 					}
 					]]>
 				</mx:Script>
