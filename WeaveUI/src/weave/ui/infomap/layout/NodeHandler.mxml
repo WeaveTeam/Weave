@@ -29,6 +29,9 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			
+			import weave.visualization.tools.CytoscapeWebTool;
+			
 			import mx.controls.Image;
 			import mx.controls.Label;
 			import mx.controls.List;
@@ -383,7 +386,9 @@
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
 				
 				clusterCSVDataSource = Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);
+				tempCytoscapeCSVDataSource = Weave.root.requestObject(_nodeName + "cytoscapeClusterDataSource",CSVDataSource, false);
 				_clusterRadVizName = Weave.root.generateUniqueName(_nodeName + "Clusters");
+				_clusterCytoscapeName = Weave.root.generateUniqueName(_nodeName + "CytoscapeClusters");
 				
 				addChild(topicComponent);
 				topicComponent.rectColors.addImmediateCallback(this, handleTopicLayoutSettingChange); // ToDo
@@ -2336,6 +2341,7 @@
 			}
 			
 			private var _clusterRadVizName:String;
+			private var _clusterCytoscapeName:String;
 			private function getClusters():void
 			{
 				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
@@ -2349,16 +2355,30 @@
 				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
 				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
 				
+				//Set standard params for the Cytoscape Data Source.
+				tempCytoscapeCSVDataSource.keyColName.value = "document";
+				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
 			}
 			
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
+			public var tempCytoscapeCSVDataSource:CSVDataSource = new CSVDataSource();
 			public function showClusters(event:Event=null):void
 			{
+				//Temporary array used to setup the graph structure.
+				var cytoscapeCSVArray:Array = new Array();
+				
 				var object:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
+				var object2:CytoscapeWebTool = Weave.root.getObject(_clusterCytoscapeName) as CytoscapeWebTool;
 				if(object)
 				{
 					object.restorePanel();
+					return;
+				}
+				if(object2)
+				{
+					object2.restorePanel();
 					return;
 				}
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
@@ -2369,13 +2389,26 @@
 					callLater(showClusters);					
 					return;
 				}
+				
+				//For creating Cytoscape CSV datasource.
+				//Made a temporary change to CSVDataSource for this to work as intended here.
+				var columnData:Array = clusterCSVDataSource.getCSVRowData();
+				
 				status.text = "";
+				//Radviz setup.
 				object = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
 				object._plotter.columns.removeAllObjects();
 				object._plotter.probeLineNormalizedThreshold.value = 0.5;
 				object._plotter.localNormalization.value = false;
 				object._plotter.anchorLabelFunction.value = "Class('weave.utils.ColumnUtils').getTitle(column).substring(0,Class('weave.utils.ColumnUtils').getTitle(column).lastIndexOf('_cluster_'))"; // ToDo make it simple
 				//				object._anchorPlotter.anchors.removeAllObjects();
+				
+				//Cytoscape setup.
+				object2 = Weave.root.requestObject(_clusterCytoscapeName, CytoscapeWebTool, false);
+				//Initial central node.
+				cytoscapeCSVArray.push(new Array("document","Edge Sources","Edge Targets"));
+				cytoscapeCSVArray.push(new Array("Topics","0","0"));
+				
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
 				{
@@ -2384,9 +2417,37 @@
 					if(columnName != "document")
 					{
 						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
+						//Following the central node, setup all of the topic nodes.
+						cytoscapeCSVArray.push(new Array(columnName.substring(0,columnName.indexOf("_")),"0",cytoscapeCSVArray.length.toString()));
 					}
 					count++;
 				}
+				//Build up the Cytoscape node and edges data.
+				for( var i:int = 1; i < columnData.length; i++)
+				{
+					var maxTopic:Number = -1.0;
+					var topicIndex:int = 0;
+					for( var j:int = 0; j < (columnData[i] as Array).length - 1; j++)
+					{
+						if( Number(((columnData[i] as Array)[j] as String)) > maxTopic )
+						{
+							//Set new max and index of cluster.
+							maxTopic = Number(((columnData[i] as Array)[j] as String));
+							topicIndex = j + 1;
+						}
+					}
+					//Add node name and edge information to growing Cytoscape array datasource. The last j-index is the document link name.
+					cytoscapeCSVArray.push(new Array(((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString(),topicIndex.toString(),cytoscapeCSVArray.length.toString()));
+				}
+				//Setup the actual Cytoscape DataSource now that we have the array ready.
+				tempCytoscapeCSVDataSource.setCSVData(cytoscapeCSVArray);
+				//Have Cytoscape utilize our Data Source.
+				var colIDS:Array = tempCytoscapeCSVDataSource.getColumnNames();
+				tempCytoscapeCSVDataSource.putColumn(colIDS[0],object2.nodeLabelColumn);
+				tempCytoscapeCSVDataSource.putColumn(colIDS[1],object2.edgeSourceColumn);
+				tempCytoscapeCSVDataSource.putColumn(colIDS[2],object2.edgeTargetColumn);
+				
+				
 				object.panelTitle.value = 'Document Clustered by Labels';
 				object.enableProbeLines.value = true;
 				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
@@ -2830,6 +2891,7 @@
 				
 				removeWordCloud();
 				Weave.root.removeObject(_clusterRadVizName);
+				Weave.root.removeObject(_clusterCytoscapeName);
 				adjustNodeBase();
 			}
 			
