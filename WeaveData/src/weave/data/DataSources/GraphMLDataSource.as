@@ -228,7 +228,7 @@ package weave.data.DataSources
 
             if (data_type == DataType.NUMBER) setRecords = setRecordsNumber;
 
-            (WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(key_type, key_column, proxyColumn, setRecords, key_vector);
+            (WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, key_type, key_column, setRecords, key_vector);
         }
 
         private static function getPropertyArray(objects:Array, property:String, mapping:Object, def:String):Array

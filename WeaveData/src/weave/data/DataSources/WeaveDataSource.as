@@ -610,7 +610,7 @@ package weave.data.DataSources
 					_attributeHierarchy.detectChanges();
 				};
 				
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType, result.keys, proxyColumn, setRecords, keysVector);
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, result.keys, setRecords, keysVector);
 			}
 			catch (e:Error)
 			{
