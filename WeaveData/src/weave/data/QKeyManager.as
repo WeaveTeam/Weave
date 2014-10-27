@@ -22,6 +22,7 @@ package weave.data
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.DataType;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
@@ -124,10 +125,15 @@ package weave.data
 		 * 
 		 * @return An array of QKeys that will be filled in asynchronously.
 		 */
-		public function getQKeysAsync(keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
+		public function getQKeysAsync(relevantContext:ILinkableObject, keyType:String, keyStrings:Array, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
 		{
-			new QKeyGetter(this, keyType, keyStrings, relevantContext, asyncCallback, outputKeys);
+			var qkg:QKeyGetter = _qkeyGetterLookup[relevantContext] as QKeyGetter;
+			if (!qkg)
+				_qkeyGetterLookup[relevantContext] = qkg = new QKeyGetter(this, relevantContext);
+			qkg.asyncStart(keyType, keyStrings, asyncCallback, outputKeys);
 		}
+		
+		private const _qkeyGetterLookup:Dictionary = new Dictionary(true);
 
 		/**
 		 * Get a list of all previoused key types.
@@ -224,12 +230,20 @@ internal class QKey implements IQualifiedKey
 
 import flash.utils.getTimer;
 
+import weave.api.core.ILinkableObject;
 import weave.api.data.IQualifiedKey;
+import weave.api.detectLinkableObjectChange;
 import weave.data.QKeyManager;
 
 internal class QKeyGetter
 {
-	public function QKeyGetter(manager:QKeyManager, keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>)
+	public function QKeyGetter(manager:QKeyManager, relevantContext:ILinkableObject)
+	{
+		this.manager = manager;
+		this.relevantContext = relevantContext;
+	}
+	
+	public function asyncStart(keyType:String, keyStrings:Array, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
 	{
 		this.manager = manager;
 		this.keyType = keyType;
@@ -243,6 +257,7 @@ internal class QKeyGetter
 	
 	private var i:int = 0;
 	private var manager:QKeyManager;
+	private var relevantContext:ILinkableObject;
 	private var keyType:String;
 	private var keyStrings:Array;
 	private var outputKeys:Vector.<IQualifiedKey>;

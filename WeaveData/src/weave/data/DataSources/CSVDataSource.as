@@ -564,7 +564,7 @@ package weave.data.DataSources
 			
 			proxyColumn.setMetadata(metadata);
 			var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
-			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType.value, keyStrings, proxyColumn, setRecords, keysVector);
+			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType.value, keyStrings, setRecords, keysVector);
 		}
 
 		/**
