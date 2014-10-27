@@ -53,7 +53,7 @@ package weave.ui.infomap.ui
 				view.addChild(docList);
 				docList.parentNode = parentNode;
 			}
-			if(docList.dataProvider == null || (StandardLib.arrayCompare(temp,(docList.dataProvider as ArrayCollection).source) != 0))
+			if(docList.dataProvider == null || (StandardLib.compare(temp,(docList.dataProvider as ArrayCollection).source) != 0))
 			{
 				docList.dataProvider = temp;
 			}

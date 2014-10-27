@@ -66,6 +66,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				
 				_keys.replaceKeys(value);
 				_orderedKeys = value.concat();
+				_sortCopyKeys = SortedKeySet.generateSortCopyFunction([_orderedKeys.indexOf]);
 				startIndex.value = 0;
 				startIndex.triggerCallbacks();
 			}
@@ -76,28 +77,13 @@ Info to provide a tooltip describing the node (like number of documents found)
 			}
 			
 			private var _orderedKeys:Array = [];
-			/* 0 is both numbers are NaN. 1 if only a is a NaN. -1 if only b is a NaN. 1 if a is less than b. -1 if a is greater than b.*/
-			private function keysCompareFunction(key1:IQualifiedKey, key2:IQualifiedKey):int
+			private var _sortCopyKeys:Function;
+			private function sortCopyKeys(keys:Array):Array
 			{
-				var numeric1:int = _orderedKeys.indexOf(key1);
-				var numeric2:int = _orderedKeys.indexOf(key2);
-				if(numeric1 == -1 && numeric2 == -1)
-					return 0;
-				if(numeric1 == -1)
-					return 1;
-				if(numeric2 == -1)
-					return -1;
-				
-				if(numeric1 < numeric2)
-					return -1;
-				if(numeric1 > numeric2)
-					return 1;
-				
-				return 0;
+				return _sortCopyKeys(keys);
 			}
-			
-			
-			private const _orderedKeySet:SortedKeySet = registerLinkableChild(this, new SortedKeySet(filteredKeySet,keysCompareFunction));
+		
+			private const _orderedKeySet:SortedKeySet = registerLinkableChild(this, new SortedKeySet(filteredKeySet,sortCopyKeys));
 				
 			public function applyFilter(name:String,keys:Array):void
 			{

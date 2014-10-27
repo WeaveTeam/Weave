@@ -29,9 +29,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			
-			import weave.visualization.tools.CytoscapeWebTool;
-			
 			import mx.controls.Image;
 			import mx.controls.Label;
 			import mx.controls.List;
@@ -105,6 +102,7 @@
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.tools.CompoundBarChartTool;
+			import weave.visualization.tools.CytoscapeWebTool;
 			import weave.visualization.tools.RadVizTool;
 			
 			private const currentQuery:QueryObject = newLinkableChild(this,QueryObject);
@@ -1554,7 +1552,7 @@
 						_viewToObjectMapping[WORD_CLOUD_VIEW] = wordCloud;
 					}
 					wordCloud.y= nodeBase.filterStatus.y+nodeBase.filterStatus.height;
-					if(StandardLib.arrayCompare(wordCloud.dataProvider,wordCount) != 0)
+					if(StandardLib.compare(wordCloud.dataProvider,wordCount) != 0)
 					{
 						wordCloud.dataProvider = wordCount;
 						wordCloud.draw(numOfWordsInCloud.value);
@@ -2016,7 +2014,7 @@
 			private var wasDragged:Boolean = false;
 			private var _lastX:Number = 0;
 			private var _lastY:Number = 0;
-			private var sbroot:DisplayObject = Application.application.systemManager.getSandboxRoot();
+			private var sbroot:DisplayObject = WeaveAPI.topLevelApplication.systemManager.getSandboxRoot();
 			private var handCursorID:int = -1;
 			protected function canvas1_mouseDownHandler(event:MouseEvent):void
 			{
@@ -2458,7 +2456,7 @@
 				var tempColumnNames:Array = object._plotter.columns.getNames();
 				var tempLabelCluster:String = "";
 				var tempLabelWithCluster:String = "";
-				for (var i:int = 0; i < tempColumnNames.length; i++)
+				for (i = 0; i < tempColumnNames.length; i++)
 				{
 					tempLabelWithCluster = (object._plotter.columns.getObject(tempColumnNames[i]) as ReferencedColumn).getMetadata("title");
 					tempLabelCluster = tempLabelWithCluster.substring(tempLabelWithCluster.lastIndexOf('_cluster_') + 9); // ToDo temp hack to remove label cluster string

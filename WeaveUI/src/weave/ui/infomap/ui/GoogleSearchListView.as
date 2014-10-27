@@ -56,7 +56,7 @@ package weave.ui.infomap.ui
 				view.removeAllChildren();
 				view.addChild(googleSearchList);
 			}
-			if(googleSearchList.dataProvider == null || (StandardLib.arrayCompare(temp,(googleSearchList.dataProvider as ArrayCollection).source) != 0))
+			if(googleSearchList.dataProvider == null || (StandardLib.compare(temp,(googleSearchList.dataProvider as ArrayCollection).source) != 0))
 			{
 				googleSearchList.dataProvider = temp;
 			}
