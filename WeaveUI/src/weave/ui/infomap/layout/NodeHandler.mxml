@@ -385,7 +385,8 @@
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
 				
 				clusterCSVDataSource = Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);
-				tempCytoscapeCSVDataSource = Weave.root.requestObject(_nodeName + "cytoscapeClusterDataSource",CSVDataSource, false);
+				tempCytoscapeEdgeCSVDataSource = Weave.root.requestObject(_nodeName + "cytoscapeEdgeClusterDataSource",CSVDataSource, false);
+				tempCytoscapeNodeCSVDataSource = Weave.root.requestObject(_nodeName + "cytoscapeNodeClusterDataSource",CSVDataSource, false);
 				_clusterRadVizName = Weave.root.generateUniqueName(_nodeName + "Clusters");
 				_clusterCytoscapeName = Weave.root.generateUniqueName(_nodeName + "CytoscapeClusters");
 				
@@ -2355,18 +2356,20 @@
 				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
 				
 				//Set standard params for the Cytoscape Data Source.
-				tempCytoscapeCSVDataSource.keyColName.value = "document";
-				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				tempCytoscapeNodeCSVDataSource.keyColName.value = "document";
+				tempCytoscapeNodeCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
 				
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
 			}
 			
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
-			public var tempCytoscapeCSVDataSource:CSVDataSource = new CSVDataSource();
+			public var tempCytoscapeEdgeCSVDataSource:CSVDataSource = new CSVDataSource();
+			public var tempCytoscapeNodeCSVDataSource:CSVDataSource = new CSVDataSource();
 			public function showClusters(event:Event=null):void
 			{
 				//Temporary array used to setup the graph structure.
-				var cytoscapeCSVArray:Array = new Array();
+				var cytoscapeEdgeCSVArray:Array = new Array();
+				var cytoscapeNodeCSVArray:Array = new Array();
 				
 				var object:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
 				if(object)
@@ -2398,8 +2401,9 @@
 				
 				//Cytoscape setup.
 				//Initial central node.
-				cytoscapeCSVArray.push(["document","Edge Sources","Edge Targets"]);
-				cytoscapeCSVArray.push(["Topics","Topics","Topics"]);
+				cytoscapeEdgeCSVArray.push(["Edge Sources","Edge Targets", "Edge Weights"]);
+				cytoscapeNodeCSVArray.push(["document"]);
+				cytoscapeNodeCSVArray.push(["Topics"]);
 				
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2410,35 +2414,34 @@
 					{
 						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
 						//Following the central node, setup all of the topic nodes.
-						cytoscapeCSVArray.push([columnName.substring(0,columnName.indexOf("_")),"Topics",columnName.substring(0,columnName.indexOf("_"))]);
+						cytoscapeEdgeCSVArray.push(["Topics",columnName.substring(0,columnName.indexOf("_")),1.0]);
+						cytoscapeNodeCSVArray.push([columnName.substring(0,columnName.indexOf("_"))]);
 					}
 					count++;
 				}
 				//Build up the Cytoscape node and edges data.
 				for( var i:int = 1; i < columnData.length; i++)
 				{
-					var maxTopic:Number = -1.0;
-					var topicIndex:int = 0;
+					cytoscapeNodeCSVArray.push([((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString()]);
 					for( var j:int = 0; j < (columnData[i] as Array).length - 1; j++)
 					{
-						if( Number(((columnData[i] as Array)[j] as String)) > maxTopic )
+						if( Number(((columnData[i] as Array)[j] as String)) > 0.0 )
 						{
-							//Set new max and index of cluster.
-							maxTopic = Number(((columnData[i] as Array)[j] as String));
-							topicIndex = j;
+							//If an edge has a value, add it to the graph.
+							cytoscapeEdgeCSVArray.push(
+								[
+									(columnNames[j] as String).substring(0,(columnNames[j] as String).indexOf("_")),
+									((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString(),
+									Number(((columnData[i] as Array)[j] as String))
+								]
+							);
 						}
 					}
-					//Add node name and edge information to growing Cytoscape array datasource. The last j-index is the document link name.
-					cytoscapeCSVArray.push(
-						[
-							((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString(),
-							(columnNames[topicIndex] as String).substring(0,(columnNames[topicIndex] as String).indexOf("_")),
-							((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString()
-						]
-					);
 				}
+						
 				//Setup the actual Cytoscape DataSource now that we have the array ready.
-				tempCytoscapeCSVDataSource.setCSVData(cytoscapeCSVArray);
+				tempCytoscapeEdgeCSVDataSource.setCSVData(cytoscapeEdgeCSVArray);
+				tempCytoscapeNodeCSVDataSource.setCSVData(cytoscapeNodeCSVArray);
 				
 				
 				//Have Cytoscape utilize our Data Source.
