@@ -2369,15 +2369,9 @@
 				var cytoscapeCSVArray:Array = new Array();
 				
 				var object:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
-				var object2:CytoscapeWebTool = Weave.root.getObject(_clusterCytoscapeName) as CytoscapeWebTool;
 				if(object)
 				{
 					object.restorePanel();
-					return;
-				}
-				if(object2)
-				{
-					object2.restorePanel();
 					return;
 				}
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
@@ -2403,10 +2397,9 @@
 				//				object._anchorPlotter.anchors.removeAllObjects();
 				
 				//Cytoscape setup.
-				object2 = Weave.root.requestObject(_clusterCytoscapeName, CytoscapeWebTool, false);
 				//Initial central node.
 				cytoscapeCSVArray.push(["document","Edge Sources","Edge Targets"]);
-				cytoscapeCSVArray.push(["Topics","0","0"]);
+				cytoscapeCSVArray.push(["Topics","Topics","Topics"]);
 				
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2417,7 +2410,7 @@
 					{
 						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
 						//Following the central node, setup all of the topic nodes.
-						cytoscapeCSVArray.push([columnName.substring(0,columnName.indexOf("_")),"0",cytoscapeCSVArray.length.toString()]);
+						cytoscapeCSVArray.push([columnName.substring(0,columnName.indexOf("_")),"Topics",columnName.substring(0,columnName.indexOf("_"))]);
 					}
 					count++;
 				}
@@ -2432,29 +2425,30 @@
 						{
 							//Set new max and index of cluster.
 							maxTopic = Number(((columnData[i] as Array)[j] as String));
-							topicIndex = j + 1;
+							topicIndex = j;
 						}
 					}
 					//Add node name and edge information to growing Cytoscape array datasource. The last j-index is the document link name.
 					cytoscapeCSVArray.push(
 						[
-							(
-								(columnData[i] as Array)[
-									(columnData[i] as Array).length-1
-								] as String
-							).toString(),
-							topicIndex.toString(),
-							cytoscapeCSVArray.length.toString()
+							((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString(),
+							((columnData[i] as Array)[topicIndex] as String).substring(0,columnName.indexOf("_")),
+							((columnData[i] as Array)[(columnData[i] as Array).length-1] as String).toString()
 						]
 					);
 				}
 				//Setup the actual Cytoscape DataSource now that we have the array ready.
 				tempCytoscapeCSVDataSource.setCSVData(cytoscapeCSVArray);
+				
+				
 				//Have Cytoscape utilize our Data Source.
-				var colIDS:Array = tempCytoscapeCSVDataSource.getColumnNames();
-				tempCytoscapeCSVDataSource.putColumn(colIDS[0],object2.nodeLabelColumn);
-				tempCytoscapeCSVDataSource.putColumn(colIDS[1],object2.edgeSourceColumn);
-				tempCytoscapeCSVDataSource.putColumn(colIDS[2],object2.edgeTargetColumn);
+				/////////////////////////////////////////////////////////////////////
+				// The code for initializing columns to be used in Cytoscape       //
+				/////////////////////////////////////////////////////////////////////
+				//var colIDS:Array = tempCytoscapeCSVDataSource.getColumnNames();
+				//tempCytoscapeCSVDataSource.putColumn(colIDS[0],object2.nodeLabelColumn);
+				//tempCytoscapeCSVDataSource.putColumn(colIDS[1],object2.edgeSourceColumn);
+				//tempCytoscapeCSVDataSource.putColumn(colIDS[2],object2.edgeTargetColumn);
 				
 				
 				object.panelTitle.value = 'Document Clustered by Labels';
