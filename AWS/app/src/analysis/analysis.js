@@ -313,49 +313,48 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
-	
+	/************** watches for query validation******************/
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.scriptSelected,
 		        queryService.queryObject.dataTable,
 		        queryService.queryObject.scriptOptions
 		        ];
 	}, function () {
-		
-		if(!queryService.queryObject.dataTable.hasOwnProperty("id")) {
-			queryService.dataObject.validationStatus = "Data table has not been selected.";
-			queryService.dataObject.isQueryValid = false;
-		} else {
-			if(!queryService.queryObject.scriptSelected) {
-				queryService.dataObject.validationStatus = "Script has not been selected.";
-				queryService.dataObject.isQueryValid = false;
-			} else {
-				
-				$scope.$watch(function() {
-					return queryService.queryObject.scriptOptions;
-				}, function () {
-					var g = 0;
-					var counter = Object.keys(queryService.queryObject.scriptOptions).length;
-					for(var f in queryService.queryObject.scriptOptions) {
-						//var check = queryObjectToValidate.scriptOptions[f];
-						if(!queryService.queryObject.scriptOptions[f]) {
-							queryService.dataObject.validationStatus = "'" + f + "'" + " has not been selected";
-							queryService.dataObject.isQueryValid = false;
-
-							break;
-						}
-						else
-							g++;
+	//if the datatable has not been selected
+	if(!queryService.queryObject.dataTable.hasOwnProperty("id")){
+		queryService.dataObject.validationStatus = "Data table has not been selected.";
+		queryService.dataObject.isQueryValid = false;
+	}	
+	//if the script has not been selected
+	else if(!queryService.queryObject.scriptSelected){
+		queryService.dataObject.validationStatus = "Script has not been selected.";
+		queryService.dataObject.isQueryValid = false;
+	}
+	//this leaves checking the scriptOptions
+	else {
+			$scope.$watch(function() {
+				return queryService.queryObject.scriptOptions;
+			}, function () {
+				var g = 0;
+				var counter = Object.keys(queryService.queryObject.scriptOptions).length;
+				for(var f in queryService.queryObject.scriptOptions) {
+					if(!queryService.queryObject.scriptOptions[f]) {
+						queryService.dataObject.validationStatus = "'" + f + "'" + " has not been selected";
+						queryService.dataObject.isQueryValid = false;
+	
+						break;
 					}
-					
-					if(g == counter) {
-						queryService.dataObject.validationStatus = "Query is valid";
-						queryService.dataObject.isQueryValid = true;
-					}
-				}, true);
-			}
+					else
+						g++;
+				}
+				if(g == counter) {
+					queryService.dataObject.validationStatus = "Query is valid";
+					queryService.dataObject.isQueryValid = true;
+				}
+			}, true);
 		}
 	}, true);
-	
+	/************** watches for query validation******************/
 });
 
 
