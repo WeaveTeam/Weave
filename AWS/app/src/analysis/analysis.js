@@ -118,9 +118,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	};
 	
 	var queryObjectTreeData = buildTree2(queryService.queryObject);
-	queryObjectTreeData.title = "Query Object";
-	console.log(queryObjectTreeData);
-	
 	$('#queryObjTree').dynatree({
 		minExpandLevel: 1,
 		children : queryObjectTreeData,
@@ -130,10 +127,25 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		},
 		debugLevel: 0
 	});
+	$scope.$watch('queryService.queryObject', function () {
+		queryObjectTreeData = buildTree2(queryService.queryObject);
+		queryObjectTreeData.title = "Query Object";
+		$('#queryObjTree').dynatree({
+			minExpandLevel: 1,
+			children : queryObjectTreeData,
+			keyBoard : true,
+			onPostInit: function(isReloading, isError) {
+				this.reactivate();
+			},
+			debugLevel: 0
+		});
+		$("#queryObjTree").dynatree("getTree").reload();
+		
+	}, true);
 	
-	 $("#queryObjectPanel" ).draggable();
+	 $("#queryObjectPanel" ).draggable().resizable();;
 	
-	$scope.getDataTable = function(term, done) {
+	 $scope.getDataTable = function(term, done) {
 		var values = queryService.dataObject.dataTableList;
 		done($filter('filter')(values, {title:term}, 'title'));
 	};

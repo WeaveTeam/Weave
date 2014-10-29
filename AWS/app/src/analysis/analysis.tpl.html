@@ -246,7 +246,7 @@
 			
 			<div id="queryObjectPanel" class="databox" style="width: 50%; height:400px">
 					<!-- <div class="databox" style="width: 200px;"> -->
-					<div id="indicator" class=" header panel-heading">
+					<div id="indicator" class=" header panel-heading" style="margin-bottom: 0px">
 						<h2>Query Object Editor</h2>
 						<a href="javascript: void(0)" 
 							class="close-button" data-trigger="hover" placement="right" title="Remove"  
@@ -255,10 +255,10 @@
 						</a>
 					</div>
 					
-					<div class="body" style="width: 100%">
+					<div id="qobjPanelContent" class="body" style="width: 100%; height:100%; border: solid 4px; border-color: #4C4F53">
 						Reload - Apply - Save & Close - Cancel
-						<div id="queryObjTree"style="width: 50%; height: 300px; overflow:hidden"></div>
-   						<br>
+						<div id="queryObjTree"style="width: 50%; height: 80%; overflow:hidden;"></div>
+   						<div style="float:right"> Value </div>
 					</div>
 				</div>
 	</div>
