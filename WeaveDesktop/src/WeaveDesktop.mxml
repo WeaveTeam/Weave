@@ -19,6 +19,8 @@
 			import weave.api.reportError;
 			import weave.application.VisApp;
 			
+			weaveTraceImpl as Function; // if we don't reference this, it won't be included in the build
+			
 			public var version:String;
 			public var visApp:VisApp = null;
 			private var params:Object = null;
@@ -40,7 +42,7 @@
 			}
 			private function doDragEnter(e:NativeDragEvent):void
 			{
-				NativeDragManager.acceptDragDrop(this);
+				NativeDragManager.acceptDragDrop(WeaveAPI.StageUtils.stage);
 			}
 			private function doDragDrop(e:NativeDragEvent):void
 			{
