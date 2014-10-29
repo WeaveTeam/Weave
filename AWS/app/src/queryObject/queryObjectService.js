@@ -107,7 +107,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			title : "Beta Query Object",
 			date : new Date(),
     		author : "",
-    		dataTable : null,
+    		dataTable : "",
 			ComputationEngine : "R",
 			Indicator : "",
 			filters : {
