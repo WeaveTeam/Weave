@@ -150,10 +150,9 @@
 				
 				
 				
-				
 	
 <!-- FILTERS -->	
-<!-- 				<div ng-include src="'src/analysis/data_filters/data_filters.html'"></div> -->
+				<div ng-include src="'src/analysis/data_filters/data_filters.html'"></div>
 	
 				<!--Geography filter -->
 				<div class="databox" style="width: 15%;"
@@ -165,7 +164,8 @@
 					</div>
 					<div class="body">
 						<div style="height: 100%"
-							ng-include="AnalysisService.content_tools.GeographyFilter.template_url"></div>
+							ng-include="AnalysisService.geoFilter_tool.template_url">
+							</div>
 		
 					</div>
 				</div>
@@ -182,7 +182,7 @@
 	
 					<div class="body">
 						<div style="height: 100%"
-							ng-include="AnalysisService.content_tools.TimePeriodFilter.template_url"></div>
+							ng-include="AnalysisService.timeFilter_tool.template_url"></div>
 					</div>
 	
 				</div>
@@ -222,6 +222,7 @@
 			</div>
 		</div>
 		<br><br><br>
+		
 		<input type="checkbox" ng-model="queryService.dataObject.openInNewWindow"> Show Weave in separate window</input>
 		
 		

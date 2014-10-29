@@ -21,45 +21,48 @@ var tryParseJSON = function(jsonString){
 
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
-AnalysisModule.service('AnalysisService', function() {
+//using value recipes so that these tools could be used elsewhere as well TODO: make them into directives
+AnalysisModule.value('indicator_tool', {
+												title : 'Indicator',
+												template_url : 'src/analysis/indicator/indicator.tpl.html',
+												description : 'Choose an Indicator for the Analysis',
+												category : 'indicatorfilter'
+});
+
+AnalysisModule.value('geoFilter_tool',{
+										title : 'Geography Filter',
+										template_url : 'src/analysis/data_filters/geography.tpl.html',
+										description : 'Filter data by States and Counties',
+										category : 'datafilter'
+});
+
+AnalysisModule.value('timeFilter_tool', {
+											title : 'Time Period Filter',
+											template_url : 'src/analysis/data_filters/time_period.tpl.html',
+											description : 'Filter data by Time Period',
+											category : 'datafilter'
+});
+
+AnalysisModule.value('byVariableFilter_tool', {
+													title : 'By Variable Filter',
+													template_url : 'src/analysis/data_filters/by_variable.tpl.html',
+													description : 'Filter data by Variables',
+													category : 'datafilter'
+});
+
+
+AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', function(geoFilter_tool, timeFilter_tool) {
 	
 	var AnalysisService = {
-							content_tools :{
-												Indicator : {
-																title : 'Indicator',
-																template_url : 'src/analysis/indicator/indicator.tpl.html',
-																description : 'Choose an Indicator for the Analysis',
-																category : 'indicatorfilter'
-															},
-															
-												GeographyFilter : {
-																		title : 'Geography Filter',
-																		template_url : 'src/analysis/data_filters/geography.tpl.html',
-																		description : 'Filter data by States and Counties',
-																		category : 'datafilter'
-																  },
-																  
-											    TimePeriodFilter : {
-																    	title : 'Time Period Filter',
-																		template_url : 'src/analysis/data_filters/time_period.tpl.html',
-																		description : 'Filter data by Time Period',
-																		category : 'datafilter'
-											    					},
-											    					
-						    					ByVariableFilter : {
-											    						title : 'By Variable Filter',
-											    						template_url : 'src/analysis/data_filters/by_variable.tpl.html',
-											    						description : 'Filter data by Variables',
-											    						category : 'datafilter'
-						    										}
-										   }
-										  
+			
 	};
 	
-
+	AnalysisService.geoFilter_tool = geoFilter_tool;
+	AnalysisService.timeFilter_tool = timeFilter_tool;
+	
 	return AnalysisService;
 	
-});
+}]);
 
 AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService, AnalysisService, WeaveService, QueryHandlerService, $window) {
 
