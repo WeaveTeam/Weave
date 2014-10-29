@@ -19,11 +19,6 @@
 	text-align: center;
 }
 
-#footer {
-	position: fixed;
-    bottom: 0;
-    width: 100%;
-}
 .myaside {
 	z-index: 1049;
 	margin-left :20px;
