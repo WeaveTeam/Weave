@@ -132,6 +132,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		return item.title;
 	};
 	
+	
+	//******************************managing weave and its session state**********************************************//
 	$scope.$watch(function() {
 		return queryService.dataObject.openInNewWindow;
 	}, function() {
@@ -181,6 +183,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
+	$scope.$watchCollection(function() {
+		return $('#weave');
+	}, function() {
+		if($('#weave').length) {
+			WeaveService.weave = $('#weave')[0];
+		} else {
+			WeaveService.weave = null;
+		}
+	});
+	
+	//******************************managing weave and its session state**********************************************//
+	
+	
 	$scope.IndicDescription = "";
 	$scope.varValues = [];
 	
@@ -194,20 +209,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		WeaveService[tool.id](queryService.queryObject[tool.id]); // temporary because the watch is not triggered
 	};
 	
-	//clears the session state
-	$scope.clearSessionState = function(){
-		WeaveService.clearSessionState();
-	};
-	
-	$scope.$watchCollection(function() {
-		return $('#weave');
-	}, function() {
-		if($('#weave').length) {
-			WeaveService.weave = $('#weave')[0];
-		} else {
-			WeaveService.weave = null;
-		}
-	});
 	
 	$scope.$watch('queryService.queryObject.Indicator', function() {
 		
