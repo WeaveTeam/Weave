@@ -120,7 +120,8 @@
 				</nav>
 			</header>
 <!-- BUTTON CONTAINER -->		
-				<div style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed; display: table" ng-controller = DialogController>
+				<div ng-if = "$route.current.activetab == 'analysis'"
+					style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed; display: table" ng-controller = DialogController>
 				<!-- CLEAR button --> 
 							<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width : 10%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a>
 				<!-- SAVE output visuals button -->	 
