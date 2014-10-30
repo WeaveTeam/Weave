@@ -410,6 +410,9 @@ package weave
 				{
 					history.setSessionState(_history);
 				}
+				
+//				if (archive.objects['lang'])
+//					WeaveAPI.LocaleManager.importLocalizations(archive.objects['lang']);
 			}
 			
 			// hack for forcing VisApplication menu to refresh
