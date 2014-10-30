@@ -12,19 +12,20 @@
 				Enable
 			</td>
 		</tr>
-		
 		<div class="portlet-content">
 			<!--<select style="width: 100%" id="duallistboxid" dual-list-box multiple ng-model="selected" data-placeholder="Choose Columns"
 			ng-options="opt for opt in options"></select>-->
 
-			<!--<select
-			ng-options="opt for opt in options"
-			multiple
-			ng-model="selected"
-			bs-duallistbox>
-			</select>-->
+<!-- 			<select -->
+<!-- 			multiple -->
+<!-- 			dual-list-box> -->
+<!-- 			<option></option> -->
+<!-- 			<option ng-repeat="dt in options" value="{{dt}}">{{dt.title}}</option> -->
+<!-- 			</select> -->
+			
+			
 			<select id="duallistboxid" dual-list-box multiple ng-model="service.queryObject.DataTableTool.columns" data-placeholder="Choose Columns"
-			ng-options="output as output for output in WeaveService.columnNames">
+			ng-options="output for output in WeaveService.columnNames">
 			</select>
 
 			<!--<span>Data Table</span>

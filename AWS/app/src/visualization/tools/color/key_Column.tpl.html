@@ -1,0 +1,10 @@
+<div style="width: 100%" class="master-select2-container">
+						<select style="width: 100%" ui-select2="{allowClear : true}"
+								ng-controller="ColorCtrl"
+								ng-model="service.queryObject.keyColumn.name"
+								data-placeholder="Choose Key Column">
+								<option></option>
+								<option value="{{output}}"
+										ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+						</select>
+</div>

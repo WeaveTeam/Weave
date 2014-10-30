@@ -50,12 +50,63 @@ AnalysisModule.value('byVariableFilter_tool', {
 													category : 'datafilter'
 });
 
+AnalysisModule.value('BarChartTool',{
+										id : 'BarChartTool',
+										title : 'Bar Chart Tool',
+										template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
 
-AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', function(geoFilter_tool, timeFilter_tool) {
+});
+
+AnalysisModule.value('MapTool', {
+									id : 'MapTool',
+									title : 'Map Tool',
+									template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+});
+
+AnalysisModule.value('ScatterPlotTool', {
+											id : 'ScatterPlotTool',
+											title : 'Scatter Plot Tool',
+											template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+											description : 'Display a Scatter Plot in Weave'
+});
+
+AnalysisModule.value('DataTableTool', {
+											id : 'DataTableTool',
+											title : 'Data Table Tool',
+											template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
+											description : 'Display a Data Table in Weave'
+});
+
+AnalysisModule.value('color_Column', {
+											title : 'Color Column',
+											template_url : 'src/visualization/tools/color/color_Column.tpl.html',
+											description : 'Set the color column in Weave'
+});
+
+
+AnalysisModule.value('key_Column', {
+										title : 'Key Column',
+										template_url : 'src/visualization/tools/color/key_Column.tpl.html',
+										description : 'Set the key column in Weave'
+});
+
+
+
+
+
+AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column' ,
+                                           function(geoFilter_tool, timeFilter_tool,BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column ) {
 	
 	var AnalysisService = {
 			
 	};
+	
+	AnalysisService.weaveTools = [MapTool,
+	                              BarChartTool,
+	                              DataTableTool,
+	                              ScatterPlotTool,
+	                              color_Column,
+	                              key_Column];
 	
 	AnalysisService.geoFilter_tool = geoFilter_tool;
 	AnalysisService.timeFilter_tool = timeFilter_tool;
