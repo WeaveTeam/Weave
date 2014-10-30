@@ -1,4 +1,4 @@
-AnalysisModule.controller('DialogController', function ($scope, $modal, queryService) {
+AnalysisModule.controller('DialogController', function ($scope, $modal, queryService, WeaveService) {
 	$scope.projectEntered2 = "Hello";
 	$scope.opts = {
 		 backdrop: false,
@@ -23,6 +23,12 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
     		
     	});
     };
+    
+  //clears the session state
+	$scope.clearSessionState = function(){
+		WeaveService.clearSessionState();
+	};
+	
     
   })
  .controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered) {

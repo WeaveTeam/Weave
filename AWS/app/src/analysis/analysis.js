@@ -21,75 +21,48 @@ var tryParseJSON = function(jsonString){
 
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
-AnalysisModule.service('AnalysisService', function() {
+//using value recipes so that these tools could be used elsewhere as well TODO: make them into directives
+AnalysisModule.value('indicator_tool', {
+												title : 'Indicator',
+												template_url : 'src/analysis/indicator/indicator.tpl.html',
+												description : 'Choose an Indicator for the Analysis',
+												category : 'indicatorfilter'
+});
+
+AnalysisModule.value('geoFilter_tool',{
+										title : 'Geography Filter',
+										template_url : 'src/analysis/data_filters/geography.tpl.html',
+										description : 'Filter data by States and Counties',
+										category : 'datafilter'
+});
+
+AnalysisModule.value('timeFilter_tool', {
+											title : 'Time Period Filter',
+											template_url : 'src/analysis/data_filters/time_period.tpl.html',
+											description : 'Filter data by Time Period',
+											category : 'datafilter'
+});
+
+AnalysisModule.value('byVariableFilter_tool', {
+													title : 'By Variable Filter',
+													template_url : 'src/analysis/data_filters/by_variable.tpl.html',
+													description : 'Filter data by Variables',
+													category : 'datafilter'
+});
+
+
+AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', function(geoFilter_tool, timeFilter_tool) {
 	
 	var AnalysisService = {
-							content_tools :{
-												Indicator : {
-																title : 'Indicator',
-																template_url : 'src/analysis/indicator/indicator.tpl.html',
-																description : 'Choose an Indicator for the Analysis',
-																category : 'indicatorfilter'
-															},
-															
-												GeographyFilter : {
-																		title : 'Geography Filter',
-																		template_url : 'src/analysis/data_filters/geography.tpl.html',
-																		description : 'Filter data by States and Counties',
-																		category : 'datafilter'
-																  },
-																  
-											    TimePeriodFilter : {
-																    	title : 'Time Period Filter',
-																		template_url : 'src/analysis/data_filters/time_period.tpl.html',
-																		description : 'Filter data by Time Period',
-																		category : 'datafilter'
-											    					},
-											    					
-						    					ByVariableFilter : {
-											    						title : 'By Variable Filter',
-											    						template_url : 'src/analysis/data_filters/by_variable.tpl.html',
-											    						description : 'Filter data by Variables',
-											    						category : 'datafilter'
-						    										}
-										   },
-										   tool_list : [
-											         	{
-											        		id : 'BarChartTool',
-											        		title : 'Bar Chart Tool',
-											        		template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html',
-											        		description : 'Display Bar Chart in Weave',
-											        		category : 'visualization',
-											        		enabled : false
-
-											        	}, {
-											        		id : 'MapTool',
-											        		title : 'Map Tool',
-											        		template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html',
-											        		description : 'Display Map in Weave',
-											        		category : 'visualization',
-											        		enabled : false
-											        	}, {
-											        		id : 'DataTableTool',
-											        		title : 'Data Table Tool',
-											        		template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
-											        		description : 'Display a Data Table in Weave',
-											        		category : 'visualization',
-											        		enabled : false
-											        	}, {
-											        		id : 'ScatterPlotTool',
-											        		title : 'Scatter Plot Tool',
-											        		template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
-											        		description : 'Display a Scatter Plot in Weave',
-											        		category : 'visualization',
-											        		enabled : false
-											        	}]
+			
 	};
 	
-
+	AnalysisService.geoFilter_tool = geoFilter_tool;
+	AnalysisService.timeFilter_tool = timeFilter_tool;
+	
 	return AnalysisService;
 	
-});
+}]);
 
 AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService, AnalysisService, WeaveService, QueryHandlerService, $window) {
 
@@ -118,6 +91,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	};
 	
 	var queryObjectTreeData = buildTree2(queryService.queryObject);
+
 	$('#queryObjTree').dynatree({
 		minExpandLevel: 1,
 		children : queryObjectTreeData,
@@ -149,7 +123,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			},
 			debugLevel: 0
 		});
-		$("#queryObjTree").dynatree("getTree").reload();
+		//$("#queryObjTree").dynatree("getTree").reload();
 		
 	}, true);
 	
@@ -168,6 +142,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		return item.title;
 	};
 	
+	
+	//******************************managing weave and its session state**********************************************//
 	$scope.$watch(function() {
 		return queryService.dataObject.openInNewWindow;
 	}, function() {
@@ -217,6 +193,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
+	$scope.$watchCollection(function() {
+		return $('#weave');
+	}, function() {
+		if($('#weave').length) {
+			WeaveService.weave = $('#weave')[0];
+		} else {
+			WeaveService.weave = null;
+		}
+	});
+	
+	//******************************managing weave and its session state**********************************************//
+	
+	
 	$scope.IndicDescription = "";
 	$scope.varValues = [];
 	
@@ -230,20 +219,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		WeaveService[tool.id](queryService.queryObject[tool.id]); // temporary because the watch is not triggered
 	};
 	
-	//clears the session state
-	$scope.clearSessionState = function(){
-		WeaveService.clearSessionState();
-	};
-	
-	$scope.$watchCollection(function() {
-		return $('#weave');
-	}, function() {
-		if($('#weave').length) {
-			WeaveService.weave = $('#weave')[0];
-		} else {
-			WeaveService.weave = null;
-		}
-	});
 	
 	$scope.$watch('queryService.queryObject.Indicator', function() {
 		

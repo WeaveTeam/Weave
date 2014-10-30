@@ -104,14 +104,7 @@
 						</ul>-->
 						<font color="white">Release Version 0.7 - 10/16/2014</font>
 						
-						<button class="btn" 
-								style="width: 10%; float:right; margin-top: 10px; margin-right : 75px"
-								ng-click="runService.run(true)" 
-								popover="{{service.dataObject.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
-								ng-controller="QueryHandlerCtrl"
-								ng-class="{'validateB' : service.dataObject.isQueryValid, 'invalidateB' : !service.dataObject.isQueryValid}">
-								 <span style="vertical-align: right">Run</span>
-						 </button>
+						
 <!-- 						 <div ng-controller = DialogController> -->
 <!-- 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 10%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a> -->
 <!-- 						</div> -->
@@ -125,16 +118,18 @@
 					</div><!-- /.navbar-collapse -->
 					
 				</nav>
-				
 			</header>
-
+			
+<!-- PAGE CONTAINER -->
 			<div style="height: 100%" class = "tab-container" >
 				<div ng-view style="height: 100%">
 
 				</div>
 
 			</div>
-			
+		
+		
+<!-- FOOTER -->			
 			<footer>
 			<!-- modal error log -->
 			<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl">

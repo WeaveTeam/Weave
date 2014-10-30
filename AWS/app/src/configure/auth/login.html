@@ -7,31 +7,46 @@
      left:50%;
      margin:-100px 0 0 -150px;"
      ng-enter="authenticationService.authenticate(user, password)">	
-	 <table>
-	 	<tr style="margin-bottom: 1em;">
-	 		<td>
-				 User Name: 
-			</td>
-	 		<td>
-	 			<input ng-model="user" type="text"/>
-	 		</td>
-	 	</tr>
-	 	<tr>
-	 		<td>
-	 			Password:
-	 		</td>
-	 		<td>
-		 		<input ng-model="password" type="password"/>
-	 		</td>
-	 	</tr>
-	 	<tr>
-		 	<td>
-	 		</td>
-	 		<td>
-		 		<div align="right" style="padding-top: 5px">
-					 <input type="button" value="Login" ng-click="authenticationService.authenticate(user, password)"/>
+	<div style = "width : 300px; height : 150px;  border-radius: 10px; background-color: #4C4F53 ; display: table">
+		<div style = "padding: 20px 0px 20px 20px">
+			<font color= "white"> Username </font> 
+			<input ng-model="user" type="text"/>
+		</div>
+	<div style = "padding: 0px 20px 20px 20px" >
+			<font color= "white"> Password </font>
+			<input ng-model="password" type="password"/>
+		</div>
+		
+		<div style = "float:right; margin-right : 25px"> 
+					 <button class= "btn btn-mini"  ng-click="authenticationService.authenticate(user, password)">Login</button>
 		 		</div>
-	 		</td>
-	 	</tr>
-	 </table>
+	</div>
+<!-- 	<table> -->
+<!-- 	 	<tr style="margin-bottom: 1em;"> -->
+<!-- 	 		<td> -->
+<!-- 				 User Name:  -->
+<!-- 			</td> -->
+<!-- 	 		<td> -->
+<!-- 	 			<input ng-model="user" type="text"/> -->
+<!-- 	 		</td> -->
+<!-- 	 	</tr> -->
+<!-- 	 	<tr> -->
+<!-- 	 		<td> -->
+<!-- 	 			Password: -->
+<!-- 	 		</td> -->
+<!-- 	 		<td> -->
+<!-- 		 		<input ng-model="password" type="password"/> -->
+<!-- 	 		</td> -->
+<!-- 	 	</tr> -->
+<!-- 	 	<tr> -->
+<!-- 		 	<td> -->
+<!-- 	 		</td> -->
+<!-- 	 		<td> -->
+<!-- 		 		<div align="right" style="padding-top: 5px"> -->
+<!-- 					 <input type="button" value="Login" ng-click="authenticationService.authenticate(user, password)"/> -->
+<!-- 		 		</div> -->
+<!-- 	 		</td> -->
+<!-- 	 	</tr> -->
+<!-- 	 </table> -->
+	
 </div> 
