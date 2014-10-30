@@ -104,6 +104,7 @@
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.tools.CompoundBarChartTool;
 			import weave.visualization.tools.CytoscapeWebTool;
+			import weave.visualization.tools.ExternalTool;
 			import weave.visualization.tools.RadVizTool;
 			
 			private const currentQuery:QueryObject = newLinkableChild(this,QueryObject);
@@ -2452,6 +2453,20 @@
 				//tempCytoscapeCSVDataSource.putColumn(colIDS[0],object2.nodeLabelColumn);
 				//tempCytoscapeCSVDataSource.putColumn(colIDS[1],object2.edgeSourceColumn);
 				//tempCytoscapeCSVDataSource.putColumn(colIDS[2],object2.edgeTargetColumn);
+				
+				//Cytoscape topics code
+				
+				var newName:String = WeaveAPI.globalHashMap.generateUniqueName("Cytoscape");
+				var newTool:ExternalTool = WeaveAPI.globalHashMap.requestObject(newName, ExternalTool, false) as ExternalTool;
+				var newToolUrl:LinkableString;
+				
+				if (!newTool) Alert.show(lang("Unexpected problem. Unable to create new external tool object."));
+				
+				newToolUrl = newTool.getObject("toolUrl") as LinkableString;
+				
+				if (!newToolUrl) Alert.show(lang("Unexpected problem. Unable to set external tool URL."));
+				
+				newToolUrl.value = "cytoscapejs.html";
 				
 				
 				object.panelTitle.value = 'Document Clustered by Labels';
