@@ -32,7 +32,7 @@ metadataModule.config(function($provide){
 	
 })
 
-.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService, dataServiceURL){			
+.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService, dataServiceURL, errorLogService, $modal){			
 
 	var treeData = [];
 	$scope.myData = [];
@@ -79,34 +79,50 @@ metadataModule.config(function($provide){
 						//******************************************lazy loading*****************************************************
 						onLazyRead : function(node){
 							 var request = {
-									 jsonrpc : "2.0",
+									 jsonrpc: "2.0",
+									 id: "no_id",
 									 method : "getEntityChildIds",
-									 parentId : node.data.key
+									 params : [node.data.key]
 							 };
 						      
 							node.appendAjax({
 								url : dataServiceURL,
-								data : request,
+								data : JSON.stringify(request),
+								type: "POST",
 								dataType : "json",
+								error : function(node, XMLHttpRequest, textStatus, errorThrown)//refer to dynatree documentation
+											{
+												errorLogService.logInErrorLog(errorThrown);
+												$modal.open(errorLogService.errorLogModalOptions);
+											},
 								success : function(node, status, jqxhr)//this success function is different from the regular ajax success (modified by dynatree)
 											{
-												node.removeChildren();
-												var list = status.result;// the actual result from ajax
-												
-												var columnChildren= [];
-												//as soon as ids are returned retrieve their metadata
-												runQueryService.queryRequest(dataServiceURL, 'getEntitiesById', [list], function(columnsWithMetadata){
-													for(var i=0, l=columnsWithMetadata.length; i<l; i++){
-														var singleColumn = columnsWithMetadata[i];
-								                        columnChildren.push({title: singleColumn.publicMetadata.title,
-								                            	id: singleColumn.id,
-								                            	metadata: singleColumn.publicMetadata,
-								                            	addClass : "custom1",// for a particular kind of document representation
-								                            	focus: true});
-								                    }
-								                    node.setLazyNodeStatus(DTNodeStatus_Ok);//look at dynatree documentation
-								                    node.addChild(columnChildren);
-												});
+												if(status.error)
+													{
+														errorLogService.logInErrorLog(status.error.message);
+														$modal.open(errorLogService.errorLogModalOptions);
+													}
+													
+												if(status.result)
+													{
+														node.removeChildren();
+														var list = status.result;// the actual result from ajax
+														
+														var columnChildren= [];
+														//as soon as ids are returned retrieve their metadata
+														runQueryService.queryRequest(dataServiceURL, 'getEntitiesById', [list], function(columnsWithMetadata){
+															for(var i=0, l=columnsWithMetadata.length; i<l; i++){
+																var singleColumn = columnsWithMetadata[i];
+										                        columnChildren.push({title: singleColumn.publicMetadata.title,
+										                            	id: singleColumn.id,
+										                            	metadata: singleColumn.publicMetadata,
+										                            	addClass : "custom1",// for a particular kind of document representation
+										                            	focus: true});
+										                    }
+										                    node.setLazyNodeStatus(DTNodeStatus_Ok);//look at dynatree documentation
+										                    node.addChild(columnChildren);
+														});
+													}
 												
 											}
 							});
