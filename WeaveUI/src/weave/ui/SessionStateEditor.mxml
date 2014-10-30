@@ -44,7 +44,7 @@ A text editor to change the Session State on the fly.
 			<mx:HDividedBox width="100%" height="100%">
 				<mx:VBox id="listVBox" width="100%" height="100%">
 					<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
-					<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
+					<!--<CustomComboBox maxWidth="{listVBox.width}" id="linkableObjectTypeComboBox" toolTip="select filter to list by session object type" change="handlelinkableObjectTypeFilterSelect(event)"/>-->
 	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
@@ -128,6 +128,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.core.ILinkableObject;
 			import weave.api.core.ILinkableVariable;
 			import weave.api.data.IColumnWrapper;
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
@@ -144,7 +145,9 @@ A text editor to change the Session State on the fly.
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.menus.WeaveContextMenu;
+			import weave.primitives.WeaveTreeItem;
 			import weave.utils.DebugUtils;
+			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
 
@@ -156,7 +159,6 @@ A text editor to change the Session State on the fly.
 			private var _currentSelectedObject:ILinkableObject = null;
 			private var _currentSessionStateXML:XML = null;
 			private var _currentSessionStateDataProvider:ArrayCollection = null; 
-			private var _prevSelectedObject:ILinkableObject = null;
 			
 			private var _textStartSearchIndex:int = 0;
 			private var _gridStartSearchIndex:int = 0; 
@@ -192,7 +194,7 @@ A text editor to change the Session State on the fly.
 				//handle keyboard event CTRL +F to Search Box
 				this.addEventListener(KeyboardEvent.KEY_DOWN, handleCtrlFPressEvent)
 
-		    	BindingUtils.bindSetter(handleSessionNavSelect, sessionNav, "selectedItem");
+		    	BindingUtils.bindSetter(EventUtils.generateDelayedCallback(this, handleSessionNavSelect, 0), sessionNav, "selectedItem");
 		    	
 				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
 				
@@ -263,18 +265,8 @@ A text editor to change the Session State on the fly.
 				if (objectWasDisposed(this))
 					return;
 				
-				if (visible && parent)
-				{
-					if (autoRefresh && _needRefresh && !_textModified) 
-					{
-						sessionNav.refresh();
-						loadSelectedSessionObjectInView();
-					}
-				}
-		    }
-		    private function handleSelectedObjectGroupCallback():void
-		    {
-		    	_needRefresh = true;
+				if (visible && parent && autoRefresh && !_textModified && detectLinkableObjectChange(handleRefreshTimer, _currentSelectedObject)) 
+					loadSelectedSessionObjectInView();
 		    }
 			
 			private function handleEditorFocusIn():void
@@ -291,7 +283,7 @@ A text editor to change the Session State on the fly.
 			{
 				if (_textModified == false || (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
 				{
-					sessionNav.refresh();
+					loadSelectedSessionObjectInView();
 					return;
 				}
 				
@@ -301,15 +293,13 @@ A text editor to change the Session State on the fly.
 					try
 					{
 						saveSessionState(); 
-						sessionNav.refresh();
 					}
 					catch (e:Error)
 					{
 						reportError(e);
 					}
 				};
-				var functionDontSave:Function = function():void { loadSelectedSessionObjectInView(); sessionNav.refresh(); };
-				askToSave(functionSave, functionDontSave);
+				askToSave(functionSave, loadSelectedSessionObjectInView);
 			}
 			
 			private function askToSave(save:Function, discard:Function):void
@@ -323,7 +313,7 @@ A text editor to change the Session State on the fly.
 				);
 			}
 
-			private function loadSelectedSessionObjectInView(sessObj:ILinkableObject = null):void
+			private function loadSelectedSessionObjectInView(object:ILinkableObject = null):void
 			{
 				// to avoid a flex error, make sure the dataGrid has no selected items
 				if (_editor == DATA_GRID)
@@ -333,7 +323,7 @@ A text editor to change the Session State on the fly.
 				
 				_needRefresh = false;
 
-				if (sessionNav.selectedItem == null && sessObj == null)
+				if (sessionNav.selectedTreeItem == null && object == null)
 				{
 					// clear and disable view
 					if (_editor == TEXT_EDITOR)
@@ -354,13 +344,84 @@ A text editor to change the Session State on the fly.
 				// enable view
 				editors.enabled = true;
 				
-				if (sessObj != null)
-					_currentSelectedObject = sessObj;
+				if (object != null)
+					_currentSelectedObject = object;
 				else
-					_currentSelectedObject = sessionNav.selectedItem.object;
+					_currentSelectedObject = sessionNav.selectedTreeItem.source;
 
 				loadSessionStateInView();
 				_textModified = false;
+			}
+			
+			private function loadSessionStateInView():void
+			{
+				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
+				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
+					changeView(TEXT_EDITOR);
+				else
+					changeView( preferDataGrid.selected ? DATA_GRID : TEXT_EDITOR );
+				
+				if (_editor == TEXT_EDITOR)
+				{
+					var vsp:Number = textEditor.verticalScrollPosition;
+					var hsp:Number = textEditor.horizontalScrollPosition;
+					
+					if (_currentSelectedObject is LinkableString)
+					{
+						_currentSessionStateXML = null;
+						textEditor.text = sessionState as String;
+						
+						firstLine.text = '';
+						lastLine.text = '';
+					}
+					else
+					{
+						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState, "SessionState", useJSON.selected);
+						textEditor.text = _currentSessionStateXML.children().toXMLString();
+						
+						var xmlCopy:XML = _currentSessionStateXML.copy();
+						xmlCopy.setChildren(<dummy/>);
+						var xmlLines:Array = xmlCopy.toString().split('\n');
+						firstLine.text = xmlLines[0];
+						lastLine.text = xmlLines[xmlLines.length - 1];
+					}
+					textEditor.validateNow();
+					textEditor.verticalScrollPosition = vsp;
+					textEditor.horizontalScrollPosition = hsp;
+				}
+				else if (_editor == DATA_GRID)
+				{
+					var tempValue:Object;
+					var dataGridProvider:ArrayCollection = new ArrayCollection();
+					var childObject:ILinkableObject;
+					
+					for each (var node:WeaveTreeItem in sessionNav.selectedTreeItem.children)
+					{
+						childObject = node.source as ILinkableObject;
+						if (childObject is ILinkableVariable)
+						{
+							tempValue = getSessionState(childObject);
+							if (tempValue === null || (tempValue as String) === '')
+								tempValue = ' ';
+							if (typeof tempValue == 'object')
+								continue;
+							var item:Object = {};
+							item[NAME_FIELD] = node.label;
+							item[VALUE_FIELD] = tempValue.toString();
+							dataGridProvider.addItem(item);
+						}
+					}
+					
+					var grid_vsp:Number = gridEditor.verticalScrollPosition;
+					_currentSessionStateDataProvider = dataGridProvider;
+					gridEditor.columns = [ _nameColumn, _valueColumn ];
+					gridEditor.dataProvider = dataGridProvider;
+					gridEditor.editable = true;
+					gridEditor.variableRowHeight = false;
+					gridEditor.wordWrap = false;
+					gridEditor.validateNow();
+					gridEditor.verticalScrollPosition = grid_vsp;
+				}
 			}
 			
 			private function unlinkNestedColumns():void
@@ -415,11 +476,16 @@ A text editor to change the Session State on the fly.
 		    		refresh();
 		    	}
 		    }
-			private function handleSessionNavSelect(selectedItem:Object):void
+			private function handleSessionNavSelect():void
 			{
+				var selectedTreeItem:WeaveTreeItem = sessionNav.selectedTreeItem;
 				var vsp:Number = gridEditor.verticalScrollPosition;
-				if (selectedItem)
-					console.context = selectedItem.object;
+				if (selectedTreeItem)
+				{
+					if (console.context == selectedTreeItem.source)
+						return; // no change
+					console.context = selectedTreeItem.source;
+				}
 				
 				var dynamicObject:LinkableDynamicObject = sessionNav.getSelectedLinkableObject() as LinkableDynamicObject;
 				if (dynamicObject)
@@ -434,10 +500,7 @@ A text editor to change the Session State on the fly.
 					linkControls.enabled = false;
 				}
 				
-				if (_textModified)
-					refresh();
-				else
-					loadSelectedSessionObjectInView();
+				refresh();
 				
 				gridEditor.verticalScrollPosition = vsp;
 			}
@@ -519,10 +582,10 @@ A text editor to change the Session State on the fly.
 			{
 				if (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE)
 				{
-					var item:Object = sessionNav.selectedItem;
+					var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 					if (!item)
 						return;
-					var parent:ILinkableObject = getLinkableOwner(item.object);
+					var parent:ILinkableObject = getLinkableOwner(item.source);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -534,16 +597,16 @@ A text editor to change the Session State on the fly.
 			
 			private function deleteSelectedItem():void
 			{
-				var item:Object = sessionNav.selectedItem;
+				var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 				if (!item)
 					return;
-				var parent:ILinkableObject = getLinkableOwner(item.object);
+				var parent:ILinkableObject = getLinkableOwner(item.source);
 				if (!parent)
 					return;
 				var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 				var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 				
-				var oldObject:ILinkableObject = item.object;
+				var oldObject:ILinkableObject = item.source;
 				if (hashMap)
 					hashMap.removeObject(hashMap.getName(oldObject));
 				else if (dynamicObject)
@@ -582,90 +645,6 @@ A text editor to change the Session State on the fly.
 				_editor = newValue;
 				editors.selectedChild = (_editor == DATA_GRID ? gridEditor.parent : textEditor.parent) as INavigatorContent;
 				//loadSelectedSessionObjectInView();
-			}
-			
-			private function loadSessionStateInView():void
-			{
-				var vsp:Number;
-				var hsp:Number;
-				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
-				if (_prevSelectedObject != _currentSelectedObject)
-				{
-					if (_prevSelectedObject)
-						getCallbackCollection(_prevSelectedObject).removeCallback(handleSelectedObjectGroupCallback);
-					_prevSelectedObject = _currentSelectedObject;
-					if (_currentSelectedObject)
-						getCallbackCollection(_currentSelectedObject).addGroupedCallback(this, handleSelectedObjectGroupCallback);
-					hsp = 0;
-					vsp = 0;
-				}
-
-				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
-					changeView(TEXT_EDITOR);
-				else
-					changeView( preferDataGrid.selected ? DATA_GRID : TEXT_EDITOR );
-				
-				if (_editor == TEXT_EDITOR)
-				{
-					vsp = textEditor.verticalScrollPosition;
-					hsp = textEditor.horizontalScrollPosition;
-
-					if (_currentSelectedObject is LinkableString)
-					{
-						_currentSessionStateXML = null;
-						textEditor.text = sessionState as String;
-						
-						firstLine.text = '';
-						lastLine.text = '';
-					}
-					else
-					{
-						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState, "SessionState", useJSON.selected);
-						textEditor.text = _currentSessionStateXML.children().toXMLString();
-						
-						var xmlCopy:XML = _currentSessionStateXML.copy();
-						xmlCopy.setChildren(<dummy/>);
-						var xmlLines:Array = xmlCopy.toString().split('\n');
-						firstLine.text = xmlLines[0];
-						lastLine.text = xmlLines[xmlLines.length - 1];
-					}
-					textEditor.validateNow();
-					textEditor.verticalScrollPosition = vsp;
-					textEditor.horizontalScrollPosition = hsp;
-				}
-				else if (_editor == DATA_GRID)
-				{
-					var tempValue:Object;
-					var dataGridProvider:ArrayCollection = new ArrayCollection();
-					var childObject:ILinkableObject;
-					
-					for each (var node:Object in sessionNav.selectedItem.children)
-					{
-						childObject = node.object as ILinkableObject;
-						if (childObject is ILinkableVariable)
-						{
-							tempValue = getSessionState(childObject);
-							if (tempValue === null || (tempValue as String) === '')
-								tempValue = ' ';
-							if (typeof tempValue == 'object')
-								continue;
-							var item:Object = {};
-							item[NAME_FIELD] = node.label;
-							item[VALUE_FIELD] = tempValue.toString();
-							dataGridProvider.addItem(item);
-						}
-					}
-
-					vsp = gridEditor.verticalScrollPosition;
-					_currentSessionStateDataProvider = dataGridProvider;
-					gridEditor.columns = [ _nameColumn, _valueColumn ];
-					gridEditor.dataProvider = dataGridProvider;
-					gridEditor.editable = true;
-					gridEditor.variableRowHeight = false;
-					gridEditor.wordWrap = false;
-					gridEditor.validateNow();
-					gridEditor.verticalScrollPosition = vsp;
-				}
 			}
 			
 			private function saveSessionState():void
