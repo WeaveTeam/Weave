@@ -34,15 +34,30 @@
 									&& (indicator.description) || (indicator.title)}}</option>
 							</select>
 						</div>
-						<br> {{IndicDescription}} <br>
-						<br>
-						<table border="border: 1px solid #0000FF" width="100%">
-							<tr ng-repeat="varValue in varValues">
-								<td style="padding-left: 5px; padding-right: 5px">
-									{{varValue.value}}</td>
-								<td style="padding-left: 5px">{{varValue.label}}</td>
-							</tr>
-						</table>
+						<br> {{IndicDescription}} 
+<!-- 						<button popover-with-tpl template-url="src/analysis/indicator-remap.tpl.html" popover-placement="bottom" class="btn btn-default">Remap Indicator -->
+					      <table border="border: 1px solid #0000FF" width="100%" ng-show="queryService.queryObject.Indicator">
+								<tr> 
+									<td align="center">
+										Value
+									</td>
+									<td align="center">
+										Description
+									</td align="center">
+									<td>
+										Remap
+									</td>
+									<td align="center">
+										New Value
+									</td>
+								 </tr>
+								<tr ng-repeat="varValue in varValues">
+									<td style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
+									<td  style="padding-left: 5px"> {{varValue.label}} </td>
+									<td align="center"> <input type="checkbox" ng-change="queryService.queryObject.IndicatorReMap.[varValue.value].shouldRemap"></input> </td>
+									<td> <input ng-model="queryService.queryObject.IndicatorReMap.[varValue.value].value"> </input> </td>
+								</tr>
+							</table>
 					</div>
 	
 	
@@ -257,8 +272,11 @@
 					
 					<div id="qobjPanelContent" class="body" style="width: 100%; height:100%; border: solid 4px; border-color: #4C4F53">
 						Reload - Apply - Save & Close - Cancel
-						<div id="queryObjTree"style="width: 50%; height: 80%; overflow:hidden;"></div>
-   						<div style="float:right"> Value </div>
+						<div style="width: 100%; height: 100%;">
+							<div id="queryObjTree" style="width: 50%; height: 80%; overflow:hidden; float:left"></div>
+	   						<div style="float:left"> Value </div>
+	   						{{selectedValue}}
+						</div>
 					</div>
 				</div>
 	</div>
