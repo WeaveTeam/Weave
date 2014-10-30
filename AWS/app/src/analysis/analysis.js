@@ -150,6 +150,11 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		onPostInit: function(isReloading, isError) {
 			this.reactivate();
 		},
+		onActivate: function(node) {
+			$scope.selectedValue = node.data.value;
+			console.log(node.data.value);
+			$scope.$apply();
+		},
 		debugLevel: 0
 	});
 	$scope.$watch('queryService.queryObject', function () {
@@ -161,6 +166,11 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			keyBoard : true,
 			onPostInit: function(isReloading, isError) {
 				this.reactivate();
+			},
+			onActivate: function(node) {
+				$scope.selectedValue = node.data.value;
+				console.log(node.data.value);
+				$scope.$apply();
 			},
 			debugLevel: 0
 		});

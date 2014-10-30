@@ -1,0 +1,22 @@
+<table ng-controller="AnalysisCtrl" border="border: 1px solid #0000FF" width="100%" ng-show="queryService.queryObject.Indicator">
+	<tr align="center"> 
+		<td>
+			Value
+		</td>
+		<td>
+			Description
+		</td>
+		<td>
+			Remap
+		</td>
+		<td>
+			New Value
+		</td>
+	 </tr>
+	<tr ng-repeat="varValue in varValues">
+		<td style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
+		<td  style="padding-left: 5px"> {{varValue.label}} </td>
+		<td align="center"> <input type="checkbox" ></input> </td>
+		<td> <input> </input> </td>
+	</tr>
+</table>

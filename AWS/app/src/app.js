@@ -67,7 +67,8 @@ app.run(['$rootScope', function($rootScope){
 
 
 angular.module('aws.directives', ['aws.directives.dualListBox',
-                                  'aws.directives.fileUpload']);
+                                  'aws.directives.fileUpload',
+                                  'aws.directives.popover-with-tpl']);
 angular.module('aws.configure', ['aws.configure.auth',
                                  'aws.configure.metadata',
                                  'aws.configure.script']);
