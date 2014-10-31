@@ -77,7 +77,8 @@ AnalysisModule.value('DataTableTool', {
 											description : 'Display a Data Table in Weave'
 });
 
-AnalysisModule.value('color_Column', {
+AnalysisModule.value('color_Column', {	
+											id : 'color_Column',
 											title : 'Color Column',
 											template_url : 'src/visualization/tools/color/color_Column.tpl.html',
 											description : 'Set the color column in Weave'
@@ -221,8 +222,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			// check if there is a result data, meaning there is a current analysis
 			// if that's the case, save embedded weave session state
 			// open the weave window, checkweaveready and restore the session state.
-			if(queryService.dataObject.resultData)
-			{
+			//if(queryService.dataObject.resultData)
+			//{
 				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
 				
 				if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
@@ -239,7 +240,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 						//scope.$apply();//re-fires the digest cycle and updates the view
 					});
 				}
-			}
+			//}
 			
 		}
 	});

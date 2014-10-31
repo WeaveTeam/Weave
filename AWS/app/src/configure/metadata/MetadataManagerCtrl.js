@@ -67,7 +67,9 @@ metadataModule.config(function($provide){
 								{
 									$scope.selectedDataTableId = parseInt(node.data.key);
 									console.log("$scope.selected", $scope.selectedDataTableId);
-								
+									//clears the grid when nodes are selected
+									$scope.myData= [];
+									$scope.$apply();//TODO check if this is the right thing to do
 								}
 
 							//handle when node is a column

@@ -13,7 +13,6 @@
     <td valign="top">
       <br>
 		<b> Data Tables </b>
-		{{selectedDataTableId}}
 	  <br>
       <div id="tree" dynatree style="width: 100%; height: 600px; overflow: scroll"></div><!-- The actual hierarchy of tables and their columns -->
       
@@ -36,16 +35,17 @@
     
     <td valign="top">
     	<div style="padding-top: 20px" align="right">
-	    	<input type="button" ng-click="authenticationService.logout()" value="Logout"/><!-- logout button -->
+	    	<button class= "btn btn-sm btn-primary" ng-click="authenticationService.logout()">Logout</button><!-- logout button -->
     	</div>
     	
 		<b> Id : {{selectedDataTableId}} </b>
+		<div>Column Metadata</div>
   		<div class="gridStyle" ng-grid="gridOptions"></div><!-- metadata of a single column -->
         <div class="selectedItems">{{mySelections}}</div>
        <br>
        
-       <input type="button" value="Add" ng-click="addNewRow()"><!-- button controls for editing metadata of a single column -->
-       <input type="button" value="Delete" ng-click="removeRow()">
+       <button class= 'btn btn-primary btn-sm' ng-click="addNewRow()">Add Row</button><!-- button controls for editing metadata of a single column -->
+       <button class = 'btn btn-primary btn-sm' ng-click="removeRow()">Delete Row</button>
     </td>
   </tr>
   

@@ -268,14 +268,20 @@
 		
 		
 <!-- VIZ TOOLS -->	
-		<div ng-controller="toolsCtrl">
+		<div ng-controller= "toolsCtrl">
 				<div class="row " style="height: 50%; clear:both" ng-if="!queryService.dataObject.openInNewWindow">
-					<div>
-						<div ng-include src="'src/visualization/tools/tools.html'"></div>
+					<div class="databox" style="width: 20%;">
+						<div>
+							<accordion close-others="true" class="tool-list"> 
+							
+								<accordion-group ng-repeat="tool in AnalysisService.weaveTools" heading="{{tool.title}}" style="font-family: 'Open Sans', Arial, sans-serif; font-size: 14px;">
+								<div ng-include="tool.template_url"></div>
+								</accordion-group>
+								
+							</accordion>
+						</div>
 					</div>
-					<div>
 						<div id="flashContent" style="width: 60%; height: 800px; float:left"></div>
-					</div>
 				</div>
 				
 				

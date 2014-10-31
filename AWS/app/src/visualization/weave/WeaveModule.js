@@ -167,6 +167,8 @@ AnalysisModule.service("WeaveService", function() {
 				ws.weave.path("ColorBinLegendTool").request('ColorBinLegendTool')
 				.state({panelX : "80%", panelY : "0%"});
 			}
+			if(!state.showColorLegend)
+				ws.weave.path("ColorBinLegendTool").remove();
 		}
 	};
 	
@@ -179,7 +181,11 @@ AnalysisModule.service("WeaveService", function() {
 			else
 			{
 				if(!angular.isUndefined(ws.weave))
-				ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
+					{	
+						if(ws.weave.path('CSVDataSource').getType() == "weave.data.DataSources::CSVDataSource")//check if a CSVDataSource exists
+							ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
+					}
+				
 			}
 		}
 	};

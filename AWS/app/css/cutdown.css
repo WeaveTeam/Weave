@@ -619,7 +619,7 @@ background-color: #4C4F53;
 .panel-body {
 	min-height: 172px;
 	/*border-bottom: 1px solid #ccc;*/
-	padding: 3px;
+	padding: 10px;
 	height: 100%;
 	/*background: #fafafa;*/
 }
