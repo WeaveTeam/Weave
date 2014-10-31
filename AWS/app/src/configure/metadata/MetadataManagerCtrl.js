@@ -32,7 +32,7 @@ metadataModule.config(function($provide){
 	
 })
 
-.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService, dataServiceURL, errorLogService, $modal){			
+.controller("MetadataManagerCtrl", function($scope, queryService, authenticationService, runQueryService, dataServiceURL, errorLogService){			
 
 	var treeData = [];
 	$scope.myData = [];
@@ -92,16 +92,12 @@ metadataModule.config(function($provide){
 								dataType : "json",
 								error : function(node, XMLHttpRequest, textStatus, errorThrown)//refer to dynatree documentation
 											{
-												errorLogService.logInErrorLog(errorThrown);
-												$modal.open(errorLogService.errorLogModalOptions);
+												errorLogService.openErrorLog(errorThrown);
 											},
 								success : function(node, status, jqxhr)//this success function is different from the regular ajax success (modified by dynatree)
 											{
 												if(status.error)
-													{
-														errorLogService.logInErrorLog(status.error.message);
-														$modal.open(errorLogService.errorLogModalOptions);
-													}
+													errorLogService.openErrorLog(status.error.message);
 													
 												if(status.result)
 													{
@@ -306,7 +302,7 @@ metadataModule.config(function($provide){
  *applies metadata standards defined by user in a csv to the selected datatable 
  *updates the aws-metadata property of columns in a datatable 
  */
-.controller("MetadataFileController", function ($scope, queryService, authenticationService){
+.controller("MetadataFileController", function ($scope, queryService, authenticationService, errorLogService){
 	$scope.maxTasks= 0;
 	$scope.progressValue = 0;
 	
@@ -363,10 +359,12 @@ metadataModule.config(function($provide){
 								 }
 	        			  } else {
 	        				  //if a column is selected
+	        				  errorLogService.openErrorLog("Selected entity is not a table or table does not contain any columns.");
 	        				  console.log("selected entity is not a table or table does not contain any columns.");
 	        			  }
 				  });
 	    	  } else {
+	    		  		errorLogService.openErrorLog("no selected tables");
 						console.log("no selected tables");
 	    	  		};
         }
@@ -383,6 +381,10 @@ metadataModule.config(function($provide){
 				$scope.inProgress = false;
 				$scope.progressValue = 0;
 				$scope.maxTasks = 0;
+				//resetting the uploaded file (because if we repeated upload same file)
+				$scope.metadataUploaded.file.filename = "";
+				$scope.metadataUploaded.file.content = "";
+				
 				$scope.$apply();
 			}, 5000);
 		} else {
