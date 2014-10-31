@@ -372,7 +372,7 @@ package weave.primitives
 			{
 				KDTree.compareNodesSortDimension = sortDimension;
 				KDTree.compareNodesDescending = sortDirection == DESCENDING;
-				StandardLib.sort(queryResult, KDTree.compareNodes);
+				StandardLib.sortOn(queryResult, getNodeSortValue, compareNodesDescending ? -1 : 1);
 				
 				// replace nodes with objects in queryResult
 				for (i = queryResult.length; i--;)
@@ -384,6 +384,10 @@ package weave.primitives
 		/**
 		 * This function is used to sort the results of queryRange().
 		 */
+		private static function getNodeSortValue(node:KDNode):Number
+		{
+			return node.key[compareNodesSortDimension];
+		}
 		private static function compareNodes(node1:KDNode, node2:KDNode):int
 		{
 			var result:int = ObjectUtil.numericCompare(

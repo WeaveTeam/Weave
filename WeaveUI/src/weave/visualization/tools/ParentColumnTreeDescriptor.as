@@ -19,9 +19,10 @@ package weave.visualization.tools
         private var rootNodes:ArrayCollection = null;
 
 		/**
+		 * NOTE: record sorting in this function depends on WeaveAPI.StatisticsCache.getColumnStatistics(sortColumn)
 		 * @param parentColumn
 		 * @param allKeys Note: This function modifies the keys in place
-		 * @param sortColumn
+		 * @param sortColumn 
 		 */
         public function updateCache(parentColumn:IAttributeColumn, allKeys:IKeySet, sortColumn:IAttributeColumn):void
         {
@@ -29,8 +30,8 @@ package weave.visualization.tools
 
             rootNodes = new ArrayCollection([]);
 			
-            var orderedKeys:Array = allKeys.keys;
-			StandardLib.sort(orderedKeys, SortedKeySet.generateCompareFunction([sortColumn]));
+		 	// NOTE: this sort depends on WeaveAPI.StatisticsCache
+            var orderedKeys:Array = SortedKeySet.generateSortCopyFunction([sortColumn])(allKeys.keys);
 
             for (var index:String in orderedKeys)
             {
@@ -51,8 +52,6 @@ package weave.visualization.tools
                     cachedTreeInfo[parent_key].list.addItem(key);
                 }
             }
-
-            return;
         }
 
         public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean

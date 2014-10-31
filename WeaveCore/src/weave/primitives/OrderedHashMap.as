@@ -13,7 +13,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.utils
+package weave.primitives
 {
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;

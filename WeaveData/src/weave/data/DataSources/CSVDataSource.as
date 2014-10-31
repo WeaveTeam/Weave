@@ -529,10 +529,18 @@ package weave.data.DataSources
 			
 			// it is ok if keyColIndex is -1 because getColumnValues supports -1
 			var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
-
+			
+			var source:CSVDataSource = this;
+			detectLinkableObjectChange(proxyColumn, source);
 			var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 			function setRecords():void
 			{
+				if (detectLinkableObjectChange(proxyColumn, source))
+				{
+					handlePendingColumnRequest(proxyColumn);
+					return;
+				}
+				
 				var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());
 				var numbers:Vector.<Number> = null;
 				
@@ -564,7 +572,7 @@ package weave.data.DataSources
 			
 			proxyColumn.setMetadata(metadata);
 			var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
-			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType.value, keyStrings, proxyColumn, setRecords, keysVector);
+			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType.value, keyStrings, setRecords, keysVector);
 		}
 
 		/**
@@ -581,7 +589,7 @@ package weave.data.DataSources
 			{
 				// generate keys 0,1,2,3,...
 				for (i = 1; i < rows.length; i++)
-					outputArrayOrVector[i-1] = String(i);
+					outputArrayOrVector[i-1] = i;
 			}
 			else
 			{

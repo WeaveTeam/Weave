@@ -24,6 +24,7 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableObject;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * Asynchronous merge sort.
@@ -375,6 +376,8 @@ package weave.utils
 			{
 				var array1:Array = _array.concat();
 				var array2:Array = _array.concat();
+				var array3:Array = _array.concat();
+				var array4:Array = _array.concat();
 				
 				var start:int = getTimer();
 				_debugCompareCount = 0;
@@ -402,10 +405,20 @@ package weave.utils
 				
 				start = getTimer();
 				_debugCompareCount = 0;
+				StandardLib.sortOn(array3, 'value');
+				trace('StdLib sortOn', array3.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+				
+				start = getTimer();
+				_debugCompareCount = 0;
+				StandardLib.sortOn(array4, ['value']);
+				trace('StdLib sortOn[]', array4.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+
+				start = getTimer();
+				_debugCompareCount = 0;
 				sortImmediately(array2, _debugCompareCounter);
 				//trace('Merge Sort', n, 'numbers;', _immediateSorter.elapsed / 1000, 'seconds;',_debugCompareCount,'comparisons');
 				trace('Merge SortOn', array2.length, 'numbers;', (getTimer() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
-				
+
 				if (array2.length == 1 && ObjectUtil.compare(array1[0],array2[0]) != 0)
 					throw new Error("sort failed on array length 1");
 				

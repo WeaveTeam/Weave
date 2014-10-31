@@ -14,86 +14,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * The code below assumes it is being executed within a function(){} where the 'weave' variable is defined.
+ * The Weave instance.
  * @namespace weave
- * @description The Weave instance.
- * @private
+ * @name weave
  */
-
 //"use strict";
-
-//------------------------------------------------------------
-// browser backwards compatibility
-if (!Object.keys) {
-  Object.keys = (function () {
-    'use strict';
-    var hasOwnProperty = Object.prototype.hasOwnProperty,
-        hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-        dontEnums = [
-          'toString',
-          'toLocaleString',
-          'valueOf',
-          'hasOwnProperty',
-          'isPrototypeOf',
-          'propertyIsEnumerable',
-          'constructor'
-        ],
-        dontEnumsLength = dontEnums.length;
-
-    return function (obj) {
-      if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
-        throw new TypeError('Object.keys called on non-object');
-      }
-
-      var result = [], prop, i;
-
-      for (prop in obj) {
-        if (hasOwnProperty.call(obj, prop)) {
-          result.push(prop);
-        }
-      }
-
-      if (hasDontEnumBug) {
-        for (i = 0; i < dontEnumsLength; i++) {
-          if (hasOwnProperty.call(obj, dontEnums[i])) {
-            result.push(dontEnums[i]);
-          }
-        }
-      }
-      return result;
-    };
-  }());
-}
-if(!Array.isArray) {
-  Array.isArray = function(arg) {
-    return Object.prototype.toString.call(arg) === '[object Array]';
-  };
-}
-if (!Function.prototype.bind) {
-  Function.prototype.bind = function (oThis) {
-    if (typeof this !== "function") {
-      // closest thing possible to the ECMAScript 5
-      // internal IsCallable function
-      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-    }
-
-    var aArgs = Array.prototype.slice.call(arguments, 1), 
-        fToBind = this, 
-        fNOP = function () {},
-        fBound = function () {
-          return fToBind.apply(this instanceof fNOP && oThis
-                 ? this
-                 : oThis,
-                 aArgs.concat(Array.prototype.slice.call(arguments)));
-        };
-
-    fNOP.prototype = this.prototype;
-    fBound.prototype = new fNOP();
-
-    return fBound;
-  };
-}
-//------------------------------------------------------------
 
 var asFunction_lookup = {};
 /**
@@ -131,6 +56,7 @@ weave.loadFile = function(url, callback, noCacheHack)
  * @param basePath An optional Array (or multiple parameters) specifying the path to an object in the session state.
  *                 A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
  * @return A WeavePath object.
+ * @see  weave.WeavePath
  */
 weave.path = function(/*...basePath*/)
 {
@@ -638,7 +564,7 @@ weave.WeavePath.prototype.getValue = function(script_or_variableName)
  */
 weave.WeavePath.prototype.toString = function()
 {
-	var pathStr = JSON && JSON.stringify ? JSON.stringify(this._path) : this._path.toString();
+	var pathStr = typeof JSON != 'undefined' && JSON.stringify ? JSON.stringify(this._path) : this._path.toString();
 	return "WeavePath(" + pathStr + ")";
 };
 
@@ -673,7 +599,7 @@ weave.WeavePath.prototype._failMessage = function(methodName, message, path)
 	var str = 'WeavePath.' + methodName + '(): ' + message;
 	if (path)
 	{
-		var pathStr = JSON && JSON.stringify ? JSON.stringify(path) : path;
+		var pathStr = typeof JSON != 'undefined' && JSON.stringify ? JSON.stringify(path) : path;
 		str += ' (path: ' + pathStr + ')';
 	}
 	throw new Error(str);

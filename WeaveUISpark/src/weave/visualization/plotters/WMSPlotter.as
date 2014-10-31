@@ -46,6 +46,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.Dictionary2D;
 	import weave.primitives.ZoomBounds;
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
@@ -53,7 +54,6 @@ package weave.visualization.plotters
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
-	import weave.utils.Dictionary2D;
 	import weave.utils.ZoomUtils;
 
 	/**
@@ -156,7 +156,7 @@ package weave.visualization.plotters
 		{
 			// check if this tile has a cached shape
 			var cachedValue:ProjectedShape = _tileSRSToShapeCache.get(tile, getDestinationSRS());
-			if (cachedValue != null)
+			if (cachedValue)
 				return cachedValue;
 			
 			// we need to create the cached shape
@@ -254,7 +254,7 @@ package weave.visualization.plotters
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			// if there is no service to use, we can't draw anything
-			if (_service == null)
+			if (!_service)
 				return;
 
 			var serviceSRS:String = _service.getProjectionSRS();			
@@ -297,9 +297,9 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < allTiles.length; i++)
 			{
 				var tile:WMSTile = allTiles[i];
-				if (tile.bitmapData == null)
+				if (!tile.bitmapData)
 				{
-					if (displayMissingImage.value == false)
+					if (!displayMissingImage.value)
 						continue;
 					tile.bitmapData = _missingImage.bitmapData;
 				}
@@ -323,7 +323,7 @@ package weave.visualization.plotters
 		 */
 		private function drawUnProjectedTiles(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (_service == null)
+			if (!_service)
 				return;
 
 			var allTiles:Array = _service.requestImages(dataBounds, screenBounds, preferLowerQuality.value);
@@ -336,9 +336,9 @@ package weave.visualization.plotters
 					continue;
 				
 				// if there is no bitmap data, decide whether to continue or display missing image
-				if (tile.bitmapData == null)
+				if (!tile.bitmapData)
 				{
-					if (displayMissingImage.value == false)
+					if (!displayMissingImage.value)
 						continue;
 					
 					tile.bitmapData = _missingImage.bitmapData;
@@ -421,7 +421,7 @@ package weave.visualization.plotters
 		 */
 		public function setProvider(provider:String):void
 		{
-			if(!verifyServiceName(provider))
+			if (!verifyServiceName(provider))
 				return;
 			
 			if (provider == WMSProviders.NASA)
@@ -447,7 +447,7 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			output.reset();
-			if (_service != null)
+			if (_service)
 			{
 				// determine bounds of plotter
 				_service.getAllowedBounds(output);
@@ -464,7 +464,7 @@ package weave.visualization.plotters
 		
 		public function dispose():void
 		{
-			if (_service != null)
+			if (_service)
 				_service.cancelPendingRequests(); // cancel everything to prevent any callbacks from running
 			WeaveAPI.SessionManager.disposeObject(_service);
 		}
@@ -477,7 +477,7 @@ package weave.visualization.plotters
 			var nasaService:OnEarthProvider = _service as OnEarthProvider;
 			var style:String = styles.value;
 			
-			if (nasaService == null)
+			if (!nasaService)
 				return;
 			
 			nasaService.changeStyleToMonth(style);
@@ -485,7 +485,7 @@ package weave.visualization.plotters
 		
 		private function verifyServiceName(s:String):Boolean
 		{
-			if (s == null || s == '')
+			if (!s)
 				return false;
 			
 			return WMSProviders.providers.indexOf(s) >= 0;
@@ -498,6 +498,9 @@ package weave.visualization.plotters
 		
 		public function adjustZoomBounds(zoomBounds:ZoomBounds):void
 		{
+			if (!_service)
+				return;
+			
 			var minScreenSize:int = Math.max(_service.getImageWidth(), _service.getImageHeight());
 			zoomBounds.getDataBounds(_tempDataBounds);
 			zoomBounds.getScreenBounds(_tempScreenBounds);

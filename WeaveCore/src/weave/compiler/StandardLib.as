@@ -21,6 +21,7 @@ package weave.compiler
 {
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.getTimer;
 	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
@@ -578,6 +579,8 @@ package weave.compiler
 			AsyncSort.sortImmediately(array, compare);
 		}
 		
+		private static const _sortBuffer:Array = [];
+		
 		/**
 		 * Sorts an Array (or Vector) of items in place using properties, lookup tables, or replacer functions.
 		 * @param array An Array (or Vector) to sort.
@@ -598,67 +601,52 @@ package weave.compiler
 			if (array.length == 0)
 				return inPlace ? array : [];
 			
-			var values:Array = new Array(array.length);
+			var values:Array;
 			var param:*;
 			var sortDirection:int;
 			var i:int;
-			if (params != array && params is Array)
+			
+			// expand _sortBuffer as necessary
+			for (i = _sortBuffer.length; i < array.length; i++)
+				_sortBuffer[i] = [];
+			
+			// If there is only one param, wrap it in an array.
+			// Array.sortOn() is preferred over Array.sort() in this case
+			// since an undefined value will crash Array.sort(Array.NUMERIC).
+			if (params === array || !(params is Array))
 			{
-				var fields:Array = new Array(params.length);
-				var fieldOptions:Array = new Array(params.length);
-				for (var p:int = 0; p < params.length; p++)
-				{
-					if (p == 0)
-					{
-						i = array.length;
-						while (i--)
-							values[i] = new Array(params.length);
-					}
-					
-					param = params[p];
-					sortDirection = sortDirections && sortDirections[p] < 0 ? Array.DESCENDING : 0;
-					
-					i = array.length;
-					if (param is Array || param is Vector)
-						while (i--)
-							values[i][p] = param[i];
-					else if (param is Function)
-						while (i--)
-							values[i][p] = param(array[i]);
-					else if (typeof param === 'object')
-						while (i--)
-							values[i][p] = param[array[i]];
-					else
-						while (i--)
-							values[i][p] = array[i][param];
-					
-					fields[p] = p;
-					fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(values[0][p]) | sortDirection;
-				}
-				
-				values = values.sortOn(fields, fieldOptions);
+				params = [params];
+				if (sortDirections)
+					sortDirections = [sortDirections];
 			}
-			else
+			
+			var fields:Array = new Array(params.length);
+			var fieldOptions:Array = new Array(params.length);
+			for (var p:int = 0; p < params.length; p++)
 			{
-				param = params;
-				sortDirection = sortDirections < 0 ? Array.DESCENDING : 0;
+				param = params[p];
+				sortDirection = sortDirections && sortDirections[p] < 0 ? Array.DESCENDING : 0;
 				
 				i = array.length;
-				if (param === array || param is Vector)
+				if (param is Array || param is Vector)
 					while (i--)
-						values[i] = param[i];
+						_sortBuffer[i][p] = param[i];
 				else if (param is Function)
 					while (i--)
-						values[i] = param(array[i]);
+						_sortBuffer[i][p] = param(array[i]);
 				else if (typeof param === 'object')
 					while (i--)
-						values[i] = param[array[i]];
+						_sortBuffer[i][p] = param[array[i]];
 				else
 					while (i--)
-						values[i] = array[i][param];
+						_sortBuffer[i][p] = array[i][param];
 				
-				values = values.sort(Array.RETURNINDEXEDARRAY | guessSortMode(values[0]) | sortDirection);
+				fields[p] = p;
+				fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer[0][p]) | sortDirection;
 			}
+			
+			values = _sortBuffer.slice(0, array.length);
+			values = values.sortOn(fields, fieldOptions);
 			
 			if (returnSortedIndexArray)
 				return values;

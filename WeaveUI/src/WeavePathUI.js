@@ -1,6 +1,9 @@
 /* This code assumes that WeavePath.js has already been loaded. */
 /* "use strict"; */
 
+if (!weave.WeavePath)
+	return;
+
 var checkType = weave.evaluateExpression(null, "(o, type) => o is type");
 
 /**

@@ -22,8 +22,8 @@ package weave.core
 	import mx.graphics.codec.PNGEncoder;
 	
 	import weave.flascc.FlasCC;
+	import weave.primitives.OrderedHashMap;
 	import weave.utils.BitmapUtils;
-	import weave.utils.OrderedHashMap;
 
 	/**
 	 * This is an interface for reading and writing data in the Weave file format.

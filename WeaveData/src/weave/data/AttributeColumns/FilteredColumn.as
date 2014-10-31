@@ -57,6 +57,8 @@ package weave.data.AttributeColumns
 		
 		override public function get keys():Array
 		{
+			// also make internal column request because it may trigger callbacks
+			internalDynamicColumn.keys;
 			return _filteredKeySet.keys;
 		}
 		
@@ -65,6 +67,8 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
+			// also make internal column request because it may trigger callbacks
+			internalDynamicColumn.containsKey(key);
 			return _filteredKeySet.containsKey(key);
 		}
 
@@ -72,8 +76,13 @@ package weave.data.AttributeColumns
 		{
 			var column:IAttributeColumn = internalDynamicColumn.getInternalColumn();
 			var keyFilter:IKeyFilter = filter.getInternalKeyFilter();
-			if (column && (!keyFilter || keyFilter.containsKey(key)))
-				return column.getValueFromKey(key, dataType);
+			if (column)
+			{
+				// always make internal column request because it may trigger callbacks
+				var value:* = column.getValueFromKey(key, dataType);
+				if (!keyFilter || keyFilter.containsKey(key))
+					return value;
+			}
 			
 			if (dataType)
 				return EquationColumnLib.cast(undefined, dataType);

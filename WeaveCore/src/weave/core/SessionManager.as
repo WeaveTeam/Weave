@@ -48,7 +48,8 @@ package weave.core
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
+	import weave.primitives.WeaveTreeItem;
 
 	/**
 	 * This is a collection of core functions in the Weave session framework.
@@ -214,34 +215,38 @@ package weave.core
 			return childToOwnerMap[child] as ILinkableObject;
 		}
 		
-		public static const TREE_LABEL:String = 'label';
-		public static const TREE_OBJECT:String = 'object';
-		public static const TREE_CHILDREN:String = 'children';
-
 		/**
 		 * @param root The linkable object to be placed at the root node of the tree.
 		 * @return A tree of nodes with the properties "label", "object", and "children"
 		 */
-		public function getSessionStateTree(object:ILinkableObject, objectName:String, objectTypeFilter:*=null):Object
+		public function getSessionStateTree(root:ILinkableObject, objectName:String, objectTypeFilter:*=null):WeaveTreeItem
 		{
-			var result:Object = {};
-			result[TREE_LABEL] = objectName;
-			result[TREE_OBJECT] = object;
-			result[TREE_CHILDREN] = [];
-			
+			var treeItem:WeaveTreeItem = new WeaveTreeItem();
+			treeItem.label = objectName;
+			treeItem.source = root;
+			treeItem.children = getTreeItemChildren;
+			treeItem.data = objectTypeFilter;
+			return treeItem;
+		}
+		
+		private function getTreeItemChildren(treeItem:WeaveTreeItem):Array
+		{
+			var object:ILinkableObject = treeItem.source;
+			var objectTypeFilter:* = treeItem.data;
+			var children:Array = [];
 			var names:Array = [];
 			var childObject:ILinkableObject;
-			var tempObject:Object;
+			var subtree:WeaveTreeItem;
 			var ignoreList:Dictionary = new Dictionary(true);
 			if (object is ILinkableHashMap)
 			{
 				names = (object as ILinkableHashMap).getNames();
 				
-				var sessionObjects:Array = (object as ILinkableHashMap).getObjects();
+				var childObjects:Array = (object as ILinkableHashMap).getObjects();
 				
 				for (var i:int = 0; i < names.length; i++)
 				{
-					childObject = sessionObjects[i];
+					childObject = childObjects[i];
 					if (childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
 					{
 						// don't include duplicate siblings
@@ -249,10 +254,9 @@ package weave.core
 							continue;
 						ignoreList[childObject] = true;
 						
-						// get subtree
-						tempObject = getSessionStateTree(childObject,names[i],objectTypeFilter);
-						if (tempObject != null)
-							result[TREE_CHILDREN].push(tempObject);
+						subtree = getSessionStateTree(childObject, names[i], objectTypeFilter);
+						if (subtree != null)
+							children.push(subtree);
 					}
 				}
 			}
@@ -285,21 +289,20 @@ package weave.core
 							continue;
 						ignoreList[childObject] = true;
 						
-						// get subtree
-						tempObject = getSessionStateTree(childObject, name, objectTypeFilter);
-						if (tempObject != null)
-							result[TREE_CHILDREN].push(tempObject);
+						subtree = getSessionStateTree(childObject, name, objectTypeFilter);
+						if (subtree != null)
+							children.push(subtree);
 					}
 				}
 			}
 			
-			if (result[TREE_CHILDREN].length == 0)
-				result[TREE_CHILDREN] = null;
+			if (children.length == 0)
+				children = null;
 			if (objectTypeFilter == null)
-				return result;
-			if (result[TREE_CHILDREN] == null && !(object is objectTypeFilter))
+				return children;
+			if (children == null && !(object is objectTypeFilter))
 				return null;
-			return result;
+			return children;
 		}
 		
 		/**
@@ -1179,20 +1182,20 @@ package weave.core
 		{
 			if (!descendant)
 				return null;
-			var tree:Object = getSessionStateTree(root, null);
+			var tree:WeaveTreeItem = getSessionStateTree(root, null);
 			var path:Array = _getPath(tree, descendant);
 			return path;
 		}
-		private function _getPath(tree:Object, descendant:ILinkableObject):Array
+		private function _getPath(tree:WeaveTreeItem, descendant:ILinkableObject):Array
 		{
-			if (tree[TREE_OBJECT] == descendant)
+			if (tree.source == descendant)
 				return [];
-			for each (var child:Object in tree[TREE_CHILDREN])
+			for each (var child:WeaveTreeItem in tree.children)
 			{
 				var path:Array = _getPath(child, descendant);
 				if (path)
 				{
-					path.unshift(child[TREE_LABEL]);
+					path.unshift(child.label);
 					return path;
 				}
 			}

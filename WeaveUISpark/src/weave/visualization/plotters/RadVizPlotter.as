@@ -235,7 +235,8 @@ package weave.visualization.plotters
 			if (keySources.length > 0) 
 			{
 				keySources.unshift(radiusColumn);
-				setColumnKeySources(keySources, [-1]);
+				var sortDirections:Array = keySources.map(function(c:*, i:int, a:*):int { return i == 0 ? -1 : 1; });
+				setColumnKeySources(keySources, sortDirections);
 				
 				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					

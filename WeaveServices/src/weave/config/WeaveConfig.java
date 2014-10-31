@@ -56,6 +56,8 @@ public class WeaveConfig
 	{
 		if (properties == null)
 		{
+			if (weaveContextParams == null)
+				return null;
 			properties = new LiveProperties(
 				new File(weaveContextParams.getConfigPath(), "config.properties"),
 				MapUtils.<String,String>fromPairs(
@@ -73,6 +75,8 @@ public class WeaveConfig
 	
 	public static String getConnectionConfigFilePath()
 	{
+		if (weaveContextParams == null)
+			return null;
 		return weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME;
 	}
 	
@@ -109,11 +113,15 @@ public class WeaveConfig
 	
 	public static String getDocrootPath()
 	{
+		if (weaveContextParams == null)
+			return null;
 		return weaveContextParams.getDocrootPath();
 	}
 	
 	public static String getUploadPath()
 	{
+		if (weaveContextParams == null)
+			return null;
 		return weaveContextParams.getUploadPath();
 	}
 }

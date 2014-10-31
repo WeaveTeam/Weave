@@ -492,6 +492,7 @@ package weave.core
 				if (iTask >= iterativeTasks.length)
 					return 1;
 				
+				var i:int = iTask; // need to detect if iTask changes
 				var iterate:Function = iterativeTasks[iTask] as Function;
 				var progress:Number;
 				if (iterate.length)
@@ -500,8 +501,12 @@ package weave.core
 				}
 				else
 				{
-					while ((progress = iterate()) < 1 && getTimer() < stopTime) { }
+					while (iTask == i && (progress = iterate()) < 1 && getTimer() < stopTime) { }
 				}
+				// if iTask changed as a result of iterating, we need to restart
+				if (iTask != i)
+					return 0;
+				
 				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
 				if (progress == 1)
 					iTask++;

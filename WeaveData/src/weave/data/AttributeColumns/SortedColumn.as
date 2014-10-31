@@ -21,7 +21,6 @@ package weave.data.AttributeColumns
 {
 	import weave.api.data.IAttributeColumn;
 	import weave.api.registerLinkableChild;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.data.KeySets.SortedKeySet;
 	
@@ -34,8 +33,9 @@ package weave.data.AttributeColumns
 	{
 		public function SortedColumn()
 		{
-			sortAscending = SortedKeySet.generateCompareFunction([internalDynamicColumn], [1]);
-			sortDescending = SortedKeySet.generateCompareFunction([internalDynamicColumn], [-1]);
+			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
+			sortCopyAscending = SortedKeySet.generateSortCopyFunction([internalDynamicColumn], [1]);
+			sortCopyDescending = SortedKeySet.generateSortCopyFunction([internalDynamicColumn], [-1]);
 		}
 		
 		/**
@@ -45,8 +45,8 @@ package weave.data.AttributeColumns
 
 		private var _keys:Array = [];
 		private var _prevTriggerCounter:uint = 0;
-		private var sortAscending:Function;
-		private var sortDescending:Function;
+		private var sortCopyAscending:Function;
+		private var sortCopyDescending:Function;
 
 		/**
 		 * This function returns the unique strings of the internal column.
@@ -56,8 +56,10 @@ package weave.data.AttributeColumns
 		{
 			if (_prevTriggerCounter != triggerCounter)
 			{
-				_keys = super.keys.concat();
-				StandardLib.sort(_keys, ascending.value ? sortAscending : sortDescending);
+				if (ascending.value)
+					_keys = sortCopyAscending(super.keys);
+				else
+					_keys = sortCopyDescending(super.keys);
 				_prevTriggerCounter = triggerCounter;
 			}
 			return _keys;

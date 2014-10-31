@@ -91,10 +91,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				return leafItems;
 			}
-			private function sortMenuItems(item1:WeaveMenuItem, item2:WeaveMenuItem):int
-			{
-				return ObjectUtil.stringCompare(item1.label, item2.label, true);
-			}
 			private function filterMenuItems(item:WeaveMenuItem, i:int, a:Array):Boolean
 			{
 				return item.label.toLowerCase().search(keyword.text.toLowerCase()) > -1;
@@ -105,7 +101,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				autosuggest.hide();
 				
 				var items:Array = getMenuItems().filter(filterMenuItems);
-				StandardLib.sort(items, sortMenuItems);
+				items.sortOn('label', Array.CASEINSENSITIVE);
 				
 				autosuggest.dataProvider = items;
 				

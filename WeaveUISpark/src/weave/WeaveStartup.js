@@ -1,5 +1,8 @@
 // This code assumes the weave variable has already been set.
 
+if (!weave.addEventListener)
+	return;
+
 // init event handlers
 weave.addEventListener("dragenter", dragEnter, false);
 weave.addEventListener("dragexit", dragExit, false);

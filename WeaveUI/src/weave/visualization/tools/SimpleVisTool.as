@@ -110,7 +110,6 @@ package weave.visualization.tools
 			
 			visTitle = new Paragraph();
 			visTitle.setStyle('textAlign', 'center');
-			visTitle.setStyle('fontWeight', 'bold');
 			updateTitleLabel();
 			
 			visCanvas = new Canvas();

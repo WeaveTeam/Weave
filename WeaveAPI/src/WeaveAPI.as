@@ -468,17 +468,7 @@ package
 		 */
 		public static function externalTrace(...params):void
 		{
-			if (!JavaScript.available)
-			{
-				traceLog.push(params);
-				trace.apply(null, params);
-				return;
-			}
-			
-			JavaScript.exec(
-				{"params": params},
-				"console.log.apply(console, params)"
-			);
+			callExternalConsole('log', params);
 		}
 		
 		/**
@@ -486,22 +476,30 @@ package
 		 */
 		public static function externalError(...params):void
 		{
-			if (!JavaScript.available)
-			{
-				traceLog.push(params);
-				trace.apply(null, params);
-				return;
-			}
-			
-			JavaScript.exec(
-				{"params": params},
-				"console.error.apply(console, params)"
-			);
+			callExternalConsole('error', params);
 		}
+			
+		private static var consoleAvailable:* = undefined
 		
 		/**
 		 * Used as a backup log in case both ExternalInterface and trace() are unavailable (in a non-debugger runtime).
 		 */
 		public static var traceLog:Array = [];
+		
+		private static function callExternalConsole(method:String, params:Array):void
+		{
+			if (consoleAvailable === undefined)
+				consoleAvailable = JavaScript.available && JavaScript.exec("return typeof console != 'undefined';");
+			
+			var str:String = params.join(' ');
+			if (!consoleAvailable)
+			{
+				traceLog.push(params);
+				trace(str);
+				return;
+			}
+			
+			JavaScript.exec({"str": str}, "console." + method + "(str)");
+		}
 	}
 }

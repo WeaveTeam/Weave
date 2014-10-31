@@ -21,6 +21,7 @@ package weave.utils
 {
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import mx.utils.ObjectUtil;
 	
@@ -346,6 +347,17 @@ package weave.utils
 			
 			return result;			
 		}
+		
+		public static function test_getAllValues(column:IAttributeColumn, dataType:Class):Array
+		{
+			var t:int = getTimer();
+			var keys:Array = column.keys;
+			var values:Array = new Array(keys.length);
+			for (var i:* in keys)
+				values[i] = column.getValueFromKey(keys[i], dataType);
+			weaveTrace(getTimer()-t);
+			return values;
+		}
 
 		/**
 		 * This function takes the common keys from a list of columns and generates a table of data values for each key from each specified column.
@@ -583,21 +595,9 @@ package weave.utils
 		}
 		
 		private static const _preferredMetadataPropertyOrder:Array = 'title,keyType,dataType,number,string,min,max,year'.split(',');
-		private static function _compareMetadataPropertyNames(a:String, b:String):int
-		{
-			var ia:int = _preferredMetadataPropertyOrder.indexOf(a);
-			var ib:int = _preferredMetadataPropertyOrder.indexOf(b);
-			if (ia >= 0 && ib >= 0)
-				return ObjectUtil.numericCompare(ia, ib);
-			if (ia >= 0)
-				return -1;
-			if (ib >= 0)
-				return 1;
-			return ObjectUtil.stringCompare(a, b, true);
-		}
 		public static function sortMetadataPropertyNames(names:Array):void
 		{
-			StandardLib.sort(names, _compareMetadataPropertyNames);
+			StandardLib.sortOn(names, [_preferredMetadataPropertyOrder.indexOf, names]);
 		}
 		
 		/**

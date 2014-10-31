@@ -29,7 +29,7 @@ package weave.core
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.StandardLib;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
