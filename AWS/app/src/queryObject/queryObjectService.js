@@ -344,6 +344,15 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 										description : metadata.description || ""
 									};
 								}
+								else//handling an empty aws-metadata object 
+									{
+										return{
+											id : entity.id,
+											title : entity.publicMetadata.title,
+											columnType : "",
+											description : ""
+										};
+									}
 							}
 							else{//if its doesnt have aws_metadata as part of its public metadata, create a partial aws_metadata object
 									return {
