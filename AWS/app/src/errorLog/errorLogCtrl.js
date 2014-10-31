@@ -7,9 +7,7 @@ var errorLogModule = angular.module('aws.errorLog', []);
 
 errorLogModule.controller('analystErrorLogCtrl', function($scope,$modal, errorLogService){
 	$scope.errorLogService = errorLogService;
-	$scope.openErrorLog = function(){
-		$modal.open($scope.errorLogService.errorLogModalOptions);
-	};
+	
 });
 
 errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $modalInstance, errorLogService){
@@ -20,7 +18,7 @@ errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $
 	 };
 });
 
-errorLogModule.service('errorLogService',[function(){
+errorLogModule.service('errorLogService',['$modal',function($modal){
 	
 	this.errorLogModalOptions = {//TODO find out how to push error log to bottom of page
 			 backdrop: true,
@@ -34,6 +32,11 @@ errorLogModule.service('errorLogService',[function(){
 	
 	this.logs = "";
 	this.showErrorLog = false;
+	//function to pop open the error log when required
+	this.openErrorLog = function(error){
+		this.logInErrorLog(error);
+		$modal.open($scope.errorLogService.errorLogModalOptions);
+	};
 
 	/**
 	 *this is the function that will be used over all tabs to log errors to the error log
