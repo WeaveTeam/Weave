@@ -7,7 +7,9 @@ var errorLogModule = angular.module('aws.errorLog', []);
 
 errorLogModule.controller('analystErrorLogCtrl', function($scope,$modal, errorLogService){
 	$scope.errorLogService = errorLogService;
-	
+	$scope.openErrorLog = function(){
+		$modal.open($scope.errorLogService.errorLogModalOptions);
+	};
 });
 
 errorLogModule.controller('errorLogInstanceCtrl', function($rootScope, $scope, $modalInstance, errorLogService){
