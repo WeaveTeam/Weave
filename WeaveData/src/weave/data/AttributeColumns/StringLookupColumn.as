@@ -153,19 +153,9 @@ package weave.data.AttributeColumns
 				}
 			}
 			// sort the unique values because these will be the keys and we want them to be in a predictable order
-			StandardLib.sort(_uniqueStringKeys, compareStringKeys);
+			StandardLib.sortOn(_uniqueStringKeys, [_numberLookup, _uniqueStringKeys]);
 			
 			detectLinkableObjectChange(createLookupTable, getInternalColumn());
-		}
-
-		/**
-		 * This function uses _stringToNumberMap to get a numeric value to compare for each string value.
-		 * If the numeric compare returns zero, it does a string compare on the string values instead.
-		 */
-		private function compareStringKeys(stringKey1:IQualifiedKey, stringKey2:IQualifiedKey):int
-		{
-			return ObjectUtil.numericCompare(_numberLookup[stringKey1], _numberLookup[stringKey2])
-				|| QKeyManager.keyCompare(stringKey1, stringKey2);
 		}
 
 		/**

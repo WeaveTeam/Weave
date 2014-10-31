@@ -20,8 +20,10 @@
 package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IKeyFilter;
@@ -35,6 +37,7 @@ package weave.data.KeySets
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * A FilteredKeySet has a base set of keys and an optional filter.
@@ -63,8 +66,8 @@ package weave.data.KeySets
 		private var _baseKeySet:IKeySet = null; // stores the base IKeySet
 		// this stores the IKeyFilter
 		private const _dynamicKeyFilter:DynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter);
-		private var _filteredKeys:Array; // stores the filtered list of keys
-		private var _filteredKeysMap:Dictionary; // this maps a key to a value of true if the key is included in this key set
+		private var _filteredKeys:Array = []; // stores the filtered list of keys
+		private var _filteredKeyLookup:Dictionary = new Dictionary(true); // this maps a key to a value if the key is included in this key set
 		private var _generatedKeySets:Array;
 		private var _setColumnKeySources_arguments:Array;
 		
@@ -78,11 +81,11 @@ package weave.data.KeySets
 		 * This sets up the FilteredKeySet to get its base set of keys from a list of columns and provide them in sorted order.
 		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
 		 * @param sortDirections Array of sort directions corresponding to the columns and given as integers (1=ascending, -1=descending, 0=none).
-		 * @param keyCompare If specified, descendingFlags will be ignored and this compare function will be used instead.
+		 * @param keySortCopy A function that returns a sorted copy of an Array of keys. If specified, descendingFlags will be ignored and this function will be used instead.
 		 * @param keyInclusionLogic Passed to KeySetUnion constructor.
 		 * @see weave.data.KeySets.SortedKeySet#generateCompareFunction()
 		 */
-		public function setColumnKeySources(columns:Array, sortDirections:Array = null, keyCompare:Function = null, keyInclusionLogic:Function = null):void
+		public function setColumnKeySources(columns:Array, sortDirections:Array = null, keySortCopy:Function = null, keyInclusionLogic:Function = null):void
 		{
 			if (StandardLib.compare(_setColumnKeySources_arguments, arguments) == 0)
 				return;
@@ -108,14 +111,21 @@ package weave.data.KeySets
 				// KeySetUnion should not trigger callbacks
 				var union:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
 				for each (keySet in columns)
+				{
 					union.addKeySetDependency(keySet);
+					if (keySet is IAttributeColumn)
+					{
+						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(keySet as IAttributeColumn);
+						registerLinkableChild(union, stats);
+					}
+				}
 				
-				if (debug && keyCompare == null)
+				if (debug && keySortCopy == null)
 					trace(debugId(this), 'sort by [', columns, ']');
 				
-				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(columns, sortDirections);
+				var sortCopy:Function = keySortCopy || SortedKeySet.generateSortCopyFunction(columns, sortDirections);
 				// SortedKeySet should trigger callbacks
-				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, columns));
+				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, sortCopy, columns));
 				_generatedKeySets = [union, sorted];
 				
 				_baseKeySet = sorted;
@@ -166,7 +176,7 @@ package weave.data.KeySets
 		{
 			if (_prevTriggerCounter != triggerCounter)
 				validateFilteredKeys();
-			return _filteredKeysMap[key] !== undefined;
+			return _filteredKeyLookup[key] !== undefined;
 		}
 
 		/**
@@ -188,42 +198,74 @@ package weave.data.KeySets
 		{
 			_prevTriggerCounter = triggerCounter; // this prevents the function from being called again before callbacks are triggered again.
 			
-			// TODO: key type conversion here?
+			_asyncFilter = _dynamicKeyFilter.getInternalKeyFilter();
 			
-			var i:int;
-			var inverse:Boolean = inverseFilter.value;
-			var key:IQualifiedKey;
-			var keyFilter:IKeyFilter = _dynamicKeyFilter.getInternalKeyFilter();
 			if (_baseKeySet == null)
 			{
 				// no keys when base key set is undefined
 				_filteredKeys = [];
+				_filteredKeyLookup = new Dictionary(true);
+				return;
 			}
-			else if (keyFilter != null)
+			if (!_asyncFilter)
 			{
-				// copy the keys that appear in both the base key set and the filter
-				_filteredKeys = [];
-				if (_baseKeySet != null)
-				{
-					var baseKeys:Array = _baseKeySet.keys;
-					for (i = 0; i < baseKeys.length; i++)
-					{
-						key = baseKeys[i] as IQualifiedKey;
-						var contains:Boolean = keyFilter.containsKey(key);
-						if (contains != inverse)
-							_filteredKeys.push(key);
-					}
-				}
-			}
-			else
-			{
-				// use base set of keys
+				// use base key set
 				_filteredKeys = _baseKeySet.keys;
+				_filteredKeyLookup = new Dictionary(true);
+				VectorUtils.fillKeys(_filteredKeyLookup, _filteredKeys);
+				return;
 			}
 			
-			_filteredKeysMap = new Dictionary(true);
-			for (i = _filteredKeys.length; i--;)
-				_filteredKeysMap[_filteredKeys[i]] = i;
+			_i = 0;
+			_asyncInput = _baseKeySet.keys;
+			_asyncOutput = [];
+			_asyncLookup = new Dictionary(true);
+			_asyncInverse = inverseFilter.value;
+			
+			// high priority because all visualizations depend on key sets
+			WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, lang('Filtering {0} keys', _asyncInput.length));
+		}
+		
+		private var _i:int;
+		private var _asyncInverse:Boolean;
+		private var _asyncFilter:IKeyFilter;
+		private var _asyncInput:Array;
+		private var _asyncOutput:Array;
+		private var _asyncLookup:Dictionary;
+		
+		private function iterate(stopTime:int):Number
+		{
+			if (_prevTriggerCounter != triggerCounter)
+				return 1;
+			
+			for (; _i < _asyncInput.length; ++_i)
+			{
+				if (getTimer() > stopTime)
+					return _i / _asyncInput.length;
+				
+				var key:IQualifiedKey = _asyncInput[_i] as IQualifiedKey;
+				var contains:Boolean = _asyncFilter.containsKey(key);
+				if (contains != _asyncInverse)
+				{
+					_asyncOutput.push(key);
+					_asyncLookup[key] = true;
+				}
+			}
+			
+			return 1;
+		}
+		private function asyncComplete():void
+		{
+			if (_prevTriggerCounter != triggerCounter)
+			{
+				validateFilteredKeys();
+				return;
+			}
+			
+			_prevTriggerCounter++;
+			_filteredKeys = _asyncOutput;
+			_filteredKeyLookup = _asyncLookup;
+			triggerCallbacks();
 		}
 	}
 }

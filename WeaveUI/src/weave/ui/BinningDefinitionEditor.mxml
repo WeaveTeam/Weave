@@ -30,6 +30,7 @@
 		 xmlns="weave.ui.*"
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject,weave.api.ui.ILinkableObjectEditor"
+		 creationComplete="handleCreationComplete()"
 		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
 				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
@@ -193,6 +194,11 @@
 				linkBindableProperty(_quantile.refQuantile, refQuantile, 'text', delay);
 				linkBindableProperty(_equalInterval.dataInterval, dataInterval, 'text', delay);
 				linkBindableProperty(_jenks.numOfBins,numOfJenksClass,'value',delay);
+			}
+			
+			private function handleCreationComplete():void
+			{
+				handleBinnedColumnChange();
 			}
 			
 			// called when a radio button is selected

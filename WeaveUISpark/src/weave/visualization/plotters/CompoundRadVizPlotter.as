@@ -35,8 +35,8 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -164,7 +164,8 @@ package weave.visualization.plotters
 			{
 				var keySources:Array = _columns.concat();
 				keySources.unshift(radiusColumn);
-				setColumnKeySources(keySources, [-1]);
+				var sortDirections:Array = keySources.map(function(c:*, i:int, a:*):int { return i == 0 ? -1 : 1; });
+				setColumnKeySources(keySources, sortDirections);
 			
 				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					

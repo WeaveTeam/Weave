@@ -256,7 +256,7 @@ package weave.utils
 			}
 			catch (e:*) { }
 			
-			var str:String = StandardLib.substitute("{0}{1} ({2}) {3}\n", indent, label, debugId(root), rect);
+			var str:String = StandardLib.substitute("{0}{1}({2}) {3}\n", indent, label != null ? label + ' ' : '', debugId(root), rect);
 			
 			var container:DisplayObjectContainer = root as DisplayObjectContainer;
 			if (container && currentDepth != maxDepth)

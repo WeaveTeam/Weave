@@ -51,8 +51,6 @@ package weave.data
 			return (getColumnStatistics(column) as ColumnStatistics).getRunningTotals();
 		}
 
-		private static const WRAPPER_TYPES:Array = [DynamicColumn,ReferencedColumn]; // special cases for validateCache()
-		
 		private const _columnToStats:Dictionary = new Dictionary(true);
 		
 		public function getColumnStatistics(column:IAttributeColumn):IColumnStatistics
@@ -76,9 +74,6 @@ package weave.data
 			}
 			return stats;
 		}
-		
-		private var _DynamicColumn:String = getQualifiedClassName(DynamicColumn);
-		private var _ReferencedColumn:String = getQualifiedClassName(ReferencedColumn);
 	}
 }
 
@@ -97,8 +92,8 @@ internal class ColumnStatistics implements IColumnStatistics
 {
 	public function ColumnStatistics(column:IAttributeColumn)
 	{
-		registerDisposableChild(column, this);
 		this.column = column;
+		column.addImmediateCallback(this, getCallbackCollection(this).triggerCallbacks, false, true);
 	}
 	
 	/**
@@ -211,7 +206,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	private const cache:Dictionary = new Dictionary();
 	
 	private var column:IAttributeColumn;
-	private var prevTriggerCounter:uint = 0;
+	public var prevTriggerCounter:uint = 0;
 	private var busy:Boolean = false;
 	
 	/**
@@ -230,9 +225,6 @@ internal class ColumnStatistics implements IColumnStatistics
 			// once we have determined the column is not busy, begin the async task to calculate stats
 			if (!busy)
 				asyncStart();
-			
-			// no stats yet
-			return undefined;
 		}
 		return cache[statsFunction];
 	}
@@ -325,6 +317,12 @@ internal class ColumnStatistics implements IColumnStatistics
 	
 	private function asyncComplete():void
 	{
+		if (busy)
+		{
+			getCallbackCollection(this).triggerCallbacks();
+			return;
+		}
+		
 		if (count == 0)
 			min = max = NaN;
 		mean = sum / count;
@@ -338,7 +336,7 @@ internal class ColumnStatistics implements IColumnStatistics
 		median = outNumbers[outIndices[int(count / 2)]];
 		i = count;
 		while (--i >= 0)
-			sortIndex[outKeys[i]] = outIndices[i];
+			sortIndex[outKeys[outIndices[i]]] = i;
 		
 		// BEGIN code to get custom min,max
 		var tempNumber:Number;

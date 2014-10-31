@@ -43,8 +43,8 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.UntypedLinkableVariable;
+	import weave.primitives.Dictionary2D;
 	import weave.utils.ColumnUtils;
-	import weave.utils.Dictionary2D;
 	import weave.utils.EquationColumnLib;
 	import weave.utils.VectorUtils;
 	

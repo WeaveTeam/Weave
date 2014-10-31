@@ -21,10 +21,8 @@ package weave.ui.CustomDataGrid
 {
 	import mx.controls.dataGridClasses.DataGridColumn;
 	
-	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.data.KeySets.SortedKeySet;
 	import weave.utils.ColumnUtils;
 	
 	public class DataGridColumnForQKey extends DataGridColumn
@@ -38,12 +36,6 @@ package weave.ui.CustomDataGrid
 		}
 		
 		public var attrColumn:IAttributeColumn = null;
-		
-		override public function get sortCompareFunction():Function
-		{
-			return super.sortCompareFunction as Function
-				|| (super.sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]));
-		}
 		
 		override public function get headerText():String
 		{

@@ -24,8 +24,8 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.CallbackCollection;
+	import weave.primitives.Dictionary2D;
 	import weave.utils.ColumnUtils;
-	import weave.utils.Dictionary2D;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	

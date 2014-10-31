@@ -4,15 +4,17 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
     <meta charset=utf-8 />
     <title>CytoscapeJS Weave Tool</title>
-    <link href="cytoscapejs.css" rel="stylesheet" type="text/css"/>
+    <!-- <link href="cytoscapejs.css" rel="stylesheet" type="text/css"/> -->
     <style>
         body { font: 14px helvetica neue, helvetica, arial, sans-serif;}
         #cy { height: 100%; width: 100%; position: absolute; left: 0; top: 0;}
         #controlsleft {position: absolute;top: 0;left: 0;}
     </style>
-    <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.2.4/cytoscape.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+    <script src="springy.js"></script>
+    <script src="dagre.js"></script>
     <script src="arbor.js"></script>
+    <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.3.3/cytoscape.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
 </head>
 <body>
     <div id="cy">
@@ -32,28 +34,27 @@
                 .css({
                         'content': 'data(name)',
                         'text-valign': 'center',
-                        'color': 'white',
+                        'color': '#fff',
                         'text-outline-width': 1,
-                        'border-color':'black',
-                        'line-width': 1,
+                        'border-color':'#000',
                         'border-width': 1,
                         'text-outline-color': '#888',
                         'background-color': 'data(color)'
                         })
-            .selector('edge')
+                .selector('edge')
                 .css({
                         'target-arrow-shape': 'triangle',
                         'target-arrow-color': '#888',
                         'content': 'data(name)',
-                        'color':'#888',
-                        'curve-style': 'bezier'
+                        'line-color':'#888',
+                        'curve-style': 'haystack',
                         })
             .selector(':selected')
                 .css({
-                        'background-color': 'black',
-                        'line-color': 'black',
-                        'target-arrow-color': 'black',
-                        'source-arrow-color': 'black'
+                        'background-color': '#000',
+                        'line-color': '#000',
+                        'target-arrow-color': '#000',
+                        'source-arrow-color': '#000'
                         })
             .selector('.faded')
                 .css({
@@ -71,7 +72,7 @@
                 })
             .selector('edge.probed')
                 .css({
-                        'line-color': 'red',
+                        'line-color': '#f00',
                         'line-width': 3
                 })
             .selector('$node > node')
@@ -115,16 +116,17 @@
 
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
 
+        function defaultColor(color) { if (!color) color="#fff"; return color;};
+
         function modifyRecords(records, field, func)
         {
             records.forEach(function (record) { record[field] = func(record[field]); });
         }
 
-        //modifyRecords(node_data, 'parent', localNameToKeyString);
-
         modifyRecords(edge_data, 'source', localNameToKeyString);
         modifyRecords(edge_data, 'target', localNameToKeyString);
         modifyRecords(node_data, 'parent', localNameToKeyString);
+        modifyRecords(node_data, 'color',  defaultColor);
 
         var node_ids = _.zipObject(_.pluck(node_data, 'id'));
 
@@ -264,13 +266,12 @@
     var valid_layouts = {null: 'Null', random: 'Random', preset: 'Preset', 
                          grid: 'Grid', circle: 'Circle', concentric: 'Concentric', 
                          breadthfirst: 'Breadth-First', arbor: 'Arbor (Force-Directed)', 
-                         cose: "CompoundSpring"};
+                         cose: "CompoundSpring", dagre: 'Directed Acyclic Graph', springy: "Springy"};
 
     function run_layout(on_finished)
     {
         var layout_name = tool[LAYOUT].getState();
         var layout_params = tool[LAYOUT_OPTIONS].getState();
-
         if (!layout_params)
         {
             tool[LAYOUT_OPTIONS].state({});
@@ -299,13 +300,14 @@
 
     function open_attribute_selector()
     {
-        toolPath.push(NODES).libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(this)");
+        toolPath.libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(null, null, false, this)");
         return;
     }
 
     function set_local_layout()
     {
         var layout_value = tool[LAYOUT].getState();
+        if (layout_value && layout_value.trim) layout_value.trim();
         $('select[name="layout_dropdown"] option[value="' + layout_value + '"]').prop("selected", "yes");
     }
 
@@ -352,7 +354,7 @@
             .text(value).attr("value",key));
     });
 
-    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: "null"}, ready: function () { 
+    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: "grid"}, ready: function () { 
         window.cy = this;
 
         toolPath = opener.WeaveExternalTools[window.name].path;
@@ -379,7 +381,7 @@
             {name: VIEWPORT, type: "LinkableVariable", label: "Viewport", callback: set_local_viewport},
             {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated}
         ], tool);
-
+        set_local_layout();
         toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
         toolPath.probe_keyset.addKeySetCallback(set_local_probe, true);
 

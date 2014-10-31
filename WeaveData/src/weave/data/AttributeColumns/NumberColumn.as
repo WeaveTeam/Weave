@@ -27,7 +27,7 @@ package weave.data.AttributeColumns
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 	
 	/**
 	 * @author adufilie

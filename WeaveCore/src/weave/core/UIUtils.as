@@ -42,7 +42,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.ILinkableLayoutManager;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 
 	/**
 	 * This is an all-static class containing functions related to UI and ILinkableObjects.

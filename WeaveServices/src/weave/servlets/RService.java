@@ -28,6 +28,7 @@ import weave.beans.ClassDiscriminationResult;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
+import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
 import weave.utils.Strings;
 
@@ -45,6 +46,7 @@ public class RService extends WeaveServlet
 	{
 		super.init(config);
 		WeaveContextParams wcp = WeaveContextParams.getInstance(config.getServletContext());
+		WeaveConfig.initWeaveConfig(wcp);
 		docrootPath = wcp.getDocrootPath();
 		uploadPath = wcp.getUploadPath();
 		rServePath = wcp.getRServePath();

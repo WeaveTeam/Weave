@@ -42,6 +42,7 @@ package weave.editors
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.core.UIUtils;
+	import weave.primitives.WeaveTreeItem;
 	import weave.ui.CodeEditor;
 	import weave.ui.ColumnListComponent;
 	import weave.ui.CustomCheckBox;
@@ -65,17 +66,14 @@ package weave.editors
 		 */
 		public static function createComponent(object:Object, label:String, indentChildren:Boolean):IUIComponent
 		{
-			const sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
-			const LABEL:String = SessionManager.TREE_LABEL;
-			const OBJECT:String = SessionManager.TREE_OBJECT;
-			const CHILDREN:String = SessionManager.TREE_CHILDREN;
+			var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
 			
+			var tree:WeaveTreeItem = object as WeaveTreeItem;
 			var target:ILinkableObject = object as ILinkableObject;
 			if (target)
-				object = sm.getSessionStateTree(target, label);
+				tree = sm.getSessionStateTree(target, label);
 			else
-				target = object[OBJECT] as ILinkableObject;
-			var tree:Object = object;
+				target = tree.source as ILinkableObject;
 			
 			var indent:Indent;
 			
@@ -166,16 +164,16 @@ package weave.editors
 			//----------------------
 			
 			// for everything else, generate editors for each child in the session state
-			var subtrees:Array = tree[CHILDREN];
+			var subtrees:Array = tree.children;
 			
 			if (!(target is ILinkableHashMap))
 			{
 				// sort by class, then by name
-				StandardLib.sort(subtrees, function(st1:Object, st2:Object):int {
-					var c1:Class = st1[OBJECT].constructor;
-					var c2:Class = st2[OBJECT].constructor;
-					var l1:String = st1[LABEL];
-					var l2:String = st2[LABEL];
+				StandardLib.sort(subtrees, function(st1:WeaveTreeItem, st2:WeaveTreeItem):int {
+					var c1:Class = Object(st1.source).constructor;
+					var c2:Class = Object(st2.source).constructor;
+					var l1:String = st1.label;
+					var l2:String = st2.label;
 					return ObjectUtil.stringCompare(String(c1), String(c2))
 						|| ObjectUtil.stringCompare(l1, l2);
 				});
@@ -185,10 +183,10 @@ package weave.editors
 			var owsa:ISelectableAttributes = target as ISelectableAttributes;
 			if (owsa)
 			{
-				var lookup:Dictionary = VectorUtils.createLookup(subtrees, OBJECT);
+				var lookup:Dictionary = VectorUtils.createLookup(subtrees, 'source');
 				var names:Array = owsa.getSelectableAttributeNames();
 				subtrees = owsa.getSelectableAttributes()
-					.map(function(attr:*, i:*, a:*):*{
+					.map(function(attr:*, i:*, a:*):WeaveTreeItem{
 						return subtrees[lookup[attr]]
 							|| sm.getSessionStateTree(attr, names[i]);
 					})
@@ -198,10 +196,10 @@ package weave.editors
 			// create child editors
 			var components:Array = [];
 			var ignore:Dictionary = new Dictionary(true);
-			for each (var subtree:Object in subtrees)
+			for each (var subtree:WeaveTreeItem in subtrees)
 			{
-				var childLabel:String = subtree[LABEL];
-				var childObject:ILinkableObject = subtree[OBJECT];
+				var childLabel:String = subtree.label;
+				var childObject:ILinkableObject = subtree.source;
 				
 				// make sure we don't add duplicate editors
 				if (ignore[childObject])

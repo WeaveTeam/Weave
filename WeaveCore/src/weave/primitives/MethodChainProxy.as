@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.utils
+package weave.primitives
 {
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;

@@ -505,7 +505,7 @@ package weave.utils
 			var i:int, t:int;
 			
 			// Sort points lexicographically
-			StandardLib.sort(P, comparePoints);
+			StandardLib.sortOn(P, ['x', 'y']);
 			
 			// Build lower hull
 			for (i = 0; i < n; ++i)
@@ -519,10 +519,6 @@ package weave.utils
 			
 			H.length = k;
 			return H;
-		}
-		private static function comparePoints(a:Object, b:Object):int
-		{
-			return ObjectUtil.numericCompare(a.x, b.x) || ObjectUtil.numericCompare(a.y, b.y);
 		}
 		private static function crossProduct(O:Object, A:Object, B:Object):Number
 		{

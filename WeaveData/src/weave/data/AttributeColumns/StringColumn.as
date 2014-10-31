@@ -31,8 +31,8 @@ package weave.data.AttributeColumns
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
+	import weave.primitives.Dictionary2D;
 	import weave.utils.AsyncSort;
-	import weave.utils.Dictionary2D;
 	
 	/**
 	 * @author adufilie
