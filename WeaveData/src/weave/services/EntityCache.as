@@ -473,7 +473,7 @@ package weave.services
 		 */
 		public function getEntityPath(root:Entity, descendant:Entity):Array
 		{
-			if (!root.initialized)
+			if (!root.id == ROOT_ID)
 			{
 				//TODO - when searching for a column under root(-1), a table should always be returned instead of a hierarchy
 				var type:String = descendant.getEntityType();
