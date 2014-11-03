@@ -138,7 +138,6 @@ A text editor to change the Session State on the fly.
 			import weave.compiler.Compiler;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableString;
-			import weave.core.SessionManager;
 			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
@@ -193,9 +192,11 @@ A text editor to change the Session State on the fly.
 				
 				//handle keyboard event CTRL +F to Search Box
 				this.addEventListener(KeyboardEvent.KEY_DOWN, handleCtrlFPressEvent)
-
-		    	BindingUtils.bindSetter(EventUtils.generateDelayedCallback(this, handleSessionNavSelect, 0), sessionNav, "selectedItem");
-		    	
+				
+				var handler:Function = EventUtils.generateDelayedCallback(this, handleSessionNavSelect, 0);
+				BindingUtils.bindSetter(handler, sessionNav, "selectedItem");
+				BindingUtils.bindSetter(handler, sessionNav, "selectedItems");
+				
 				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
 				
 				changeView(_editor);
@@ -281,7 +282,7 @@ A text editor to change the Session State on the fly.
 		    
 			public function refresh():void
 			{
-				if (_textModified == false || (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				if (_textModified == false || objectWasDisposed(_currentSelectedObject))
 				{
 					loadSelectedSessionObjectInView();
 					return;
@@ -486,6 +487,8 @@ A text editor to change the Session State on the fly.
 						return; // no change
 					console.context = selectedTreeItem.source;
 				}
+				else
+					console.context = null;
 				
 				var dynamicObject:LinkableDynamicObject = sessionNav.getSelectedLinkableObject() as LinkableDynamicObject;
 				if (dynamicObject)
@@ -612,7 +615,7 @@ A text editor to change the Session State on the fly.
 				else if (dynamicObject)
 					dynamicObject.removeObject();
 				
-				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(oldObject))
+				if (objectWasDisposed(oldObject))
 					refresh();
 				else
 					Alert.show(lang("Object is locked and cannot be deleted."), lang("Delete Failed"));
@@ -651,7 +654,7 @@ A text editor to change the Session State on the fly.
 		    {
 				_textModified = false;
 				
-				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				if (objectWasDisposed(_currentSelectedObject))
 				{
 					refresh();
 					return;
