@@ -369,18 +369,20 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		        queryService.queryObject.scriptOptions
 		        ];
 	}, function () {
-	//if the datatable has not been selected
-	if(!queryService.queryObject.dataTable.hasOwnProperty("id")){
-		queryService.dataObject.validationStatus = "Data table has not been selected.";
-		queryService.dataObject.isQueryValid = false;
-	}	
-	//if the script has not been selected
-	else if(!queryService.queryObject.scriptSelected){
-		queryService.dataObject.validationStatus = "Script has not been selected.";
-		queryService.dataObject.isQueryValid = false;
-	}
-	//this leaves checking the scriptOptions
-	else {
+		//if the datatable has not been selected
+		if(queryService.queryObject.dataTable == null || queryService.queryObject.dataTable == ""){
+			queryService.dataObject.validationStatus = "Data table has not been selected.";
+			queryService.dataObject.isQueryValid = false;
+		}
+		//if script has not been selected
+		else if(queryService.queryObject.scriptSelected == null || queryService.queryObject.scriptSelected == "")
+		{
+			queryService.dataObject.validationStatus = "Script has not been selected.";
+			queryService.dataObject.isQueryValid = false;
+		}
+		//this leaves checking the scriptOptions
+		else 
+		{
 			$scope.$watch(function() {
 				return queryService.queryObject.scriptOptions;
 			}, function () {

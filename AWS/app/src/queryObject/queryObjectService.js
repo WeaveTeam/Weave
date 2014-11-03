@@ -121,6 +121,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			},
 			openInNewWindow : false,
 			scriptOptions : {},
+			scriptSelected : "",
 			TimePeriodFilter : {},
 			ByVariableFilters : [],
 			ByVariableColumns : [],
