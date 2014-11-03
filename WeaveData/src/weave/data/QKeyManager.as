@@ -249,13 +249,14 @@ internal class QKeyGetter
 		this.keyType = keyType;
 		this.keyStrings = keyStrings;
 		this.outputKeys = outputKeys;
+		this.i = 0;
 		
 		outputKeys.length = keyStrings.length;
 		// high priority because all visualizations depend on key sets
 		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncCallback, lang("Initializing {0} record identifiers", keyStrings.length));
 	}
 	
-	private var i:int = 0;
+	private var i:int;
 	private var manager:QKeyManager;
 	private var relevantContext:ILinkableObject;
 	private var keyType:String;
