@@ -175,12 +175,40 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			},
 			debugLevel: 0
 		});
-		//$("#queryObjTree").dynatree("getTree").reload();
+		$("#queryObjTree").dynatree("getTree").reload();
 		
 	}, true);
 	
 	 $("#queryObjectPanel" ).draggable().resizable();;
 	
+	 
+	 queryService.dataObject.shouldRemap = [];
+	 queryService.dataObject.remapValue = [];
+	 
+	 $scope.setRemapBoolean = function(varValue, boolean)
+	 {
+		 if( queryService.queryObject.IndicatorRemap[varValue])
+		 {
+			 queryService.queryObject.IndicatorRemap[varValue].shouldRemap = boolean;
+		 } else {
+			 queryService.queryObject.IndicatorRemap[varValue] = {};
+			 queryService.queryObject.IndicatorRemap[varValue].shouldRemap = boolean;
+		 }
+	 };
+	 
+	 $scope.setRemapValue = function(varValue, value)
+	 {
+		 if(queryService.queryObject.IndicatorRemap[varValue])
+		 {
+			 queryService.queryObject.IndicatorRemap[varValue].value = value;
+		 } else 
+		 {
+			 queryService.queryObject.IndicatorRemap[varValue] = {};
+			 queryService.queryObject.IndicatorRemap[varValue].value = value;
+			 
+		 }
+	 };
+	 
 	 $scope.getDataTable = function(term, done) {
 		var values = queryService.dataObject.dataTableList;
 		done($filter('filter')(values, {title:term}, 'title'));
@@ -202,6 +230,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		if(!queryService.dataObject.openInNewWindow) {
 			if(WeaveService.weaveWindow && !WeaveService.weaveWindow.closed) {
 				// save the session state.
+				console.log(WeaveService.weave);
 				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
 				WeaveService.weaveWindow.close();
 			}
