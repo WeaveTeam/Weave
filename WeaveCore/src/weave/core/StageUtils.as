@@ -340,7 +340,11 @@ package weave.core
 				now = getTimer();
 				// stop when max computation time is reached for this frame
 				if (now > allStop)
+				{
+					if (debug_callLater)
+						DebugTimer.cancel();
 					return;
+				}
 				
 				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
 				args = queue.shift();
@@ -389,6 +393,8 @@ package weave.core
 					// if max computation time was reached for this frame or we have visited all priorities, stop now
 					if (now > allStop || _activePriority == lastPriority)
 					{
+						if (debug_callLater)
+							DebugTimer.cancel();
 						if (debug_fps)
 							trace('spent',currentFrameElapsedTime,'ms');
 						return;
@@ -400,7 +406,11 @@ package weave.core
 						remaining += (_priorityCallLaterQueues[i] as Array).length;
 					// stop if no more entries
 					if (remaining == 0)
+					{
+						if (debug_callLater)
+							DebugTimer.cancel();
 						break;
+					}
 					
 					// switch to next priority, reset elapsed time
 					_activePriority++;
@@ -418,6 +428,8 @@ package weave.core
 					countdown = queue.length;
 					
 					// restart loop to check stopping condition
+					if (debug_callLater)
+						DebugTimer.cancel();
 					continue;
 				}
 				
