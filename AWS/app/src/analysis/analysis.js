@@ -175,12 +175,40 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			},
 			debugLevel: 0
 		});
-		//$("#queryObjTree").dynatree("getTree").reload();
+		$("#queryObjTree").dynatree("getTree").reload();
 		
 	}, true);
 	
 	 $("#queryObjectPanel" ).draggable().resizable();;
 	
+	 
+	 $scope.shouldRemap = [];
+	 $scope.remapValue = [];
+	 
+	 $scope.setRemapBoolean = function(varValue, boolean)
+	 {
+		 if( queryService.queryObject.IndicatorRemap[varValue])
+		 {
+			 queryService.queryObject.IndicatorRemap[varValue].shouldRemap = boolean;
+		 } else {
+			 queryService.queryObject.IndicatorRemap[varValue] = {};
+			 queryService.queryObject.IndicatorRemap[varValue].shouldRemap = boolean;
+		 }
+	 };
+	 
+	 $scope.setRemapValue = function(varValue, value)
+	 {
+		 if(queryService.queryObject.IndicatorRemap[varValue])
+		 {
+			 queryService.queryObject.IndicatorRemap[varValue].value = value;
+		 } else 
+		 {
+			 queryService.queryObject.IndicatorRemap[varValue] = {};
+			 queryService.queryObject.IndicatorRemap[varValue].value = value;
+			 
+		 }
+	 };
+	 
 	 $scope.getDataTable = function(term, done) {
 		var values = queryService.dataObject.dataTableList;
 		done($filter('filter')(values, {title:term}, 'title'));

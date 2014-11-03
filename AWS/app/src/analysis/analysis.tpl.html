@@ -77,8 +77,8 @@
 								<tr ng-repeat="varValue in varValues">
 									<td style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
 									<td  style="padding-left: 5px"> {{varValue.label}} </td>
-									<td align="center"> <input type="checkbox" ng-change="queryService.queryObject.IndicatorReMap.[varValue.value].shouldRemap"></input> </td>
-									<td> <input ng-model="queryService.queryObject.IndicatorReMap.[varValue.value].value"> </input> </td>
+									<td align="center"> <input type="checkbox" ng-model="shouldRemap[$index]", ng-change="setRemapBoolean(varValue, shouldRemap[$index])"></input> </td>
+									<td> <input ng-model="remapValue[$index]" ng-model="shouldRemap[$index]", ng-change="setRemapValue(varValue, remapValue[$index])"> </input> </td>
 								</tr>
 							</table>
 					</div>
