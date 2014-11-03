@@ -182,8 +182,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 $("#queryObjectPanel" ).draggable().resizable();;
 	
 	 
-	 $scope.shouldRemap = [];
-	 $scope.remapValue = [];
+	 queryService.dataObject.shouldRemap = [];
+	 queryService.dataObject.remapValue = [];
 	 
 	 $scope.setRemapBoolean = function(varValue, boolean)
 	 {
@@ -230,6 +230,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		if(!queryService.dataObject.openInNewWindow) {
 			if(WeaveService.weaveWindow && !WeaveService.weaveWindow.closed) {
 				// save the session state.
+				console.log(WeaveService.weave);
 				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
 				WeaveService.weaveWindow.close();
 			}
