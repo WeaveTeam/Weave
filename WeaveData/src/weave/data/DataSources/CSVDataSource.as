@@ -219,8 +219,6 @@ package weave.data.DataSources
 		
 		public function generateMetadataForColumnId(id:Object):Object
 		{
-			if (!parsedRows)
-				return null;
 			var metadata:Object = {};
 			metadata[ColumnMetadata.TITLE] = getColumnTitle(id);
 			metadata[ColumnMetadata.KEY_TYPE] = keyType.value || DataType.STRING;
