@@ -15,6 +15,8 @@ package weave.services
 	{
 		private static function get Alert():Object { return getDefinitionByName('mx.controls.Alert'); }
 		private static var _thisInstance:InfoMapAdminInterface = null;
+		
+		// infomap interface singleton.
 		public static function get instance():InfoMapAdminInterface
 		{
 			if (_thisInstance == null)
@@ -24,6 +26,7 @@ package weave.services
 		
 		public static const messageLog:Array = new Array();
 		public static const messageLogCallbacks:CallbackCollection = new CallbackCollection();
+	
 		public static function messageDisplay(messageTitle:String, message:String, showPopup:Boolean):void 
 		{
 			// for errors, both a popupbox and addition in the Log takes place
@@ -40,6 +43,7 @@ package weave.services
 			messageLogCallbacks.triggerCallbacks();
 		}
 		
+		// private constructor
 		public function InfoMapAdminInterface(url:String)
 		{
 			service = new AMF3Servlet(url + "/AdminService");

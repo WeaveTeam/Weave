@@ -776,7 +776,6 @@
 					getTopicsClassification();
 				}
 				getEntityDistribution();
-				getClusters();
 				triggeredByQuerObjectChange = true;  // For Google Search Handle QueryObject change
 				googleSearchQuery(); // For Google Search Handle QueryObject change
 			}
@@ -2345,20 +2344,24 @@
 			private var _clusterCytoscapeName:String;
 			private function getClusters():void
 			{
-				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
-				var servletParam:Object = new Object();
-				servletParam.method = "getClustersForQueryString";
-				servletParam.params = [_currentQueryString,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
-					currentQuery.sources.value,currentQuery.sortBy.value];
-				clusterCSVDataSource.servletParams.value = servletParam;
-				clusterCSVDataSource.keyColName.value = "document";
-				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
-				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
+				var q:AsyncToken = InfoMapAdminInterface.instance.getClustersForQueryString(_currentQueryString,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
+					currentQuery.sources.value,currentQuery.sortBy.value);
+				
+				addAsyncResponder(q, handleGetClusterResult, handleGetClusterFault);
+				
+//				var servletParam:Object = new Object();
+//				servletParam.method = "getClustersForQueryString";
+//				servletParam.params = [_currentQueryString,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
+//					currentQuery.sources.value,currentQuery.sortBy.value];
+//				clusterCSVDataSource.servletParams.value = servletParam;
+//				clusterCSVDataSource.keyColName.value = "document";
+//				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+//				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
+//				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
 				
 				//Set standard params for the Cytoscape Data Source.
-				tempCytoscapeNodeCSVDataSource.keyColName.value = "document";
-				tempCytoscapeNodeCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+//				tempCytoscapeNodeCSVDataSource.keyColName.value = "document";
+//				tempCytoscapeNodeCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
 				
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
 			}
@@ -2366,7 +2369,23 @@
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
 			public var tempCytoscapeEdgeCSVDataSource:CSVDataSource = new CSVDataSource();
 			public var tempCytoscapeNodeCSVDataSource:CSVDataSource = new CSVDataSource();
-			public function showClusters(event:Event=null):void
+			
+			private function handleGetClusterResult(event:ResultEvent, token:Object = null):void
+			{
+				var result:Array = event.result as Array;
+				clusterCSVDataSource.setCSVData(result);	
+				clusterCSVDataSource.keyColName.value = "document";
+				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				showClusters();
+			}
+			
+			
+			private function handleGetClusterFault(event:FaultEvent, token:Object = null):void
+			{
+				trace(["error getting document clustering", token, event.message].join('\n'));
+				reportError(event);
+			}
+			public function showClusters():void
 			{
 				//Temporary array used to setup the graph structure.
 				var cytoscapeEdgeCSVArray:Array = new Array();
@@ -2380,17 +2399,17 @@
 				}
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
 				
-				if(WeaveAPI.SessionManager.linkableObjectIsBusy(clusterCSVDataSource.getColumnByName("document")))
-				{
-					status.text = "Loading topics...";
-					callLater(showClusters);					
-					return;
-				}
+//				if(WeaveAPI.SessionManager.linkableObjectIsBusy(clusterCSVDataSource.getColumnByName("document")))
+//				{
+//					status.text = "Loading topics...";
+//					callLater(showClusters);					
+//					return;
+//				}
 				
 				//For creating Cytoscape CSV datasource.
 				//Made a temporary change to CSVDataSource for this to work as intended here.
-				var columnData:Array = clusterCSVDataSource.getCSVRowData();
-				
+				var columnData:Array = clusterCSVDataSource.getCSVData();
+				trace(columnData);
 				status.text = "";
 				//Radviz setup.
 				object = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
@@ -2543,6 +2562,9 @@
 				
 				_radialMenu.addMenuItem(_pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
+				
+				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
+				
 				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
 				{
 					showView(currentView.value);
