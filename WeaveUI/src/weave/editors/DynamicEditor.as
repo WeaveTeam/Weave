@@ -38,7 +38,6 @@ package weave.editors
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
 	import weave.core.UIUtils;
 	import weave.primitives.WeaveTreeItem;
@@ -80,7 +79,7 @@ package weave.editors
 			if (ln)
 			{
 				var input:IndentTextInput = new IndentTextInput();
-				input.prompt = "number";
+				input.prompt = lang("number");
 				input.translate = true;
 				input.label = label;
 				linkBindableProperty(ln, input, 'text', 250, true);
@@ -359,7 +358,7 @@ internal class JsonSynchronizer
 		catch (e:Error)
 		{
 			// do nothing because user input was invalid
-			host.errorString = "Invalid JSON";
+			host.errorString = lang("Invalid JSON");
 			return;
 		}
 		
