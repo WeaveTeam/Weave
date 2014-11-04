@@ -13,10 +13,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
-	//booleans used for validation of a query object
-	this.isValidated = false;
-	this.validationUpdate = "Ready for validation";
-	
 	//boolean used for displaying the Visualization widget tool menu
 	//only when results are returned and Weave pops up, should this menu be enabled
 	this.displayVizMenu = false;
@@ -78,53 +74,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
         return deferred.promise;
     };
     
-    /**
-     * this function will validate minimal requirements for a script to run
-     * @param queryObjectToValidate the queryObject whose parameters will be checked before query execution
-     */
-    this.validateScriptExecution = function(queryObjectToValidate){
-    	//check for a dataset
-    	//check for a script
-    	//check for script inputs
-    	
-    	var scriptOptionsComplete = false;//true if all parameters have been filled in by UI
-    	var counter = Object.keys(queryObjectToValidate.scriptOptions).length;
-    	if(!scriptOptionsComplete)
-    	{
-    		var g = 0;
-    		for(var f in queryObjectToValidate.scriptOptions)
-    		{
-    			//var check = queryObjectToValidate.scriptOptions[f];
-    			if(!(queryObjectToValidate.scriptOptions[f]))
-    				{
-    				    console.log("param", f);
-	    				alert(f + " parameter has not been entered");
-	    				break;
-    				}
-    			else
-    				g++;
-    		}
-    		if(g == counter)
-    			scriptOptionsComplete = true;
-    		
-    	}
-    	
-    	
-    	if(queryObjectToValidate.dataTable && queryObjectToValidate.scriptSelected && scriptOptionsComplete)
-    		{
-    			this.isValidated = true;
-    			this.validationUpdate = "Your query object is validated";
-    		}
-    		else
-    		{
-	    		console.log("Please select a datatable, select a script and enter ALL script parameters");
-	    		this.validationUpdate = "Your query object is not validated";
-	    		this.isValidated = false;
-    		
-    		}
-    	
-    };
-    
+  
 	/**
 	 * this function processes the queryObject and makes the async call for running the script
 	 * @param runInRealTime this parameter serves as a flag which determines if the Weave JS Api should be run
