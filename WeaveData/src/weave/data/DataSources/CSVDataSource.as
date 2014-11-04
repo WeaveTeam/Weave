@@ -161,11 +161,6 @@ package weave.data.DataSources
 		{
 			return csvData.getSessionState() as Array;
 		}
-		
-		public function getCSVRowData():Array
-		{
-			return parsedRows as Array;
-		}
 		/**
 		 * Convenience function for setting session state of csvData.
 		 * @param rows
@@ -224,8 +219,6 @@ package weave.data.DataSources
 		
 		public function generateMetadataForColumnId(id:Object):Object
 		{
-			if (!parsedRows)
-				return null;
 			var metadata:Object = {};
 			metadata[ColumnMetadata.TITLE] = getColumnTitle(id);
 			metadata[ColumnMetadata.KEY_TYPE] = keyType.value || DataType.STRING;
@@ -534,17 +527,18 @@ package weave.data.DataSources
 			
 			// it is ok if keyColIndex is -1 because getColumnValues supports -1
 			var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
+			
 			var source:CSVDataSource = this;
-			detectLinkableObjectChange(proxyColumn, this);
+			detectLinkableObjectChange(proxyColumn, source);
 			var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 			function setRecords():void
 			{
-				if(detectLinkableObjectChange(proxyColumn, source))
+				if (detectLinkableObjectChange(proxyColumn, source))
 				{
 					handlePendingColumnRequest(proxyColumn);
 					return;
 				}
-					
+				
 				var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());
 				var numbers:Vector.<Number> = null;
 				
