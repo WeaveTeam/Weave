@@ -226,6 +226,7 @@
 			    <!--See the Adobe AIR documentation for more information about setting Google Android permissions-->
 			    <!--Removing the permission android.permission.INTERNET will have the side effect of preventing you from debugging your application on your device-->
 			    <uses-permission android:name="android.permission.INTERNET"/>
+			    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 			    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>-->
 			    <!--<uses-permission android:name="android.permission.READ_PHONE_STATE"/>-->
 			    <!--<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>-->
@@ -244,6 +245,9 @@
 				<!--
 					http://help.adobe.com/en_US/air/build/WSfffb011ac560372f-5d0f4f25128cc9cd0cb-7ffc.html#WS2d929364fa0b81373f2c6cba12a3522f10c-8000
 					http://stackoverflow.com/questions/8903443/android-file-associations
+					
+					Workaround to support files with extra . in their names is to have multiple values for pathPattern
+					http://stackoverflow.com/questions/3400072/pathpattern-to-match-file-extension-does-not-work-if-a-period-exists-elsewhere-i
 				-->
                 <application> 
                     <activity> 
@@ -263,10 +267,28 @@
  							<data android:scheme="https" />
  							<data android:host="*" />
  							<data android:pathPattern=".*\.weave" />
-							<!--
-								Workaround to support files with extra . in their names
-								http://stackoverflow.com/questions/3400072/pathpattern-to-match-file-extension-does-not-work-if-a-period-exists-elsewhere-i
-							-->
+ 							<data android:pathPattern=".*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\..*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\..*\..*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\..*\..*\..*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\..*\..*\..*\..*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\..*\..*\..*\..*\..*\..*\.weave" />
+ 							<data android:pathPattern=".*\..*\..*\..*\..*\..*\..*\..*\..*\..*\.weave" />
+						</intent-filter>
+						
+						<intent-filter>
+						    <action android:name="android.intent.action.VIEW" />
+						    <action android:name="android.intent.action.EDIT" />
+						    <action android:name="android.intent.action.PICK" />
+						    <category android:name="android.intent.category.DEFAULT" />
+						    <category android:name="android.intent.category.BROWSABLE" />
+ 							<data android:scheme="file" />
+ 							<data android:host="*" />
+						    <data android:mimeType="*/*" />
+						    <data android:pathPattern="*.weave" />
+ 							<data android:pathPattern=".*\.weave" />
  							<data android:pathPattern=".*\..*\.weave" />
  							<data android:pathPattern=".*\..*\..*\.weave" />
  							<data android:pathPattern=".*\..*\..*\..*\.weave" />
@@ -289,18 +311,7 @@
 						    <data android:pathPattern=".*\.weave" />
 						</intent-filter>
 						-->
-
 						<!--
-						<intent-filter>
-						    <action android:name="android.intent.action.VIEW" />
-						    <action android:name="android.intent.action.EDIT" /> 
-						    <action android:name="android.intent.action.PICK" />
-						    <category android:name="android.intent.category.DEFAULT" />
-						    <category android:name="android.intent.category.BROWSABLE" />
-						    <data android:mimeType="*/*" />
-						    <data android:pathPattern="*.weave" />
-						</intent-filter>
-						
 						<intent-filter>
 						    <action android:name="android.intent.action.VIEW" />
 						    <category android:name="android.intent.category.DEFAULT" />
