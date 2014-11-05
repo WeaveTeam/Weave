@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.infomap.ui.*"
+		 verticalScrollPolicy="off" xmlns:ui1="weave.ui.*">
+	
+	<mx:Button label="Add Query">
+	</mx:Button>
+
+	<mx:TabNavigator xmlns:mx="http://www.adobe.com/2006/mxml" 
+					 width="100%" height="100%"
+					 xmlns:ui="weave.ui.infomap.ui.*">
+		<mx:VBox label="New Query" 
+				 width="100%" 
+				 height="100%">
+			<ui1:Indent label="Query: ">
+				<mx:TextInput  width="100%">
+				
+				</mx:TextInput>
+
+				<!-- Accounts view goes here. -->
+			</ui1:Indent>
+			
+			<mx:HBox>
+				<mx:ButtonBar horizontalGap="0" 
+							  direction="vertical" 
+							  horizontalAlign="center" 
+							  verticalCenter="center"
+							  width="30%">
+					<mx:dataProvider>
+						<mx:Object label="List View"/>
+						<mx:Object label="Google Search View"/> 
+						<mx:Object label="Grid View"/> 
+						<mx:Object label="Topics View" />
+					</mx:dataProvider>
+				</mx:ButtonBar>
+				
+			</mx:HBox>
+		</mx:VBox>
+		
+	</mx:TabNavigator>
+		
+</mx:VBox>
