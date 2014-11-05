@@ -175,7 +175,7 @@
 					return false;
 			},false));
 			
-			public const enableTopicClassification:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
+			public const enableTopicClassification:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
 			
 			private function handleTopicLayoutSettingChange():void
 			{
@@ -2399,13 +2399,6 @@
 				}
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
 				
-//				if(WeaveAPI.SessionManager.linkableObjectIsBusy(clusterCSVDataSource.getColumnByName("document")))
-//				{
-//					status.text = "Loading topics...";
-//					callLater(showClusters);					
-//					return;
-//				}
-				
 				//For creating Cytoscape CSV datasource.
 				//Made a temporary change to CSVDataSource for this to work as intended here.
 				var columnData:Array = clusterCSVDataSource.getCSVData();
@@ -2538,6 +2531,7 @@
 			
 			private var _topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
 			private var _pointsImg:Bitmap = new PointsImgClass() as Bitmap;
+
 			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
 			{
 				status.text = "";
@@ -2557,13 +2551,11 @@
 					
 				}
 				
-				_radialMenu.addMenuItem(_topicsImg,_topicsImgText,showClassificationResults,null);
+				_radialMenu.addMenuItem(_topicsImg,_topicsImgText,getClusters,null);
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
 				
 				_radialMenu.addMenuItem(_pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
-				
-				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
 				
 				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
 				{

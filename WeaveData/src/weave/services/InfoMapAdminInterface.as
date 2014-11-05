@@ -176,9 +176,8 @@ package weave.services
 		}
 		public function getClustersForQueryString(query:String,dateFilter:String,rows:int,
 												  sources:String,sortBy:String):AsyncToken
-		{
-			var q:AsyncToken = generateQueryAndRun("getClustersForQueryWithRelatedKeywords",[query,
-				dateFilter,rows,sources,sortBy]);
+		{	
+			var q:AsyncToken = generateQueryAndRun("getClustersForQueryString", [query, dateFilter, rows, sources, sortBy]);
 			return q;
 		}
 		public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,
