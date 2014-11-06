@@ -236,7 +236,7 @@
 			private var SettingsImgClass:Class;
 			private var _settingsImgText:String = "Settings Panel" ;
 			
-			[Embed( source="/weave/resources/images/list.png")]
+			[Embed( source="/weave/resources/images/List.png")]
 			private var ListImgClass:Class;
 			private var _listImgText:String = "List View";
 			
@@ -2022,6 +2022,8 @@
 			{
 				/* the last ndoe in focus (or clicked) becomes current node of InfoMaps panel */
 				parentPanel.currentNode = this;
+				var new_z:int = (this.parent as Canvas).numChildren - 1;
+				this.parent.setChildIndex(this,new_z);
 				event.stopImmediatePropagation();
 				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
 				//Cursor gets overriden currently by DragManager. TO DO:Look into fixing cursor shown.
