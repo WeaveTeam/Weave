@@ -26,7 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   autoLayout="true" backgroundSize="100%" borderThickness="0" clipContent="true"
 				   dragDrop="dragDropHandler(event)" dragEnter="dragEnterHandler(event)"
 				   horizontalScrollPolicy="off" implements="weave.api.ui.IVisTool" paddingLeft="5"
-				   paddingTop="5" title="InfoMap Prototype" verticalScrollPolicy="off">
+				   paddingTop="5" title="InfoMap Prototype" verticalScrollPolicy="off" xmlns:layout="weave.ui.infomap.layout.*">
 	<mx:Style>
 		.loadingTextStyle {
 			fontFamily:"GeosansLight";
@@ -1498,8 +1498,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:HBox>
 		</mx:HBox>
 		
-		<ui1:InfoMapsSideMenu id="sideMenu" x="100" y="20"/>
-		<ui1:InfoMapsTabs id="Tabs" width="100%" height="100%"/>
+		<ui1:InfoMapsSideMenu id="sideMenu" x="100" y="100"/>
+		<layout:ExpandableTabs width="100%" height="100%">
+		</layout:ExpandableTabs>
+		<!--<ui1:InfoMapsTabs id="Tabs" width="100%" height="100%"/>-->
 		
 	</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">
