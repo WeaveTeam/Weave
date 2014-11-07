@@ -236,7 +236,7 @@
 			private var SettingsImgClass:Class;
 			private var _settingsImgText:String = "Settings Panel" ;
 			
-			[Embed( source="/weave/resources/images/List.png")]
+			[Embed( source="/weave/resources/images/list.png")]
 			private var ListImgClass:Class;
 			private var _listImgText:String = "List View";
 			
@@ -2022,8 +2022,6 @@
 			{
 				/* the last ndoe in focus (or clicked) becomes current node of InfoMaps panel */
 				parentPanel.currentNode = this;
-				var new_z:int = (this.parent as Canvas).numChildren - 1;
-				this.parent.setChildIndex(this,new_z);
 				event.stopImmediatePropagation();
 				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
 				//Cursor gets overriden currently by DragManager. TO DO:Look into fixing cursor shown.
@@ -2351,19 +2349,19 @@
 				
 				addAsyncResponder(q, handleGetClusterResult, handleGetClusterFault);
 				
-//				var servletParam:Object = new Object();
-//				servletParam.method = "getClustersForQueryString";
-//				servletParam.params = [_currentQueryString,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
-//					currentQuery.sources.value,currentQuery.sortBy.value];
-//				clusterCSVDataSource.servletParams.value = servletParam;
-//				clusterCSVDataSource.keyColName.value = "document";
-//				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
-//				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
+				//				var servletParam:Object = new Object();
+				//				servletParam.method = "getClustersForQueryString";
+				//				servletParam.params = [_currentQueryString,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
+				//					currentQuery.sources.value,currentQuery.sortBy.value];
+				//				clusterCSVDataSource.servletParams.value = servletParam;
+				//				clusterCSVDataSource.keyColName.value = "document";
+				//				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				//				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
+				//				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
 				
 				//Set standard params for the Cytoscape Data Source.
-//				tempCytoscapeNodeCSVDataSource.keyColName.value = "document";
-//				tempCytoscapeNodeCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				//				tempCytoscapeNodeCSVDataSource.keyColName.value = "document";
+				//				tempCytoscapeNodeCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
 				
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
 			}
@@ -2417,8 +2415,10 @@
 				//Cytoscape setup.
 				//Initial central node.
 				cytoscapeEdgeCSVArray.push(["Edge Sources","Edge Targets", "Edge Weights"]);
-				cytoscapeNodeCSVArray.push(["document"]);
-				cytoscapeNodeCSVArray.push(["Topics"]);
+				
+				cytoscapeNodeCSVArray.push(["doc_title", "doc_url", "doc_summary", "doc_thumburl", "isTopic"]);
+				
+				cytoscapeNodeCSVArray.push([currentQuery.keywords.value, "", "", "", ""]);
 				
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2429,8 +2429,8 @@
 					{
 						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
 						//Following the central node, setup all of the topic nodes.
-						cytoscapeEdgeCSVArray.push(["Topics",columnName.substring(0,columnName.indexOf("_")),1.0]);
-						cytoscapeNodeCSVArray.push([columnName.substring(0,columnName.indexOf("_"))]);
+						cytoscapeEdgeCSVArray.push([currentQuery.keywords.value,columnName.substring(0,columnName.indexOf("_")),1.0]);
+						cytoscapeNodeCSVArray.push([columnName.substring(0,columnName.indexOf("_")), "", "", "", ""]);
 					}
 					count++;
 				}
@@ -2453,7 +2453,7 @@
 						}
 					}
 				}
-						
+				
 				//Setup the actual Cytoscape DataSource now that we have the array ready.
 				tempCytoscapeEdgeCSVDataSource.setCSVData(cytoscapeEdgeCSVArray);
 				tempCytoscapeNodeCSVDataSource.setCSVData(cytoscapeNodeCSVArray);
@@ -2533,7 +2533,7 @@
 			
 			private var _topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
 			private var _pointsImg:Bitmap = new PointsImgClass() as Bitmap;
-
+			
 			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
 			{
 				status.text = "";
@@ -2938,8 +2938,8 @@
 			}
 			
 			/**
-			* Returns true if this node is part of a NodeGroup.
-			*/
+			 * Returns true if this node is part of a NodeGroup.
+			 */
 			public function isInGroup():Boolean
 			{
 				if( parentNodeGroup.value != "" )

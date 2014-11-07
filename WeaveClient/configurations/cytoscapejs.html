@@ -94,7 +94,10 @@
     var NODE_COLOR = 'color';
     var NODE_SIZE = 'size';
     var NODE_PARENT = 'parent';
-
+	
+    var NODE_IMG = 'thumb_url';
+	var NODE_TEXT = 'summary';
+	
     var EDGES = 'edges';
     var EDGE_SOURCE = 'source';
     var EDGE_TARGET = 'target';
@@ -127,6 +130,8 @@
         modifyRecords(edge_data, 'target', localNameToKeyString);
         modifyRecords(node_data, 'parent', localNameToKeyString);
         modifyRecords(node_data, 'color',  defaultColor);
+        modifyRecords(node_data, 'thumb_url', localNameToKeyString);
+        modifyRecords(node_data, 'summary',  localNameToKeyString);
 
         var node_ids = _.zipObject(_.pluck(node_data, 'id'));
 
@@ -300,8 +305,8 @@
 
     function open_attribute_selector()
     {
-        toolPath.libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(null, null, false, this)");
-        return;
+    	toolPath.libs("weave.ui.ControlPanel").exec("openEditor(this)");
+    	return;
     }
 
     function set_local_layout()
@@ -365,7 +370,9 @@
                     {name: NODE_NAME, label: "Node Label", type: 'DynamicColumn'},
                     {name: NODE_COLOR, label: "Node Color", type: 'DynamicColumn', default: 'defaultColorColumn'},
                     {name: NODE_SIZE, label: "Node Size", type: 'DynamicColumn'},
-                    {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'}
+                    {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'},
+                    {name: NODE_TEXT, label: "Node Text", type: 'DynamicColumn'},
+                    {name: NODE_IMG, label: "Node Thumbnail", type: 'DynamicColumn'}
                 ]
             },
             {name: EDGES, callback: data_updated, children:
