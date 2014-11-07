@@ -9,6 +9,7 @@
         body { font: 14px helvetica neue, helvetica, arial, sans-serif;}
         #cy { height: 100%; width: 100%; position: absolute; left: 0; top: 0;}
         #controlsleft {position: absolute;top: 0;left: 0;}
+        .during_layout {display: none;}
     </style>
     <script src="springy.js"></script>
     <script src="dagre.js"></script>
@@ -24,7 +25,9 @@
             <button title="Zoom to Fit" onclick="cy.fit()">Z</button>
             <select name="layout_dropdown"></select>
             <button title="Run layout" onclick="run_layout()">&#8634;</button>
+            <img class="during_layout" id="loadingImg" src="loader.gif" loop="infinite"/>
             <button title="Open Attribute Selector" onclick="open_attribute_selector()"><bold>&#9082;</bold></button>
+
     </div>
 
 <script>
@@ -32,14 +35,15 @@
         cytoscape.stylesheet()
             .selector('node')
                 .css({
-                        'content': 'data(name)',
+                        'content': '',
                         'text-valign': 'center',
                         'color': '#fff',
                         'text-outline-width': 1,
                         'border-color':'#000',
                         'border-width': 1,
                         'text-outline-color': '#888',
-                        'background-color': 'data(color)'
+                        'background-color': 'data(color)',
+                        'background-image': 'data(url)'
                         })
                 .selector('edge')
                 .css({
@@ -68,7 +72,8 @@
                         })
             .selector('node.probed')
                 .css({
-                        'border-width': 7
+                        'border-width': 7,
+                        'content': 'data(name)'
                 })
             .selector('edge.probed')
                 .css({
@@ -94,10 +99,15 @@
     var NODE_COLOR = 'color';
     var NODE_SIZE = 'size';
     var NODE_PARENT = 'parent';
+<<<<<<< HEAD
 	
     var NODE_IMG = 'thumb_url';
 	var NODE_TEXT = 'summary';
 	
+=======
+    var NODE_BACKGROUND_URL = 'url';
+
+>>>>>>> c6f84ca65b4ed6a1ce0514c192bb7d7a3f2244d2
     var EDGES = 'edges';
     var EDGE_SOURCE = 'source';
     var EDGE_TARGET = 'target';
@@ -105,6 +115,7 @@
 
     var LAYOUT = "layout";
     var LAYOUT_OPTIONS = "layout_options";
+    var HIDE_LABELS = "hide_labels";
     var POSITIONS = "positions";
     var VIEWPORT = "viewport";
     var DIRECTIONAL = "directional";
@@ -120,6 +131,7 @@
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
 
         function defaultColor(color) { if (!color) color="#fff"; return color;};
+        function defaultUrl(url) { if (!url) url="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gsHEw0XJvo49AAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAANSURBVAjXY2BgYGAAAAAFAAFe8yo6AAAAAElFTkSuQmCC"; return url};
 
         function modifyRecords(records, field, func)
         {
@@ -129,6 +141,7 @@
         modifyRecords(edge_data, 'source', localNameToKeyString);
         modifyRecords(edge_data, 'target', localNameToKeyString);
         modifyRecords(node_data, 'parent', localNameToKeyString);
+        modifyRecords(node_data, 'url', defaultUrl);
         modifyRecords(node_data, 'color',  defaultColor);
         modifyRecords(node_data, 'thumb_url', localNameToKeyString);
         modifyRecords(node_data, 'summary',  localNameToKeyString);
@@ -281,6 +294,7 @@
         {
             tool[LAYOUT_OPTIONS].state({});
             layout_params = {};
+            if (layout_name == 'arbor') layout_params['animate'] = false;
         }
         if (layout_name == null || !_.has(valid_layouts, layout_name))
         {
@@ -290,6 +304,7 @@
 
         function on_stop (evt) 
         {
+            $('.during_layout').css('display', 'none');
             set_weave_positions(evt);
             if (on_finished) on_finished(evt);
         }
@@ -297,11 +312,13 @@
         layout_params['stop'] = on_stop;
 
         if (cy.nodes().filter(function (i,ele) {return !ele.locked();}).length)
+        {
+            $('.during_layout').css('display', 'inline');
             cy.layout(layout_params);
+        }
         else
             if (on_finished) on_finished();
     };
-
 
     function open_attribute_selector()
     {
@@ -344,6 +361,11 @@
         cy.on({zoom: set_weave_viewport, pan: set_weave_viewport});
     }
 
+    function hide_labels_changed()
+    {
+        var hide_labels_value = tool[HIDE_LABELS].getState();
+    }
+
     $('select[name="layout_dropdown"]').change(function ()
     {
         var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
@@ -359,7 +381,7 @@
             .text(value).attr("value",key));
     });
 
-    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: "grid"}, ready: function () { 
+    $('#cy').cytoscape( { hideEdgesOnViewport: true, textureOnViewPort: true, style: cytoscape_style, layout: {name: "grid"}, ready: function () { 
         window.cy = this;
 
         toolPath = opener.WeaveExternalTools[window.name].path;
@@ -371,8 +393,7 @@
                     {name: NODE_COLOR, label: "Node Color", type: 'DynamicColumn', default: 'defaultColorColumn'},
                     {name: NODE_SIZE, label: "Node Size", type: 'DynamicColumn'},
                     {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'},
-                    {name: NODE_TEXT, label: "Node Text", type: 'DynamicColumn'},
-                    {name: NODE_IMG, label: "Node Thumbnail", type: 'DynamicColumn'}
+                    {name: NODE_BACKGROUND_URL, label: "Node Background URL", type: 'DynamicColumn'}
                 ]
             },
             {name: EDGES, callback: data_updated, children:
@@ -386,7 +407,8 @@
             {name: LAYOUT_OPTIONS, type: "LinkableVariable", label: "Layout Options"},
             {name: POSITIONS, type: "LinkableVariable", label: "Node Positions", callback: set_local_positions},
             {name: VIEWPORT, type: "LinkableVariable", label: "Viewport", callback: set_local_viewport},
-            {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated}
+            {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated},
+//            {name: HIDE_LABELS, type: "LinkableBoolean", label: "Hide labels until the user probes.", callback: hide_labels_changed, default: false}
         ], tool);
         set_local_layout();
         toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
