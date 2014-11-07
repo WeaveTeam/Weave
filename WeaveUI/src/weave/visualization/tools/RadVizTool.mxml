@@ -245,7 +245,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
 			{
 				trace(["fault", token, event.message].join('\n'));
-				reportError(event);
+				// do not report this error since normalization will fall back on actionscript side.
+				// reportError(event); 
 			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
