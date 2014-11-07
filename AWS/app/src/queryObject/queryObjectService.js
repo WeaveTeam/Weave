@@ -110,7 +110,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     		dataTable : "",
 			ComputationEngine : "R",
 			Indicator : "",
-			IndicatorRemap : {},
+			IndicatorRemap : [],
 			filters : {
 				or : []
 			},
