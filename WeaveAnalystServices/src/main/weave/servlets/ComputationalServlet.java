@@ -15,10 +15,8 @@ import weave.config.AwsContextParams;
 import weave.config.WeaveContextParams;
 import weave.models.computations.AwsRService;
 import weave.models.computations.AwsStataService;
-import weave.models.computations.ScriptResult;
 import weave.utils.AWSUtils;
 import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
-
 
 import com.google.gson.internal.StringMap;
 
@@ -53,7 +51,15 @@ public class ComputationalServlet extends WeaveServlet
 
 	private static final long serialVersionUID = 1L;
 
-	public boolean getDataFromServer(StringMap<Object> scriptInputs, NestedColumnFilters filters) throws Exception
+	/**
+	 * 
+	 * @param scriptInputs the columns to be sent as parameters to the script
+	 * @param filters filters that help filter the column data
+	 * @param remapValues replacement values for original data 
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean getDataFromServer(StringMap<Object> scriptInputs, NestedColumnFilters filters, ReMapObjects[] remapValues) throws Exception
 	{
 		
  		StringMap<Object> input = new StringMap<Object>();
@@ -92,6 +98,53 @@ public class ComputationalServlet extends WeaveServlet
 			// use the collection of ids from above to retrieve the data.
 			WeaveRecordList data = DataService.getFilteredRows(Ints.toArray(colIds), filters, null);
 			
+			//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
+			if(remapValues.length > 0)//only if remapping needs to be done
+			{
+				for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
+				{
+					int index = 0;
+					ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
+					//we need this to know which column to handle for remapping
+					for(int y = 0; y < remapValues.length; y++)
+					{
+						ReMapObjects singleObject = remapValues[y];
+						for(int t=0; t< colIds.size(); t++)
+						{
+							if(singleObject.columnsToRemapId == colIds.get(t))
+							{
+								index = t;//use index to loop through data
+								remapObject = remapValues[y];
+							}
+						}
+					}
+					
+					//check the type of the original data to be remapped
+					Object column_to_remap = null;//resetting it every time
+					Object castedOriginalValue = null;
+					column_to_remap = data.recordData[0][index];//TODO remove hardcode this has to be done only once
+					try{
+						castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
+					}
+					catch(Exception e){
+						throw e;
+					}
+					
+					for(int x = 0; x < data.recordData.length; x++)
+					{
+						
+						if(data.recordData[x][index].equals(castedOriginalValue))
+						{
+							data.recordData[x][index] = remapObject.reMappedValue;
+							
+						}
+						
+					}
+				}//loop ends for one remapObject
+				
+			}
+			//***************************end of REMAPPING********************************************
+			
 			// transpose the data to obtain the column form
 			Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 			
@@ -125,5 +178,12 @@ public class ComputationalServlet extends WeaveServlet
 		}
  	
 		return resultData;
+	}
+		
+	public static class ReMapObjects
+	{
+		 public int columnsToRemapId;
+		 public  Object originalValue;
+		 public Object reMappedValue;
 	}
 }
