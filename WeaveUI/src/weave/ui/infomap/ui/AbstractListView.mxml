@@ -34,6 +34,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			import weave.data.KeySets.KeySet;
 			import weave.data.KeySets.SortedKeySet;
 			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.DebugUtils;
 			
 			override protected function childrenCreated():void
 			{
@@ -53,40 +54,22 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			public const filteredKeySet:FilteredKeySet = registerLinkableChild(this,new FilteredKeySet());
 			
-			private var _keys:KeySet = null;
+			private var _keys:KeySet = registerLinkableChild(this,new KeySet());
 			public function set keys(value:Array):void
 			{
-				if(_keys != null)
-				{
-					disposeObject(_keys);
-				}
-
-				_keys = registerLinkableChild(this,new KeySet());
 				filteredKeySet.setSingleKeySource(_keys);
 				
+				_keys.clearKeys();
 				_keys.replaceKeys(value);
-				_orderedKeys = value.concat();
-				_sortCopyKeys = SortedKeySet.generateSortCopyFunction([_orderedKeys.indexOf]);
 				startIndex.value = 0;
 				startIndex.triggerCallbacks();
 			}
 			
 			public function get keys():Array
 			{
-				return _orderedKeySet.keys;
+				return _keys.keys;
 			}
 			
-			private var _orderedKeys:Array = [];
-			private var _sortCopyKeys:Function;
-			private function sortCopyKeys(keys:Array):Array
-			{
-				if (_sortCopyKeys != null)
-					return _sortCopyKeys(keys);
-				return [];
-			}
-		
-			private const _orderedKeySet:SortedKeySet = registerLinkableChild(this, new SortedKeySet(filteredKeySet,sortCopyKeys));
-				
 			public function applyFilter(name:String,keys:Array):void
 			{
 				var f:KeyFilter = listFilters.getObject(name) as KeyFilter;

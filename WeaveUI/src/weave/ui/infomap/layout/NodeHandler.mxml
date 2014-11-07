@@ -18,10 +18,6 @@
 			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
 	<mx:Glow id="unselectedBorder" alphaFrom="0.0" alphaTo="1.0" blurXFrom="10.0" blurXTo="10.0"
 			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
-	<mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="750"
-			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/>
-	<mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="750"
-			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/>
 	<mx:Sequence id="newDocumentHighlight" target="{nodeBase.keywordTextArea}">
 		<mx:Fade id="newDocumentFadeOut" alphaFrom="1.0" alphaTo="0.0" duration="1000"/>
 		<mx:Fade id="newDocumentFadeIn" alphaFrom="0.0" alphaTo="1.0" duration="1000"/>
@@ -1484,7 +1480,7 @@
 				if(view != currentView.value)
 				{
 					currentView.value = view;
-					return;
+					//return;
 				}
 				
 				if(!enablePinView.value)
@@ -1605,6 +1601,12 @@
 					return;
 				fadeOut.play([viewUI]);
 			}
+			
+			private var fadeIn:Object = {play: fadeIn1, stop: stop};
+			private var fadeOut:Object = {play: fadeOut1, stop: stop};
+			private function stop():void { }
+			private function fadeIn1(targets:Array):void { for each (var target:Object in targets) { target.visible = target.alpha = 1; } }
+			private function fadeOut1(targets:Array):void { for each (var target:Object in targets) { target.visible = target.alpha = 0; } }
 			
 			private function hideAllViews():void
 			{
