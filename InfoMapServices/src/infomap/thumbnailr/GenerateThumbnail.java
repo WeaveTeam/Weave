@@ -94,7 +94,8 @@ public class GenerateThumbnail extends HttpServlet {
 		
 		try
 		{
-			int result = CommandUtils.runCommand(args);
+//			int result = 
+				CommandUtils.runCommand(args);
 //			System.out.println("Program terminated with status " + result);
 		}
 		catch (Exception e){

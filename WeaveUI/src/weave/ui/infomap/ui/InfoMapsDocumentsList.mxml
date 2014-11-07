@@ -62,7 +62,7 @@
 					override protected function childrenCreated():void
 					{
 						super.childrenCreated();
-						infomapDataSource.getColumnByName("title").addImmediateCallback(outerDocument,updateLabelText);
+						infomapDataSource.getColumnById("title").addImmediateCallback(outerDocument,updateLabelText);
 					}
 					
 					private var _mouseDown:Boolean = false;
@@ -136,7 +136,7 @@
 						//the list was blinking because the label used to be set from empty to the text again because
 						//the column is busy still getting the data
 						//so we test it to only update the labels when it has the data. 
-						if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnByName("title")))
+						if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnById("title")))
 							return;
 						
 						if(data != null)

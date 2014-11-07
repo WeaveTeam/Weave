@@ -24,6 +24,7 @@ public class SolrIndexingJob implements Job{
 			conn.setDoOutput(true);
 			//read the response
 			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			@SuppressWarnings("unused")
 			String line;
 			
 			while ((line = rd.readLine()) != null) {

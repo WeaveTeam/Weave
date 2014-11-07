@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Vector;
 
 import org.apache.solr.common.SolrInputDocument;
 
@@ -19,8 +20,6 @@ import com.mendeley.oapi.services.MendeleyException;
 import com.mendeley.oapi.services.MendeleyServiceFactory;
 import com.mendeley.oapi.services.SearchService;
 import com.sun.org.apache.xerces.internal.impl.xpath.regex.ParseException;
-
-import flex.messaging.io.ArrayList;
 
 public class MendeleyDataSource extends AbstractDataSource {
 	
@@ -96,6 +95,7 @@ public class MendeleyDataSource extends AbstractDataSource {
 		return result;
 	}
 	
+	@SuppressWarnings("unused")
 	private long getNumberOfPagesForQuery(String requiredTerm)
 	{
 		if(CONSUMER_KEY.equals("") || CONSUMER_SECRET.equals(""))
@@ -128,7 +128,7 @@ public class MendeleyDataSource extends AbstractDataSource {
 		MendeleyServiceFactory factory = MendeleyServiceFactory.newInstance(CONSUMER_KEY, CONSUMER_SECRET);
 		SearchService service = factory.createSearchService();
 		
-		List<SolrInputDocument> results = new ArrayList();
+		List<SolrInputDocument> results = new Vector<SolrInputDocument>();
 		String[] requiredTerms = getRequiredQueryTerms();
 		for (int i = 0; i< requiredTerms.length; i++)
 		{

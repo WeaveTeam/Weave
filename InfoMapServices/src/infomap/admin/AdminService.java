@@ -204,6 +204,7 @@ public class AdminService extends WeaveServlet {
 //		}
 //	}
 
+	@SuppressWarnings("unused")
 	private static void deleteAllDocuments() {
 		try {
 			String queryString = "title:((california OR washington) AND (obesity OR BMI OR overweight)) OR description:((california OR washington) AND (obesity OR BMI OR overweight))";
@@ -2375,6 +2376,7 @@ public class AdminService extends WeaveServlet {
 		
 		Reader r = new StringReader(text);
 		
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		PTBTokenizer ptbt = new PTBTokenizer(r, new CoreLabelTokenFactory(), "ptb3Escaping=false");
 		
 		List<Token> relatedWords = new ArrayList<Token>();

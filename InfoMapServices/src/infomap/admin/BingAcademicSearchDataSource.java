@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Vector;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -25,8 +26,6 @@ import com.sun.syndication.feed.synd.SyndEntryImpl;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
-
-import flex.messaging.io.ArrayList;
 
 public class BingAcademicSearchDataSource  extends AbstractDataSource{
 	
@@ -73,7 +72,7 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 		}
 		
 		System.out.println("Calling service on " + getSourceName());
-		List<SolrInputDocument> results = new ArrayList();
+		List<SolrInputDocument> results = new Vector<SolrInputDocument>();
 		
 		String[] requiredTerms = getRequiredQueryTerms();
 		String queryTerms = "";
@@ -185,6 +184,7 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 							SyndFeedInput input = new SyndFeedInput();
 							URL feedURL = new URL(tempURL);
 							SyndFeed feed = input.build(new XmlReader(feedURL));
+							@SuppressWarnings("unchecked")
 							List<SyndEntryImpl> entries = feed.getEntries();
 							
 							Iterator<SyndEntryImpl> itr = entries.iterator();

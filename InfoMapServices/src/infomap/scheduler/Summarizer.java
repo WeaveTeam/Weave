@@ -41,8 +41,9 @@ public class Summarizer {
 
 		// Find the maximum raw frequency
 		int maximumFrequency = 0;
+		@SuppressWarnings("unused")
 		String mostCommonWord = null;
-		for (Enumeration keys = TF.keys(); keys.hasMoreElements();) {
+		for (Enumeration<String> keys = TF.keys(); keys.hasMoreElements();) {
 			String nextElement = (String) keys.nextElement();
 			frequency = TF.get(nextElement);
 			if (frequency > maximumFrequency
@@ -55,7 +56,7 @@ public class Summarizer {
 		// System.out.println("Most Common Word is: " + mostCommonWord);
 
 		// Calculate the normalized TF
-		for (Enumeration keys = TF.keys(), values = TF.elements(); keys
+		for (Enumeration<?> keys = TF.keys(), values = TF.elements(); keys
 				.hasMoreElements() && values.hasMoreElements();) {
 			String keyOfNormalizedTF = (String) keys.nextElement();
 			double valueOfNormalizedTF = ((Integer) values.nextElement())
@@ -90,6 +91,7 @@ public class Summarizer {
 	}
 
 	// Calculate the weight of each term in each documents
+	@SuppressWarnings("unchecked")
 	public static Dictionary<String, Double>[] WeightOfTerms(
 			String[] documents, TokenizerModel tokeModel,
 			Dictionary<String, Integer> stopWords) {
@@ -108,7 +110,7 @@ public class Summarizer {
 		double idfValue = 0.0;
 		double weight = 0.0;
 		for (int i = 0; i < numOfDocuments; i++) {
-			for (Enumeration keys = normTFs[i].keys(), values = normTFs[i]
+			for (Enumeration<?> keys = normTFs[i].keys(), values = normTFs[i]
 					.elements(); keys.hasMoreElements()
 					&& values.hasMoreElements();) {
 				element = (String) keys.nextElement();
@@ -132,6 +134,7 @@ public class Summarizer {
 	}
 
 	// Calculate the log IDF value of a bunch of documents
+	@SuppressWarnings("unchecked")
 	public static Dictionary<String, Double> NormalizedIDFCalculator(
 			String[] documents, TokenizerModel tokeModel,
 			Dictionary<String, Integer> stopWords) {
@@ -146,7 +149,7 @@ public class Summarizer {
 		}
 		int numOfDocumentsHasThisTerm = 0;
 		for (int i = 0; i < normTFs.length; i++) {
-			for (Enumeration keys = normTFs[i].keys(); keys.hasMoreElements();) {
+			for (Enumeration<String> keys = normTFs[i].keys(); keys.hasMoreElements();) {
 				String element = (String) keys.nextElement();
 				if (IDF.get(element) != null) {
 					numOfDocumentsHasThisTerm = IDF.get(element);
@@ -157,7 +160,7 @@ public class Summarizer {
 				}
 			}
 		}
-		for (Enumeration keys = IDF.keys(), values = IDF.elements(); keys
+		for (Enumeration<?> keys = IDF.keys(), values = IDF.elements(); keys
 				.hasMoreElements() && values.hasMoreElements();) {
 			String element = (String) keys.nextElement();
 			int frequenceValue = (Integer) values.nextElement();
@@ -201,7 +204,7 @@ public class Summarizer {
 				}
 			}
 		}
-		for (Enumeration keys = commonTerms.keys(); keys.hasMoreElements();) {
+		for (Enumeration<String> keys = commonTerms.keys(); keys.hasMoreElements();) {
 			String key = (String) keys.nextElement();
 			if (stopWords.get(key) == null) {
 				tfi1 = normTF1.get(key);
@@ -310,6 +313,7 @@ public class Summarizer {
 	}
 
 	// TODO testing!!!
+	@SuppressWarnings("unchecked")
 	public static String[][] GroupCalculator(String[] documents,
 			int maxNumberOfGroups, Dictionary<String, Double> normIDF,
 			SentenceModel senModel, TokenizerModel tokeModel,
@@ -338,7 +342,7 @@ public class Summarizer {
 			}
 		}
 		int numOfGroups = maxNumberOfGroups; // need to change it to dynamic
-		Set[] clusterResults = HierarchicalClustering(numOfGroups,
+		Set<?>[] clusterResults = HierarchicalClustering(numOfGroups,
 				similarityMatrix);
 		int returnedNumOfGroups = clusterResults.length;
 		int[] groupSizes = new int[returnedNumOfGroups];
@@ -351,7 +355,7 @@ public class Summarizer {
 			groups[i] = "";
 		}
 		for (int i = 0; i < returnedNumOfGroups; i++) {
-			Iterator it = clusterResults[i].iterator();
+			Iterator<?> it = clusterResults[i].iterator();
 			while (it.hasNext()) {
 				groups[i] += (documents[(Integer) it.next()] + " ");
 			}
@@ -365,6 +369,7 @@ public class Summarizer {
 	}
 
 	// TODO testing
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Set[] HierarchicalClustering(int numOfClusters,
 			double[][] similarityMatrix) {
 		int numbOfClusters = numOfClusters;
