@@ -183,30 +183,55 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	 
 	 queryService.dataObject.shouldRemap = [];
+	 $scope.newValue= "";
 	 queryService.dataObject.remapValue = [];
 	 
-	 $scope.setRemapBoolean = function(varValue, boolean)
+	 //handles the remapping of original data
+	 //checks for object in collection and accordingly updates
+	 $scope.setRemapValue= function(originalValue, reMappedValue)
 	 {
-		 if( queryService.queryObject.IndicatorRemap[varValue])
-		 {
-			 queryService.queryObject.IndicatorRemap[varValue].shouldRemap = boolean;
-		 } else {
-			 queryService.queryObject.IndicatorRemap[varValue] = {};
-			 queryService.queryObject.IndicatorRemap[varValue].shouldRemap = boolean;
-		 }
-	 };
-	 
-	 $scope.setRemapValue = function(varValue, value)
-	 {
-		 if(queryService.queryObject.IndicatorRemap[varValue])
-		 {
-			 queryService.queryObject.IndicatorRemap[varValue].value = value;
-		 } else 
-		 {
-			 queryService.queryObject.IndicatorRemap[varValue] = {};
-			 queryService.queryObject.IndicatorRemap[varValue].value = value;
-			 
-		 }
+		 var columnId = angular.fromJson(queryService.queryObject.Indicator).id;
+		 //TODO parameterize columnType
+		 var matchFound = false;//used to check if objects exist in queryService.queryObject.IndicatorRemap
+		 
+		if(reMappedValue)//handles empty or undefined values
+			{
+				 if(queryService.queryObject.IndicatorRemap.length == 0)//for the first time the array is filled
+				 {
+				 	queryService.queryObject.IndicatorRemap.push({
+						columnsToRemapId : parseInt(columnId),
+						originalValue : originalValue,
+						reMappedValue : reMappedValue
+	
+					  });
+				 	//console.log("first iteration");
+				 }
+				 else
+				 {
+					//checking if the entity exists and update the required object
+					 for(var i in queryService.queryObject.IndicatorRemap)
+						 {
+						 	var oneObject = queryService.queryObject.IndicatorRemap[i];
+						 	if( oneObject.originalValue == originalValue)
+						 		{
+							 		oneObject.reMappedValue = reMappedValue;
+							 		matchFound = true;
+							 		//console.log("match found, hence overwrote", queryService.queryObject.IndicatorRemap );
+						 		}
+						 }
+					 
+				 	if(!matchFound)//if match is not found create new object
+				 		{
+				 			queryService.queryObject.IndicatorRemap.push({
+							columnsToRemapId : parseInt(columnId),
+							originalValue : originalValue,
+							reMappedValue : reMappedValue
+
+						  });
+				 			//console.log("match not found, hence new", queryService.queryObject.IndicatorRemap );
+				 		}
+				 }
+			}
 	 };
 	 
 	 $scope.getDataTable = function(term, done) {

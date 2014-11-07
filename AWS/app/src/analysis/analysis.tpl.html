@@ -1,6 +1,6 @@
 <div style="height: 100%" ng-controller="AnalysisCtrl">
 <!-- BUTTON CONTAINER -->
-	<div style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed; z-index : 100000" ng-controller = DialogController>
+	<div style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed;display: table"  ng-controller = DialogController>
 				<!-- CLEAR button --> 
 							<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear output visuals</span></a>
 				<!-- SAVE output visuals button -->	 
@@ -59,30 +59,31 @@
 						</div>
 						<br> {{IndicDescription}} 
 <!-- 						<button popover-with-tpl template-url="src/analysis/indicator-remap.tpl.html" popover-placement="bottom" class="btn btn-default">Remap Indicator -->
-					      <table border="border: 1px solid #0000FF" ng-show="queryService.queryObject.Indicator" width=100px">
+					      <table border="border: 1px solid #0000FF" ng-show="queryService.queryObject.Indicator">
 								<tr> 
-									<td align="center">
+									<td  align="center">
 										Value
 									</td>
-									<td align="center">
+									<td  align="center">
 										Description
-									</td align="center">
-									<td>
-										Remap
 									</td>
-									<td align="center">
+									<td   align="center">
 										New Value
 									</td>
+<!-- 									<td > -->
+<!-- 										Remap -->
+<!-- 									</td> -->
 								 </tr>
 								<tr ng-repeat="varValue in varValues">
-									<td style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
-									<td  style="padding-left: 5px"> {{varValue.label}} </td>
-									<td align="center"> <input type="checkbox" 
-										ng-model="queryService.dataObject.shouldRemap[$index]", 
-										ng-change="setRemapBoolean(varValue.value, queryService.dataObject.shouldRemap[$index])"></input></td>
-									<td> <input 
-										ng-model="queryService.dataObject.remapValue[$index]", 
-										ng-change="setRemapValue(varValue.value, queryService.dataObject.remapValue[$index])"> </input> </td>
+									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
+									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
+									<td width= "50%"> <input style ="width : 100%"
+														ng-model="newValue"
+														ng-change="setRemapValue(varValue.value,newValue)"> 
+														</input> </td>
+<!-- 									<td width= "10%"align="center"> <input type="checkbox"  -->
+<!-- 										ng-model="queryService.dataObject.remapValues[$index]",  -->
+<!-- 										ng-change="setRemapValue(varValue.value,queryService.dataObject.remapValues[$index])"></input></td> -->
 								</tr>
 							</table>
 					</div>
