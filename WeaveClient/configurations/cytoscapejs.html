@@ -101,7 +101,7 @@
     var NODE_PARENT = 'parent';
     var NODE_IMAGE_URL = 'image_url';
     var NODE_PAGE_URL = 'page_url';
-    
+
     var EDGES = 'edges';
     var EDGE_SOURCE = 'source';
     var EDGE_TARGET = 'target';
@@ -179,6 +179,7 @@
     };
 
     var last_probed;
+
     function probe_handler(evt)
     {
         var ele = evt.cyTarget;
@@ -200,6 +201,22 @@
     function deselect_all()
     {
         toolPath.selection_keyset.setKeys([]);
+    }
+
+    var last_clicked = {id: null, time: null};
+    var DBLCLICK_THRESHOLD = 500;
+
+    function on_click_handler(evt)
+    {
+        var ele = evt.cyTarget;
+        var now = Date.now();
+        if (last_clicked.id == ele.id() && (now - last_clicked.time < DBLCLICK_THRESHOLD))
+        {
+            if (ele.data().page_url)
+                open(ele.data().page_url);
+        }
+        last_clicked.id = ele.id();
+        last_clicked.time = now;
     }
 
     function select_handler(evt)
@@ -414,7 +431,7 @@
         cy.on({select: select_handler, unselect: deselect_handler});
         cy.on({mouseover: probe_handler, mouseout: unprobe_handler}, 'node');
         cy.on({mouseover: probe_handler, mouseout: unprobe_handler}, 'edge');
-
+        cy.on({click: on_click_handler}, 'node');
         cy.on({click: deselect_all});
         cy.on({free: set_weave_positions});
         cy.on({zoom: set_weave_viewport, pan: set_weave_viewport});
