@@ -25,7 +25,7 @@
             <button title="Zoom to Fit" onclick="cy.fit()">Z</button>
             <select name="layout_dropdown"></select>
             <button title="Run layout" onclick="run_layout()">&#8634;</button>
-            <img class="during_layout" id="loadingImg" src="loader.gif" loop="infinite"/>
+            <img class="during_layout" id="loadingImg" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" loop="infinite"/>
             <button title="Open Attribute Selector" onclick="open_attribute_selector()"><bold>&#9082;</bold></button>
 
     </div>
@@ -43,7 +43,7 @@
                         'border-width': 1,
                         'text-outline-color': '#888',
                         'background-color': 'data(color)',
-                        'background-image': 'data(url)'
+                        'background-image': 'data(image_url)'
                         })
                 .selector('edge')
                 .css({
@@ -99,15 +99,9 @@
     var NODE_COLOR = 'color';
     var NODE_SIZE = 'size';
     var NODE_PARENT = 'parent';
-<<<<<<< HEAD
-	
-    var NODE_IMG = 'thumb_url';
-	var NODE_TEXT = 'summary';
-	
-=======
-    var NODE_BACKGROUND_URL = 'url';
-
->>>>>>> c6f84ca65b4ed6a1ce0514c192bb7d7a3f2244d2
+    var NODE_IMAGE_URL = 'image_url';
+    var NODE_PAGE_URL = 'page_url';
+    
     var EDGES = 'edges';
     var EDGE_SOURCE = 'source';
     var EDGE_TARGET = 'target';
@@ -141,7 +135,7 @@
         modifyRecords(edge_data, 'source', localNameToKeyString);
         modifyRecords(edge_data, 'target', localNameToKeyString);
         modifyRecords(node_data, 'parent', localNameToKeyString);
-        modifyRecords(node_data, 'url', defaultUrl);
+        modifyRecords(node_data, 'image_url', defaultUrl);
         modifyRecords(node_data, 'color',  defaultColor);
         modifyRecords(node_data, 'thumb_url', localNameToKeyString);
         modifyRecords(node_data, 'summary',  localNameToKeyString);
@@ -393,7 +387,8 @@
                     {name: NODE_COLOR, label: "Node Color", type: 'DynamicColumn', default: 'defaultColorColumn'},
                     {name: NODE_SIZE, label: "Node Size", type: 'DynamicColumn'},
                     {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'},
-                    {name: NODE_BACKGROUND_URL, label: "Node Background URL", type: 'DynamicColumn'}
+                    {name: NODE_IMAGE_URL, label: "Node Image URL", type: 'DynamicColumn'},
+                    {name: NODE_PAGE_URL, label: "Node Reference URL", type: 'DynamicColumn'}
                 ]
             },
             {name: EDGES, callback: data_updated, children:
