@@ -51,31 +51,35 @@ package weave.ui.infomap.ui
 		 * @param style
 		 * 
 		 */		
-		public function RadialMenu(uiParent:UIComponent, openEventType:String,closeEventType:String, style:String)
+		public function RadialMenu(uiParent:UIComponent, openEventType:String,closeEventType:String, style:String, effectDuration:int = 500)
 		{
 			if(uiParent == null)
 				return;
 			
 			_uiParent = uiParent;
-			
-			_uiParent.addEventListener(openEventType,showMenu);
-			_uiParent.addEventListener(closeEventType,hideMenu);
+
+			if (openEventType)
+				_uiParent.addEventListener(openEventType,showMenu);
+			if (closeEventType)
+				_uiParent.addEventListener(closeEventType,hideMenu);
 			
 			_style = style;
-			
+			this.effectDuration = effectDuration;
 		}
 		
 		private var _uiParent:UIComponent = null;
 		
 		private var _style:String = RADIAL_STYLE;
 		
+		private var effectDuration:int;
+		
 		override protected function childrenCreated():void
 		{
 			super.childrenCreated();
 			clipContent = false;
 			
-			_fadeIn.duration = 500;
-			_fadeOut.duration = 500;
+			_fadeIn.duration = effectDuration;
+			_fadeOut.duration = effectDuration;
 			
 			_fadeIn.alphaFrom = _fadeOut.alphaTo = 0.0;
 			_fadeIn.alphaTo = _fadeOut.alphaFrom = 1.0;
@@ -144,7 +148,7 @@ package weave.ui.infomap.ui
 		public static const DROP_DOWN_STYLE:String = "dropdown";
 		
 		private var _radius:int = 50;
-		private function showMenu(event:Event):void
+		public function showMenu(event:Event = null):void
 		{
 			graphics.clear();
 			var numOfItems:Number = _menuItems.length;
@@ -182,7 +186,7 @@ package weave.ui.infomap.ui
 			_fadeIn.play();
 		}
 		
-		private function hideMenu(event:Event):void
+		public function hideMenu(event:Event = null):void
 		{
 			_fadeOut.play();
 			removeAllChildren();

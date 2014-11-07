@@ -442,13 +442,14 @@
 				_pinImg.addEventListener(MouseEvent.CLICK,togglePinViews);
 				currentView.addGroupedCallback(this,handleCurrentViewChange,true);
 				
-				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
+				_radialMenu =  new RadialMenu(nodeBase as UIComponent,/* MouseEvent.ROLL_OVER */null, /* MouseEvent.ROLL_OUT */null,RadialMenu.LINE_STYLE,0);
 				nodeBase.addChildAt(_radialMenu,0);
 				
 				_radialMenu.addMenuItem(_closeImg,_closeImgText,close,null);
 				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
 				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
 				_radialMenu.addMenuItem(_googleImg,_googleImgText,googleSearchQuery,null);
+				_radialMenu.showMenu();
 				//				_subMenu.addSubMenuItem("Edit Query",editQuery);
 				//				_subMenu.addSubMenuItem("Settings",settings);
 				//				_subMenu.addSubMenuItem("Close",close);
@@ -814,7 +815,7 @@
 				var docsToAdd:Array = [];
 				var keys:Array = [];
 				
-				var urlCol:IAttributeColumn =_parentPanel.infoMapsDataSource.getColumnByName('url'); 
+				var urlCol:IAttributeColumn =_parentPanel.infoMapsDataSource.getColumnById('url'); 
 				
 				for (var i:int = 0; i < docsArray.length; i++)
 				{
@@ -858,7 +859,7 @@
 				var docsToAdd:Array = [];
 				var keys:Array = [];
 				
-				var urlCol:IAttributeColumn =_parentPanel.googleSearchDataSource.getColumnByName('url'); 
+				var urlCol:IAttributeColumn =_parentPanel.googleSearchDataSource.getColumnById('url'); 
 				
 				for (var i:int = 0; i < docsArray.length; i++)
 				{
@@ -1041,6 +1042,7 @@
 					_radialMenu.addMenuItem(_listImg,_listImgText,toggleView,[LIST_VIEW]);
 					_radialMenu.addMenuItem(_gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
 					_radialMenu.addMenuItem(_tickImg,_tickImgText,clearAllNewDocuments,null);
+					_radialMenu.showMenu();
 				}
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
 				//				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
@@ -1074,6 +1076,8 @@
 				wordCount = event.result as Array;
 				
 				_radialMenu.addMenuItem(_wordCloudImg,_wordCloudText,toggleView,[WORD_CLOUD_VIEW]);
+				_radialMenu.showMenu();
+
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
 				if(currentView.value == WORD_CLOUD_VIEW)
 				{
@@ -1375,6 +1379,8 @@
 				}
 				
 				_radialMenu.addMenuItem(_entityDistributionImg,_entityDistributionImgText,showDistributionChart,null);
+				_radialMenu.showMenu();
+
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
 				
 			}
@@ -2597,6 +2603,9 @@
 				_radialMenu.addMenuItem(_pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
 				//				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
 				
+				_radialMenu.showMenu();
+
+				
 				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
 				{
 					showView(currentView.value);
@@ -2942,6 +2951,8 @@
 				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
 				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
 				_radialMenu.addMenuItem(_googleImg,_googleImgText,googleSearchQuery,null);
+				_radialMenu.showMenu();
+
 				//				_subMenu.removeAllSubMenuItems();
 				//				_subMenu.addSubMenuItem("Edit Query",editQuery);
 				//				_subMenu.addSubMenuItem("Settings",settings);
