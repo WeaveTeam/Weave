@@ -15,7 +15,7 @@
 			
 			[Embed( source="/weave/resources/images/minimize_icon.png")]
 			private var minimizeImgClass:Class;
-			private var _minImgText:String ="Hide Menu";
+			[Bindable] private var _minImgText:String = "Hide Menu";
 			
 			private function handleCreationComplete():void
 			{

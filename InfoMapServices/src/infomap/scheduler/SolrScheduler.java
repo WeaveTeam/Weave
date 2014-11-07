@@ -96,7 +96,7 @@ public final class SolrScheduler extends HttpServlet{
 		private SchedulerFactory _schedFactory = new StdSchedulerFactory();
 		private Scheduler sched; 
 		
-		private int interval = 60;
+//		private int interval = 60;
 		
 		Boolean keepRunning = true;
 		

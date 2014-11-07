@@ -53,7 +53,7 @@ package weave.data.DataSources
 			return getColumnValueForURL("title", url) as String;
 		}
 		
-		public function getSnippestForURL(url:String):String {
+		public function getSnippetsForURL(url:String):String {
 			return getColumnValueForURL("snippest", url) as String;
 		}
 	}

@@ -97,6 +97,7 @@ public abstract class AbstractDataSource implements Runnable
 		try
 		{
 			InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
+			prop.load(config);
 			String thumbnailPath = prop.getProperty("thumbnailPath");
 			String destinationPath = thumbnailPath + imageName + imgExtension; 
 			

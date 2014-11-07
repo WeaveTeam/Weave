@@ -37,7 +37,7 @@ package weave.ui.infomap.layout
 			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","left");
 			
 			baseLayoutDrawn = true;
-			source.getColumnByName("title").addImmediateCallback(this,updateTitleLabel);
+			source.getColumnById("title").addImmediateCallback(this,updateTitleLabel);
 			
 //			getCallbackCollection(source.csvDataString).addGroupedCallback(this,updateTitleLabel);
 		}

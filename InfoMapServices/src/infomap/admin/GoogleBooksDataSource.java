@@ -1,6 +1,5 @@
 package infomap.admin;
 
-import flex.messaging.io.ArrayList;
 import infomap.utils.ArrayUtils;
 
 import java.io.FileOutputStream;
@@ -14,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -56,7 +56,7 @@ public class GoogleBooksDataSource extends AbstractDataSource
 	SolrInputDocument[] searchForQuery() 
 	{
 		System.out.println("Calling service on " + getSourceName());
-		List<SolrInputDocument> result = new ArrayList();	
+		List<SolrInputDocument> result = new Vector<SolrInputDocument>();	
 		
 		int totalNumOfDocs = (int)getTotalNumberOfQueryResults();
 		
@@ -154,8 +154,6 @@ public class GoogleBooksDataSource extends AbstractDataSource
 	
 	private Boolean copyImage(String sourceURL,String imageName)
 	{
-		int index = sourceURL.lastIndexOf('.');
-		
 		Properties prop = new Properties();
 		
 		try

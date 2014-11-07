@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -16,8 +17,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.google.gson.Gson;
-
-import flex.messaging.io.ArrayList;
 
 public class BaseDataSource extends AbstractDataSource{
 	
@@ -47,7 +46,7 @@ public class BaseDataSource extends AbstractDataSource{
 	SolrInputDocument[] searchForQuery() 
 	{
 		System.out.println("Calling service on " + getSourceName());
-		List<SolrInputDocument> results = new ArrayList();
+		List<SolrInputDocument> results = new Vector<SolrInputDocument>();
 		String reqURI ="";
 		
 		String[] requiredTerms = getRequiredQueryTerms();

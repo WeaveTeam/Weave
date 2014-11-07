@@ -69,6 +69,7 @@ public class RssFeedsJob implements Job {
 		triggerRssFeedsIndexing();
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static void triggerRssFeedsIndexing()
 	{
 		String query = String.format("SELECT title, url FROM %s", table);

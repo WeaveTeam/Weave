@@ -1,17 +1,18 @@
 package infomap.admin;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import org.apache.solr.common.SolrInputDocument;
 
@@ -23,8 +24,6 @@ import com.sun.syndication.feed.synd.SyndPerson;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
-
-import flex.messaging.io.ArrayList;
 
 /*
  * Class for Querying ARXIV: http://arxiv.org/help/api/user-manual
@@ -123,7 +122,7 @@ public class ArxivDataSource extends AbstractDataSource
 			while((line = reader.readLine())!=null)
 			{
 			    content += line;
-			    b = pat.matches("(.*>)([0-9]+)(</opensearch:totalResults>)", line);
+			    b = Pattern.matches("(.*>)([0-9]+)(</opensearch:totalResults>)", line);
 			    if(b)
 		    	{
 			    	Matcher m = pat.matcher(line);
@@ -146,7 +145,7 @@ public class ArxivDataSource extends AbstractDataSource
 		System.out.println("Calling service on " + getSourceName());
 		
 		String queryString = "";
-		List<SolrInputDocument> results = new ArrayList();
+		List<SolrInputDocument> results = new Vector<SolrInputDocument>();
 		try{
 			String[] requiredTerms = getRequiredQueryTerms();
 		for (int i = 0; i <requiredTerms.length; i++)
@@ -170,6 +169,7 @@ public class ArxivDataSource extends AbstractDataSource
 				SyndFeedInput input = new SyndFeedInput();
 				SyndFeed feed = input.build(new XmlReader(feedUrl));
 				
+				@SuppressWarnings("unchecked")
 				List<SyndEntryImpl> documents = feed.getEntries();
 				
 				
@@ -184,6 +184,7 @@ public class ArxivDataSource extends AbstractDataSource
 					
 					String authors = "";
 					
+					@SuppressWarnings("unchecked")
 					List<SyndPerson> authorsList = entry.getAuthors();
 					
 					Iterator<SyndPerson> authorIterator = authorsList.iterator();

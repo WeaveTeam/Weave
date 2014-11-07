@@ -29,15 +29,15 @@
 						private var googleSearchDataSource:GoogleSearchDataSource = WeaveAPI.globalHashMap.getObject(GoogleSearchDataSource.SOURCE_NAME) as GoogleSearchDataSource;
 						
 						override protected function childrenCreated():void {
-							googleSearchDataSource.getColumnByName("title").addImmediateCallback(outerDocument, updateLabelText);
-							googleSearchDataSource.getColumnByName("snippest").addImmediateCallback(outerDocument, updateLabelText);
+							googleSearchDataSource.getColumnById("title").addImmediateCallback(outerDocument, updateLabelText);
+							googleSearchDataSource.getColumnById("snippest").addImmediateCallback(outerDocument, updateLabelText);
 						}
 						
 						private function updateLabelText():void {
 							//the list was blinking because the label used to be set from empty to the text again because
 							//the column is busy still getting the data
 							//so we test it to only update the labels when it has the data. 
-							if(WeaveAPI.SessionManager.linkableObjectIsBusy(googleSearchDataSource.getColumnByName("title")) || WeaveAPI.SessionManager.linkableObjectIsBusy(googleSearchDataSource.getColumnByName("snippest")))
+							if(WeaveAPI.SessionManager.linkableObjectIsBusy(googleSearchDataSource.getColumnById("title")) || WeaveAPI.SessionManager.linkableObjectIsBusy(googleSearchDataSource.getColumnById("snippest")))
 								return;
 							if(data != null) {
 								this.text = googleSearchDataSource.getTitleForURL(data.localName);
@@ -66,7 +66,7 @@
 							cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 							
 							if(!stageUtils.mouseButtonDown)
-								this.toolTip = googleSearchDataSource.getSnippestForURL(data.localName);
+								this.toolTip = googleSearchDataSource.getSnippetsForURL(data.localName);
 						}
 						private function handleItemRollOut(event:MouseEvent):void
 						{
