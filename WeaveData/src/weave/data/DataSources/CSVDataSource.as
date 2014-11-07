@@ -162,10 +162,6 @@ package weave.data.DataSources
 			return csvData.getSessionState() as Array;
 		}
 		
-		public function getCSVRowData():Array
-		{
-			return parsedRows as Array;
-		}
 		/**
 		 * Convenience function for setting session state of csvData.
 		 * @param rows
