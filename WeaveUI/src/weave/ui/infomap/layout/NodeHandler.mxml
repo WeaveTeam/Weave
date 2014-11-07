@@ -2419,7 +2419,7 @@
 				
 				cytoscapeNodeCSVArray.push(["document_title", "document_url", "keywords", "thumbnail_url", "type"]);
 				
-				cytoscapeNodeCSVArray.push([currentQuery.keywords.value, "", "", "", "query"]);
+				cytoscapeNodeCSVArray.push([currentQuery.keywords.value, currentQuery.keywords.value, "", "", "query"]);
 				
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2431,7 +2431,7 @@
 						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
 						//Following the central node, setup all of the topic nodes.
 						cytoscapeEdgeCSVArray.push([currentQuery.keywords.value,columnName.substring(0,columnName.indexOf("_")),1.0]);
-						cytoscapeNodeCSVArray.push([columnName.substring(0,columnName.indexOf("_")), "", "", "", "topic"]);
+						cytoscapeNodeCSVArray.push([columnName.substring(0,columnName.indexOf("_")), columnName.substring(0,columnName.indexOf("_")), "", "", "topic"]);
 					}
 					count++;
 				}
@@ -2493,8 +2493,8 @@
 				//Setup the actual Cytoscape DataSource now that we have the array ready.
 				tempCytoscapeEdgeCSVDataSource.setCSVData(cytoscapeEdgeCSVArray);
 				tempCytoscapeNodeCSVDataSource.setCSVData(cytoscapeNodeCSVArray);
-
-				
+				tempCytoscapeNodeCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				tempCytoscapeNodeCSVDataSource.keyColName.value = "document_url";
 				//Have Cytoscape utilize our Data Source.
 				/////////////////////////////////////////////////////////////////////
 				// The code for initializing columns to be used in Cytoscape       //
