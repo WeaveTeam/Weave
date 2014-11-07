@@ -13,6 +13,10 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
+	//booleans used for validation of a query object
+	this.isValidated = true;
+	this.validationUpdate = "Ready for validation";
+	
 	//boolean used for displaying the Visualization widget tool menu
 	//only when results are returned and Weave pops up, should this menu be enabled
 	this.displayVizMenu = false;
@@ -61,11 +65,11 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
         return deferred.promise;
     };
     
-    this.getDataFromServer = function(inputs, filters) {
+    this.getDataFromServer = function(inputs, filters, reMaps) {
     	
     	var deferred = $q.defer();
 
-    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, filters], function(result){	
+    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, filters, reMaps], function(result){	
     		scope.$safeApply(function() {
 				deferred.resolve(result);
 			});
@@ -89,14 +93,10 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				//setting the query Object to be used for executing the query
 				var queryObject = queryService.queryObject;
 				//running an initial validation
-				this.validateScriptExecution(queryObject);
-				
-				console.log("validation",this.isValidated );
-				
 				
 				var scriptInputs = {};
 				var time1;
-				var time2
+				var time2;
 				var startTimer;
 				var endTimer;
 				
@@ -255,7 +255,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 					queryService.dataObject.queryDone = false;
 					queryService.dataObject.queryStatus = "Loading data from database...";
 					startTimer = new Date().getTime();
-					this.getDataFromServer(scriptInputs, null).then(function(success) {
+					console.log("indicatorRemap", queryService.queryObject.IndicatorRemap);
+					this.getDataFromServer(scriptInputs, null, queryService.queryObject.IndicatorRemap).then(function(success) {
 						if(success) {
 							time1 =  new Date().getTime() - startTimer;
 							startTimer = new Date().getTime();
