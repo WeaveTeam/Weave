@@ -497,10 +497,36 @@ package weave.data.DataSources
 			else
 			{
 				columnId = metadata[METADATA_COLUMN_NAME];
-				
-				// backwards compatibility
 				if (!columnId)
-					columnId = metadata["name"];
+				{
+					// support for time slider
+					var metaArray:Array = this.metadata.getSessionState() as Array;
+					if (metaArray)
+					{
+						for (var i:int = 0; i < metaArray.length; i++)
+						{
+							var found:int = 0;
+							for (var key:String in metaArray[i])
+							{
+								if (metaArray[i][key] != metadata[key])
+								{
+									found = 0;
+									break;
+								}
+								found++;
+							}
+							if (found)
+							{
+								columnId = i;
+								break;
+							}
+						}
+					}
+					
+					// backwards compatibility
+					if (!columnId)
+						columnId = metadata["name"];
+				}
 			}
 			
 			// get column name and index from id
