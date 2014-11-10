@@ -5,6 +5,7 @@
     <meta charset=utf-8 />
     <title>CytoscapeJS Weave Tool</title>
     <!-- <link href="cytoscapejs.css" rel="stylesheet" type="text/css"/> -->
+    <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.2.0/jquery.qtip.css">
     <style>
         body { font: 14px helvetica neue, helvetica, arial, sans-serif;}
         #cy { height: 100%; width: 100%; position: absolute; left: 0; top: 0;}
@@ -14,8 +15,10 @@
     <script src="springy.js"></script>
     <script src="dagre.js"></script>
     <script src="arbor.js"></script>
-    <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.3.3/cytoscape.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+    <script src="//cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/qtip2/2.2.0/jquery.qtip.js"></script>
+    <script src="cytoscape-qtip.js"></script>
 </head>
 <body>
     <div id="cy">
@@ -75,6 +78,17 @@
                         'border-width': 7,
                         'content': 'data(name)'
                 })
+            .selector('node.topic')
+                .css({
+                        'content': 'data(name)',
+                        'shape': 'roundrectangle'
+                })
+            .selector('node.query')
+                .css({
+                        'content': 'data(name)',
+                        'shape': 'rectangle',
+                        'font-weight': 'bold'
+                })
             .selector('edge.probed')
                 .css({
                         'line-color': '#f00',
@@ -101,11 +115,14 @@
     var NODE_PARENT = 'parent';
     var NODE_IMAGE_URL = 'image_url';
     var NODE_PAGE_URL = 'page_url';
+    var NODE_CONTEXT = 'context';
+    var NODE_CLASSES = 'classes';
 
     var EDGES = 'edges';
     var EDGE_SOURCE = 'source';
     var EDGE_TARGET = 'target';
     var EDGE_NAME = 'name';
+    var EDGE_WEIGHT = 'weight';
 
     var LAYOUT = "layout";
     var LAYOUT_OPTIONS = "layout_options";
@@ -124,21 +141,23 @@
 
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
 
-        function defaultColor(color) { if (!color) color="#fff"; return color;};
-        function defaultUrl(url) { if (!url) url="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gsHEw0XJvo49AAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAANSURBVAjXY2BgYGAAAAAFAAFe8yo6AAAAAElFTkSuQmCC"; return url};
+        function defaultText(text) { return text ? text : ""; };
+        function defaultColor(color) { return color ? color : "#fff";};
+        function defaultUrl(url) { return url ? url : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gsHEw0XJvo49AAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAANSURBVAjXY2BgYGAAAAAFAAFe8yo6AAAAAElFTkSuQmCC";};
 
         function modifyRecords(records, field, func)
         {
             records.forEach(function (record) { record[field] = func(record[field]); });
         }
 
-        modifyRecords(edge_data, 'source', localNameToKeyString);
-        modifyRecords(edge_data, 'target', localNameToKeyString);
-        modifyRecords(node_data, 'parent', localNameToKeyString);
-        modifyRecords(node_data, 'image_url', defaultUrl);
-        modifyRecords(node_data, 'color',  defaultColor);
-        modifyRecords(node_data, 'thumb_url', localNameToKeyString);
-        modifyRecords(node_data, 'summary',  localNameToKeyString);
+        modifyRecords(edge_data, EDGE_SOURCE, localNameToKeyString);
+        modifyRecords(edge_data, EDGE_TARGET, localNameToKeyString);
+
+        modifyRecords(node_data, NODE_PARENT, localNameToKeyString);
+        modifyRecords(node_data, NODE_IMAGE_URL, defaultUrl);
+        modifyRecords(node_data, NODE_COLOR,  defaultColor);
+        modifyRecords(node_data, NODE_CONTEXT, defaultText);
+        modifyRecords(node_data, NODE_CLASSES, defaultText);
 
         var node_ids = _.zipObject(_.pluck(node_data, 'id'));
 
@@ -149,12 +168,31 @@
         node_data = _.map(node_data, function (d) {return {data: d};});
         edge_data = _.map(edge_data, function (d) {return {data: d};});
 
-        cy.load({nodes: node_data, edges: edge_data}, set_local_positions);
+        cy.load({nodes: node_data, edges: edge_data}, post_load);
     };
 
     
     var selection_changed_calls = 0;
 
+    function post_load()
+    {
+        cy.nodes('.document').qtip({
+            content: function() {return this.data()[NODE_CONTEXT];},
+            position: {
+                my: 'top center',
+                at: 'bottom center'
+            },
+            style: {
+                classes: 'qtip-bootstrap',
+                tip: {
+                    width: 16,
+                    height: 8
+                }
+            }
+        });
+
+        set_local_positions();
+    }
 
     function set_local_probe(keys)
     {
@@ -305,7 +343,12 @@
         {
             tool[LAYOUT_OPTIONS].state({});
             layout_params = {};
-            if (layout_name == 'arbor') layout_params['animate'] = false;
+            if (layout_name == 'arbor') 
+            {
+                //layout_params['animate'] = false;
+                //layout_params['edgeLength'] = 
+                //function (edge) { return 1.0/edge.data(EDGE_WEIGHT) };
+            }
         }
         if (layout_name == null || !_.has(valid_layouts, layout_name))
         {
@@ -405,7 +448,9 @@
                     {name: NODE_SIZE, label: "Node Size", type: 'DynamicColumn'},
                     {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'},
                     {name: NODE_IMAGE_URL, label: "Node Image URL", type: 'DynamicColumn'},
-                    {name: NODE_PAGE_URL, label: "Node Reference URL", type: 'DynamicColumn'}
+                    {name: NODE_PAGE_URL, label: "Node Reference URL", type: 'DynamicColumn'},
+                    {name: NODE_CONTEXT, label: "Node Context Content", type: 'DynamicColumn'},
+                    {name: NODE_CLASSES, label: "Node CSS Classes", type: 'DynamicColumn'}
                 ]
             },
             {name: EDGES, callback: data_updated, children:
