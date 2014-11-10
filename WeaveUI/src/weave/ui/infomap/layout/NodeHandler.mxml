@@ -807,7 +807,7 @@
 					return;
 				}
 				
-				var docsArray:Array = event.result as Array;
+				var docsArray:Array = event.result as Array || [];
 				var docsToAdd:Array = [];
 				var keys:Array = [];
 				
@@ -890,7 +890,7 @@
 			
 			private function handleGoogleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
 			{
-				reportError("Error making query");
+				reportError(event);
 			}
 			
 			/**

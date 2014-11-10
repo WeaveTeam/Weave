@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.rmi.RemoteException;
+import java.security.GeneralSecurityException;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -1426,17 +1427,23 @@ public class AdminService extends WeaveServlet {
 	// sources (temporary inapplicable)
 	// sortBy ==> sort (temporary inapplicable) default setting is relevance and date
 	public Object[] getGoogleSearchResultWithRelatedKeywords(String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows, String operator, String sources, String sortBy) {
-		
-		if (requiredKeywords == null || requiredKeywords.length == 0) return null; // ToDo Handle null value exception in the caller
+			String dateFilter, int rows, String operator, String sources, String sortBy) throws GeneralSecurityException, IOException
+	{
+		if (requiredKeywords == null || requiredKeywords.length == 0)
+			return null; // ToDo Handle null value exception in the caller
 		
 		// Each google query is allowed to return 10 results. In addition, it only provides first 100 results
 		// Default rows value is 10
-		if (rows <= 10) rows = 10;
-		if (rows >= 100) rows = 100;
-		if ((rows % 10) != 0) {
-			if ((rows % 10) >= 5) rows = rows + (10 - (rows % 10));
-			else rows = rows - (rows % 10);
+		if (rows <= 10)
+			rows = 10;
+		if (rows >= 100)
+			rows = 100;
+		if ((rows % 10) != 0)
+		{
+			if ((rows % 10) >= 5)
+				rows = rows + (10 - (rows % 10));
+			else
+				rows = rows - (rows % 10);
 		}
 		
 		int numOfResultPerQuery = 10;
@@ -1444,42 +1451,39 @@ public class AdminService extends WeaveServlet {
 		ArrayList<String[]> docs = new ArrayList<String[]>();
 		// For checking possible duplicate urls from google search result
 		HashSet<String> urlSet = new HashSet<String>();
-		for (int i = 0; i < numOfQuery; i++) {
-			try {
-				JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-				Customsearch cs = new Customsearch.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, null).
-				setApplicationName("InfoMaps").build();
-				Cse.List list = cs.cse().list(parseKeywordsArray(requiredKeywords)); // Create list and initialize with query
-				list.setKey(googleCustomSearchAPIKey); // Set up api key
-				list.setCx(CX); // Set up custom engine id
-				list.setOrTerms(parseKeywordsArray(relatedKeywords)); // any of these words
-				list.setStart(new Long(i * numOfResultPerQuery + 1));
-//				list.setNum(new Long(numOfResultPerQuery));
-//				list.setQ(""); // all these words (query)
-//				list.setExactTerms(""); // this exact word or phrase ==> Search Machine Learnings != Search Machine Learning
-//				list.setSort(""); // date or relevance
-//				list.setDateRestrict(""); // See reference format
-				
-				Search searchResults = list.execute();
-				List<Result> items = searchResults.getItems();
-				if (items == null) return null; // No search result
-				
-				for(Result searchResult:items) {
-					if (!urlSet.contains(searchResult.getLink()))
-					{
-						String doc[] = new String[3]; // url, title, snippest
-						urlSet.add(searchResult.getLink());
-						doc[0] = searchResult.getLink();
-						doc[1] = searchResult.getTitle();
-						doc[2] = searchResult.getSnippet();
-						docs.add(doc);
-					}
+		for (int i = 0; i < numOfQuery; i++)
+		{
+			JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+			Customsearch cs = new Customsearch.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, null).
+			setApplicationName("InfoMaps").build();
+			Cse.List list = cs.cse().list(parseKeywordsArray(requiredKeywords)); // Create list and initialize with query
+			list.setKey(googleCustomSearchAPIKey); // Set up api key
+			list.setCx(CX); // Set up custom engine id
+			list.setOrTerms(parseKeywordsArray(relatedKeywords)); // any of these words
+			list.setStart(new Long(i * numOfResultPerQuery + 1));
+//			list.setNum(new Long(numOfResultPerQuery));
+//			list.setQ(""); // all these words (query)
+//			list.setExactTerms(""); // this exact word or phrase ==> Search Machine Learnings != Search Machine Learning
+//			list.setSort(""); // date or relevance
+//			list.setDateRestrict(""); // See reference format
+			
+			Search searchResults = list.execute();
+			List<Result> items = searchResults.getItems();
+			if (items == null)
+				return null; // No search result
+			
+			for (Result searchResult:items)
+			{
+				if (!urlSet.contains(searchResult.getLink()))
+				{
+					String doc[] = new String[3]; // url, title, snippest
+					urlSet.add(searchResult.getLink());
+					doc[0] = searchResult.getLink();
+					doc[1] = searchResult.getTitle();
+					doc[2] = searchResult.getSnippet();
+					docs.add(doc);
 				}
 			}
-			catch (Exception ex) {
-				ex.printStackTrace();
-				return null;
-				}
 		}
 		return docs.toArray();
 	}

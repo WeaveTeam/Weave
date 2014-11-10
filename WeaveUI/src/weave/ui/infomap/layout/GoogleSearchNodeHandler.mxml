@@ -75,7 +75,7 @@
 				
 				googleSearchCSVDataSource.url.value = "/InfoMapServices/AdminService";
 				var servletParam:Object = new Object();
-				servletParam.method = "getGoogleSearchResult";
+				servletParam.method = "getGoogleSearchResultWithRelatedKeywords";
 				servletParam.params = [keywords];
 				googleSearchCSVDataSource.servletParams.value = servletParam;
 				googleSearchCSVDataSource.keyColName.value = "url";

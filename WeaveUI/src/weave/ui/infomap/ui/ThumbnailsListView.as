@@ -33,8 +33,6 @@ package weave.ui.infomap.ui
 			}
 			var includedKeys:Array = keys;
 			
-			var listMaxLength:int = 10;
-			
 			var temp:Array = [];
 			
 			for each(var child:DocThumbnailComponent in view.getChildren())
