@@ -155,7 +155,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			public var startIndex:LinkableNumber = new LinkableNumber(0);
 			
-			private var resultsRowCount:int = 10;
+			protected var resultsRowCount:int = 10;
 			private var _spacing:int = 2;
 			
 			/* abstract */protected function updateList():void{}

@@ -9,6 +9,7 @@ package weave.ui.infomap.ui
 	{
 		public function ThumbnailsListView()
 		{
+			resultsRowCount = 9;
 		}
 		override protected function childrenCreated():void
 		{
