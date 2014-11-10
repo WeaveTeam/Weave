@@ -59,7 +59,8 @@
 						</div>
 						<br> {{IndicDescription}} 
 <!-- 						<button popover-with-tpl template-url="src/analysis/indicator-remap.tpl.html" popover-placement="bottom" class="btn btn-default">Remap Indicator -->
-					      <table border="border: 1px solid #0000FF" ng-show="queryService.queryObject.Indicator">
+					  	<div  style="overflow-y: scroll; height:60%">
+					      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
 								<tr> 
 									<td  align="center">
 										Value
@@ -86,6 +87,7 @@
 <!-- 										ng-change="setRemapValue(varValue.value,queryService.dataObject.remapValues[$index])"></input></td> -->
 								</tr>
 							</table>
+					  	</div>
 					</div>
 				</div>
 				
@@ -322,7 +324,6 @@
 			</div>
 			
 			<div id="qobjPanelContent" class="body" style="width: 100%; height:100%; border: solid 4px; border-color: #4C4F53">
-				Reload - Apply - Save & Close - Cancel
 				<div style="width: 100%; height: 100%;">
 					<div id="queryObjTree" style="width: 50%; height: 80%; overflow:hidden; float:left"></div>
   						<div style="float:left"> Value </div>
