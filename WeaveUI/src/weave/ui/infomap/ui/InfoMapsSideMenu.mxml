@@ -99,7 +99,7 @@
 <s:Button id="addQueryButton" label="Add Query"/>
 <s:Button id="addNodeGroupButton" label="Add Query Group"/>
 <s:Button id="extractEntitiesButton" label="Link with Data"/>
-<s:List height="100%" id="m" borderVisible="false" itemRenderer="weave.ui.infomap.ui.ExpandingItemRenderer"
+<s:List height="100%" id="m" itemRenderer="weave.ui.infomap.ui.ExpandingItemRenderer"
 		verticalScrollPolicy="off" creationComplete="handleListCreationComplete()">
 	<mx:Script>
 		<![CDATA[

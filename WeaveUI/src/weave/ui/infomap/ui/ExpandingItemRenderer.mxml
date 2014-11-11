@@ -54,6 +54,6 @@
 	<s:Group top="0" height="20" left="0" right="0">
 			<s:Button id="buttonLabelDisplay" />
 	</s:Group>
-	<s:List borderVisible="false" maxHeight="105" verticalScrollPolicy="off" id="optionsList" top="23" left="0" right="10" bottom="0" visible.normal="false" visible.selected="true"/>
+	<s:List maxHeight="105" verticalScrollPolicy="off" id="optionsList" top="23" left="0" right="10" bottom="0" visible.normal="false" visible.selected="true"/>
 	
 </s:ItemRenderer>
