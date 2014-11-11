@@ -455,7 +455,7 @@ package weave.application
 		private static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 		private static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
 		private var _usingDeprecatedFlashVar:Boolean = false;
-		private const DEPRECATED_FLASH_VAR_MESSAGE:String = lang("The 'defaults=' URL parameter is deprecated.  Use 'file=' instead.");
+		private const DEPRECATED_FLASH_VAR_MESSAGE:String = "The 'defaults=' URL parameter is deprecated.  Use 'file=' instead.";
 
 		private var _selectionIndicatorText:Text = new Text();
 		private var selectionKeySet:KeySet = Weave.defaultSelectionKeySet;
@@ -848,7 +848,7 @@ package weave.application
 				{
 					Weave.loadWeaveFileContent(ByteArray(fileContent));
 					if (_usingDeprecatedFlashVar)
-						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
+						reportError(lang(DEPRECATED_FLASH_VAR_MESSAGE));
 				}
 			}
 			catch (error:Error)
