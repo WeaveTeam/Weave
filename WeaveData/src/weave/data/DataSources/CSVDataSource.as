@@ -75,8 +75,8 @@ package weave.data.DataSources
 		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeofIsObject));
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
-		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
-		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
+		public const keyType:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
+		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		
 		private function typeofIsObject(value:Object):Boolean { return typeof value == 'object'; }
 		
@@ -132,6 +132,7 @@ package weave.data.DataSources
 		 */		
 		private var parsedRows:Array;
 		private var columnIds:Array = [];
+		private var keysVector:Vector.<IQualifiedKey>;
 		
 		private function handleParsedRows(rows:Array):void
 		{
@@ -145,6 +146,23 @@ package weave.data.DataSources
 					columnIds[i] = i;
 				else
 					nameLookup[columnIds[i]] = true;
+			}
+			updateKeys(true);
+		}
+		
+		private function updateKeys(forced:Boolean = false):void
+		{
+			var changed:Boolean = detectLinkableObjectChange(updateKeys, keyType, keyColName);
+			if (parsedRows && (forced || changed))
+			{
+				var colNames:Array = parsedRows[0] || [];
+				// it is ok if keyColIndex is -1 because getColumnValues supports -1
+				var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
+				var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
+				var keyTypeString:String = keyType.value;
+				
+				keysVector = new Vector.<IQualifiedKey>();
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(this, keyType.value, keyStrings, getCallbackCollection(this).triggerCallbacks, keysVector);
 			}
 		}
 		
@@ -308,7 +326,7 @@ package weave.data.DataSources
 		override protected function get initializationComplete():Boolean
 		{
 			// make sure csv data is set before column requests are handled.
-			return super.initializationComplete && parsedRows is Array;
+			return super.initializationComplete && parsedRows && keysVector;
 		}
 		
 		/**
@@ -552,54 +570,43 @@ package weave.data.DataSources
 			if (!metadata[ColumnMetadata.TITLE])
 				metadata[ColumnMetadata.TITLE] = colName;
 			
-			// it is ok if keyColIndex is -1 because getColumnValues supports -1
-			var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
+			proxyColumn.setMetadata(metadata);
 			
-			var source:CSVDataSource = this;
-			detectLinkableObjectChange(proxyColumn, source);
-			var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-			function setRecords():void
+			var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());
+			var numbers:Vector.<Number> = null;
+			
+			if (!keysVector || strings.length != keysVector.length)
 			{
-				if (detectLinkableObjectChange(proxyColumn, source))
+				proxyColumn.setInternalColumn(null);
+				return;
+			}
+			
+			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
+			if (dataType == null || dataType == DataType.NUMBER)
+				numbers = stringsToNumbers(strings, dataType == DataType.NUMBER);
+			
+			var newColumn:IAttributeColumn;
+			if (numbers)
+			{
+				newColumn = new NumberColumn(metadata);
+				(newColumn as NumberColumn).setRecords(keysVector, numbers);
+			}
+			else
+			{
+				if (dataType == DataType.DATE)
 				{
-					handlePendingColumnRequest(proxyColumn);
-					return;
-				}
-				
-				var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());
-				var numbers:Vector.<Number> = null;
-				
-				var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-				if (dataType == null || dataType == DataType.NUMBER)
-					numbers = stringsToNumbers(strings, dataType == DataType.NUMBER);
-				
-				var newColumn:IAttributeColumn;
-				if (numbers)
-				{
-					newColumn = new NumberColumn(metadata);
-					(newColumn as NumberColumn).setRecords(keysVector, numbers);
+					newColumn = new DateColumn(metadata);
+					(newColumn as DateColumn).setRecords(keysVector, strings);
 				}
 				else
 				{
-					if (dataType == DataType.DATE)
-					{
-						newColumn = new DateColumn(metadata);
-						(newColumn as DateColumn).setRecords(keysVector, strings);
-					}
-					else
-					{
-						newColumn = new StringColumn(metadata);
-						(newColumn as StringColumn).setRecords(keysVector, strings);
-					}
+					newColumn = new StringColumn(metadata);
+					(newColumn as StringColumn).setRecords(keysVector, strings);
 				}
-				proxyColumn.setInternalColumn(newColumn);
 			}
-			
-			proxyColumn.setMetadata(metadata);
-			var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
-			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType.value, keyStrings, setRecords, keysVector);
+			proxyColumn.setInternalColumn(newColumn);
 		}
-
+		
 		/**
 		 * @param rows The rows to get values from.
 		 * @param columnIndex If this is -1, record index values will be returned.  Otherwise, this specifies which column to get values from.
