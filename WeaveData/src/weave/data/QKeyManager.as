@@ -250,14 +250,12 @@ internal class QKeyGetter
 		this.keyStrings = keyStrings;
 		this.outputKeys = outputKeys;
 		this.i = 0;
-		this.asyncCallback = asyncCallback;
 		
 		outputKeys.length = keyStrings.length;
 		// high priority because all visualizations depend on key sets
-		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, lang("Initializing {0} record identifiers", keyStrings.length));
+		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncCallback, lang("Initializing {0} record identifiers", keyStrings.length));
 	}
 	
-	private var asyncCallback:Function;
 	private var i:int;
 	private var manager:QKeyManager;
 	private var relevantContext:ILinkableObject;
@@ -276,10 +274,5 @@ internal class QKeyGetter
 			manager.getQKeys_range(keyType, keyStrings, i, Math.min(i + batch, keyStrings.length), outputKeys);
 		}
 		return 1;
-	}
-	
-	private function asyncComplete():void
-	{
-		asyncCallback();
 	}
 }
