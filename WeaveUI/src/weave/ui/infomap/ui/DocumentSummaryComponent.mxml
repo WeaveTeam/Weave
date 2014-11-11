@@ -141,7 +141,7 @@ Use the static functions to show this as a popup.
 					instance.nodeDescription.htmlText = event.result as String; 
 				}
 				
-				private static function handleGetDescriptionFault(event:ResultEvent,token:Object =null):void
+				private static function handleGetDescriptionFault(event:FaultEvent,token:Object =null):void
 				{
 					instance.nodeDescription.htmlText = "";
 				}
@@ -153,7 +153,7 @@ Use the static functions to show this as a popup.
 					instance.sourceType.htmlText = "<b>Source Type:</b> " + event.result as String;				
 				}
 				
-				private static function handleGetSourceFault(event:ResultEvent,token:Object =null):void
+				private static function handleGetSourceFault(event:FaultEvent,token:Object =null):void
 				{
 					instance.sourceType.htmlText = "";
 				}
