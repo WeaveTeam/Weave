@@ -416,9 +416,9 @@ so that it can be moved, selected, handle filters.
 				var parentNH:NodeHandler = null;
 				var mtp:MovedThumbnailPosition = null;
 				
-				if((this.parent.parent) is InfoMapPanel)
+				if (this.parent && this.parent.parent is InfoMapPanel)
 				{
-					var parentMap:InfoMapPanel = (this.parent.parent) as InfoMapPanel; //better way ?
+					var parentMap:InfoMapPanel = this.parent.parent as InfoMapPanel; //better way ?
 					
 					var nodeHandlers:Array = parentMap.nodes.getObjects();
 					for each (var n:NodeHandler in nodeHandlers)
@@ -429,17 +429,21 @@ so that it can be moved, selected, handle filters.
 							break;
 						}
 					}
-					
-			}else if(this.parent.parent is ThumbnailsLayout)
+				}
+				else if (this.parent && this.parent.parent is ThumbnailsLayout)
 				{
 					parentNH = this.parent.parent.parent as NodeHandler;
 				}
 				
 				//set the movedThumbnailPosition for the thumbnail
-				mtp = parentNH.movedThumbNails.requestObject(docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
+				if (parentNH && parentNH.movedThumbNails)
+					mtp = parentNH.movedThumbNails.requestObject(docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
 				
-				mtp.xPos.value = x;
-				mtp.yPos.value = y;
+				if (mtp)
+				{
+					mtp.xPos.value = x;
+					mtp.yPos.value = y;
+				}
 				
 				/* We add en event listener for mouse over and mouse out when it is a moved out thumbnail */
 				if(!hasEventListener(MouseEvent.MOUSE_OVER))
