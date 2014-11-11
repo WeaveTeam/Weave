@@ -2594,7 +2594,7 @@
 				
 				if (_topicsResult.keywords == null || _topicsResult.urls == null)
 				{
-					reportError(lang("Topic Models did not return an Array of results as expected."));
+					reportError(lang("Topic Models did not return any results."));
 					return;
 					
 				}
