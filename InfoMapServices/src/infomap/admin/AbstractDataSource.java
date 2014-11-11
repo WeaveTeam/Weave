@@ -2,11 +2,13 @@ package infomap.admin;
 
 import infomap.utils.ArrayUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -52,8 +54,10 @@ public abstract class AbstractDataSource implements Runnable
 	 * This function should be called after getting the search results for a query
 	 * @param results An array of SolrInputDocument
 	 * Any additional 
+	 * @throws IOException 
+	 * @throws SolrServerException 
 	 */
-	void updateSolrServer(SolrInputDocument[] results)
+	void updateSolrServer(SolrInputDocument[] results) throws SolrServerException, IOException
 	{
 		if(results == null)
 			return;
@@ -131,7 +135,14 @@ public abstract class AbstractDataSource implements Runnable
 		if(requiredQueryTerms.length>0)
 		{
 			SolrInputDocument[] results = searchForQuery();
-			updateSolrServer(results);
+			try
+			{
+				updateSolrServer(results);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
 		}else
 		{
 			System.out.println("Query Terms are empty for " + getSourceName());

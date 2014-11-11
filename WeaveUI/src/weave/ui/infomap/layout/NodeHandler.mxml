@@ -1083,13 +1083,13 @@
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
 			{
-				reportError("Error making query for word count");
+				reportError(event);
 			}
 			
 			
 			private function handleNumOfDocsQueryFault(event:FaultEvent,token:Object=null):void
 			{
-				Alert.show("Error getting number of documents");
+				reportError(event);
 				status.text = "";
 			}
 			
@@ -1671,7 +1671,7 @@
 					{
 						if(c.containsKey(key))
 						{
-							entities.push(c.getValueFromKey(key));				
+							entities.push(c.getValueFromKey(key, String));				
 						}
 					}
 				}

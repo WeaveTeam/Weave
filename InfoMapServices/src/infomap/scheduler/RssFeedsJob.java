@@ -14,6 +14,7 @@ import java.util.Properties;
 import java.util.ArrayList;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -66,11 +67,18 @@ public class RssFeedsJob implements Job {
 	
 	@Override
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {
-		triggerRssFeedsIndexing();
+		try
+		{
+			triggerRssFeedsIndexing();
+		}
+		catch (Exception e)
+		{
+			throw new JobExecutionException(e);
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static void triggerRssFeedsIndexing()
+	public static void triggerRssFeedsIndexing() throws SolrServerException, IOException
 	{
 		String query = String.format("SELECT title, url FROM %s", table);
 		SQLResult rssFeeds = null;

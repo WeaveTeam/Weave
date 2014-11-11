@@ -52,11 +52,11 @@ package weave.data.DataSources
 				return false;
 		}
 		
-		private function getKeyValueForColumn(csvColumnName:String,key:IQualifiedKey):*
+		private function getKeyValueForColumn(csvColumnName:String,key:IQualifiedKey):String
 		{
 			var col:IAttributeColumn = getColumnById(csvColumnName);
 			
-			return col.getValueFromKey(key);
+			return col.getValueFromKey(key, String);
 		}
 		
 		public function getTitleForKey(key:IQualifiedKey):String

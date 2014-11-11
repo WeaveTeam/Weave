@@ -477,7 +477,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							var isEntityColumn:Boolean = false;
 							for(var count:int = 0; count < minTest; count++)
 							{
-								var check:Boolean = testForValidEntity(attrCol.getValueFromKey(attrColKeys[count]));
+								var check:Boolean = testForValidEntity(attrCol.getValueFromKey(attrColKeys[count], String));
 								isEntityColumn = isEntityColumn || check;
 							}
 							if(isEntityColumn)

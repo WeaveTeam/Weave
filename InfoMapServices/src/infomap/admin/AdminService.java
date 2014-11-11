@@ -10,6 +10,7 @@ import infomap.scheduler.RssFeedsJob;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,13 +19,13 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.rmi.RemoteException;
 import java.security.GeneralSecurityException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -68,6 +69,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.GroupParams;
+import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
@@ -80,6 +82,7 @@ import org.carrot2.util.CloseableUtils;
 import org.carrot2.util.attribute.AttributeValueSets;
 import org.w3c.dom.Document;
 import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
 
 import weave.servlets.WeaveServlet;
 import weave.utils.CSVParser;
@@ -197,18 +200,12 @@ public class AdminService extends WeaveServlet {
 //
 //		 requiredKeywords[0] = "Montana";
 //		 relatedKeywords[0] = " obesity";
-//		 try{
 //			 
 //			 inst.getClustersForQueryWithRelatedKeywords(requiredKeywords, relatedKeywords,null,5000,"AND");
-//		 }catch (Exception e) {
-//			// TODO: handle exception
-//			 e.printStackTrace();
-//		}
 //	}
 
 	@SuppressWarnings("unused")
-	private static void deleteAllDocuments() {
-		try {
+	private static void deleteAllDocuments() throws SolrServerException {
 			String queryString = "title:((california OR washington) AND (obesity OR BMI OR overweight)) OR description:((california OR washington) AND (obesity OR BMI OR overweight))";
 
 			SolrQuery query = new SolrQuery();
@@ -216,7 +213,6 @@ public class AdminService extends WeaveServlet {
 			// query = query + "&wt=json";
 			QueryResponse response = null;
 			Object[][] result = new Object[5][];
-			try {
 
 				query.setQuery(queryString);
 
@@ -265,18 +261,11 @@ public class AdminService extends WeaveServlet {
 				}
 //				System.out.println("Updated with ");
 
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 	}
 
 	private static void setSolrServer(String solrURL) {
-		try {
 
 			if (solrInstance != null) {
 				if (solrInstance.getBaseURL().equals(solrURL))
@@ -284,13 +273,9 @@ public class AdminService extends WeaveServlet {
 			}
 			solrServerUrl = solrURL;
 			solrInstance = new HttpSolrServer(solrServerUrl);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	private static void setStreamingSolrServer(String solrURL) {
-		try {
 			if (streamingSolrserver != null) {
 				// if updating the same solr server no need to create another
 				// instance
@@ -302,22 +287,15 @@ public class AdminService extends WeaveServlet {
 			streamingSolrserver = new ConcurrentUpdateSolrServer(solrServerUrl,
 					bufferSize, backgroundThreads);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 //	private void getConnection() {
-//		try {
 //			Class.forName("com.mysql.jdbc.Driver").newInstance();
 //
 //			String url = SQLUtils.getConnectString("MySQL", host, port,
 //					database, username, password);
 //			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
 //
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
 //
 //	}
 
@@ -338,7 +316,7 @@ public class AdminService extends WeaveServlet {
 		super.destroy();
 	}
 
-	synchronized public Object[][] getRssFeeds() {
+	synchronized public Object[][] getRssFeeds() throws SQLException, RemoteException {
 		if (!enableRssFeeds) return null;
 		
 		String query = String.format("SELECT title, url FROM %s", table);
@@ -350,18 +328,13 @@ public class AdminService extends WeaveServlet {
 			connection = SQLUtils.getConnection(url);
 			result = SQLUtils.getResultFromQuery(connection, query, null, true);
 
-		} catch (Exception e) {
-			System.out.println(query);
-			e.printStackTrace();
-			return null;
 		} finally {
 			SQLUtils.cleanup(connection);
 		}
 		return result.rows;
 	}
 
-	public String addRssFeed(String title, String url) throws RemoteException {
-		try {
+	public String addRssFeed(String title, String url) throws RemoteException, SQLException {
 			if (!enableRssFeeds) return "RSS Feed is not enabled";
 			
 			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
@@ -396,15 +369,9 @@ public class AdminService extends WeaveServlet {
 			SQLUtils.insertRow(conn, database, table, valueMap);
 
 			return "RSS Feed added successfully";
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
-
 	}
 
-	public String deleteRssFeed(String url) throws RemoteException {
-		try {
+	public String deleteRssFeed(String url) throws RemoteException, SQLException {
 			if (!enableRssFeeds) return "RSS Feed is not enabled";
 			
 			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
@@ -416,27 +383,16 @@ public class AdminService extends WeaveServlet {
 			SQLUtils.executeUpdate(conn, query);
 
 			return "RSS Feed was deleted";
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
-
 	}
 
-	// ToDo This is called when the user clicks index now. (Mannually indexing)
-	public void indexRssFeeds() throws RemoteException {
-		try {
+	// ToDo This is called when the user clicks index now. (Manually indexing)
+	public void indexRssFeeds() throws SolrServerException, IOException {
 			if (!enableRssFeeds) return;
 			
 			RssFeedsJob.triggerRssFeedsIndexing();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			throw new RemoteException(ex.getMessage());
-		}
 	}
 	
 //	public String addAtomFeed(String url, String title) throws RemoteException {
-//		try {
 //
 //			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
 //					database, username, password);
@@ -469,15 +425,10 @@ public class AdminService extends WeaveServlet {
 //
 //			return "Atom Feed added successfully";
 //
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw new RemoteException(e.getMessage());
-//		}
 //
 //	}
 //
 //	public void deleteAtomFeed(String title) {
-//		try {
 //
 //			String url = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
 //					database, username, password);
@@ -494,14 +445,10 @@ public class AdminService extends WeaveServlet {
 //			stat.close();
 //			conn.close();
 //
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
 //
 //	}
 
 //	public void addFilePath(String url, String title) {
-//		try {
 //
 //			String connURL = SQLUtils.getConnectString("MySQL", host, port,
 //					database, username, password);
@@ -517,9 +464,6 @@ public class AdminService extends WeaveServlet {
 //
 //			recursivelyAddFiles(url);
 //
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
 //
 //	}
 
@@ -528,7 +472,6 @@ public class AdminService extends WeaveServlet {
 //		File file = new File(path);
 //
 //		if (file.isFile()) {
-//			try {
 //
 //				String url = SQLUtils.getConnectString("MySQL", host, port,
 //						database, username, password);
@@ -545,9 +488,6 @@ public class AdminService extends WeaveServlet {
 //				stat.close();
 //				conn.close();
 //
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
 //		} else if (file.isDirectory()) {
 //			String[] fileList = file.list();
 //
@@ -560,7 +500,6 @@ public class AdminService extends WeaveServlet {
 //	}
 //
 //	public void deleteFilePath(String title) {
-//		try {
 //
 //			String url = SQLUtils.getConnectString("MySQL", host, port,
 //					database, username, password);
@@ -577,9 +516,6 @@ public class AdminService extends WeaveServlet {
 //			stat.close();
 //			conn.close();
 //
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
 //
 //	}
 
@@ -674,11 +610,10 @@ public class AdminService extends WeaveServlet {
 	}
 
 	public long getNumberOfMatchedDocuments(String query, String fq,
-			String solrURL) {
+			String solrURL) throws SolrServerException {
 		setSolrServer(solrURL);
 		// query = query + "&wt=json";
 		QueryResponse response = null;
-		try {
 
 			SolrQuery q = new SolrQuery().setQuery(query);
 			if (!fq.isEmpty())
@@ -688,9 +623,6 @@ public class AdminService extends WeaveServlet {
 
 			//System.out.println("QUERY IS " + q.toString());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		return response.getResults().getNumFound();
 	}
 
@@ -744,7 +676,7 @@ public class AdminService extends WeaveServlet {
 		return result;
 	}
 	
-	public String[][] getWordCount(String query, String dateFilter,String sources,String sortBy) {
+	public String[][] getWordCount(String query, String dateFilter,String sources,String sortBy) throws SolrServerException {
 		setSolrServer(solrServerUrl);
 
 		String[][] result = null;
@@ -754,7 +686,6 @@ public class AdminService extends WeaveServlet {
 		if (queryString == null)
 			return null;
 
-		try {
 
 
 			SolrQuery q = new SolrQuery().setQuery(queryString);
@@ -803,10 +734,6 @@ public class AdminService extends WeaveServlet {
 			}
 
 			result = wordCount.clone();
-		} catch (Exception e) {
-			System.out.println("Error getting Facet Count ");
-			e.printStackTrace();
-		}
 
 		return result;
 	}
@@ -820,7 +747,6 @@ public class AdminService extends WeaveServlet {
 //        Set<String> tempresult = new HashSet<String>();
 //		if (queryString == null)
 //			return null;
-//		try {
 //
 //			// Query Results are always sorted by descending order of relevance
 //			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
@@ -864,9 +790,6 @@ public class AdminService extends WeaveServlet {
 //				System.out.println("NO Documents returned...");
 //			}
 //
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
 //		String [] result = new String[tempresult.size()];
 //		Iterator<String> iter = tempresult.iterator();
 //		int tempcounter = 0;
@@ -1123,7 +1046,7 @@ public class AdminService extends WeaveServlet {
 		return topicModelingResutls;
 	}
 	
-	public String[][] getClustersForQueryString(String query,String dateFilter, int rows,String sources,String sortBy)
+	public String[][] getClustersForQueryString(String query,String dateFilter, int rows,String sources,String sortBy) throws Exception
 	{
 		String[][] result = null;
 		
@@ -1138,7 +1061,7 @@ public class AdminService extends WeaveServlet {
 	
 	public String[][] getClustersForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows,String operator,String sources,String sortBy) throws IOException, SolrServerException
+			String dateFilter, int rows,String operator,String sources,String sortBy) throws Exception
 	{
 		String[][] result = null;
 		
@@ -1153,10 +1076,9 @@ public class AdminService extends WeaveServlet {
 	}
 	
 	
-	private String[][] getClusters(String queryString,String dateFilter, int rows,String sources,String sortBy)
+	private String[][] getClusters(String queryString,String dateFilter, int rows,String sources,String sortBy) throws Exception
 	{
 		String[][] result = null;
-		try{
 			// Query Results are always sorted by descending order of relevance
 			SolrQuery q = new SolrQuery().setQuery(queryString);
 			
@@ -1368,17 +1290,13 @@ public class AdminService extends WeaveServlet {
 						result[0][i] = result[0][i] + "_cluster_" + key.toString();
 				}
 			}
-		}catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
 		return result;
 	}
 	
 	// Using lingo algorithm because the result is deterministic
 	// The result is not deterministic (it should be) now because of double precision bug.
 	// See http://issues.carrot2.org/browse/CARROT-575
-	public List<Cluster> lingoClustering(List<org.carrot2.core.Document> documents, String queryHint, Class<?>... processingComponentClasses) {
+	public List<Cluster> lingoClustering(List<org.carrot2.core.Document> documents, String queryHint, Class<?>... processingComponentClasses) throws Exception {
 		// This code includes software developed by the Carrot2 Project
 		// Cluster RadViz labels for better layout ==> Currently use concatenated titles for clustering.
 		InputStream xmlStream = null;
@@ -1392,11 +1310,10 @@ public class AdminService extends WeaveServlet {
 
 			// Get the default set of attribute values for use with further processing
 			defaultAttributes = attributeValueSets.getDefaultAttributeValueSet().getAttributeValues();        		
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			System.out.println("Error reading lingo attributes file");}
-		finally {CloseableUtils.close(xmlStream);}
+		}
+		finally {
+			CloseableUtils.close(xmlStream);
+		}
 
 		Controller controller = ControllerFactory.createSimple();
 
@@ -1500,7 +1417,7 @@ public class AdminService extends WeaveServlet {
 	}
 	
 	public Object[] getResultsForQueryWithRelatedKeywords(
-			String query,String dateFilter, int rows,String sources,String sortBy) throws NullPointerException {
+			String query,String dateFilter, int rows,String sources,String sortBy) throws NullPointerException, SolrServerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
@@ -1509,7 +1426,6 @@ public class AdminService extends WeaveServlet {
 		if (queryString == null)
 			return null;
 
-		try {
 
 			SolrQuery q = new SolrQuery().setQuery(queryString);
 			
@@ -1574,9 +1490,6 @@ public class AdminService extends WeaveServlet {
 				r.add(docArray);
 			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		Object[] queryResult = r.toArray();
 		return queryResult;
@@ -1601,14 +1514,13 @@ public class AdminService extends WeaveServlet {
 			q.addSortField("date_added", ORDER.desc);
 	}
 	
-	public String getDescriptionForURL(String url, String[] keywords)
+	public String getDescriptionForURL(String url, String[] keywords) throws SolrServerException
 	{
 		setSolrServer(solrServerUrl);
 		
 		if (url == null)
 			return null;
 		String result ="";
-		try {
 			
 			//OR all keywords so that they are highlighted
 			String queryString = "";
@@ -1667,23 +1579,18 @@ public class AdminService extends WeaveServlet {
 				}
 
 			}
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
 		
 		return result;
 		
 	}
 
-	public String getSourceForURL(String url)
+	public String getSourceForURL(String url) throws SolrServerException
 	{
 		setSolrServer(solrServerUrl);
 		
 		if (url == null)
 			return null;
 		String result ="";
-		try {
 			
 			// Query Results are always sorted by descending order of relevance
 			SolrQuery q = new SolrQuery().setQuery("link:\""+url+"\"");
@@ -1702,16 +1609,12 @@ public class AdminService extends WeaveServlet {
 					result +=sourceType;
 				}
 			}
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
 		
 		return result;
 		
 	}
 	public Object[] getLinksForFilteredQuery(String query, String dateFilter, String[] filterby,
-			int rows,String sources,String sortBy) throws NullPointerException {
+			int rows,String sources,String sortBy) throws NullPointerException, SolrServerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String> r = new ArrayList<String>();
@@ -1721,7 +1624,6 @@ public class AdminService extends WeaveServlet {
 		if (queryString == null)
 			return null;
 
-		try {
 
 			// Query Results are always sorted by descending order of relevance
 			SolrQuery q = new SolrQuery().setQuery(queryString);
@@ -1769,16 +1671,13 @@ public class AdminService extends WeaveServlet {
 				r.add((String) doc.getFieldValue("link"));
 			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		Object[] queryResult = r.toArray();
 		return queryResult;
 
 	}
 
-	public long getNumOfDocumentsForQuery(String query, String dateFilter,String sources) {
+	public long getNumOfDocumentsForQuery(String query, String dateFilter,String sources) throws SolrServerException {
 		setSolrServer(solrServerUrl);
 
 		String queryString = attachQueryToFields(query);
@@ -1787,7 +1686,6 @@ public class AdminService extends WeaveServlet {
 			return 0;
 
 		QueryResponse response = null;
-		try {
 
 			SolrQuery q = new SolrQuery().setQuery(queryString);
 
@@ -1805,14 +1703,11 @@ public class AdminService extends WeaveServlet {
 
 			response = solrInstance.query(q);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		return response.getResults().getNumFound();
 	}
 
 	public EntityDistributionObject getEntityDistributionForQuery(
-			String query,String dateFilter, String[] entities, int rows,String sources,String sortBy) {
+			String query,String dateFilter, String[] entities, int rows,String sources,String sortBy) throws SolrServerException {
 
 		Object[][] urls = new Object[entities.length][];
 
@@ -1826,7 +1721,6 @@ public class AdminService extends WeaveServlet {
 		}
 
 		QueryResponse response = null;
-		try {
 
 			SolrQuery q = new SolrQuery().setQuery(queryString);
 
@@ -1895,9 +1789,6 @@ public class AdminService extends WeaveServlet {
 				count++;
 			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		EntityDistributionObject result = new EntityDistributionObject();
 
@@ -2023,7 +1914,7 @@ public class AdminService extends WeaveServlet {
 
 	public QueryResultWithWordCount getQueryResults(String[] queryTerms,
 			String fq, String sortField, int rows, String solrURL)
-			throws NullPointerException {
+			throws NullPointerException, SolrServerException {
 		setSolrServer(solrURL);
 		// query = query + "&wt=json";
 		timer.start();
@@ -2036,7 +1927,6 @@ public class AdminService extends WeaveServlet {
 		ArrayList<String[]> r = new ArrayList<String[]>();
 		QueryResultWithWordCount result = new QueryResultWithWordCount();
 
-		try {
 
 			SolrQuery q = new SolrQuery().setQuery(query).setSortField(
 					sortField, SolrQuery.ORDER.asc);
@@ -2144,7 +2034,6 @@ public class AdminService extends WeaveServlet {
 			}
 
 			// creating an array of facet words and its word count
-			try {
 
 				FacetField ff = response.getFacetField("description");
 				Iterator<Count> iter2 = ff.getValues().iterator();
@@ -2166,14 +2055,7 @@ public class AdminService extends WeaveServlet {
 				}
 
 				result.wordCount = wordCount.clone();
-			} catch (Exception e) {
-				System.out.println("Error getting Facet Count ");
-				e.printStackTrace();
-			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		result.queryResult = r.toArray();
 		result.totalNumberOfDocuments = (int) totalNumberOfDocuments;
@@ -2186,8 +2068,10 @@ public class AdminService extends WeaveServlet {
 	 * 
 	 * @param an
 	 *            array of SolrInputDocument
+	 * @throws IOException 
+	 * @throws SolrServerException 
 	 */
-	public static void addDocuments(SolrInputDocument[] docs, String solrURL) {
+	public static void addDocuments(SolrInputDocument[] docs, String solrURL) throws SolrServerException, IOException {
 		if (docs == null || docs.length == 0) {
 
 			return;
@@ -2196,19 +2080,12 @@ public class AdminService extends WeaveServlet {
 		List<SolrInputDocument> d = Arrays.asList(docs);
 
 		setStreamingSolrServer(solrURL);
-		try {
 			streamingSolrserver.add(d);
 			System.out.println("ADDING DOCUMENTS WITH Num Of Docs: " + docs.length);
-		} catch (Exception e) {
-			System.out
-					.println("Error when adding " + docs.length + "documents");
-			e.printStackTrace();
-		}
 	}
 
 	public static void addTextDocument(String username, String fileName,
-			InputStream content, String solrURL) throws RemoteException,
-			MalformedURLException, ParseException {
+			InputStream content, String solrURL) throws ParseException, IOException, SAXException, TikaException, SolrServerException {
 		String link = username + ":" + fileName;
 
 		AutoDetectParser parser = new AutoDetectParser();
@@ -2216,11 +2093,7 @@ public class AdminService extends WeaveServlet {
 		ContentHandler textHandler = new BodyContentHandler();
 		Metadata metadata = new Metadata();
 
-		try {
 			parser.parse(content, textHandler, metadata);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		SolrInputDocument doc = new SolrInputDocument();
 
@@ -2259,14 +2132,13 @@ public class AdminService extends WeaveServlet {
 	 * @param fileName
 	 * @param overwriteFile
 	 * @return A description of the success or failure of this function.
-	 * @throws RemoteException
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
 	 */
 	public String saveWeaveFile(
 			InputStream fileContent, String fileName)
-		throws RemoteException
+		throws FileNotFoundException, IOException
 	{
-		try
-		{
 			// remove special characters
 			fileName = fileName.replace("\\", "").replace("/", "");
 
@@ -2275,11 +2147,6 @@ public class AdminService extends WeaveServlet {
 			File file = new File(path + fileName);
 
 			FileUtils.copy(fileContent, new FileOutputStream(file));
-		}
-		catch (IOException e)
-		{
-			throw new RemoteException("Error occurred while saving file", e);
-		}
 
 		return "Successfully saved " + fileName + ".";
 	}
@@ -2289,14 +2156,13 @@ public class AdminService extends WeaveServlet {
 	 * @param fileName The name of the file to be saved.
 	 * @param fileContent A ByteArray containing BitmapData.
 	 * @return A description of the success or failure of this function.
-	 * @throws RemoteException
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
 	 */
 	public String saveBackgroundImage(
 			String fileName, InputStream fileContent)
-		throws RemoteException
+		throws FileNotFoundException, IOException
 	{
-		try
-		{
 			// remove special characters
 			fileName = fileName.replace("\\", "").replace("/", "");		
 
@@ -2305,18 +2171,12 @@ public class AdminService extends WeaveServlet {
 			File file = new File(path + fileName);
 
 			FileUtils.copy(fileContent, new FileOutputStream(file));
-		}
-		catch (IOException e)
-		{
-			throw new RemoteException("Error occurred while saving file", e);
-		}
 
 		return fileName;
 	}
 
 	private static void addDoc(SolrInputDocument d, String solrURL,
-			Boolean commit) {
-		try {
+			Boolean commit) throws SolrServerException, IOException {
 			setStreamingSolrServer(solrURL);
 			SolrQuery q = new SolrQuery().setQuery("link:" + "\""
 					+ d.getFieldValue("link").toString() + "\"");
@@ -2331,9 +2191,6 @@ public class AdminService extends WeaveServlet {
 
 			// if(commit)
 			// streamingSolrserver.commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
