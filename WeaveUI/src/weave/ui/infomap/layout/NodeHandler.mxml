@@ -233,7 +233,7 @@
 			private var SettingsImgClass:Class;
 			private var _settingsImgText:String = "Settings Panel" ;
 			
-			[Embed( source="/weave/resources/images/list.png")]
+			[Embed( source="/weave/resources/images/List.png")]
 			private var ListImgClass:Class;
 			private var _listImgText:String = "List View";
 			
@@ -2037,6 +2037,8 @@
 				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
 				_lastX = x;
 				_lastY = y;
+				var new_z:int = (this.parent as Canvas).numChildren - 1;
+				this.parent.setChildIndex(this,new_z);
 				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				// solution for handling mous_up outside of stage : http://stackoverflow.com/questions/2944122/flash-correctly-handling-click-and-drag-outside-the-browser
 				sbroot.addEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, handleMouseUpSomewhere);
