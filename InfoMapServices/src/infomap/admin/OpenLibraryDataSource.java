@@ -44,6 +44,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 	String getSourceType() {
 		return "Books";
 	}
+
 	
 	@Override
 	SolrInputDocument[] searchForQuery() 
@@ -180,7 +181,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 		if(result != null)
 			numberOfDocs = result.numFound;
 			
-		return numberOfDocs;
+		return numberOfDocs > documentCap ? documentCap : numberOfDocs;
 	}
 	
 	private OpenLibraryDataModel parseJSONResult(int page)

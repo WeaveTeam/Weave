@@ -21,12 +21,13 @@ import weave.utils.FileUtils;
  */
 public abstract class AbstractDataSource implements Runnable
 {
-	
+	public static int documentCap = 100;
 	public String[] requiredQueryTerms;
 	
 	public String[] relatedQueryTerms;
 	
 	public String solrServerURL;
+
 	/**
 	 * Returns the source name, maybe used by other classes to get results from specific sources
 	 * @return source name

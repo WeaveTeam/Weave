@@ -46,7 +46,7 @@ public class ArxivDataSource extends AbstractDataSource
 	
 	private static String BASE_URL = "http://export.arxiv.org/api/query?&sortBy=lastUpdatedDate&sortOrder=descending";
 	
-	private static int numberOfDocumentsPerRequest = 2000;
+	private static int numberOfDocumentsPerRequest = 500;
 	
 	/* sample query : http://export.arxiv.org/api/query?search_query=all:obesity AND (all:norepinephrine OR all:metaheuristic) /% */
 	private String generateQuery(String requiredTerm)
@@ -103,7 +103,7 @@ public class ArxivDataSource extends AbstractDataSource
 				return 0;
 			} 
 		}
-		return result;
+		return result > documentCap ? documentCap : result;
 	}
 	
 	private int getNumberOfDocumentsForQuery(String requiredQueryTerm) throws MalformedURLException
@@ -136,7 +136,7 @@ public class ArxivDataSource extends AbstractDataSource
 		}catch (Exception e) {
 			System.out.println("Error making query");
 		}
-		return result;
+		return result > documentCap ? documentCap : result;
 	}
 	
 	@Override

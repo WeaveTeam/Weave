@@ -170,6 +170,7 @@ public class AdminService extends WeaveServlet {
 			prop.load(config);
 			
 			solrServerUrl = prop.getProperty("solrServerURL");
+			AbstractDataSource.documentCap = Integer.parseInt(prop.getProperty("queryDocumentCap", "200"));
 			serverURL = prop.getProperty("serverURL");
 			database = prop.getProperty("feedSourcesDB");
 			table = prop.getProperty("feedSourcesTable");

@@ -210,7 +210,7 @@ public class BaseDataSource extends AbstractDataSource{
 		{
 			result += getNumOfDocumentsForQuery(requiredTerms[i]);
 		}
-		return result;
+		return result > documentCap ? documentCap : result;
 	}
 	
 	private int getNumOfDocumentsForQuery(String requiredTerm)
@@ -240,6 +240,6 @@ public class BaseDataSource extends AbstractDataSource{
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		return result;
+		return result > documentCap ? documentCap : result;
 	}
 }

@@ -143,7 +143,7 @@ public class GoogleBooksDataSource extends AbstractDataSource
 		GoogleBooksDataModel result = null;
 		try{
 			result = getResultsForRequest(1, 0);			
-			return result.totalItems;
+			return result.totalItems > documentCap ? documentCap : result.totalItems;
 		}
 		catch(Exception e)
 		{

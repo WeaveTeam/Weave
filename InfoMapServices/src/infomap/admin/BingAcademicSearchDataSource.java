@@ -292,7 +292,7 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 			}
 			
 		}
-		return result;
+		return result > documentCap ? documentCap : result;
 	}
 	
 	private int getNumOfDocumentsForQuery(String queryTerms)
@@ -322,7 +322,7 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		return result;
+		return result > documentCap ? documentCap : result;
 	}
 	
 	@Override
