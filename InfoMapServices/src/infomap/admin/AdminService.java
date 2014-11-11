@@ -887,7 +887,7 @@ public class AdminService extends WeaveServlet {
 	//use topic modeling to divide all the documents returned for a query into several groups
 	public TopicClassificationResults classifyDocumentsForQuery(
 			String query,String dateFilter, int rows, int numOfTopics,
-			int numOfKeywordsInEachTopic,String sources,String sortBy) throws NullPointerException {
+			int numOfKeywordsInEachTopic,String sources,String sortBy) throws SolrServerException, IOException {
 		setSolrServer(solrServerUrl);
 
 		String[] uncategoried = null;
@@ -896,203 +896,202 @@ public class AdminService extends WeaveServlet {
 		String queryString = attachQueryToFields(query);
 
 		if (queryString == null)
-			return null;
+			throw new RemoteException("Query cannot be null.");
 
 		TopicClassificationResults topicModelingResutls = new TopicClassificationResults();
-		try {
 
-			// Query Results are always sorted by descending order of relevance
-			SolrQuery q = new SolrQuery().setQuery(queryString);
-			setSortField(q, sortBy);
-			
-			if (dateFilter != null)
-				if (!dateFilter.isEmpty())
-					q.addFilterQuery(dateFilter);
-			
-			if(sources!=null && sources.length()>0)
-			{
-				q.addFilterQuery("source:"+sources);
-			}
-			
-			// set number of rows
-			q.setRows(rows);
-
-			q.setFields("link,description");
-
-			QueryResponse response = solrInstance.query(q);
-			SolrDocumentList documents = response.getResults();
-			int documentSize = documents.size();
-			SolrDocument doc = null;
-			Iterator<SolrDocument> itr = documents.iterator();
-			String originalTexts = "";
-			String singleInstance = "";
-			if (documentSize > 0) {
-				while (itr.hasNext()) {
-					doc = itr.next();
-					if (doc.getFieldValue("description") != null) {
-						singleInstance = doc.getFieldValue("link").toString()
-								+ "\t"
-								+ "X"
-								+ "\t"
-								+ doc.getFieldValue("description").toString()
-										.replace('\n', ' ').replace('\r', ' ')
-								+ "\r\n";
-						originalTexts += singleInstance;
-					}else{
-						tempuncategoried.add(doc.getFieldValue("link").toString());
-					}
-				}
-			} else {
-				System.out.println("NO Documents returned...");
-			}
-
-			// Begin by importing documents from text to feature sequences
-			ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
-
-			// Pipes: lowercase, tokenize, remove stopwords, map to features
-			pipeList.add(new CharSequenceLowercase());
-			pipeList.add(new CharSequence2TokenSequence(Pattern
-					.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
+		// Query Results are always sorted by descending order of relevance
+		SolrQuery q = new SolrQuery().setQuery(queryString);
+		setSortField(q, sortBy);
 		
-			URL stoplistPath = getClass().getClassLoader().getResource(
-					"infomap/resources/stopwords.txt");
+		if (dateFilter != null)
+			if (!dateFilter.isEmpty())
+				q.addFilterQuery(dateFilter);
+		
+		if(sources!=null && sources.length()>0)
+		{
+			q.addFilterQuery("source:"+sources);
+		}
+		
+		// set number of rows
+		q.setRows(rows);
+
+		q.setFields("link,description");
+
+		QueryResponse response = solrInstance.query(q);
+		SolrDocumentList documents = response.getResults();
+		int documentSize = documents.size();
+		SolrDocument doc = null;
+		Iterator<SolrDocument> itr = documents.iterator();
+		String originalTexts = "";
+		String singleInstance = "";
+		if (documentSize > 0) {
+			while (itr.hasNext()) {
+				doc = itr.next();
+				if (doc.getFieldValue("description") != null) {
+					singleInstance = doc.getFieldValue("link").toString()
+							+ "\t"
+							+ "X"
+							+ "\t"
+							+ doc.getFieldValue("description").toString()
+									.replace('\n', ' ').replace('\r', ' ')
+							+ "\r\n";
+					originalTexts += singleInstance;
+				}else{
+					tempuncategoried.add(doc.getFieldValue("link").toString());
+				}
+			}
+		} else {
+			System.out.println("NO Documents returned...");
+		}
+
+		// Begin by importing documents from text to feature sequences
+		ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
+
+		// Pipes: lowercase, tokenize, remove stopwords, map to features
+		pipeList.add(new CharSequenceLowercase());
+		pipeList.add(new CharSequence2TokenSequence(Pattern
+				.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
+	
+		URL stoplistPath = getClass().getClassLoader().getResource(
+				"infomap/resources/stopwords.txt");
 //			System.out.println(stoplistPath.getFile());
-			String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(),
-					"UTF-8");
-			pipeList.add(new TokenSequenceRemoveStopwords(new File(
-					stopListFilePath), "UTF-8", false, false, false));
-			pipeList.add(new TokenSequence2FeatureSequence());
-			InstanceList instances = new InstanceList(new SerialPipes(pipeList));
-			Reader fileReader = new InputStreamReader(
-					IOUtils.toInputStream(originalTexts));
-			instances
-					.addThruPipe(new CsvIterator(
-							fileReader,
-							Pattern.compile("^(\\S*)[\\s]*(\\S*)[\\s]*([\\w\\W\\s\\S\\d\\D]*)$"),
-							3, 2, 1)); 	// data, label, name, fields
+		String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(),
+				"UTF-8");
+		pipeList.add(new TokenSequenceRemoveStopwords(new File(
+				stopListFilePath), "UTF-8", false, false, false));
+		pipeList.add(new TokenSequence2FeatureSequence());
+		InstanceList instances = new InstanceList(new SerialPipes(pipeList));
+		Reader fileReader = new InputStreamReader(
+				IOUtils.toInputStream(originalTexts));
+		instances
+				.addThruPipe(new CsvIterator(
+						fileReader,
+						Pattern.compile("^(\\S*)[\\s]*(\\S*)[\\s]*([\\w\\W\\s\\S\\d\\D]*)$"),
+						3, 2, 1)); 	// data, label, name, fields
 
-			// Create a model with numOfTopics topics, alpha_t = 0.01, beta_w = 0.01
-			// Note that the first parameter is passed as the sum over topics,
-			// while the second is the parameter for a single dimension of the
-			// Dirichlet prior.
-			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0, 0.01);
-			ParallelTopicModel.logger.setLevel(java.util.logging.Level.OFF);
-			model.addInstances(instances);
+		// Create a model with numOfTopics topics, alpha_t = 0.01, beta_w = 0.01
+		// Note that the first parameter is passed as the sum over topics,
+		// while the second is the parameter for a single dimension of the
+		// Dirichlet prior.
+		ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0, 0.01);
+		ParallelTopicModel.logger.setLevel(java.util.logging.Level.OFF);
+		model.addInstances(instances);
 
-			//two parallel samplers
-			model.setNumThreads(2);
+		//two parallel samplers
+		model.setNumThreads(2);
 
-			//for better result, change 100 to some larger number such as 1000 or 2000
-			model.setNumIterations(100);
-			model.estimate();
+		//for better result, change 100 to some larger number such as 1000 or 2000
+		model.setNumIterations(100);
+		model.estimate();
 
-			Alphabet dataAlphabet = instances.getDataAlphabet();
-			int dataSize = instances.size();
-			int[] groupInfo = new int[dataSize];
-			for (int i = 0; i < dataSize; i++) {
-				groupInfo[i] = 0;
-			}
+		Alphabet dataAlphabet = instances.getDataAlphabet();
+		int dataSize = instances.size();
+		int[] groupInfo = new int[dataSize];
+		for (int i = 0; i < dataSize; i++) {
+			groupInfo[i] = 0;
+		}
 
-			double[] distributions;
-			double temp;
-			for (int i = 0; i < dataSize; i++) {
-				distributions = model.getTopicProbabilities(i);
-				temp = 0.0;
-				for (int j = 0; j < distributions.length; j++) {
-					if (temp < distributions[j]) {
-						groupInfo[i] = j;
-						temp = distributions[j];
-					}
+		double[] distributions;
+		double temp;
+		for (int i = 0; i < dataSize; i++) {
+			distributions = model.getTopicProbabilities(i);
+			temp = 0.0;
+			for (int j = 0; j < distributions.length; j++) {
+				if (temp < distributions[j]) {
+					groupInfo[i] = j;
+					temp = distributions[j];
 				}
 			}
-			int[] groupSize = new int[numOfTopics];
-			for (int i = 0; i < numOfTopics; i++) {
-				groupSize[i] = 0;
-			}
+		}
+		int[] groupSize = new int[numOfTopics];
+		for (int i = 0; i < numOfTopics; i++) {
+			groupSize[i] = 0;
+		}
 
-			for (int i = 0; i < dataSize; i++) {
-				groupSize[groupInfo[i]]++;
-			}
+		for (int i = 0; i < dataSize; i++) {
+			groupSize[groupInfo[i]]++;
+		}
 
-			// document Group infomation
-			String documentGroupInfo[][] = new String[dataSize][2];
-			for (int i = 0; i < dataSize; i++) {
-				for (int j = 0; j < 2; j++) {
-					documentGroupInfo[i][j] = "";
+		// document Group infomation
+		String documentGroupInfo[][] = new String[dataSize][2];
+		for (int i = 0; i < dataSize; i++) {
+			for (int j = 0; j < 2; j++) {
+				documentGroupInfo[i][j] = "";
+			}
+		}
+
+		for (int i = 0; i < dataSize; i++) {
+			documentGroupInfo[i][0] = documents.get(i)
+					.getFieldValue("link").toString();
+			documentGroupInfo[i][1] = Integer.toString(groupInfo[i]);
+		}
+
+		// Get an array of sorted sets of word ID/count pairs
+		ArrayList<TreeSet<IDSorter>> topicSortedWords = model
+				.getSortedWords();
+
+		String topicKeywords[][] = new String[numOfTopics][numOfKeywordsInEachTopic];
+		for (int i = 0; i < numOfTopics; i++) {
+			for (int j = 0; j < numOfKeywordsInEachTopic; j++) {
+				topicKeywords[i][j] = "";
+			}
+		}
+
+		HashMap<Object, Integer> uniquewordChecker = new HashMap<Object, Integer>();
+
+		for (int topic = 0; topic < numOfTopics; topic++) {
+			Iterator<IDSorter> iterator = topicSortedWords.get(topic)
+					.iterator();
+			while (iterator.hasNext()) {
+				IDSorter idCountPair = iterator.next();
+				if (uniquewordChecker.containsKey(dataAlphabet
+						.lookupObject(idCountPair.getID()))) {
+					uniquewordChecker
+							.put(dataAlphabet.lookupObject(idCountPair
+									.getID()), uniquewordChecker
+									.get(dataAlphabet
+											.lookupObject(idCountPair
+													.getID())) + 1);
+				} else {
+					uniquewordChecker.put(
+							dataAlphabet.lookupObject(idCountPair.getID()),
+							1);
 				}
 			}
+		}
 
-			for (int i = 0; i < dataSize; i++) {
-				documentGroupInfo[i][0] = documents.get(i)
-						.getFieldValue("link").toString();
-				documentGroupInfo[i][1] = Integer.toString(groupInfo[i]);
-			}
-
-			// Get an array of sorted sets of word ID/count pairs
-			ArrayList<TreeSet<IDSorter>> topicSortedWords = model
-					.getSortedWords();
-
-			String topicKeywords[][] = new String[numOfTopics][numOfKeywordsInEachTopic];
-			for (int i = 0; i < numOfTopics; i++) {
-				for (int j = 0; j < numOfKeywordsInEachTopic; j++) {
-					topicKeywords[i][j] = "";
+		for (int topic = 0; topic < numOfTopics; topic++) {
+			Iterator<IDSorter> iterator = topicSortedWords.get(topic)
+					.iterator();
+			int rank = 0;
+			while (iterator.hasNext() && rank < numOfKeywordsInEachTopic) {
+				IDSorter idCountPair = iterator.next();
+				if (uniquewordChecker.get(dataAlphabet
+						.lookupObject(idCountPair.getID())) == 1) {
+					topicKeywords[topic][rank] = dataAlphabet
+							.lookupObject(idCountPair.getID()) + " ";
+					rank++;
 				}
 			}
+			// System.out.println(out);
+		}
+		String[][] resultUrls = new String[numOfTopics][];
 
-			HashMap<Object, Integer> uniquewordChecker = new HashMap<Object, Integer>();
+		for (int i = 0; i < numOfTopics; i++) {
+			resultUrls[i] = new String[groupSize[i]];
+			int tempCounter = 0;
+			// for(int j = 0; j < groupSize[i]; j++){
 
-			for (int topic = 0; topic < numOfTopics; topic++) {
-				Iterator<IDSorter> iterator = topicSortedWords.get(topic)
-						.iterator();
-				while (iterator.hasNext()) {
-					IDSorter idCountPair = iterator.next();
-					if (uniquewordChecker.containsKey(dataAlphabet
-							.lookupObject(idCountPair.getID()))) {
-						uniquewordChecker
-								.put(dataAlphabet.lookupObject(idCountPair
-										.getID()), uniquewordChecker
-										.get(dataAlphabet
-												.lookupObject(idCountPair
-														.getID())) + 1);
-					} else {
-						uniquewordChecker.put(
-								dataAlphabet.lookupObject(idCountPair.getID()),
-								1);
-					}
+			for (int k = 0; k < dataSize; k++) {
+				if (groupInfo[k] == i) {
+					resultUrls[i][tempCounter] = documents.get(k)
+							.getFieldValue("link").toString();
+					tempCounter++;
 				}
 			}
-
-			for (int topic = 0; topic < numOfTopics; topic++) {
-				Iterator<IDSorter> iterator = topicSortedWords.get(topic)
-						.iterator();
-				int rank = 0;
-				while (iterator.hasNext() && rank < numOfKeywordsInEachTopic) {
-					IDSorter idCountPair = iterator.next();
-					if (uniquewordChecker.get(dataAlphabet
-							.lookupObject(idCountPair.getID())) == 1) {
-						topicKeywords[topic][rank] = dataAlphabet
-								.lookupObject(idCountPair.getID()) + " ";
-						rank++;
-					}
-				}
-				// System.out.println(out);
-			}
-			String[][] resultUrls = new String[numOfTopics][];
-
-			for (int i = 0; i < numOfTopics; i++) {
-				resultUrls[i] = new String[groupSize[i]];
-				int tempCounter = 0;
-				// for(int j = 0; j < groupSize[i]; j++){
-
-				for (int k = 0; k < dataSize; k++) {
-					if (groupInfo[k] == i) {
-						resultUrls[i][tempCounter] = documents.get(k)
-								.getFieldValue("link").toString();
-						tempCounter++;
-					}
-				}
-			}
-			 //tracing
+		}
+		 //tracing
 /*			 for(int i = 0; i < numOfTopics; i++)
 			 {
 			 for(int j = 0; j < numOfKeywordsInEachTopic; j++)
@@ -1102,28 +1101,23 @@ public class AdminService extends WeaveServlet {
 			 System.out.println();
 			 }*/
 
-			if(tempuncategoried.size()>0){
-				uncategoried = new String[tempuncategoried.size()];
-				Iterator<String> iter = tempuncategoried.iterator();
-				int tempcounter = 0;
-				String tempString = "";
-				while(iter.hasNext()){
-					tempString = iter.next();
-					uncategoried[tempcounter] = tempString;
-		            tempcounter++;
-				}
+		if(tempuncategoried.size()>0){
+			uncategoried = new String[tempuncategoried.size()];
+			Iterator<String> iter = tempuncategoried.iterator();
+			int tempcounter = 0;
+			String tempString = "";
+			while(iter.hasNext()){
+				tempString = iter.next();
+				uncategoried[tempcounter] = tempString;
+	            tempcounter++;
 			}
-			
-			topicModelingResutls.keywords = topicKeywords;
-
-			topicModelingResutls.urls = resultUrls;
-			
-			topicModelingResutls.uncategoried = uncategoried;
-			
-
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+		
+		topicModelingResutls.keywords = topicKeywords;
+
+		topicModelingResutls.urls = resultUrls;
+		
+		topicModelingResutls.uncategoried = uncategoried;
 
 		return topicModelingResutls;
 	}
