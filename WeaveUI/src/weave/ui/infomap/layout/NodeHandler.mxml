@@ -571,10 +571,10 @@
 					handleEmptyResultSet();
 					return;
 				}
-				if(isQueryDifferent || _firstLoad)
+				if (isQueryDifferent || _firstLoad)
 				{
-					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
-						_currentRelatedKeywords);
+					// temporary solution for demo - don't query data sources
+					//InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms, _currentRelatedKeywords);
 				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
