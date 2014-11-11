@@ -150,7 +150,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//LinkableHashmap of the InfoMapBackgroundImages that have been laoded.
 			public const backgroundImagesEncoded:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
-			private static var _selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			private var _selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			
 			override protected function childrenCreated():void
 			{
