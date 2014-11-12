@@ -66,7 +66,7 @@ import weave.api.reportError;
 import weave.api.ui.IPlotTask;
 import weave.visualization.plotters.EquationPlotter;
 
-internal class AsyncState extends Point
+internal class AsyncState
 {
 	public function AsyncState(plotter:EquationPlotter, task:IPlotTask)
 	{
