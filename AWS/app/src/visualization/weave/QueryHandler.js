@@ -52,7 +52,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
      * This function wraps the async aws runScript function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.runScript = function(scriptName, inputs, filters) {
+    this.runScript = function(scriptName) {
         
     	var deferred = $q.defer();
 
