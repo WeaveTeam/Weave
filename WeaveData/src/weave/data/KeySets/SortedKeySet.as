@@ -147,7 +147,7 @@ package weave.data.KeySets
 					if (param is IAttributeColumn)
 					{
 						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(param as IAttributeColumn);
-						param = stats.getSortIndex();
+						param = stats.hack_getNumericData();
 					}
 					if (!param || param is IKeySet)
 						continue;
