@@ -55,15 +55,15 @@
 							<li ng-class="{active: $route.current.activetab == 'script_management'}">
 								<a href="#/script_management">Scripts</a>
 							</li>
+							<li ng-class = "{actibe : $route.current.activetab == 'data_stats'}">
+							<a href="#/data_stats">Data</a>
+							</li>
 							<li ng-class="{active: $route.current.activetab == 'analysis'}">
 								<a href="#/analysis">Analysis</a>
 							</li>
 							<li ng-class="{active: $route.current.activetab == 'project_management'}">
 								<a href="#/project_management">Projects</a>
 							</li>
-<!-- 							<li ng-class = "{actibe : $route.current.activetab == 'output_view'}"> -->
-<!-- 							<a href="#/output_view">Output</a> -->
-<!-- 							</li> -->
 
 							</ul>
 						
@@ -207,6 +207,7 @@
 		<script src='src/configure/metadata/metadataManagerService.js'></script>
 		<script src='src/configure/script/ScriptManagerCtrl.js'></script>
 		<script src='src/configure/script/scriptManagerService.js'></script>
+		<script src='src/dataStatistics/dataStatistics.js'></script>
 		<script src='src/queryObjectEditor/QueryObjectEditorCtrl.js'></script>
 		<script src='src/queryObjectEditor/query-Object-Editor-directive.js'></script>
 		<script src='src/queryObject/QueryImportExportCtrl.js'></script>
