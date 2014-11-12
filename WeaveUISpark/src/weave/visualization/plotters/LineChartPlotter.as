@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import weave.api.reportError;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -34,7 +35,7 @@ package weave.visualization.plotters
 	import weave.visualization.layers.PlotTask;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
-	public class LineChartPlotter extends AbstractPlotter
+	public class LineChartPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, LineChartPlotter, "Line Chart");
 		
@@ -48,6 +49,15 @@ package weave.visualization.plotters
 			var ls:SolidLineStyle = lineStyle;
 			for each (var adc:AlwaysDefinedColumn in [ls.alpha,ls.caps,ls.color,ls.joints,ls.miterLimit,ls.pixelHinting,ls.scaleMode,ls.weight])
 				sm.excludeLinkableChildFromSessionState(adc, adc.internalDynamicColumn);
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["X", "Y", "Order", "Group"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [dataX, dataY, order, group];
 		}
 		
 		private const sortedUnfilteredKeys:FilteredKeySet = newSpatialProperty(FilteredKeySet);
