@@ -81,8 +81,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 }]);
 
 
-QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService','dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL',
-                         function($q, scope, WeaveService, runQueryService, dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL) {
+QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService', 'statisticsService','dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL',
+                         function($q, scope, WeaveService, runQueryService,statisticsService, dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);
@@ -306,6 +306,23 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         return deferred.promise;
     };
 
+    
+    this.getDataColumns = function(id, getColumnStats, forceUpdate){
+    	this.getDataColumnsEntitiesFromId(id, forceUpdate).then(function(getColumnStats){
+    		if(getColumnStats)
+    			{
+    				//once column Objects are returned retrieve column Stats
+				//TODO integrate this with retrieving the data??
+					if(getColumnStats && that.dataObject.columns.length > 0)
+						{
+							statisticsService.getColumnStatistics(that.dataObject.columns);
+						}
+					
+					
+    			}
+    	});
+    };
+    
 	/**
 	  * This function makes nested async calls to the aws function getEntityChildIds and
 	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
@@ -329,30 +346,57 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 							if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {//will work if the column already has the aws_metadata as part of its public metadata
 								var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
 								if(metadata.hasOwnProperty("columnType")) {
-									return {
-										id : entity.id,
-										title : entity.publicMetadata.title,
-										columnType : metadata.columnType,
-										description : metadata.description || ""
-									};
+									var columnObject = {};
+									columnObject.id = entity.id;
+									columnObject.title = entity.publicMetadata.title;
+									columnObject.columnType = metadata.columnType;
+									columnObject.varType = metadata.varType;
+									columnObject.description = metadata.description || "";
+									
+									if(metadata.varRange)
+										columnObject.varRange = metadata.varRange;
+									return columnObject;
+//									return {
+//										id : entity.id,
+//										title : entity.publicMetadata.title,
+//										columnType : metadata.columnType,
+//										varType : metadata.varType,
+//										description : metadata.description || ""
+//									};
 								}
 								else//handling an empty aws-metadata object 
 									{
-										return{
-											id : entity.id,
-											title : entity.publicMetadata.title,
-											columnType : "",
-											description : ""
-										};
+									
+										var columnObject = {};
+										columnObject.id = entity.id;
+										columnObject.title = entity.publicMetadata.title;
+										columnObject.columnType = "";
+										columnObject.description =  "";
+										
+										return columnObject;
+//										return{
+//											id : entity.id,
+//											title : entity.publicMetadata.title,
+//											columnType : "",
+//											description : ""
+//										};
 									}
 							}
 							else{//if its doesnt have aws_metadata as part of its public metadata, create a partial aws_metadata object
-									return {
-										id : entity.id,
-										title : entity.publicMetadata.title,
-										columnType : "",
-										description : ""
-									};
+								
+									var columnObject = {};
+									columnObject.id = entity.id;
+									columnObject.title = entity.publicMetadata.title;
+									columnObject.columnType = "";
+									columnObject.description =  "";
+									
+									return columnObject;
+//									return {
+//										id : entity.id,
+//										title : entity.publicMetadata.title,
+//										columnType : "",
+//										description : ""
+//									};
 								
 							}
 						});
@@ -361,6 +405,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						});
 					});
 				});
+				
 			}
 		}
         return deferred.promise;
