@@ -5,15 +5,6 @@
  * Don't worry, it will be possible to manage more than one query object in the
  * future.
  */
-
-//var dataServiceURL = '/WeaveServices/DataService';
-
-//var adminServiceURL = '/WeaveServices/AdminService';
-
-//var scriptManagementURL = '/WeaveAnalystServices/ScriptManagementServlet';
-
-//var projectManagementURL = '/WeaveAnalystServices/ProjectManagementServlet';
-
 var aws = {};
 
 QueryObject.service('runQueryService', ['errorLogService','$modal', function(errorLogService, $modal){
