@@ -36,14 +36,20 @@ package weave.utils
 	 */
 	public class VisToolGroup implements ILinkableObject
 	{
+		//TODO: create a corresponding Class that has, for each setting here, a corresponding LinkableHashMap containing possible choices 
+		
+		
 		public const colorColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ColorColumn));
 		public const probeKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
 		public const selectionKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
 		public const subsetKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
 		
+		//TODO: object which specifies transformation from IQualifiedKey to color value... instead of nested color/bin/filter columns
+		
 		public function getColorColumn():ColorColumn { return colorColumn.internalObject as ColorColumn; }
 		public function getColorBinColumn():BinnedColumn { return getColorColumn().getInternalColumn() as BinnedColumn; }
 		public function getColorDataColumn():FilteredColumn { return getColorBinColumn().getInternalColumn() as FilteredColumn; }
+		
 		public function getProbe():IKeySet { return probeKeySet.internalObject as IKeySet; }
 		public function getSelection():IKeySet { return selectionKeySet.internalObject as IKeySet; }
 		public function getSubset():IKeyFilter { return subsetKeyFilter.internalObject as IKeyFilter; }
