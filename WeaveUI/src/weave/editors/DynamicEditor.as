@@ -357,6 +357,15 @@ internal class JsonSynchronizer
 		}
 		catch (e:Error)
 		{
+			if (value is String)
+			{
+				var number:Number = StandardLib.asNumber(value);
+				if (isFinite(number))
+				{
+					lv.setSessionState(number);
+					return;
+				}
+			}
 			// do nothing because user input was invalid
 			host.errorString = lang("Invalid JSON");
 			return;
