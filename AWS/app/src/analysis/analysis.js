@@ -234,17 +234,25 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			}
 	 };
 	 
-	 $scope.getDataTable = function(term, done) {
-		var values = queryService.dataObject.dataTableList;
-		done($filter('filter')(values, {title:term}, 'title'));
-	};
 	
-	$scope.dataTableId = function(item) {
+	//select2-sortable handlers
+	$scope.getItemId = function(item) {
 		return item.id;
 	};
 	
-	$scope.dataTableText = function(item) {
+	$scope.getItemText = function(item) {
 		return item.title;
+	};
+	
+	//datatable
+	$scope.getDataTable = function(term, done) {
+		var values = queryService.dataObject.dataTableList;
+		done($filter('filter')(values, {title:term}, 'title'));
+	};
+	//Indicator
+	 $scope.getIndicators = function(term, done) {
+			var columns = queryService.dataObject.columns;
+			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
 	
@@ -329,8 +337,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.$watch('queryService.queryObject.Indicator', function() {
 		
 		if(queryService.queryObject.Indicator) {
-			$scope.IndicDescription = angular.fromJson(queryService.queryObject.Indicator).description;
-			queryService.getEntitiesById([angular.fromJson(queryService.queryObject.Indicator).id], true).then(function (result) {
+			$scope.IndicDescription = queryService.queryObject.Indicator.description;
+			queryService.getEntitiesById([queryService.queryObject.Indicator.id], true).then(function (result) {
 				if(result.length) {
 					var resultMetadata = result[0];
 					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {

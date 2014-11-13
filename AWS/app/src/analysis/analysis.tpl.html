@@ -12,7 +12,7 @@
 				<!-- RUN button -->		
 						<button class="btn" 
 							style="width: 10%; float:right; margin-top: 10px; margin-right : 5px"
-							ng-click="runService.run(true)" 
+							ng-click="runService.run()" 
 							popover="{{service.dataObject.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 							ng-controller="QueryHandlerCtrl"
 							ng-class="{'validateB' : service.dataObject.isQueryValid, 'invalidateB' : !service.dataObject.isQueryValid}">
@@ -37,28 +37,28 @@
 							simple-query="getDataTable"
 							data-placeholder="Select Datatable"
 							allow-clear="true"
-							to-id="dataTableId" to-text="dataTableText"
-							ng-change="queryService.getDataColumns(queryService.queryObject.dataTable.id, true, true)">
+							to-id="getItemId" to-text="getItemText"
+							ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
 						</input> 
 						
 						<input type="checkbox"
 							ng-model="queryService.dataObject.displayAsQuestions">
 						Display As Questions</input>
 	
-						<div style="width: 100%; margin-top: 10px;">
-							<select popover="Choose indicator" popover-trigger="mouseenter"
-								style="width: 100%;"
-								ui-select2="{allowClear : true, dropdownAutoWidth : true}"
-								ng-model="queryService.queryObject.Indicator"
-								data-placeholder="Choose Indicator">
-								<option></option>
-								<option value="{{indicator}}"
-									ng-repeat="indicator in queryService.dataObject.columns | filter : { columnType : 'indicator' }">{{queryService.dataObject.displayAsQuestions
-									&& (indicator.description) || (indicator.title)}}</option>
-							</select>
+<!-- INDICATOR -->		<div style="width: 100%; margin-top: 10px;">
+							<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%" ng-model="queryService.queryObject.Indicator"
+								simple-query="getIndicators"
+								data-placeholder="Select Indicator"
+								allow-clear="true"
+								to-id="getItemId" to-text="getItemText">
+							</input> 
 						</div>
+						
 						<br> {{IndicDescription}} 
 <!-- 						<button popover-with-tpl template-url="src/analysis/indicator-remap.tpl.html" popover-placement="bottom" class="btn btn-default">Remap Indicator -->
+					  
+ <!-- REMAPPING -->
 					  	<div  style="overflow-y: scroll; height:60%">
 					      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
 								<tr> 
@@ -71,9 +71,6 @@
 									<td   align="center">
 										New Value
 									</td>
-<!-- 									<td > -->
-<!-- 										Remap -->
-<!-- 									</td> -->
 								 </tr>
 								<tr ng-repeat="varValue in varValues">
 									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
@@ -82,12 +79,11 @@
 														ng-model="newValue"
 														ng-change="setRemapValue(varValue.value,newValue)"> 
 														</input> </td>
-<!-- 									<td width= "10%"align="center"> <input type="checkbox"  -->
-<!-- 										ng-model="queryService.dataObject.remapValues[$index]",  -->
-<!-- 										ng-change="setRemapValue(varValue.value,queryService.dataObject.remapValues[$index])"></input></td> -->
 								</tr>
 							</table>
 					  	</div>
+					  	
+					  	
 					</div>
 				</div>
 				
