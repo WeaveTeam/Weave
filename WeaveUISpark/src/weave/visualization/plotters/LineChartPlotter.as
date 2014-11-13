@@ -54,11 +54,10 @@ package weave.visualization.plotters
 		
 		private const sortedUnfilteredKeys:FilteredKeySet = newSpatialProperty(FilteredKeySet);
 		
-		public const group:DynamicColumn = newLinkableChild(this, DynamicColumn);
- 		public const order:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const dataX:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const dataY:DynamicColumn = newSpatialProperty(DynamicColumn);
-		
+		public const group:DynamicColumn = newLinkableChild(this, DynamicColumn);
+ 		public const order:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
