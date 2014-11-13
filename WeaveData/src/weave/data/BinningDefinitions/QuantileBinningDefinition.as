@@ -23,6 +23,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -38,10 +39,9 @@ package weave.data.BinningDefinitions
 	{
 		public function QuantileBinningDefinition()
 		{
-			this.refQuantile.value = 0.3;
 		}
 		
-		public const refQuantile:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const refQuantile:LinkableNumber = registerLinkableChild(this, new LinkableNumber(.3));
 		
 		/**
 		 * getBinClassifiersForColumn - implements IBinningDefinition Interface
