@@ -82,8 +82,6 @@
 								</tr>
 							</table>
 					  	</div>
-					  	
-					  	
 					</div>
 				</div>
 				
@@ -96,24 +94,25 @@
 					<div class="header panel-heading">
 						<h2>Calculations</h2>
 					</div>
-					<div class="body" ng-controller="ScriptsSettingsCtrl">
-						<select style="width: 100%;" ui-select2="{allowClear : true}"
-							ng-model="service.queryObject.scriptSelected"
-							data-placeholder="Select Script"
-							ng-change="service.getScriptMetadata(service.queryObject.scriptSelected, true)">
-							<option></option>
-							<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
-						</select>
+<!-- Script Select--><div class="body" ng-controller="ScriptsSettingsCtrl">
+							<input type="hidden" popover="Select Script" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%" ng-model="queryService.queryObject.scriptSelected"
+								simple-query="getScriptList"
+								data-placeholder="Select Script"
+								allow-clear="true"
+								ng-change="getScriptMetadata(service.queryObject.scriptSelected, true)">
+							</input> 
 						
 						<h6 class='tool-category'>Script parameters</h6>
-						<div class= "tool-bar">
+<!-- Script options -->	<div class= "tool-bar">
 							<table width=100%>
 								<tr ng-repeat="input in service.dataObject.scriptMetadata.inputs">
 									<td align="right" width=30%>
 										<div class="label-p">{{input.param}}:</div>
 									</td>
 		
-									<td style="padding-left: 10px;"><select style="width: 100%"
+									<td style="padding-left: 10px;">
+									<select style="width: 100%"
 										class="select-2-drop"
 										ng-if="input.type == 'options' && input.options.length != 2"
 										ui-select2="{allowClear : true}"
@@ -143,14 +142,18 @@
 											<button
 												ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == false}"
 												class="btn btn-default">False</button>
-										</div> <select style="width: 100%" class="select-2-drop"
-										ng-if="input.type == 'column'" ui-select2="{allowClear : true}"
+										</div> 
+										<select style="width: 100%" 
+										class="select-2-drop"
+										ng-if="input.type == 'column'" 
+										ui-select2="{allowClear : true}"
 										ng-model="service.queryObject.scriptOptions[input.param]">
 											<option></option>
 											<option value="{{col}}"
 												ng-repeat="col in service.dataObject.columns | filter:input.columnType">
 												{{col.title}}</option>
-									</select> <input style="width: 100%" ng-if="input.type == 'value'"
+										</select> 
+										<input style="width: 100%" ng-if="input.type == 'value'"
 										ng-model="service.queryObject.scriptOptions[input.param]">
 		
 										<select style="width: 100%" ng-if="input.type == 'multiColumns'"
@@ -175,18 +178,8 @@
 							 </div>
 							 <div style= "display : table-cell; padding-left : 5px">{{service.dataObject.queryStatus}}</div>
 						 </div> 
+						 
 					</div>
-	
-						
-					 				 
-					<!--<div id="loading" ng-show="show_load" class="ng-hide">
-						<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
-						</div>-->
-	
-					<!--<div class="body" ng-model="content-tools">
-					<div style="height:100%" ng-include="content_tools[4].template_url"></div>
-					</div>-->
-	
 				</div>
 				
 				

@@ -477,12 +477,19 @@ AnalysisModule.config(function($selectProvider) {
 	});
 });
 
-AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) {
+AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, $filter) {
 
 	// This sets the service variable to the queryService 
 	$scope.service = queryService;
 	
 	queryService.getListOfScripts(true);
+	
+	$scope.getScriptMetadata = function(scriptSelected,forceUpdate){
+		if(scriptSelected)
+			$scope.service.getScriptMetadata(scriptSelected, forceUpdate);
+		else
+			$scope.service.dataObject.scriptMetadata.inputs = [];
+	};
 
 	//  clear script options when script changes
 	$scope.$watchCollection(function() {
@@ -497,7 +504,13 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService) 
 			}
 	});
 	
-	
+	//handler for select2sortable for script list
+	$scope.getScriptList = function(term, done) {
+		var values = queryService.dataObject.scriptList;
+		done($filter('filter')(values, term));
+	};
+
+		
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {
