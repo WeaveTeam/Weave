@@ -28,8 +28,6 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
-	import weave.core.SessionManager;
-	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.visualization.layers.PlotTask;
@@ -43,12 +41,6 @@ package weave.visualization.plotters
 		{
 			sortedUnfilteredKeys.setColumnKeySources([group, order, dataX, dataY]);
 			setSingleKeySource(sortedUnfilteredKeys);
-			
-			// temporary solution until lineStyle is given record keys
-			var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
-			var ls:SolidLineStyle = lineStyle;
-			for each (var adc:AlwaysDefinedColumn in [ls.alpha,ls.caps,ls.color,ls.joints,ls.miterLimit,ls.pixelHinting,ls.scaleMode,ls.weight])
-				sm.excludeLinkableChildFromSessionState(adc, adc.internalDynamicColumn);
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -85,6 +77,7 @@ package weave.visualization.plotters
 	}
 }
 
+import flash.display.BitmapData;
 import flash.display.Graphics;
 import flash.display.Shape;
 import flash.geom.Point;
@@ -108,29 +101,28 @@ internal class AsyncState
 		this.plotter = plotter;
 		this.task = task;
 		this.unfilteredKeySet = unfilteredKeySet;
-		this.shape = new Shape();
-		this.point = new Point();
+		this.renderer = new AsyncLineRenderer();
+		
 		if ((task as PlotTask).taskType != PlotTask.TASK_TYPE_SUBSET)
 			this.keySet = newDisposableChild(plotter, KeySet);
 	}
 	
+	public var renderer:AsyncLineRenderer;
 	public var plotter:LineChartPlotter;
 	public var task:IPlotTask;
-	public var shape:Shape;
-	public var point:Point;
 	public var unfilteredKeySet:IKeySet;
 	public var keys:Array;
 	public var keyIndex:Number;
-	public var handlePoint:Function;
 	public var keySet:KeySet;
 	public var group:Number;
 	
+	private static const tempPoint:Point = new Point();
+	
 	public function iterate():Number
 	{
-		var graphics:Graphics = shape.graphics;
 		if (task.iteration == 0)
 		{
-			handlePoint = graphics.moveTo;
+			renderer.reset();
 			if (keySet)
 			{
 				keySet.clearKeys();
@@ -142,15 +134,11 @@ internal class AsyncState
 		
 		try
 		{
-			graphics.clear();
-			graphics.moveTo(point.x, point.y);
-			plotter.lineStyle.beginLineStyle(null, graphics);
-			
 			for (; keyIndex < keys.length; keyIndex++)
 			{
 				if (getTimer() > task.iterationStopTime)
 				{
-					task.buffer.draw(shape);
+					renderer.flush(task.buffer);
 					return keyIndex / keys.length;
 				}
 				
@@ -158,30 +146,24 @@ internal class AsyncState
 				
 				if (keySet ? keySet.containsKey(key) : plotter.filteredKeySet.containsKey(key))
 				{
-					point.x = plotter.dataX.getValueFromKey(key, Number);
-					point.y = plotter.dataY.getValueFromKey(key, Number);
+					tempPoint.x = plotter.dataX.getValueFromKey(key, Number);
+					tempPoint.y = plotter.dataY.getValueFromKey(key, Number);
+					
+					if (isFinite(tempPoint.x) && isFinite(tempPoint.y))
+						task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
 				}
 				else
 				{
-					point.x = point.y = NaN;
+					tempPoint.x = tempPoint.y = NaN;
 				}
-				
-				if (isFinite(point.x) && isFinite(point.y))
-					task.dataBounds.projectPointTo(point, task.screenBounds);
 				
 				// if group differs from previous group, use moveTo()
 				var newGroup:Number = plotter.group.getValueFromKey(key, Number);
 				if (ObjectUtil.numericCompare(group, newGroup) != 0)
-					handlePoint = graphics.moveTo;
+					renderer.newLine();
 				group = newGroup;
 				
-				if (isFinite(point.x) && isFinite(point.y))
-				{
-					handlePoint(point.x, point.y);
-					handlePoint = graphics.lineTo;
-				}
-				else
-					handlePoint = graphics.moveTo;
+				renderer.addPoint(tempPoint.x, tempPoint.y, plotter.lineStyle.getLineStyleParams(key));
 			}
 		}
 		catch (e:Error)
@@ -189,8 +171,80 @@ internal class AsyncState
 			reportError(e);
 		}
 		
-		task.buffer.draw(shape);
-		
+		renderer.flush(task.buffer);
 		return 1;
+	}
+}
+
+internal class AsyncLineRenderer
+{
+	public function AsyncLineRenderer()
+	{
+		shape = new Shape();
+		graphics = shape.graphics;
+	}
+	
+	private var shape:Shape;
+	private var graphics:Graphics;
+	private var handlePoint:Function;
+	private var prevX:Number;
+	private var prevY:Number;
+	private var continueLine:Boolean;
+	private var prevLineStyle:Array;
+	
+	/**
+	 * Call this at the beginning of the async task
+	 */
+	public function reset():void
+	{
+		graphics.clear();
+		newLine();
+	}
+	
+	/**
+	 * Call this before starting a new line
+	 */
+	public function newLine():void
+	{
+		continueLine = false;
+	}
+	
+	/**
+	 * Call this for each coordinate in the line, whether the coordinates are defined or not.
+	 */
+	public function addPoint(x:Number, y:Number, lineStyleParams:Array):void
+	{
+		var isDefined:Boolean = isFinite(x) && isFinite(y);
+		
+		if (isDefined && continueLine)
+		{
+			var midX:Number = (prevX + x) / 2;
+			var midY:Number = (prevY + y) / 2;
+			
+			graphics.lineStyle.apply(graphics, prevLineStyle);
+			graphics.lineTo(midX, midY);
+			graphics.lineStyle.apply(graphics, lineStyleParams);
+			graphics.lineTo(x, y);
+		}
+		else
+		{
+			graphics.moveTo(x, y);
+		}
+		
+		prevX = x;
+		prevY = y;
+		continueLine = isDefined;
+		prevLineStyle = lineStyleParams;
+	}
+	
+	/**
+	 * Call this to flush the graphics to a BitmapData buffer.
+	 */
+	public function flush(buffer:BitmapData):void
+	{
+		buffer.draw(shape);
+		graphics.clear();
+		if (continueLine)
+			graphics.moveTo(prevX, prevY);
 	}
 }
