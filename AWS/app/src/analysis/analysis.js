@@ -358,16 +358,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
-//	$scope.$watchCollection(function() {
-//		return $.map(AnalysisService.tool_list, function(tool) {
-//			return tool.enabled;
-//		});
-//	}, function() {
-//		$.map(AnalysisService.tool_list, function(tool) {
-//			queryService.queryObject[tool.id].enabled = tool.enabled;
-//		});
-//	});
-	
+
 	$scope.$watch(function () {
 		return queryService.queryObject.BarChartTool.enabled;
 	}, function(newVal, oldVal) {
@@ -484,6 +475,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	
 	queryService.getListOfScripts(true);
 	
+	//clears scrip options when script clear button is hit
 	$scope.getScriptMetadata = function(scriptSelected,forceUpdate){
 		if(scriptSelected)
 			$scope.service.getScriptMetadata(scriptSelected, forceUpdate);
@@ -504,13 +496,47 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			}
 	});
 	
+	
+	//**************************************select2 sortable options handlers*******************************
 	//handler for select2sortable for script list
 	$scope.getScriptList = function(term, done) {
 		var values = queryService.dataObject.scriptList;
 		done($filter('filter')(values, term));
 	};
-
-		
+	
+	//handlers for select2sortable for script input options
+	$scope.getTimeInputOptions = function(term, done){
+		var values = queryService.dataObject.columns;
+		done($filter('filter')(values,{columnType : 'time',title:term},'title'));
+	};
+	
+	$scope.getGeographyInputOptions = function(term, done){
+		var values = queryService.dataObject.columns;
+		done($filter('filter')(values,{columnType : 'geography',title:term},'title'));
+	};
+	
+	$scope.getAnalyticInputOptions = function(term, done){
+		var values = queryService.dataObject.columns;
+		done($filter('filter')(values,{columnType : 'analytic',title:term},'title'));
+	};
+	
+	//TODO try to use parent scope function
+	 $scope.getIndicators2 = function(term, done) {
+			var columns = queryService.dataObject.columns;
+			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
+	};
+	
+	$scope.getItemDefault = function(item) {
+		return item.title;
+	};
+	
+	$scope.getItemText = function(item) {
+		return item.title;
+	};
+	//**************************************select2 sortable options handlers*******************************
+	
+	
+	//handles the defaults appearing in the script options selection
 	$scope.$watchCollection(function() {
 		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
 	}, function(newValue, oldValue) {
@@ -526,9 +552,9 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 						if(input.type == "column") {
 							for(var j in columns) {
 								var column = columns[j];
-								if(input.hasOwnProperty("default")) {
-									if(column.title == input['default']) {
-										queryService.queryObject.scriptOptions[input.param] = angular.toJson(column);
+								if(input.hasOwnProperty("defaults")) {
+									if(column.title == input['defaults']) {
+										$scope.service.queryObject.scriptOptions[input.param] = column;
 										break;
 									}
 								}
@@ -540,6 +566,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		}
 	});
 	
+	//handles the indicator in the script options
 	$scope.$watch(function() {
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
@@ -548,8 +575,8 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			for(var key in scriptOptions) { 
 				var option = scriptOptions[key];
 				if(option) {
-					if(tryParseJSON(option).hasOwnProperty("columnType")) {
-						if(angular.fromJson(option).columnType.toLowerCase() == "indicator") {
+					if(option.hasOwnProperty("columnType")) {
+						if(option.columnType.toLowerCase() == "indicator") {
 							queryService.queryObject.Indicator = option;
 						}
 					}
@@ -568,9 +595,9 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			var scriptMetadata = newVal[2];
 			
 			if(indicator && scriptSelected) {
-				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
-				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
-				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + angular.fromJson(indicator).title;
+				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + indicator.title;
+				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + indicator.title;
+				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + indicator.title;
 
 			}
 			
