@@ -128,7 +128,7 @@ package weave.core
 					sessionState = [objectName];
 				}
 				
-				if (className == ARRAY_CLASS_NAME)
+				if (className == ARRAY_CLASS_NAME || (!className && targetPath))
 					targetPath = sessionState as Array;
 				else if (className == SessionManager.DIFF_DELETE)
 					target = null;
@@ -139,7 +139,7 @@ package weave.core
 					if (className || removeMissingDynamicObjects)
 						setLocalObjectType(className);
 					var classDef:Class = ClassUtils.getClassDefinition(className);
-					if (!className || (classDef && target is classDef))
+					if ((!className && target) || (classDef && target is classDef))
 						WeaveAPI.SessionManager.setSessionState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
 				}
 			}
