@@ -389,17 +389,12 @@
 			public function updateZoomSlider():void
 			{
 				if (zoomSlider)
-				{
-					currentlyUpdatingZoomSlider = true;
 					scaleRangeTabZoomSlider_value = zoomSlider.value = visualization.getZoomLevel();
-					currentlyUpdatingZoomSlider = false;
-				}
 			}
-			private var currentlyUpdatingZoomSlider:Boolean = false;
 			
 			internal function handleZoomSliderChange(event:Event):void
 			{
-				if (!currentlyUpdatingZoomSlider)
+				if (UIUtils.hasFocus(zoomSlider))
 					visualization.setZoomLevel(event.currentTarget.value);
 			}
 			
