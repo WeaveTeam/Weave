@@ -138,6 +138,7 @@ package weave.ui
 			{
 				var rootNode:WeaveTreeItem = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(_rootObject, _linkableObjectName, _linkableObjectTypeFilter);
 				refreshDataProvider(rootNode);
+				expandItem(rootNode, true);
 			}
 			
 			private function nodeLabelFunction(item:WeaveTreeItem):String
