@@ -28,7 +28,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
-			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
@@ -394,7 +394,7 @@
 			
 			internal function handleZoomSliderChange(event:Event):void
 			{
-				if (UIUtils.hasFocus(zoomSlider))
+				if (UIUtils.hasFocus(event.currentTarget as UIComponent))
 					visualization.setZoomLevel(event.currentTarget.value);
 			}
 			
