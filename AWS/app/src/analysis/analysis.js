@@ -15,7 +15,7 @@ var tryParseJSON = function(jsonString){
         }
     }
     catch (e) { }
-    return false;
+    return jsonString;
 };
 
 
@@ -153,7 +153,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		},
 		onActivate: function(node) {
 			$scope.selectedValue = node.data.value;
-			console.log(node.data.value);
+			$scope.selectedKey = node.data.title;
+			console.log(node.data);
 			$scope.$apply();
 		},
 		debugLevel: 0
@@ -170,13 +171,13 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			},
 			onActivate: function(node) {
 				$scope.selectedValue = node.data.value;
-				console.log(node.data.value);
+				$scope.selectedKey = node.data.title;
 				$scope.$apply();
 			},
 			debugLevel: 0
 		});
 		$("#queryObjTree").dynatree("getTree").reload();
-		
+		$scope.qobjData = [];
 	}, true);
 	
 	 $("#queryObjectPanel" ).draggable().resizable();;
@@ -460,6 +461,87 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	}, true);
 	/************** watches for query validation******************/
+	
+
+	var convertToTableFormat = function(aws_metadata) {
+		var data = [];
+		for (var key in aws_metadata) {
+			data.push({property : key, value : aws_metadata[key] });
+		}
+		return data;
+	};
+	
+	var convertToObj = function(tableData) {
+		var obj = {};
+		for (var i in tableData) {
+			obj[tableData[i].property] = tableData[i].value;
+		}
+		return obj;
+	};
+	
+	$scope.qobjData = convertToTableFormat(queryService.queryObject);
+	$scope.selectedItems = [];
+	
+	$scope.$watch('selectedValue', function () {
+		console.log($scope.selectedValue);
+		if(typeof $scope.selectedValue != 'object')
+		{
+			$scope.isValue = true;
+			$scope.qobjData = [];
+		} else {
+			$scope.isValue = false;
+			if($scope.selectedValue)
+			{
+				$scope.qobjData = convertToTableFormat($scope.selectedValue);
+				console.log($scope.qobjData);
+			} else {
+				$scope.qobjData = [];
+			}
+		}
+	});
+	
+	$scope.qobjGridOptions = { 
+	        data: 'qobjData',
+	        enableRowSelection: true,
+	        enableCellEdit: true,
+	        columnDefs: [{field: 'property', displayName: 'Property', enableCellEdit: true}, 
+	                     {field:'value', displayName:'Value', enableCellEdit: true}],
+	        multiSelect : false,
+	        selectedItems : $scope.selectedItems
+	 };
+	
+	$scope.$on('ngGridEventEndCellEdit' , function() {
+		if($scope.qobjData.length) {
+			var edited = $scope.selectedItems[0];
+			for(var i in $scope.qobjData) {
+				if($scope.qobjData[i].property == edited.property)
+				{
+					var bool = "";
+					try {
+						bool = JSON.parse(edited.value);
+					} catch (e) {}
+					if(bool || bool == false)
+					{
+						$scope.qobjData[i].value = bool;
+					}
+				}
+			}
+			$scope.updateqobjData($scope.qobjData);
+			
+		}
+	});
+	
+	$scope.updateqobjData = function(tableData) {
+		console.log(tableData);
+		console.log(convertToObj(tableData));
+		if($scope.selectedKey == "Query Object")
+		{
+			queryService.queryObject = convertToObj(tableData);
+		} else {
+			queryService.queryObject[$scope.selectedKey] = convertToObj(tableData);
+		}
+	};
+	
 });
 
 
