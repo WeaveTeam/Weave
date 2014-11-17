@@ -540,6 +540,12 @@ package weave.data.DataSources
 							}
 						}
 					}
+					else if (attributeHierarchy.value)
+					{
+						var node:XML = HierarchyUtils.getFirstNodeContainingAttributes(attributeHierarchy.value.descendants(), HierarchyUtils.nodeFromMetadata(metadata));
+						if (node)
+							columnId = String(node.@[METADATA_COLUMN_NAME]) || String(node.@['name']);
+					}
 					
 					// backwards compatibility
 					if (!columnId)
