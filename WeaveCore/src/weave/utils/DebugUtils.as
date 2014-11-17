@@ -287,7 +287,8 @@ package weave.utils
 				error_or_stack_trace = (error_or_stack_trace as Error).getStackTrace();
 			var lines:Array = String(error_or_stack_trace).split(STACK_TRACE_DELIM);
 			lines.shift(); // remove the first line which is not part of the stack trace
-			for (var i:int = 0; i < lines.length; i++)
+			var i:int = 0;
+			while (i < lines.length)
 			{
 				var line:String = lines[i];
 				// remove namespace
@@ -307,7 +308,19 @@ package weave.utils
 				if (lineNumberIndex > end)
 					lineNumber = line.substring(lineNumberIndex, line.length - 1);
 				
-				lines[i] = line.substring(start, end) + lineNumber;
+				var label:String = line.substring(start, end);
+				if (label == 'Function/<anonymous>()')
+				{
+					var slashIndex:int = Math.max(line.lastIndexOf('/'), line.lastIndexOf('\\'));
+					if (slashIndex >= 0)
+						label = line.substring(slashIndex + 1, lineNumberIndex);
+				}
+				
+				var newLine:String = label + lineNumber;
+				if (newLine == 'apply()')
+					lines.splice(i, 1);
+				else
+					lines[i++] = newLine;
 			}
 			return lines;
 		}
