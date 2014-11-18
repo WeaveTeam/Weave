@@ -94,7 +94,7 @@ AnalysisModule.value('key_Column', {
 
 
 
-
+//analysis service
 AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column' ,
                                            function(geoFilter_tool, timeFilter_tool,BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column ) {
 	
@@ -116,6 +116,9 @@ AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', '
 	
 }]);
 
+
+
+//main analysis controller
 AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService, AnalysisService, WeaveService, QueryHandlerService, $window) {
 
 	setTimeout(loadFlashContent, 100);
@@ -179,18 +182,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		
 	}, true);
 	
-	 $("#queryObjectPanel" ).draggable().resizable();;
-	
+	 $("#queryObjectPanel" ).draggable().resizable();
 	 
+	 
+	
+	//**********************************************************REMAPPING**************************************
 	 queryService.dataObject.shouldRemap = [];
 	 $scope.newValue= "";
 	 queryService.dataObject.remapValue = [];
 	 
-	 //handles the remapping of original data
 	 //checks for object in collection and accordingly updates
 	 $scope.setRemapValue= function(originalValue, reMappedValue)
 	 {
-		 var columnId = angular.fromJson(queryService.queryObject.Indicator).id;
+		 var columnId = queryService.queryObject.Indicator.id;
 		 //TODO parameterize columnType
 		 var matchFound = false;//used to check if objects exist in queryService.queryObject.IndicatorRemap
 		 
@@ -233,7 +237,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				 }
 			}
 	 };
-	 
+	 //**********************************************************REMAPPING END**************************************
 	
 	//select2-sortable handlers
 	$scope.getItemId = function(item) {
@@ -317,7 +321,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
-	//******************************managing weave and its session state**********************************************//
+	//******************************managing weave and its session state END**********************************************//
 	
 	
 	$scope.IndicDescription = "";
@@ -419,7 +423,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.scriptSelected,
 		        queryService.queryObject.dataTable,
-		        queryService.queryObject.scriptOptions
+		        queryService.queryObject.scripOptions,
+		        queryService.dataObject.scriptMetadata
 		        ];
 	}, function () {
 		//if the datatable has not been selected
@@ -434,8 +439,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			queryService.dataObject.isQueryValid = false;
 		}
 		//this leaves checking the scriptOptions
-		else 
+		else if (queryService.dataObject.scriptMetadata) 
 		{
+			
 			$scope.$watch(function() {
 				return queryService.queryObject.scriptOptions;
 			}, function () {
@@ -458,7 +464,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			}, true);
 		}
 	}, true);
-	/************** watches for query validation******************/
+	/************** watches for query validation END******************/
 });
 
 
@@ -468,6 +474,12 @@ AnalysisModule.config(function($selectProvider) {
 	});
 });
 
+
+
+
+
+
+//Script Options controller
 AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, $filter) {
 
 	// This sets the service variable to the queryService 
@@ -533,7 +545,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	$scope.getItemText = function(item) {
 		return item.title;
 	};
-	//**************************************select2 sortable options handlers*******************************
+	//**************************************select2 sortable options handlers END*******************************
 	
 	
 	//handles the defaults appearing in the script options selection

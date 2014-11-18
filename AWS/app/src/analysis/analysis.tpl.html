@@ -12,10 +12,10 @@
 				<!-- RUN button -->		
 						<button class="btn" 
 							style="width: 10%; float:right; margin-top: 10px; margin-right : 5px"
-							ng-click="runService.run()" 
-							popover="{{service.dataObject.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
+							ng-click="QueryHandlerService.run()" 
+							popover="{{queryService.dataObject.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 							ng-controller="QueryHandlerCtrl"
-							ng-class="{'validateB' : service.dataObject.isQueryValid, 'invalidateB' : !service.dataObject.isQueryValid}">
+							ng-class="{'validateB' : queryService.dataObject.isQueryValid, 'invalidateB' : !queryService.dataObject.isQueryValid}">
 							 <span style="vertical-align: right">Run</span>
 						 </button>
 		</div>
