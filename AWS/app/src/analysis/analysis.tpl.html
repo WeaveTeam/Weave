@@ -157,8 +157,44 @@
 											>
 										</input> 
 										
+										<!-- handling toggle input types -->
+										<div class="btn-group btn-toggle"
+											ng-if="input.type == 'options' && input.options.length == 2"
+											ng-click="toggleButton(input)"">
+											<button
+												ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[0]}"
+												class="btn btn-default">{{input.options[0]}}</button>
+											<button
+												ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[1]}"
+												class="btn btn-default">{{input.options[1]}}</button>
+										</div>
+										
+										<div class="btn-group btn-toggle"
+											ng-if="input.type == 'boolean'"
+											ng-click="service.queryObject.scriptOptions[input.param] = !service.queryObject.scriptOptions[input.param]">
+											<button
+												ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == true}"
+												class="btn btn-default">True</button>
+											<button
+												ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == false}"
+												class="btn btn-default">False</button>
+										</div> 
+										
+										<!-- handling value types -->
 										<input style="width: 100%" ng-if="input.type == 'value'"
 										ng-model="service.queryObject.scriptOptions[input.param]">
+										
+										<!-- Handling multiple column types -->
+										<input type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											ng-if="input.type == 'multiColumns'"
+											style="width: 100%" 
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getInputOptions"
+											data-placeholder="Select parameter"
+											allow-clear="true"
+											to-id="getItemParam" 
+											ng-change="">
+										</input> 
 										
 										
 									<br></td>
