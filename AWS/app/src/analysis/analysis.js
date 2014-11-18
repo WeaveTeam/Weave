@@ -15,7 +15,7 @@ var tryParseJSON = function(jsonString){
         }
     }
     catch (e) { }
-    return jsonString;
+    return false;
 };
 
 
@@ -130,40 +130,57 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 //	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 //		queryService.dataObject.openInNewWindow = WeaveService.weaveWindow.closed;
 //	});
+	var expandedNodes = null;
+	var scrolledPosition = 0;
+	var activeNode = null;
 	
-	var buildTree2 = function (node, key) {
+	var buildTree = function (node, key) {
 		return {
-			title : key || node || '',
+			title : key,
 			value : node,
+			select : activeNode ? node == activeNode.data.value : false,
+			expand : expandedNodes && expandedNodes.indexOf(node) >= 0,
 			isFolder : !!(typeof node == 'object' && node),
 			children : (typeof node == 'object' && node)
-				? Object.keys(node).map(function(key) { return buildTree2(node[key], key); })
+				? Object.keys(node).map(function(key) { return buildTree(node[key], key); })
 				: null
 		};	
 	};
 	
-	var queryObjectTreeData = buildTree2(queryService.queryObject);
+	var queryObjectTreeData = buildTree(queryService.queryObject);
+	
+	var setObjectAtPath = function(obj, path, value)
+	{
+		path.shift();
+		
+		for (var i = 0; i < path.length - 1; i++)
+	        obj = obj[path[i]];
 
-	$('#queryObjTree').dynatree({
-		minExpandLevel: 1,
-		children : queryObjectTreeData,
-		keyBoard : true,
-		onPostInit: function(isReloading, isError) {
-			this.reactivate();
-		},
-		onActivate: function(node) {
-			$scope.selectedValue = node.data.value;
-			$scope.selectedKey = node.data.title;
-			console.log(node.data);
-			$scope.$apply();
-		},
-		debugLevel: 0
-	});
+	    obj[path[i]] = value;
+	};
+	
 	$scope.$watch('queryService.queryObject', function () {
-		queryObjectTreeData = buildTree2(queryService.queryObject);
-		queryObjectTreeData.title = "Query Object";
+		
+		if(expandedNodes) {
+			expandedNodes = [];
+			scrolledPosition = $(".dynatree-container").scrollTop();
+			activeNode = $("#queryObjTree").dynatree("getActiveNode");
+			$("#queryObjTree").dynatree("getTree").visit(function(node) {
+				if(node.bExpanded)
+				{
+					expandedNodes.push(node.data.value);
+				}
+			});
+		} else {
+			expandedNodes = [];
+		}
+		
+		queryObjectTreeData = buildTree(queryService.queryObject);
+		queryObjectTreeData.title = "QueryObject";
+
 		$('#queryObjTree').dynatree({
 			minExpandLevel: 1,
+			clickFolderMode: 1,
 			children : queryObjectTreeData,
 			keyBoard : true,
 			onPostInit: function(isReloading, isError) {
@@ -171,14 +188,74 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			},
 			onActivate: function(node) {
 				$scope.selectedValue = node.data.value;
-				$scope.selectedKey = node.data.title;
 				$scope.$apply();
 			},
 			debugLevel: 0
 		});
+		
 		$("#queryObjTree").dynatree("getTree").reload();
-		$scope.qobjData = [];
+		$(".dynatree-container").scrollTop(scrolledPosition);
+
 	}, true);
+	
+	var convertToTableFormat = function(obj) {
+		var data = [];
+		for (var key in obj) {
+			data.push({property : key, value : obj[key] });
+		}
+		return data;
+	};
+	
+	var convertToObj = function(tableData) {
+		var obj = {};
+		for (var i in tableData) {
+			obj[tableData[i].property] = tableData[i].value;
+		}
+		return obj;
+	};
+	
+	$scope.qobjData = convertToTableFormat(queryService.queryObject);
+	$scope.selectedItems = [];
+	
+	$scope.$watch('selectedValue', function () {
+		if(typeof $scope.selectedValue != 'object')
+		{
+			$scope.isValue = true;
+			$scope.qobjData = [];
+		} else {
+			$scope.isValue = false;
+			if($scope.selectedValue)
+			{
+				$scope.qobjData = convertToTableFormat($scope.selectedValue);
+			}
+		}
+	});
+	
+	$scope.qobjGridOptions = { 
+	        data: 'qobjData',
+	        enableRowSelection: true,
+	        enableCellEdit: true,
+	        columnDefs: [{field: 'property', displayName: 'Property', enableCellEdit: false, enableCellSelection : false}, 
+	                     {field:'value', displayName:'Value', enableCellEdit: true}],
+	        multiSelect : false,
+	        selectedItems : $scope.selectedItems
+	 };
+	
+	$scope.$on('ngGridEventEndCellEdit' , function() {
+		if($scope.qobjData.length) {
+			var edited = $scope.selectedItems[0];
+			try {
+				edited.value = JSON.parse(edited.value);
+			} catch(e) {}
+			$scope.selectedValue[edited.property] = edited.value;
+		}
+	});
+	
+	$scope.updateqobjData = function(tableData) {
+		console.log(tableData);
+		console.log($scope.selectedPath);
+		setObjectAtPath(queryService.queryObject, $scope.selectedPath, convertToObj(tableData));
+	};
 	
 	 $("#queryObjectPanel" ).draggable().resizable();;
 	
@@ -461,86 +538,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	}, true);
 	/************** watches for query validation******************/
-	
-
-	var convertToTableFormat = function(aws_metadata) {
-		var data = [];
-		for (var key in aws_metadata) {
-			data.push({property : key, value : aws_metadata[key] });
-		}
-		return data;
-	};
-	
-	var convertToObj = function(tableData) {
-		var obj = {};
-		for (var i in tableData) {
-			obj[tableData[i].property] = tableData[i].value;
-		}
-		return obj;
-	};
-	
-	$scope.qobjData = convertToTableFormat(queryService.queryObject);
-	$scope.selectedItems = [];
-	
-	$scope.$watch('selectedValue', function () {
-		console.log($scope.selectedValue);
-		if(typeof $scope.selectedValue != 'object')
-		{
-			$scope.isValue = true;
-			$scope.qobjData = [];
-		} else {
-			$scope.isValue = false;
-			if($scope.selectedValue)
-			{
-				$scope.qobjData = convertToTableFormat($scope.selectedValue);
-				console.log($scope.qobjData);
-			} else {
-				$scope.qobjData = [];
-			}
-		}
-	});
-	
-	$scope.qobjGridOptions = { 
-	        data: 'qobjData',
-	        enableRowSelection: true,
-	        enableCellEdit: true,
-	        columnDefs: [{field: 'property', displayName: 'Property', enableCellEdit: true}, 
-	                     {field:'value', displayName:'Value', enableCellEdit: true}],
-	        multiSelect : false,
-	        selectedItems : $scope.selectedItems
-	 };
-	
-	$scope.$on('ngGridEventEndCellEdit' , function() {
-		if($scope.qobjData.length) {
-			var edited = $scope.selectedItems[0];
-			for(var i in $scope.qobjData) {
-				if($scope.qobjData[i].property == edited.property)
-				{
-					var bool = "";
-					try {
-						bool = JSON.parse(edited.value);
-					} catch (e) {}
-					if(bool || bool == false)
-					{
-						$scope.qobjData[i].value = bool;
-					}
-				}
-			}
-			$scope.updateqobjData($scope.qobjData);
-			
-		}
-	});
-	
-	$scope.updateqobjData = function(tableData) {
-		console.log(tableData);
-		console.log(convertToObj(tableData));
-		if($scope.selectedKey == "Query Object")
-		{
-			queryService.queryObject = convertToObj(tableData);
-		} else {
-			queryService.queryObject[$scope.selectedKey] = convertToObj(tableData);
-		}
-	};
 	
 });
 
