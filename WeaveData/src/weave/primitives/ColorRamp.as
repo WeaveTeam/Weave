@@ -19,10 +19,15 @@
 
 package weave.primitives
 {
+	import flash.display.CapsStyle;
+	import flash.display.DisplayObject;
 	import flash.display.Graphics;
-	import flash.display.Sprite;
+	import flash.display.LineScaleMode;
 	import flash.utils.ByteArray;
 	
+	import org.osmf.layout.ScaleMode;
+	
+	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	
@@ -215,15 +220,17 @@ package weave.primitives
 		/**
 		 * This will draw the color ramp.
 		 * @param destination The sprite where the ramp should be drawn.
-		 * @param trueForVertical_falseForHorizontal Specifies vertical or horizontal direction
+		 * @param xDirection Either -1, 0, or 1. If xDirection is zero, yDirection must be non-zero, and vice versa.
+		 * @param yDirection Either -1, 0, or 1. If xDirection is zero, yDirection must be non-zero, and vice versa.
 		 * @param bounds Optional bounds for the ramp graphics.
 		 */
-		public function draw(destination:Sprite, trueForVertical_falseForHorizontal:Boolean, bounds:Bounds2D = null):void
+		public function draw(destination:DisplayObject, xDirection:int, yDirection:int, bounds:IBounds2D = null):void
 		{
 			validate();
 			
-			var g:Graphics = destination.graphics;
-			var vertical:Boolean = trueForVertical_falseForHorizontal;
+			var g:Graphics = destination['graphics'];
+			var vertical:Boolean = yDirection != 0;
+			var direction:int = StandardLib.sign(yDirection || xDirection || 1);
 			var x:Number = bounds ? bounds.getXMin() : 0;
 			var y:Number = bounds ? bounds.getYMin() : 0;
 			var w:Number = bounds ? bounds.getWidth() : destination.width;
@@ -234,19 +241,22 @@ package weave.primitives
 			var n:int = Math.abs(vertical ? h : w);
 			for (var i:int = 0; i < n; i++)
 			{
-				var color:Number = getColorFromNorm(i / (n - 1));
+				var norm:Number = i / (n - 1);
+				if (direction < 0)
+					norm = 1 - norm;
+				var color:Number = getColorFromNorm(norm);
 				if (isNaN(color))
 					continue;
-				g.lineStyle(1, color, 1, true);
+				g.lineStyle(1, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE); // pixelHinting = false or the endpoints will be blurry
 				if (vertical)
 				{
 					g.moveTo(x, y + i);
-					g.lineTo(x + w - offset, y + i);
+					g.lineTo(x + w - offset + 1, y + i); // add 1 to the end point or it won't draw the last pixel
 				}
 				else
 				{
 					g.moveTo(x + i, y);
-					g.lineTo(x + i, y + h - offset);
+					g.lineTo(x + i, y + h - offset + 1); // add 1 to the end point or it won't draw the last pixel
 				}
 			}
 		}

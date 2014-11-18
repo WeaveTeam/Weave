@@ -32,8 +32,8 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -46,6 +46,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
+	import weave.utils.BitmapText;
 	import weave.utils.LegendUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -105,7 +106,7 @@ package weave.visualization.plotters
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
-		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25));
 		/**
 		 * This is the line style used to draw the outline of the shape.
 		 */
@@ -244,62 +245,81 @@ package weave.visualization.plotters
 			if (shapeType.value != SHAPE_TYPE_LINE)
 				_shapeSize = Math.max(1, Math.min(_shapeSize, screenBounds.getYCoverage() / numBins));
 			var xShapeOffset:Number = _shapeSize / 2; 
-			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(internalColorColumn.internalDynamicColumn);
 			statsWatcher.target = stats;
 			var internalMin:Number = stats.getMin();
 			var internalMax:Number = stats.getMax();
 			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
 			var binCount:int = binnedColumn.numberOfBins;
+			var noBins:Boolean = !binnedColumn.binningDefinition.internalObject;
+			if (noBins)
+				binCount = 1;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
-				// if _drawBackground is set, we should draw the bins that have no records in them.
-				if ((_drawBackground?0:1) ^ int(binIndexMap[iBin])) // xor
+				// we only render empty bins when _drawBackground is true
+				if (binIndexMap[iBin] ? _drawBackground : !_drawBackground)
 					continue;
 				
-				var binBounds:IBounds2D = _binToBounds[iBin];
-				tempBounds.copyFrom(binBounds);
-				dataBounds.projectCoordsTo(tempBounds, screenBounds);
-//				tempBounds.makeSizePositive();
-				
-				// draw almost invisible rectangle for probe filter
-				tempBounds.getRectangle(tempRectangle);
-				destination.fillRect(tempRectangle, 0x02808080);
-				
-				// draw the text
-				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, _shapeSize + labelGap);
-
-				// draw circle
-				var iColorIndex:int = reverseOrder.value ? (binCount - 1 - iBin) : iBin;
-				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
-				var xMin:Number = tempBounds.getXNumericMin(); 
-				var yMin:Number = tempBounds.getYNumericMin();
-				var xMax:Number = tempBounds.getXNumericMax(); 
-				var yMax:Number = tempBounds.getYNumericMax();
-				if (isFinite(color))
-					g.beginFill(color, 1.0);
-				switch (shapeType.value)
+				if (noBins)
 				{
-					case SHAPE_TYPE_CIRCLE:
-						g.drawCircle(xMin + xShapeOffset, (yMin + yMax) / 2, _shapeSize / 2);
-						break;
-					case SHAPE_TYPE_SQUARE:
-						g.drawRect(
-							xMin + xShapeOffset - _shapeSize / 2,
-							(yMin + yMax - _shapeSize) / 2,
-							_shapeSize,
-							_shapeSize
-						);
-						break;
-					case SHAPE_TYPE_LINE:
-						if (!isFinite(color))
-							break;
-						g.endFill();
-						g.lineStyle(lineShapeThickness, color, 1);
-						g.moveTo(xMin + xShapeOffset - _shapeSize / 2, (yMin + yMax) / 2);
-						g.lineTo(xMin + xShapeOffset + _shapeSize / 2, (yMin + yMax) / 2);
-						break;
+					tempBounds.copyFrom(screenBounds);
+					tempBounds.makeSizePositive();
+					tempBounds.setXMax(_shapeSize + labelGap);
+					
+					internalColorRamp.draw(tempShape, 0, reverseOrder.value ? -1 : 1, tempBounds);
+					lineStyle.beginLineStyle(null, g);
+					g.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth() - 1, tempBounds.getHeight() - 1);
+					
+					var minLabel:String = binnedColumn.deriveStringFromNumber(stats.getMin());
+					var maxLabel:String = binnedColumn.deriveStringFromNumber(stats.getMax());
+					LegendUtils.renderLegendItemText(destination, minLabel, tempBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_BOTTOM : BitmapText.VERTICAL_ALIGN_TOP);
+					LegendUtils.renderLegendItemText(destination, maxLabel, tempBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_TOP : BitmapText.VERTICAL_ALIGN_BOTTOM);
 				}
-				g.endFill();
+				else
+				{
+					tempBounds.copyFrom(_binToBounds[iBin]);
+					dataBounds.projectCoordsTo(tempBounds, screenBounds);
+					
+					// draw almost invisible rectangle for probe filter
+					tempBounds.getRectangle(tempRectangle);
+					destination.fillRect(tempRectangle, 0x02808080);
+					
+					// draw the text
+					LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, _shapeSize + labelGap);
+					
+					// draw circle
+					var iColorIndex:int = reverseOrder.value ? (binCount - 1 - iBin) : iBin;
+					var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
+					var xMin:Number = tempBounds.getXNumericMin(); 
+					var yMin:Number = tempBounds.getYNumericMin();
+					var xMax:Number = tempBounds.getXNumericMax(); 
+					var yMax:Number = tempBounds.getYNumericMax();
+					if (isFinite(color))
+						g.beginFill(color, 1.0);
+					switch (shapeType.value)
+					{
+						case SHAPE_TYPE_CIRCLE:
+							g.drawCircle(xMin + xShapeOffset, (yMin + yMax) / 2, _shapeSize / 2);
+							break;
+						case SHAPE_TYPE_SQUARE:
+							g.drawRect(
+								xMin + xShapeOffset - _shapeSize / 2,
+								(yMin + yMax - _shapeSize) / 2,
+								_shapeSize,
+								_shapeSize
+							);
+							break;
+						case SHAPE_TYPE_LINE:
+							if (!isFinite(color))
+								break;
+							g.endFill();
+							g.lineStyle(lineShapeThickness, color, 1);
+							g.moveTo(xMin + xShapeOffset - _shapeSize / 2, (yMin + yMax) / 2);
+							g.lineTo(xMin + xShapeOffset + _shapeSize / 2, (yMin + yMax) / 2);
+							break;
+					}
+					g.endFill();
+				}
 			}
 			destination.draw(tempShape);
 		}

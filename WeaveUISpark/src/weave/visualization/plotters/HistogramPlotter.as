@@ -180,7 +180,7 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			var keysInBin:Array = binCol.getKeysFromBinIndex(binIndex);
+			var keysInBin:Array = binCol.getKeysFromBinIndex(binIndex) || [];
 			var agCol:IAttributeColumn = columnToAggregate.getInternalColumn();
 			var binHeight:Number = agCol ? getAggregateValue(keysInBin) : keysInBin.length;
 			
