@@ -177,7 +177,7 @@ public class ComputationalServlet extends WeaveServlet
 	
 	/**
 	 * type : type of input object Example filtered columns, single column, booleans etc
-	 * name: ??
+	 * name: parameter names to be assigned in computation engine
 	 * value : value entered on the client side
 	 */
 	public static class InputObjects
