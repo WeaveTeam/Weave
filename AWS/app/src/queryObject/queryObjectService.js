@@ -81,8 +81,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 }]);
 
 
-QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService', 'statisticsService','dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL',
-                         function($q, scope, WeaveService, runQueryService,statisticsService, dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL) {
+QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService','dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL',
+                         function($q, scope, WeaveService, runQueryService, dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);
@@ -128,7 +128,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			dataTableList : [],
 			scriptList : [],
 			filters : [],
-			validatationStatus : "test"
+			validatationStatus : "test",
+			numericalColumns : []
 	};
 
 	
@@ -306,23 +307,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         return deferred.promise;
     };
 
-    
-    this.getDataColumns = function(id, getColumnStats, forceUpdate){
-    	this.getDataColumnsEntitiesFromId(id, forceUpdate).then(function(getColumnStats){
-    		if(getColumnStats)
-    			{
-    				//once column Objects are returned retrieve column Stats
-				//TODO integrate this with retrieving the data??
-					if(getColumnStats && that.dataObject.columns.length > 0)
-						{
-							statisticsService.getColumnStatistics(that.dataObject.columns);
-						}
-					
-					
-    			}
-    	});
-    };
-    
 	/**
 	  * This function makes nested async calls to the aws function getEntityChildIds and
 	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
@@ -345,6 +329,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						that.dataObject.columns = $.map(dataEntityArray, function(entity) {
 							if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {//will work if the column already has the aws_metadata as part of its public metadata
 								var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
+								
+								//that.dataObject.numericalColumns = [];//collects numerical columns for statistics calculation
+								
 								if(metadata.hasOwnProperty("columnType")) {
 									var columnObject = {};
 									columnObject.id = entity.id;
@@ -355,6 +342,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 									
 									if(metadata.varRange)
 										columnObject.varRange = metadata.varRange;
+//									//pick all numerical columns and create a matrix
+									if(metadata.varRange && (metadata.varType == "continuous") && (metadata.columnType != "geography"))
+										{
+											that.dataObject.numericalColumns.push(columnObject);
+										}
 									return columnObject;
 //									return {
 //										id : entity.id,
@@ -381,6 +373,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 //											description : ""
 //										};
 									}
+								
 							}
 							else{//if its doesnt have aws_metadata as part of its public metadata, create a partial aws_metadata object
 								
