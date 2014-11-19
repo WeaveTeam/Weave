@@ -86,6 +86,7 @@ AnalysisModule.value('color_Column', {
 
 
 AnalysisModule.value('key_Column', {
+										id : 'Key_Column', 
 										title : 'Key Column',
 										template_url : 'src/visualization/tools/color/key_Column.tpl.html',
 										description : 'Set the key column in Weave'
@@ -232,7 +233,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				$scope.isValue = true;
 				
 				var val = $scope.selectedValue.value;
-				try { val = JSON.parse($scope.selectedValue.value); } catch(e) {}
+				//try { val = JSON.parse($scope.selectedValue.value); } catch(e) {}
 				$scope.setValueAtPath($scope.queryService.queryObject, $scope.getPath($scope.selectedNode), val);
 				$scope.selectedVal = $scope.selectedValue.value;
 			} else {
@@ -257,10 +258,12 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.$on('ngGridEventEndCellEdit' , function() {
 		if($scope.qobjData.length) {
 			var edited = $scope.selectedItems[0];
-			try {
-				edited.value = JSON.parse(edited.value);
-			} catch(e) {}
-			$scope.selectedValue.value[edited.property] = edited.value;
+			if(edited) {
+				try {
+					edited.value = JSON.parse(edited.value);
+				} catch(e) {}
+				$scope.selectedValue.value[edited.property] = edited.value;
+			}
 		}
 	});
 
@@ -546,6 +549,40 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	}, true);
 	/************** watches for query validation******************/
+	$scope.tool_options = ["MapTool", "BarCharTool", "ScatterPlotTool", "DataTable"];
+	
+	$scope.addTool = function(name) {
+		switch(name) {
+			case "MapTool":
+				AnalysisService.weaveTools.push({
+					id : 'MapTool',
+					title : 'Map Tool',
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+				});
+				break;
+			case "BarCharTool":
+				AnalysisService.weaveTools.push({
+					id : 'BarCharTool',
+					title : 'Map Tool',
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+				});
+				break;
+			case "ScatterPlotTool":
+				AnalysisService.weaveTools.push({
+					id : 'ScatterPlotTool',
+					title : 'Map Tool',
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+				});
+				break;
+			case "DataTable":
+				AnalysisService.weaveTools.push({
+					id : 'DataTable',
+					title : 'Map Tool',
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+				});
+				break;
+		}
+	};
 });
 
 
