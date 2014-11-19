@@ -133,58 +133,139 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 //	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 //		queryService.dataObject.openInNewWindow = WeaveService.weaveWindow.closed;
 //	});
+	var expandedNodes = null;
+	var scrolledPosition = 0;
+	var activeNode = null;
 	
-	var buildTree2 = function (node, key) {
+	var buildTree = function (node, key) {
 		return {
-			title : key || node || '',
+			title : key,
 			value : node,
+			select : activeNode ? node == activeNode.data.value : false,
+			expand : expandedNodes && expandedNodes.indexOf(node) >= 0,
 			isFolder : !!(typeof node == 'object' && node),
 			children : (typeof node == 'object' && node)
-				? Object.keys(node).map(function(key) { return buildTree2(node[key], key); })
+				? Object.keys(node).map(function(key) { return buildTree(node[key], key); })
 				: null
 		};	
 	};
 	
-	var queryObjectTreeData = buildTree2(queryService.queryObject);
+	var queryObjectTreeData = buildTree(queryService.queryObject);
+	
+	$scope.getPath = function(node) {
+		var path = [];
+		while (node.parent)
+		{
+			path.unshift(node.data.title);
+			node = node.parent;
+		}
+		return path;
+	};
+	
+	$scope.setValueAtPath = function(obj, path, value)
+	{
+		path.shift(); // throw away root
+		
+		for (var i = 0; i < path.length - 1; i++)
+	        obj = obj[path[i]];
 
-	$('#queryObjTree').dynatree({
-		minExpandLevel: 1,
-		children : queryObjectTreeData,
-		keyBoard : true,
-		onPostInit: function(isReloading, isError) {
-			this.reactivate();
-		},
-		onActivate: function(node) {
-			$scope.selectedValue = node.data.value;
-			console.log(node.data.value);
-			$scope.$apply();
-		},
-		debugLevel: 0
-	});
+	    obj[path[i]] = value;
+	};
+	
 	$scope.$watch('queryService.queryObject', function () {
-		queryObjectTreeData = buildTree2(queryService.queryObject);
-		queryObjectTreeData.title = "Query Object";
+		
+		if(expandedNodes) {
+			expandedNodes = [];
+			scrolledPosition = $(".dynatree-container").scrollTop();
+			activeNode = $("#queryObjTree").dynatree("getActiveNode");
+			$("#queryObjTree").dynatree("getTree").visit(function(node) {
+				if(node.bExpanded)
+				{
+					expandedNodes.push(node.data.value);
+				}
+			});
+		} else {
+			expandedNodes = [];
+		}
+		
+		queryObjectTreeData = buildTree(queryService.queryObject);
+		queryObjectTreeData.title = "QueryObject";
+
 		$('#queryObjTree').dynatree({
 			minExpandLevel: 1,
+			clickFolderMode: 1,
 			children : queryObjectTreeData,
 			keyBoard : true,
 			onPostInit: function(isReloading, isError) {
 				this.reactivate();
 			},
 			onActivate: function(node) {
-				$scope.selectedValue = node.data.value;
-				console.log(node.data.value);
+				$scope.selectedNode = node;
+				$scope.selectedValue = node.data;
+				$scope.selectedKey = node.data.title;
 				$scope.$apply();
 			},
 			debugLevel: 0
 		});
-		$("#queryObjTree").dynatree("getTree").reload();
 		
+		$("#queryObjTree").dynatree("getTree").reload();
+		$(".dynatree-container").scrollTop(scrolledPosition);
+
 	}, true);
 	
-	 $("#queryObjectPanel" ).draggable().resizable();
-	 
-	 
+	var convertToTableFormat = function(obj) {
+		var data = [];
+		for (var key in obj) {
+			data.push({property : key, value : obj[key] });
+		}
+		return data;
+	};
+	
+	$scope.qobjData = convertToTableFormat(queryService.queryObject);
+	$scope.selectedItems = [];
+	$scope.selectedValue = {};
+	
+	$scope.$watch('selectedValue.value', function () {
+		if($scope.selectedValue.value) {
+			if(typeof $scope.selectedValue.value != 'object')
+			{
+				$scope.isValue = true;
+				
+				var val = $scope.selectedValue.value;
+				try { val = JSON.parse($scope.selectedValue.value); } catch(e) {}
+				$scope.setValueAtPath($scope.queryService.queryObject, $scope.getPath($scope.selectedNode), val);
+				$scope.selectedVal = $scope.selectedValue.value;
+			} else {
+				$scope.isValue = false;
+				$scope.qobjData = convertToTableFormat($scope.selectedValue.value);
+			}
+		} else {
+			$scope.isValue = true;
+		}
+	});
+	
+	$scope.qobjGridOptions = { 
+	        data: 'qobjData',
+	        enableRowSelection: true,
+	        enableCellEdit: true,
+	        columnDefs: [{field: 'property', displayName: 'Property', enableCellEdit: false, enableCellSelection : false}, 
+	                     {field:'value', displayName:'Value', enableCellEdit: true}],
+	        multiSelect : false,
+	        selectedItems : $scope.selectedItems
+	 };
+	
+	$scope.$on('ngGridEventEndCellEdit' , function() {
+		if($scope.qobjData.length) {
+			var edited = $scope.selectedItems[0];
+			try {
+				edited.value = JSON.parse(edited.value);
+			} catch(e) {}
+			$scope.selectedValue.value[edited.property] = edited.value;
+		}
+	});
+
+	 $("#queryObjectPanel" ).draggable().resizable();;
+	
 	
 	//**********************************************************REMAPPING**************************************
 	 queryService.dataObject.shouldRemap = [];
@@ -464,7 +545,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			}, true);
 		}
 	}, true);
-	/************** watches for query validation END******************/
+	/************** watches for query validation******************/
 });
 
 
