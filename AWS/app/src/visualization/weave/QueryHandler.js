@@ -13,9 +13,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
-	//booleans used for validation of a query object
-	this.isValidated = true;
-	this.validationUpdate = "Ready for validation";
 	
 	//boolean used for displaying the Visualization widget tool menu
 	//only when results are returned and Weave pops up, should this menu be enabled
@@ -52,7 +49,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
      * This function wraps the async aws runScript function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.runScript = function(scriptName, inputs, filters) {
+    this.runScript = function(scriptName) {
         
     	var deferred = $q.defer();
 
@@ -65,11 +62,11 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
         return deferred.promise;
     };
     
-    this.getDataFromServer = function(inputs, filters, reMaps) {
+    this.getDataFromServer = function(inputs, reMaps) {
     	
     	var deferred = $q.defer();
 
-    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, filters, reMaps], function(result){	
+    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, reMaps], function(result){	
     		scope.$safeApply(function() {
 				deferred.resolve(result);
 			});
@@ -78,60 +75,104 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
         return deferred.promise;
     };
     
-  
+    /*
+     * this function handles different types of script inputs and returns an object of this signature
+     * {
+				type : eg filtered rows, column matrix, single values, numbers, boolean
+				names : parameter names to be used for assigning in R 
+				value :  the actual data value
+		}
+     * */
+    this.handleScriptOptions = function(scriptOptions)
+    {	
+    	var typedInputObjects= [];
+    	//TODO create remaining beans
+    	
+    	//Filtered Rows bean
+    	var filteredRowsObject = {
+    			type: "FilteredRows",
+    			names: [],
+    			value: {
+    				columnIds : [],
+    				filters: null //{}
+    				
+    			}
+    	};
+    	
+    	for(var key in scriptOptions) {
+    		var inputIndex = 0;
+			var input = scriptOptions[key];
+			
+			
+	    	if((typeof input) == 'object') {
+	    		
+	    		filteredRowsObject.value.columnIds.push(input.id);
+	    		
+	    		if($.inArray(filteredRowsObject,typedInputObjects) == -1)//if not present in array before
+	    			typedInputObjects.push(filteredRowsObject);
+	    	}
+				
+	    	else if ((typeof input) == 'array') // array of columns
+			{
+	    		//scriptInputs[key] = $.map(input, function(inputVal) {
+	    			//				return { id : JSON.parse(inputVal).id };
+	    			//			});
+			}
+	    	else if ((typeof input) == 'string'){
+				//var inputVal = tryParseJSON(input);
+	    		//			if(inputVal) {  // column input
+	    		//				scriptInputs[key] = { id : inputVal.id };
+	    		//			} else { // regular string
+	    		//				scriptInputs[key] = input;
+	    		//			}
+	    	}
+	    	else if ((typeof input) == 'number'){// regular number
+	    		//scriptInputs[key] = input;
+	    	} 
+	    	else if ((typeof input) == 'boolean'){ // boolean 
+	    		//scriptInputs[key] = input;
+	    	}
+	    	else{
+				console.log("unknown script input type ", input);
+			}
+    	}
+    	
+    	//TODO confirm if this is the right way
+    	if($.inArray(typedInputObjects, filteredRowsObject) != 0)//if it contains the filtered rows
+    		{
+	    		var scriptMetadata = queryService.dataObject.scriptMetadata;
+	    		for(var x in scriptMetadata.inputs){
+	    			var singleInput = scriptMetadata.inputs[x];
+	    			filteredRowsObject.names.push(singleInput.param);
+	    		}
+    		}
+    	
+    	
+    	return typedInputObjects;
+    };
+    
 	/**
 	 * this function processes the queryObject and makes the async call for running the script
-	 * @param runInRealTime this parameter serves as a flag which determines if the Weave JS Api should be run
-	 * automatically or for user to interact
-	 * true : user interaction required
-	 * false: no user interaction required, run automatically
 	 */
-	this.run = function(runInRealTime) {
-		
+	this.run = function() {
+		console.log("running");
 		if(queryService.dataObject.isQueryValid) {
 			
-				//setting the query Object to be used for executing the query
-				var queryObject = queryService.queryObject;
-				//running an initial validation
+			var time1;
+			var time2;
+			var startTimer;
+			var endTimer;
+			
+			//setting the query Object to be used for executing the query
+			var queryObject = queryService.queryObject;
+			var scriptInputObjects = [];//final collection of script input objects
+			
+			//handling script inputs
+			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
+
+			//TODO handle filters before handling script options
 				
-				var scriptInputs = {};
-				var time1;
-				var time2;
-				var startTimer;
-				var endTimer;
-				
-				if(this.isValidated)
-				{
-					for(var key in queryObject.scriptOptions) {
-						var input = queryObject.scriptOptions[key];
-						switch(typeof input) {
-						case 'object' :
-							scriptInputs[key] = input;
-							break;
-						case 'array': // array of columns
-							scriptInputs[key] = $.map(input, function(inputVal) {
-								return { id : JSON.parse(inputVal).id };
-							});
-							break;
-						case 'string' :
-							var inputVal = tryParseJSON(input);
-							if(inputVal) {  // column input
-								scriptInputs[key] = { id : inputVal.id };
-							} else { // regular string
-								scriptInputs[key] = input;
-							}
-							break;
-						case 'number' : // regular number
-							scriptInputs[key] = input;
-							break;
-						case 'boolean' : // boolean 
-							scriptInputs[key] = input;
-							break;
-						default:
-							console.log("unknown script input type ", input);
-						}
-					}
-					
+			//FILTERS
 	//			if(queryObject.GeographyFilter) {
 	//				var geoQuery = {};
 	//				var stateId = "";
@@ -248,69 +289,67 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	//				filters = null;
 	//			}
 	//			
-					scriptName = queryObject.scriptSelected;
-					// var stringifiedQO = JSON.stringify(queryObject);
-					// console.log("query", stringifiedQO);
-					// console.log(JSON.parse(stringifiedQO));
-					queryService.dataObject.queryDone = false;
-					queryService.dataObject.queryStatus = "Loading data from database...";
-					startTimer = new Date().getTime();
-					console.log("indicatorRemap", queryService.queryObject.IndicatorRemap);
-					this.getDataFromServer(scriptInputs, null, queryService.queryObject.IndicatorRemap).then(function(success) {
-						if(success) {
-							time1 =  new Date().getTime() - startTimer;
-							startTimer = new Date().getTime();
-							queryService.dataObject.queryStatus = "Running analysis...";
-							that.runScript(scriptName).then(function(resultData) {
-								if(!angular.isUndefined(resultData))//only if something is returned open weave
-								{
-									time2 = new Date().getTime() - startTimer;
-									queryService.dataObject.queryDone = true;
-									queryService.dataObject.resultData = resultData;
-									queryService.dataObject.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
-									if(queryService.dataObject.openInNewWindow) {
-										if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
-											WeaveService.weaveWindow = $window.open("/weave.html?",
-													"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-										}
-										that.waitForWeave(WeaveService.weaveWindow , function(weave) {
-											WeaveService.weave = weave;
-											WeaveService.addCSVData(resultData);
-											WeaveService.columnNames = resultData[0];
-											
-											//updates required for updating query object validation and to enable visualization widget controls
-											that.displayVizMenu = true;
-											that.isValidated = false;
-											that.validationUpdate = "Ready for validation";
-											
-											scope.$apply();//re-fires the digest cycle and updates the view
-										});
-									} else {
-										that.waitForWeave(null , function(weave) {
-											WeaveService.weave = weave;
-											WeaveService.addCSVData(resultData);
-											WeaveService.columnNames = resultData[0];
-											
-											//updates required for updating query object validation and to enable visualization widget controls
-											that.isValidated = false;
-											that.validationUpdate = "Ready for validation";
-											scope.$apply();//re-fires the digest cycle and updates the view
-										});
-									}
-								} else {
-									queryService.dataObject.queryDone = false;
-									queryService.dataObject.queryStatus = "Error running script. See error log for details.";
-								}
-							});
-							
-						} else {
-							queryService.dataObject.queryDone = false;
-							queryService.dataObject.queryStatus = "Error Loading data. See error log for details.";
-						}
-					});
-				}
+				scriptName = queryObject.scriptSelected;
+				// var stringifiedQO = JSON.stringify(queryObject);
+				// console.log("query", stringifiedQO);
+				// console.log(JSON.parse(stringifiedQO));
+				queryService.dataObject.queryDone = false;
+				queryService.dataObject.queryStatus = "Loading data from database...";
+				startTimer = new Date().getTime();
 				
-			}
+				console.log("indicatorRemap", queryService.queryObject.IndicatorRemap);
+				
+				//getting the data
+				this.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
+					if(success) {
+						time1 =  new Date().getTime() - startTimer;
+						startTimer = new Date().getTime();
+						queryService.dataObject.queryStatus = "Running analysis...";
+						
+						//executing the script
+						that.runScript(scriptName).then(function(resultData) {
+							if(!angular.isUndefined(resultData))//only if something is returned open weave
+							{
+								time2 = new Date().getTime() - startTimer;
+								queryService.dataObject.queryDone = true;
+								queryService.dataObject.resultData = resultData;
+								queryService.dataObject.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
+								if(queryService.dataObject.openInNewWindow) {
+									if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
+										WeaveService.weaveWindow = $window.open("/weave.html?",
+												"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+									}
+									that.waitForWeave(WeaveService.weaveWindow , function(weave) {
+										WeaveService.weave = weave;
+										WeaveService.addCSVData(resultData);
+										WeaveService.columnNames = resultData[0];
+										
+										//updates required for updating query object validation and to enable visualization widget controls
+										that.displayVizMenu = true;
+										scope.$apply();//re-fires the digest cycle and updates the view
+									});
+								} else {
+									that.waitForWeave(null , function(weave) {
+										
+										WeaveService.weave = weave;
+										WeaveService.addCSVData(resultData);
+										WeaveService.columnNames = resultData[0];
+										
+									});
+								}
+							} else {
+								queryService.dataObject.queryDone = false;
+								queryService.dataObject.queryStatus = "Error running script. See error log for details.";
+							}
+						});
+						
+					} else {
+						queryService.dataObject.queryDone = false;
+						queryService.dataObject.queryStatus = "Error Loading data. See error log for details.";
+					}
+				});
+				
+			}//validation check
 		};
 }]);
 

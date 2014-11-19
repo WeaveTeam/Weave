@@ -15,6 +15,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'ngGrid', // Angular UI library
                                  'mk.editablespan', // Directive for editing values.
                                  'aws.configure', //Both script and metadata managers
+                                 'aws.dataStatistics',
                                  'aws.directives', // high level directives don't agree with current location
                                  'aws.queryObject', // queryService.. this needs to be reconciled                               
                                  'aws.queryObjectEditor', // Shweta's module
@@ -59,6 +60,10 @@ app.run(['$rootScope', function($rootScope){
 		templateUrl : 'src/project/projectManagementPanel.html',
 		controller : 'ProjectManagementCtrl',
 		activetab : 'project_management'
+	}).when('/data_stats', {
+		templateUrl : 'src/dataStatistics/dataStatisticsMain.tpl.html',
+		controller : 'dataStatsCtrl',
+		activetab : 'data_stats'
 	}).otherwise({
         redirectTo: '/analysis'
     });

@@ -12,10 +12,10 @@
 				<!-- RUN button -->		
 						<button class="btn" 
 							style="width: 10%; float:right; margin-top: 10px; margin-right : 5px"
-							ng-click="runService.run(true)" 
-							popover="{{service.dataObject.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
+							ng-click="QueryHandlerService.run()" 
+							popover="{{queryService.dataObject.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 							ng-controller="QueryHandlerCtrl"
-							ng-class="{'validateB' : service.dataObject.isQueryValid, 'invalidateB' : !service.dataObject.isQueryValid}">
+							ng-class="{'validateB' : queryService.dataObject.isQueryValid, 'invalidateB' : !queryService.dataObject.isQueryValid}">
 							 <span style="vertical-align: right">Run</span>
 						 </button>
 		</div>
@@ -37,7 +37,7 @@
 							simple-query="getDataTable"
 							data-placeholder="Select Datatable"
 							allow-clear="true"
-							to-id="dataTableId" to-text="dataTableText"
+							to-id="getItemId" to-text="getItemText"
 							ng-change="queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true)">
 						</input> 
 						
@@ -45,20 +45,20 @@
 							ng-model="queryService.dataObject.displayAsQuestions">
 						Display As Questions</input>
 	
-						<div style="width: 100%; margin-top: 10px;">
-							<select popover="Choose indicator" popover-trigger="mouseenter"
-								style="width: 100%;"
-								ui-select2="{allowClear : true, dropdownAutoWidth : true}"
-								ng-model="queryService.queryObject.Indicator"
-								data-placeholder="Choose Indicator">
-								<option></option>
-								<option value="{{indicator}}"
-									ng-repeat="indicator in queryService.dataObject.columns | filter : { columnType : 'indicator' }">{{queryService.dataObject.displayAsQuestions
-									&& (indicator.description) || (indicator.title)}}</option>
-							</select>
+<!-- INDICATOR -->		<div style="width: 100%; margin-top: 10px;">
+							<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%" ng-model="queryService.queryObject.Indicator"
+								simple-query="getIndicators"
+								data-placeholder="Select Indicator"
+								allow-clear="true"
+								to-id="getItemId" to-text="getItemText">
+							</input> 
 						</div>
+						
 						<br> {{IndicDescription}} 
 <!-- 						<button popover-with-tpl template-url="src/analysis/indicator-remap.tpl.html" popover-placement="bottom" class="btn btn-default">Remap Indicator -->
+					  
+ <!-- REMAPPING -->
 					  	<div  style="overflow-y: scroll; height:60%">
 					      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
 								<tr> 
@@ -71,20 +71,14 @@
 									<td   align="center">
 										New Value
 									</td>
-<!-- 									<td > -->
-<!-- 										Remap -->
-<!-- 									</td> -->
 								 </tr>
 								<tr ng-repeat="varValue in varValues">
 									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
 									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
-									<td width= "50%"> <input style ="width : 100%"
+									<td width= "50%"> <input style ="width : 100%" 
 														ng-model="newValue"
 														ng-change="setRemapValue(varValue.value,newValue)"> 
 														</input> </td>
-<!-- 									<td width= "10%"align="center"> <input type="checkbox"  -->
-<!-- 										ng-model="queryService.dataObject.remapValues[$index]",  -->
-<!-- 										ng-change="setRemapValue(varValue.value,queryService.dataObject.remapValues[$index])"></input></td> -->
 								</tr>
 							</table>
 					  	</div>
@@ -100,33 +94,70 @@
 					<div class="header panel-heading">
 						<h2>Calculations</h2>
 					</div>
-					<div class="body" ng-controller="ScriptsSettingsCtrl">
-						<select style="width: 100%;" ui-select2="{allowClear : true}"
-							ng-model="service.queryObject.scriptSelected"
-							data-placeholder="Select Script"
-							ng-change="service.getScriptMetadata(service.queryObject.scriptSelected, true)">
-							<option></option>
-							<option ng-repeat="scriptName in service.dataObject.scriptList">{{scriptName}}</option>
-						</select>
+<!-- Script Select--><div class="body" ng-controller="ScriptsSettingsCtrl">
+							<input type="hidden" popover="Select Script" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%" ng-model="queryService.queryObject.scriptSelected"
+								simple-query="getScriptList"
+								data-placeholder="Select Script"
+								allow-clear="true"
+								ng-change="getScriptMetadata(service.queryObject.scriptSelected, true)">
+							</input> 
 						
 						<h6 class='tool-category'>Script parameters</h6>
-						<div class= "tool-bar">
+<!-- Script options -->	<div class= "tool-bar">
 							<table width=100%>
 								<tr ng-repeat="input in service.dataObject.scriptMetadata.inputs">
 									<td align="right" width=30%>
 										<div class="label-p">{{input.param}}:</div>
 									</td>
 		
-									<td style="padding-left: 10px;"><select style="width: 100%"
-										class="select-2-drop"
-										ng-if="input.type == 'options' && input.options.length != 2"
-										ui-select2="{allowClear : true}"
-										ng-model="service.queryObject.scriptOptions[input.param]">
-											<option></option>
-											<option value="{{opt}}" ng-repeat="opt in input.options">
-												{{opt}}</option>
-									</select>
-		
+									<td style="padding-left: 10px;">
+									
+										<!-- Handling column types -->
+										<input ng-if="input.type == 'column' && input.columnType == 'time'" 
+											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											style="width: 100%" 
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getTimeInputOptions"
+											data-placeholder="Select parameter"
+											allow-clear="true"
+											to-id = "getItemDefault" to-text= "getItemText"
+											>
+										</input> 
+										
+										<input ng-if="input.type == 'column' && input.columnType == 'analytic'" 
+											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											style="width: 100%" 
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getAnalyticInputOptions"
+											data-placeholder="Select parameter"
+											allow-clear="true"
+											to-id = "getItemDefault" to-text= "getItemText"
+											>
+										</input> 
+										
+										<input ng-if="input.type == 'column' && input.columnType == 'geography'" 
+											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											style="width: 100%" 
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getGeographyInputOptions"
+											data-placeholder="Select parameter"
+											allow-clear="true"
+											to-id = "getItemDefault" to-text= "getItemText">
+										</input> 
+										
+										<input ng-if="input.type == 'column' && input.columnType == 'indicator'" 
+											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											style="width: 100%" 
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getIndicators2"
+											data-placeholder="Select parameter"
+											allow-clear="true"
+											to-id = "getItemDefault" to-text= "getItemText"
+											>
+										</input> 
+										
+										<!-- handling toggle input types -->
 										<div class="btn-group btn-toggle"
 											ng-if="input.type == 'options' && input.options.length == 2"
 											ng-click="toggleButton(input)"">
@@ -137,7 +168,7 @@
 												ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[1]}"
 												class="btn btn-default">{{input.options[1]}}</button>
 										</div>
-		
+										
 										<div class="btn-group btn-toggle"
 											ng-if="input.type == 'boolean'"
 											ng-click="service.queryObject.scriptOptions[input.param] = !service.queryObject.scriptOptions[input.param]">
@@ -147,24 +178,26 @@
 											<button
 												ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == false}"
 												class="btn btn-default">False</button>
-										</div> <select style="width: 100%" class="select-2-drop"
-										ng-if="input.type == 'column'" ui-select2="{allowClear : true}"
+										</div> 
+										
+										<!-- handling value types -->
+										<input style="width: 100%" ng-if="input.type == 'value'"
 										ng-model="service.queryObject.scriptOptions[input.param]">
-											<option></option>
-											<option value="{{col}}"
-												ng-repeat="col in service.dataObject.columns | filter:input.columnType">
-												{{col.title}}</option>
-									</select> <input style="width: 100%" ng-if="input.type == 'value'"
-										ng-model="service.queryObject.scriptOptions[input.param]">
-		
-										<select style="width: 100%" ng-if="input.type == 'multiColumns'"
-										ui-select2="{allowClear : true}" multiple
-										ng-model="service.queryObject.scriptOptions[input.param]">
-											<option></option>
-											<option value="{{ col }}"
-												ng-repeat="col in service.dataObject.columns | filter:input.columnType">
-												{{col.title}}</option>
-									</select> <br></td>
+										
+										<!-- Handling multiple column types -->
+										<input type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											ng-if="input.type == 'multiColumns'"
+											style="width: 100%" 
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getInputOptions"
+											data-placeholder="Select parameter"
+											allow-clear="true"
+											to-id="getItemParam" 
+											ng-change="">
+										</input> 
+										
+										
+									<br></td>
 								</tr>
 							</table>
 						</div>
@@ -179,18 +212,8 @@
 							 </div>
 							 <div style= "display : table-cell; padding-left : 5px">{{service.dataObject.queryStatus}}</div>
 						 </div> 
+						 
 					</div>
-	
-						
-					 				 
-					<!--<div id="loading" ng-show="show_load" class="ng-hide">
-						<img id="loading-image" src="css/img/ajax-loader.gif" alt="Loading..." />
-						</div>-->
-	
-					<!--<div class="body" ng-model="content-tools">
-					<div style="height:100%" ng-include="content_tools[4].template_url"></div>
-					</div>-->
-	
 				</div>
 				
 				

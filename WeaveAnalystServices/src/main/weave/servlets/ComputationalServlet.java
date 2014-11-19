@@ -15,11 +15,16 @@ import weave.config.AwsContextParams;
 import weave.config.WeaveContextParams;
 import weave.models.computations.AwsRService;
 import weave.models.computations.AwsStataService;
+import weave.models.computations.ScriptResult;
 import weave.utils.AWSUtils;
 import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 
 import com.google.gson.internal.StringMap;
-
+/**
+ * @author Franck Kamayou
+ * @author Shweta Purushe
+ *
+ */
 public class ComputationalServlet extends WeaveServlet
 {	
 	public ComputationalServlet() throws Exception
@@ -36,7 +41,9 @@ public class ComputationalServlet extends WeaveServlet
 	private String stataScriptsPath = "";
 	private String rScriptsPath = "";
 	private AwsRService rService = null;
-	private StringMap<Object> scriptInputs;
+	private StringMap<Object> scriptInputs = new StringMap<Object>();
+	
+	public static String filteredRows = "FILTEREDROWS";
 	
 	public void init(ServletConfig config) throws ServletException
 	{
@@ -59,102 +66,88 @@ public class ComputationalServlet extends WeaveServlet
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean getDataFromServer(StringMap<Object> scriptInputs, NestedColumnFilters filters, ReMapObjects[] remapValues) throws Exception
+	public boolean getDataFromServer(InputObjects[] inputObjects, ReMapObjects[] remapValues) throws Exception
 	{
 		
- 		StringMap<Object> input = new StringMap<Object>();
- 		ArrayList<Integer> colIds = new ArrayList<Integer>();
- 		ArrayList<String> colNames = new ArrayList<String>();
+		WeaveRecordList data = new WeaveRecordList();
+		Object[][]columnData = null;
+		FilteredRows fRows = new FilteredRows();
  		
-		for(String key : scriptInputs.keySet()) {
-			Object value = scriptInputs.get(key);
-			
-			if(value instanceof String) {
-				input.put(key, value);
-			} else if (value instanceof Number) {
-				input.put(key, value);
-			} else if (value instanceof Boolean) {
-				input.put(key, value);
-			} else if (value instanceof StringMap<?>){
-				// collect the names and id for single query below
-				colNames.add(key);
-				colIds.add((Integer) ((Double) ((StringMap<Object>) scriptInputs.get(key)).get("id")).intValue());
-			} else if (value instanceof ArrayList) {
+		//getting data
+ 		for(int i = 0; i < inputObjects.length; i++)//for every input 
+		{
+			//get its type
+			//process its value accordingly
+			String type = inputObjects[i].type;
+			if (type.equalsIgnoreCase(filteredRows))
+			{
+				fRows = (FilteredRows)cast(inputObjects[i].value, FilteredRows.class);
+				//TODO handling filters still has to be done
+	
+				data = DataService.getFilteredRows(fRows.columnIds, fRows.filters, null);
+				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
-				ArrayList<Integer> ids = new ArrayList<Integer>();
-				ArrayList<Object> values = (ArrayList<Object>) value;
-				for(int i = 0; i < values.size(); i++)
-				{	
-					StringMap<Object> strMap = (StringMap<Object>) values.get(i);
-					ids.add((Integer) ((Double) strMap.get("id")).intValue());
+				// assign each columns to proper column name
+				for(int x =  0; x < inputObjects[i].names.length;  x++) {
+					scriptInputs.put(inputObjects[i].names[x], columnData[x]);
 				}
 				
-				Object[][] data = (Object[][]) AWSUtils.transpose(DataService.getFilteredRows(Ints.toArray(ids), filters, null).recordData);
-				input.put(key, data);
-			}
-		}
-		
-		if(colIds.size() > 0) {
-			// use the collection of ids from above to retrieve the data.
-			WeaveRecordList data = DataService.getFilteredRows(Ints.toArray(colIds), filters, null);
-			
-			//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
-			if(remapValues.length > 0)//only if remapping needs to be done
-			{
-				for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
-				{
-					int index = 0;
-					ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
-					//we need this to know which column to handle for remapping
-					for(int y = 0; y < remapValues.length; y++)
-					{
-						ReMapObjects singleObject = remapValues[y];
-						for(int t=0; t< colIds.size(); t++)
-						{
-							if(singleObject.columnsToRemapId == colIds.get(t))
-							{
-								index = t;//use index to loop through data
-								remapObject = remapValues[y];
-							}
-						}
-					}
-					
-					//check the type of the original data to be remapped
-					Object column_to_remap = null;//resetting it every time
-					Object castedOriginalValue = null;
-					column_to_remap = data.recordData[0][index];//TODO remove hardcode this has to be done only once
-					try{
-						castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
-					}
-					catch(Exception e){
-						throw e;
-					}
-					
-					for(int x = 0; x < data.recordData.length; x++)
-					{
-						
-						if(data.recordData[x][index].equals(castedOriginalValue))
-						{
-							data.recordData[x][index] = remapObject.reMappedValue;
-							
-						}
-						
-					}
-				}//loop ends for one remapObject
 				
 			}
-			//***************************end of REMAPPING********************************************
-			
-			// transpose the data to obtain the column form
-			Object[][] columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-			
-			// assign each columns to proper column name
-			for(int i =  0; i < colNames.size(); i++) {
-				input.put(colNames.get(i), columnData[i]);
+			//TODO handle remaining types of input objects
+			else 
+			{
+				scriptInputs.put(inputObjects[i].names[i], inputObjects[i].value);
 			}
+			
 		}
+ 		//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
+		if(remapValues.length > 0)//only if remapping needs to be done
+		{
+			for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
+			{
+				int index = 0;
+				ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
+				//we need this to know which column to handle for remapping
+				for(int y = 0; y < remapValues.length; y++)
+				{
+					ReMapObjects singleObject = remapValues[y];
+					for(int t=0; t< fRows.columnIds.length; t++)
+					{
+						if(singleObject.columnsToRemapId == fRows.columnIds[t])
+						{
+							index = t;//use index to loop through data
+							remapObject = remapValues[y];
+						}
+					}
+				}
+				
+				//check the type of the original data to be remapped
+				Object column_to_remap = null;//resetting it every time
+				Object castedOriginalValue = null;
+				column_to_remap = data.recordData[0][index];//TODO remove hardcode this has to be done only once
+				try{
+					castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
+				}
+				catch(Exception e){
+					throw e;
+				}
+				
+				for(int x = 0; x < data.recordData.length; x++)
+				{
+					
+					if(data.recordData[x][index].equals(castedOriginalValue))
+					{
+						data.recordData[x][index] = remapObject.reMappedValue;
+						
+					}
+					
+				}
+			}//loop ends for one remapObject
+			
+		}//***************************end of REMAPPING********************************************
+			
 		
-		this.scriptInputs = input;
 		return true;
 	}
 	
@@ -176,10 +169,42 @@ public class ComputationalServlet extends WeaveServlet
 					 programPath, tempDirPath, stataScriptsPath);
 
 		}
- 	
+		//clearing scriptInputs before every successive run
+		scriptInputs.clear();
 		return resultData;
 	}
-		
+	
+	
+	/**
+	 * type : type of input object Example filtered columns, single column, booleans etc
+	 * name: parameter names to be assigned in computation engine
+	 * value : value entered on the client side
+	 */
+	public static class InputObjects
+	{
+		public String type;
+		public String[] names;
+		public Object value;
+	}
+	
+	
+	/**
+	 * columnIds : the ids of the column data to be retrieved as script input
+	 * columnTitles : the titles of the same columns to be used to assign in R/STATA
+	 * filters : any filters that will be applied on the data before executing script
+	 */
+	public static class FilteredRows
+	{
+		public int[] columnIds;
+		public NestedColumnFilters filters;
+	}	
+	
+	
+	/**
+	 * columnsToRemapId : id of the column whose values are going to be remapped
+	 * originalValue the original data
+	 * reMappedValue : the value that will substitute the original value before script execution
+	 */
 	public static class ReMapObjects
 	{
 		 public int columnsToRemapId;
