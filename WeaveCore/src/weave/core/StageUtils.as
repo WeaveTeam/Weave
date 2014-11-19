@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.display.Stage;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -85,6 +86,23 @@ package weave.core
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
 		public static function get POINT_CLICK_EVENT():String { return EventCallbackCollection.POINT_CLICK_EVENT; }
+		
+		/**
+		 * Adds event listeners to handle clicking on a single pixel.
+		 */
+		public static function addPointClickListener(target:EventDispatcher, listener:Function):void
+		{
+			var p:Point = new Point();
+			function handleEvent(event:MouseEvent):void
+			{
+				if (event.type == MouseEvent.MOUSE_DOWN)
+					p.x = event.stageX, p.y = event.stageY;
+				else if (p.x == event.stageX && p.y == event.stageY)
+					listener(event);
+			}
+			target.addEventListener(MouseEvent.MOUSE_DOWN, handleEvent);
+			target.addEventListener(MouseEvent.CLICK, handleEvent);
+		}
 		
 		/**
 		 * This is a special pseudo-event type supported by StageUtils.
