@@ -149,9 +149,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	var queryObjectTreeData = buildTree(queryService.queryObject);
 	
-	var setObjectAtPath = function(obj, path, value)
+	$scope.getPath = function(node) {
+		var path = [];
+		while (node.parent)
+		{
+			path.unshift(node.data.title);
+			node = node.parent;
+		}
+		return path;
+	};
+	
+	$scope.setValueAtPath = function(obj, path, value)
 	{
-		path.shift();
+		path.shift(); // throw away root
 		
 		for (var i = 0; i < path.length - 1; i++)
 	        obj = obj[path[i]];
@@ -187,7 +197,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				this.reactivate();
 			},
 			onActivate: function(node) {
-				$scope.selectedValue = node.data.value;
+				$scope.selectedNode = node;
+				$scope.selectedValue = node.data;
+				$scope.selectedKey = node.data.title;
 				$scope.$apply();
 			},
 			debugLevel: 0
@@ -206,28 +218,26 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		return data;
 	};
 	
-	var convertToObj = function(tableData) {
-		var obj = {};
-		for (var i in tableData) {
-			obj[tableData[i].property] = tableData[i].value;
-		}
-		return obj;
-	};
-	
 	$scope.qobjData = convertToTableFormat(queryService.queryObject);
 	$scope.selectedItems = [];
+	$scope.selectedValue = {};
 	
-	$scope.$watch('selectedValue', function () {
-		if(typeof $scope.selectedValue != 'object')
-		{
-			$scope.isValue = true;
-			$scope.qobjData = [];
-		} else {
-			$scope.isValue = false;
-			if($scope.selectedValue)
+	$scope.$watch('selectedValue.value', function () {
+		if($scope.selectedValue.value) {
+			if(typeof $scope.selectedValue.value != 'object')
 			{
-				$scope.qobjData = convertToTableFormat($scope.selectedValue);
+				$scope.isValue = true;
+				
+				var val = $scope.selectedValue.value;
+				try { val = JSON.parse($scope.selectedValue.value); } catch(e) {}
+				$scope.setValueAtPath($scope.queryService.queryObject, $scope.getPath($scope.selectedNode), val);
+				$scope.selectedVal = $scope.selectedValue.value;
+			} else {
+				$scope.isValue = false;
+				$scope.qobjData = convertToTableFormat($scope.selectedValue.value);
 			}
+		} else {
+			$scope.isValue = true;
 		}
 	});
 	
@@ -247,16 +257,10 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			try {
 				edited.value = JSON.parse(edited.value);
 			} catch(e) {}
-			$scope.selectedValue[edited.property] = edited.value;
+			$scope.selectedValue.value[edited.property] = edited.value;
 		}
 	});
-	
-	$scope.updateqobjData = function(tableData) {
-		console.log(tableData);
-		console.log($scope.selectedPath);
-		setObjectAtPath(queryService.queryObject, $scope.selectedPath, convertToObj(tableData));
-	};
-	
+
 	 $("#queryObjectPanel" ).draggable().resizable();;
 	
 	 

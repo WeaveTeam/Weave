@@ -331,7 +331,7 @@
   					<div ng-if="!isValue" style="width: 50%; height: 80%; float:right">
  						<div class="gridStyle" ng-grid="qobjGridOptions"></div>
   					</div>
-  					<textarea ng-if="isValue" ng-model = 'selectedValue' style="width: 50%; height: 80%; float:right"/>
+  					<textarea ng-show="isValue" ng-model = "selectedValue.value"  style="width: 50%; height: 80%; float:right"/>
 				</div>
 			</div>
 	</div>
