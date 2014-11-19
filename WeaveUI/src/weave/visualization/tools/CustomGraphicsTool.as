@@ -101,22 +101,10 @@ package weave.visualization.tools
 				{
 					label: lang("Edit session state"),
 					click: toggleControlPanel
-				},{
-					label: lang("Select attributes"),
-					click: selectAttributes
 				}
 			];
 			
 			vars.childListCallbacks.addImmediateCallback(this, handleVarList);
-		}
-		
-		private function selectAttributes():void
-		{
-			var attrs:Array = getSelectableAttributes();
-			if (attrs.length)
-				AttributeSelectorPanel.open(attrs[0]);
-			else
-				reportError("No attributes to select.");
 		}
 		
 		private function handleVarList():void

@@ -146,6 +146,11 @@ package weave.ui
 		
 		private var rootItem:WeaveMenuItem;
 		
+		public function getMenuItems():Array
+		{
+			return rootItem ? rootItem.children : null;
+		}
+		
 		override public function set dataProvider(value:Object):void
 		{
 			if (getQualifiedClassName(value) == 'Object')
@@ -163,6 +168,8 @@ package weave.ui
 		{
 			if (!dataProvider || !_uiParent.enabled)
 				return;
+			
+			hide();
 			
 			var stage:Stage = WeaveAPI.StageUtils.stage;
 			var xMin:Number = 0;
