@@ -22,7 +22,6 @@ package weave.utils
 	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
 	
-	import weave.Weave;
 	import weave.api.primitives.IBounds2D;
 
 	/**
@@ -94,11 +93,11 @@ package weave.utils
 					bitmapText.maxHeight = itemScreenBounds.getYCoverage();
 				break;
 				case BitmapText.VERTICAL_ALIGN_BOTTOM:
-					bitmapText.y = itemScreenBounds.getYMax();
+					bitmapText.y = itemScreenBounds.getYNumericMax();
 					bitmapText.maxHeight = itemScreenBounds.getYCoverage();
 				break;
 				case BitmapText.VERTICAL_ALIGN_TOP:
-					bitmapText.y = itemScreenBounds.getYMin();
+					bitmapText.y = itemScreenBounds.getYNumericMin();
 					bitmapText.maxHeight = itemScreenBounds.getYCoverage();
 				break;
 			}

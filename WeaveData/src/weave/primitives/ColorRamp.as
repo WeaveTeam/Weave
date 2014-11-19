@@ -25,15 +25,11 @@ package weave.primitives
 	import flash.display.LineScaleMode;
 	import flash.utils.ByteArray;
 	
-	import org.osmf.layout.ScaleMode;
-	
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	
 	/**
-	 * Makes a colorRamp xml definition useful through a getColorFromNorm() function.
-	 * 
 	 * @author adufilie
 	 * @author abaumann
 	 */
@@ -188,7 +184,6 @@ package weave.primitives
 		}
 		
 		/**
-		 * getColorFromNorm
 		 * @param normValue A value between 0 and 1.
 		 * @return A color.
 		 */
