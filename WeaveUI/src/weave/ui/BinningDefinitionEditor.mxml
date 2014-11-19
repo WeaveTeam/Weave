@@ -115,9 +115,9 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<mx:HRule width="100%" visible="{showNoneOption}" includeInLayout="{showNoneOption}"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			<mx:HBox width="100%" verticalAlign="middle" visible="{showNoneOption}" includeInLayout="{showNoneOption}">
 				<mx:RadioButton id="noneRadio" label="{lang('None')}" groupName="typeGroup" width="100%" data="{null}"/>
 				<ui:HelpComponent label="{noneRadio.label}">
 					The data will not be binned.
@@ -161,6 +161,8 @@
 			import weave.data.BinningDefinitions.QuantileBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
+			
+			[Bindable] public var showNoneOption:Boolean = true;
 			
 			public function setTarget(object:ILinkableObject):void
 			{

@@ -22,7 +22,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	
-	import weave.Weave;
+	import weave.api.copySessionState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -70,7 +70,7 @@ package weave.visualization.plotters
 			linkSessionState(filteredKeySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
-			registerSpatialProperty(fillStyle.color.internalDynamicColumn);
+			registerSpatialProperty(fillStyle.color.internalDynamicColumn, setBinnedColumn);
 
 			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
@@ -84,17 +84,30 @@ package weave.visualization.plotters
 			return [fillStyle.color, columnToAggregate];
 		}
 		
-		/**
-		 * This column object may change and it may be null, depending on the session state.
-		 * This function is provided for convenience.
-		 */		
-		public function get internalBinnedColumn():BinnedColumn
+		public const binnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, setColorColumn);
+		private function setColorColumn():void
 		{
-			var cc:ColorColumn = internalColorColumn;
-			if (cc)
-				return cc.getInternalColumn() as BinnedColumn
-			return null;
+			var colorBinCol:BinnedColumn = internalColorColumn ? internalColorColumn.getInternalColumn() as BinnedColumn : null;
+			if (!colorBinCol)
+				return;
+			
+			if (colorBinCol.binningDefinition.internalObject)
+				copySessionState(binnedColumn, colorBinCol);
+			else
+				copySessionState(binnedColumn.internalDynamicColumn, colorBinCol.internalDynamicColumn);
 		}
+		private function setBinnedColumn():void
+		{
+			var colorBinCol:BinnedColumn = internalColorColumn ? internalColorColumn.getInternalColumn() as BinnedColumn : null;
+			if (!colorBinCol)
+				return;
+			
+			if (colorBinCol.binningDefinition.internalObject)
+				copySessionState(colorBinCol, binnedColumn);
+			else
+				copySessionState(colorBinCol.internalDynamicColumn, binnedColumn.internalDynamicColumn);
+		}
+		
 		/**
 		 * This column object may change and it may be null, depending on the session state.
 		 * This function is provided for convenience.
@@ -151,14 +164,10 @@ package weave.visualization.plotters
 		{
 			output.reset();
 			
-			var binCol:BinnedColumn = internalBinnedColumn;
-			if (binCol)
-			{
-				if (horizontalMode.value)
-					output.setYRange(-0.5, Math.max(1, binCol.numberOfBins) - 0.5);
-				else
-					output.setXRange(-0.5, Math.max(1, binCol.numberOfBins) - 0.5);
-			}
+			if (horizontalMode.value)
+				output.setYRange(-0.5, Math.max(1, binnedColumn.numberOfBins) - 0.5);
+			else
+				output.setXRange(-0.5, Math.max(1, binnedColumn.numberOfBins) - 0.5);
 		}
 		
 		/**
@@ -166,21 +175,14 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var binCol:BinnedColumn = internalBinnedColumn;
-			if (binCol == null)
-			{
-				initBoundsArray(output, 0);
-				return;
-			}
-			
-			var binIndex:Number = binCol.getValueFromKey(recordKey, Number);
+			var binIndex:Number = binnedColumn.getValueFromKey(recordKey, Number);
 			if (isNaN(binIndex))
 			{
 				initBoundsArray(output, 0);
 				return;
 			}
 			
-			var keysInBin:Array = binCol.getKeysFromBinIndex(binIndex) || [];
+			var keysInBin:Array = binnedColumn.getKeysFromBinIndex(binIndex) || [];
 			var agCol:IAttributeColumn = columnToAggregate.getInternalColumn();
 			var binHeight:Number = agCol ? getAggregateValue(keysInBin) : keysInBin.length;
 			
@@ -205,9 +207,6 @@ package weave.visualization.plotters
 		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var i:int;
-			var binCol:BinnedColumn = internalBinnedColumn;
-			if (binCol == null)
-				return;
 			
 			// convert record keys to bin keys
 			// save a mapping of each bin key found to a value of true
@@ -215,7 +214,7 @@ package weave.visualization.plotters
 			var _tempBinKeyToSingleRecordKeyMap:Object = new Object();
 			for (i = 0; i < recordKeys.length; i++)
 			{
-				binName = binCol.getValueFromKey(recordKeys[i], String);
+				binName = binnedColumn.getValueFromKey(recordKeys[i], String);
 				var array:Array = _tempBinKeyToSingleRecordKeyMap[binName] as Array
 				if (!array)
 					array = _tempBinKeyToSingleRecordKeyMap[binName] = [];
@@ -225,7 +224,7 @@ package weave.visualization.plotters
 			var binNames:Array = [];
 			for (binName in _tempBinKeyToSingleRecordKeyMap)
 				binNames.push(binName);
-			var allBinNames:Array = binCol.binningDefinition.getBinNames();
+			var allBinNames:Array = binnedColumn.binningDefinition.getBinNames();
 			
 			// draw the bins
 			// BEGIN template code for defining a drawPlot() function.
@@ -239,7 +238,7 @@ package weave.visualization.plotters
 				binName = binNames[i];
 				var keys:Array = _tempBinKeyToSingleRecordKeyMap[binName] as Array;
 				if (!drawPartialBins.value)
-					keys = binCol.getKeysFromBinName(binName);
+					keys = binnedColumn.getKeysFromBinName(binName);
 				
 				var binIndex:int = allBinNames.indexOf(binName);
 				var binHeight:Number = agCol ? getAggregateValue(keys) : keys.length;
@@ -259,8 +258,16 @@ package weave.visualization.plotters
 	
 				// draw rectangle for bin
 				graphics.clear();
-				lineStyle.beginLineStyle(keys[0], graphics);
-				fillStyle.beginFillStyle(keys[0], graphics);
+				lineStyle.beginLineStyle(null, graphics);
+				var fillStyleParams:Array = fillStyle.getBeginFillParams(keys[0]);
+				if (fillStyleParams)
+				{
+					var colorBinCol:BinnedColumn = internalColorColumn ? internalColorColumn.getInternalColumn() as BinnedColumn : null;
+					if (colorBinCol && !colorBinCol.binningDefinition.internalObject)
+						fillStyleParams[0] = internalColorColumn.ramp.getColorFromNorm(binIndex / (allBinNames.length - 1));
+					if (isFinite(fillStyleParams[0]))
+						graphics.beginFill.apply(graphics, fillStyleParams);
+				}
 				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 				graphics.endFill();
 				// flush the tempShape "buffer" onto the destination BitmapData.
@@ -278,11 +285,6 @@ package weave.visualization.plotters
 		[Deprecated(replacement="fillStyle.color.internalDynamicColumn")] public function set dynamicColorColumn(value:Object):void
 		{
 			setSessionState(fillStyle.color.internalDynamicColumn, value);
-		}
-		[Deprecated(replacement="internalBinnedColumn")] public function set binnedColumn(value:Object):void
-		{
-			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-			setSessionState(internalBinnedColumn, value);
 		}
 		[Deprecated(replacement="columnToAggregate")] public function set sumColumn(value:Object):void
 		{
