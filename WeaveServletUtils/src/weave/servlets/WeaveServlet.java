@@ -939,6 +939,9 @@ public class WeaveServlet extends HttpServlet
 		else
 			message = exception.getMessage();
 		
+		if (message == null)
+			message = "null";
+		
 		if (moreInfo != null)
 			message += "\n" + moreInfo;
 		
