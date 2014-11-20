@@ -42,7 +42,7 @@
 		<mx:VBox height="100%">
 			<mx:Label text="{lang('Customize')}" fontWeight="bold"/>
 			<mx:HBox height="100%" width="100%" horizontalGap="0">
-				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
+				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, 0, 1)"
 						   borderStyle="solid" borderColor="0x000000"
 						   width="20" height="100%"/>
 				<mx:List id="colorsList"
@@ -213,7 +213,7 @@
 				if (item)
 					colorRampList.scrollToIndex(colorRampList.selectedIndex);
 				
-				colorRamp.draw(colorRampCanvas, true);
+				colorRamp.draw(colorRampCanvas, 0, 1);
 			}
 			
 			public function updateNewColorScale():void

@@ -156,14 +156,17 @@ package weave.utils
 			var ignoreKeyType:Boolean = !foreignKeyType || foreignKeyType == DataType.STRING;
 			var cubekeys:Array = getAssociatedKeys(keyColumn, key, ignoreKeyType);
 			
-			for each (var cubekey:IQualifiedKey in cubekeys)
+			if (cubekeys && cubekeys.length == 1)
 			{
-				if (filter.getValueFromKey(cubekey, String) == filterValue)
+				for each (var cubekey:IQualifiedKey in cubekeys)
 				{
-					if (dataType === IQualifiedKey)
-						return cubekey;
-					var val:Object = getValueFromKey(data, cubekey, dataType);
-					return val;
+					if (filter.getValueFromKey(cubekey, String) == filterValue)
+					{
+						if (dataType === IQualifiedKey)
+							return cubekey;
+						var val:Object = getValueFromKey(data, cubekey, dataType);
+						return val;
+					}
 				}
 			}
 			return cast(undefined, dataType);

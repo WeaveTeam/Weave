@@ -46,6 +46,14 @@ package weave.utils
 		}
 		
 		/**
+		 * Cancels the last call to begin().
+		 */
+		public static function cancel():void
+		{
+			debugTimes.pop();
+		}
+		
+		/**
 		 * This will report the time since the last call to begin() or lap().
 		 * @param debugString A string to print using trace().
 		 * @param debugStrings Additional strings to print using trace(), which will be separated by spaces.

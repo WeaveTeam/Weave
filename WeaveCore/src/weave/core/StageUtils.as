@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.display.Stage;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -85,6 +86,23 @@ package weave.core
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
 		public static function get POINT_CLICK_EVENT():String { return EventCallbackCollection.POINT_CLICK_EVENT; }
+		
+		/**
+		 * Adds event listeners to handle clicking on a single pixel.
+		 */
+		public static function addPointClickListener(target:EventDispatcher, listener:Function):void
+		{
+			var p:Point = new Point();
+			function handleEvent(event:MouseEvent):void
+			{
+				if (event.type == MouseEvent.MOUSE_DOWN)
+					p.x = event.stageX, p.y = event.stageY;
+				else if (p.x == event.stageX && p.y == event.stageY)
+					listener(event);
+			}
+			target.addEventListener(MouseEvent.MOUSE_DOWN, handleEvent);
+			target.addEventListener(MouseEvent.CLICK, handleEvent);
+		}
 		
 		/**
 		 * This is a special pseudo-event type supported by StageUtils.
@@ -340,7 +358,11 @@ package weave.core
 				now = getTimer();
 				// stop when max computation time is reached for this frame
 				if (now > allStop)
+				{
+					if (debug_callLater)
+						DebugTimer.cancel();
 					return;
+				}
 				
 				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
 				args = queue.shift();
@@ -389,6 +411,8 @@ package weave.core
 					// if max computation time was reached for this frame or we have visited all priorities, stop now
 					if (now > allStop || _activePriority == lastPriority)
 					{
+						if (debug_callLater)
+							DebugTimer.cancel();
 						if (debug_fps)
 							trace('spent',currentFrameElapsedTime,'ms');
 						return;
@@ -400,7 +424,11 @@ package weave.core
 						remaining += (_priorityCallLaterQueues[i] as Array).length;
 					// stop if no more entries
 					if (remaining == 0)
+					{
+						if (debug_callLater)
+							DebugTimer.cancel();
 						break;
+					}
 					
 					// switch to next priority, reset elapsed time
 					_activePriority++;
@@ -418,6 +446,8 @@ package weave.core
 					countdown = queue.length;
 					
 					// restart loop to check stopping condition
+					if (debug_callLater)
+						DebugTimer.cancel();
 					continue;
 				}
 				

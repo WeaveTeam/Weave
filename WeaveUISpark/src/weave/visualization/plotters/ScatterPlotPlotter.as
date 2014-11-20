@@ -83,10 +83,6 @@ package weave.visualization.plotters
 		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
 		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
 		
-		// for line connecting demo
-		public var connectTheDots:Boolean = false;
-		private var prevPoint:Point;
-		
 		// delare dependency on statistics (for norm values)
 		private const _sizeByStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(sizeBy));
 		public var hack_horizontalBackgroundLineStyle:Array;
@@ -150,22 +146,6 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function drawPlotAsyncIteration(task:IPlotTask):Number
-		{
-			// this template will draw one record per iteration
-			if (task.iteration == 0)
-			{
-				if (!task.asyncState)
-					task.asyncState = {};
-				if (!task.asyncState.prevPoint)
-					task.asyncState.prevPoint = new Point();
-				var p:Point = task.asyncState.prevPoint as Point;
-				p.x = p.y = NaN;
-			}
-			prevPoint = task.asyncState.prevPoint as Point;
-			return super.drawPlotAsyncIteration(task);
-		}
-		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
@@ -206,12 +186,6 @@ package weave.visualization.plotters
 				radius = defaultScreenRadius.value;
 			}
 			
-			var hasPrevPoint:Boolean = connectTheDots && isFinite(prevPoint.x) && isFinite(prevPoint.y);
-			if (hasPrevPoint)
-			{
-				graphics.moveTo(prevPoint.x, prevPoint.y);
-				graphics.lineTo(tempPoint.x, tempPoint.y);
-			}
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
@@ -244,9 +218,6 @@ package weave.visualization.plotters
 				}
 			}
 			graphics.endFill();
-			
-			prevPoint.x = tempPoint.x;
-			prevPoint.y = tempPoint.y;
 		}
 		
 		// backwards compatibility

@@ -190,6 +190,14 @@ internal class ColumnStatistics implements IColumnStatistics
 	}
 	
 	/**
+	 * @inheritDoc
+	 */
+	public function hack_getNumericData():Dictionary
+	{
+		return validateCache(hack_getNumericData);
+	}
+	
+	/**
 	 * Gets a Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.
 	 */
 	public function getRunningTotals():Dictionary
@@ -247,6 +255,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	private var outKeys:Array;
 	private var outNumbers:Array;
 	private var sortIndex:Dictionary; // IQualifiedKey -> int
+	private var hack_numericData:Dictionary; // IQualifiedKey -> Number
 	private var median:Number;
 	
 	private function asyncStart():void
@@ -267,6 +276,7 @@ internal class ColumnStatistics implements IColumnStatistics
 		outKeys = new Array(keys.length);
 		outNumbers = new Array(keys.length);
 		sortIndex = new Dictionary(true);
+		hack_numericData = new Dictionary(true);
 		median = NaN;
 		
 		runningTotals = new Dictionary(true);
@@ -307,6 +317,7 @@ internal class ColumnStatistics implements IColumnStatistics
 				//TODO - make runningTotals use sorted order instead of original key order
 				runningTotals[key] = sum;
 				
+				hack_numericData[key] = value;
 				outKeys[count] = key;
 				outNumbers[count] = value;
 				++count;
@@ -363,6 +374,7 @@ internal class ColumnStatistics implements IColumnStatistics
 		cache[getStandardDeviation] = standardDeviation;
 		cache[getMedian] = median;
 		cache[getSortIndex] = sortIndex;
+		cache[hack_getNumericData] = hack_numericData;
 		cache[getRunningTotals] = runningTotals;
 		
 		//trace('stats calculated', debugId(this), debugId(column), String(column));

@@ -34,10 +34,8 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableVariable;
-			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.BitmapText;
@@ -124,20 +122,10 @@
 				}
 				
 				unlinkSessionState(heightAxisTickCountRequested, binAxisPlotter.tickCountRequested);
-				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
-				if (binnedColumn)
-				{
-					binAxisPlotter.tickCountRequested.value = binnedColumn.numberOfBins;
-					binAxisPlotter.tickMinValue.value = 0;
-					binAxisPlotter.tickMaxValue.value = binnedColumn.numberOfBins - 1;	
-					binAxisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber, binnedColumn);
-				}
-				else
-				{
-					binAxisPlotter.tickMinValue.value = NaN;
-					binAxisPlotter.tickMaxValue.value = NaN;	
-					binAxisPlotter.setLabelFunction(null, null);
-				}
+				binAxisPlotter.tickCountRequested.value = plotter.binnedColumn.numberOfBins;
+				binAxisPlotter.tickMinValue.value = 0;
+				binAxisPlotter.tickMaxValue.value = plotter.binnedColumn.numberOfBins - 1;	
+				binAxisPlotter.setLabelFunction(plotter.binnedColumn.deriveStringFromNumber, plotter.binnedColumn);
 				binAxisPlotter.forceTickCount.value = true;
 				
 				heightAxisPlotter.tickMinValue.value = NaN;
@@ -165,7 +153,7 @@
 				else
 				{
 					// fall back to using binnedColumn
-					heightAxisPlotter.setLabelFunction(null, binnedColumn);
+					heightAxisPlotter.setLabelFunction(null, plotter.binnedColumn);
 				}
 				
 				xAxisPlotter.setSideAxisName(plotter.horizontalMode.value ? heightAxisTitle : binAxisTitle, 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
@@ -176,7 +164,7 @@
 	<editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Basic')}">
 			<ui:DynamicColumnComponent id="dataColumnComponent"/>
-			<ui:BinningDefinitionEditor id="binEditor"/>
+			<ui:BinningDefinitionEditor id="binEditor" showNoneOption="false"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
 			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
@@ -217,7 +205,7 @@
 					else
 						cRampEditor.colorRamp = null;
 					
-					binEditor.setTarget(outerDocument.plotter.internalBinnedColumn);
+					binEditor.setTarget(outerDocument.plotter.binnedColumn);
 					dataColumnComponent.columnWrapper = outerDocument.plotter.fillStyle.color;
 				}
 				

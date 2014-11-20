@@ -37,6 +37,7 @@ package weave.editors
 	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.UIUtils;
 	import weave.primitives.WeaveTreeItem;
@@ -78,6 +79,7 @@ package weave.editors
 			if (ln)
 			{
 				var input:IndentTextInput = new IndentTextInput();
+				input.prompt = lang("number");
 				input.translate = true;
 				input.label = label;
 				linkBindableProperty(ln, input, 'text', 250, true);
@@ -89,7 +91,10 @@ package weave.editors
 			{
 				var codeEditor:CodeEditor = new CodeEditor();
 				codeEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(event:Event):void {
-					linkBindableProperty(lv, event.target, 'text', 500, true)
+					if (lv is LinkableString || lv is LinkableNumber || lv is LinkableBoolean || !JsonSynchronizer.available)
+						linkBindableProperty(lv, event.target, 'text', 500, true)
+					else
+						new JsonSynchronizer(lv, codeEditor, 'text');
 					
 					var eb:ExpandButton = ExpandButton.makeExpandable(codeEditor, false, 24);
 					eb.addEventListener(MouseEvent.CLICK, function(e:Event):void {
@@ -173,6 +178,7 @@ import flash.utils.Dictionary;
 import mx.binding.utils.BindingUtils;
 import mx.containers.VBox;
 import mx.core.IUIComponent;
+import mx.core.UIComponent;
 import mx.utils.ObjectUtil;
 
 import weave.api.core.ILinkableHashMap;
@@ -284,33 +290,87 @@ internal class ComponentUpdater
 
 internal class JsonSynchronizer
 {
-	public static function available():Boolean
+	public static function get available():Boolean
 	{
 		return ClassUtils.getClassDefinition('JSON') != null;
 	}
 	
-	public function JsonSynchronizer(linkableVariable:ILinkableVariable, host:DisplayObject, prop:String)
+	public function JsonSynchronizer(linkableVariable:ILinkableVariable, host:UIComponent, prop:String, delay:uint = 500)
 	{
 		this.lv = linkableVariable;
 		this.host = host;
 		this.prop = prop;
 		
 		getCallbackCollection(lv).addImmediateCallback(host, handleObject, true);
-		BindingUtils.bindSetter(EventUtils.generateDelayedCallback(linkableVariable, handleJson, 500, true), this.host, this.prop);
+		BindingUtils.bindSetter(EventUtils.generateDelayedCallback(linkableVariable, handleJson, delay, true), this.host, this.prop);
 	}
 	
 	public var JSON:Object = ClassUtils.getClassDefinition('JSON');
 	public var lv:ILinkableVariable;
-	public var host:Object;
+	public var host:UIComponent;
 	public var prop:String;
+	private var refreshPending:Boolean;
 	
 	private function handleObject():void
 	{
-		host[prop] = JSON.stringify(lv.getSessionState());
+		refreshPending = true;
+		refreshHostOnFocusOut();
+	}
+	
+	private function refreshHostOnFocusOut():void
+	{
+		if (!refreshPending)
+			return;
+		
+		if (UIUtils.hasFocus(host))
+		{
+			host.callLater(refreshHostOnFocusOut);
+		}
+		else
+		{
+			refreshPending = false;
+			host[prop] = JSON.stringify(lv.getSessionState());
+			if (host.errorString)
+				host.errorString = null;
+		}
 	}
 	
 	private function handleJson(value:* = null):void
 	{
-		lv.setSessionState(JSON.parse(value));
+		// do nothing if the host component does not have focus
+		if (!UIUtils.hasFocus(host))
+			return;
+		
+		if (!refreshPending)
+		{
+			refreshPending = true;
+			refreshHostOnFocusOut();
+		}
+		
+		var string:String = value;
+		var object:Object;
+		try
+		{
+			object = JSON.parse(value);
+			if (host.errorString)
+				host.errorString = null;
+		}
+		catch (e:Error)
+		{
+			if (value is String)
+			{
+				var number:Number = StandardLib.asNumber(value);
+				if (isFinite(number))
+				{
+					lv.setSessionState(number);
+					return;
+				}
+			}
+			// do nothing because user input was invalid
+			host.errorString = lang("Invalid JSON");
+			return;
+		}
+		
+		lv.setSessionState(object);
 	}
 }

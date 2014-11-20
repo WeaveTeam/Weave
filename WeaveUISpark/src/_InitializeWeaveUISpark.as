@@ -24,12 +24,14 @@ package
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.BackgroundTextPlotter;
 	import weave.visualization.plotters.CustomGlyphPlotter;
+	import weave.visualization.plotters.EquationPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GeometryRelationPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.Histogram2DPlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.LineChartPlotter;
 	import weave.visualization.plotters.OldParallelCoordinatesPlotter;
 	import weave.visualization.plotters.RectanglePlotter;
 	import weave.visualization.plotters.ScatterPlotPlotter;
@@ -54,12 +56,14 @@ package
 			AxisLabelPlotter,
 			BackgroundTextPlotter,
 			CustomGlyphPlotter,
+			EquationPlotter,
 			GeometryLabelPlotter,
 			GeometryPlotter,
 			GeometryRelationPlotter,
 			GridLinePlotter,
 			Histogram2DPlotter,
 			ImageGlyphPlotter,
+			LineChartPlotter,
 			SimpleParallelCoordinatesPlotter,
 			RectanglePlotter,
 			ScatterPlotPlotter,

@@ -62,10 +62,10 @@
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";
 				
-				visualization.plotManager.marginBottom.value = "5";
+				visualization.plotManager.marginBottom.value = "10";
 				visualization.plotManager.marginTop.value    = DEFAULT_MARGIN_TOP.toString();
-				visualization.plotManager.marginLeft.value   = "5";
-				visualization.plotManager.marginRight.value  = "5";
+				visualization.plotManager.marginLeft.value   = "10";
+				visualization.plotManager.marginRight.value  = "10";
 			}
 			
 			override protected function childrenCreated():void
@@ -169,7 +169,7 @@
 								   creationComplete="linkBindableProperty(outerDocument._plotter.shapeType, event.target, 'selectedItem')"/>
 			</ui:Indent>
 			<ui:Indent label="{lang('Max shape size')}">
-				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5"
+				<mx:HSlider liveDragging="true" minimum="10" maximum="100" tickInterval="10" snapInterval="5" width="100%" dataTipFormatFunction="{Math.round}"
 							creationComplete="linkBindableProperty(outerDocument._plotter.shapeSize, event.target, 'value')"/>
 			</ui:Indent>
 			<ui:ColorRampEditor id="cRampEditor"/>

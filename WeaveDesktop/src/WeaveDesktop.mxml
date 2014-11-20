@@ -42,7 +42,8 @@
 			}
 			private function doDragEnter(e:NativeDragEvent):void
 			{
-				NativeDragManager.acceptDragDrop(WeaveAPI.StageUtils.stage);
+				if (e.clipboard.hasFormat(ClipboardFormats.FILE_LIST_FORMAT) || e.clipboard.hasFormat(ClipboardFormats.URL_FORMAT))
+					NativeDragManager.acceptDragDrop(WeaveAPI.StageUtils.stage);
 			}
 			private function doDragDrop(e:NativeDragEvent):void
 			{

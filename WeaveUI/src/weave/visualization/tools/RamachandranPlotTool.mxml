@@ -169,8 +169,8 @@
 				var histo:HistogramTool = Weave.root.requestObject(null, HistogramTool, false);
 				histo.width = 300;
 				histo.title = lang("{0}(SubSelection)", histo.title);
-				copySessionState(histogramColumn, ColumnUtils.hack_findInternalDynamicColumn(histo.plotter.internalBinnedColumn));
-				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalObject as SimpleBinningDefinition;
+				copySessionState(histogramColumn, ColumnUtils.hack_findInternalDynamicColumn(histo.plotter.binnedColumn));
+				var sbd:SimpleBinningDefinition = histo.plotter.binnedColumn.binningDefinition.internalObject as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
 				// TEMPORARY SOLUTION until we start using VisToolGroup
 				var keySet:KeySet = histo.visualization.getMainPlotter().filteredKeySet.keyFilter.requestLocalObject(KeySet, false)

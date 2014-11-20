@@ -50,10 +50,9 @@ package weave.data.BinningDefinitions
 	{
 		public function NaturalJenksBinningDefinition()
 		{
-			this.numOfBins.value = 5; //defaults to 5 bins	
 		}
 		
-		public const numOfBins:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
+		public const numOfBins:LinkableNumber = registerLinkableChild(this,new LinkableNumber(5));
 		
 		// reusable temporary object
 		private static const _tempNumberClassifier:NumberClassifier = new NumberClassifier();

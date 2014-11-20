@@ -82,8 +82,8 @@ package
 				///////////////////////
 				// TEMPORARY SOLUTION (until everything is a plug-in.)
 				// run static initialization code to register weave implementations
-//				try
-//				{
+				try
+				{
 					/*
 					// before initializing other classes, initialize all public properties of this class
 					for each (var array:Object in DescribeType.getClassInfo(WeaveAPI).traits)
@@ -96,11 +96,11 @@ package
 					getDefinitionByName("_InitializeWeaveData"); 
 					getDefinitionByName("_InitializeWeaveUISpark");
 					getDefinitionByName("_InitializeWeaveUI");
-//				}
-//				catch (e:Error)
-//				{
-//					trace(e.getStackTrace() || e);
-//				}
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace() || e);
+				}
 				// END TEMPORARY SOLUTION
 				///////////////////////////
 			}

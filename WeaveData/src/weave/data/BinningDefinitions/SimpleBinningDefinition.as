@@ -24,6 +24,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -39,14 +40,12 @@ package weave.data.BinningDefinitions
 	{
 		public function SimpleBinningDefinition()
 		{
-			// we need a default value for the number of bins (in the spirit of a micro API).
-			numberOfBins.value = 10;
 		}
 		
 		/**
 		 * The number of bins to generate when calling deriveExplicitBinningDefinition().
 		 */
-		public const numberOfBins:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const numberOfBins:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 
 		/**
 		 * From this simple definition, derive an explicit definition.
