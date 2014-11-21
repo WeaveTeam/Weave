@@ -91,10 +91,10 @@ package weave.editors
 			{
 				var codeEditor:CodeEditor = new CodeEditor();
 				codeEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(event:Event):void {
-					if (!(lv is LinkableString) && JsonSynchronizer.available)
-						new JsonSynchronizer(lv, codeEditor, 'text');
-					else
+					if (lv is LinkableString || lv is LinkableNumber || lv is LinkableBoolean || !JsonSynchronizer.available)
 						linkBindableProperty(lv, event.target, 'text', 500, true)
+					else
+						new JsonSynchronizer(lv, codeEditor, 'text');
 					
 					var eb:ExpandButton = ExpandButton.makeExpandable(codeEditor, false, 24);
 					eb.addEventListener(MouseEvent.CLICK, function(e:Event):void {
@@ -357,6 +357,15 @@ internal class JsonSynchronizer
 		}
 		catch (e:Error)
 		{
+			if (value is String)
+			{
+				var number:Number = StandardLib.asNumber(value);
+				if (isFinite(number))
+				{
+					lv.setSessionState(number);
+					return;
+				}
+			}
 			// do nothing because user input was invalid
 			host.errorString = lang("Invalid JSON");
 			return;

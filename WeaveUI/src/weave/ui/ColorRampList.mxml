@@ -72,7 +72,7 @@
 								override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 								{
 									super.updateDisplayList(unscaledWidth, unscaledHeight);
-									colorRamp.draw(colorRampCanvas, false);
+									colorRamp.draw(colorRampCanvas, 1, 0);
 								}
 							]]>
 						</mx:Script>

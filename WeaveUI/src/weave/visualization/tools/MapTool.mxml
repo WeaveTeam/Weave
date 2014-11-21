@@ -28,7 +28,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
-			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
@@ -389,17 +389,12 @@
 			public function updateZoomSlider():void
 			{
 				if (zoomSlider)
-				{
-					currentlyUpdatingZoomSlider = true;
 					scaleRangeTabZoomSlider_value = zoomSlider.value = visualization.getZoomLevel();
-					currentlyUpdatingZoomSlider = false;
-				}
 			}
-			private var currentlyUpdatingZoomSlider:Boolean = false;
 			
 			internal function handleZoomSliderChange(event:Event):void
 			{
-				if (!currentlyUpdatingZoomSlider)
+				if (UIUtils.hasFocus(event.currentTarget as UIComponent))
 					visualization.setZoomLevel(event.currentTarget.value);
 			}
 			

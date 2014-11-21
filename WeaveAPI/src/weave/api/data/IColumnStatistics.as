@@ -84,5 +84,10 @@ package weave.api.data
 		 * Gets a Dictionary mapping IQualifiedKeys to sort indices derived from sorting the numeric values in the column.
 		 */
 		function getSortIndex():Dictionary;
+		
+		/**
+		 * TEMPORARY SOLUTION - Gets a Dictionary mapping IQualifiedKey to Numeric data.
+		 */
+		function hack_getNumericData():Dictionary;
 	}
 }

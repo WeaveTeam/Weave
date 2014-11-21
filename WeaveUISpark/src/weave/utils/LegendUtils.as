@@ -22,7 +22,6 @@ package weave.utils
 	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
 	
-	import weave.Weave;
 	import weave.api.primitives.IBounds2D;
 
 	/**
@@ -75,19 +74,34 @@ package weave.utils
 		 * @param xOffset The label X offset value.
 		 * @param clipRectangle A rectangle used for clipping, if desired. This is typically the bounds of the 
 		 * screen during a drawPlot or drawBackground call.
-		 */		
-		public static function renderLegendItemText(destination:BitmapData, text:String, itemScreenBounds:IBounds2D, xOffset:int, clipRectangle:Rectangle = null):void
+		 */
+		public static function renderLegendItemText(destination:BitmapData, text:String, itemScreenBounds:IBounds2D, xOffset:int, clipRectangle:Rectangle = null, verticalAlign:String = 'middle'):void
 		{
 			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			
 			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			
 			bitmapText.text = text;
+			bitmapText.verticalAlign = verticalAlign;
 			bitmapText.x = itemScreenBounds.getXNumericMin() + xOffset;
-			bitmapText.y = itemScreenBounds.getYCenter();
 			bitmapText.maxWidth = itemScreenBounds.getXCoverage() - xOffset;
-			bitmapText.maxHeight = itemScreenBounds.getYCoverage();
-			bitmapText.draw(destination, null, null, null, clipRectangle ); 
+			switch (verticalAlign)
+			{
+				default:
+				case BitmapText.VERTICAL_ALIGN_MIDDLE:
+					bitmapText.y = itemScreenBounds.getYCenter();
+					bitmapText.maxHeight = itemScreenBounds.getYCoverage();
+				break;
+				case BitmapText.VERTICAL_ALIGN_BOTTOM:
+					bitmapText.y = itemScreenBounds.getYNumericMax();
+					bitmapText.maxHeight = itemScreenBounds.getYCoverage();
+				break;
+				case BitmapText.VERTICAL_ALIGN_TOP:
+					bitmapText.y = itemScreenBounds.getYNumericMin();
+					bitmapText.maxHeight = itemScreenBounds.getYCoverage();
+				break;
+			}
+			bitmapText.draw(destination, null, null, null, clipRectangle); 
 		}
 		
 		private static const bitmapText:BitmapText = new BitmapText();

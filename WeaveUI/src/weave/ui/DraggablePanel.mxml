@@ -47,8 +47,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -85,6 +83,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.menus.WeaveMenuItem;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.NumberUtils;
@@ -259,17 +258,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				subMenuButton.smallIcon = true;
 				zOrderButton.data = [
 					{
-						label: lang('Reset'),
-						click: function():void { zOrder.value = 0; },
-						shown: function():Boolean { return zOrder.value != 0; }
-					},{
 						label: lang('Always above'),
 						click: function():void { zOrder.value = 1; },
-						shown: function():Boolean { return zOrder.value <= 0; }
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: function():Boolean { return zOrder.value > 0; }
 					},{
 						label: lang('Always below'),
 						click: function():void { zOrder.value = -1; },
-						shown: function():Boolean { return zOrder.value >= 0; }
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: function():Boolean { return zOrder.value < 0; }
+					},{
+						label: lang('Reset'),
+						click: function():void { zOrder.value = 0; },
+						shown: function():Boolean { return zOrder.value != 0; }
 					}
 				];
 				
@@ -304,19 +305,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
+				_moveImage.toolTip = lang(TOOLTIP_MOVE);
 				_moveImage.source = icon;
 				_moveImage.x = resizeBorderThickness;
 				_moveImage.y = resizeBorderThickness;
 				_moveImage.width = icon.width;
 				_moveImage.height = icon.height;
-//				_moveImage.toolTip = "Drag this icon to move the panel.";
-//				if (_controlPanel)
-//					_moveImage.toolTip += "  Double-click to open the control panel.";
 				_moveImage.scaleContent = false;
 				_moveImage.alpha = 0.25;
 				_moveImage.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
 				_moveImage.doubleClickEnabled = true;
 				_moveImage.addEventListener(MouseEvent.DOUBLE_CLICK, function(e:Event):void { toggleControlPanel(); });
+				
+				var moveImageSubMenu:SubMenu = new SubMenu(_moveImage, function():Array {
+					return WeaveMenuItem.createItems([
+						enableSubMenu.value ? subMenuButton.menu.getMenuItems() : null,
+						{label: lang(TOOLTIP_CONTROLS), shown: shouldShowUserControlButton, click: toggleControlPanel},
+						{label: lang(TOOLTIP_ATTRIBUTES), shown: shouldShowAttributeButton, click: handleAttributeButtonClick},
+						WeaveMenuItem.TYPE_SEPARATOR,
+						{label: lang(TOOLTIP_ZORDER_MENU), shown: enableZOrder, children: zOrderButton.menu.getMenuItems},
+						{label: lang(TOOLTIP_MINIMIZE), shown: minimizable, click: minimized},
+						{label: maximizeButton.toolTip, shown: maximizable, click: maximized},
+						{label: lang(TOOLTIP_CLOSE), shown: closeable, click: removePanel}
+					]);
+				});
+				moveImageSubMenu.setSubMenuEvents([], [MouseEvent.MOUSE_DOWN, Event.REMOVED_FROM_STAGE]);
+				StageUtils.addPointClickListener(_moveImage, function(event:Event):void { moveImageSubMenu.showSubMenu(); });
+				_moveImage.data = moveImageSubMenu;
+				
+				
 				
 				titleBar.doubleClickEnabled = true;
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
@@ -822,7 +839,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				copyCoordinatesFromSessionedProperties();
 				
 				setupButtonIcons(maximizeButton, maximized.value ? _unmaximizeIcon : _maximizeIcon);
-				maximizeButton.toolTip = maximized.value ? lang("Restore down") : lang(TOOLTIP_MAXIMIZE);
+				maximizeButton.toolTip = maximized.value ? lang(TOOLTIP_RESTORE) : lang(TOOLTIP_MAXIMIZE);
 			}
 			
 			private function handleBorderColorChange():void
@@ -1339,14 +1356,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _prevShouldShowAttributeButton:Boolean = false;
 			private function updateButtonsIfSelectableAttributesChanged():void
 			{
-				if (_prevShouldShowAttributeButton != shouldShowAttributeButton)
+				if (_prevShouldShowAttributeButton != shouldShowAttributeButton())
 				{
 					_prevShouldShowAttributeButton = !_prevShouldShowAttributeButton;
 					updateButtons();
 				}
 			}
 			
-			private function get shouldShowAttributeButton():Boolean
+			private function shouldShowUserControlButton():Boolean
+			{
+				return Weave.properties.enableToolControls.value
+					&& (_controlPanel || _editorFactory || WeaveAPI.EditorManager.getEditorClass(this));
+			}
+			
+			private function shouldShowAttributeButton():Boolean
 			{
 				return Weave.properties.enableToolControls.value
 					&& this is ISelectableAttributes
@@ -1386,10 +1409,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// left side
 				buttons = [userControlButton, subMenuButton, attributeButton];
 				conditions = [
-					Weave.properties.enableToolControls.value
-						&& (_controlPanel || _editorFactory || WeaveAPI.EditorManager.getEditorClass(this)),
+					shouldShowUserControlButton(),
 					enableSubMenu.value,
-					shouldShowAttributeButton
+					shouldShowAttributeButton()
 				];
 				for (i = 0; i < buttons.length; i++)
 				{
@@ -1646,12 +1668,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/**************************************************************************
 			 ************************** BEGIN STATIC SECTION **************************/
 			
+			public static const TOOLTIP_MOVE:String = "Click for menu or drag to move";
 			public static const TOOLTIP_CONTROLS:String = "Change settings";
 			public static const TOOLTIP_SUBMENU:String = "Menu";
 			public static const TOOLTIP_ATTRIBUTES:String = "Change attributes";
 			public static const TOOLTIP_ZORDER:String = "Toggle always above or below";
+			public static const TOOLTIP_ZORDER_MENU:String = "Z-Order";
 			public static const TOOLTIP_MINIMIZE:String = "Minimize";
 			public static const TOOLTIP_MAXIMIZE:String = "Maximize";
+			public static const TOOLTIP_RESTORE:String = "Restore Down";
 			public static const TOOLTIP_CLOSE:String = "Close";
 			
 			private static const _instances:Dictionary = new Dictionary();

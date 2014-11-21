@@ -245,7 +245,11 @@ package weave.primitives
 			catch (e:*)
 			{
 				if (!(e is ArgumentError))
+				{
+					if (e is Error)
+						trace((e as Error).getStackTrace());
 					throw e;
+				}
 			}
 			
 			// on ArgumentError, pass in this WeaveTreeItem as the first parameter

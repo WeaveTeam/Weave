@@ -23,7 +23,6 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
@@ -37,16 +36,13 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableOwner;
-	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
-	import weave.core.UntypedLinkableVariable;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -55,8 +51,6 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.CSVParser;
 	import weave.data.QKeyManager;
-	import weave.services.AMF3Servlet;
-	import weave.services.addAsyncResponder;
 	import weave.utils.HierarchyUtils;
 	
 	/**
@@ -79,21 +73,6 @@ package weave.data.DataSources
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		
 		private function typeofIsObject(value:Object):Boolean { return typeof value == 'object'; }
-		
-		/**
-		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
-		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
-		 */
-		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
-		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
-		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
-		private var _servlet:AMF3Servlet = null;
-		private function verifyServletParams(value:Object):Boolean
-		{
-			return value != null
-				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_METHOD)
-				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_PARAMS);
-		}
 		
 		private const asyncParser:CSVParser = registerLinkableChild(this, new CSVParser(true), handleCSVParser);
 		/**
@@ -134,7 +113,7 @@ package weave.data.DataSources
 		private var columnIds:Array = [];
 		private var keysVector:Vector.<IQualifiedKey>;
 		
-		private function handleParsedRows(rows:Array):void
+		protected function handleParsedRows(rows:Array):void
 		{
 			parsedRows = rows;
 			columnIds = rows && rows[0] is Array ? (rows[0] as Array).concat() : [];
@@ -332,60 +311,14 @@ package weave.data.DataSources
 		/**
 		 * Called when url session state changes
 		 */		
-		private function handleURLChange():void
+		protected function handleURLChange():void
 		{
-			var urlChanged:Boolean = detectLinkableObjectChange(handleURLChange, url);
-			var servletParamsChanged:Boolean = detectLinkableObjectChange(handleURLChange, servletParams);
-			if (urlChanged || servletParamsChanged)
+			if (detectLinkableObjectChange(handleURLChange, url) && url.value)
 			{
-				if (url.value)
-				{
-					// if url is specified, do not use csvDataString
-					csvData.setSessionState(null);
-					if (servletParams.value)
-					{
-						if (!_servlet || _servlet.servletURL != url.value)
-						{
-							disposeObject(_servlet);
-							_servlet = registerLinkableChild(this, new AMF3Servlet(url.value));
-						}
-						var token:AsyncToken = _servlet.invokeAsyncMethod(
-							servletParams.value[SERVLETPARAMS_PROPERTY_METHOD],
-							servletParams.value[SERVLETPARAMS_PROPERTY_PARAMS]
-						);
-						addAsyncResponder(token, handleServletResponse, handleServletError, getSessionState(this));
-					}
-					else
-					{
-						disposeObject(_servlet);
-						_servlet = null;
-						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
-					}
-				}
+				// if url is specified, do not use csvDataString
+				csvData.setSessionState(null);
+				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
 			}
-		}
-		
-		private function handleServletResponse(event:ResultEvent, sessionState:Object):void
-		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
-				return;
-			var data:Array = event.result as Array;
-			if (!data)
-			{
-				reportError('Result from servlet is not an Array');
-				return;
-			}
-			if (data.length && !(data[0] is Array))
-				data = WeaveAPI.CSVParser.convertRecordsToRows(data);
-			
-			handleParsedRows(data);
-			getCallbackCollection(this).triggerCallbacks();
-		}
-		private function handleServletError(event:FaultEvent, sessionState:Object):void
-		{
-			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)
-				return;
-			reportError(event);
 		}
 		
 		/**
@@ -469,7 +402,7 @@ package weave.data.DataSources
 		/**
 		 * Called when the CSV data is downloaded from a URL.
 		 */
-		private function handleCSVDownload(event:ResultEvent, token:Object = null):void
+		protected function handleCSVDownload(event:ResultEvent, token:Object = null):void
 		{
 			//debugTrace(this, "handleCSVDownload", url.value);
 			// Only handle this download if it is for current url.
@@ -482,7 +415,7 @@ package weave.data.DataSources
 		/**
 		 * Called when the CSV data fails to download from a URL.
 		 */
-		private function handleCSVDownloadError(event:FaultEvent, token:Object = null):void
+		protected function handleCSVDownloadError(event:FaultEvent, token:Object = null):void
 		{
 			reportError(event);
 		}
@@ -540,6 +473,12 @@ package weave.data.DataSources
 								break;
 							}
 						}
+					}
+					else if (attributeHierarchy.value)
+					{
+						var node:XML = HierarchyUtils.getFirstNodeContainingAttributes(attributeHierarchy.value.descendants(), HierarchyUtils.nodeFromMetadata(metadata));
+						if (node)
+							columnId = String(node.@[METADATA_COLUMN_NAME]) || String(node.@['name']);
 					}
 					
 					// backwards compatibility

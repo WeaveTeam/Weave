@@ -32,8 +32,8 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -45,7 +45,8 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
-	import weave.primitives.ColorRamp;
+	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
 	import weave.utils.LegendUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -105,7 +106,7 @@ package weave.visualization.plotters
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
-		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
+		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25));
 		/**
 		 * This is the line style used to draw the outline of the shape.
 		 */
@@ -134,6 +135,8 @@ package weave.visualization.plotters
 		 * @default string  
 		 */		
 		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		
+		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		private var _binToBounds:Array = [];
 		private var _binToString:Array = [];
@@ -193,7 +196,7 @@ package weave.visualization.plotters
 		{
 			// draw the bins that have no records in them in the background
 			_drawBackground = true;
-			drawBinnedPlot(filteredKeySet.keys, dataBounds, screenBounds, destination);
+			drawAll(filteredKeySet.keys, dataBounds, screenBounds, destination);
 			_drawBackground = false;
 		}
 
@@ -207,7 +210,8 @@ package weave.visualization.plotters
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (internalColorColumn == null)
 				return; // draw nothing
-			if (internalColorColumn.getInternalColumn() is BinnedColumn)
+			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
+			if (binnedColumn && binnedColumn.binningDefinition.internalObject)
 				drawBinnedPlot(recordKeys, dataBounds, screenBounds, destination);
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);
@@ -215,20 +219,37 @@ package weave.visualization.plotters
 			
 		protected function drawContinuousPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			//todo
+			if (!_drawBackground)
+				return;
+			
+			var _shapeSize:Number = shapeSize.value;
+			var colorColumn:ColorColumn = getInternalColorColumn();
+			var dataColumn:DynamicColumn = colorColumn.internalDynamicColumn;
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(dataColumn);
+			statsWatcher.target = stats;
+			
+			tempBounds.copyFrom(screenBounds);
+			tempBounds.makeSizePositive();
+			tempBounds.setXMax(_shapeSize + labelGap);
+			
+			tempShape.graphics.clear();
+			colorColumn.ramp.draw(tempShape, 0, reverseOrder.value ? -1 : 1, tempBounds);
+			lineStyle.beginLineStyle(null, tempShape.graphics);
+			tempShape.graphics.drawRect(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage() - 1, tempBounds.getYCoverage() - 1);
+			
+			var minLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, stats.getMin());
+			LegendUtils.renderLegendItemText(destination, minLabel, screenBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_BOTTOM : BitmapText.VERTICAL_ALIGN_TOP);
+			
+			var maxLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, stats.getMax());
+			LegendUtils.renderLegendItemText(destination, maxLabel, screenBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_TOP : BitmapText.VERTICAL_ALIGN_BOTTOM);
+			
+			destination.draw(tempShape);
 		}
-		
-		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			var internalColorColumn:ColorColumn = getInternalColorColumn();
-			if (!internalColorColumn)
-				return;
-			
-			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
-			if (binnedColumn == null)
-				return;
+			var colorColumn:ColorColumn = getInternalColorColumn();
+			var binnedColumn:BinnedColumn = colorColumn.getInternalColumn() as BinnedColumn;
 			
 			var g:Graphics = tempShape.graphics;
 			g.clear();
@@ -244,22 +265,19 @@ package weave.visualization.plotters
 			if (shapeType.value != SHAPE_TYPE_LINE)
 				_shapeSize = Math.max(1, Math.min(_shapeSize, screenBounds.getYCoverage() / numBins));
 			var xShapeOffset:Number = _shapeSize / 2; 
-			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(colorColumn.internalDynamicColumn);
 			statsWatcher.target = stats;
 			var internalMin:Number = stats.getMin();
 			var internalMax:Number = stats.getMax();
-			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
 			var binCount:int = binnedColumn.numberOfBins;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
-				// if _drawBackground is set, we should draw the bins that have no records in them.
-				if ((_drawBackground?0:1) ^ int(binIndexMap[iBin])) // xor
+				// we only render empty bins when _drawBackground is true
+				if (binIndexMap[iBin] ? _drawBackground : !_drawBackground)
 					continue;
 				
-				var binBounds:IBounds2D = _binToBounds[iBin];
-				tempBounds.copyFrom(binBounds);
+				tempBounds.copyFrom(_binToBounds[iBin]);
 				dataBounds.projectCoordsTo(tempBounds, screenBounds);
-//				tempBounds.makeSizePositive();
 				
 				// draw almost invisible rectangle for probe filter
 				tempBounds.getRectangle(tempRectangle);
@@ -267,10 +285,10 @@ package weave.visualization.plotters
 				
 				// draw the text
 				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, _shapeSize + labelGap);
-
+				
 				// draw circle
 				var iColorIndex:int = reverseOrder.value ? (binCount - 1 - iBin) : iBin;
-				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
+				var color:Number = colorColumn.ramp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
 				var xMin:Number = tempBounds.getXNumericMin(); 
 				var yMin:Number = tempBounds.getYNumericMin();
 				var xMax:Number = tempBounds.getXNumericMax(); 
@@ -311,8 +329,6 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		private const tempBounds:IBounds2D = new Bounds2D();
 		private const tempRectangle:Rectangle = new Rectangle();
-		
-		private var XMIN:Number = 0, XMAX:Number = 1;
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{

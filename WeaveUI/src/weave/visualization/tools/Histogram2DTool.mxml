@@ -27,13 +27,11 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
-			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColorController;
@@ -135,7 +133,7 @@
 					<mx:RadioButton groupName="binColGroup" label="{lang('X Column')}" value="xBinCol" id="xBinColRadioButton" selected="true"/>
 					<mx:RadioButton groupName="binColGroup" label="{lang('Y Column')}" value="yBinCol" id="yBinColRadioButton"/>
 				</mx:HBox>
-			<ui:BinningDefinitionEditor id="binEditor"/>
+			<ui:BinningDefinitionEditor id="binEditor" showNoneOption="false"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
 			<mx:CheckBox id="showAverageColorData" label="{lang('Color by average data value instead of record count')}"

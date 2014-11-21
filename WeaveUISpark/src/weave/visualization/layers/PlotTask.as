@@ -112,8 +112,6 @@ package weave.visualization.layers
 			for each (var dependency:ILinkableObject in list)
 				registerLinkableChild(_dependencies, dependency);
 			
-			getCallbackCollection(_plotter.filteredKeySet).addImmediateCallback(this, handleKeySetChange, true);
-			
 			_dependencies.addImmediateCallback(this, asyncStart, true);
 			
 			linkBindableProperty(_layerSettings.visible, completedBitmap, 'visible');
@@ -177,7 +175,6 @@ package weave.visualization.layers
 		private var _progress:Number = 0;
 		private var _delayInit:Boolean = false;
 		private var _pendingInit:Boolean = false;
-		private var _keyToSortIndex:Dictionary;
 		
 		/**
 		 * This function must be called to set the size of the BitmapData buffer.
@@ -192,20 +189,6 @@ package weave.visualization.layers
 				_unscaledHeight = height;
 				_dependencies.triggerCallbacks();
 			}
-		}
-		
-		private function handleKeySetChange():void
-		{
-			// save a lookup from key to sorted index
-			// this is very fast
-			_keyToSortIndex = new Dictionary(true);
-			var sorted:Array = _plotter.filteredKeySet.keys;
-			for (var i:int = sorted.length; i--;)
-				_keyToSortIndex[sorted[i]] = i;
-		}
-		private function cachedKeyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			return ObjectUtil.numericCompare(_keyToSortIndex[key1], _keyToSortIndex[key2]);
 		}
 		
 		/**
