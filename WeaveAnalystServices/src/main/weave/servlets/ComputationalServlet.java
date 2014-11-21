@@ -44,6 +44,7 @@ public class ComputationalServlet extends WeaveServlet
 	private StringMap<Object> scriptInputs = new StringMap<Object>();
 	
 	public static String filteredRows = "FILTEREDROWS";
+	public static String dataMatrix = "DATACOLUMNMATRIX";
 	
 	public void init(ServletConfig config) throws ServletException
 	{
@@ -94,6 +95,14 @@ public class ComputationalServlet extends WeaveServlet
 				
 				
 			}
+			else if(type.equalsIgnoreCase(dataMatrix)){
+				DataColumnMatrix dm = (DataColumnMatrix)cast(inputObjects[i].value, DataColumnMatrix.class);
+	
+				data = DataService.getFilteredRows(dm.columnIds, null, null);
+				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
+				
+				scriptInputs.put(inputObjects[i].names[i], columnData);
+			}
 			//TODO handle remaining types of input objects
 			else 
 			{
@@ -102,48 +111,50 @@ public class ComputationalServlet extends WeaveServlet
 			
 		}
  		//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
-		if(remapValues.length > 0)//only if remapping needs to be done
+		if(remapValues != null)//only if remapping needs to be done
 		{
-			for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
-			{
-				int index = 0;
-				ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
-				//we need this to know which column to handle for remapping
-				for(int y = 0; y < remapValues.length; y++)
+			if(remapValues.length > 0 ){
+				for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
 				{
-					ReMapObjects singleObject = remapValues[y];
-					for(int t=0; t< fRows.columnIds.length; t++)
+					int index = 0;
+					ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
+					//we need this to know which column to handle for remapping
+					for(int y = 0; y < remapValues.length; y++)
 					{
-						if(singleObject.columnsToRemapId == fRows.columnIds[t])
+						ReMapObjects singleObject = remapValues[y];
+						for(int t=0; t< fRows.columnIds.length; t++)
 						{
-							index = t;//use index to loop through data
-							remapObject = remapValues[y];
+							if(singleObject.columnsToRemapId == fRows.columnIds[t])
+							{
+								index = t;//use index to loop through data
+								remapObject = remapValues[y];
+							}
 						}
 					}
-				}
-				
-				//check the type of the original data to be remapped
-				Object column_to_remap = null;//resetting it every time
-				Object castedOriginalValue = null;
-				column_to_remap = data.recordData[0][index];//TODO remove hardcode this has to be done only once
-				try{
-					castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
-				}
-				catch(Exception e){
-					throw e;
-				}
-				
-				for(int x = 0; x < data.recordData.length; x++)
-				{
 					
-					if(data.recordData[x][index].equals(castedOriginalValue))
-					{
-						data.recordData[x][index] = remapObject.reMappedValue;
-						
+					//check the type of the original data to be remapped
+					Object column_to_remap = null;//resetting it every time
+					Object castedOriginalValue = null;
+					column_to_remap = data.recordData[0][index];//TODO remove hardcode this has to be done only once
+					try{
+						castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
+					}
+					catch(Exception e){
+						throw e;
 					}
 					
-				}
-			}//loop ends for one remapObject
+					for(int x = 0; x < data.recordData.length; x++)
+					{
+						
+						if(data.recordData[x][index].equals(castedOriginalValue))
+						{
+							data.recordData[x][index] = remapObject.reMappedValue;
+							
+						}
+						
+					}
+				}//loop ends for one remapObject
+			}
 			
 		}//***************************end of REMAPPING********************************************
 			
@@ -198,6 +209,11 @@ public class ComputationalServlet extends WeaveServlet
 		public int[] columnIds;
 		public NestedColumnFilters filters;
 	}	
+	
+	public static class DataColumnMatrix
+	{
+		public int [] columnIds;
+	}
 	
 	
 	/**
