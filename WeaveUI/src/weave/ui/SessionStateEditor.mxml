@@ -375,9 +375,17 @@ A text editor to change the Session State on the fly.
 						firstLine.text = '';
 						lastLine.text = '';
 					}
+					else if (useJSON.selected)
+					{
+						_currentSessionStateXML = null;
+						textEditor.text = Compiler.stringify(sessionState, null, 2, true);
+						
+						firstLine.text = '';
+						lastLine.text = '';
+					}
 					else
 					{
-						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState, "SessionState", useJSON.selected);
+						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState, "SessionState");
 						textEditor.text = _currentSessionStateXML.children().toXMLString();
 						
 						var xmlCopy:XML = _currentSessionStateXML.copy();
