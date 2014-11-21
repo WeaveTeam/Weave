@@ -28,11 +28,11 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.data.DataSources.CSVDataSource;
+			import weave.data.DataSources.CSVDataSourceWithServletParams;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			
-			// ToDo yenfu Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);;
-			public var googleSearchCSVDataSource:CSVDataSource = Weave.root.requestObject("googleSearchDataSource",CSVDataSource,false);;
+			// ToDo yenfu Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);
+			public var googleSearchCSVDataSource:CSVDataSourceWithServletParams = Weave.root.requestObject("googleSearchDataSource",CSVDataSourceWithServletParams,false);
 			
 			[Bindable]
 			public var nodeBase:NodeBaseComponent = new NodeBaseComponent();

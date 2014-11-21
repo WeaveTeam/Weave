@@ -13,7 +13,6 @@ package weave.data.DataSources
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.DateRangeFilter;
 	import weave.services.InfoMapAdminInterface;
@@ -390,8 +389,6 @@ package weave.data.DataSources
 		{
 			WeaveAPI.ErrorManager.reportError(event.type + token.url);
 		}
-		
-		private var parser:CSVParser = new CSVParser();
 		
 		private static function removeEmptyStringElementsFromArray(arg:Array):Array
 		{
