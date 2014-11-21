@@ -54,7 +54,10 @@ public class awsTest
 
 		Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
 		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
-		Object[][] myMatrix = new Object[][]{array1, array2};
+		Object[] array4 = {10,20,44,52,34,87,45,null,76,87,23,12,34};
+		Object[] array3 = {"null","null","null","null","null","null","null","null","null","null","null","null","null"};
+		//Object[] array5 = {null,null,null,null,null,null,null,null,null,null,null,null,null};
+		Object[][] myMatrix = new Object[][]{array1, array2, array3, array4};
 		
 		StringMap<Object> scriptInputs = new StringMap<Object>();
 		scriptInputs.put("columndata", myMatrix);
