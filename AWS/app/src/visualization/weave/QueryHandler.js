@@ -88,19 +88,28 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	var typedInputObjects= [];
     	//TODO create remaining beans
     	
-    	//Filtered Rows bean
+    	//Filtered Rows bean(each column is assigned a name when it reaches the computation engine)
     	var filteredRowsObject = {
     			type: "FilteredRows",
     			names: [],
     			value: {
     				columnIds : [],
-    				filters: null //{}
+    				filters: null //will be {} once filters are completed
     				
     			}
     	};
     	
+    	//DataMatrix bean (a single name is assigned to a data matrix [][])
+    	var dataMatrix = {
+    			type: "DataColumnMatrix",
+    			name:"columnData",
+    			value:{
+    				
+    				columnIds : []
+    			}
+    	};
+    	
     	for(var key in scriptOptions) {
-    		var inputIndex = 0;
 			var input = scriptOptions[key];
 			
 			
@@ -138,7 +147,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	}
     	
     	//TODO confirm if this is the right way
-    	if($.inArray(typedInputObjects, filteredRowsObject) != 0)//if it contains the filtered rows
+    	if($.inArray(typedInputObjects, filteredRowsObject) != 0 && queryService.dataObject.scriptMetadata)//if it contains the filtered rows
     		{
 	    		var scriptMetadata = queryService.dataObject.scriptMetadata;
 	    		for(var x in scriptMetadata.inputs){
@@ -155,7 +164,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	 * this function processes the queryObject and makes the async call for running the script
 	 */
 	this.run = function() {
-		console.log("running");
 		if(queryService.dataObject.isQueryValid) {
 			
 			var time1;
