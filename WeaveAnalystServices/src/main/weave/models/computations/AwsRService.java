@@ -2,6 +2,7 @@ package weave.models.computations;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Vector;
 
 import org.rosuda.REngine.REXP;
@@ -9,6 +10,7 @@ import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
 import org.rosuda.REngine.RFactor;
@@ -59,7 +61,8 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 			rConnection.assign("scriptPath", scriptAbsPath);
 			
 			for(String key : scriptInputs.keySet()) {
-				rConnection.assign(key, getREXP(scriptInputs.get(key)));
+				REXP check = getREXP(scriptInputs.get(key));
+				rConnection.assign(key, check);
 			}
 			
 			Vector<String> names = null;
@@ -126,11 +129,16 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 		if (object instanceof Object[])
 		{
 			Object[] array = (Object[])object;
+			//TODO figure how to handle REXPnull in R
+//			if (array.length == 0 || array[0] == null)
+//			{
+//				return new REXPList(new RList(Collections.nCopies(array.length, null)));
+//			}
 			if (array.length == 0)
 			{
 				return new REXPList(new RList());
 			}
-			else if (array[0] instanceof String)
+			else if (array[0] instanceof String || array[0] == null)
 			{
 				String[] strings = ListUtils.copyStringArray(array, new String[array.length]);
 				return new REXPString(strings);
@@ -153,6 +161,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 					throw new RemoteException("Failed to Create Dataframe",e);
 				}
 			}
+		
 			else
 				throw new RemoteException("Unsupported value type");
 		}
