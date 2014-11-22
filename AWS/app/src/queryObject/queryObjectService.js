@@ -121,14 +121,16 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			ScatterPlotTool : { enabled : false },
 			DataTableTool : { enabled : false },
 			ColorColumn : {column : "",  showColorLegend : false},
-			keyColumn : {name : ""}
+			keyColumn : {name : ""},
+			properties : {
+				validationStatus : "test",
+			}
 	};    		
     
-	this.dataObject = {
+	this.cache = {
 			dataTableList : [],
 			scriptList : [],
 			filters : [],
-			validatationStatus : "test",
 			numericalColumns : []
 	};
 
@@ -139,10 +141,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
      */
     this.getListOfScripts = function(forceUpdate) {
     	if(!forceUpdate) {
-			return this.dataObject.scriptList;
+			return this.cache.scriptList;
     	} else {
     		runQueryService.queryRequest(scriptManagementURL, 'getListOfScripts', null, function(result){
-    			that.dataObject.scriptList = result;
+    			that.cache.scriptList = result;
     		});
     	}
     };
@@ -155,7 +157,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 //		var deferred = $q.defer();
 //
 //		runQueryService.queryRequest(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
-//    	that.dataObject.listOfProjectsFromDatabase = result;
+//    	that.cache.listOfProjectsFromDatabase = result;
 //    	
 //    	scope.$safeApply(function() {
 //            deferred.resolve(result);
@@ -180,7 +182,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 //
 //    	runQueryService.queryRequest(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
 //        	console.log("insertQueryObjectStatus", result);
-//        	that.dataObject.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
+//        	that.cache.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
 //        	scope.$safeApply(function() {
 //                deferred.resolve(result);
 //            });
@@ -204,7 +206,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 //    	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
 //        	console.log("deleteProjectStatus", result);
 //            
-//        	that.dataObject.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
+//        	that.cache.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
 //        	scope.$safeApply(function() {
 //                deferred.resolve(result);
 //            });
@@ -294,13 +296,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	var deferred = $q.defer();
 
     	if (!forceUpdate) {
-    		return this.dataObject.scriptMetadata;
+    		return this.cache.scriptMetadata;
     	}
     	if(scriptName) {
     		runQueryService.queryRequest(scriptManagementURL, 'getScriptMetadata', [scriptName], function(result){
-    			that.dataObject.scriptMetadata = result;
+    			that.cache.scriptMetadata = result;
     			scope.$safeApply(function() {
-    				deferred.resolve(that.dataObject.scriptMetadata);
+    				deferred.resolve(that.cache.scriptMetadata);
     			});
     		});
     	}
@@ -317,20 +319,20 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 		var deferred = $q.defer();
 
 		if(!forceUpdate) {
-			return that.dataObject.columns;
+			return that.cache.columns;
 		} else {
 			if(id) {
 				runQueryService.queryRequest(dataServiceURL, "getEntityChildIds", [id], function(idsArray) {
 					//console.log("idsArray", idsArray);
 					runQueryService.queryRequest(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
 						//console.log("dataEntirtyArray", dataEntityArray);
-						//console.log("columns", that.dataObject.columnsb);
+						//console.log("columns", that.cache.columnsb);
 						
-						that.dataObject.columns = $.map(dataEntityArray, function(entity) {
+						that.cache.columns = $.map(dataEntityArray, function(entity) {
 							if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {//will work if the column already has the aws_metadata as part of its public metadata
 								var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
 								
-								//that.dataObject.numericalColumns = [];//collects numerical columns for statistics calculation
+								//that.cache.numericalColumns = [];//collects numerical columns for statistics calculation
 								
 								if(metadata.hasOwnProperty("columnType")) {
 									var columnObject = {};
@@ -345,7 +347,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 //									//pick all numerical columns and create a matrix
 									if(metadata.varRange && (metadata.varType == "continuous") && (metadata.columnType != "geography"))
 										{
-											that.dataObject.numericalColumns.push(columnObject);
+											that.cache.numericalColumns.push(columnObject);
 										}
 									return columnObject;
 //									return {
@@ -394,7 +396,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 							}
 						});
 						scope.$safeApply(function() {
-							deferred.resolve(that.dataObject.columns);
+							deferred.resolve(that.cache.columns);
 						});
 					});
 				});
@@ -409,15 +411,15 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	var deferred = $q.defer();
 
 		if(!forceUpdate) {
-			return that.dataObject.dataColumnEntities;
+			return that.cache.dataColumnEntities;
 		} else {
 			if(idsArray) {
 				runQueryService.queryRequest(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
 					
-					that.dataObject.dataColumnEntities = dataEntityArray;
+					that.cache.dataColumnEntities = dataEntityArray;
 					
 					scope.$safeApply(function() {
-						deferred.resolve(that.dataObject.dataColumnEntities);
+						deferred.resolve(that.cache.dataColumnEntities);
 					});
 				});
 			}
@@ -438,12 +440,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 		var deferred = $q.defer();
 
 		if(!forceUpdate) {
-			return that.dataObject.geometryColumns;
+			return that.cache.geometryColumns;
 		}
 		
 		runQueryService.queryRequest(dataServiceURL, 'getEntityIdsByMetadata', [{"dataType" :"geometry"}, 1], function(idsArray){
 			runQueryService.queryRequest(dataServiceURL, 'getEntitiesById', [idsArray], function(dataEntityArray){
-				that.dataObject.geometryColumns = $.map(dataEntityArray, function(entity) {
+				that.cache.geometryColumns = $.map(dataEntityArray, function(entity) {
 					return {
 						id : entity.id,
 						title : entity.publicMetadata.title,
@@ -452,7 +454,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				});
 				
 				scope.$safeApply(function() {
-					deferred.resolve(that.dataObject.geometryColumns);
+					deferred.resolve(that.cache.geometryColumns);
 				});
 			});
 		});
@@ -468,12 +470,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	var deferred = $q.defer();
 
     	if(!forceUpdate) {
-			return that.dataObject.dataTableList;
+			return that.cache.dataTableList;
     	} else {
     		runQueryService.queryRequest(dataServiceURL, 'getDataTableList', null, function(EntityHierarchyInfoArray){
-    			that.dataObject.dataTableList = EntityHierarchyInfoArray;
+    			that.cache.dataTableList = EntityHierarchyInfoArray;
     			scope.$safeApply(function() {
-    				deferred.resolve(that.dataObject.dataTableList);
+    				deferred.resolve(that.cache.dataTableList);
     			});
     		 });
     	}
@@ -518,13 +520,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         	var deferred = $q.defer();
         	
         	if(!forceUpdate) {
-      			return this.dataObject.geographyMetadata;
+      			return this.cache.geographyMetadata;
         	} else {
         		runQueryService.queryRequest(dataServiceURL, "getEntityChildIds", [id], function(ids){
         			runQueryService.queryRequest(dataServiceURL, "getDataSet", [ids], function(result){
-        				that.dataObject.geographyMetadata = result;
+        				that.cache.geographyMetadata = result;
         				scope.$safeApply(function() {
-            				deferred.resolve(that.dataObject.geographyMetadata);
+            				deferred.resolve(that.cache.geographyMetadata);
             			});
         			});
         		});

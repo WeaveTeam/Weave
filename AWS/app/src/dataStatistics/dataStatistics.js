@@ -54,9 +54,9 @@ dataStatsModule.controller('dataStatsCtrl', function($scope, queryService, stati
 	$scope.$watch('datatableSelected', function(){
 		if($scope.datatableSelected)
 			{
-				console.log(queryService.dataObject.numericalColumns);
-				if(queryService.dataObject.numericalColumns.length > 0)
-					statisticsService.calculateStats(queryService.dataObject.numericalColumns, true);
+				console.log(queryService.cache.numericalColumns);
+				if(queryService.cache.numericalColumns.length > 0)
+					statisticsService.calculateStats(queryService.cache.numericalColumns, true);
 			}
 	});
 	

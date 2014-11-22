@@ -13,9 +13,9 @@
 						<button class="btn" 
 							style="width: 10%; float:right; margin-top: 10px; margin-right : 5px"
 							ng-click="QueryHandlerService.run()" 
-							popover="{{queryService.dataObject.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
+							popover="{{queryService.queryObject.properties.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 							ng-controller="QueryHandlerCtrl"
-							ng-class="{'validateB' : queryService.dataObject.isQueryValid, 'invalidateB' : !queryService.dataObject.isQueryValid}">
+							ng-class="{'validateB' : queryService.queryObject.properties.isQueryValid, 'invalidateB' : !queryService.queryObject.properties.isQueryValid}">
 							 <span style="vertical-align: right">Run</span>
 						 </button>
 		</div>
@@ -42,7 +42,7 @@
 						</input> 
 						
 						<input type="checkbox"
-							ng-model="queryService.dataObject.displayAsQuestions">
+							ng-model="queryService.queryObject.properties.displayAsQuestions">
 						Display As Questions</input>
 	
 <!-- INDICATOR -->		<div style="width: 100%; margin-top: 10px;">
@@ -106,7 +106,7 @@
 						<h6 class='tool-category'>Script parameters</h6>
 <!-- Script options -->	<div class= "tool-bar">
 							<table width=100%>
-								<tr ng-repeat="input in service.dataObject.scriptMetadata.inputs">
+								<tr ng-repeat="input in service.cache.scriptMetadata.inputs">
 									<td align="right" width=30%>
 										<div class="label-p">{{input.param}}:</div>
 									</td>
@@ -208,9 +208,9 @@
 						<!-- Tell us the validation status of a query object -->
 						<div style = "display :table" ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
 							 <div style = "display : table-cell" 
-							 ng-class="{'validate' : service.dataObject.queryDone, 'invalidate' : !service.dataObject.queryDone}">
+							 ng-class="{'validate' : service.queryObject.properties.queryDone, 'invalidate' : !service.queryObject.properties.queryDone}">
 							 </div>
-							 <div style= "display : table-cell; padding-left : 5px">{{service.dataObject.queryStatus}}</div>
+							 <div style= "display : table-cell; padding-left : 5px">{{service.queryObject.properties.queryStatus}}</div>
 						 </div> 
 						 
 					</div>
@@ -269,7 +269,7 @@
 <!-- 					</div> -->
 	
 <!-- 				</div> -->
-				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.dataObject.filters">
+				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.cache.filters">
 					<div class="databox" style="width: 15%;">
 						<!-- <div class="databox" style="width: 160px;"> -->
 						<div class="panel-heading">
@@ -291,7 +291,7 @@
 		</div>
 		<br><br><br>
 		
-		<input type="checkbox" ng-model="queryService.dataObject.openInNewWindow"> Show Weave in separate window</input>
+		<input type="checkbox" ng-model="queryService.queryObject.properties.openInNewWindow"> Show Weave in separate window</input>
 		
 		
 		
@@ -299,7 +299,7 @@
 		
 <!-- VIZ TOOLS -->	
 		<div ng-controller= "toolsCtrl">
-				<div class="row " style="height: 50%; clear:both" ng-if="!queryService.dataObject.openInNewWindow">
+				<div class="row " style="height: 50%; clear:both" ng-if="!queryService.queryObject.properties.openInNewWindow">
 					<div class="databox" style="width: 20%;">
 						<div>
 							<div>
@@ -322,7 +322,7 @@
 				</div>
 				
 				
-				<div class="row " style="height: 50%; clear:both" ng-if="queryService.dataObject.openInNewWindow">
+				<div class="row " style="height: 50%; clear:both" ng-if="queryService.queryObject.properties.openInNewWindow">
 					<div style="height:100%; width: 100%;">
 							<div style="width: 20%; float : left; margin-right : 20px" ng-repeat="tool in AnalysisService.weaveTools" class="panel panel-default">
 									<div class="panel-heading">
@@ -348,7 +348,7 @@
 				<h2>Query Object Editor</h2>
 				<a href="javascript: void(0)" 
 					class="close-button" data-trigger="hover" placement="right" title="Remove"  
-					ng-click="queryService.dataObject.hideQueryObjectPanel = false"> 
+					ng-click="queryService.queryObject.properties.hideQueryObjectPanel = false"> 
 					<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
 				</a>
 			</div>

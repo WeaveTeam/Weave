@@ -271,9 +271,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	
 	//**********************************************************REMAPPING**************************************
-	 queryService.dataObject.shouldRemap = [];
+	 queryService.cache.shouldRemap = [];
 	 $scope.newValue= "";
-	 queryService.dataObject.remapValue = [];
+	 queryService.cache.remapValue = [];
 	 
 	 //checks for object in collection and accordingly updates
 	 $scope.setRemapValue= function(originalValue, reMappedValue)
@@ -334,25 +334,25 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	//datatable
 	$scope.getDataTable = function(term, done) {
-		var values = queryService.dataObject.dataTableList;
+		var values = queryService.cache.dataTableList;
 		done($filter('filter')(values, {title:term}, 'title'));
 	};
 	//Indicator
 	 $scope.getIndicators = function(term, done) {
-			var columns = queryService.dataObject.columns;
+			var columns = queryService.cache.columns;
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
 	
 	//******************************managing weave and its session state**********************************************//
 	$scope.$watch(function() {
-		return queryService.dataObject.openInNewWindow;
+		return queryService.queryObject.properties.openInNewWindow;
 	}, function() {
-		if(!queryService.dataObject.openInNewWindow) {
+		if(!queryService.queryObject.properties.openInNewWindow) {
 			if(WeaveService.weaveWindow && !WeaveService.weaveWindow.closed) {
 				// save the session state.
 				console.log(WeaveService.weave);
-				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
+				queryService.cache.weaveSessionState = WeaveService.weave.path().getState();
 				WeaveService.weaveWindow.close();
 			}
 			setTimeout(loadFlashContent, 100); // reload weave object in main window.
@@ -360,9 +360,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			// checkweaveready and restore session station into embedded weave.
 			QueryHandlerService.waitForWeave(null, function (weave) {
 				WeaveService.weave = weave;
-				if(queryService.dataObject.weaveSessionState) {
+				if(queryService.cache.weaveSessionState) {
 					setTimeout(function () {
-						WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+						WeaveService.weave.path().state(queryService.cache.weaveSessionState);
 					}, 100);
 					
 				}
@@ -374,14 +374,14 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			// open the weave window, checkweaveready and restore the session state.
 			//if(queryService.dataObject.resultData)
 			//{
-				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
+				queryService.cache.weaveSessionState = WeaveService.weave.path().getState();
 				
 				if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
 					WeaveService.weaveWindow = $window.open("/weave.html?",
 							"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 					QueryHandlerService.waitForWeave(WeaveService.weaveWindow , function(weave) {
 						WeaveService.weave = weave;
-						WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+						WeaveService.weave.path().state(queryService.cache.weaveSessionState);
 						//updates required for updating query object validation and to enable visualization widget controls
 						that.displayVizMenu = true;
 						that.isValidated = false;
@@ -508,22 +508,22 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		return [queryService.queryObject.scriptSelected,
 		        queryService.queryObject.dataTable,
 		        queryService.queryObject.scripOptions,
-		        queryService.dataObject.scriptMetadata
+		        queryService.cache.scriptMetadata
 		        ];
 	}, function () {
 		//if the datatable has not been selected
 		if(queryService.queryObject.dataTable == null || queryService.queryObject.dataTable == ""){
-			queryService.dataObject.validationStatus = "Data table has not been selected.";
-			queryService.dataObject.isQueryValid = false;
+			queryService.queryObject.properties.validationStatus = "Data table has not been selected.";
+			queryService.queryObject.properties.isQueryValid = false;
 		}
 		//if script has not been selected
 		else if(queryService.queryObject.scriptSelected == null || queryService.queryObject.scriptSelected == "")
 		{
-			queryService.dataObject.validationStatus = "Script has not been selected.";
-			queryService.dataObject.isQueryValid = false;
+			queryService.queryObject.properties.validationStatus = "Script has not been selected.";
+			queryService.queryObject.properties.isQueryValid = false;
 		}
 		//this leaves checking the scriptOptions
-		else if (queryService.dataObject.scriptMetadata) 
+		else if (queryService.cache.scriptMetadata) 
 		{
 			
 			$scope.$watch(function() {
@@ -533,8 +533,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				var counter = Object.keys(queryService.queryObject.scriptOptions).length;
 				for(var f in queryService.queryObject.scriptOptions) {
 					if(!queryService.queryObject.scriptOptions[f]) {
-						queryService.dataObject.validationStatus = "'" + f + "'" + " has not been selected";
-						queryService.dataObject.isQueryValid = false;
+						queryService.queryObject.properties.validationStatus = "'" + f + "'" + " has not been selected";
+						queryService.queryObject.properties.isQueryValid = false;
 	
 						break;
 					}
@@ -542,8 +542,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 						g++;
 				}
 				if(g == counter) {
-					queryService.dataObject.validationStatus = "Query is valid";
-					queryService.dataObject.isQueryValid = true;
+					queryService.queryObject.properties.validationStatus = "Query is valid";
+					queryService.queryObject.properties.isQueryValid = true;
 				}
 			}, true);
 		}
@@ -630,29 +630,29 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	//**************************************select2 sortable options handlers*******************************
 	//handler for select2sortable for script list
 	$scope.getScriptList = function(term, done) {
-		var values = queryService.dataObject.scriptList;
+		var values = queryService.cache.scriptList;
 		done($filter('filter')(values, term));
 	};
 	
 	//handlers for select2sortable for script input options
 	$scope.getTimeInputOptions = function(term, done){
-		var values = queryService.dataObject.columns;
+		var values = queryService.cache.columns;
 		done($filter('filter')(values,{columnType : 'time',title:term},'title'));
 	};
 	
 	$scope.getGeographyInputOptions = function(term, done){
-		var values = queryService.dataObject.columns;
+		var values = queryService.cache.columns;
 		done($filter('filter')(values,{columnType : 'geography',title:term},'title'));
 	};
 	
 	$scope.getAnalyticInputOptions = function(term, done){
-		var values = queryService.dataObject.columns;
+		var values = queryService.cache.columns;
 		done($filter('filter')(values,{columnType : 'analytic',title:term},'title'));
 	};
 	
 	//TODO try to use parent scope function
 	 $scope.getIndicators2 = function(term, done) {
-			var columns = queryService.dataObject.columns;
+			var columns = queryService.cache.columns;
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
@@ -668,7 +668,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	
 	//handles the defaults appearing in the script options selection
 	$scope.$watchCollection(function() {
-		return [queryService.dataObject.scriptMetadata, queryService.dataObject.columns];
+		return [queryService.cache.scriptMetadata, queryService.cache.columns];
 	}, function(newValue, oldValue) {
 		
 		if(newValue != oldValue) {
@@ -717,7 +717,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	}, true);
 
 	$scope.$watchCollection(function() {
-		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected, queryService.dataObject.scriptMetadata];
+		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected, queryService.cache.scriptMetadata];
 	}, function(newVal, oldVal) {
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
@@ -732,13 +732,13 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			}
 			
 			$scope.$watch(function() {
-				return queryService.dataObject.scriptMetadata;
+				return queryService.cache.scriptMetadata;
 			}, function(newValue, oldValue) {
 				if(newValue) {
 					scriptMetadata = newValue;
 					if(indicator && scriptMetadata) {
-						for(var i in queryService.dataObject.scriptMetadata.inputs) {
-							var metadata = queryService.dataObject.scriptMetadata.inputs[i];
+						for(var i in queryService.cache.scriptMetadata.inputs) {
+							var metadata = queryService.cache.scriptMetadata.inputs[i];
 							if(metadata.hasOwnProperty('type')) {
 								if(metadata.type == 'column') {
 									if(metadata.hasOwnProperty('columnType')) {

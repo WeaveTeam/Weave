@@ -5,20 +5,20 @@
 			<div  style="float:left; width: 48%;>
 				<select ui-select2  style="float:left; width: 48%; ng-model="service.queryObject.GeographyFilter.stateColumn" data-placeholder="State Column">
 					<option></option>
-					<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'geography'}">{{col.title}}</option>
+					<option value="{{col}}" ng-repeat="col in service.cache.columns | filter : { columnType : 'geography'}">{{col.title}}</option>
 				</select>
 			</div>
 		<div style="float:left; width: 48%;">
 			<select ui-select2 style="float:left; width: 48%;" ng-model="service.queryObject.GeographyFilter.countyColumn" data-placeholder="County Column">
 				<option></option>
-				<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : { columnType : 'geography' }">{{col.title}}</option>
+				<option value="{{col}}" ng-repeat="col in service.cache.columns | filter : { columnType : 'geography' }">{{col.title}}</option>
 			</select>
 		</div>
 				
 <!-- 			<div style="display: list-item; padding-top: 5px;"> -->
 <!-- 				<select style="width: 100%" ui-select2 ng-model="service.queryObject.GeographyFilter.metadataTable" data-placeholder="Metadata Table"> -->
 <!-- 					<option></option> -->
-<!-- 					<option value="{{dt}}" ng-repeat="dt in service.dataObject.dataTableList">{{dt.title}}</option> -->
+<!-- 					<option value="{{dt}}" ng-repeat="dt in service.cache.dataTableList">{{dt.title}}</option> -->
 <!-- 				</select> -->
 <!-- 			</div> -->
 		</div>

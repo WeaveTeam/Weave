@@ -45,7 +45,7 @@ AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 	});
 	
 	$scope.$watchCollection(function() {
-		return [queryService.dataObject.geographyMetadata,
+		return [queryService.cache.geographyMetadata,
 		         							stateValueKey,
 		         							stateLabelKey,
 		         							countyValueKey,
@@ -53,7 +53,7 @@ AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 		         							metadataTableTitle];
 	}, function() {
 		
-		geographyMetadata = queryService.dataObject.geographyMetadata;
+		geographyMetadata = queryService.cache.geographyMetadata;
 		if(geographyMetadata) {
 			if(stateValueKey == null ||
 			   stateLabelKey == null ||

@@ -4,8 +4,8 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService){
 	$scope.filterType;
 	
 	$scope.add = function () {
-		if(queryService.dataObject.filters.length < 3) {
-			queryService.dataObject.filters.push({
+		if(queryService.cache.filters.length < 3) {
+			queryService.cache.filters.push({
 				title :	"Custom Filter",
 				addSecond : false,
 				filter1 : {},
@@ -22,12 +22,12 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService){
 	};
 	
 	$scope.removeFilter = function(index){
-		queryService.dataObject.filters.splice(index, 1);
-		queryService.queryObject.filters.or.splice(index, 1); // clear both the queryObject and dataObject
+		queryService.cache.filters.splice(index, 1);
+		queryService.queryObject.filters.or.splice(index, 1); // clear both the queryObject and cache
 	};
 	
 	$scope.removeSecond = function(index) {
-		if(!queryService.dataObject.filters.addSecond) {
+		if(!queryService.cache.filters.addSecond) {
 			queryService.queryObject.filters.or[index].columns[1] = "";
 		};
 	};
@@ -49,7 +49,7 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService){
 				if(entity1.publicMetadata.hasOwnProperty("aws_metadata")) {
 					metadata1 = angular.fromJson(entity1.publicMetadata.aws_metadata);
 					if(metadata1.hasOwnProperty("varType")) {
-						queryService.dataObject.filters[index].filter1.type = metadata1.varType;
+						queryService.cache.filters[index].filter1.type = metadata1.varType;
 					}
 					console.log("metadata1", metadata1);
 					$scope.$apply();
@@ -62,7 +62,7 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService){
 					if(entity2.publicMetadata.hasOwnProperty("aws_metadata")) {
 						metadata2 = angular.fromJson(entity2.publicMetadata.aws_metadata);
 						if(metadata2.hasOwnProperty("varType")) {
-							queryService.dataObject.filters[index].filter2.type = metadata2.varType;
+							queryService.cache.filters[index].filter2.type = metadata2.varType;
 						}
 						console.log("metadata2", metadata2);
 						$scope.$apply();

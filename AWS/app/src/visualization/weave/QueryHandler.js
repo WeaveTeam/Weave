@@ -140,7 +140,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	//TODO confirm if this is the right way
     	if($.inArray(typedInputObjects, filteredRowsObject) != 0)//if it contains the filtered rows
     		{
-	    		var scriptMetadata = queryService.dataObject.scriptMetadata;
+	    		var scriptMetadata = queryService.cache.scriptMetadata;
 	    		for(var x in scriptMetadata.inputs){
 	    			var singleInput = scriptMetadata.inputs[x];
 	    			filteredRowsObject.names.push(singleInput.param);
@@ -156,7 +156,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	 */
 	this.run = function() {
 		console.log("running");
-		if(queryService.dataObject.isQueryValid) {
+		if(queryService.queryObject.properties.isQueryValid) {
 			
 			var time1;
 			var time2;
@@ -293,8 +293,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				// var stringifiedQO = JSON.stringify(queryObject);
 				// console.log("query", stringifiedQO);
 				// console.log(JSON.parse(stringifiedQO));
-				queryService.dataObject.queryDone = false;
-				queryService.dataObject.queryStatus = "Loading data from database...";
+				queryService.queryObject.properties.queryDone = false;
+				queryService.queryObject.properties.queryStatus = "Loading data from database...";
 				startTimer = new Date().getTime();
 				
 				console.log("indicatorRemap", queryService.queryObject.IndicatorRemap);
@@ -304,17 +304,17 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 					if(success) {
 						time1 =  new Date().getTime() - startTimer;
 						startTimer = new Date().getTime();
-						queryService.dataObject.queryStatus = "Running analysis...";
+						queryService.queryObject.properties.queryStatus = "Running analysis...";
 						
 						//executing the script
 						that.runScript(scriptName).then(function(resultData) {
 							if(!angular.isUndefined(resultData))//only if something is returned open weave
 							{
 								time2 = new Date().getTime() - startTimer;
-								queryService.dataObject.queryDone = true;
-								queryService.dataObject.resultData = resultData;
-								queryService.dataObject.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
-								if(queryService.dataObject.openInNewWindow) {
+								queryService.queryObject.properties.queryDone = true;
+								queryService.queryObject.properties.resultData = resultData;
+								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
+								if(queryService.queryObject.properties.openInNewWindow) {
 									if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
 										WeaveService.weaveWindow = $window.open("/weave.html?",
 												"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
@@ -338,14 +338,14 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									});
 								}
 							} else {
-								queryService.dataObject.queryDone = false;
-								queryService.dataObject.queryStatus = "Error running script. See error log for details.";
+								queryService.queryObject.properties.queryDone = false;
+								queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
 							}
 						});
 						
 					} else {
-						queryService.dataObject.queryDone = false;
-						queryService.dataObject.queryStatus = "Error Loading data. See error log for details.";
+						queryService.queryObject.properties.queryDone = false;
+						queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
 					}
 				});
 				

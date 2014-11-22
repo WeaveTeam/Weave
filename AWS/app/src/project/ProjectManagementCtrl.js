@@ -33,20 +33,20 @@ angular.module('aws.project', [])
 
      //Watch for when record is inserted in db
      $scope.$watch(function(){
-     	return queryService.dataObject.insertQueryObjectStatus;
+     	return queryService.queryObject.properties.insertQueryObjectStatus;
       }, function(){ 
-     	 $scope.insertQueryObjectStatus = queryService.dataObject.insertQueryObjectStatus;
+     	 $scope.insertQueryObjectStatus = queryService.queryObject.properties.insertQueryObjectStatus;
      	if(!(angular.isUndefined($scope.insertQueryObjectStatus)))
 		 {
 		 	if($scope.insertQueryObjectStatus != 0)
 		 		{
     		 		alert("Query Object has been added");
-    		 		queryService.dataObject.listofQueryObjectsInProject = [];
+    		 		queryService.cache.listofQueryObjectsInProject = [];
 	    			queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);//makes a new call
 		 		}
 		 }
 	 
-     	queryService.dataObject.insertQueryObjectStatus = 0;//reset
+     	queryService.queryObject.properties.insertQueryObjectStatus = 0;//reset
       });
      
 	/****************Button Controls***************************************************************************************************************************************/

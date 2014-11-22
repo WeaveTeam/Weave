@@ -4,12 +4,12 @@
 		<div style="display: inline-block; margin-bottom: 10px">
 				<select style="width: 100%" ui-select2 ng-model="service.queryObject.TimePeriodFilter.yearColumn" data-placeholder="Year Column">
 					<option></option>
-					<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : {columnType : 'time'}">{{col.title}}</option>
+					<option value="{{col}}" ng-repeat="col in service.cache.columns | filter : {columnType : 'time'}">{{col.title}}</option>
 				</select>
 		<div style="display: inline-block; padding-left: 0px; margin-top: 2px;">
 			<select style="width: 100%;" ui-select2 ng-model="service.queryObject.TimePeriodFilter.monthColumn" data-placeholder="Month Column">
 				<option></option>
-				<option value="{{col}}" ng-repeat="col in service.dataObject.columns | filter : {columnType : 'time'}">{{col.title}}</option>
+				<option value="{{col}}" ng-repeat="col in service.cache.columns | filter : {columnType : 'time'}">{{col.title}}</option>
 			</select>	
 		</div>
 	</div>

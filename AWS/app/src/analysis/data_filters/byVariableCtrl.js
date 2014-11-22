@@ -2,26 +2,26 @@ AnalysisModule.controller('byVariableCtrl', function($scope, queryService){
 	
 	$scope.service = queryService;
 	
-	queryService.dataObject.byVariableItems = [0];
-	queryService.dataObject.byVariableFilters = [0];
-	queryService.dataObject.filterType = [];
-	queryService.dataObject.filterOptions = [];
+	queryService.cache.byVariableItems = [0];
+	queryService.cache.byVariableFilters = [0];
+	queryService.cache.filterType = [];
+	queryService.cache.filterOptions = [];
 	
 	$scope.addByVariable = function() {
-		queryService.dataObject.byVariableItems.push(queryService.dataObject.byVariableItems.length + 1);
-		queryService.dataObject.byVariableFilters.push(queryService.dataObject.byVariableItems.length + 1);
+		queryService.cache.byVariableItems.push(queryService.cache.byVariableItems.length + 1);
+		queryService.cache.byVariableFilters.push(queryService.cache.byVariableItems.length + 1);
 	};
 	
 	$scope.removeByVariable = function(index) {
-		if(queryService.dataObject.byVariableItems.length == 1) {
-			queryService.dataObject.byVariableItems[0] = 0;
-			queryService.dataObject.byVariableFilters[0] = 0;
+		if(queryService.cache.byVariableItems.length == 1) {
+			queryService.cache.byVariableItems[0] = 0;
+			queryService.cache.byVariableFilters[0] = 0;
 			
 			queryService.queryObject.ByVariableColumns[0] = "";
 			queryService.queryObject.ByVariableFilters[0] = [];
 		} else {
-			queryService.dataObject.byVariableItems.splice(index, 1);
-			queryService.dataObject.byVariableFilters.splice(index, 1);
+			queryService.cache.byVariableItems.splice(index, 1);
+			queryService.cache.byVariableFilters.splice(index, 1);
 
 			queryService.queryObject.ByVariableFilters.splice(index, 1);
 			queryService.queryObject.ByVariableColumns.splice(index, 1);
@@ -40,16 +40,16 @@ AnalysisModule.controller('byVariableCtrl', function($scope, queryService){
 						aws_metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
 						if(aws_metadata.hasOwnProperty("varType")) {
 							if(aws_metadata.varType == "continuous") {
-								queryService.dataObject.filterType[index] = aws_metadata.varType;
-								queryService.dataObject.filterOptions[index] = { 
+								queryService.cache.filterType[index] = aws_metadata.varType;
+								queryService.cache.filterOptions[index] = { 
 																				range : true, 
 																				min : aws_metadata.varRange[0], 
 																				max : aws_metadata.varRange[1],
 																				values : [(aws_metadata.varRange[1] - aws_metadata.varRange[0]) / 3, 2 * (aws_metadata.varRange[1] - aws_metadata.varRange[0]) / 3]};
 							} else if(aws_metadata.varType == "categorical") {
-								queryService.dataObject.filterType[index] = aws_metadata.varType;
+								queryService.cache.filterType[index] = aws_metadata.varType;
 								queryService.getDataMapping(aws_metadata.varValues).then(function(result) {
-									queryService.dataObject.filterOptions[index] = result;
+									queryService.cache.filterOptions[index] = result;
 								});
 							}
 						}
