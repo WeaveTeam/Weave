@@ -1,15 +1,47 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
-AnalysisModule.service("WeaveService", function() {
+AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.weave;
 	var ws = this;
-	this.weaveWindow;
+	this.weaveWindow = window;
+	this.analysisWindow = window;
 	this.dataSourceName;
 	
 	this.columnNames = [];
+	this.generateUniqueName = function(className) {
+		if(!ws.weave)
+			return null;
+		return ws.weave.path().getValue('generateUniqueName')(className);
+	};
+	
+	this.setWeaveWindow = function(window) {
+		var weave;
+		if(!window) {
+			ws.weave = null;
+			return;
+		}
+		try {
+			ws.weaveWindow = window;
+			weave = window.document.getElementById('weave');
+
+			if (weave && weave.WeavePath && weave.WeavePath.prototype.pushLayerSettings) {
+				ws.weave = weave;
+				console.log("weave and its api is ready", weave.WeavePath);
+				rootScope.$apply();
+			}
+			else {
+				setTimeout(ws.setWeaveWindow, 50, window);
+			}
+		} catch (e)
+		{
+			console.error("fails", e);
+		}
+    };
+    
+	this.setWeaveWindow(window);
 	
 	this.addCSVData = function(csvData) {
-		this.dataSourceName = ws.weave.path().getValue('generateUniqueName("CSVDataSource")');
+		this.dataSourceName = ws.generateUniqueName("CSVDataSource");
 	
 		ws.weave.path(this.dataSourceName)
 			.request('CSVDataSource')
@@ -214,7 +246,7 @@ AnalysisModule.service("WeaveService", function() {
 	this.clearSessionState = function(){
 		ws.weave.path().state(['WeaveDataSource']);
 	};
-});
+}]);
 
 //goog.require('aws');
 //goog.provide('aws.WeaveClient');

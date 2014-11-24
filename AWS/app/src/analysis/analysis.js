@@ -128,6 +128,16 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.WeaveService = WeaveService;
 	$scope.QueryHandlerService = QueryHandlerService;
 	
+	$scope.showToolMenu = false;
+	
+	$scope.$watch(function() {
+		return WeaveService.weave;
+	}, function () {
+		if(WeaveService.weave) {
+			$scope.showToolMenu = true;
+		}
+	});
+	
 	//getting the list of datatables
 	queryService.getDataTableList(true);
 	
@@ -343,65 +353,33 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
+	$scope.$watch(function() {
+		return WeaveService.weave;
+	}, function() {
+		if(WeaveService.weave) 
+		{
+			WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+		}
+	});
+	
 	
 	//******************************managing weave and its session state**********************************************//
 	$scope.$watch(function() {
 		return queryService.dataObject.openInNewWindow;
 	}, function() {
-		if(!queryService.dataObject.openInNewWindow) {
-			if(WeaveService.weaveWindow && !WeaveService.weaveWindow.closed) {
-				// save the session state.
-				console.log(WeaveService.weave);
-				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
-				WeaveService.weaveWindow.close();
-			}
-			setTimeout(loadFlashContent, 100); // reload weave object in main window.
-			
-			// checkweaveready and restore session station into embedded weave.
-			QueryHandlerService.waitForWeave(null, function (weave) {
-				WeaveService.weave = weave;
-				if(queryService.dataObject.weaveSessionState) {
-					setTimeout(function () {
-						WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
-					}, 100);
-					
-				}
-			});
-		} else {
-			
-			// check if there is a result data, meaning there is a current analysis
-			// if that's the case, save embedded weave session state
-			// open the weave window, checkweaveready and restore the session state.
-			//if(queryService.dataObject.resultData)
-			//{
-				queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
-				
-				if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
-					WeaveService.weaveWindow = $window.open("/weave.html?",
-							"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-					QueryHandlerService.waitForWeave(WeaveService.weaveWindow , function(weave) {
-						WeaveService.weave = weave;
-						WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
-						//updates required for updating query object validation and to enable visualization widget controls
-						that.displayVizMenu = true;
-						that.isValidated = false;
-						that.validationUpdate = "Ready for validation";
-						
-						//scope.$apply();//re-fires the digest cycle and updates the view
-					});
-				}
-			//}
-			
-		}
-	});
+		if(WeaveService.weave)
+			queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
 	
-	$scope.$watchCollection(function() {
-		return $('#weave');
-	}, function() {
-		if($('#weave').length) {
-			WeaveService.weave = $('#weave')[0];
+		if(!queryService.dataObject.openInNewWindow) {
+			if(WeaveService.weaveWindow !== WeaveService.analysisWindow) {
+				WeaveService.weaveWindow.close();
+				setTimeout(loadFlashContent, 100);
+				WeaveService.setWeaveWindow(WeaveService.analysisWindow);
+			}
 		} else {
-			WeaveService.weave = null;
+			
+			WeaveService.setWeaveWindow($window.open("/weave.html?",
+							"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes"));
 		}
 	});
 	
@@ -555,7 +533,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		switch(name) {
 			case "MapTool":
 				AnalysisService.weaveTools.push({
-					id : 'MapTool',
 					title : 'Map Tool',
 					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
 				});
