@@ -278,7 +278,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	});
 
 	 $("#queryObjectPanel" ).draggable().resizable();;
-	
+	 $("#queryObjectPanel" ).css({'top' : 10, 'left' : 20});
 	
 	//**********************************************************REMAPPING**************************************
 	 queryService.dataObject.shouldRemap = [];
@@ -439,19 +439,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
-	$scope.$watch(function () {
-		return queryService.queryObject.MapTool.enabled;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			for(var i in AnalysisService.tool_list) {
-				var tool = AnalysisService.tool_list[i];
-				if(tool.id == "MapTool") {
-					tool.enabled = newVal;
-					break;
-				}
-			}
-		}
-	});
+//	$scope.$watch(function () {
+//		return queryService.queryObject.MapTool.enabled;
+//	}, function(newVal, oldVal) {
+//		if(newVal != oldVal) {
+//			for(var i in AnalysisService.tool_list) {
+//				var tool = AnalysisService.tool_list[i];
+//				if(tool.id == "MapTool") {
+//					tool.enabled = newVal;
+//					break;
+//				}
+//			}
+//		}
+//	});
 	
 	$scope.$watch(function () {
 		return queryService.queryObject.ScatterPlotTool.enabled;

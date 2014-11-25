@@ -1,24 +1,58 @@
-AnalysisModule.controller("MapCtrl", function($scope, queryService, WeaveService){
+AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryService, WeaveService){
 	
 	$scope.service = queryService;
 	$scope.WeaveService = WeaveService;
+	$scope.AnalysisService = AnalysisService;
 	
 	queryService.getGeometryDataColumnsEntities(true);
+	$scope.toolName = "";
 	
 	$scope.toolProperties = {
-		toolName : WeaveService.generateUniqueName("MapTool"),
-		enable : false,
+		enabled : false,
 		geometryLayer : {},
 		title : "",
-		useKeyTypeForCSV : "true",
+		useKeyTypeForCSV : true,
 		labelLayer : ""
 	};
 	
-	console.log($scope.toolProperties.toolName);
+	$scope.$watch("$parent.$index", function() {
+		if($scope.$parent.$index) {
+			$scope.AnalysisService.weaveTools[$scope.$parent.$index].id = $scope.toolName;
+		}
+	});
+	
+	$scope.$watch('toolName', function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			if(!newVal) {
+				delete queryService.queryObject[oldVal];
+			} else {
+				$scope.AnalysisService.weaveTools[$scope.$parent.$index].id = $scope.toolName;
+			}
+		}
+	});
+	
+	$scope.$watch('AnalysisService.weaveTools[$parent.$index].id', function() {
+		if($scope.AnalysisService.weaveTools[$scope.$parent.$index].id) {
+			$scope.toolName = $scope.AnalysisService.weaveTools[$scope.$parent.$index].id;
+		}
+	});
 	
 	$scope.$watch( 'toolProperties', function(){
-		queryService.queryObject[$scope.toolProperties.toolName] = $scope.toolProperties;
-		WeaveService.MapTool($scope.toolProperties);
+		
+		$scope.toolName = WeaveService.MapTool($scope.toolProperties, $scope.toolName);
+		
+		if($scope.toolName)	{
+			queryService.queryObject[$scope.toolName] = $scope.toolProperties;
+		}
+		
+		$scope.$watch(function() {
+			return queryService.queryObject[$scope.toolName];
+		}, function(newVal, oldVal) {
+			if(queryService.queryObject[$scope.toolName])
+			{
+				$scope.toolProperties = queryService.queryObject[$scope.toolName];
+			}
+		});
 	}, true);
 	
 });
