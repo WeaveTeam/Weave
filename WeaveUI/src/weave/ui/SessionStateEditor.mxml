@@ -136,6 +136,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.compiler.Compiler;
+			import weave.core.ClassUtils;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
@@ -675,9 +676,19 @@ A text editor to change the Session State on the fly.
 						if (_editor == TEXT_EDITOR)
 						{
 							// Note: use === to work around bug with (<tag>null</tag> == null) evaluating to true
-							if (_currentSelectedObject is LinkableString || _currentSessionStateXML === null)
+							if (_currentSelectedObject is LinkableString)
 							{
 								setSessionState(_currentSelectedObject, textEditor.text);
+							}
+							else if (useJSON.selected)
+							{
+								var fromJson:Object;
+								var json:Object = ClassUtils.getClassDefinition('JSON');
+								if (json)
+									fromJson = json.parse(textEditor.text);
+								else
+									throw new Error("JSON encoding is not supported by your version of Flash Player.");
+								setSessionState(_currentSelectedObject, fromJson);
 							}
 							else
 							{
