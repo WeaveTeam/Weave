@@ -24,26 +24,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	var that = this; // point to this for async responses
 	
 
-	this.waitForWeave = function(popup, callback)
-	{
-		function checkWeaveReady() {
-			var weave;
-			if(popup) {
-				weave = popup.document.getElementById('weave');
-			} else {
-				weave = document.getElementById('weave');
-			}
-	        if (weave && weave.WeavePath) {
-	    		weave.loadFile('minimal.xml', callback.bind(this, weave));
-	        }
-	        else
-	            setTimeout(checkWeaveReady, 50);
-	    }
-	    
-		checkWeaveReady();
-	};
-
-	
 	
 	/**
      * This function wraps the async aws runScript function into an angular defer/promise
@@ -326,7 +306,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 										WeaveService.weaveWindow = $window.open("/weave.html?",
 												"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
 									}
-									that.waitForWeave(WeaveService.weaveWindow , function(weave) {
+									WeaveService.waitForWeave(WeaveService.weaveWindow , function(weave) {
 										WeaveService.weave = weave;
 										WeaveService.addCSVData(resultData);
 										WeaveService.columnNames = resultData[0];
@@ -336,7 +316,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 										scope.$apply();//re-fires the digest cycle and updates the view
 									});
 								} else {
-									that.waitForWeave(null , function(weave) {
+									WeaveService.waitForWeave(null , function(weave) {
 										
 										WeaveService.weave = weave;
 										WeaveService.addCSVData(resultData);

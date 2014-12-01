@@ -128,6 +128,16 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.WeaveService = WeaveService;
 	$scope.QueryHandlerService = QueryHandlerService;
 	
+	$scope.showToolMenu = false;
+	
+	$scope.$watch(function() {
+		return WeaveService.weave;
+	}, function () {
+		if(WeaveService.weave) {
+			$scope.showToolMenu = true;
+		}
+	});
+	
 	//getting the list of datatables
 	queryService.getDataTableList(true);
 	
@@ -268,7 +278,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	});
 
 	 $("#queryObjectPanel" ).draggable().resizable();;
-	
+	 $("#queryObjectPanel" ).css({'top' : 10, 'left' : 20});
 	
 	//**********************************************************REMAPPING**************************************
 	 queryService.cache.shouldRemap = [];
@@ -343,17 +353,28 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
+	$scope.$watch(function() {
+		return WeaveService.weave;
+	}, function() {
+		if(WeaveService.weave) 
+		{
+			WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+		}
+	});
+	
 	
 	//******************************managing weave and its session state**********************************************//
 	$scope.$watch(function() {
 		return queryService.queryObject.properties.openInNewWindow;
 	}, function() {
-		if(!queryService.queryObject.properties.openInNewWindow) {
-			if(WeaveService.weaveWindow && !WeaveService.weaveWindow.closed) {
-				// save the session state.
-				console.log(WeaveService.weave);
-				queryService.cache.weaveSessionState = WeaveService.weave.path().getState();
+		if(WeaveService.weave)
+			queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
+	
+		if(!!queryService.queryObject.properties.openInNewWindow) {
+			if(WeaveService.weaveWindow !== WeaveService.analysisWindow) {
 				WeaveService.weaveWindow.close();
+				setTimeout(loadFlashContent, 100);
+				WeaveService.setWeaveWindow(WeaveService.analysisWindow);
 			}
 			setTimeout(loadFlashContent, 100); // reload weave object in main window.
 			
@@ -461,19 +482,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
-	$scope.$watch(function () {
-		return queryService.queryObject.MapTool.enabled;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			for(var i in AnalysisService.tool_list) {
-				var tool = AnalysisService.tool_list[i];
-				if(tool.id == "MapTool") {
-					tool.enabled = newVal;
-					break;
-				}
-			}
-		}
-	});
+//	$scope.$watch(function () {
+//		return queryService.queryObject.MapTool.enabled;
+//	}, function(newVal, oldVal) {
+//		if(newVal != oldVal) {
+//			for(var i in AnalysisService.tool_list) {
+//				var tool = AnalysisService.tool_list[i];
+//				if(tool.id == "MapTool") {
+//					tool.enabled = newVal;
+//					break;
+//				}
+//			}
+//		}
+//	});
 	
 	$scope.$watch(function () {
 		return queryService.queryObject.ScatterPlotTool.enabled;
@@ -555,7 +576,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		switch(name) {
 			case "MapTool":
 				AnalysisService.weaveTools.push({
-					id : 'MapTool',
 					title : 'Map Tool',
 					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
 				});

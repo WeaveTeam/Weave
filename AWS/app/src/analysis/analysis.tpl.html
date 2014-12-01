@@ -300,25 +300,35 @@
 <!-- VIZ TOOLS -->	
 		<div ng-controller= "toolsCtrl">
 				<div class="row " style="height: 50%; clear:both" ng-if="!queryService.queryObject.properties.openInNewWindow">
-					<div class="databox" style="width: 20%;">
+					<div class="databox" style="width: 20%;" ng-if="!showToolMenu">
+						
+					</div>
+					<div class="databox" style="width: 20%;" ng-if="showToolMenu">
 						<div>
 							<div>
 								Add Tool: <select ng-model="selectedToolToAdd"
 												  ng-options="tool as tool for tool in tool_options"></select> 
-								<input type="button" 
-										ng-click="addTool(selectedToolToAdd)" title="Add">
-								</input>
+								<input type="button" value="Add" ng-click="addTool(selectedToolToAdd)"/>
 							</div>
 							<accordion close-others="true" class="tool-list"> 
 							
-								<accordion-group ng-repeat="tool in AnalysisService.weaveTools" heading="{{tool.id}}" style="font-family: 'Open Sans', Arial, sans-serif; font-size: 14px;">
-								<div ng-include="tool.template_url"></div>
+								<accordion-group ng-repeat="tool in AnalysisService.weaveTools" style="font-family: 'Open Sans', Arial, sans-serif; font-size: 14px;">
+									<accordion-heading>
+											{{tool.title}}
+											<!--hack to disable the close button on the first tools -->
+ 											<a ng-show="$index > 5" href="javascript: void(0)"  
+												class="close-button" data-trigger="hover" placement="right" title="Remove"  
+												ng-click="removeTool($index)"> 
+												<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
+											</a>
+									</accordion-heading>
+									<div ng-include="tool.template_url"></div>
 								</accordion-group>
 								
 							</accordion>
 						</div>
 					</div>
-						<div id="flashContent" style="width: 60%; height: 800px; float:left"></div>
+					<div id="flashContent" style="width: 60%; height: 800px; float:left"></div>
 				</div>
 				
 				

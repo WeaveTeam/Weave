@@ -1,29 +1,53 @@
-AnalysisModule.controller("DataTableCtrl", function($scope, queryService, WeaveService) {
+AnalysisModule.controller("DataTableCtrl", function($scope,  AnalysisService, queryService, WeaveService) {
 
 	$scope.service = queryService;
 	$scope.WeaveService = WeaveService;
+	$scope.AnalysisService = AnalysisService;
 	
-	$scope.content_tools = [
-		{title :"Shweta"}, 
-					
-		{title :"Hello"}, 
-						  
-	    {title :"yelloq"}, 
-	    					
-		{title :"shdflsh"} 
-   ];
-	$scope.columns =["fips", "labels", "year.2010", "prev.pct.2010", "CI_LOW.2010", "CI_HI.2010", "CINT.2010"]; 
+	$scope.toolName = "";
 	
-//	$scope.$watch(function(){
-//		return WeaveService.columnNames;
-//	}, function(){
-//		$scope.columns = WeaveService.columns;
-//	});
+	$scope.toolProperties = {
+		enabled : false,
+		columns : []
+	};
 	
-	$scope.$watch(function(){
-		return queryService.queryObject.DataTableTool;
-	}, function(){
-		WeaveService.DataTableTool(queryService.queryObject.DataTableTool);
+	$scope.$watch("$parent.$index", function() {
+		if($scope.$parent.$index) {
+			$scope.AnalysisService.weaveTools[$scope.$parent.$index].id = $scope.toolName;
+		}
+	});
+	
+	$scope.$watch('toolName', function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			if(!newVal) {
+				delete queryService.queryObject[oldVal];
+			} else {
+				$scope.AnalysisService.weaveTools[$scope.$parent.$index].id = $scope.toolName;
+			}
+		}
+	});
+	
+	$scope.$watch('AnalysisService.weaveTools[$parent.$index].id', function() {
+		if($scope.AnalysisService.weaveTools[$scope.$parent.$index].id) {
+			$scope.toolName = $scope.AnalysisService.weaveTools[$scope.$parent.$index].id;
+		}
+	});
+	
+	$scope.$watch( 'toolProperties', function(){
+		
+		$scope.toolName = WeaveService.DataTableTool($scope.toolProperties, $scope.toolName);
+		
+		if($scope.toolName)	{
+			queryService.queryObject[$scope.toolName] = $scope.toolProperties;
+		}
+		
+		$scope.$watch(function() {
+			return queryService.queryObject[$scope.toolName];
+		}, function(newVal, oldVal) {
+			if(queryService.queryObject[$scope.toolName])
+			{
+				$scope.toolProperties = queryService.queryObject[$scope.toolName];
+			}
+		});
 	}, true);
-
 }); 
