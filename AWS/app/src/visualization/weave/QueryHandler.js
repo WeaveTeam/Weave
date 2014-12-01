@@ -127,7 +127,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	}
     	
     	//TODO confirm if this is the right way
-    	if($.inArray(typedInputObjects, filteredRowsObject) != 0 && queryService.dataObject.scriptMetadata)//if it contains the filtered rows
+    	if($.inArray(typedInputObjects, filteredRowsObject) != 0 && queryService.cache.scriptMetadata)//if it contains the filtered rows
     		{
 	    		var scriptMetadata = queryService.cache.scriptMetadata;
 	    		for(var x in scriptMetadata.inputs){

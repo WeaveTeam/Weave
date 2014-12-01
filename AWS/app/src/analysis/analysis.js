@@ -277,8 +277,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 
-	 $("#queryObjectPanel" ).draggable().resizable();;
-	 $("#queryObjectPanel" ).css({'top' : 10, 'left' : 20});
+	 $("#queryObjectPanel" ).draggable().resizable();
+	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
 	
 	//**********************************************************REMAPPING**************************************
 	 queryService.cache.shouldRemap = [];
@@ -356,9 +356,12 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function() {
-		if(WeaveService.weave) 
+		if(WeaveService.weave && WeaveService.weave.WeavePath) 
 		{
-			WeaveService.weave.path().state(queryService.dataObject.weaveSessionState);
+			if(queryService.cache.weaveSessionState) {
+				console.log("logging state", WeaveService.weave.path().state, queryService.cache.weaveSessionState);
+				WeaveService.weave.path().state(queryService.cache.weaveSessionState);
+			}
 		}
 	});
 	
@@ -367,64 +370,23 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.$watch(function() {
 		return queryService.queryObject.properties.openInNewWindow;
 	}, function() {
-		if(WeaveService.weave)
-			queryService.dataObject.weaveSessionState = WeaveService.weave.path().getState();
+		if(WeaveService.weave && WeaveService.weave.path) {
+			queryService.cache.weaveSessionState = WeaveService.weave.path().getState();
+		}
 	
-		if(!!queryService.queryObject.properties.openInNewWindow) {
+		if(!queryService.queryObject.properties.openInNewWindow) {
+			console.log("restoring to main window");
 			if(WeaveService.weaveWindow !== WeaveService.analysisWindow) {
 				WeaveService.weaveWindow.close();
-				setTimeout(loadFlashContent, 100);
+				setTimeout(loadFlashContent, 0);
 				WeaveService.setWeaveWindow(WeaveService.analysisWindow);
 			}
-			setTimeout(loadFlashContent, 100); // reload weave object in main window.
-			
-			// checkweaveready and restore session station into embedded weave.
-			QueryHandlerService.waitForWeave(null, function (weave) {
-				WeaveService.weave = weave;
-				if(queryService.cache.weaveSessionState) {
-					setTimeout(function () {
-						WeaveService.weave.path().state(queryService.cache.weaveSessionState);
-					}, 100);
-					
-				}
-			});
 		} else {
-			
-			// check if there is a result data, meaning there is a current analysis
-			// if that's the case, save embedded weave session state
-			// open the weave window, checkweaveready and restore the session state.
-			//if(queryService.dataObject.resultData)
-			//{
-				queryService.cache.weaveSessionState = WeaveService.weave.path().getState();
-				
-				if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
-					WeaveService.weaveWindow = $window.open("/weave.html?",
-							"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-					QueryHandlerService.waitForWeave(WeaveService.weaveWindow , function(weave) {
-						WeaveService.weave = weave;
-						WeaveService.weave.path().state(queryService.cache.weaveSessionState);
-						//updates required for updating query object validation and to enable visualization widget controls
-						that.displayVizMenu = true;
-						that.isValidated = false;
-						that.validationUpdate = "Ready for validation";
-						
-						//scope.$apply();//re-fires the digest cycle and updates the view
-					});
-				}
-			//}
-			
+			WeaveService.setWeaveWindow($window.open("/weave.html?",
+							"abc","toolbar=no, fullscreen = no, scrollbars=no, addressbar=no, resizable=yes"));
 		}
 	});
-	
-	$scope.$watchCollection(function() {
-		return $('#weave');
-	}, function() {
-		if($('#weave').length) {
-			WeaveService.weave = $('#weave')[0];
-		} else {
-			WeaveService.weave = null;
-		}
-	});
+
 	
 	//******************************managing weave and its session state END**********************************************//
 	
@@ -468,19 +430,19 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	});
 	
 
-	$scope.$watch(function () {
-		return queryService.queryObject.BarChartTool.enabled;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			for(var i in AnalysisService.tool_list) {
-				var tool = AnalysisService.tool_list[i];
-				if(tool.id == "BarCharTool") {
-					tool.enabled = newVal;
-					break;
-				}
-			}
-		}
-	});
+//	$scope.$watch(function () {
+//		return queryService.queryObject.BarChartTool.enabled;
+//	}, function(newVal, oldVal) {
+//		if(newVal != oldVal) {
+//			for(var i in AnalysisService.tool_list) {
+//				var tool = AnalysisService.tool_list[i];
+//				if(tool.id == "BarCharTool") {
+//					tool.enabled = newVal;
+//					break;
+//				}
+//			}
+//		}
+//	});
 	
 //	$scope.$watch(function () {
 //		return queryService.queryObject.MapTool.enabled;
@@ -496,33 +458,33 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 //		}
 //	});
 	
-	$scope.$watch(function () {
-		return queryService.queryObject.ScatterPlotTool.enabled;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			for(var i in AnalysisService.tool_list) {
-				var tool = AnalysisService.tool_list[i];
-				if(tool.id == "ScatterPlotTool") {
-					tool.enabled = newVal;
-					break;
-				}
-			}
-		}
-	});
-	
-	$scope.$watch(function () {
-		return queryService.queryObject.DataTableTool.enabled;
-	}, function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			for(var i in AnalysisService.tool_list) {
-				var tool = AnalysisService.tool_list[i];
-				if(tool.id == "DataTableTool") {
-					tool.enabled = newVal;
-					break;
-				}
-			}
-		}
-	});
+//	$scope.$watch(function () {
+//		return queryService.queryObject.ScatterPlotTool.enabled;
+//	}, function(newVal, oldVal) {
+//		if(newVal != oldVal) {
+//			for(var i in AnalysisService.tool_list) {
+//				var tool = AnalysisService.tool_list[i];
+//				if(tool.id == "ScatterPlotTool") {
+//					tool.enabled = newVal;
+//					break;
+//				}
+//			}
+//		}
+//	});
+//	
+//	$scope.$watch(function () {
+//		return queryService.queryObject.DataTableTool.enabled;
+//	}, function(newVal, oldVal) {
+//		if(newVal != oldVal) {
+//			for(var i in AnalysisService.tool_list) {
+//				var tool = AnalysisService.tool_list[i];
+//				if(tool.id == "DataTableTool") {
+//					tool.enabled = newVal;
+//					break;
+//				}
+//			}
+//		}
+//	});
 	
 	/************** watches for query validation******************/
 	$scope.$watchCollection(function() {
@@ -570,7 +532,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	}, true);
 	/************** watches for query validation******************/
-	$scope.tool_options = ["MapTool", "BarCharTool", "ScatterPlotTool", "DataTable"];
+	$scope.tool_options = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTable"];
 	
 	$scope.addTool = function(name) {
 		switch(name) {
@@ -580,25 +542,22 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
 				});
 				break;
-			case "BarCharTool":
+			case "BarChartTool":
 				AnalysisService.weaveTools.push({
-					id : 'BarCharTool',
-					title : 'Map Tool',
-					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+					title : 'Bar Chart Tool',
+					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
 				});
 				break;
 			case "ScatterPlotTool":
 				AnalysisService.weaveTools.push({
-					id : 'ScatterPlotTool',
-					title : 'Map Tool',
-					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+					title : 'Scatter Plot Tool',
+					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
 				});
 				break;
 			case "DataTable":
 				AnalysisService.weaveTools.push({
-					id : 'DataTable',
-					title : 'Map Tool',
-					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+					title : 'Data Table Tool',
+					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
 				});
 				break;
 		}
@@ -630,7 +589,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		if(scriptSelected)
 			$scope.service.getScriptMetadata(scriptSelected, forceUpdate);
 		else
-			$scope.service.dataObject.scriptMetadata.inputs = [];
+			$scope.service.cache.scriptMetadata.inputs = [];
 	};
 
 	//  clear script options when script changes

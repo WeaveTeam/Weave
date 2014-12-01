@@ -27,7 +27,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 			if (weave && weave.WeavePath && weave.WeavePath.prototype.pushLayerSettings) {
 				ws.weave = weave;
 				console.log("weave and its api is ready", weave.WeavePath);
-				rootScope.$apply();
+				rootScope.$safeApply();
 			}
 			else {
 				setTimeout(ws.setWeaveWindow, 50, window);
@@ -63,29 +63,41 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		}
 	};
 	
-	this.BarChartTool =  function (state) {
-		var toolName = state.toolName || "BarChartTool";
+	this.BarChartTool =  function (state, aToolName) {
+		var toolName = aToolName || ws.generateUniqueName("BarChartTool");
 		
 		if(ws.weave && ws.weave.path) {
-			if(!state.enabled)
-				return ws.weave.path(toolName).remove();
 			
-			ws.weave.path(toolName)
-					.request('CompoundBarChartTool')
-					.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
-					.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-						.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
-						.forEach(
-							{ heightColumns : state.heights, positiveErrorColumns : state.posErr, negativeErrorColumns : state.negErr}, 
-							function(heights, name) {
-								var child = this.push(name);
-								child.getNames().forEach(function(n, i){
-									if (!heights || i >= heights.length) child.remove(n);
-								});
-								child.forEach(heights, setCSVColumn);
-							}
-						);
+			try{
+				
+				if(!state.enabled)
+				{
+					ws.weave.path(toolName).remove();
+					return "";
+				}
+				
+				ws.weave.path(toolName)
+				.request('CompoundBarChartTool')
+				.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+				.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
+				.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
+				.forEach(
+						{ heightColumns : state.heights, positiveErrorColumns : state.posErr, negativeErrorColumns : state.negErr}, 
+						function(heights, name) {
+							var child = this.push(name);
+							child.getNames().forEach(function(n, i){
+								if (!heights || i >= heights.length) child.remove(n);
+							});
+							child.forEach(heights, setCSVColumn);
+						}
+				);
+			} catch(e)
+			{
+				console.log(e);
+			}
 		}
+		
+		return toolName;
 	};
 	
 	
@@ -178,8 +190,8 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	
 	
-	this.DataTableTool = function(state){
-		var toolName = state.toolName || ws.generateUniqueName("ScatterPlotTool");;
+	this.DataTableTool = function(state, aToolName){
+		var toolName = aToolName || ws.generateUniqueName("DataTableTool");;
 		
 		if(ws.weave && ws.weave.path) {
 			if(!state.enabled) {

@@ -5,7 +5,7 @@
 			<tr>	
 				<td>
 					<input   type="checkbox"
-							 ng-model="service.queryObject.BarChartTool.enabled"/>
+							 ng-model="toolProperties.enabled"/>
 				</td>
 				
 				<td style="padding-left: 5px;">
@@ -19,7 +19,7 @@
 				<td style="padding-left: 5px;">
 					<input  style = "width : 100%" type="text"
 							placeholder="Default" 
-							ng-model="service.queryObject.BarChartTool.title"/>
+							ng-model="toolProperties.title"/>
 				</td>
 			</tr>
 			
@@ -33,7 +33,7 @@
 					<select style = "width : 100%" 
 							class="widget-ui-control" 
 							ui-select2="{allowClear : true}"  
-							ng-model="service.queryObject.BarChartTool.heights" 
+							ng-model="toolProperties.heights" 
 							multiple  
 							data-placeholder="Choose Column(s)">
 							<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
@@ -50,7 +50,7 @@
 				<select style = "width : 100%" 
 							class="widget-ui-control" 
 							ui-select2="{allowClear : true}"  
-							ng-model="service.queryObject.BarChartTool.posErr" 
+							ng-model="toolProperties.posErr" 
 							multiple  
 							data-placeholder="Choose Column(s)">
 							<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
@@ -67,7 +67,7 @@
 				<select style = "width : 100%" 
 							class="widget-ui-control" 
 							ui-select2="{allowClear : true}"  
-							ng-model="service.queryObject.BarChartTool.negErr" 
+							ng-model="toolProperties.negErr" 
 							multiple  
 							data-placeholder="Choose Column(s)">
 							<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
@@ -84,7 +84,7 @@
 				<select  style = "width : 100%" 
 						 class="widget-ui-control" 
 						 ui-select2="{allowClear : true}"
-						 ng-model="service.queryObject.BarChartTool.sort" 
+						 ng-model="toolProperties.sort" 
 						 data-placeholder="Choose Column">
 					<option></option>
 					<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
@@ -101,7 +101,7 @@
 				<select  style = "width : 100%" 
 						 class="widget-ui-control" 
 						 ui-select2="{allowClear : true}" 
-						 ng-model="service.queryObject.BarChartTool.label" 
+						 ng-model="toolProperties.label" 
 						 data-placeholder="Choose Column"
 						 >
 				<option></option>
@@ -111,8 +111,8 @@
 		<tr>	
 			<td>
 				<input   type="checkbox"
-						 ng-model="service.queryObject.BarChartTool.showAllLabels" 
-						 ng-init="service.queryObject.BarChartTool.showAllLabels = true"/>
+						 ng-model="toolProperties.showAllLabels" 
+						 ng-init="toolProperties.showAllLabels = true"/>
 			</td>
 			
 			<td style="padding-left: 5px;">

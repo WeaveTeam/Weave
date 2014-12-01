@@ -116,10 +116,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			TimePeriodFilter : {},
 			ByVariableFilters : [],
 			ByVariableColumns : [],
-			BarChartTool : { enabled : false },
-			MapTool : { enabled : false },
-			ScatterPlotTool : { enabled : false },
-			DataTableTool : { enabled : false },
 			ColorColumn : {column : "",  showColorLegend : false},
 			keyColumn : {name : ""},
 			properties : {

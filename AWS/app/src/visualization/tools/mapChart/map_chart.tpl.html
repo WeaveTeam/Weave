@@ -34,7 +34,7 @@
 									ng-model="toolProperties.geometryLayer" 
 									data-placeholder="Choose Layer">
 							<option></option>
-							<option value="{{gt}}"  ng-repeat="gt in service.dataObject.geometryColumns">{{gt.title}}</option>
+							<option value="{{gt}}"  ng-repeat="gt in service.cache.geometryColumns">{{gt.title}}</option>
 					</select>
 				</td>
 			</tr>

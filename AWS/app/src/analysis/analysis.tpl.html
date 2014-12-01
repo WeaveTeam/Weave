@@ -1,8 +1,19 @@
 <div style="height: 100%" ng-controller="AnalysisCtrl">
 <!-- BUTTON CONTAINER -->
 	<div style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed;display: table"  ng-controller = DialogController>
+
+						<a href="javascript:void(0);" class="btn btn-default" style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "exportQuery()">Export Query</span></a>
+						<a href="javascript:void(0);" class="btn btn-default" 
+														style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"
+														ng-click = "queryService.queryObject.properties.hideQueryObjectPanel = !queryService.queryObject.properties.hideQueryObjectPanel"
+														ng-init="queryService.queryObject.properties.hideQueryObjectPanel = true">
+								 <span style="vertical-align: middle">
+									 	Show/Hide Query Object
+							 	</span>
+						</a>
+						
 				<!-- CLEAR button --> 
-							<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear output visuals</span></a>
+						<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear output visuals</span></a>
 				<!-- SAVE output visuals button -->	 
 
 						<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width: 15%; margin-top: 10px; margin-right : 5px" ng-click="saveVisualizations()"> 
@@ -328,7 +339,7 @@
 							</accordion>
 						</div>
 					</div>
-					<div id="flashContent" style="width: 60%; height: 800px; float:left"></div>
+					<div id="flashContent" style="width: 78%; height: 800px; float:left"></div>
 				</div>
 				
 				
@@ -352,18 +363,20 @@
 </div>
 
 <!-- QUERY OBJECT PANEL -->						
-	<div id="queryObjectPanel" class="databox" style="width: 50%; height:400px">
+	<div id="queryObjectPanel" class="databox" style="width: 50%; height: 400px; position: relative; top: -1059px; left: 496px;" 
+			ng-show="!queryService.queryObject.properties.hideQueryObjectPanel">
 			<!-- <div class="databox" style="width: 200px;"> -->
 			<div class=" header panel-heading" style="margin-bottom: 0px">
 				<h2>Query Object Editor</h2>
 				<a href="javascript: void(0)" 
 					class="close-button" data-trigger="hover" placement="right" title="Remove"  
-					ng-click="queryService.queryObject.properties.hideQueryObjectPanel = false"> 
+					ng-click="queryService.queryObject.properties.hideQueryObjectPanel = true"> 
 					<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
 				</a>
 			</div>
 			
-			<div id="qobjPanelContent" class="body" style="width: 100%; height:100%; border: solid 4px; border-color: #4C4F53">
+			<div id="qobjPanelContent" 
+				 class="body" style="width: 100%; height:100%; border: solid 4px; border-color: #4C4F53">
 				<br>
 				<div style="width: 100%; height: 100%;">
 					<div id="queryObjTree" style="width: 50%; height: 80%; overflow:hidden; float:left"></div>

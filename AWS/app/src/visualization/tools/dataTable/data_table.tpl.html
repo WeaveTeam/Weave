@@ -5,7 +5,7 @@
 		<tr>	
 			<td>
 				<input   type="checkbox"
-						 ng-model="service.queryObject.DataTableTool.enabled"/>
+						 ng-model="toolProperties.enabled"/>
 			</td>
 			
 			<td style="padding-left: 5px;">
@@ -24,7 +24,7 @@
 <!-- 			</select> -->
 			
 			
-			<select multiple ng-model="service.queryObject.DataTableTool.columns" data-placeholder="Choose Columns"
+			<select ui-select2 multiple ng-model="toolProperties.columns" data-placeholder="Choose Columns"
 			ng-options="output for output in WeaveService.columnNames">
 			</select>
 
