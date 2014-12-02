@@ -14,30 +14,24 @@ AnalysisModule.controller("ScatterPlotCtrl", function($scope,  AnalysisService, 
 		Y : "",
 	};
 	
-	$scope.$watch("$parent.$index", function() {
-		if($scope.$parent.$index) {
-			$scope.AnalysisService.weaveTools[$scope.$parent.$index].id = $scope.toolName;
-		}
-	});
-	
 	$scope.$watch('toolName', function(newVal, oldVal) {
 		if(newVal != oldVal) {
 			if(!newVal) {
 				delete queryService.queryObject[oldVal];
 			} else {
-				$scope.AnalysisService.weaveTools[$scope.$parent.$index].id = $scope.toolName;
+				$scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id = $scope.toolName;
 			}
 		}
 	});
 	
-	$scope.$watch('AnalysisService.weaveTools[$parent.$index].id', function() {
-		if($scope.AnalysisService.weaveTools[$scope.$parent.$index].id) {
-			$scope.toolName = $scope.AnalysisService.weaveTools[$scope.$parent.$index].id;
+	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
+		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
+			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
+			$scope.toolProperties = queryService.queryObject[$scope.toolName];
 		}
-	});
+	}, true);
 	
 	$scope.$watch( 'toolProperties', function(){
-		
 		$scope.toolName = WeaveService.ScatterPlotTool($scope.toolProperties, $scope.toolName);
 		
 		if($scope.toolName)	{

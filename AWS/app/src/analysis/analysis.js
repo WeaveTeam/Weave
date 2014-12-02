@@ -96,14 +96,14 @@ AnalysisModule.value('key_Column', {
 
 
 //analysis service
-AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column' ,
-                                           function(geoFilter_tool, timeFilter_tool,BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column ) {
+AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column', 'queryService',
+                                           function(geoFilter_tool, timeFilter_tool,BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column, queryService ) {
 	
 	var AnalysisService = {
 			
 	};
 	
-	AnalysisService.weaveTools = [MapTool,
+	queryService.queryObject.weaveToolsList = [MapTool,
 	                              BarChartTool,
 	                              DataTableTool,
 	                              ScatterPlotTool,
@@ -141,12 +141,10 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	//getting the list of datatables
 	queryService.getDataTableList(true);
 	
-	$scope.$watch("queryService.queryObject.dataTable", function(){
-		queryService.getDataTableList(true);
-	}, true);
-//	$scope.$watch('WeaveService.weaveWindow.closed', function() {
-//		queryService.dataObject.openInNewWindow = WeaveService.weaveWindow.closed;
-//	});
+	$scope.$watch('WeaveService.weaveWindow.closed', function() {
+		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
+	});
+	
 	var expandedNodes = null;
 	var scrolledPosition = 0;
 	var activeNode = null;
@@ -350,10 +348,14 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		var values = queryService.cache.dataTableList;
 		done($filter('filter')(values, {title:term}, 'title'));
 	};
+	
+	$scope.$watch("queryService.queryObject.dataTable.id", function() {
+		queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
+	});
+	
 	//Indicator
 	 $scope.getIndicators = function(term, done) {
 			var columns = queryService.cache.columns;
-			console.log(columns);
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
@@ -379,7 +381,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	
 		if(!queryService.queryObject.properties.openInNewWindow) {
-			console.log("restoring to main window");
 			if(WeaveService.weaveWindow !== WeaveService.analysisWindow) {
 				WeaveService.weaveWindow.close();
 				setTimeout(loadFlashContent, 0);
@@ -541,25 +542,25 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.addTool = function(name) {
 		switch(name) {
 			case "MapTool":
-				AnalysisService.weaveTools.push({
+				queryService.queryObject.weaveToolsList.push({
 					title : 'Map Tool',
 					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
 				});
 				break;
 			case "BarChartTool":
-				AnalysisService.weaveTools.push({
+				queryService.queryObject.weaveToolsList.push({
 					title : 'Bar Chart Tool',
 					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
 				});
 				break;
 			case "ScatterPlotTool":
-				AnalysisService.weaveTools.push({
+				queryService.queryObject.weaveToolsList.push({
 					title : 'Scatter Plot Tool',
 					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
 				});
 				break;
 			case "DataTable":
-				AnalysisService.weaveTools.push({
+				queryService.queryObject.weaveToolsList.push({
 					title : 'Data Table Tool',
 					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
 				});
@@ -588,8 +589,12 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	
 	queryService.getListOfScripts(true);
 	
+	$scope.$watch("queryService.queryObject.scriptSelected", function() {
+		queryService.getScriptMetadata(queryService.queryObject.scriptSelected, true);
+	});
+	
 	//clears scrip options when script clear button is hit
-	$scope.getScriptMetadata = function(scriptSelected,forceUpdate){
+	$scope.getScriptMetadata = function(scriptSelected, forceUpdate){
 		if(scriptSelected)
 			$scope.service.getScriptMetadata(scriptSelected, forceUpdate);
 		else

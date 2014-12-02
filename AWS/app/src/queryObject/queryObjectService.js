@@ -312,7 +312,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 	  */
 	this.getDataColumnsEntitiesFromId = function(id, forceUpdate) {
 		
-		console.log("this gets colled");
 		var deferred = $q.defer();
 
 		if(!forceUpdate) {

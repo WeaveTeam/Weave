@@ -5,9 +5,9 @@ AnalysisModule.controller("toolsCtrl", function($scope, queryService, WeaveServi
 	$scope.AnalysisService = AnalysisService;
 	
 	$scope.removeTool = function(index) {
-		WeaveService.weave.path(AnalysisService.weaveTools[index].id).remove();
-		delete queryService.queryObject[AnalysisService.weaveTools[index].id];
-		AnalysisService.weaveTools.splice(index, 1);
+		WeaveService.weave.path(queryService.queryObject.weaveToolsList[index].id).remove();
+		delete queryService.queryObject[queryService.queryObject.weaveToolsList[index].id];
+		queryService.queryObject.weaveToolsList.splice(index, 1);
 	};
 
 });
