@@ -2,7 +2,11 @@
 <!-- BUTTON CONTAINER -->
 	<div style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed;display: table"  ng-controller = DialogController>
 
-						<a href="javascript:void(0);" class="btn btn-default" style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "exportQuery()">Export Query</span></a>
+						<div ng-controller="QueryImportExportCtrl">
+							<a href="javascript:void(0);" class="btn btn-default" style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "exportQuery()">Export Query</span></a>
+							<a href="javascript:void(0);" class="btn btn-default" style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <input style="vertical-align: middle" fileread="queryObjectUploaded.file" type='file' class='btn btn-default'>Import Query</input></a>
+						</div>
+						
 						<a href="javascript:void(0);" class="btn btn-default" 
 														style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"
 														ng-click = "queryService.queryObject.properties.hideQueryObjectPanel = !queryService.queryObject.properties.hideQueryObjectPanel"
@@ -343,7 +347,7 @@
 				</div>
 				
 				
-				<div class="row " style="height: 50%; clear:both" ng-if="queryService.queryObject.properties.openInNewWindow">
+				<div class="row " style="height: 50%; clear:both" ng-show="queryService.queryObject.properties.openInNewWindow">
 					<div style="height:100%; width: 100%;">
 							<div style="width: 20%; float : left; margin-right : 20px" ng-repeat="tool in AnalysisService.weaveTools" class="panel panel-default">
 									<div class="panel-heading">

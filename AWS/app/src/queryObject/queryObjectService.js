@@ -311,7 +311,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
 	  */
 	this.getDataColumnsEntitiesFromId = function(id, forceUpdate) {
-
+		
+		console.log("this gets colled");
 		var deferred = $q.defer();
 
 		if(!forceUpdate) {

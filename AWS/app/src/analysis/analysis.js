@@ -141,6 +141,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	//getting the list of datatables
 	queryService.getDataTableList(true);
 	
+	$scope.$watch("queryService.queryObject.dataTable", function(){
+		queryService.getDataTableList(true);
+	}, true);
 //	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 //		queryService.dataObject.openInNewWindow = WeaveService.weaveWindow.closed;
 //	});
@@ -350,6 +353,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	//Indicator
 	 $scope.getIndicators = function(term, done) {
 			var columns = queryService.cache.columns;
+			console.log(columns);
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
@@ -703,12 +707,12 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			var scriptSelected = newVal[1];
 			var scriptMetadata = newVal[2];
 			
-			if(indicator && scriptSelected) {
-				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + indicator.title;
-				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + indicator.title;
-				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + indicator.title;
-
-			}
+//			if(indicator && scriptSelected) {
+//				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + indicator.title;
+//				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + indicator.title;
+//				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + indicator.title;
+//
+//			}
 			
 			$scope.$watch(function() {
 				return queryService.cache.scriptMetadata;

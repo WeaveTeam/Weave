@@ -6,27 +6,17 @@ var QueryObject = angular.module("aws.queryObject", []);
 QueryObject.controller("QueryImportExportCtrl", function($scope, queryService) {
 			
 
-			$scope.exportQueryObject = function() {
-				var blob = new Blob([ JSON.stringify(queryService.queryObject, undefined, 2) ], {
+			$scope.exportQuery = function() {
+				var blob = new Blob([ angular.toJson(queryService.queryObject, undefined, 2) ], {
 					type : "text/plain;charset=utf-8"
 				});
 				saveAs(blob, "QueryObject.json");
 			};
-			
-			$scope.importQueryObject = function() {
-			};
-			
-			$scope.$on('fileUploaded', function(e) {
-                $scope.$safeApply(function() {
-                  queryService.queryObject = e.targetScope.file;
-                });
-			});
+			$scope.queryObjectUploaded = {};
+			$scope.$watch('queryObjectUploaded.file', function(n, o) {
+				if($scope.queryObjectUploaded.file.content)
+				{
+					queryService.queryObject = angular.fromJson($scope.queryObjectUploaded.file.content);
+				}
+		    }, true);
 });
-
-
-function saveJSON(query) {
-	var blob = new Blob([ JSON.stringify(query, undefined, 2) ], {
-		type : "text/plain;charset=utf-8"
-	});
-	saveAs(blob, "QueryObject.json");
-}
