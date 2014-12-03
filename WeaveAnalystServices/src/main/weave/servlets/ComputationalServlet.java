@@ -86,9 +86,16 @@ public class ComputationalServlet extends WeaveServlet
 				//TODO handling filters still has to be done
 	
 				data = DataService.getFilteredRows(fRows.columnIds, fRows.filters, null);
+				
+				//REMAPPING
+				if(remapValues != null)//only if remapping needs to be done
+				{
+					data = remappingScriptInputData(remapValues, fRows, data);//this function call will return the remapped data
+				}
+				
 				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
-				// assign each columns to proper column name
+				 //assign each columns to proper column name
 				for(int x =  0; x < inputObjects[i].names.length;  x++) {
 					scriptInputs.put(inputObjects[i].names[x], columnData[x]);
 				}
@@ -110,55 +117,7 @@ public class ComputationalServlet extends WeaveServlet
 			}
 			
 		}
- 		//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
-		if(remapValues != null)//only if remapping needs to be done
-		{
-			if(remapValues.length > 0 ){
-				for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
-				{
-					int index = 0;
-					ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
-					//we need this to know which column to handle for remapping
-					for(int y = 0; y < remapValues.length; y++)
-					{
-						ReMapObjects singleObject = remapValues[y];
-						for(int t=0; t< fRows.columnIds.length; t++)
-						{
-							if(singleObject.columnsToRemapId == fRows.columnIds[t])
-							{
-								index = t;//use index to loop through data
-								remapObject = remapValues[y];
-							}
-						}
-					}
-					
-					//check the type of the original data to be remapped
-					Object column_to_remap = null;//resetting it every time
-					Object castedOriginalValue = null;
-					column_to_remap = data.recordData[0][index];//TODO remove hardcode this has to be done only once
-					try{
-						castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
-					}
-					catch(Exception e){
-						throw e;
-					}
-					
-					for(int x = 0; x < data.recordData.length; x++)
-					{
-						
-						if(data.recordData[x][index].equals(castedOriginalValue))
-						{
-							data.recordData[x][index] = remapObject.reMappedValue;
-							
-						}
-						
-					}
-				}//loop ends for one remapObject
-			}
-			
-		}//***************************end of REMAPPING********************************************
-			
-		
+ 		
 		return true;
 	}
 	
@@ -183,6 +142,74 @@ public class ComputationalServlet extends WeaveServlet
 		//clearing scriptInputs before every successive run
 		scriptInputs.clear();
 		return resultData;
+	}
+	
+	//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
+	/**
+	 * @param remapValues the value to be used for overwriting
+	 * @param filtered rows needed for matching ids of columns that need to be remapped
+	 * @param originalData the original data matrix that needs to be overwritten
+	 */
+	private WeaveRecordList remappingScriptInputData(ReMapObjects[] remapValues, FilteredRows fRows, WeaveRecordList originalData) throws Exception
+	{
+		if(remapValues.length > 0 ){
+			for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
+			{
+				int index = 0;
+				ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
+				//we need this to know which column to handle for remapping
+				for(int y = 0; y < remapValues.length; y++)
+				{
+					ReMapObjects singleObject = remapValues[y];
+					for(int t=0; t< fRows.columnIds.length; t++)
+					{
+						if(singleObject.columnsToRemapId == fRows.columnIds[t])
+						{
+							index = t;//use index to loop through data
+							remapObject = remapValues[y];
+						}
+					}
+				}
+				
+				//check the type of the original data to be remapped
+				Object column_to_remap = null;//resetting it every time
+				Object castedOriginalValue = null;
+				Object castedRemappedValue = null;
+				column_to_remap = originalData.recordData[0][index];//TODO remove hardcode this has to be done only once
+				try{
+					castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
+					//need to cast because client side sometimes sends integers as strings
+					castedRemappedValue = cast(remapObject.reMappedValue, column_to_remap.getClass());
+				}
+				catch(Exception e){
+					throw e;
+				}
+				
+				for(int x = 0; x < originalData.recordData.length; x++)
+				{
+					if(originalData.recordData[x][index] == null){
+						continue;
+					}
+					
+					else{//for non-null values
+						
+						if(originalData.recordData[x][index].equals(castedOriginalValue))
+						{
+							System.out.println(x);
+							originalData.recordData[x][index] = castedRemappedValue;
+							
+						}
+						
+					}
+					
+				}
+				
+			}//loop ends for one remapObject
+		}
+			
+		//***************************end of REMAPPING********************************************
+			
+		return originalData;
 	}
 	
 	
