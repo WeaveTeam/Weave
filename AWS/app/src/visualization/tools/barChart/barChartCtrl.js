@@ -24,6 +24,14 @@ AnalysisModule.controller("BarChartCtrl", function($scope,  AnalysisService, que
 		}
 	});
 	
+//	$scope.$on("queryUploaded", function()
+//	{
+//		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
+//			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
+//			$scope.toolProperties = queryService.queryObject[$scope.toolName];
+//		} 
+//	});
+	 
 	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
 		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
 			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
