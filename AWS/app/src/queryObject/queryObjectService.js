@@ -119,7 +119,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			ColorColumn : {column : "",  showColorLegend : false},
 			keyColumn : {name : ""},
 			properties : {
-				validationStatus : "test",
+				validationStatus : "test"
 			}
 	};    		
     
@@ -324,11 +324,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						//console.log("dataEntirtyArray", dataEntityArray);
 						//console.log("columns", that.cache.columnsb);
 						
+						that.cache.numericalColumns = [];//collects numerical columns for statistics calculation
+						
 						that.cache.columns = $.map(dataEntityArray, function(entity) {
 							if(entity.publicMetadata.hasOwnProperty("aws_metadata")) {//will work if the column already has the aws_metadata as part of its public metadata
 								var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
-								
-								//that.cache.numericalColumns = [];//collects numerical columns for statistics calculation
 								
 								if(metadata.hasOwnProperty("columnType")) {
 									var columnObject = {};
