@@ -323,8 +323,10 @@
 							<div>
 								Add Tool: <select ng-model="selectedToolToAdd"
 												  ng-options="tool as tool for tool in tool_options"></select> 
-								<input type="button" value="Add" ng-click="addTool(selectedToolToAdd)"/>
+								<button class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd)">Add</button>
 							</div>
+							
+							
 							<accordion close-others="true" class="tool-list"> 
 							
 								<accordion-group ng-repeat="tool in queryService.queryObject.weaveToolsList" style="font-family: 'Open Sans', Arial, sans-serif; font-size: 14px;">
