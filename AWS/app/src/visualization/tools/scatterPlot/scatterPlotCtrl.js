@@ -24,10 +24,19 @@ AnalysisModule.controller("ScatterPlotCtrl", function($scope,  AnalysisService, 
 		}
 	});
 	
+//	$scope.$on("queryUploaded", function()
+//	{
+//		console.log('query uploaded');
+//		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
+//			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
+//			$scope.toolProperties = queryService.queryObject[$scope.toolName];
+//		} 
+//	});
+	 
 	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
 		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
 			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-			$scope.toolProperties = queryService.queryObject[$scope.toolName];
+			//$scope.toolProperties = queryService.queryObject[$scope.toolName];
 		}
 	}, true);
 	

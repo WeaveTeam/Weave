@@ -3,7 +3,7 @@
  */
 var QueryObject = angular.module("aws.queryObject", []);
 
-QueryObject.controller("QueryImportExportCtrl", function($scope, queryService) {
+QueryObject.controller("QueryImportExportCtrl", function($scope, queryService, $rootScope) {
 			
 
 			$scope.exportQuery = function() {
@@ -21,8 +21,8 @@ QueryObject.controller("QueryImportExportCtrl", function($scope, queryService) {
 			$scope.$watch('queryObjectUploaded.file', function(n, o) {
 				if($scope.queryObjectUploaded.file.content)
 				{
-					console.log(angular.fromJson($scope.queryObjectUploaded.file.content));
 					queryService.queryObject = angular.fromJson($scope.queryObjectUploaded.file.content);
+					$rootScope.$broadcast('queryUploaded');
 				}
 		    }, true);
 });

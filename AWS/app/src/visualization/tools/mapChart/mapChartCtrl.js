@@ -15,6 +15,8 @@ AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryServ
 		labelLayer : ""
 	};
 	
+	// watches for toolName changes and update the weaveToolsList id
+	// delete it from the queryobject if tool is deleted
 	$scope.$watch('toolName', function(newVal, oldVal) {
 		if(newVal != oldVal) {
 			if(!newVal) {
@@ -25,6 +27,15 @@ AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryServ
 		}
 	});
 	
+	// handle case when query has been updated
+//	$scope.$on("queryUploaded", function()
+//	{
+//		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
+//			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
+//			$scope.toolProperties = queryService.queryObject[$scope.toolName];
+//		} 
+//	});
+	 
 	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
 		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
 			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
@@ -32,9 +43,7 @@ AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryServ
 		}
 	}, true);
 	
-	$scope.$watch('toolProperties', function(newVal, oldVal){
-		if(angular.equals(newVal, oldVal))
-			return;
+	$scope.$watch( 'toolProperties', function(){
 		$scope.toolName = WeaveService.MapTool($scope.toolProperties, $scope.toolName);
 		
 		if($scope.toolName)	{
@@ -50,5 +59,4 @@ AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryServ
 			}
 		});
 	}, true);
-	
 });
