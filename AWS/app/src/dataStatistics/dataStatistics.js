@@ -13,7 +13,9 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 	
 	this.calculateStats = function(numericalColumns, forceUpdate){
 		
-		
+		if(!forceUpdate){
+			return this.dataObject.calculatedStats;
+		}
 		var statsInputs = QueryHandlerService.handleScriptOptions(numericalColumns);//will return int[] ids
 		if(statsInputs){
 			//hack fix this
@@ -27,7 +29,7 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 				if(success){
 					QueryHandlerService.runScript("getStatistics.R").then(function(resultData){
 						if(resultData){
-							//console.log("stats", resultData);
+							console.log("stats", resultData);
 							that.dataObject.calculatedStats = resultData;
 						}
 					});
@@ -50,18 +52,9 @@ dataStatsModule.controller('dataStatsCtrl', function($scope, queryService, stati
 	
 	//this is the table selected for which its columns and their respective data statistics will be shown
 	$scope.datatableSelected = queryService.queryObject.dataTable.title;
-//	if($scope.datatableSelected || angular.isUndefined($scope.datatableSelected)|| $scope.datatableSelected == null)
-//		$scope.datatableSelected = "Select a data table in the Analysis tab";
-//
 	
-	$scope.$watch('datatableSelected', function(){
-		if($scope.datatableSelected)
-			{
-				if(queryService.cache.numericalColumns.length > 0)
-					statisticsService.calculateStats(queryService.cache.numericalColumns, true);
-			}
-	});
-	
+	statisticsService.calculateStats(queryService.cache.numericalColumns, true);
+
 	$scope.$watch(function(){
 		console.log("$scope.statisticsService.dataObject.calculatedStats", $scope.statisticsService.dataObject.calculatedStats);
 		return $scope.statisticsService.dataObject.calculatedStats;
@@ -70,7 +63,7 @@ dataStatsModule.controller('dataStatsCtrl', function($scope, queryService, stati
 			var data = [];
 			var oneStat = $scope.statisticsService.dataObject.calculatedStats[0];//hack
 			for(var x = 0 ; x < oneStat.length; x++){//16
-				var colName = $scope.statisticsService.dataObject.calculatedStats[0][x];//TODO handle hard coded part?
+				var colName = $scope.statisticsService.dataObject.calculatedStats[0][x];//TODO handle hard coded part?//todo get these from script metadata(json)
 				var colMax = $scope.statisticsService.dataObject.calculatedStats[1][x];
 				var colMin = $scope.statisticsService.dataObject.calculatedStats[2][x];
 				var colMean = $scope.statisticsService.dataObject.calculatedStats[3][x];
@@ -86,14 +79,13 @@ dataStatsModule.controller('dataStatsCtrl', function($scope, queryService, stati
 				});
 					
 			}
-			
 			//console.log("data", data);
 			setData(data);
 		}
 	});
 	
 	var setData = function(data){
-		console.log("returnedStats", data);
+		//console.log("returnedStats", data);
 		$scope.statsData = data;
 	};
 	
@@ -103,7 +95,7 @@ dataStatsModule.controller('dataStatsCtrl', function($scope, queryService, stati
 	        data: 'statsData',
 	        enableRowSelection: true,
 	        enableCellEdit: true,
-	        columnDefs: [{field:'columnName', displayName:'Column', enableCellEdit: false},
+	        columnDefs: [{field:'columnName', displayName:'Column', enableCellEdit: false},//todo get these from script metadata
 	                     {field:'columnMax', displayName:'Maximum', enableCellEdit: false},
 	                     {field:'columnMin', displayName:'Minimum', enableCellEdit: false}, 
 	                     {field:'columnMean', displayName:'Mean', enableCellEdit: false},
