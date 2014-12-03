@@ -11,9 +11,4 @@ AnalysisModule.controller("ColorCtrl", function($scope, queryService, WeaveServi
 	}, true);
 	
 	//monitors the key column
-	$scope.$watch(function(){
-		return queryService.queryObject.keyColumn;
-	}, function(){
-		WeaveService.keyColumnName(queryService.queryObject.keyColumn);
-	}, true);
 });

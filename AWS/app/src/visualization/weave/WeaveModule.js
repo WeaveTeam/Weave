@@ -153,6 +153,9 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 					//TODO parameterize setting the keytype and keyColName
 					if(state.useKeyTypeForCSV)
 					{
+						if(state.labelLayer) {
+							ws.weave.setSessionState([angular.fromJson(state.labelLayer.dataSourceName), {"keyType" : geometry.keyType}]);
+						}
 						ws.weave.setSessionState(["CSVDataSource"], {"keyType" : geometry.keyType});
 					}
 					
@@ -256,19 +259,11 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		//ws.tileWindows();
 	};
 	
-	this.keyColumnName = function(keyColumn) {
+	this.keyColumn = function(akeyColumn) {
+		var keyColumn = angular.fromJson(akeyColumn);
 		if(ws.weave && ws.weave.path) {
 			if(keyColumn.name) {
-				ws.weave.setSessionState(['CSVDataSource'], {keyColName : keyColumn.name});
-			}
-			else
-			{
-				if(!angular.isUndefined(ws.weave))
-				{	
-					if(ws.weave.path('CSVDataSource').getType() == "weave.data.DataSources::CSVDataSource")//check if a CSVDataSource exists
-						ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
-				}
-				
+				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : keyColumn.name});
 			}
 		}
 	};
