@@ -309,8 +309,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									WeaveService.waitForWeave(WeaveService.weaveWindow , function(weave) {
 										WeaveService.weave = weave;
 										WeaveService.addCSVData(resultData);
-										WeaveService.columnNames = resultData[0];
-										
+										WeaveService.resultSet[queryService.queryObject.indicator] = resultData[0];
 										//updates required for updating query object validation and to enable visualization widget controls
 										that.displayVizMenu = true;
 										scope.$apply();//re-fires the digest cycle and updates the view

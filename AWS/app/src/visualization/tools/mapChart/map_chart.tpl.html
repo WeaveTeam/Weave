@@ -63,7 +63,9 @@
 								ng-model="toolProperties.labelLayer" 
 								data-placeholder="Choose Layer">
 					<option></option>
-					<option value="{{output}}" ng-repeat="output in WeaveService.columnNames"> {{output}} </option>
+					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+   						 <option ng-repeat="column in columns" value="column"></option>
+  					</optgroup>
 				</select>
 			</td>
 		</tr>	

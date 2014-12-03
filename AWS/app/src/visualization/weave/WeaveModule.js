@@ -7,7 +7,10 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.analysisWindow = window;
 	this.dataSourceName;
 	
+	this.resultSet = {};
+	
 	this.columnNames = [];
+	
 	this.generateUniqueName = function(className) {
 		if(!ws.weave)
 			return null;
@@ -21,6 +24,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		 .libs("weave.ui.DraggablePanel")
 		 .exec("DraggablePanel.tileWindows()");
 	};
+	
 	this.setWeaveWindow = function(window) {
 		var weave;
 		if(!window) {
@@ -33,7 +37,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 
 			if (weave && weave.WeavePath && weave.WeavePath.prototype.pushLayerSettings) {
 				ws.weave = weave;
-				console.log("weave and its api is ready", weave.WeavePath);
+				console.log("weave and its api are ready");
 				rootScope.$safeApply();
 			}
 			else {
