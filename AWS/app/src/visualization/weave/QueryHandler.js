@@ -295,40 +295,21 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 						
 						//executing the script
 						that.runScript(scriptName).then(function(resultData) {
-							if(!angular.isUndefined(resultData))//only if something is returned open weave
+							if(!angular.isUndefined(resultData))
 							{
 								time2 = new Date().getTime() - startTimer;
 								queryService.queryObject.properties.queryDone = true;
 								queryService.queryObject.properties.resultData = resultData;
 								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
-								if(queryService.queryObject.properties.openInNewWindow) {
-									if(!WeaveService.weaveWindow || WeaveService.weaveWindow.closed) {
-										WeaveService.weaveWindow = $window.open("/weave.html?",
-												"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-									}
-									WeaveService.waitForWeave(WeaveService.weaveWindow , function(weave) {
-										WeaveService.weave = weave;
-										WeaveService.addCSVData(resultData);
-										WeaveService.resultSet[queryService.queryObject.indicator] = resultData[0];
-										//updates required for updating query object validation and to enable visualization widget controls
-										that.displayVizMenu = true;
-										scope.$apply();//re-fires the digest cycle and updates the view
-									});
-								} else {
-									WeaveService.waitForWeave(null , function(weave) {
-										
-										WeaveService.weave = weave;
-										WeaveService.addCSVData(resultData);
-										WeaveService.columnNames = resultData[0];
-										
-									});
+								if(WeaveService.weave){
+									WeaveService.addCSVData(resultData, queryService.queryObject.Indicator.title);
+									console.log(WeaveService.resultSet);
 								}
 							} else {
 								queryService.queryObject.properties.queryDone = false;
 								queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
 							}
 						});
-						
 					} else {
 						queryService.queryObject.properties.queryDone = false;
 						queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";

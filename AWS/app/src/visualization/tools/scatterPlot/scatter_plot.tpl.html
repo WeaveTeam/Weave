@@ -33,11 +33,12 @@
 			
 				<td style="padding-left: 5px;">
 					<select style = "width : 100%" 
-							ui-select2="{allowClear : true}" 
+								ui-select2="{allowClear : true}" 
 							ng-model="toolProperties.X" 
-							data-placeholder="Choose X Column">
-								<option></option>
-								<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
+							data-placeholder="Choose Column">
+						<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
+	  					</optgroup>
 					</select>
 				</td>
 			</tr>
@@ -50,12 +51,13 @@
 			
 			<td style="padding-left: 5px;">
 				<select style = "width : 100%" 
-						ui-select2="{allowClear : true}" 
-						ng-model="toolProperties.Y" 
-						data-placeholder="Choose Y Column">
-					<option></option>
-					<option value="{{output}}" ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-				</select>
+								ui-select2="{allowClear : true}" 
+							ng-model="toolProperties.Y" 
+							data-placeholder="Choose Column">
+						<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
+	  					</optgroup>
+					</select>
 			</td>
 		</tr>
 	</table>

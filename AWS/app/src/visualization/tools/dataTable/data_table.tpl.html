@@ -23,9 +23,14 @@
 <!-- 			<option ng-repeat="dt in options" value="{{dt}}">{{dt.title}}</option> -->
 <!-- 			</select> -->
 			
-			
-			<select ui-select2 multiple ng-model="toolProperties.columns" data-placeholder="Choose Columns"
-			ng-options="output for output in WeaveService.columnNames">
+			<select style = "width : 100%" 
+								ui-select2="{allowClear : true}" 
+								ng-model="toolProperties.columns" 
+							multiple  
+							data-placeholder="Choose Column(s)">
+					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
+  					</optgroup>
 			</select>
 
 			<!--<span>Data Table</span>

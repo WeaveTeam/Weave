@@ -44,6 +44,7 @@ AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryServ
 	}, true);
 	
 	$scope.$watch( 'toolProperties', function(){
+
 		$scope.toolName = WeaveService.MapTool($scope.toolProperties, $scope.toolName);
 		
 		if($scope.toolName)	{

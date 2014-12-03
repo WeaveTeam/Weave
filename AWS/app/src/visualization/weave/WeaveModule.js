@@ -5,7 +5,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	var ws = this;
 	this.weaveWindow = window;
 	this.analysisWindow = window;
-	this.dataSourceName;
 	
 	this.resultSet = {};
 	
@@ -51,25 +50,28 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
     
 	this.setWeaveWindow(window);
 	
-	this.addCSVData = function(csvData) {
-		this.dataSourceName = ws.generateUniqueName("CSVDataSource");
+	this.addCSVData = function(csvData, aDataSourceName) {
+		var dataSourceName = aDataSourceName || ws.generateUniqueName("CSVDataSource");
 	
-		ws.weave.path(this.dataSourceName)
+		ws.weave.path(dataSourceName)
 			.request('CSVDataSource')
 			.vars({rows: csvData})
 			.exec('setCSVData(rows)');
-		
-		console.log("added CSV", csvData);
+		ws.resultSet[dataSourceName] = [];
+		for(var i in csvData[0])
+		{
+			ws.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
+		}
 	};
 	
 	// weave path func
-	var setCSVColumn = function (columnName, propertyName){
-		
-		if(ws.weave && ws.weave.path) {
-			if(columnName == "" || angular.isUndefined(columnName))
+	var setCSVColumn = function (column, propertyName){
+		if(ws.weave && ws.weave.path && column) {
+			var col = angular.fromJson(column);
+			if(col.name == "" || angular.isUndefined(col.name))
 				return;
-			this.weave.path(ws.dataSourceName)
-				.getValue('putColumn')(columnName, this.push(propertyName).request('DynamicColumn').getPath());
+			this.weave.path(col.dataSourceName)
+				.getValue('putColumn')(col.name, this.push(propertyName).request('DynamicColumn').getPath());
 
 		}
 	};
@@ -80,7 +82,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		if(ws.weave && ws.weave.path) {
 			
 			try{
-				
 				if(!state.enabled)
 				{
 					ws.weave.path(toolName).remove();
@@ -133,8 +134,8 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				//TODO get this checked and see if done correctly
 				if(state.geometryLayer)
 				{
-					console.log("sate", state);
-					var geometry = state.geometryLayer;
+					var geometry = angular.fromJson(state.geometryLayer);
+					console.log(geometry);
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager', 'plotters')
 					.push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
@@ -157,27 +158,29 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 					
 				}
 				
-				if(state.labelLayer)
+				if(state.labelLayer && state.geometryLayer)
 				{
+					var labelLayer = angular.fromJson(state.labelLayer);
+					var geometryLayer = angular.fromJson(state.geometryLayer);
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager','plotters')
 					.push('stateLabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
 					.push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
 					.push('dataSourceName').state('WeaveDataSource').pop()
 					.push('metadata').state({
-						"keyType": state.geometryLayer.keyType,
-						"title": state.geometryLayer.title,
+						"keyType": geometryLayer.keyType,
+						"title": geometryLayer.title,
 						"entityType": "column",
-						"weaveEntityId": state.geometryLayer.id,
+						"weaveEntityId": geometryLayer.id,
 						"projection": "EPSG:4326",
 						"dataType": "geometry"
 					}).pop().pop()
 					.push('text', null).request('ReferencedColumn')
-					.push('dataSourceName').state(ws.dataSourceName).pop()
-					.push('metadata').state({//hard coding the label layer paramterize later
-						"csvColumn": state.labelLayer,
-						"title": state.labelLayer,
-						"keyType": state.geometryLayer.keyType
+					.push('dataSourceName').state(labelLayer.dataSourceName).pop()
+					.push('metadata').state({
+						"csvColumn": labelLayer.name,
+						"title": labelLayer.name,
+						"keyType": geometryLayer.keyType
 					});
 				}
 			} catch(e) {
@@ -240,7 +243,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		if(ws.weave && ws.weave.path) {
 			if(state.column)
 			{
-				ws.weave.path('defaultColorDataColumn').setColumn(state.column, ws.dataSourceName);
+				ws.weave.path('defaultColorDataColumn').setColumn(state.column.name, state.column.dataSourceName);
 			}
 			if(state.showColorLegend)
 			{
@@ -256,16 +259,15 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.keyColumnName = function(keyColumn) {
 		if(ws.weave && ws.weave.path) {
 			if(keyColumn.name) {
-				console.log("before making weave call", keyColumn.name);
 				ws.weave.setSessionState(['CSVDataSource'], {keyColName : keyColumn.name});
 			}
 			else
 			{
 				if(!angular.isUndefined(ws.weave))
-					{	
-						if(ws.weave.path('CSVDataSource').getType() == "weave.data.DataSources::CSVDataSource")//check if a CSVDataSource exists
-							ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
-					}
+				{	
+					if(ws.weave.path('CSVDataSource').getType() == "weave.data.DataSources::CSVDataSource")//check if a CSVDataSource exists
+						ws.weave.setSessionState(['CSVDataSource'], {keyColName : "fips"});
+				}
 				
 			}
 		}

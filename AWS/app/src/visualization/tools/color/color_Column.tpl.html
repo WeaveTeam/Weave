@@ -1,12 +1,12 @@
 <div style="width: 100%" class="master-select2-container" ng-controller="ColorCtrl">
-						<select style="width: 100%" ui-select2="{allowClear : true}"
-								
-								ng-model="service.queryObject.ColorColumn.column"
-								data-placeholder="Choose Color Column">
-								<option></option>
-								<option value="{{output}}"
-								ng-repeat="output in WeaveService.columnNames">{{output}}</option>
-						</select>
+						<select style = "width : 100%" 
+								ui-select2="{allowClear : true}" 
+								ng-model="queryService.queryObject.colorColumn" 
+								data-placeholder="Choose Column">
+					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
+  					</optgroup>
+				</select>
 						<div style = "padding : 5px"></div>
 						<input type="checkbox" ng-model="service.queryObject.ColorColumn.showColorLegend"/> Show Color Legend
 </div>
