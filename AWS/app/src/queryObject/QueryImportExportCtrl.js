@@ -3,10 +3,15 @@
  */
 var QueryObject = angular.module("aws.queryObject", []);
 
-QueryObject.controller("QueryImportExportCtrl", function($scope, queryService, $rootScope) {
+QueryObject.controller("QueryImportExportCtrl", function($scope, queryService, $rootScope, WeaveService) {
 			
 
 			$scope.exportQuery = function() {
+				if(WeaveService.weave)
+				{
+					queryService.queryObject.sessionState = WeaveService.weave.path().getState();
+				}
+				
 				var blob = new Blob([ angular.toJson(queryService.queryObject, true) ], {
 					type : "text/plain;charset=utf-8"
 				});
@@ -22,7 +27,11 @@ QueryObject.controller("QueryImportExportCtrl", function($scope, queryService, $
 				if($scope.queryObjectUploaded.file.content)
 				{
 					queryService.queryObject = angular.fromJson($scope.queryObjectUploaded.file.content);
-					$rootScope.$broadcast('queryUploaded');
+					if(WeaveService.weave)
+					{
+						WeaveService.weave.path().state(queryService.queryObject.sessionState);
+						delete queryService.queryObject.sessionState;
+					}
 				}
 		    }, true);
 });

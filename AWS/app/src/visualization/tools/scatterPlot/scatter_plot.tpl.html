@@ -36,7 +36,7 @@
 								ui-select2="{allowClear : true}" 
 							ng-model="toolProperties.X" 
 							data-placeholder="Choose Column">
-						<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+						<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
 	  					</optgroup>
 					</select>
@@ -54,7 +54,7 @@
 								ui-select2="{allowClear : true}" 
 							ng-model="toolProperties.Y" 
 							data-placeholder="Choose Column">
-						<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+						<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
 	  					</optgroup>
 					</select>

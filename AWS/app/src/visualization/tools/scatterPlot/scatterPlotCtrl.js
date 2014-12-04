@@ -24,21 +24,13 @@ AnalysisModule.controller("ScatterPlotCtrl", function($scope,  AnalysisService, 
 		}
 	});
 	
-//	$scope.$on("queryUploaded", function()
-//	{
-//		console.log('query uploaded');
-//		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
-//			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-//			$scope.toolProperties = queryService.queryObject[$scope.toolName];
-//		} 
-//	});
-	 
-	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
+	$scope.$watch('service.queryObject[service.queryObject.weaveToolsList[$parent.$index].id]', function() {
 		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
 			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-			//$scope.toolProperties = queryService.queryObject[$scope.toolName];
+			$scope.toolProperties = queryService.queryObject[$scope.toolName];
 		}
 	}, true);
+	
 	
 	$scope.$watch( 'toolProperties', function(){
 		$scope.toolName = WeaveService.ScatterPlotTool($scope.toolProperties, $scope.toolName);
@@ -46,15 +38,6 @@ AnalysisModule.controller("ScatterPlotCtrl", function($scope,  AnalysisService, 
 		if($scope.toolName)	{
 			queryService.queryObject[$scope.toolName] = $scope.toolProperties;
 		}
-		
-		$scope.$watch(function() {
-			return queryService.queryObject[$scope.toolName];
-		}, function(newVal, oldVal) {
-			if(queryService.queryObject[$scope.toolName])
-			{
-				$scope.toolProperties = queryService.queryObject[$scope.toolName];
-			}
-		});
 	}, true);
 	
 	

@@ -6,8 +6,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.weaveWindow = window;
 	this.analysisWindow = window;
 	
-	this.resultSet = {};
-	
 	this.columnNames = [];
 	
 	this.generateUniqueName = function(className) {
@@ -50,17 +48,17 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
     
 	this.setWeaveWindow(window);
 	
-	this.addCSVData = function(csvData, aDataSourceName) {
-		var dataSourceName = aDataSourceName || ws.generateUniqueName("CSVDataSource");
+	this.addCSVData = function(csvData, aDataSourceName, queryObject) {
+		var dataSourceName = ws.generateUniqueName(aDataSourceName);
 	
 		ws.weave.path(dataSourceName)
 			.request('CSVDataSource')
 			.vars({rows: csvData})
 			.exec('setCSVData(rows)');
-		ws.resultSet[dataSourceName] = [];
+		queryObject.resultSet[dataSourceName] = [];
 		for(var i in csvData[0])
 		{
-			ws.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
+			queryObject.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
 		}
 	};
 	
@@ -68,6 +66,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	var setCSVColumn = function (column, propertyName){
 		if(ws.weave && ws.weave.path && column) {
 			var col = angular.fromJson(column);
+			console.log(col);
 			if(col.name == "" || angular.isUndefined(col.name))
 				return;
 			this.weave.path(col.dataSourceName)

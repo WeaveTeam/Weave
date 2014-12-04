@@ -35,7 +35,7 @@
 							ng-model="toolProperties.heights" 
 							multiple  
 							data-placeholder="Choose Column(s)">
-						<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+						<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
 	  					</optgroup>
 					</select>
@@ -53,7 +53,7 @@
 								ng-model="toolProperties.posErr" 
 							multiple  
 							data-placeholder="Choose Column(s)">
-					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 				</select>
@@ -71,7 +71,7 @@
 								ng-model="toolProperties.negErr" 
 							multiple  
 							data-placeholder="Choose Column(s)">
-					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 				</select>
@@ -88,7 +88,7 @@
 								ui-select2="{allowClear : true}" 
 								ng-model="toolProperties.sort" 
 							data-placeholder="Choose Column">
-					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 				</select>
@@ -105,7 +105,7 @@
 								ui-select2="{allowClear : true}" 
 								ng-model="toolProperties.label" 
 							data-placeholder="Choose Column">
-					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 				</select>

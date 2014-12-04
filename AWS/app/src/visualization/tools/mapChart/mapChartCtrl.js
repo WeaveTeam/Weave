@@ -27,37 +27,18 @@ AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryServ
 		}
 	});
 	
-	// handle case when query has been updated
-//	$scope.$on("queryUploaded", function()
-//	{
-//		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
-//			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-//			$scope.toolProperties = queryService.queryObject[$scope.toolName];
-//		} 
-//	});
-	 
-	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
+	$scope.$watch('service.queryObject[service.queryObject.weaveToolsList[$parent.$index].id]', function() {
 		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
 			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
 			$scope.toolProperties = queryService.queryObject[$scope.toolName];
 		}
 	}, true);
 	
-	$scope.$watch( 'toolProperties', function(){
-
+	$scope.$watch( 'toolProperties', function(newVal, oldVal){
 		$scope.toolName = WeaveService.MapTool($scope.toolProperties, $scope.toolName);
 		
 		if($scope.toolName)	{
 			queryService.queryObject[$scope.toolName] = $scope.toolProperties;
 		}
-		
-		$scope.$watch(function() {
-			return queryService.queryObject[$scope.toolName];
-		}, function(newVal, oldVal) {
-			if(queryService.queryObject[$scope.toolName])
-			{
-				$scope.toolProperties = queryService.queryObject[$scope.toolName];
-			}
-		});
 	}, true);
 });

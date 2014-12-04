@@ -28,7 +28,7 @@
 								ng-model="toolProperties.columns" 
 							multiple  
 							data-placeholder="Choose Column(s)">
-					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 			</select>

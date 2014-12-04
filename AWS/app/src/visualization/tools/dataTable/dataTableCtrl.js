@@ -21,19 +21,10 @@ AnalysisModule.controller("DataTableCtrl", function($scope,  AnalysisService, qu
 		}
 	});
 	
-//	$scope.$on("queryUploaded", function()
-//	{
-//		console.log('query uploaded');
-//		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
-//			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-//			$scope.toolProperties = queryService.queryObject[$scope.toolName];
-//		} 
-//	});
-	 
-	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
+	$scope.$watch('service.queryObject[service.queryObject.weaveToolsList[$parent.$index].id]', function() {
 		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
 			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-			//$scope.toolProperties = queryService.queryObject[$scope.toolName];
+			$scope.toolProperties = queryService.queryObject[$scope.toolName];
 		}
 	}, true);
 	
@@ -44,13 +35,5 @@ AnalysisModule.controller("DataTableCtrl", function($scope,  AnalysisService, qu
 			queryService.queryObject[$scope.toolName] = $scope.toolProperties;
 		}
 		
-		$scope.$watch(function() {
-			return queryService.queryObject[$scope.toolName];
-		}, function(newVal, oldVal) {
-			if(queryService.queryObject[$scope.toolName])
-			{
-				$scope.toolProperties = queryService.queryObject[$scope.toolName];
-			}
-		});
 	}, true);
 }); 

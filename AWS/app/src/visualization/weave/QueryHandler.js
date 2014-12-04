@@ -299,11 +299,11 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 							{
 								time2 = new Date().getTime() - startTimer;
 								queryService.queryObject.properties.queryDone = true;
-								queryService.queryObject.properties.resultData = resultData;
+								//queryService.queryObject.properties.resultData = resultData;
 								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
 								if(WeaveService.weave){
-									WeaveService.addCSVData(resultData, queryService.queryObject.Indicator.title);
-									console.log(WeaveService.resultSet);
+									WeaveService.addCSVData(resultData, queryService.queryObject.Indicator.title, queryService.queryObject);
+									console.log(queryService.queryObject.resultSet);
 								}
 							} else {
 								queryService.queryObject.properties.queryDone = false;
