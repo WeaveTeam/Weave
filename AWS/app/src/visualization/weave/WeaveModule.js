@@ -66,7 +66,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	var setCSVColumn = function (column, propertyName){
 		if(ws.weave && ws.weave.path && column) {
 			var col = angular.fromJson(column);
-			console.log(col);
 			if(col.name == "" || angular.isUndefined(col.name))
 				return;
 			this.weave.path(col.dataSourceName)
@@ -134,7 +133,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				if(state.geometryLayer)
 				{
 					var geometry = angular.fromJson(state.geometryLayer);
-					console.log(geometry);
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager', 'plotters')
 					.push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
@@ -153,9 +151,8 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 					if(state.useKeyTypeForCSV)
 					{
 						if(state.labelLayer) {
-							ws.weave.setSessionState([angular.fromJson(state.labelLayer.dataSourceName), {"keyType" : geometry.keyType}]);
+							ws.weave.setSessionState([angular.fromJson(state.labelLayer).dataSourceName], {"keyType" : geometry.keyType});
 						}
-						ws.weave.setSessionState(["CSVDataSource"], {"keyType" : geometry.keyType});
 					}
 					
 				}
@@ -245,7 +242,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		if(ws.weave && ws.weave.path) {
 			if(state.column)
 			{
-				ws.weave.path('defaultColorDataColumn').setColumn(state.column.name, state.column.dataSourceName);
+				ws.weave.path('defaultColorDataColumn').setColumn(angular.fromJson(state.column).name, angular.fromJson(state.column).dataSourceName);
 			}
 			if(state.showColorLegend)
 			{
