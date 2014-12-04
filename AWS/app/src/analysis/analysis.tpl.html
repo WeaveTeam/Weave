@@ -321,9 +321,14 @@
 					<div class="databox" style="width: 20%;" ng-if="showToolMenu">
 						<div>
 							<div>
-								Add Tool: <select ng-model="selectedToolToAdd"
-												  ng-options="tool as tool for tool in tool_options"></select> 
-								<button class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd)">Add</button>
+								<select style = "width : 58%" 
+												ui-select2="{allowClear : true}" 
+												ng-model="selectedToolToAdd" 
+												data-placeholder="Add Tool">
+				   						 <option ng-repeat="tool in tool_options" value="{{tool}}">{{tool}}</option>
+								</select>
+								<button style = "width : 19%" class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd)">Add</button>
+								<button style = "width : 19%" class="btn btn-sm btn-default" ng-click="WeaveService.tileWindows()">Tile</button>
 							</div>
 							
 							
