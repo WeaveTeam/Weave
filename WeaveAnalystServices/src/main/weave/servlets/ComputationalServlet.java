@@ -83,9 +83,9 @@ public class ComputationalServlet extends WeaveServlet
 			if (type.equalsIgnoreCase(filteredRows))
 			{
 				fRows = (FilteredRows)cast(inputObjects[i].value, FilteredRows.class);
-				//TODO handling filters still has to be done
 	
 				data = DataService.getFilteredRows(fRows.columnIds, fRows.filters, null);
+				//TODO handling filters still has to be done
 				
 				//REMAPPING
 				if(remapValues != null)//only if remapping needs to be done
@@ -93,15 +93,17 @@ public class ComputationalServlet extends WeaveServlet
 					data = remappingScriptInputData(remapValues, fRows, data);//this function call will return the remapped data
 				}
 				
+				//transposition
 				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
-				 //assign each columns to proper column name
+				//assign each columns to proper column name
 				for(int x =  0; x < inputObjects[i].names.length;  x++) {
 					scriptInputs.put(inputObjects[i].names[x], columnData[x]);
 				}
 				
 				
 			}
+			
 			else if(type.equalsIgnoreCase(dataMatrix)){
 				DataColumnMatrix dm = (DataColumnMatrix)cast(inputObjects[i].value, DataColumnMatrix.class);
 	
@@ -146,7 +148,7 @@ public class ComputationalServlet extends WeaveServlet
 	
 	//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
 	/**
-	 * @param remapValues the value to be used for overwriting
+	 * @param remapValues objects representing the values to be used for overwriting
 	 * @param filtered rows needed for matching ids of columns that need to be remapped
 	 * @param originalData the original data matrix that needs to be overwritten
 	 */
@@ -157,6 +159,12 @@ public class ComputationalServlet extends WeaveServlet
 			{
 				int index = 0;
 				ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
+				//check the type of the original data to be remapped
+				Object column_to_remap = null;//resetting it every time
+				Object castedOriginalValue = null;
+				Object castedRemappedValue = null;
+				column_to_remap = originalData.recordData[0][index];//TODO remove hardcode this has to be done only once
+				
 				//we need this to know which column to handle for remapping
 				for(int y = 0; y < remapValues.length; y++)
 				{
@@ -165,17 +173,12 @@ public class ComputationalServlet extends WeaveServlet
 					{
 						if(singleObject.columnsToRemapId == fRows.columnIds[t])
 						{
-							index = t;//use index to loop through data
+							index = t;//use index to loop through data later while remapping
 							remapObject = remapValues[y];
 						}
 					}
 				}
 				
-				//check the type of the original data to be remapped
-				Object column_to_remap = null;//resetting it every time
-				Object castedOriginalValue = null;
-				Object castedRemappedValue = null;
-				column_to_remap = originalData.recordData[0][index];//TODO remove hardcode this has to be done only once
 				try{
 					castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
 					//need to cast because client side sometimes sends integers as strings
@@ -195,7 +198,7 @@ public class ComputationalServlet extends WeaveServlet
 						
 						if(originalData.recordData[x][index].equals(castedOriginalValue))
 						{
-							System.out.println(x);
+							//System.out.println(x);
 							originalData.recordData[x][index] = castedRemappedValue;
 							
 						}
