@@ -21,9 +21,9 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 		var statsInputs = QueryHandlerService.handleScriptOptions(numericalColumns);//will return int[] ids
 		if(statsInputs){
 			//hack fix this
-			//statsInputs[0].names = [];
-			//statsInputs[0].names.push('columndata');
-			//statsInputs[0].type = 'DataColumnMatrix';
+			statsInputs[0].names = [];
+			statsInputs[0].names.push('columndata');
+			statsInputs[0].type = 'DataColumnMatrix';
 			//getting the data
 			QueryHandlerService.getDataFromServer(statsInputs, null).then(function(success){
 				
