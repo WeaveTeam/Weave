@@ -120,7 +120,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			keyColumn : {name : ""},
 			properties : {
 				validationStatus : "test"
-			}
+			},
+			resultSet : {}
 	};    		
     
 	this.cache = {

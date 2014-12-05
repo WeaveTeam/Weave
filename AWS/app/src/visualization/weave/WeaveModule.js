@@ -6,8 +6,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.weaveWindow = window;
 	this.analysisWindow = window;
 	
-	this.resultSet = {};
-	
 	this.columnNames = [];
 	
 	this.generateUniqueName = function(className) {
@@ -50,17 +48,17 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
     
 	this.setWeaveWindow(window);
 	
-	this.addCSVData = function(csvData, aDataSourceName) {
-		var dataSourceName = aDataSourceName || ws.generateUniqueName("CSVDataSource");
+	this.addCSVData = function(csvData, aDataSourceName, queryObject) {
+		var dataSourceName = ws.generateUniqueName(aDataSourceName);
 	
 		ws.weave.path(dataSourceName)
 			.request('CSVDataSource')
 			.vars({rows: csvData})
 			.exec('setCSVData(rows)');
-		ws.resultSet[dataSourceName] = [];
+		queryObject.resultSet[dataSourceName] = [];
 		for(var i in csvData[0])
 		{
-			ws.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
+			queryObject.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
 		}
 	};
 	
@@ -79,13 +77,13 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.BarChartTool =  function (state, aToolName) {
 		var toolName = aToolName || ws.generateUniqueName("BarChartTool");
 		
-		if(ws.weave && ws.weave.path) {
+		if(ws.weave && ws.weave.path && state) {
 			
 			try{
 				if(!state.enabled)
 				{
 					ws.weave.path(toolName).remove();
-					ws.tileWindows();
+					;
 					return "";
 				}
 				
@@ -104,7 +102,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 							child.forEach(heights, setCSVColumn);
 						}
 				);
-				ws.tileWindows();
+				;
 			} catch(e)
 			{
 				console.log(e);
@@ -120,22 +118,21 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		
 		var toolName = aToolName || ws.generateUniqueName("MapTool");
 	
-		if(ws.weave && ws.weave.path) {
+		if(ws.weave && ws.weave.path && state) {
 			
 			try{
 				if(!state.enabled)
 				{
 					ws.weave.path(toolName).remove();
-					ws.tileWindows();
+					;
 					return "";
 				}
 				ws.weave.path(toolName).request('MapTool').state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
-				ws.tileWindows();
+				;
 				//TODO get this checked and see if done correctly
 				if(state.geometryLayer)
 				{
 					var geometry = angular.fromJson(state.geometryLayer);
-					console.log(geometry);
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager', 'plotters')
 					.push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
@@ -154,9 +151,8 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 					if(state.useKeyTypeForCSV)
 					{
 						if(state.labelLayer) {
-							ws.weave.setSessionState([angular.fromJson(state.labelLayer.dataSourceName), {"keyType" : geometry.keyType}]);
+							ws.weave.setSessionState([angular.fromJson(state.labelLayer).dataSourceName], {"keyType" : geometry.keyType});
 						}
-						ws.weave.setSessionState(["CSVDataSource"], {"keyType" : geometry.keyType});
 					}
 					
 				}
@@ -196,10 +192,10 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.ScatterPlotTool = function(state, aToolName){
 		var toolName = aToolName || ws.generateUniqueName("ScatterPlotTool");
-		if(ws.weave && ws.weave.path) {
+		if(ws.weave && ws.weave.path && state) {
 			if(!state.enabled) {
 				ws.weave.path(toolName).remove();
-				ws.tileWindows();
+				;
 				return "";
 			}
 			ws.weave.path(toolName).request('ScatterPlotTool')
@@ -207,7 +203,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 			.push('children', 'visualization','plotManager', 'plotters', 'plot')
 			.forEach({dataX : state.X, dataY : state.Y}, setCSVColumn);
 		}
-		ws.tileWindows();
+		;
 		return toolName;
 	};
 	
@@ -218,10 +214,10 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		if(!state)
 			return;
 		var toolName = aToolName || ws.generateUniqueName("DataTableTool");;
-		if(ws.weave && ws.weave.path) {
+		if(ws.weave && ws.weave.path && state) {
 			if(!state.enabled) {
 				ws.weave.path(toolName).remove();
-				ws.tileWindows();
+				;
 				return "";
 			}
 			ws.weave.path(toolName).request('DataTableTool')
@@ -237,16 +233,16 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 					}
 			);
 		}
-		ws.tileWindows();
+		;
 		return toolName;
 	};
 	
 	
 	this.ColorColumn = function(state){
-		if(ws.weave && ws.weave.path) {
+		if(ws.weave && ws.weave.path && state) {
 			if(state.column)
 			{
-				ws.weave.path('defaultColorDataColumn').setColumn(state.column.name, state.column.dataSourceName);
+				ws.weave.path('defaultColorDataColumn').setColumn(angular.fromJson(state.column).name, angular.fromJson(state.column).dataSourceName);
 			}
 			if(state.showColorLegend)
 			{
@@ -256,12 +252,12 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 			if(!state.showColorLegend)
 				ws.weave.path("ColorBinLegendTool").remove();
 		}
-		//ws.tileWindows();
+		//;
 	};
 	
 	this.keyColumn = function(akeyColumn) {
 		var keyColumn = angular.fromJson(akeyColumn);
-		if(ws.weave && ws.weave.path) {
+		if(ws.weave && ws.weave.path && state) {
 			if(keyColumn.name) {
 				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : keyColumn.name});
 			}

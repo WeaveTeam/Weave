@@ -24,15 +24,7 @@ AnalysisModule.controller("BarChartCtrl", function($scope,  AnalysisService, que
 		}
 	});
 	
-//	$scope.$on("queryUploaded", function()
-//	{
-//		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
-//			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-//			$scope.toolProperties = queryService.queryObject[$scope.toolName];
-//		} 
-//	});
-	 
-	$scope.$watch('service.queryObject.weaveToolsList[$parent.$index]', function() {
+	$scope.$watch('service.queryObject[service.queryObject.weaveToolsList[$parent.$index].id]', function() {
 		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
 			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
 			$scope.toolProperties = queryService.queryObject[$scope.toolName];
@@ -46,13 +38,5 @@ AnalysisModule.controller("BarChartCtrl", function($scope,  AnalysisService, que
 			queryService.queryObject[$scope.toolName] = $scope.toolProperties;
 		}
 		
-		$scope.$watch(function() {
-			return queryService.queryObject[$scope.toolName];
-		}, function(newVal, oldVal) {
-			if(queryService.queryObject[$scope.toolName])
-			{
-				$scope.toolProperties = queryService.queryObject[$scope.toolName];
-			}
-		});
 	}, true);
 });

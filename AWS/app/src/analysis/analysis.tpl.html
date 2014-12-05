@@ -321,9 +321,14 @@
 					<div class="databox" style="width: 20%;" ng-if="showToolMenu">
 						<div>
 							<div>
-								Add Tool: <select ng-model="selectedToolToAdd"
-												  ng-options="tool as tool for tool in tool_options"></select> 
-								<button class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd)">Add</button>
+								<select style = "width : 58%" 
+												ui-select2="{allowClear : true}" 
+												ng-model="selectedToolToAdd" 
+												data-placeholder="Add Tool">
+				   						 <option ng-repeat="tool in tool_options" value="{{tool}}">{{tool}}</option>
+								</select>
+								<button style = "width : 19%" class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd)">Add</button>
+								<button style = "width : 19%" class="btn btn-sm btn-default" ng-click="WeaveService.tileWindows()">Tile</button>
 							</div>
 							
 							
@@ -354,8 +359,11 @@
 							<div style="width: 20%; float : left; margin-right : 20px" ng-repeat="tool in queryService.queryObject.weaveToolsList" class="panel panel-default">
 									<div class="panel-heading">
 										<h2>{{tool.title}}</h2>
-										<a href="javascript: void(0)" class="close-button" data-trogger="hover" placement="right" title="Close widget"  ng-click="disable_widget(tool)"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
-			
+											<a ng-show="$index > 5" href="javascript: void(0)"  
+												class="close-button" data-trigger="hover" placement="right" title="Remove"  
+												ng-click="removeTool($index)"> 
+												<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
+											</a>			
 									</div>
 									<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{widget_brick.description}}</h5>
 									<h6 style = "font-size: 13px" class="widget-description" ng-show = "tool.note"> {{widget_brick.note}} </h6>

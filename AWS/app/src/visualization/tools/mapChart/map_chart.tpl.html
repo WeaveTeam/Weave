@@ -62,7 +62,7 @@
 								ui-select2="{allowClear : true}" 
 								ng-model="toolProperties.labelLayer" 
 								data-placeholder="Choose Layer">
-					<optgroup ng-repeat="(dataset, columns) in WeaveService.resultSet" label="{{dataset}}">
+					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 				</select>
