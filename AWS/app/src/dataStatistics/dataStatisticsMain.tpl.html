@@ -1,5 +1,11 @@
 <div style = "margin-left: 10px;height: 100%" ng-controller = "dataStatsCtrl">
 Datatable selected : {{datatableSelected}} 
 
-<div style = "width: 60%;" class="gridStyle" ng-grid="statsGrid"></div>
+	<p>Edit getStatistics.json and getStatistics.R to add more summary statistics</p>
+
+	<!-- DATAGRID -->
+	<div style = "width: 60%; height: 50%" class="gridStyle" ng-grid="statsGrid"></div>
+	
+	<!-- CORRELATION Matrix -->
+	<correlation-Matrix ></correlation-Matrix>
 </div>
