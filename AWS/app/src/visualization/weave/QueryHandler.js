@@ -7,7 +7,7 @@
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 
 qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService','computationServiceURL', '$window', '$modal',
-                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService,computationServiceURL, $window, $modal) {
+                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService, $window, $modal) {
 	
 	//this.WeaveService.weaveWindow;
 	var scriptInputs = {};
@@ -23,38 +23,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	
 	var that = this; // point to this for async responses
 	
-
-	
-	/**
-     * This function wraps the async aws runScript function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.runScript = function(scriptName) {
-        
-    	var deferred = $q.defer();
-
-    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName], function(result){	
-    		scope.$safeApply(function() {
-				deferred.resolve(result);
-			});
-		});
-    	
-        return deferred.promise;
-    };
-    
-    this.getDataFromServer = function(inputs, reMaps) {
-    	
-    	var deferred = $q.defer();
-
-    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, reMaps], function(result){	
-    		scope.$safeApply(function() {
-				deferred.resolve(result);
-			});
-		});
-    	
-        return deferred.promise;
-    };
-    
     /*
      * this function handles different types of script inputs and returns an object of this signature
      * {
@@ -287,14 +255,14 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				console.log("indicatorRemap", queryService.queryObject.IndicatorRemap);
 				
 				//getting the data
-				this.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
+				queryService.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
 					if(success) {
 						time1 =  new Date().getTime() - startTimer;
 						startTimer = new Date().getTime();
 						queryService.queryObject.properties.queryStatus = "Running analysis...";
 						
 						//executing the script
-						that.runScript(scriptName).then(function(resultData) {
+						queryService.runScript(scriptName).then(function(resultData) {
 							if(!angular.isUndefined(resultData))
 							{
 								time2 = new Date().getTime() - startTimer;

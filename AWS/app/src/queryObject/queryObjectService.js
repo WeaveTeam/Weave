@@ -82,7 +82,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 
 
 QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService','dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL',
-                         function($q, scope, WeaveService, runQueryService, dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL) {
+                                     'computationServiceURL',
+                         function($q, scope, WeaveService, runQueryService, dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL, computationServiceURL) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);
@@ -131,6 +132,39 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			numericalColumns : []
 	};
 
+
+
+	
+	/**
+     * This function wraps the async aws runScript function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.runScript = function(scriptName) {
+        
+    	var deferred = $q.defer();
+
+    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName], function(result){	
+    		scope.$safeApply(function() {
+				deferred.resolve(result);
+			});
+		});
+    	
+        return deferred.promise;
+    };
+    
+    this.getDataFromServer = function(inputs, reMaps) {
+    	
+    	var deferred = $q.defer();
+
+    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, reMaps], function(result){	
+    		scope.$safeApply(function() {
+				deferred.resolve(result);
+			});
+		});
+    	
+        return deferred.promise;
+    };
+    
 	
 	/**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
