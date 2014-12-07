@@ -1,12 +1,15 @@
 <div style="height: 100%" ng-controller="AnalysisCtrl">
 <!-- BUTTON CONTAINER -->
 	<div style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed;display: table"  ng-controller = DialogController>
-
+						
 						<div ng-controller="QueryImportExportCtrl">
+						<!-- EXPORT QUERY BUTTON -->
 							<a href="javascript:void(0);" class="btn btn-default" style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "exportQuery()">Export Query</span></a>
+							
+							<!-- IMPORT QUERY BUTTON -->
 							<label class='btn btn-default' style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; height: 30px; margin-top: 10px; margin-right : 5px">Import Query<input fileread="queryObjectUploaded.file" class='file-upload' type='file'/></label>
 						</div>
-						
+						<!-- SHOW?HIDE QUERY OBJECT EDITOR button -->
 						<a href="javascript:void(0);" class="btn btn-default" 
 														style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"
 														ng-click = "queryService.queryObject.properties.hideQueryObjectPanel = !queryService.queryObject.properties.hideQueryObjectPanel"
@@ -18,6 +21,7 @@
 						
 				<!-- CLEAR button --> 
 						<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear output visuals</span></a>
+						
 				<!-- SAVE output visuals button -->	 
 
 						<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width: 15%; margin-top: 10px; margin-right : 5px" ng-click="saveVisualizations()"> 
@@ -34,8 +38,11 @@
 							 <span style="vertical-align: right">Run</span>
 						 </button>
 		</div>
+		<!-- BUTTON CONTAINER END -->
+		
 		
 		<div style = "padding : 30px"></div>
+		
 		
 	<div style="height: 100%" class="container-fluid" style="padding: 5px;">
 		<div style="width:100%;">

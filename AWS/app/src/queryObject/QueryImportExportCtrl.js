@@ -20,7 +20,7 @@ QueryObject.controller("QueryImportExportCtrl", function($scope, queryService, $
 			$scope.queryObjectUploaded = {
 					file : {
 						content : "",
-						filename : "",
+						filename : ""
 					}
 			};
 			$scope.$watch('queryObjectUploaded.file', function(n, o) {
