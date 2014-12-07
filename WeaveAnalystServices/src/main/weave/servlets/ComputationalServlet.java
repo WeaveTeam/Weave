@@ -72,7 +72,7 @@ public class ComputationalServlet extends WeaveServlet
 		
 		WeaveRecordList data = new WeaveRecordList();
 		Object[][]columnData = null;
-		FilteredRows fRows = new FilteredRows();
+		RowsObject fRows = new RowsObject();
  		
 		//getting data
  		for(int i = 0; i < inputObjects.length; i++)//for every input 
@@ -80,42 +80,36 @@ public class ComputationalServlet extends WeaveServlet
 			//get its type
 			//process its value accordingly
 			String type = inputObjects[i].type;
-			if (type.equalsIgnoreCase(filteredRows))
+			
+			fRows = (RowsObject)cast(inputObjects[i].value, RowsObject.class);
+			
+			data = DataService.getFilteredRows(fRows.columnIds, fRows.filters, null);
+			//TODO handling filters still has to be done
+			
+			//REMAPPING
+			if(remapValues != null)//only if remapping needs to be done
 			{
-				fRows = (FilteredRows)cast(inputObjects[i].value, FilteredRows.class);
-	
-				data = DataService.getFilteredRows(fRows.columnIds, fRows.filters, null);
-				//TODO handling filters still has to be done
-				
-				//REMAPPING
-				if(remapValues != null)//only if remapping needs to be done
-				{
-					data = remappingScriptInputData(remapValues, fRows, data);//this function call will return the remapped data
-				}
-				
-				//transposition
-				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-				
-				//assign each columns to proper column name
-				for(int x =  0; x < inputObjects[i].namesToAssign.length;  x++) {
-					scriptInputs.put(inputObjects[i].namesToAssign[x], columnData[x]);
-				}
-				
-				
+				data = remappingScriptInputData(remapValues, fRows, data);//this function call will return the remapped data
 			}
 			
+			//transposition
+			columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
+			
+			// if individual columns --> assign each columns to proper column name
+			if (type.equalsIgnoreCase(filteredRows))
+			{
+				for(int x =  0; x < fRows.namesToAssign.length;  x++) {
+					scriptInputs.put(fRows.namesToAssign[x], columnData[x]);
+				}
+			}
+			//if single datamatrix to be used ascribe only one name 'columndata'
 			else if(type.equalsIgnoreCase(dataMatrix)){
-				DataColumnMatrix dm = (DataColumnMatrix)cast(inputObjects[i].value, DataColumnMatrix.class);
-	
-				data = DataService.getFilteredRows(dm.columnIds, null, null);
-				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
-				scriptInputs.put(inputObjects[i].namesToAssign[i], columnData);
+				scriptInputs.put("columndata", columnData);
 			}
 			//TODO handle remaining types of input objects
 			else 
 			{
-				scriptInputs.put(inputObjects[i].namesToAssign[i], inputObjects[i].value);
 			}
 			
 		}
@@ -152,7 +146,7 @@ public class ComputationalServlet extends WeaveServlet
 	 * @param filtered rows needed for matching ids of columns that need to be remapped
 	 * @param originalData the original data matrix that needs to be overwritten
 	 */
-	private WeaveRecordList remappingScriptInputData(ReMapObjects[] remapValues, FilteredRows fRows, WeaveRecordList originalData) throws Exception
+	private WeaveRecordList remappingScriptInputData(ReMapObjects[] remapValues, RowsObject fRows, WeaveRecordList originalData) throws Exception
 	{
 		if(remapValues.length > 0 ){
 			for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
@@ -218,13 +212,13 @@ public class ComputationalServlet extends WeaveServlet
 	
 	/**
 	 * type : type of input object Example filtered columns, single column, booleans etc
-	 * name: parameter names to be assigned in computation engine
+	 * name: parameter needed for handling result on client end
 	 * value : value entered on the client side
 	 */
 	public static class InputObjects
 	{
 		public String type;
-		public String[] namesToAssign;
+		public String name;
 		public Object value;
 	}
 	
@@ -234,17 +228,12 @@ public class ComputationalServlet extends WeaveServlet
 	 * columnTitles : the titles of the same columns to be used to assign in R/STATA
 	 * filters : any filters that will be applied on the data before executing script
 	 */
-	public static class FilteredRows
+	public static class RowsObject
 	{
 		public int[] columnIds;
+		public String[] namesToAssign;
 		public NestedColumnFilters filters;
 	}	
-	
-	public static class DataColumnMatrix
-	{
-		public int [] columnIds;
-	}
-	
 	
 	/**
 	 * columnsToRemapId : id of the column whose values are going to be remapped

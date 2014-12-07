@@ -27,7 +27,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
      * this function handles different types of script inputs and returns an object of this signature
      * {
 				type : eg filtered rows, column matrix, single values, numbers, boolean
-				names : parameter names to be used for assigning in R 
+				name : describes the purpose of the calculation , example for  correlations, summaryStats etc
 				value :  the actual data value
 		}
      * */
@@ -37,26 +37,17 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	//TODO create remaining beans
     	
     	//Filtered Rows bean(each column is assigned a name when it reaches the computation engine)
-    	var filteredRowsObject = {
-    			name: "",
-    			type: "FilteredRows",
-    			namesToAssign: [],
+    	var rowsObject = {
+    			name: "", //(optional)needed for handling different kinds of results on client end
+    			type: "",//this will be decided depending on what type of object is being sent to server
     			value: {
     				columnIds : [],
+    				namesToAssign: [],
     				filters: null //will be {} once filters are completed
     				
     			}
     	};
     	
-    	//DataMatrix bean (a single name is assigned to a data matrix [][])
-    	var dataMatrix = {
-    			type: "DataColumnMatrix",
-    			name:"columnData",
-    			value:{
-    				
-    				columnIds : []
-    			}
-    	};
     	
     	for(var key in scriptOptions) {
 			var input = scriptOptions[key];
@@ -64,10 +55,10 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			
 	    	if((typeof input) == 'object') {
 	    		
-	    		filteredRowsObject.value.columnIds.push(input.id);
+	    		rowsObject.value.columnIds.push(input.id);
 	    		
-	    		if($.inArray(filteredRowsObject,typedInputObjects) == -1)//if not present in array before
-	    			typedInputObjects.push(filteredRowsObject);
+	    		if($.inArray(rowsObject,typedInputObjects) == -1)//if not present in array before
+	    			typedInputObjects.push(rowsObject);
 	    	}
 				
 	    	else if ((typeof input) == 'array') // array of columns
@@ -96,13 +87,17 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	}
     	
     	//TODO confirm if this is the right way
-    	if($.inArray(typedInputObjects, filteredRowsObject) != 0 && queryService.cache.scriptMetadata)//if it contains the filtered rows
+    	if($.inArray(typedInputObjects, rowsObject) != 0 && queryService.cache.scriptMetadata)//if it contains the filtered rows
     		{
+    			//handling filtered rows
+    			//handling column titles for variable assignment
 	    		var scriptMetadata = queryService.cache.scriptMetadata;
 	    		for(var x in scriptMetadata.inputs){
 	    			var singleInput = scriptMetadata.inputs[x];
-	    			filteredRowsObject.names.push(singleInput.param);
+	    			rowsObject.value.namesToAssign.push(singleInput.param);
 	    		}
+	    		
+	    		rowsObject.type = "FilteredRows";
     		}
     	
     	
