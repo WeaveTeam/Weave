@@ -4,27 +4,32 @@
 
 var dataStatsModule = angular.module('aws.dataStatistics', []);
 
-dataStatsModule.value('pearsonCoeff', {label:"Pearson's Coefficent", scriptName : "getPearsonCoefficient.R"});
+dataStatsModule.value('pearsonCoeff', {label:"Pearson's Coefficent", scriptName : "getCorrelationMatrix.R"});
 dataStatsModule.value('spearmanCoeff', {label : "Spearman's Coefficient", scriptName:"getSpearmanCoefficient.R"});
 
 //************************SERVICE
 dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerService','computationServiceURL', function(queryService, QueryHandlerService, computationServiceURL ){
 	
-	this.cache= {};
 	var that = this;
-	this.cache.calculatedStats = [];
+	
+	//cache object that will contain all diff analytic statistics
+	this.cache= {
+			summaryStats : [],
+			correlationMatrix : []
+	};
 
 	this.calculateStats = function(scriptName, numericalColumns, forceUpdate){
 		
 		if(!forceUpdate){
-			return this.cache.calculatedStats;
+			return this.cache.summaryStats;
 		}
 		var statsInputs = QueryHandlerService.handleScriptOptions(numericalColumns);//will return int[] ids
 		if(statsInputs){
 			//hack fix this
-			//statsInputs[0].names = [];
-			//statsInputs[0].names.push('columndata');
-			//statsInputs[0].type = 'DataColumnMatrix';
+			statsInputs[0].name = "CorrelationMatrix";
+			statsInputs[0].namesToAssign = [];
+			statsInputs[0].namesToAssign.push('columndata');
+			statsInputs[0].type = 'DataColumnMatrix';
 			//getting the data
 			queryService.getDataFromServer(statsInputs, null).then(function(success){
 				
@@ -32,14 +37,28 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 				if(success){
 					queryService.runScript(scriptName).then(function(resultData){
 						if(resultData){
-							that.cache.calculatedStats = resultData;
+							//handling different kinds of non -query results returned from R
+							for(var x = 0; x < statsInputs.length; x++){
+								
+								switch (statsInputs[x].name)
+								{
+									case 'SummaryStatistics':
+										that.cache.summaryStats = resultData;
+										break;
+									case 'CorrelationMatrix':
+										that.cache.correlationMatrix = resultData;
+										break;
+								}
+									
+								
+							}//end of loop for statsinputs
 						}
 					});
 				}
 					
 			});
 		}
-		return 	that.cache.calculatedStats;
+		return 	that.cache.summaryStats;
 			
 	};
 	
@@ -71,25 +90,25 @@ dataStatsModule.controller('dataStatsCtrl', function($q, $scope, queryService, s
 	};
 	//getting the metadata which specifies the stats to be displayed
 	var statsInputMetadata;
-	getStatsMetadata("getStatistics.R");
+	//getStatsMetadata("getStatistics.R");
 	
 	//calculating stats
-	statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns, true);
+	//statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns, true);
 	
 
 	//as soon as results are returned construction of the STATS DATAGRID
 	$scope.$watch(function(){
-		return $scope.statisticsService.cache.calculatedStats;
+		return $scope.statisticsService.cache.summaryStats;
 	}, function(){
-		if($scope.statisticsService.cache.calculatedStats.length > 0){
+		if($scope.statisticsService.cache.summaryStats.length > 0){
 			var data = [];
-			var oneStat = $scope.statisticsService.cache.calculatedStats[0];//hack
+			var oneStat = $scope.statisticsService.cache.summaryStats[0];//hack
 			
 			for(var x = 0; x < oneStat.length; x++){
 				
 				var oneStatsGridObject = {};
 				for(var y = 0; y < statsInputMetadata.inputs.length; y++){
-					statsInputMetadata.inputs[y].value = $scope.statisticsService.cache.calculatedStats[y][x];
+					statsInputMetadata.inputs[y].value = $scope.statisticsService.cache.summaryStats[y][x];
 					
 					oneStatsGridObject[statsInputMetadata.inputs[y].param] = statsInputMetadata.inputs[y].value;
 					

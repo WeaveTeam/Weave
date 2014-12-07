@@ -38,8 +38,9 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	
     	//Filtered Rows bean(each column is assigned a name when it reaches the computation engine)
     	var filteredRowsObject = {
+    			name: "",
     			type: "FilteredRows",
-    			names: [],
+    			namesToAssign: [],
     			value: {
     				columnIds : [],
     				filters: null //will be {} once filters are completed
