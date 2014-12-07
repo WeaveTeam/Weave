@@ -4,16 +4,17 @@
 
 var dataStatsModule = angular.module('aws.dataStatistics', []);
 
+dataStatsModule.value('pearsonCoeff', {label:"Pearson's Coefficent", scriptName : "getPearsonCoefficient.R"});
+dataStatsModule.value('spearmanCoeff', {label : "Spearman's Coefficient", scriptName:"getSpearmanCoefficient.R"});
+
 //************************SERVICE
 dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerService','computationServiceURL', function(queryService, QueryHandlerService, computationServiceURL ){
 	
 	this.cache= {};
 	var that = this;
 	this.cache.calculatedStats = [];
-//	var array1 = [1,2,3,4,5];
-//	var array2= [6,7,8,9,10];
-//	this.cache.correlationMatrix = [array1, array2];
-	this.calculateStats = function(numericalColumns, forceUpdate){
+
+	this.calculateStats = function(scriptName, numericalColumns, forceUpdate){
 		
 		if(!forceUpdate){
 			return this.cache.calculatedStats;
@@ -21,15 +22,15 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 		var statsInputs = QueryHandlerService.handleScriptOptions(numericalColumns);//will return int[] ids
 		if(statsInputs){
 			//hack fix this
-			statsInputs[0].names = [];
-			statsInputs[0].names.push('columndata');
-			statsInputs[0].type = 'DataColumnMatrix';
+			//statsInputs[0].names = [];
+			//statsInputs[0].names.push('columndata');
+			//statsInputs[0].type = 'DataColumnMatrix';
 			//getting the data
-			QueryHandlerService.getDataFromServer(statsInputs, null).then(function(success){
+			queryService.getDataFromServer(statsInputs, null).then(function(success){
 				
 				//executing the stats script
 				if(success){
-					QueryHandlerService.runScript("getStatistics.R").then(function(resultData){
+					queryService.runScript(scriptName).then(function(resultData){
 						if(resultData){
 							that.cache.calculatedStats = resultData;
 						}
@@ -73,7 +74,7 @@ dataStatsModule.controller('dataStatsCtrl', function($q, $scope, queryService, s
 	getStatsMetadata("getStatistics.R");
 	
 	//calculating stats
-	statisticsService.calculateStats(queryService.cache.numericalColumns, true);
+	statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns, true);
 	
 
 	//as soon as results are returned construction of the STATS DATAGRID

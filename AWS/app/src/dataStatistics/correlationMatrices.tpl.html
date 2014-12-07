@@ -1,0 +1,19 @@
+<div style = "display: table">
+
+<!-- Coefficients List -->
+	<div style= "display: table-cell">
+		<table>
+		<tr ng-repeat = "coeff in availableCoeffList">
+		
+			<td>
+				<input type="radio" value="{{coeff.label}}" ng-model = "selectedCoeff.label" ng-change = "calculateCoefficient(coeff.scriptName)"/> {{coeff.label}}
+			</td>
+			
+		</tr>
+		</table>
+	</div>
+
+
+<!-- Correlation Matrix Grid -->
+	<div id="corM" style ="display: table-cell;width:250px;height:250px; background-color:Blue"></div>
+</div>

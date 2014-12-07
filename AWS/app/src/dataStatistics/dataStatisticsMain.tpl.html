@@ -6,6 +6,7 @@ Datatable selected : {{datatableSelected}}
 	<!-- DATAGRID -->
 	<div style = "width: 60%; height: 50%" class="gridStyle" ng-grid="statsGrid"></div>
 	
+	<br/>
 	<!-- CORRELATION Matrix -->
-	<correlation-Matrix ></correlation-Matrix>
+	<correlation-Matrix data = "queryService.cache.numericalColumns" ></correlation-Matrix><!-- TODO include categorical columns as well -->
 </div>
