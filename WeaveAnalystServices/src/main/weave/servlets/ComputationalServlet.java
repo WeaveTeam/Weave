@@ -2,20 +2,16 @@ package weave.servlets;
 
 import static weave.config.WeaveConfig.initWeaveConfig;
 
-import java.util.ArrayList;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.apache.commons.io.FilenameUtils;
-import org.python.google.common.primitives.Ints;
 
 import weave.beans.WeaveRecordList;
 import weave.config.AwsContextParams;
 import weave.config.WeaveContextParams;
 import weave.models.computations.AwsRService;
 import weave.models.computations.AwsStataService;
-import weave.models.computations.ScriptResult;
 import weave.utils.AWSUtils;
 import weave.utils.SQLUtils.WhereClause.NestedColumnFilters;
 
@@ -72,7 +68,7 @@ public class ComputationalServlet extends WeaveServlet
 		
 		WeaveRecordList data = new WeaveRecordList();
 		Object[][]columnData = null;
-		RowsObject fRows = new RowsObject();
+		RowsObject rows = new RowsObject();
  		
 		//getting data
  		for(int i = 0; i < inputObjects.length; i++)//for every input 
@@ -81,15 +77,15 @@ public class ComputationalServlet extends WeaveServlet
 			//process its value accordingly
 			String type = inputObjects[i].type;
 			
-			fRows = (RowsObject)cast(inputObjects[i].value, RowsObject.class);
+			rows = (RowsObject)cast(inputObjects[i].value, RowsObject.class);
 			
-			data = DataService.getFilteredRows(fRows.columnIds, fRows.filters, null);
+			data = DataService.getFilteredRows(rows.columnIds, rows.filters, null);
 			//TODO handling filters still has to be done
 			
 			//REMAPPING
 			if(remapValues != null)//only if remapping needs to be done
 			{
-				data = remappingScriptInputData(remapValues, fRows, data);//this function call will return the remapped data
+				data = remappingScriptInputData(remapValues, rows, data);//this function call will return the remapped data
 			}
 			
 			//transposition
@@ -98,8 +94,8 @@ public class ComputationalServlet extends WeaveServlet
 			// if individual columns --> assign each columns to proper column name
 			if (type.equalsIgnoreCase(filteredRows))
 			{
-				for(int x =  0; x < fRows.namesToAssign.length;  x++) {
-					scriptInputs.put(fRows.namesToAssign[x], columnData[x]);
+				for(int x =  0; x < rows.namesToAssign.length;  x++) {
+					scriptInputs.put(rows.namesToAssign[x], columnData[x]);
 				}
 			}
 			//if single datamatrix to be used ascribe only one name 'columndata'
