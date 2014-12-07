@@ -97,8 +97,8 @@ public class ComputationalServlet extends WeaveServlet
 				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
 				//assign each columns to proper column name
-				for(int x =  0; x < inputObjects[i].names.length;  x++) {
-					scriptInputs.put(inputObjects[i].names[x], columnData[x]);
+				for(int x =  0; x < inputObjects[i].namesToAssign.length;  x++) {
+					scriptInputs.put(inputObjects[i].namesToAssign[x], columnData[x]);
 				}
 				
 				
@@ -110,12 +110,12 @@ public class ComputationalServlet extends WeaveServlet
 				data = DataService.getFilteredRows(dm.columnIds, null, null);
 				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
-				scriptInputs.put(inputObjects[i].names[i], columnData);
+				scriptInputs.put(inputObjects[i].namesToAssign[i], columnData);
 			}
 			//TODO handle remaining types of input objects
 			else 
 			{
-				scriptInputs.put(inputObjects[i].names[i], inputObjects[i].value);
+				scriptInputs.put(inputObjects[i].namesToAssign[i], inputObjects[i].value);
 			}
 			
 		}
@@ -224,7 +224,7 @@ public class ComputationalServlet extends WeaveServlet
 	public static class InputObjects
 	{
 		public String type;
-		public String[] names;
+		public String[] namesToAssign;
 		public Object value;
 	}
 	
