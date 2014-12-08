@@ -213,7 +213,7 @@ weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, prop
             new_prop.label(label);
         }
 
-        if (oldType != type && property_descriptor.hasOwnProperty("default"))
+        if (oldType == null && property_descriptor.hasOwnProperty("default"))
         {
             new_prop.state(property_descriptor["default"]);
         }
