@@ -94,6 +94,8 @@
     var NODE_COLOR = 'color';
     var NODE_SIZE = 'size';
     var NODE_PARENT = 'parent';
+    var NODE_X = 'x';
+    var NODE_Y = 'y';
 
     var EDGES = 'edges';
     var EDGE_SOURCE = 'source';
@@ -105,6 +107,7 @@
     var POSITIONS = "positions";
     var VIEWPORT = "viewport";
     var DIRECTIONAL = "directional";
+    var HIDELABELS = "hide_labels";
 
     function data_updated()
     {
@@ -149,8 +152,10 @@
         var added_keys = _.zipObject(keys.added);
         var removed_keys = _.zipObject(keys.removed);
 
+        cy.startBatch();
         cy.filter(function(i, ele) { return _.has(added_keys, ele.id()); }).toggleClass("probed", true);
         cy.filter(function(i, ele) { return _.has(removed_keys, ele.id()); }).toggleClass("probed", false);
+        cy.endBatch();
 
     };
 
@@ -158,12 +163,13 @@
     {
         var added_keys = _.zipObject(keys.added);
         var removed_keys = _.zipObject(keys.removed);
-
+        cy.startBatch();
         if (cy.nodes().length != 0)
         {
             cy.filter(function(i, ele) { return _.has(added_keys, ele.id()) && !ele.selected(); }).select();
             cy.filter(function(i, ele) { return _.has(removed_keys, ele.id()) && ele.selected(); }).unselect();
         }
+        cy.endBatch();
     };
 
     var last_probed;
@@ -235,11 +241,11 @@
         {
             positions = {};
         }
-
+        cy.startBatch();
         cy.nodes().positions(function (i, ele) { return positions[ele.id()]; });
         cy.nodes().filter(function (i, ele) { if (positions[ele.id()]) ele.lock()});
         console.log("Nodes locked");
-        run_layout(function(evt) { cy.nodes().unlock(); console.log("Nodes unlocked"); });
+        run_layout(function(evt) { cy.nodes().unlock(); cy.endBatch(); console.log("Nodes unlocked"); });
     }
 
     function set_weave_positions(evt)
@@ -308,6 +314,7 @@
     {
         var layout_value = tool[LAYOUT].getState();
         if (layout_value && layout_value.trim) layout_value.trim();
+        console.log(layout_value);
         $('select[name="layout_dropdown"] option[value="' + layout_value + '"]').prop("selected", "yes");
     }
 
@@ -317,6 +324,24 @@
         viewport_value['zoom'] = cy.zoom();
 
         tool[VIEWPORT].state(viewport_value);
+    }
+
+    function set_hide_labels()
+    {
+        var hide_label_value = tool[HIDELABELS].getState();
+        if (hide_label_value)
+        {
+            cy.style()
+                .selector('node').css({'content':''})
+                .selector('node.probed').css({'content':'data(name)'})
+                .update();
+        }
+        else
+        {
+            cy.style()
+                .selector('node').css({'content':'data(name)'})
+                .update();
+        }
     }
 
     function set_local_viewport()
@@ -342,6 +367,7 @@
     $('select[name="layout_dropdown"]').change(function ()
     {
         var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
+        console.log("Selected:", new_value);
         tool[LAYOUT].state(new_value);
         run_layout();
     });
@@ -354,7 +380,10 @@
             .text(value).attr("value",key));
     });
 
-    $('#cy').cytoscape( { style: cytoscape_style, layout: {name: "grid"}, ready: function () { 
+    $('#cy').cytoscape( { 
+        // Performance options
+        textureOnViewPort: true, pixelRatio: 1, motionBlur: true,
+        style: cytoscape_style, layout: {name: "grid"}, ready: function () { 
         window.cy = this;
 
         toolPath = opener.WeaveExternalTools[window.name].path;
@@ -365,7 +394,9 @@
                     {name: NODE_NAME, label: "Node Label", type: 'DynamicColumn'},
                     {name: NODE_COLOR, label: "Node Color", type: 'DynamicColumn', default: 'defaultColorColumn'},
                     {name: NODE_SIZE, label: "Node Size", type: 'DynamicColumn'},
-                    {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'}
+                    {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'},
+//                    {name: NODE_X, label: "Node X", type: 'DynamicColumn'},
+//                    {name: NODE_Y, label: "Node Y", type: 'DynamicColumn'}
                 ]
             },
             {name: EDGES, callback: data_updated, children:
@@ -375,17 +406,15 @@
                     {name: EDGE_TARGET, label: "Edge Target", type: 'DynamicColumn'}
                 ]
             },
-            {name: LAYOUT, type:"LinkableString", default: "arbor", label: "Layout Type", callback: set_local_layout},
+            {name: LAYOUT, type:"LinkableString", default: "cose", label: "Layout Type", callback: set_local_layout},
             {name: LAYOUT_OPTIONS, type: "LinkableVariable", label: "Layout Options"},
             {name: POSITIONS, type: "LinkableVariable", label: "Node Positions", callback: set_local_positions},
             {name: VIEWPORT, type: "LinkableVariable", label: "Viewport", callback: set_local_viewport},
-            {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated}
+            {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated},
+            {name: HIDELABELS, type: "LinkableBoolean", label: "Only show labels on mouseover", callback: set_hide_labels}
         ], tool);
-        set_local_layout();
         toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
         toolPath.probe_keyset.addKeySetCallback(set_local_probe, true);
-
-        tool[NODES][NODE_COLOR].state('defaultColorColumn');
 
         cy.on({select: select_handler, unselect: deselect_handler});
         cy.on({mouseover: probe_handler, mouseout: unprobe_handler}, 'node');
