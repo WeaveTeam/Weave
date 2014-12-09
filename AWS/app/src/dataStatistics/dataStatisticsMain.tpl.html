@@ -1,12 +1,28 @@
-<div style = "margin-left: 10px;height: 100%" ng-controller = "dataStatsCtrl">
-Datatable selected : {{datatableSelected}} 
-
-	<p>Edit getStatistics.json and getStatistics.R to add more summary statistics</p>
-
-	<!-- DATAGRID -->
-	<div style = "width: 60%; height: 50%" class="gridStyle" ng-grid="statsGrid"></div>
+<div style = "height: 100%" ng-controller = "dataStatsCtrl">
 	
-	<br/>
+	Datatable selected : {{datatableSelected}} 
+
+	<nav class="navbar navbar-inverse" role="navigation">
+    	
+	    <ul class="nev">
+	        <li><a ui-sref=".summary_stats">Summary Statistics</a></li>
+	        <li><a ui-sref=".correlations">Correlation</a></li>
+	    </ul>
+	</nav>
+	
+	
+	
+	<!-- PAGE CONTAINER -->
+			<div style = "width:100%; height: 100%" >
+
+				    <div style = "width:100%; height: 100%" ui-view></div>
+
+			</div>
+	
+	
+	<!-- DATAGRID -->
+<!-- 	<div style = "width: 60%; height: 50%" class="gridStyle" ng-grid="statsGrid"></div> -->
+	
 	<!-- CORRELATION Matrix -->
-	<correlation-Matrix data = "queryService.cache.numericalColumns" ></correlation-Matrix><!-- TODO include categorical columns as well -->
+<!-- 	<correlation-Matrix data = "queryService.cache.numericalColumns" ></correlation-Matrix>TODO include categorical columns as well -->
 </div>
