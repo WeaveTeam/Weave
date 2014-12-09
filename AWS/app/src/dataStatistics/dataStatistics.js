@@ -18,7 +18,7 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 			correlationMatrix : []
 	};
 
-	this.calculateStats = function(scriptName, numericalColumns, forceUpdate){
+	this.calculateStats = function(scriptName, numericalColumns, statToCalculate, forceUpdate){
 		
 		if(!forceUpdate){
 			return this.cache.summaryStats;
@@ -26,10 +26,8 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 		var statsInputs = QueryHandlerService.handleScriptOptions(numericalColumns);//will return int[] ids
 		if(statsInputs){
 			//hack fix this
-			statsInputs[0].name = "CorrelationMatrix";
-			statsInputs[0].namesToAssign = [];
-			statsInputs[0].namesToAssign.push('columndata');
-			statsInputs[0].type = 'DataColumnMatrix';
+			statsInputs[0].name = statToCalculate;
+			statsInputs[0].type = "DATACOLUMNMATRIX";
 			//getting the data
 			queryService.getDataFromServer(statsInputs, null).then(function(success){
 				
@@ -40,7 +38,7 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 							//handling different kinds of non -query results returned from R
 							for(var x = 0; x < statsInputs.length; x++){
 								
-								switch (statsInputs[x].name)
+								switch (statToCalculate)
 								{
 									case 'SummaryStatistics':
 										that.cache.summaryStats = resultData;
@@ -58,7 +56,7 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 					
 			});
 		}
-		return 	that.cache.summaryStats;
+		//return 	that.cache.summaryStats;
 			
 	};
 	
@@ -67,7 +65,9 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 
 
 //********************CONTROLLERS
-dataStatsModule.controller('dataStatsCtrl', function($q, $scope, queryService, statisticsService, runQueryService, scriptManagementURL){
+dataStatsModule.controller('dataStatsCtrl', function($q, $scope, 
+													 queryService, statisticsService, runQueryService, 
+													 scriptManagementURL){
 	$scope.queryService = queryService;
 	$scope.statisticsService = statisticsService;
 	$scope.columnDefinitions = [];
@@ -93,7 +93,7 @@ dataStatsModule.controller('dataStatsCtrl', function($q, $scope, queryService, s
 	//getStatsMetadata("getStatistics.R");
 	
 	//calculating stats
-	//statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns, true);
+	//statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns,"SummaryStatistics", true);
 	
 
 	//as soon as results are returned construction of the STATS DATAGRID
