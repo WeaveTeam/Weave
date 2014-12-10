@@ -24,7 +24,7 @@
             <button title="Zoom to Fit" onclick="cy.fit()">Z</button>
             <select name="layout_dropdown"></select>
             <button title="Run layout" onclick="run_layout()">&#8634;</button>
-            <button title="Open Attribute Selector" onclick="open_attribute_selector()"><bold>&#9082;</bold></button>
+            <button title="Change Settings" onclick="open_settings()"><bold>&#x2699;</bold></button>
     </div>
 
 <script>
@@ -304,9 +304,9 @@
     };
 
 
-    function open_attribute_selector()
+    function open_settings()
     {
-        toolPath.libs("weave.ui.AttributeSelectorPanel").exec("AttributeSelectorPanel.open(null, null, false, this)");
+        toolPath.libs("weave.ui.ControlPanel").exec("openEditor(this)");
         return;
     }
 
