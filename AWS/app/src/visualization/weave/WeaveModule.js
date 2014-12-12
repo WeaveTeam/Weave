@@ -288,6 +288,65 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.clearSessionState = function(){
 		ws.weave.path().state(['WeaveDataSource']);
 	};
+	
+	//this function creates the CSV data format needed to create the CSVDataSource in Weave
+	/*[
+	["k","x","y","z"]
+	["k1",1,2,3]
+	["k2",3,4,6]
+	["k3",2,4,56]
+	] */
+	/**
+	 * @param resultData the actual data values
+	 * @param columnNames the names of the result columns returned
+	 */
+	this.createCSVDataFormat = function(resultData, columnNames){
+		var columns = resultData;
+
+
+		var final2DArray = [];
+
+	//getting the rowCounter variable 
+		var rowCounter = 0;
+		/*picking up first one to determine its length, 
+		all objects are different kinds of arrays that have the same length
+		hence it is necessary to check the type of the array*/
+		var currentRow = columns[0];
+		if(currentRow.length > 0)
+			rowCounter = currentRow.length;
+		//handling single row entry, that is the column has only one record
+		else{
+			rowCounter = 1;
+		}
+
+		var columnHeadingsCount = 1;
+
+		rowCounter = rowCounter + columnHeadingsCount;//we add an additional row for column Headings
+
+		final2DArray.unshift(columnNames);//first entry is column names
+
+			for( var j = 1; j < rowCounter; j++)
+			{
+				var tempList = [];//one added for every column in 'columns'
+				for(var f =0; f < columns.length; f++){
+					//pick up one column
+					var currentCol = columns[f];
+					if(currentCol.length > 0)//if it is an array
+					//the second index in the new list should coincide with the first index of the columns from which values are being picked
+						tempList[f]= currentCol[j-1];
+					
+					//handling single record
+					else 
+					{
+						tempList[f] = currentCol;
+					}
+
+				}
+				final2DArray[j] = tempList;//after the first entry (column Names)
+			}
+
+			return final2DArray;
+	};
 }]);
 
 //goog.require('aws');
