@@ -68,7 +68,6 @@ dataStatsModule.controller('dataStatsCtrl', function($q, $scope,
 	$scope.queryService = queryService;
 	$scope.statisticsService = statisticsService;
 	$scope.columnDefinitions = [];
-	//todo getting correlation stats
 
 	//this is the table selected for which its columns and their respective data statistics will be shown
 	$scope.datatableSelected = queryService.queryObject.dataTable.title;

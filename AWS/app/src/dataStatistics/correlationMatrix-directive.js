@@ -144,8 +144,11 @@ dataStatsModule.directive('correlationMatrix',['pearsonCoeff','spearmanCoeff','q
 				}, function(){
 						data = scope.statsService.cache.correlationMatrix;
 						console.log("data", data);
-						if(data.length > 0)
-						drawCorrelationHeatMap(data[0]);
+						if(data.resultData)
+							{
+								if(data.resultData.length > 0)
+								drawCorrelationHeatMap(data.resultData[0]);
+							}
 				});
 
 
