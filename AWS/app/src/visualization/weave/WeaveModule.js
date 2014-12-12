@@ -83,7 +83,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				if(!state.enabled)
 				{
 					ws.weave.path(toolName).remove();
-					;
 					return "";
 				}
 				
@@ -124,7 +123,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				if(!state.enabled)
 				{
 					ws.weave.path(toolName).remove();
-					;
 					return "";
 				}
 				ws.weave.path(toolName).request('MapTool').state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
@@ -195,7 +193,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		if(ws.weave && ws.weave.path && state) {
 			if(!state.enabled) {
 				ws.weave.path(toolName).remove();
-				;
 				return "";
 			}
 			ws.weave.path(toolName).request('ScatterPlotTool')
@@ -217,7 +214,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		if(ws.weave && ws.weave.path && state) {
 			if(!state.enabled) {
 				ws.weave.path(toolName).remove();
-				;
 				return "";
 			}
 			ws.weave.path(toolName).request('DataTableTool')

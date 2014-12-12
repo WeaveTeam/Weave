@@ -304,7 +304,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		return queryService.queryObject.properties.openInNewWindow;
 	}, function() {
 		if(WeaveService.weave && WeaveService.weave.path) {
-			queryService.cache.weaveSessionState = WeaveService.weave.path().getState();
+			if(queryService.queryObject.properties.openInNewWindow)
+				queryService.cache.weaveSessionState = WeaveService.weave.path().getState();
 		}
 	
 		if(!queryService.queryObject.properties.openInNewWindow) {
