@@ -21,95 +21,22 @@ var tryParseJSON = function(jsonString){
 
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
-//using value recipes so that these tools could be used elsewhere as well TODO: make them into directives
-AnalysisModule.value('indicator_tool', {
-												title : 'Indicator',
-												template_url : 'src/analysis/indicator/indicator.tpl.html',
-												description : 'Choose an Indicator for the Analysis',
-												category : 'indicatorfilter'
-});
-
-AnalysisModule.value('geoFilter_tool',{
-										title : 'Geography Filter',
-										template_url : 'src/analysis/data_filters/geography.tpl.html',
-										description : 'Filter data by States and Counties',
-										category : 'datafilter'
-});
-
-AnalysisModule.value('timeFilter_tool', {
-											title : 'Time Period Filter',
-											template_url : 'src/analysis/data_filters/time_period.tpl.html',
-											description : 'Filter data by Time Period',
-											category : 'datafilter'
-});
-
-AnalysisModule.value('byVariableFilter_tool', {
-													title : 'By Variable Filter',
-													template_url : 'src/analysis/data_filters/by_variable.tpl.html',
-													description : 'Filter data by Variables',
-													category : 'datafilter'
-});
-
-AnalysisModule.value('BarChartTool',{
-										id : 'BarChartTool',
-										title : 'Bar Chart Tool',
-										template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
-
-});
-
-AnalysisModule.value('MapTool', {
-									id : 'MapTool',
-									title : 'Map Tool',
-									template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
-});
-
-AnalysisModule.value('ScatterPlotTool', {
-											id : 'ScatterPlotTool',
-											title : 'Scatter Plot Tool',
-											template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
-											description : 'Display a Scatter Plot in Weave'
-});
-
-AnalysisModule.value('DataTableTool', {
-											id : 'DataTableTool',
-											title : 'Data Table Tool',
-											template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
-											description : 'Display a Data Table in Weave'
-});
-
-AnalysisModule.value('color_Column', {	
-											id : 'color_Column',
-											title : 'Color Column',
-											template_url : 'src/visualization/tools/color/color_Column.tpl.html',
-											description : 'Set the color column in Weave'
-});
-
-
-AnalysisModule.value('key_Column', {
-										id : 'Key_Column', 
-										title : 'Key Column',
-										template_url : 'src/visualization/tools/color/key_Column.tpl.html',
-										description : 'Set the key column in Weave'
-});
-
-
-
 
 //analysis service
-AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column', 'queryService',
-                                           function(geoFilter_tool, timeFilter_tool,BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column, queryService ) {
+AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'queryService',
+                                           function(geoFilter_tool, timeFilter_tool, queryService ) {
 	
 	var AnalysisService = {
 			
 	};
 	
-	queryService.queryObject.weaveToolsList = [MapTool,
-	                              BarChartTool,
-	                              DataTableTool,
-	                              ScatterPlotTool,
-	                              color_Column,
-	                              key_Column];
-	
+//	queryService.queryObject.weaveToolsList = [MapTool,
+//	                              BarChartTool,
+//	                              DataTableTool,
+//	                              ScatterPlotTool,
+//	                              color_Column,
+//	                              key_Column];
+//	
 	AnalysisService.geoFilter_tool = geoFilter_tool;
 	AnalysisService.timeFilter_tool = timeFilter_tool;
 	
