@@ -53,11 +53,8 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 						}
 					});
 				}
-					
 			});
 		}
-		//return 	that.cache.summaryStats;
-			
 	};
 	
   
@@ -129,7 +126,6 @@ dataStatsModule.controller('dataStatsCtrl', function($q, $scope,
 						});
 					}
 					
-					console.log("columnDefs", $scope.columnDefs);
 				}
 			}
 			
