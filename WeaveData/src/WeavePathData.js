@@ -206,7 +206,7 @@ weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, prop
     {
         var oldType = new_prop.getType();
         
-        new_prop.request(type);
+        type = new_prop.request(type).getType();
 
         if (label)
         {
