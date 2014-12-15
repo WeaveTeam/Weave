@@ -5,8 +5,8 @@
 	<nav class="navbar navbar-inverse" role="navigation">
     	
 	    <ul class="nev">
-	        <li><a ui-sref=".summary_stats">Summary Statistics</a></li>
-	        <li><a ui-sref=".correlations">Correlation</a></li>
+	        <li ng-class="{nestactive: state.current.data.activetab == 'summary_stats'}"><a ui-sref=".summary_stats">Summary Statistics</a></li>
+	        <li ng-class="{nestactive: state.current.data.activetab == 'correlations'}"><a ui-sref=".correlations">Correlation</a></li>
 	    </ul>
 	</nav>
 	

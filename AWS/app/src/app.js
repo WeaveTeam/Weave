@@ -5,7 +5,6 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
-                                 //'aws.visualization', 
                                  'ui.select2',
                                  'ui.select2.sortable',
                                  //'ui.slider',
@@ -53,7 +52,6 @@ app.run(['$rootScope', function($rootScope){
 			templateUrl : 'src/configure/metadata/metadataManager.html',
 			controller: 'MetadataManagerCtrl',
 			data : {
-				
 				activetab : 'metadata'
 			}
 		})
@@ -62,7 +60,6 @@ app.run(['$rootScope', function($rootScope){
 	    	templateUrl : 'src/configure/script/scriptManager.html',
 	    	controller : 'ScriptManagerCtrl',
 	    	data:{
-	    		
 	    		activetab : 'script_management'
 	    	}
 	    })
@@ -71,7 +68,6 @@ app.run(['$rootScope', function($rootScope){
 	    	templateUrl : 'src/analysis/analysis.tpl.html',
 	    	controller: 'AnalysisCtrl',
 	    	data : {
-	    		
 	    		activetab : 'analysis'
 	    	}
 	    })
@@ -80,7 +76,6 @@ app.run(['$rootScope', function($rootScope){
 	    	templateUrl : 'src/project/projectManagementPanel.html',
 	    	controller : 'ProjectManagementCtrl',
 	    	data: {
-	    		
 	    		activetab : 'project'
 	    	}
 	    })
@@ -89,17 +84,22 @@ app.run(['$rootScope', function($rootScope){
 	    	templateUrl : 'src/dataStatistics/dataStatisticsMain.tpl.html',
     		controller : 'dataStatsCtrl',
     		data :{
-    			
     			activetab : 'data_stats'
     		}
 	    })
 	    .state('data_stats.summary_stats',{
 	    	url:'/summary_stats',
-	    	templateUrl: 'src/dataStatistics/summary_stats.tpl.html'
+	    	templateUrl: 'src/dataStatistics/summary_stats.tpl.html',
+	    	data :{
+    			activetab : 'summary_stats'
+    		}
 	    })
 	    .state('data_stats.correlations', {
 	    	url:'/correlations',
-	    	templateUrl : 'src/dataStatistics/correlation_matrices.tpl.html'
+	    	templateUrl : 'src/dataStatistics/correlation_matrices.tpl.html',
+	    	data :{
+    			activetab : 'correlations'
+    		}
 	    });
 		
 	    

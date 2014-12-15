@@ -225,6 +225,15 @@ body{
 	
 }
 
+ .nev > .nestactive > a, .nev > .nestactive > a:hover, .nev > .nestactive > a:focus {
+	color: #CCCCCC;
+	text-decoration: none;
+	border-bottom: 6px solid #428bca;/* #d44413;*/
+	background-color: #292929;
+	height: 100%;
+	
+}
+
 /*End of Header Section Css*/
 
 .tab-container{
