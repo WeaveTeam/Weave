@@ -47,11 +47,11 @@
 
 						<!--The main navbar-->
 						 <ul class="nev">
-       						 <li><a ui-sref="metadata">Metadata</a></li>
-       						 <li><a ui-sref="script_management">Scripts</a></li>
-       						 <li><a ui-sref="analysis">Analysis</a></li>
-       						 <li><a ui-sref="data_stats">Data Stats</a></li>
-       						 <li><a ui-sref="project">Project</a></li>
+       						 <li ng-class="{active: state.current.data.activetab == 'metadata'}"><a ui-sref="metadata">Metadata</a></li>
+       						 <li ng-class="{active: state.current.data.activetab == 'script_management'}"><a ui-sref="script_management">Scripts</a></li>
+       						 <li ng-class="{active: state.current.data.activetab == 'analysis'}" ><a ui-sref="analysis">Analysis</a></li>
+       						 <li ng-class="{active: state.current.data.activetab == 'data_stats'}"><a ui-sref="data_stats">Data Stats</a></li>
+       						 <li ng-class="{active: state.current.data.activetab == 'project'}"><a ui-sref="project">Project</a></li>
    						 </ul>
 					
 <!--**********************Using ng-route***************************************/  -->
