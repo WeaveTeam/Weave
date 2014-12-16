@@ -291,6 +291,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService) {
 	
 	$scope.service = queryService;
-	$scope.runService = QueryHandlerService;
+	$scope.QueryHandlerService = QueryHandlerService;
 	
 });
