@@ -244,8 +244,7 @@
         cy.startBatch();
         cy.nodes().positions(function (i, ele) { return positions[ele.id()]; });
         cy.nodes().filter(function (i, ele) { if (positions[ele.id()]) ele.lock()});
-        console.log("Nodes locked");
-        run_layout(function(evt) { cy.nodes().unlock(); cy.endBatch(); console.log("Nodes unlocked"); });
+        run_layout(function(evt) { cy.nodes().unlock(); cy.endBatch(); });
     }
 
     function set_weave_positions(evt)
@@ -292,10 +291,12 @@
         function on_stop (evt) 
         {
             set_weave_positions(evt);
+            cy.fit();
             if (on_finished) on_finished(evt);
         }
         layout_params['name'] = layout_name;
         layout_params['stop'] = on_stop;
+        layout_params['fit'] = false;
 
         if (cy.nodes().filter(function (i,ele) {return !ele.locked();}).length)
             cy.layout(layout_params);
@@ -314,16 +315,7 @@
     {
         var layout_value = tool[LAYOUT].getState();
         if (layout_value && layout_value.trim) layout_value.trim();
-        console.log(layout_value);
         $('select[name="layout_dropdown"] option[value="' + layout_value + '"]').prop("selected", "yes");
-    }
-
-    function set_weave_viewport()
-    {
-        var viewport_value = cy.pan();
-        viewport_value['zoom'] = cy.zoom();
-
-        tool[VIEWPORT].state(viewport_value);
     }
 
     function set_hide_labels()
@@ -344,6 +336,13 @@
         }
     }
 
+    function set_weave_viewport()
+    {
+        var viewport_value = cy.pan();
+        viewport_value['zoom'] = cy.zoom();
+        tool[VIEWPORT].state(viewport_value);
+    }
+
     function set_local_viewport()
     {
         var viewport_value = tool[VIEWPORT].getState();
@@ -358,7 +357,7 @@
         var pan_to = {x: viewport_value.x, y: viewport_value.y};
         var zoom_level = viewport_value.zoom;
 
-        cy.on({zoom: set_weave_viewport, pan: set_weave_viewport});
+        cy.off({zoom: set_weave_viewport, pan: set_weave_viewport});
         cy.pan(pan_to);
         cy.zoom(zoom_level);
         cy.on({zoom: set_weave_viewport, pan: set_weave_viewport});
@@ -367,7 +366,6 @@
     $('select[name="layout_dropdown"]').change(function ()
     {
         var new_value = $('select[name="layout_dropdown"] option:selected').prop("value");
-        console.log("Selected:", new_value);
         tool[LAYOUT].state(new_value);
         run_layout();
     });
