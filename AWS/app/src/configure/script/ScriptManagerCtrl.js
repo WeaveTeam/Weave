@@ -1,6 +1,7 @@
 var scriptUploaded;
-var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
-.controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService,authenticationService) {
+var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']);
+
+scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService,authenticationService) {
 	//needed for dynatree
 	var scripts = [
 	               { title : "R Scripts", children : [], isFolder : true },
@@ -76,7 +77,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 			  enableCellEditOnFocus: true,
 			  enableCellEdit : true,
 			  selectedItems : $scope.selectedRow,
-			  enableSorting : false,
+			  enableSorting : false
 	  };
 	 
 //********************************************************************Watches*******************************************************
@@ -233,7 +234,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 	         dialogFade: true,
 	         keyboard: true,
 	         templateUrl: 'aws/configure/script/uploadNewScript.html',
-	         controller: 'AddScriptDialogInstanceCtrl',
+	         controller: 'AddScriptDialogInstanceCtrl'
 		});
     };
    
@@ -298,7 +299,7 @@ var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editabl
 		               {field : "description", displayName : "Description"}],
 			  multiSelect: false,
 			  enableRowSelection: false,
-			  enableCellEdit : false,
+			  enableCellEdit : false
 	  };
 	 
 	$scope.$watch('scriptUploaded.script.filename', function () {

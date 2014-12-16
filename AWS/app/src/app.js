@@ -5,7 +5,6 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
-                                 //'aws.visualization', 
                                  'ui.select2',
                                  'ui.select2.sortable',
                                  //'ui.slider',
@@ -52,36 +51,55 @@ app.run(['$rootScope', function($rootScope){
 			url:'/metadata',
 			templateUrl : 'src/configure/metadata/metadataManager.html',
 			controller: 'MetadataManagerCtrl',
-			data: {}
+			data : {
+				activetab : 'metadata'
+			}
 		})
 	    .state('script_management', {
 	    	url:'/scripts',
 	    	templateUrl : 'src/configure/script/scriptManager.html',
-	    	controller : 'ScriptManagerCtrl'
+	    	controller : 'ScriptManagerCtrl',
+	    	data:{
+	    		activetab : 'script_management'
+	    	}
 	    })
 	    .state('analysis', {
 	    	url:'/analysis',
 	    	templateUrl : 'src/analysis/analysis.tpl.html',
 	    	controller: 'AnalysisCtrl',
-	    	data:{}
+	    	data : {
+	    		activetab : 'analysis'
+	    	}
 	    })
 	    .state('project', {
 	    	url:'/projects',
 	    	templateUrl : 'src/project/projectManagementPanel.html',
-	    	controller : 'ProjectManagementCtrl'
+	    	controller : 'ProjectManagementCtrl',
+	    	data: {
+	    		activetab : 'project'
+	    	}
 	    })
 	    .state('data_stats',{
 	    	url:'/dataStatistics',
 	    	templateUrl : 'src/dataStatistics/dataStatisticsMain.tpl.html',
-    		controller : 'dataStatsCtrl'
+    		controller : 'dataStatsCtrl',
+    		data :{
+    			activetab : 'data_stats'
+    		}
 	    })
 	    .state('data_stats.summary_stats',{
 	    	url:'/summary_stats',
-	    	templateUrl: 'src/dataStatistics/summary_stats.tpl.html'
+	    	templateUrl: 'src/dataStatistics/summary_stats.tpl.html',
+	    	data :{
+    			activetab : 'summary_stats'
+    		}
 	    })
 	    .state('data_stats.correlations', {
 	    	url:'/correlations',
-	    	templateUrl : 'src/dataStatistics/correlation_matrices.tpl.html'
+	    	templateUrl : 'src/dataStatistics/correlation_matrices.tpl.html',
+	    	data :{
+    			activetab : 'correlations'
+    		}
 	    });
 		
 	    
@@ -134,8 +152,9 @@ app.value('scriptManagementURL', '/WeaveAnalystServices/ScriptManagementServlet'
 app.value('computationServiceURL', '/WeaveAnalystServices/ComputationalServlet');
 
 // From Amith's UI
-app.controller('AWSController', function($scope, authenticationService) {
+app.controller('AWSController', function($scope, $state, authenticationService) {
 	//$scope.$route = $route;
+	$scope.state = $state;
 	$scope.authenticationService = authenticationService;
 
 });

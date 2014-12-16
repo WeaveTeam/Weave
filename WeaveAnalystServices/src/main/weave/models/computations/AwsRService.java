@@ -3,6 +3,7 @@ package weave.models.computations;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Vector;
 
 import org.rosuda.REngine.REXP;
@@ -53,6 +54,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 	{
 		RConnection rConnection = null;
 		Object results = null;
+		HashMap<String, Object> finalResult= null;
 		String [] columnNames = null;
 		try
 		{
@@ -76,12 +78,15 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 				
 			else//when script succeeds
 			{
+				finalResult = new HashMap<String,Object>();
 				
 				names = evalValue.asList().names;//TODO what if result returned is NOT a generic vector
 				columnNames = new String[names.size()];
 				names.toArray(columnNames);
 				results = rexp2javaObj(evalValue);
-				results = convertToRowResults(results, columnNames);
+				finalResult.put("resultData", results);
+				finalResult.put("columnNames",columnNames);
+				//results = convertToRowResults(results, columnNames);
 				// clear R Objects
 				rConnection.eval("rm(list=ls())");
 			}
@@ -98,7 +103,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 				rConnection.close();
 		}
 
-		return results;
+		return finalResult;
 		
 	}
 

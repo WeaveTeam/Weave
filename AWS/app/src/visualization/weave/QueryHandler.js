@@ -266,7 +266,11 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 								//queryService.queryObject.properties.resultData = resultData;
 								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
 								if(WeaveService.weave){
-									WeaveService.addCSVData(resultData, queryService.queryObject.Indicator.title, queryService.queryObject);
+									
+									//convert result into csvdata format
+									var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
+									//create the CSVDataSource
+									WeaveService.addCSVData(formattedResult, queryService.queryObject.Indicator.title, queryService.queryObject);
 									console.log(queryService.queryObject.resultSet);
 								}
 							} else {
