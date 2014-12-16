@@ -259,6 +259,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 						
 						//executing the script
 						queryService.runScript(scriptName).then(function(resultData) {
+							console.log(resultData);
 							if(!angular.isUndefined(resultData))
 							{
 								time2 = new Date().getTime() - startTimer;

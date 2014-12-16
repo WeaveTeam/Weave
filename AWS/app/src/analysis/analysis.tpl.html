@@ -51,7 +51,7 @@
 				<div class="databox" style="width: 20%">
 					<!-- <div class="databox" style="width: 200px;"> -->
 					<div id="indicator" class=" header panel-heading">
-						<h2>Indicator</h2>
+						<h2>Data Table</h2>
 					</div>
 					<div class="body" style="width: 100%">
 						<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
@@ -62,48 +62,58 @@
 							to-id="getItemId" to-text="getItemText"
 						>
 						</input> 
+						<br>
 						
 						<input type="checkbox"
-							ng-model="queryService.queryObject.properties.displayAsQuestions">
-						Display As Questions</input>
-	
-<!-- INDICATOR -->		<div style="width: 100%; margin-top: 10px;">
-							<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 100%" ng-model="queryService.queryObject.Indicator"
-								simple-query="getIndicators"
-								data-placeholder="Select Indicator"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-							</input> 
-						</div>
+							ng-model="queryService.queryObject.properties.linkedIndicator"
+							ng-init="queryService.queryObject.properties.linkedIndicator = true">
+							Link Indicator
+						</input>
 						
-						<br> {{IndicDescription}} 
-<!-- 						<button popover-with-tpl template-url="src/analysis/indicator-remap.tpl.html" popover-placement="bottom" class="btn btn-default">Remap Indicator -->
-					  
- <!-- REMAPPING -->
-					  	<div  style="overflow-y: scroll; height:60%">
-					      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
-								<tr> 
-									<td  align="center">
-										Value
-									</td>
-									<td  align="center">
-										Description
-									</td>
-									<td   align="center">
-										New Value
-									</td>
-								 </tr>
-								<tr ng-repeat="varValue in varValues">
-									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
-									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
-									<td width= "50%"> <input style ="width : 100%" 
-														ng-model="newValue"
-														ng-change="setRemapValue(varValue.value,newValue)"> 
-														</input> </td>
-								</tr>
-							</table>
-					  	</div>
+						<div ng-if="queryService.queryObject.properties.linkedIndicator">
+							<input type="checkbox"
+								ng-model="queryService.queryObject.properties.displayAsQuestions">
+								Display As Questions
+							</input>
+		
+	<!-- INDICATOR -->		<div style="width: 100%; margin-top: 10px;">
+								<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
+									style="width: 100%" ng-model="queryService.queryObject.Indicator"
+									simple-query="getIndicators"
+									data-placeholder="Choose Indicator"
+									allow-clear="true"
+									to-id="getItemId" to-text="getItemText">
+								</input> 
+							</div>
+							
+							<br> {{IndicDescription}} 
+	<!-- 						<button popover-with-tpl template-url="src/analysis/indicator-remap.tpl.html" popover-placement="bottom" class="btn btn-default">Remap Indicator -->
+						  
+	 <!-- REMAPPING -->
+						  	<div  style="overflow-y: scroll; height:60%">
+						      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
+									<tr> 
+										<td  align="center">
+											Value
+										</td>
+										<td  align="center">
+											Description
+										</td>
+										<td   align="center">
+											New Value
+										</td>
+									 </tr>
+									<tr ng-repeat="varValue in varValues">
+										<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
+										<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
+										<td width= "50%"> <input style ="width : 100%" 
+															ng-model="newValue"
+															ng-change="setRemapValue(varValue.value,newValue)"> 
+															</input> </td>
+									</tr>
+								</table>
+						  	</div>
+						</div>
 					</div>
 				</div>
 				
