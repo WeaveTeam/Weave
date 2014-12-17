@@ -239,6 +239,11 @@ package weave.data.DataSources
 				var i:int = 0;
 				function initGeoms(stopTime:int):Number
 				{
+					if (!jsonData)
+					{
+						proxyColumn.dataUnavailable();
+						return 1;
+					}
 					for (; i < jsonData.qkeys.length; i++)
 					{
 						if (getTimer() > stopTime)
