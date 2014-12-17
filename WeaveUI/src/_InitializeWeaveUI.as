@@ -68,6 +68,7 @@ package
 	import weave.editors.XLSDataSourceEditor;
 	import weave.primitives.ColorRamp;
 	import weave.ui.AttributeMenuTool;
+	import weave.ui.BackgroundTextPlotterEditor;
 	import weave.ui.ColorRampEditor;
 	import weave.ui.DataFilter;
 	import weave.ui.FontControl;
@@ -77,6 +78,7 @@ package
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
+	import weave.visualization.plotters.BackgroundTextPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GeometryRelationPlotter;
@@ -172,6 +174,7 @@ package
 			em.registerEditor(ColorRamp, ColorRampEditor);
 	        em.registerEditor(RadVizTool, RadVizToolEditor);
 			em.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
+			em.registerEditor(BackgroundTextPlotter, BackgroundTextPlotterEditor);
 			
 			em.registerEditor(SessionStateLog, SessionHistorySlider);
 			

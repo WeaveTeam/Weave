@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns="weave.editors.*"
+		 xmlns:ui="weave.ui.*"
+		 implements="weave.api.ui.ILinkableObjectEditor">
+	
+	<ui:Paragraph>
+		Text Format:
+	</ui:Paragraph>
+	<ui:IndentTextInput id="textSize" label="{lang('Size')}"/>
+	<ui:IndentTextInput id="textFont" label="{lang('Font')}"/>
+	
+	<mx:VBox id="firstVBox" width="100%" height="100%">
+		<ui:CustomGrid horizontalAlign="center" verticalAlign="middle"
+					   creationComplete="event.target.getChildAt(0).setStyle('paddingBottom',-event.target.getStyle('verticalGap'))">
+			<ui:dataProvider>
+				<mx:Array>
+					<mx:Array>
+						<mx:Spacer/>
+						<mx:Label text="{lang('Color')}"/>
+						<mx:Label text="{lang('Alpha')}"/>
+					</mx:Array>
+					<mx:Array>
+						<ui:Indent label="{lang('Color:')}" group="{firstVBox}"/>
+						<ui:CustomColorPicker id="gridColorPicker"/>
+						<mx:NumericStepper id="gridAlphaStepper"
+										   maximum="1" minimum="0" stepSize="0.1"
+										   toolTip="{lang('0 = transparent; 1 = opaque')}"/>
+					</mx:Array>
+				</mx:Array>
+			</ui:dataProvider>
+		</ui:CustomGrid>
+	</mx:VBox>
+	
+	<ui:Paragraph>
+		Enter data coordinates below. Width and height are optional.
+	</ui:Paragraph>
+	<ui:IndentTextInput id="xInput" label="{lang('X')}"/>
+	<ui:IndentTextInput id="yInput" label="{lang('Y')}"/>
+	<ui:IndentTextInput id="widthInput" label="{lang('Width')}"/>
+	<ui:IndentTextInput id="heightInput" label="{lang('Height')}"/>
+	<ui:Indent label="Alignment">
+		<ui:AlignmentControl id="alignmentInput"/>
+	</ui:Indent>
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.getSessionState;
+			import weave.api.linkBindableProperty;
+			import weave.services.FileAttacher;
+			import weave.ui.ControlPanel;
+			import weave.ui.CustomContextMenuManager;
+			import weave.ui.DraggablePanel;
+			import weave.visualization.layers.PlotManager;
+			import weave.visualization.plotters.BackgroundTextPlotter;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			private var _plotter:BackgroundTextPlotter = null;
+			public function setTarget(object:ILinkableObject):void
+			{
+				_plotter = object as BackgroundTextPlotter;
+			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				linkBindableProperty(_plotter.dataX, xInput, "text");
+				linkBindableProperty(_plotter.dataY, yInput, "text");
+				linkBindableProperty(_plotter.dataWidth, widthInput, "text");
+				linkBindableProperty(_plotter.dataHeight, heightInput, "text");
+				linkBindableProperty(_plotter.horizontalAlign, alignmentInput, 'horizontalAlign');
+				linkBindableProperty(_plotter.verticalAlign, alignmentInput, 'verticalAlign');
+				//linkBindableProperty(_plotter.textColor, Color , "")
+				
+			}
+			
+			//----------------------------------------------
+		
+			private static var _contextMenuItem:ContextMenuItem = null;
+			public static function createContextMenuItems(destination:DisplayObject):Boolean
+			{
+				if(!destination.hasOwnProperty("contextMenu") )
+					return false;
+				
+				// Add a listener to this destination context menu for when it is opened
+				var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
+				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+				//_contextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Add Marker", destination, handleAddMarker, "2.1 textBoxMenuItem");
+				
+				return true;
+			}
+			
+			private static var tool:SimpleVisTool = null;
+			private static var anchorPoint:Point = new Point();
+			private static function handleContextMenuOpened(e:ContextMenuEvent):void
+			{	
+				tool = DraggablePanel.activePanel as SimpleVisTool;
+				if (tool)
+				{
+					_contextMenuItem.enabled = true;
+					anchorPoint.x = WeaveAPI.StageUtils.stage.mouseX;
+					anchorPoint.y = WeaveAPI.StageUtils.stage.mouseY;
+				}
+				else
+				{
+					_contextMenuItem.enabled = false;
+					tool = null;
+				}
+			}
+			
+			private static function handleAddMarker(e:ContextMenuEvent):void
+			{
+				if (tool)
+				{
+					var state:Object = getSessionState(tool.visualization);
+					var pm:PlotManager = tool.visualization.plotManager;
+					var name:String = pm.plotters.generateUniqueName("marker");
+					var plotter:BackgroundTextPlotter = pm.plotters.requestObject(name, BackgroundTextPlotter, false);
+					
+					var localAnchorPoint:Point = tool.visualization.globalToLocal(anchorPoint);
+					pm.zoomBounds.projectScreenToData(localAnchorPoint);
+					
+					plotter.dataX.value = localAnchorPoint.x;
+					plotter.dataY.value = localAnchorPoint.y;
+					
+					ControlPanel.openEditor(plotter, [tool.visualization], [state]);
+				}
+			}
+		
+		
+		]]>
+	</mx:Script>
+</mx:VBox>

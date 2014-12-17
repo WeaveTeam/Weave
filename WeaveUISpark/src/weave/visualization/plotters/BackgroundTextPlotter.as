@@ -28,6 +28,8 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableFunction;
+	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	
@@ -38,8 +40,52 @@ package weave.visualization.plotters
 		public const textFormat:LinkableTextFormat = newLinkableChild(this, LinkableTextFormat);
 		public const textFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('target && target.getSessionState()', true, false, ['target']));
 		public const dependency:LinkableDynamicObject = newLinkableChild(this, LinkableDynamicObject);
-		private const bitmapText:BitmapText = new BitmapText();
+		public const dataX:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const dataY:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const dataWidth:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const horizontalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER, verifyHAlign));
+		public const verticalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE, verifyVAlign));
+		public const dataHeight:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const textColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xB0B0B0, isFinite));
+		public const textAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
 		
+		private const bitmapText:BitmapText = new BitmapText();
+
+		private function verifyHAlign(value:String):Boolean
+		{
+			return value == BitmapText.HORIZONTAL_ALIGN_LEFT
+				|| value == BitmapText.HORIZONTAL_ALIGN_CENTER
+				|| value == BitmapText.HORIZONTAL_ALIGN_RIGHT;
+		}
+		private function verifyVAlign(value:String):Boolean
+		{
+			return value == BitmapText.VERTICAL_ALIGN_TOP
+				|| value == BitmapText.VERTICAL_ALIGN_MIDDLE
+				|| value == BitmapText.VERTICAL_ALIGN_BOTTOM;
+		}
+		
+		override public function getBackgroundDataBounds(output:IBounds2D):void
+		{
+			var x:Number = dataX.value;
+			var y:Number = dataY.value;
+			var w:Number = dataWidth.value || 0;
+			var h:Number = dataHeight.value || 0;
+			
+			if (horizontalAlign.value == BitmapText.HORIZONTAL_ALIGN_LEFT)
+				output.setXRange(x, x + w);
+			if (horizontalAlign.value == BitmapText.HORIZONTAL_ALIGN_CENTER)
+				output.setCenteredXRange(x, w);
+			if (horizontalAlign.value == BitmapText.HORIZONTAL_ALIGN_RIGHT)
+				output.setXRange(x - w, x);
+			
+			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_TOP)
+				output.setYRange(y - h, y);
+			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_MIDDLE)
+				output.setCenteredYRange(y, h);
+			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_BOTTOM)
+				output.setYRange(y, y + h);
+		}
+
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			bitmapText.x = screenBounds.getXCenter();
@@ -59,5 +105,6 @@ package weave.visualization.plotters
 				reportError(e);
 			}
 		}
+		
 	}
 }
