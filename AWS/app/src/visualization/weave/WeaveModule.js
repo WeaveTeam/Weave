@@ -49,7 +49,11 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.setWeaveWindow(window);
 	
 	this.addCSVData = function(csvData, aDataSourceName, queryObject) {
-		var dataSourceName = ws.generateUniqueName(aDataSourceName);
+		var dataSourceName = "";
+		if(!aDataSourceName)
+			dataSourceName = ws.generateUniqueName("CSVDataSource");
+		else
+			dataSourceName = ws.generateUniqueName(aDataSourceName);
 	
 		ws.weave.path(dataSourceName)
 			.request('CSVDataSource')
@@ -60,6 +64,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		{
 			queryObject.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
 		}
+		queryObject.resultSet[dataSourceName]["data"] = csvData;
 	};
 	
 	// weave path func

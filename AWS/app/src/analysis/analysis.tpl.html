@@ -323,7 +323,10 @@
 		</div>
 		<br><br><br>
 		
-		<input type="checkbox" ng-model="queryService.queryObject.properties.openInNewWindow"> Show Weave in separate window</input>
+		<div>
+			<input style="float: left" type="checkbox" ng-model="queryService.queryObject.properties.openInNewWindow"> Show Weave in separate window</input>
+			<input type="checkbox" ng-model="queryService.queryObject.properties.showHtmlTables"> Show HTML Tables</input>
+		</div>
 		
 		
 		
@@ -370,7 +373,6 @@
 					<div id="flashContent" style="width: 78%; height: 800px; float:left"></div>
 				</div>
 				
-				
 				<div class="row " style="height: 50%; clear:both" ng-show="queryService.queryObject.properties.openInNewWindow">
 					<div style="height:100%; width: 100%;">
 							<div style="width: 20%; float : left; margin-right : 20px" ng-repeat="tool in queryService.queryObject.weaveToolsList" class="panel panel-default">
@@ -390,6 +392,15 @@
 
 					</div>
 
+					<div class="row " style="height: 50%; clear:both" >
+							<div ng-repeat="dataset in queryService.queryObject.resultSet">
+								<table border="border: 1px solid #0000FF">
+										<tr ng-repeat="row in dataset.data">
+											<td width= "10%" style="padding-left: 5px; padding-right: 5px" ng-repeat="value in row"></td>
+										</tr>
+								</table>												
+							</div>
+					</div>
 				</div>
 </div>
 
