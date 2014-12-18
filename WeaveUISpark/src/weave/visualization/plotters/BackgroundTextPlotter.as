@@ -40,14 +40,12 @@ package weave.visualization.plotters
 		public const textFormat:LinkableTextFormat = newLinkableChild(this, LinkableTextFormat);
 		public const textFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('target && target.getSessionState()', true, false, ['target']));
 		public const dependency:LinkableDynamicObject = newLinkableChild(this, LinkableDynamicObject);
-		public const dataX:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const dataY:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const textX:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		public const textY:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const dataWidth:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const horizontalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER, verifyHAlign));
 		public const verticalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE, verifyVAlign));
 		public const dataHeight:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const textColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xB0B0B0, isFinite));
-		public const textAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
 		
 		private const bitmapText:BitmapText = new BitmapText();
 
@@ -66,8 +64,8 @@ package weave.visualization.plotters
 		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var x:Number = dataX.value;
-			var y:Number = dataY.value;
+			var x:Number = textX.value;
+			var y:Number = textY.value;
 			var w:Number = dataWidth.value || 0;
 			var h:Number = dataHeight.value || 0;
 			
@@ -88,12 +86,10 @@ package weave.visualization.plotters
 
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			bitmapText.x = screenBounds.getXCenter();
-			bitmapText.y = screenBounds.getYCenter();
+			bitmapText.x = screenBounds.getXNumericMin() + textX.value < screenBounds.getXNumericMax()- bitmapText.width ? screenBounds.getXNumericMin() + textX.value : screenBounds.getXNumericMax()- bitmapText.width; 
+			bitmapText.y = screenBounds.getYNumericMin() + textY.value < screenBounds.getYNumericMax()- bitmapText.height ? screenBounds.getYNumericMin() + textY.value : screenBounds.getYNumericMax()- bitmapText.height;
 			bitmapText.maxWidth = screenBounds.getXCoverage();
 			bitmapText.maxHeight = screenBounds.getYCoverage();
-			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
-			bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
 			textFormat.copyTo(bitmapText.textFormat);
 			try
 			{
