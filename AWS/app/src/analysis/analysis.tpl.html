@@ -9,7 +9,7 @@
 							<!-- IMPORT QUERY BUTTON -->
 							<label class='btn btn-default' style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; height: 30px; margin-top: 10px; margin-right : 5px">Import Query<input fileread="queryObjectUploaded.file" class='file-upload' type='file'/></label>
 						</div>
-						<!-- SHOW?HIDE QUERY OBJECT EDITOR button -->
+						<!-- SHOW/HIDE QUERY OBJECT EDITOR button -->
 						<a href="javascript:void(0);" class="btn btn-default" 
 														style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"
 														ng-click = "queryService.queryObject.properties.hideQueryObjectPanel = !queryService.queryObject.properties.hideQueryObjectPanel"
@@ -69,12 +69,12 @@
 							ng-init="queryService.queryObject.properties.linkedIndicator = true">
 							Link Indicator
 						</input>
-						
+						<br>
+						<input type="checkbox"
+							ng-model="queryService.queryObject.properties.displayAsQuestions">
+							Display As Questions
+						</input>
 						<div ng-if="queryService.queryObject.properties.linkedIndicator">
-							<input type="checkbox"
-								ng-model="queryService.queryObject.properties.displayAsQuestions">
-								Display As Questions
-							</input>
 		
 	<!-- INDICATOR -->		<div style="width: 100%; margin-top: 10px;">
 								<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
@@ -211,6 +211,18 @@
 												ng-class="{'active btn-danger': service.queryObject.scriptOptions[input.param] == false}"
 												class="btn btn-default">False</button>
 										</div> 
+										
+										
+										<!-- Handling options types -->
+										<input ng-if="input.type == 'options'" 
+											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											style="width: 100%" 
+											ng-init="test($index)"
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getOptInputOptions"
+											data-placeholder="Select parameter"
+											allow-clear="true">
+										</input>
 										
 										<!-- handling value types -->
 										<input style="width: 100%" ng-if="input.type == 'value'"
@@ -391,16 +403,22 @@
 							
 
 					</div>
-
-					<div class="row " style="height: 50%; clear:both" >
-							<div ng-repeat="dataset in queryService.queryObject.resultSet">
-								<table border="border: 1px solid #0000FF">
-										<tr ng-repeat="row in dataset.data">
-											<td width= "10%" style="padding-left: 5px; padding-right: 5px" ng-repeat="value in row"></td>
-										</tr>
-								</table>												
-							</div>
-					</div>
+				</div>
+				<br><br>
+<!-- TABLES -->	
+				<div class="row" style="height: 50%; clear:both; padding-left: 20%; padding-right:10%" ng-if="queryService.queryObject.properties.showHtmlTables">
+						<div ng-repeat="(key, dataset) in queryService.queryObject.resultSet">
+							<b>{{key}}</b>
+							<table cellspacing="1" cellpadding="7"  border="1">  <!-- border="border: 1px solid #0000FF"> -->
+									<tr ng-repeat="row in dataset.data">
+										<td width= "10%" style="padding-left: 5px; padding-right: 5px" ng-repeat="col in row track by $index">
+											{{col}}
+										</td>
+									</tr>
+							</table>
+							<br>
+						</div>
+						
 				</div>
 </div>
 

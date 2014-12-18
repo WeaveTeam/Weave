@@ -208,6 +208,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 $("#queryObjectPanel" ).draggable().resizable();
 	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
 	
+	 $scope.$watch('queryService.queryObject.resultSet', function() {
+		 console.log($scope.queryService.queryObject.resultSet);
+	 });
 	//**********************************************************REMAPPING**************************************
 	 queryService.cache.shouldRemap = [];
 	 $scope.newValue= "";
@@ -267,6 +270,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	};
 	
 	$scope.getItemText = function(item) {
+		if(queryService.queryObject.properties.displayAsQuestions)
+			return item.description || item.title;
 		return item.title;
 	};
 	
@@ -556,6 +561,15 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		done($filter('filter')(values,{columnType : 'time',title:term},'title'));
 	};
 	
+	var options = [];
+	$scope.test = function(index) {
+		options = queryService.cache.scriptMetadata.inputs[index].options;
+	};
+	
+	$scope.getOptInputOptions = function(term, done) {
+		done($filter('filter')(options, term));
+	};
+	
 	$scope.getGeographyInputOptions = function(term, done){
 		var values = queryService.cache.columns;
 		done($filter('filter')(values,{columnType : 'geography',title:term},'title'));
@@ -577,6 +591,8 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	};
 	
 	$scope.getItemText = function(item) {
+		if(queryService.queryObject.properties.displayAsQuestions)
+				return item.description || item.title;
 		return item.title;
 	};
 	//**************************************select2 sortable options handlers END*******************************

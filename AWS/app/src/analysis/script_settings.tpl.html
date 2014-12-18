@@ -31,11 +31,11 @@
 					<option value="{{ col }}" ng-repeat="col in service.cache.columns | filter:input.columnType"> {{col.title}}</option>
 				</select>
 				
-				<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'options'
+				<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'options'"
 						ui-select2-"{allowClear : true}" 
 						ng-model="service.queryObject.scriptOptions[input.param]">
 						<option></option>
-						<option value="{{opt}}" ng-repeat="opt in input.options"> {{opt}}</option>
+						<option value="{{opt}}" ng-repeat="opt in input.options">{{opt}}</option>
 				</select>
 				<br>
 			</td>

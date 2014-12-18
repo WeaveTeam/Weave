@@ -50,6 +50,7 @@
        						 <li ng-class="{active: state.current.data.activetab == 'metadata'}"><a ui-sref="metadata">Metadata</a></li>
        						 <li ng-class="{active: state.current.data.activetab == 'script_management'}"><a ui-sref="script_management">Scripts</a></li>
        						 <li ng-class="{active: state.current.data.activetab == 'analysis'}" ><a ui-sref="analysis">Analysis</a></li>
+       						 <li ng-class="{active: state.current.data.activetab == 'cross_tab'}"><a ui-sref="cross_tab">Cross Tabulation</a></li>
        						 <li ng-class="{active: state.current.data.activetab == 'data_stats'}"><a ui-sref="data_stats">Data Stats</a></li>
        						 <li ng-class="{active: state.current.data.activetab == 'project'}"><a ui-sref="project">Project</a></li>
    						 </ul>
@@ -183,7 +184,7 @@
 
 		<script src="src/analysis/analysis.js"></script>
 		<script src="src/analysis/dialogCtrl.js"></script>
-
+		<script src="src/analysis/crosstab/CrossTabCtrl.js"></script>
 		<script src='src/configure/auth/authenticationService.js'></script>
 		<script src='src/configure/metadata/MetadataManagerCtrl.js'></script>
 		<script src='src/configure/metadata/metadataManagerService.js'></script>
@@ -212,7 +213,6 @@
 		<script src="src/visualization/tools/mapChart/mapChartCtrl.js"></script>
 		<script src="src/visualization/tools/scatterPlot/scatterPlotCtrl.js"></script>
 		<script src="src/visualization/tools/color/colorCtrl.js"></script>
-		
 		<script type="text/javascript" src="/swfobject.js"></script>
         <script type="text/javascript">
         		var loadFlashContent = function() {
