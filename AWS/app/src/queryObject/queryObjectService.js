@@ -460,13 +460,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 											that.cache.numericalColumns.push(columnObject);
 										}
 									return columnObject;
-//									return {
-//										id : entity.id,
-//										title : entity.publicMetadata.title,
-//										columnType : metadata.columnType,
-//										varType : metadata.varType,
-//										description : metadata.description || ""
-//									};
+
 								}
 								else//handling an empty aws-metadata object 
 									{
@@ -478,12 +472,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 										columnObject.description =  "";
 										
 										return columnObject;
-//										return{
-//											id : entity.id,
-//											title : entity.publicMetadata.title,
-//											columnType : "",
-//											description : ""
-//										};
 									}
 								
 							}
@@ -496,12 +484,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 									columnObject.description =  "";
 									
 									return columnObject;
-//									return {
-//										id : entity.id,
-//										title : entity.publicMetadata.title,
-//										columnType : "",
-//										description : ""
-//									};
 								
 							}
 						});
