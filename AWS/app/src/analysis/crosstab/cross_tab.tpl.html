@@ -1,3 +1,45 @@
 <div style="height: 100%" ng-controller="CrossTabCtrl">
-	Cross tabulation tab.
+	
+		<br>
+		<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
+			style="width: 100%" ng-model="queryService.queryObject.dataTable"
+			simple-query="getDataTable"
+			data-placeholder="Select Datatable"
+			allow-clear="true"
+			to-id="getItemId" to-text="getItemText"
+		>
+		
+		row :
+		<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
+			style="width: 100%" ng-model="queryService.crossTabQuery.row"
+			simple-query="getIndicators"
+			data-placeholder="Choose Indicator"
+			allow-clear="true"
+			to-id="getItemId" to-text="getItemText">
+		</input>
+		
+		column :
+		<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
+			style="width: 100%" ng-model="queryService.crossTabQuery.column"
+			simple-query="getIndicators"
+			data-placeholder="Choose Indicator"
+			allow-clear="true"
+			to-id="getItemId" to-text="getItemText">
+		</input>
+		
+		
+		controls
+		<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
+			style="width: 100%" ng-model="queryService.crossTabQuery.controls"
+			simple-query="getIndicators"
+			data-placeholder="Select Datatable"
+			allow-clear="true"
+			to-id="getItemId" to-text="getItemText"
+		>
+		
+		Stats
+		<input type="checkbox"/> Sample Size
+		<input type="checkbox"/> Row Percentage
+		<input type="checkbox"/> Chi score
+		<input type="checkbox"/> Column Percentage
 </div>
