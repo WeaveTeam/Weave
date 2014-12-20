@@ -52,7 +52,7 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 			             .data(data)
 			             .enter().append("svg:g")
 			             .attr("class", "row");
-			console.log("row", rowObjects);
+			//console.log("row", rowObjects);
 			//appending text for row
 	//		rowObjects.append("text")
 	//	      .attr("x", -6)
@@ -84,7 +84,7 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 			             							 d3.select(this).style('stroke-opacity', 0);});
 			             ;
 			
-			console.log("rowCells", rowCells);
+			//console.log("rowCells", rowCells);
 	
 			//labels for every cell
 	//		 var label = rowObjects.selectAll(".label")
@@ -105,6 +105,15 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 		 
 		 
 		 
+	};
+	
+	/**
+	 * this function draws the sparklines computed in R/STATA (one per column)
+	 * @param dom_element_to_append_to :the HTML element to which the sparkline D3 viz is appended
+	 * @param sparklineData : the distribution data calculated in R/STATA
+	 */
+	this.drawSparklines= function(sparklineData){
+		console.log('sparklinedata in the d3service', sparklineData);
 	};
 	
 }]);
