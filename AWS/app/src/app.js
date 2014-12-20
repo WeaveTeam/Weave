@@ -100,6 +100,13 @@ app.run(['$rootScope', function($rootScope){
 	    	data :{
     			activetab : 'correlations'
     		}
+	    })
+	    .state('data_stats.regression', {
+	    	url:'/regression',
+	    	templateUrl :'src/dataStatistics/regression_analysis.tpl.html',
+	    	data:{
+	    		activetab: 'regression'
+	    	}
 	    });
 		
 	    
@@ -109,7 +116,6 @@ app.run(['$rootScope', function($rootScope){
 //.config(function($parseProvider, $routeProvider){
 //	$parseProvider.unwrapPromises(true);
 //	
-//	// Also from Amith's UI
 //	$routeProvider.when('/analysis', {
 //		templateUrl : 'src/analysis/analysis.tpl.html',
 //		controller : 'AnalysisCtrl',
@@ -151,8 +157,8 @@ app.value('projectManagementURL', '/WeaveAnalystServices/ProjectManagementServle
 app.value('scriptManagementURL', '/WeaveAnalystServices/ScriptManagementServlet');
 app.value('computationServiceURL', '/WeaveAnalystServices/ComputationalServlet');
 
-// From Amith's UI
 app.controller('AWSController', function($scope, $state, authenticationService) {
+	//for ng-route
 	//$scope.$route = $route;
 	$scope.state = $state;
 	$scope.authenticationService = authenticationService;
