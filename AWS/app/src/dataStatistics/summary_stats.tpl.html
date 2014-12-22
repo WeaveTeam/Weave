@@ -6,16 +6,20 @@
 		
 		
 		<!-- SPARKLINES -->	
-		<!-- DIV that contains all the sparklines -->
-<!-- 		<div style = "width :100%; height:100%"> -->
+		DIV that contains all the sparklines
+		<div style = "width :50%; height:20%; background-color: Aquamarine">
 		
-<!-- 			<table> -->
-<!-- 				<tr ng-repeat = ""> -->
-<!-- 					<td> -->
-<!-- 					</td> -->
-<!-- 				</tr> -->
-<!-- 			</table> -->
+			<table>
+				<tr ng-repeat = "oneColumnData in loop"> <!-- This is the array that contains the sparklinedata for ALL the columns-->
+					<td>
+			             {{oneColumnData}}
+						<spark-Line ></spark-Line>
+					</td>
+				</tr>
+			</table>
 		
-<!-- 		</div> -->
+		</div>
+		
+		
 </div>
 	
