@@ -32,7 +32,8 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 	this.cache= {
 			summaryStats : [],
 			correlationMatrix : [],
-			sparklineData :{}
+			tempSparklineData:{},//sparkline data received from server BEFORE being processed 
+			sparklineData :{ breaks: [], counts: {}}
 	};
 
 	this.calculateStats = function(scriptName, numericalColumns, statToCalculate, forceUpdate){
@@ -64,7 +65,7 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 										that.cache.correlationMatrix = resultData;
 										break;
 									case sparklines:
-										that.cache.sparklineData = resultData;
+										that.cache.tempSparklineData = resultData;
 										break;
 								}
 									
@@ -85,6 +86,11 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 dataStatsModule.controller('dataStatsCtrl', function($q, $scope, queryService){
 	//this is the table selected for which its columns and their respective data statistics will be shown
 	$scope.datatableSelected = queryService.queryObject.dataTable.title;
+	
+	$scope.$watch('dataTableSelected', function(){
+		//$scope.$broadcast;
+	});
+	
 });
 
 //this controller is for the Summary Stats  nested tab
@@ -95,6 +101,8 @@ dataStatsModule.controller('summaryStatsController', function($q, $scope,
 	$scope.queryService = queryService;
 	$scope.statisticsService = statisticsService;
 	$scope.columnDefinitions = [];//populates the stats grid
+	
+	$scope.loop = [1,4];
 	
 	var statsInputMetadata;
 
@@ -135,7 +143,7 @@ dataStatsModule.controller('summaryStatsController', function($q, $scope,
 	//$scope.statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns, summaryStatistics, true);
 	
 	//calculating sparkline breaks and counts
-	$scope.statisticsService.calculateStats('getSparklines2.R', queryService.cache.numericalColumns, "Sparklines", true);
+	//$scope.statisticsService.calculateStats('getSparklines2.R', queryService.cache.numericalColumns, "Sparklines", true);
 	
 	//**************************************************function calls end**********************************************
 	
@@ -213,8 +221,9 @@ dataStatsModule.controller('summaryStatsController', function($q, $scope,
 		for(var x =0; x < resultData.length; x++){
 			sparklineData.counts[$scope.columnTitles[x]] = resultData[x][1];//TODO get rid of hard code
 		}
-		//draw the sparklines
-		d3Service.drawSparklines(sparklineData);
+		
+		//$scope.statisticsService.cache.sparklineData will be used as the data provider for drawing the sparkline directives
+		$scope.statisticsService.cache.sparklineData = sparklineData;
 	};
 	
 	/*******************************************************SCOPE watches***********************************************/
@@ -230,11 +239,12 @@ dataStatsModule.controller('summaryStatsController', function($q, $scope,
 	
 	//watch for construction of the SPARKLINES
 	$scope.$watch(function(){
-		return $scope.statisticsService.cache.sparklineData;
+		return $scope.statisticsService.cache.tempSparklineData;
 	}, function(){
-		if($scope.statisticsService.cache.sparklineData.resultData && $scope.queryService.cache.numericalColumns){
-			constructSparklines($scope.statisticsService.cache.sparklineData.resultData);
+		if($scope.statisticsService.cache.tempSparklineData.resultData && $scope.queryService.cache.numericalColumns){
+			constructSparklines($scope.statisticsService.cache.tempSparklineData.resultData);
 		}
 	});
+	
 	
 });
