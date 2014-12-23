@@ -2,7 +2,7 @@
  *this service contains all the functions needed for D3 visualizations 
  *TODO move to an independent D3 module later 
  */
-
+var check ;
 dataStatsModule.service('d3Service', ['$q', function($q){
 	
 	/**
@@ -11,6 +11,7 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 	 * @param data: the computed matrix   
 	 */
 	this.drawCorrelationHeatMap = function(dom_element_to_append_to, data){
+		//TODO does scope need to be passed into this service?
 		
 		    // If we don't pass any data, return out of the element
 		    if (!data) return;
@@ -112,8 +113,46 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 	 * @param dom_element_to_append_to :the HTML element to which the sparkline D3 viz is appended
 	 * @param sparklineData : the distribution data calculated in R/STATA
 	 */
-	this.drawSparklines= function(sparklineData){
-		console.log('sparklinedata in the d3service', sparklineData);
+	this.drawSparklines= function(dom_element_to_append_to, sparklineDatum){
+		
+		//data
+		var breaks = sparklineDatum.breaks;
+		var key = Object.keys(sparklineDatum.counts);
+		var counts = sparklineDatum.counts[key];
+		
+		var margin = {top: 5, right: 5, bottom: 5, left: 5};
+		var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;//190
+	    var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;//190
+	    console.log("height", height);
+
+		//creating the svg
+		var mysvg = d3.select(dom_element_to_append_to).append('svg')
+					  .attr('fill', 'red')
+					  .attr('width', width )//svg viewport dynamically generated
+					  .attr('height', height )
+					  .append('g')
+					  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		//scales
+		var heightScale = d3.scale.linear()
+				  .domain([0, d3.max(counts)])
+				  .range([height, 0]);//output should be between height and 0
+		
+		var widthScale = d3.scale.linear()
+						   .domain([0, d3.max(breaks)])
+						   .range([0, width]);
+		check = heightScale;
+		var barWidth = width/counts.length;
+		
+		//making one g element per bar 
+		var bar = mysvg.selectAll("g")
+	      			   .data(counts)
+	      			   .enter().append("svg:g")
+	      			   .attr("transform", function(d, i) { return "translate(" + (i * barWidth ) + ",0)"; });
+
+		bar.append("rect")
+	      .attr("y", function(d) { return heightScale(d); })
+	      .attr("height", function(d) { return height - heightScale(d); })
+	      .attr("width", barWidth);
 	};
 	
 }]);
