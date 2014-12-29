@@ -70,7 +70,7 @@
 			}
 		]]>
 	</mx:Script>
-	<mx:TextArea id="probeTextArea" height="100%" width="100%" editable="false"/>
+	<mx:TextArea id="probeTextArea" height="100%" width="100%" backgroundAlpha="0" editable="false"/>
 	
 	<!-- controlPanel -->
 	<ui:ProbeToolTipEditor backgroundColor="0xCCCCCC" showEnableCheckBox="false"/>
