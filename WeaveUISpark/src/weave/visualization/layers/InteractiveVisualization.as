@@ -54,6 +54,7 @@ package weave.visualization.layers
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
+	import weave.visualization.plotters.DraggableScatterPlotPlotter;
 	
 	/**
 	 * This is a container for a list of PlotLayers
@@ -575,8 +576,18 @@ package weave.visualization.layers
 			}
 		}
 		
+		private var selectionRectangleExists:Boolean = false;
+		
 		protected function updateSelectionRectangleGraphics():void 
 		{
+			selectionRectangleExists = false;
+			if( draggingPlotter != null )
+				if( draggingPlotter.isDragging)
+				{
+					draggingPlotter.updatePointDrag(getMouseDataCoordinates());
+					return;
+				}
+					
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
 			
@@ -589,6 +600,8 @@ package weave.visualization.layers
 				_selectionGraphicsCleared = true;
 				return;
 			}
+			
+			selectionRectangleExists = true;
 			
 			_selectionGraphicsCleared = false; 
 			
@@ -706,6 +719,7 @@ package weave.visualization.layers
 		
 		private function handleSelectionEvent(event:Event, mode:String):void
 		{
+			var mouseDown:Boolean = false;
 			// update end coordinates of selection rectangle
 			if (event.type == MouseEvent.MOUSE_UP)
 			{
@@ -717,13 +731,14 @@ package weave.visualization.layers
 				// IMPORTANT: for interaction speed, use the current mouse coordinates instead of the event coordinates.
 				// otherwise, queued mouse events will be handled individually and it will feel sluggish
 				mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
+				mouseDown = true;
 			}
 			
 			if ( isModeSelection(mode) )
 			{
 				// only if selection is enabled
 				if (enableSelection.value)
-					doSelection();
+					doSelection(mouseDown);
 			}
 		}
 		private function clearSelection():void
@@ -773,7 +788,9 @@ package weave.visualization.layers
 			}
 		}
 		
-		protected function doSelection():void
+		private var draggingPlotter:DraggableScatterPlotPlotter = null;
+		
+		protected function doSelection(mouseDown:Boolean=false):void
 		{
 			if (!parent)
 				return;
@@ -845,6 +862,22 @@ package weave.visualization.layers
 				
 				keys = VectorUtils.flatten(_lastProbedQKeys, keys);
 				setSelectionKeys(name, keys);
+				
+				if( plotter is DraggableScatterPlotPlotter )
+					draggingPlotter = plotter as DraggableScatterPlotPlotter;
+				if( draggingPlotter != null )
+				{
+					if( mouseDown && !selectionRectangleExists)
+					{
+						if( keys.length == 1 && !draggingPlotter.isDragging)
+							draggingPlotter.startPointDrag(keys[0]);
+					}
+					else
+					{
+						if( draggingPlotter.isDragging )
+							draggingPlotter.stopPointDrag(getMouseDataCoordinates());
+					}
+				}
 				
 				break; // select only one layer at a time
 			}

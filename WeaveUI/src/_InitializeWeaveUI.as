@@ -96,6 +96,7 @@ package
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
 	import weave.visualization.tools.DimensionSliderTool;
+	import weave.visualization.tools.DraggableScatterPlotTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.Histogram2DTool;
@@ -185,6 +186,7 @@ package
 				CustomTool,
 				CustomGraphicsTool,
 				CytoscapeWebTool,
+				DraggableScatterPlotTool,
 				SchafersMissingDataTool,
 				DataFilter,
 				AdvancedTableTool,
