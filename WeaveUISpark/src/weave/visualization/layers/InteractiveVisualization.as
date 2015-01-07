@@ -861,10 +861,11 @@ package weave.visualization.layers
 				}
 				
 				keys = VectorUtils.flatten(_lastProbedQKeys, keys);
-				setSelectionKeys(name, keys);
 				
 				if( plotter is DraggableScatterPlotPlotter )
 					draggingPlotter = plotter as DraggableScatterPlotPlotter;
+				if( (draggingPlotter != null && !draggingPlotter.isDragging) || draggingPlotter == null )
+					setSelectionKeys(name, keys);
 				if( draggingPlotter != null )
 				{
 					if( mouseDown && !selectionRectangleExists)
