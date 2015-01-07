@@ -58,7 +58,7 @@ package weave.visualization.plotters
 	 */
 	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
-		public const transposedDataPoints:LinkableVariable = registerSpatialProperty(new LinkableVariable(Dictionary, null, new Dictionary()));		
+		public const movedDataPoints:LinkableVariable = registerSpatialProperty(new LinkableVariable(Dictionary, null, new Dictionary()));		
 		private var tempDictionary:Dictionary;
 		
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, DraggableScatterPlotPlotter, "Draggable Scatterplot");
@@ -156,15 +156,14 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			tempDictionary = transposedDataPoints.getSessionState() as Dictionary;
+			tempDictionary = movedDataPoints.getSessionState() as Dictionary;
 			
-			if( !(tempDictionary[recordKey.localName] is Object) )
+			if( !(tempDictionary[recordKey.localName] != null) )
 				getCoordsFromRecordKey(recordKey, tempPoint);
 			else
 			{
 				tempPoint.x = (tempDictionary[recordKey.localName] as Object).x;
 				tempPoint.y = (tempDictionary[recordKey.localName] as Object).y;
-				trace("Memory bounds");
 			}
 			
 			var bounds:IBounds2D = initBoundsArray(output);
@@ -180,19 +179,18 @@ package weave.visualization.plotters
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-			tempDictionary = transposedDataPoints.getSessionState() as Dictionary;
+			tempDictionary = movedDataPoints.getSessionState() as Dictionary;
 			
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 			
 			// project data coordinates to screen coordinates and draw graphics
-			if( !(tempDictionary[recordKey.localName] is Object) )
+			if( !(tempDictionary[recordKey.localName] != null) )
 				getCoordsFromRecordKey(recordKey, tempPoint);
 			else
 			{
 				tempPoint.x = (tempDictionary[recordKey.localName] as Object).x;
 				tempPoint.y = (tempDictionary[recordKey.localName] as Object).y;
-				trace("Using memory");
 			}
 			
  			dataBounds.projectPointTo(tempPoint, screenBounds);
@@ -263,30 +261,38 @@ package weave.visualization.plotters
 		
 		public function startPointDrag(key:IQualifiedKey):void
 		{
-			trace("Dragging Started");
 			keyBeingDragged = key;
+			//trace("Dragging Started  " + keyBeingDragged.localName);
 			isDragging = true;
 		}
 		
 		public function updatePointDrag(tempDragPoint:Point):void
 		{
-			trace("Dragging happening");
-			tempDictionary = transposedDataPoints.getSessionState() as Dictionary;
-			tempDictionary[keyBeingDragged.localName] = tempDragPoint;
-			transposedDataPoints.setSessionState(tempDictionary);
+			if( keyBeingDragged != null )
+			{
+				//trace("Dragging happening  " + keyBeingDragged.localName);
+				tempDictionary = movedDataPoints.getSessionState() as Dictionary;
+				tempDictionary[keyBeingDragged.localName] = tempDragPoint;
+				movedDataPoints.setSessionState(tempDictionary);
+			}
 		}
 		
 		public function stopPointDrag(endPoint:Point):void
 		{
-			trace("Dragging End");
+			//trace("Dragging End  " + keyBeingDragged.localName);
 			isDragging = false;
 			if(keyBeingDragged != null )
 			{
-				tempDictionary = transposedDataPoints.getSessionState() as Dictionary;
+				tempDictionary = movedDataPoints.getSessionState() as Dictionary;
 				tempDictionary[keyBeingDragged.localName] = endPoint;
-				transposedDataPoints.setSessionState(tempDictionary);
+				movedDataPoints.setSessionState(tempDictionary);
 			}
 			keyBeingDragged = null;
+		}
+		
+		public function resetMovedDataPoints():void
+		{
+			movedDataPoints.setSessionState(new Dictionary());
 		}
 		
 		// backwards compatibility

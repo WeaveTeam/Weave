@@ -413,6 +413,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
 			}
 			
+			public function resetMovedPoints():void
+			{
+				plotter.resetMovedDataPoints();
+			}
+			
 		]]>
 	</mx:Script>
 	<ui:Paragraph id="equationText" trim="false" selectable="true"
@@ -434,6 +439,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									 <mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 										 <editors:ScatterPlotPlotterEditor id="plotEditor" width="100%" creationComplete="plotEditor.setTarget(outerDocument.plotter)"/>
 										 <mx:Button label="{lang('Show legend')}" click="outerDocument.createLegend()"/>
+										 <mx:Button label="{lang('Reset Moved Points')}" click="outerDocument.resetMovedPoints()"/>
 									 </mx:VBox>
 									 <mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 										 

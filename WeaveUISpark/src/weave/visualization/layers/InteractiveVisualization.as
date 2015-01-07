@@ -584,7 +584,7 @@ package weave.visualization.layers
 			if( draggingPlotter != null )
 				if( draggingPlotter.isDragging)
 				{
-					draggingPlotter.updatePointDrag(getMouseDataCoordinates());
+					//draggingPlotter.updatePointDrag(getMouseDataCoordinates());
 					return;
 				}
 					
