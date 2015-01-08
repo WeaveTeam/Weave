@@ -2,22 +2,13 @@
 <div style = "width: 100%; height: 100%; margin-left:10px" ng-controller= "summaryStatsController">
 		<!-- DATAGRID -->
 		<p>Edit getStatistics.json and getStatistics.R to add more summary statistics</p>
-			<div style = "width: 60%; height: 50%" class="gridStyle" ng-grid="statsGrid"></div>
+			<div style = "width: 60%; height: 50%;float:left" class="gridStyle" ng-grid="statsGrid"></div>
 		
 		
 		<!-- SPARKLINES -->	
-		DIV that contains all the sparklines
-		<div style = "width :50%; height:20%; background-color: Aquamarine">
-		
-			<table>
-				<tr style = "width:100%; height:100%" ng-repeat = "oneColumnData in loop"> <!-- This is the array that contains the sparklinedata for ALL the columns-->
-					<td>
-			             
-						<spark-Line ></spark-Line>
-					</td>
-				</tr>
-			</table>
-		
+		<div style = "width :35%; height:50%; margin-left: 5px;background-color: Aquamarine;float:left"
+			 spark-Lines = "" data = "statisticsService.cache.sparklineData">
+			
 		</div>
 		
 		
