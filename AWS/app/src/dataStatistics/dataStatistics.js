@@ -33,8 +33,24 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 			summaryStats : [],
 			correlationMatrix : [],
 			tempSparklineData:{},//sparkline data received from server BEFORE being processed 
-			sparklineData :{ breaks: [], counts: {}}
+			sparklineData :{ breaks: [], counts: {}},
+			columnTitles:[]//column titles of the current table being analyzed
 	};
+	
+	/**
+	 * convenience function to get column titles
+	 * @param column objects 
+	 * @returns an array of respective titles
+	 */
+	this.getColumnTitles = function(columns){
+		
+		for(var t=0; t < columns.length; t++){
+			this.cache.columnTitles[t] = columns[t].title;
+		}
+		
+		//return columnTitles;
+	};
+	
 
 	this.calculateStats = function(scriptName, numericalColumns, statToCalculate, forceUpdate){
 		
@@ -119,23 +135,9 @@ dataStatsModule.controller('summaryStatsController', function($q, $scope,
 		
 	};
 	
-	/**
-	 * convenience function to get column titles
-	 * @param column objects 
-	 * @returns an array of respective titles
-	 */
-	var getColumnTitles = function(columns){
-		var columnTitles = [];
-		
-		for(var t=0; t < columns.length; t++){
-			columnTitles[t] = columns[t].title;
-		}
-		
-		return columnTitles;
-	};
-	
+
 	//**************************************************function calls**********************************************
-	$scope.columnTitles = getColumnTitles($scope.queryService.cache.numericalColumns);
+	$scope.columnTitles = $scope.statisticsService.getColumnTitles($scope.queryService.cache.numericalColumns);
 	//getting the metadata which specifies the stats to be displayed
 	getStatsMetadata("getStatistics.R");
 	
@@ -143,7 +145,7 @@ dataStatsModule.controller('summaryStatsController', function($q, $scope,
 	//$scope.statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns, summaryStatistics, true);
 	
 	//calculating sparkline breaks and counts
-	//$scope.statisticsService.calculateStats('getSparklines2.R', queryService.cache.numericalColumns, "Sparklines", true);
+	$scope.statisticsService.calculateStats('getSparklines2.R', queryService.cache.numericalColumns, "Sparklines", true);
 	
 	//**************************************************function calls end**********************************************
 	
@@ -219,7 +221,7 @@ dataStatsModule.controller('summaryStatsController', function($q, $scope,
 		var sparklineData= {breaks:[], counts:{}};
 		sparklineData.breaks  = resultData[0][0];//breaks are same for all columns needed only once
 		for(var x =0; x < resultData.length; x++){
-			sparklineData.counts[$scope.columnTitles[x]] = resultData[x][1];//TODO get rid of hard code
+			sparklineData.counts[$scope.statisticsService.cache.columnTitles[x]] = resultData[x][1];//TODO get rid of hard code
 		}
 		
 		//$scope.statisticsService.cache.sparklineData will be used as the data provider for drawing the sparkline directives

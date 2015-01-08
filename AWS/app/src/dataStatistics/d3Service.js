@@ -10,13 +10,13 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 	 * @param dom_element_to_append_to: the HTML element to which the heatmap D3 viz is appended
 	 * @param data: the computed matrix   
 	 */
-	this.drawCorrelationHeatMap = function(dom_element_to_append_to, data){
+	this.drawCorrelationHeatMap = function(dom_element_to_append_to, data, columnTitles){
 		//TODO does scope need to be passed into this service?
-		
+		console.log("columnTitles", columnTitles);
 		    // If we don't pass any data, return out of the element
 		    if (!data) return;
 		    
-			var margin = {top: 100, right: 40, bottom: 40, left: 100};
+			var margin = {top: 100, right: 20, bottom: 20, left: 100};
 			var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;
 		    var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;
 	
@@ -28,7 +28,7 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 			var colorLow = 'green', colorMed = 'yellow', colorHigh = 'red';
 	
 			var colorScale = d3.scale.linear()
-			     .domain([0, 5, 10])//TODO parameterize this according to the matrix  
+			     .domain([0, 0.5, 1.0])//TODO parameterize this according to the matrix  
 			     .range([colorLow, colorMed, colorHigh]);
 	
 			// SVG Creation	
@@ -55,13 +55,13 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 			             .attr("class", "row");
 			//console.log("row", rowObjects);
 			//appending text for row
-	//		rowObjects.append("text")
-	//	      .attr("x", -6)
-	//	      .attr("y", function(d, i) { return colScale(i); })
-	//	      .attr("dy", "4.96em")
-	//	      .attr("text-anchor", "end")
-	//	      .text(function(d, i) { return colNames[i]; });
-	//
+			rowObjects.append("text")
+		      .attr("x", -1)
+		      .attr("y", function(d, i) { return colScale(i); })
+		      .attr("dy", "1")
+		      .attr("text-anchor", "end")
+		      .text(function(d, i) { return columnTitles[i]; });
+	
 			var rowCells = rowObjects.selectAll(".cell")
 			    .data(function (d,i)
 			    		{ 
@@ -117,17 +117,16 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 		
 		//data
 		var breaks = sparklineDatum.breaks;
-		var key = Object.keys(sparklineDatum.counts);
-		var counts = sparklineDatum.counts[key];
+		var counts = sparklineDatum.counts;
 		
 		var margin = {top: 5, right: 5, bottom: 5, left: 5};
-		var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;//190
-	    var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;//190
-	    console.log("height", height);
+		//var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;//190
+	   // var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;//190
+		var width = 50; var height= 50;
 
 		//creating the svg
 		var mysvg = d3.select(dom_element_to_append_to).append('svg')
-					  .attr('fill', 'red')
+					  .attr('fill', 'black')
 					  .attr('width', width )//svg viewport dynamically generated
 					  .attr('height', height )
 					  .append('g')
