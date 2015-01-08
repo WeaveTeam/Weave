@@ -38,10 +38,10 @@ dataStatsModule.directive('correlationMatrix',['pearsonCoeff','spearmanCoeff','q
 				var array4= [4,2,5,3,1.9];
 				var array5= [1,3.4,5,3,10];
 				var mydata = [array1, array2, array3, array4];
-				var colNames = ["col1", "col2", "col3","col4"];
+			
 				
 				var dom_element_to_append_to = document.getElementById('corM');
-				d3Service.drawCorrelationHeatMap(dom_element_to_append_to, mydata);
+				//d3Service.drawCorrelationHeatMap(dom_element_to_append_to, mydata);
 				
 				//**************************************SCOPE WATCHES***********************************
 				scope.$watch(function(){
@@ -52,7 +52,7 @@ dataStatsModule.directive('correlationMatrix',['pearsonCoeff','spearmanCoeff','q
 						if(data.resultData)
 							{
 								if(data.resultData.length > 0)
-								d3Service.drawCorrelationHeatMap(data.resultData[0]);
+								d3Service.drawCorrelationHeatMap(dom_element_to_append_to,data.resultData[0], scope.statsService.cache.columnTitles);
 							}
 				});
 
