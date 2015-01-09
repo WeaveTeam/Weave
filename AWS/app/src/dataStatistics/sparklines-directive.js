@@ -32,7 +32,7 @@ dataStatsModule.directive('sparkLines',['queryService', 'statisticsService','d3S
 							for(var i in scope.data.counts){
 								
 								//service call for drawing sparklines one/column
-								d3Service.drawSparklines(dom_element_to_append_to,{breaks: scope.data.breaks, counts : scope.data.counts[i]});
+								d3Service.drawSparklines(dom_element_to_append_to,{breaks: scope.data.breaks, counts : scope.data.counts[i], title: i});
 							}
 						}
 					}
