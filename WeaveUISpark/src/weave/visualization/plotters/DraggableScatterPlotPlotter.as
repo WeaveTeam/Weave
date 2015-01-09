@@ -36,13 +36,10 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableDynamicObject;
-	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableVariable;
 	import weave.core.LinkableWatcher;
@@ -193,7 +190,7 @@ package weave.visualization.plotters
 				tempPoint.y = (tempDictionary[recordKey.localName] as Object).y;
 			}
 			
- 			dataBounds.projectPointTo(tempPoint, screenBounds);
+			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
 			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
@@ -288,6 +285,8 @@ package weave.visualization.plotters
 				movedDataPoints.setSessionState(tempDictionary);
 			}
 			keyBeingDragged = null;
+			
+			//Insert send points to R code here.
 		}
 		
 		public function resetMovedDataPoints():void

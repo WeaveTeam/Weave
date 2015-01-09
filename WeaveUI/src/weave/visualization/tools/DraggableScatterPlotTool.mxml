@@ -40,7 +40,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
-			import weave.core.UIUtils;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeMenuTool;
 			import weave.ui.AttributeSelectorPanel;
@@ -437,7 +436,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 										 ]]>
 									 </mx:Script>
 									 <mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
-										 <editors:ScatterPlotPlotterEditor id="plotEditor" width="100%" creationComplete="plotEditor.setTarget(outerDocument.plotter)"/>
+										 <editors:DraggableScatterPlotEditor id="plotEditor" width="100%" creationComplete="plotEditor.setTarget(outerDocument.plotter)"/>
 										 <mx:Button label="{lang('Show legend')}" click="outerDocument.createLegend()"/>
 										 <mx:Button label="{lang('Reset Moved Points')}" click="outerDocument.resetMovedPoints()"/>
 									 </mx:VBox>

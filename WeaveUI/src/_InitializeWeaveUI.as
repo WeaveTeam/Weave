@@ -44,6 +44,7 @@ package
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
+	import weave.editors.DraggableScatterPlotEditor;
 	import weave.editors.DynamicColumnEditor;
 	import weave.editors.ForeignDataMappingTransformEditor;
 	import weave.editors.GeoJSONDataSourceEditor;
@@ -77,6 +78,7 @@ package
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
+	import weave.visualization.plotters.DraggableScatterPlotPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GeometryRelationPlotter;
@@ -169,6 +171,7 @@ package
 			em.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
 			em.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
 			em.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
+			em.registerEditor(DraggableScatterPlotPlotter, DraggableScatterPlotEditor);
 			
 			em.registerEditor(ColorRamp, ColorRampEditor);
 	        em.registerEditor(RadVizTool, RadVizToolEditor);

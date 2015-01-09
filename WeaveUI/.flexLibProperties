@@ -2,6 +2,7 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.visualization.tools.DraggableScatterPlotTool"/>
+    <classEntry path="weave.editors.DraggableScatterPlotEditor"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
