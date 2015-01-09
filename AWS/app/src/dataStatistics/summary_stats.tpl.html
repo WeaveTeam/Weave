@@ -1,12 +1,14 @@
 <!-- this div contains all the elements in the summary statistics tab -->
 <div style = "width: 100%; height: 100%; margin-left:10px" ng-controller= "summaryStatsController">
-		<!-- DATAGRID -->
-		<p>Edit getStatistics.json and getStatistics.R to add more summary statistics</p>
-			<div style = "width: 60%; height: 50%;float:left" class="gridStyle" ng-grid="statsGrid"></div>
 		
+		<p style = "float:left; width: 61%">Edit getStatistics.json and getStatistics.R to add more summary statistics</p>
+		<p style = "float:left">Sparklines</p>
+			
+		<!-- DATAGRID -->
+		<div style = "width: 60%; height: 50%;float:left" class="gridStyle" ng-grid="statsGrid"></div>
 		
 		<!-- SPARKLINES -->	
-		<div style = "width :35%; height:50%; margin-left: 5px;background-color: Aquamarine;float:left"
+		<div style = "width :35%; height:50%; margin-left: 5px;float:left"
 			 spark-Lines = "" data = "statisticsService.cache.sparklineData">
 			
 		</div>

@@ -9,6 +9,7 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 	 * function to draw a heatmap using a matrix computed in R/STATA
 	 * @param dom_element_to_append_to: the HTML element to which the heatmap D3 viz is appended
 	 * @param data: the computed matrix   
+	 * @param columnTitles required for labeling the matrix
 	 */
 	this.drawCorrelationHeatMap = function(dom_element_to_append_to, data, columnTitles){
 		//TODO does scope need to be passed into this service?
@@ -120,8 +121,6 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 		var counts = sparklineDatum.counts;
 		
 		var margin = {top: 5, right: 5, bottom: 5, left: 5};
-		//var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;//190
-	   // var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;//190
 		var width = 50; var height= 50;
 
 		//creating the svg
