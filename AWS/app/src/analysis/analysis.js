@@ -29,7 +29,8 @@ AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', '
 	var AnalysisService = {
 			
 	};
-	
+	//getting the list of datatables
+	queryService.getDataTableList(true);
 //	queryService.queryObject.weaveToolsList = [MapTool,
 //	                              BarChartTool,
 //	                              DataTableTool,
@@ -64,9 +65,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			$scope.showToolMenu = true;
 		}
 	});
-	
-	//getting the list of datatables
-	queryService.getDataTableList(true);
 	
 	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
