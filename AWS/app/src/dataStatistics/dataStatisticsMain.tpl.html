@@ -1,6 +1,15 @@
 <div style = "height: 100%" ng-controller = "dataStatsCtrl">
 	
-	Datatable selected : {{datatableSelected}} 
+	<div style="padding-top:2px;padding-bottom: 5px; width: 30%">
+		<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%" ng-model="queryService.queryObject.dataTable"
+								simple-query="getDataTable"
+								data-placeholder="Select Datatable"
+								allow-clear="true"
+								to-id="getItemId" to-text="getItemText"
+							>
+		</input> 
+	</div>
 <!-- TODO rethink nested tabs? some other nested structure? -->
 	<nav class="navbar navbar-inverse" role="navigation">
     	

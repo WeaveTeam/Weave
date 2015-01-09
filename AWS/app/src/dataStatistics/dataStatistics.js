@@ -36,6 +36,7 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 			sparklineData :{ breaks: [], counts: {}},
 			columnTitles:[]//column titles of the current table being analyzed
 	};
+
 	
 	/**
 	 * convenience function to get column titles
@@ -99,13 +100,25 @@ dataStatsModule.service('statisticsService', ['queryService', 'QueryHandlerServi
 
 
 //********************CONTROLLERS***************************************************************
-dataStatsModule.controller('dataStatsCtrl', function($q, $scope, queryService){
+dataStatsModule.controller('dataStatsCtrl', function($q, $scope,$filter, queryService, statisticsService){
 	//this is the table selected for which its columns and their respective data statistics will be shown
-	$scope.datatableSelected = queryService.queryObject.dataTable.title;
+	//$scope.datatableSelected = queryService.queryObject.dataTable.title;
 	
-	$scope.$watch('dataTableSelected', function(){
-		//$scope.$broadcast;
-	});
+	//select2-sortable handlers
+	$scope.queryService = queryService;//links it to the analysis datatable
+	$scope.getItemId = function(item) {
+		return item.id;
+	};
+	
+	$scope.getItemText = function(item) {
+		return item.title;
+	};
+	
+	//datatable
+	$scope.getDataTable = function(term, done) {
+		var values = queryService.cache.dataTableList;
+		done($filter('filter')(values, {title:term}, 'title'));
+	};
 	
 });
 
