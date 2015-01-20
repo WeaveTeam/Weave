@@ -44,9 +44,12 @@ app.run(['$rootScope', function($rootScope){
 	
 	$parseProvider.unwrapPromises(true);
 	
-	$urlRouterProvider.otherwise("/index.html");
+	$urlRouterProvider.otherwise('/index');
 	
 	$stateProvider
+		.state('index', {
+			url : '/index'
+		})
 		.state('metadata', {
 			url:'/metadata',
 			templateUrl : 'src/configure/metadata/metadataManager.html',
