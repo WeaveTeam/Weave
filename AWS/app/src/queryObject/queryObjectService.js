@@ -211,8 +211,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			numericalColumns : []
 	};
 
-
-
+	this.crossTabQuery = {};
 	
 	/**
      * This function wraps the async aws runScript function into an angular defer/promise

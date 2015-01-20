@@ -1,45 +1,213 @@
 <div style="height: 100%" ng-controller="CrossTabCtrl">
-	
+		
+	<div style="padding:20px">
 		<br>
-		<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
-			style="width: 100%" ng-model="queryService.queryObject.dataTable"
+		<input style="width:50%" type="hidden" ui-select2-sortable
+			ng-model="queryService.queryObject.dataTable"
 			simple-query="getDataTable"
-			data-placeholder="Select Datatable"
+			data-placeholder="Select Data Table"
 			allow-clear="true"
 			to-id="getItemId" to-text="getItemText"
 		>
+		<div class="row" style="clear: both">
+			<div class="databox" style="width: 80%; height:50%">
+				<!-- <div class="databox" style="width: 200px;"> -->
+				<div class=" header panel-heading">
+					<h2>Select Row:</h2>
+				</div>
+				<div class="body" style="width: 100%">
+					<h5 class="widget-description "><i style="font-size: 12px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i>{{rowInfo}}</h5>
+					<div class="">
+						<input type="hidden" popover="Select Indicator" ui-select2-sortable
+							style="width: 100%" ng-model="queryService.crossTabQuery.row"
+							simple-query="getIndicators"
+							data-placeholder="Choose Indicator"
+							allow-clear="true"
+							to-id="getItemId" to-text="getItemText">
+						</input>
+						
+						<table border="border: 1px solid #0000FF"  ng-show="rVarValues" style="width:100%; padding-top:10px">
+							<tr> 
+								<td  align="center">
+									<b>Value</b>
+								</td>
+								<td  align="center">
+									<b>Description</b>
+								</td>
+							 </tr>
+							<tr ng-repeat="varValue in rVarValues">
+								<td width= "10%" style="padding-left: 5px; align="center"> {{varValue.value}} </td> 
+								<td width= "40%" style="padding-left: 5px" padding="20%"> {{varValue.label}} </td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<br>
+		<div class="row" style="clear: both">
+			<div class="databox" style="width: 80%; height:50%">
+				<!-- <div class="databox" style="width: 200px;"> -->
+				<div class=" header panel-heading">
+					<h2>Select Column (Optional)</h2>
+				</div>
+				<div class="body" style="width: 100%">
+					<h5 class="widget-description "><i style="font-size: 12px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i>{{columnInfo}}</h5>
+					<div class="">
+						<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
+							style="width: 100%" ng-model="queryService.crossTabQuery.column"
+							simple-query="getIndicators"
+							data-placeholder="Choose Indicator"
+							allow-clear="true"
+							to-id="getItemId" to-text="getItemText">
+						</input>
+						
+						<table border="border: 1px solid #0000FF"  ng-show="cVarValues" style="width:100%; padding-top:10px">
+							<tr> 
+								<td  align="center">
+									<b>Value</b>
+								</td>
+								<td  align="center">
+									<b>Description</b>
+								</td>
+							 </tr>
+							<tr ng-repeat="varValue in cVarValues">
+								<td width= "10%" style="padding-left: 5px; align="center"> {{varValue.value}} </td> 
+								<td width= "40%" style="padding-left: 5px" padding="20%"> {{varValue.label}} </td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<br>
+		<div class="row" style="clear: both">
+			<div class="databox" style="width: 80%; height:50%">
+				<!-- <div class="databox" style="width: 200px;"> -->
+				<div class=" header panel-heading">
+					<h2>Select Controls (Optional)</h2>
+				</div>
+				<div class="body" style="width: 100%">
+					<h5 class="widget-description "><i style="font-size: 12px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i>{{controlInfo}}</h5>
+					<div class="">
+						<table style="width:100%; height:100%">
+							<tr>
+								<td width="20%" height="10%">
+									<b>Control 1: </b>
+								</td>
+								<td align="left">
+									<input style="width:80%" type="hidden" ui-select2-sortable
+										style="width: 100%" ng-model="queryService.crossTabQuery.control1"
+										simple-query="getIndicators"
+										data-placeholder="Select Control"
+										allow-clear="true"
+										to-id="getItemId" to-text="getItemText"
+									>
+								</td>
+							</tr>
+							<tr>
+								<td width="20%">
+									<b>Control 2: </b>
+								</td>
+								<td align="left">
+									<input style="width:80%" type="hidden" ui-select2-sortable 
+										style="width: 100%" ng-model="queryService.crossTabQuery.control2"
+										simple-query="getIndicators"
+										data-placeholder="Select Control"
+										allow-clear="true"
+										to-id="getItemId" to-text="getItemText"
+									>
+								</td>
+							</tr>
+							<tr>
+								<td width="20%">
+									<b>Control 3: </b>
+								</td>
+								<td align="left">
+									<input style="width:80%" type="hidden" ui-select2-sortable
+										style="width: 100%" ng-model="queryService.crossTabQuery.control3"
+										simple-query="getIndicators"
+										data-placeholder="Select Control"
+										allow-clear="true"
+										to-id="getItemId" to-text="getItemText"
+									>			
+								</td>
+							</tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row" style="clear: both">
+			<div class="databox" style="width: 80%; height: 40%;">
+				<div class=" header panel-heading">
+					<h2>Select Statistics: </h2>
+				</div>
+				<div class="body" style="width: 100%">
+					<h5 class="widget-description"><i style="font-size: 12px; padding-right: 5px" class="glyphicon glyphicon-info-sign"
+					></i>Mouse over for more info</h5>
+					<div>
+						<table style="width:100%; height:100%; padding:5%">
+							<tr>
+								<td>
+									<span popover="{{sampleSizeInfo}}" popover-trigger="mouseenter" popover-placement="right">
+										<input ng-model="queryService.crossTabQuery.sampleSize" ng-init="queryService.crossTabQuery.sampleSize = true" type="checkbox"/> Sample Size 
+									</span>
+								</td>
+								<td>
+									<span popover="{{chiSquareInfo}}" popover-trigger="mouseenter" popover-placement="right">
+										<input ng-model="queryService.crossTabQuery.chiSquare" type="checkbox"/> Chi Square 
+									</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span popover="{{rowPercentageInfo}}" popover-trigger="mouseenter" popover-placement="right">
+										<input ng-model="queryService.crossTabQuery.rowPercentage" type="checkbox"/> Row Percentage 
+									</span>
+								</td>
+								<td>
+									<span popover="{{totalPercentageInfo}}" popover-trigger="mouseenter" popover-placement="right">
+										<input ng-model="queryService.crossTabQuery.totalPercentage" type="checkbox"/> Total Percentage 
+									</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span popover="{{columnPercentageInfo}}" popover-trigger="mouseenter" popover-placement="right">
+										<input ng-model="queryService.crossTabQuery.columnPercentage" type="checkbox"/> Column Percentage 
+									</span>
+								</td>
+								<td>
+									<span popover="{{weightedSizeInfo}}" popover-trigger="mouseenter" popover-placement="right">
+										<input ng-model="queryService.crossTabQuery.weightedSize" type="checkbox"/> Weighted Size 
+									</span>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
 		
-		row :
-		<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
-			style="width: 100%" ng-model="queryService.crossTabQuery.row"
-			simple-query="getIndicators"
-			data-placeholder="Choose Indicator"
-			allow-clear="true"
-			to-id="getItemId" to-text="getItemText">
-		</input>
-		
-		column :
-		<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
-			style="width: 100%" ng-model="queryService.crossTabQuery.column"
-			simple-query="getIndicators"
-			data-placeholder="Choose Indicator"
-			allow-clear="true"
-			to-id="getItemId" to-text="getItemText">
-		</input>
-		
-		
-		controls
-		<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
-			style="width: 100%" ng-model="queryService.crossTabQuery.controls"
-			simple-query="getIndicators"
-			data-placeholder="Select Datatable"
-			allow-clear="true"
-			to-id="getItemId" to-text="getItemText"
-		>
-		
-		Stats
-		<input type="checkbox"/> Sample Size
-		<input type="checkbox"/> Row Percentage
-		<input type="checkbox"/> Chi score
-		<input type="checkbox"/> Column Percentage
+
+		<div class="row" style="clear: both">
+			<div class="databox" style="width: 80%; height:10%">
+				<div class=" header panel-heading">
+					<h2>Crosstabulation Options:</h2>
+				</div>
+				<div class="body" style="width: 100%;">
+					<input type="checkbox"/> Include nonresponse categories in the crosstabulation tables.
+				</div>
+			</div>
+		</div>
+	</div>	
+	<div style="width:80%; padding:10px">
+	  	 <button class= 'btn btn-primary btn-sm' ng-click="runReport()">Run Report</button><!-- button controls for editing metadata of a single column -->
+	     <button class = 'btn btn-primary btn-sm' ng-click="reset()">Reset</button>
+	     <button class = 'btn btn-primary btn-sm' ng-click="showInWeave()" style="float:right">Visualize in Weave</button>
+	     {{crossTabStatus}}
+	</div>
 </div>
