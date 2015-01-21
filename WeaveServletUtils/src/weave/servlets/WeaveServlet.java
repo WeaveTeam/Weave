@@ -243,7 +243,7 @@ public class WeaveServlet extends HttpServlet
 		}
 	}
 	
-	private static class ServletRequestInfo
+	protected static class ServletRequestInfo
 	{
 		public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
 		{
@@ -253,6 +253,11 @@ public class WeaveServlet extends HttpServlet
 		}
 		
 		private ServletOutputStream _servletOutputStream = null;
+		
+		/**
+		 * It's important to use this function to get the ServletOutputStream instead of response.getOutputStream(), which can only be called once per request.
+		 * @return The ServletOutputStream from the HTTPServletResponse object.
+		 */
 		public ServletOutputStream getOutputStream() throws IOException
 		{
 			if (_servletOutputStream == null)
@@ -277,15 +282,11 @@ public class WeaveServlet extends HttpServlet
 	private Map<Thread,ServletRequestInfo> _servletRequestInfo = new HashMap<Thread,ServletRequestInfo>();
 	
 	/**
-	 * This function retrieves the ServletOutputStream associated with the current thread's doGet() or doPost() call.
+	 * This function retrieves the ServletRequestInfo associated with the current thread's doGet() or doPost() call.
+	 * From the ServletRequestInfo object you can get the ServletOutputStream.
 	 * In a public function with a void return type, you can use the ServletOutputStream for full control over the output.
 	 */
-	protected ServletOutputStream getServletOutputStream() throws IOException
-	{
-		return getServletRequestInfo().getOutputStream();
-	}
-	
-	private ServletRequestInfo getServletRequestInfo()
+	protected ServletRequestInfo getServletRequestInfo()
 	{
 		synchronized (_servletRequestInfo)
 		{

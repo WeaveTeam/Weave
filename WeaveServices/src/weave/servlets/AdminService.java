@@ -118,7 +118,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		{
 			try
 			{
-				PrintStream ps = new PrintStream(getServletOutputStream());
+				PrintStream ps = new PrintStream(getServletRequestInfo().getOutputStream());
 				ProgressPrinter pp = new ProgressPrinter(ps);
 				WeaveConfig.initializeAdminService(pp.getProgressManager());
 			}
