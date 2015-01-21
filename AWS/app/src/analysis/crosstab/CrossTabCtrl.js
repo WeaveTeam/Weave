@@ -92,6 +92,7 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 				namesToAssign : [],
 				filters : null
 		};
+		var scriptInput = [];
 		if(!queryService.crossTabQuery.row && !queryService.crossTabQuery.row.hasOwnProperty("id"))
 		{
 			$scope.crossTabStatus = "Row variable required.";
@@ -99,69 +100,86 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 		{
 			$scope.crossTabStatus = "Getting data from Database...";
 			dataRequest.columnIds.push(queryService.crossTabQuery.row.id);
-			dataRequest.namesToAssign.push("row");
+			dataRequest.namesToAssign.push("rw");
 
 			if(queryService.crossTabQuery.column && queryService.crossTabQuery.column.hasOwnProperty("id"))
 			{
 				dataRequest.columnIds.push(queryService.crossTabQuery.column.id);
 				dataRequest.namesToAssign.push("column");
+			} else {
+				// column wasn't specified
+				scriptInput.push({
+					name : "column",
+					type : "value",
+					value : null
+				});
 			}
 			
 			if(queryService.crossTabQuery.control1 && queryService.crossTabQuery.control1.hasOwnProperty("id"))
 			{
 				dataRequest.columnIds.push(queryService.crossTabQuery.control1.id);
 				dataRequest.namesToAssign.push("control1");
+			} else {
+				scriptInput.push({
+					name : "control1",
+					type : "value",
+					value : null
+				});
 			}
 			if(queryService.crossTabQuery.control2 && queryService.crossTabQuery.control2.hasOwnProperty("id"))
 			{
 				dataRequest.columnIds.push(queryService.crossTabQuery.control2.id);
 				dataRequest.namesToAssign.push("control2");
-			}
-			if(queryService.crossTabQuery.control3 && queryService.crossTabQuery.control3.hasOwnProperty("id"))
-			{
-				dataRequest.columnIds.push(queryService.crossTabQuery.control3.id);
-				dataRequest.namesToAssign.push("control3");
+			} else {
+				scriptInput.push({
+					name : "control2",
+					type : "value",
+					value : null
+				});
 			}
 		}
-		var scriptInput = [
+		scriptInput.push(
 				{
 					type : "filteredRows",
 					value : dataRequest
-				},
-				{
+				});
+		scriptInput.push({
 					name : "sampleSize",
 					type : "boolean",
 					value : !!queryService.crossTabQuery.sampleSize // !! converts to boolean
-				},
-				{
+				});
+		scriptInput.push({
 					name : "chiSquare",
 					type : "boolean",
 					value : !!queryService.crossTabQuery.chiSquare
-				},
-				{
+				});
+		scriptInput.push({
 					name : "rowPercentage",
 					type : "boolean",
 					value : !!queryService.crossTabQuery.rowPercentage
-				},
-				{
+				});
+		scriptInput.push({
 					name : "columnPercentage",
 					type : "boolean",
 					value : !!queryService.crossTabQuery.columnPercentage
 						 
-				},
-				{
+				});
+		scriptInput.push({
 					name : "totalPercentage",
 					type : "boolean",
 					value : !!queryService.crossTabQuery.totalPercentage
-				},
-				{
+				});
+		scriptInput.push({
 					name : "weightedSize",
 					type : "boolean",
 					value : !!queryService.crossTabQuery.weightedSize
-				}
-		];
+				});
+		
 		queryService.getDataFromServer(scriptInput, null).then(function(result) {
-			console.log(result);
+			queryService.runScript("Cross Tabulation.R").then(function(result)
+			{
+				console.log(result);
+			});
 		});
 	};
 });

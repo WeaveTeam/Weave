@@ -59,7 +59,8 @@
 							simple-query="getIndicators"
 							data-placeholder="Choose Indicator"
 							allow-clear="true"
-							to-id="getItemId" to-text="getItemText">
+							to-id="getItemId" to-text="getItemText"
+							ng-disabled="!queryService.crossTabQuery.row">
 						</input>
 						
 						<table border="border: 1px solid #0000FF"  ng-show="cVarValues" style="width:100%; padding-top:10px">
@@ -102,6 +103,7 @@
 										data-placeholder="Select Control"
 										allow-clear="true"
 										to-id="getItemId" to-text="getItemText"
+										ng-disabled="!queryService.crossTabQuery.column"
 									>
 								</td>
 							</tr>
@@ -116,24 +118,10 @@
 										data-placeholder="Select Control"
 										allow-clear="true"
 										to-id="getItemId" to-text="getItemText"
+										ng-disabled="!queryService.crossTabQuery.control1"
 									>
 								</td>
 							</tr>
-							<tr>
-								<td width="20%">
-									<b>Control 3: </b>
-								</td>
-								<td align="left">
-									<input style="width:80%" type="hidden" ui-select2-sortable
-										style="width: 100%" ng-model="queryService.crossTabQuery.control3"
-										simple-query="getIndicators"
-										data-placeholder="Select Control"
-										allow-clear="true"
-										to-id="getItemId" to-text="getItemText"
-									>			
-								</td>
-							</tr>
-							
 						</table>
 					</div>
 				</div>

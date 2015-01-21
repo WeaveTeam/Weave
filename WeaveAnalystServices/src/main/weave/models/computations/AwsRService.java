@@ -166,6 +166,15 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 					throw new RemoteException("Failed to Create Dataframe",e);
 				}
 			}
+			else if (array[0] instanceof Boolean)
+			{
+				boolean[] booleans = new boolean[array.length];
+				for(int i = 0; i < array.length; i++)
+				{
+					booleans[i] = ((Boolean) array[i]).booleanValue();
+				}
+				return new REXPLogical(booleans);
+			}
 		
 			else
 				throw new RemoteException("Unsupported value type");
