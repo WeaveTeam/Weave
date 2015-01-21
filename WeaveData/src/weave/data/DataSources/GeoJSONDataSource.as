@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -96,7 +97,9 @@ package weave.data.DataSources
 		
 		override protected function get initializationComplete():Boolean
 		{
-			return super.initializationComplete;
+			return super.initializationComplete
+				&& !linkableObjectIsBusy(this)
+				&& jsonData;
 		}
 		
 		/**
