@@ -1,0 +1,37 @@
+<html>
+<head>
+	<title>Document Map Test Page</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+	<script src="http://demo.oicweave.org/weave-tools.js"></script>
+</head>
+<body>
+
+<p><h1>Create collection</h1>
+</p>
+
+<p><h1>Delete collection</h1>
+</p>
+
+<p><h1>List Collections</h1>
+</p>
+
+<p><h1>Add to collection</h1>
+</p>
+
+<p><h1>Remove from collection</h1>
+</p>
+
+<p><h1>Run topic discovery</h1>
+</p>
+
+<p><h1>Run topic layout</h1>
+</p>
+
+
+<script>
+queryService("http://localhost:8080/DocumentMapService/", "listCollections", [], function (result, id) { console.log(result)}, 0);
+</script>
+</body>
+</html>
+
