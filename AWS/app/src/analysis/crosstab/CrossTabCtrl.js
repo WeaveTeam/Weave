@@ -178,7 +178,9 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 		queryService.getDataFromServer(scriptInput, null).then(function(result) {
 			queryService.runScript("Cross Tabulation.R").then(function(result)
 			{
-				console.log(result);
+				var formattedResult = WeaveService.createCSVDataFormat(result.resultData, result.columnNames);
+				$scope.crossTabStatus = "Done.";
+				queryService.crossTabQuery.result = formattedResult;
 			});
 		});
 	};
