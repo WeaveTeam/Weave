@@ -31,15 +31,13 @@ dataStatsModule.directive('sparkLines',['queryService', 'statisticsService','d3S
 							console.log("got it", scope.data);
 							for(var i in scope.data.counts){
 								
-								//service call for drawing sparklines one/column
-								d3Service.drawSparklines(dom_element_to_append_to,{breaks: scope.data.breaks, counts : scope.data.counts[i], title: i});
+								//service call for drawing one sparkline one/column
+								d3Service.drawSparklines(dom_element_to_append_to,{breaks: scope.data.breaks, counts : scope.data.counts[i], title:i});
 							}
 						}
 					}
 				});
-				//service call for drawing sparklines
-				//d3Service.drawSparklines(dom_element_to_append_to,scope.data);
-				
+								
 			}//end of link function
 	};
 	
