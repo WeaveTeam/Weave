@@ -258,6 +258,8 @@ package weave.visualization.plotters
 		
 		public function startPointDrag(key:IQualifiedKey):void
 		{
+			if( !dataX.containsKey(key) )
+				return;
 			keyBeingDragged = key;
 			//trace("Dragging Started  " + keyBeingDragged.localName);
 			isDragging = true;

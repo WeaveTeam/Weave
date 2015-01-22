@@ -94,7 +94,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "30";
 				
-				initializeUndefinedLayers();				
+				//initializeUndefinedLayers();				
 				initRegressionLayer();
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
@@ -262,9 +262,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var columns:Array = SelectableAttributesCheckBoxList.getSelectedAttributeColumns(this, attributesToIncludeInProbe);
 				visualization.additionalProbeColumns = columns;
-				vis_undef_x.additionalProbeColumns = columns;
-				vis_undef_y.additionalProbeColumns = columns;
-				vis_undef_xy.additionalProbeColumns = columns;
+				//vis_undef_x.additionalProbeColumns = columns;
+				//vis_undef_y.additionalProbeColumns = columns;
+				//vis_undef_xy.additionalProbeColumns = columns;
 			}
 			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
 			{
