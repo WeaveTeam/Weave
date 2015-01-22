@@ -2,7 +2,6 @@
  *this service contains all the functions needed for D3 visualizations 
  *TODO move to an independent D3 module later 
  */
-var check ;
 dataStatsModule.service('d3Service', ['$q', function($q){
 	
 	/**
@@ -84,7 +83,7 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 			             .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
 			             .on('mouseout', function(){ tooltip.style('visibility', 'hidden'); 
 			             							 d3.select(this).style('stroke-opacity', 0);});
-			             ;
+			             
 			
 			//console.log("rowCells", rowCells);
 	
@@ -121,12 +120,12 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 		var counts = sparklineDatum.counts;
 		
 		var margin = {top: 5, right: 5, bottom: 5, left: 5};
-		var width = 50; var height= 50;
+		var width = 60; var height= 60;
 
 		//creating the svg
 		var mysvg = d3.select(dom_element_to_append_to).append('svg')
 					  .attr('fill', 'black')
-					  .attr('width', width )//svg viewport dynamically generated
+					  .attr('width', width)//svg viewport dynamically generated
 					  .attr('height', height )
 					  .append('g')
 					  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -138,8 +137,18 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 		var widthScale = d3.scale.linear()
 						   .domain([0, d3.max(breaks)])
 						   .range([0, width]);
-		check = heightScale;
-		var barWidth = width/counts.length;
+		
+		//tooltip
+		var tooltip = d3.select(dom_element_to_append_to)
+		.append("div")
+		.style("position", "absolute")
+		.style("z-index", "10")
+		.style("visibility", "hidden")
+		.text("")
+		.style("color", "red")
+		.style("font-weight", 'bold');
+		
+		var barWidth = (width - margin.left - margin.right)/counts.length;
 		
 		//making one g element per bar 
 		var bar = mysvg.selectAll("g")
@@ -150,7 +159,13 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 		bar.append("rect")
 	      .attr("y", function(d) { return heightScale(d); })
 	      .attr("height", function(d) { return height - heightScale(d); })
-	      .attr("width", barWidth);
+	      .attr("width", barWidth)
+	      .on('mouseover', function(d){ tooltip.style('visibility', 'visible' ).text(d); 
+			             							   d3.select(this).style('stroke-opacity', 1);})
+			             .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+			             .on('mouseout', function(){ tooltip.style('visibility', 'hidden'); 
+			             							 d3.select(this).style('stroke-opacity', 0);});
+		
 	};
 	
 }]);
