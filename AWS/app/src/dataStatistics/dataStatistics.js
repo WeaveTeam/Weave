@@ -20,9 +20,9 @@ dataStatsModule.value('correlationMatrix', 'CorrelationMatrix');
 
 //************************SERVICE***********************************************************
 dataStatsModule.service('statisticsService', ['$q','$rootScope', 'runQueryService', 'queryService', 'QueryHandlerService','computationServiceURL', 'scriptManagementURL',
-                                              'summaryStatistics','correlationMatrix', 'sparklines',
+                                              'summaryStatistics','correlationMatrix',
                                               function($q,scope, runQueryService, queryService, QueryHandlerService, computationServiceURL,  scriptManagementURL,
-                                              summaryStatistics, correlationMatrix ){
+                                              summaryStatistics, correlationMatrix){
 	
 	
 	var that = this;
