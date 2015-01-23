@@ -3,7 +3,7 @@
  * 
  **/
 //var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
-
+var check;
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 
 qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService','computationServiceURL', '$window', '$modal',
