@@ -179,9 +179,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				or : []
 			},
 			GeographyFilter : {
-				stateColumn:"{\"id\":2695,\"title\":\"X_STATE\",\"columnType\":\"geography\",\"description\":\"\"}",
-				countyColumn:"{\"id\":2696,\"title\":\"X_CTYCODE\",\"columnType\":\"geography\",\"description\":\"\"}",
-				metadataTable:"{\"id\":2834,\"title\":\"US FIPS Codes\",\"numChildren\":4}"
+				stateColumn:{},
+				countyColumn:{},
+				metadataTable:{}
 			},
 			openInNewWindow : false,
 			scriptOptions : {},
@@ -192,7 +192,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			ColorColumn : {column : "",  showColorLegend : false},
 			keyColumn : {name : ""},
 			properties : {
-				validationStatus : "test"
+				validationStatus : "test",
+				isQueryValid : false
 			},
 			weaveToolsList : [MapTool,
 			                  BarChartTool,
@@ -329,7 +330,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 //    
     
     this.getSessionState = function(params){
-    	if(!(weaveWindow.closed)){
+    	if(!(WeaveService.weaveWindow.closed)){
     		var base64SessionState = WeaveService.getSessionState();
     		this.writeSessionState(base64SessionState, params);
     	}
