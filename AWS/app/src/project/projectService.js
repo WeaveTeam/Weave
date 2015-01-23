@@ -6,18 +6,22 @@ angular.module('aws.project')
                             function($q, scope, WeaveService, QueryHandlerService, runQueryService, projectManagementURL){
 	
 	var that = this;
-	this.data= {};
-	this.projectBundle = {};
-	//this.data.projectSelectorUI;//for state preservation between tabs
 	
-	//for project addition
-	this.projectBundle.userName;
-	this.projectBundle.projectName;
-	this.projectBundle.projectDescription;
-	this.projectBundle.uploadStatus;
-	this.projectBundle.queryObjectJsons = [];
-	this.projectBundle.queryObjectTitles = [];
-	//this.data.fileUpload;
+	this.cache= {
+			dataTable: "",
+			listOfProjectsFromDatabase : [],
+			returnedQueryObjects : [],
+			columnstring : "", 
+			projectDescription : "", 
+			userName : "", 
+			weaveSessionState : "",
+			deleteProjectStatus : null, 
+			deleteQueryObjectStatus : null, 
+			insertQueryObjectStatus : null 
+	};
+
+	
+	
 	/**
      * This function wraps the async aws getListOfProjects function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
@@ -26,7 +30,7 @@ angular.module('aws.project')
     this.getListOfProjects = function() {
     	var deferred = $q.defer();
     	runQueryService.queryRequest(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
-			that.data.listOfProjectsFromDatabase = result;
+			that.cache.listOfProjectsFromDatabase = result;
         
 			scope.$safeApply(function() {
 				deferred.resolve(result);
@@ -42,7 +46,7 @@ angular.module('aws.project')
     this.getListOfQueryObjects = function(projectName) {
     	var deferred = $q.defer();
     	runQueryService.queryRequest(projectManagementURL, 'getListOfQueryObjects', [projectName], function(AWSQueryObjectCollection){
-    		that.data.returnedQueryObjects = [];
+    		that.cache.returnedQueryObjects = [];
     		if(!(angular.isUndefined(AWSQueryObjectCollection)))
     			{    			
         			var countOfJsons = AWSQueryObjectCollection.length;
@@ -52,7 +56,7 @@ angular.module('aws.project')
         				singleObject.queryObject = JSON.parse(AWSQueryObjectCollection[i].finalQueryObject);
         				singleObject.queryObjectName = AWSQueryObjectCollection[i].queryObjectName;
         				singleObject.projectDescription = AWSQueryObjectCollection[i].projectDescription;
-        				that.data.projectDescription = AWSQueryObjectCollection[i].projectDescription;
+        				that.cache.projectDescription = AWSQueryObjectCollection[i].projectDescription;
         				if(angular.isUndefined(AWSQueryObjectCollection[i].thumbnail)){
         					singleObject.thumbnail = undefined;
         					console.log("This queryObject does not contain any stored visualizations");
@@ -63,20 +67,20 @@ angular.module('aws.project')
         				}
         				
         				
-        				that.data.columnstring = "";
+        				that.cache.columnstring = "";
         				var columns = singleObject.queryObject.scriptOptions;
         				for(var j in columns){
         					var title = columns[j].title;
-        					that.data.columnstring= that.data.columnstring.concat(title) + " , ";
+        					that.cache.columnstring= that.cache.columnstring.concat(title) + " , ";
         				}
-        				singleObject.columnstring = that.data.columnstring.slice(0,-2);//getting rid of the last comma
-        				that.data.returnedQueryObjects[i] = singleObject;
+        				singleObject.columnstring = that.cache.columnstring.slice(0,-2);//getting rid of the last comma
+        				that.cache.returnedQueryObjects[i] = singleObject;
         			}
         			
     			}else{
-    				that.data.projectSelectorUI = "";
-    				that.data.projectDescription = "";
-    				that.data.userName = "";
+    				that.dataTable = "";
+    				that.cache.projectDescription = "";
+    				that.cache.userName = "";
     			}
     		
 	    		scope.$safeApply(function() {
@@ -84,6 +88,8 @@ angular.module('aws.project')
 	            });
         	
         });
+    	
+    	return deferred.promise;
     };
     
     var newWeave;
@@ -97,7 +103,7 @@ angular.module('aws.project')
    	 console.log("stringified queryObject", queryObject);
    	 runQueryService.queryRequest(projectManagementURL, 'getSessionState', [queryObject], function(result){
     		
-   		 that.data.weaveSessionState = result;
+   		 that.cache.weaveSessionState = result;
    		 
    		if(!(angular.isUndefined(that.data.weaveSessionState))){
    		 if (!newWeave || newWeave.closed) {
@@ -138,17 +144,17 @@ angular.module('aws.project')
    	var deferred = $q.defer();
    	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [projectName], function(result){
            
-       	that.data.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
+       	that.cache.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
        	
-      	 if(! (that.data.deleteProjectStatus == 0 )){
+      	 if(! (that.cache.deleteProjectStatus == 0 )){
       		 
-      		that.data.returnedQueryObjects = [];//reset
-      		that.data.projectDescription = "";
+      		that.cache.returnedQueryObjects = [];//reset
+      		that.cache.projectDescription = "";
       		 alert("The Project " + projectName + " has been deleted");
       		 that.getListOfProjects();//call the updated projects list
       	 }
       	 
-      	 that.data.deleteProjectStatus = 0;//reset 
+      	 that.cache.deleteProjectStatus = 0;//reset 
        	
        	scope.$safeApply(function() {
                deferred.resolve(result);
@@ -167,19 +173,22 @@ angular.module('aws.project')
    this.deleteQueryObject = function(projectName, queryObjectTitle){
 	   var deferred = $q.defer();
 	   runQueryService.queryRequest(projectManagementURL, 'deleteQueryObjectFromProject', [projectName, queryObjectTitle], function(result){
-	       	that.data.deleteQueryObjectStatus = result;
-	       	console.log("in the service",that.data.deleteQueryObjectStatus );
+	       	that.cache.deleteQueryObjectStatus = result;
+	       	console.log("in the service",that.cache.deleteQueryObjectStatus );
 	       	
 	       	alert("Query Object " + queryObjectTitle + " has been deleted");
 	       	
-	       	that.data.returnedQueryObjects = [];//clears list
+	       	that.cache.returnedQueryObjects = [];//clears list
 	       	
 	       	that.getListOfQueryObjects(projectName);//fetches new list
 	       	
 	       	//if the project contained only one QO which was deleted , retrive the new updated lists of projects
-	       	if(that.data.returnedQueryObjects.length == 0)
+	       	if(that.cache.returnedQueryObjects.length == 0){
+	       		
 	       		that.getListOfProjects();
-	       	
+	       		
+	       		that.cache.dataTable = "";
+	       	}
 	       	scope.$safeApply(function() {
 	               deferred.resolve(result);
 	           });
@@ -204,10 +213,10 @@ angular.module('aws.project')
    	                                                                                          queryObjectTitles,
    	                                                                                          queryObjectJsons,
    	                                                                                          resultVisualizations], function(result){
-   		that.data.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
-       	console.log("insertQueryObjectStatus", that.data.insertQueryObjectStatus);
-       	if(that.data.insertQueryObjectStatus != 0){
-       		alert(that.data.insertQueryObjectStatus + " Query Object(s)" +  " have been added to project:" + projectName);
+   		that.cache.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
+       	console.log("insertQueryObjectStatus", that.cache.insertQueryObjectStatus);
+       	if(that.cache.insertQueryObjectStatus != 0){
+       		alert(that.cache.insertQueryObjectStatus + " Query Object(s)" +  " have been added to project:" + projectName);
        	}
        	
        	scope.$safeApply(function() {
@@ -221,7 +230,6 @@ angular.module('aws.project')
    };
    
    this.createNewProject = function(userNameEntered, projectNameEntered,projectDescriptionEntered, queryObjectTitles, queryObjectJsons){
-   //this.createNewProject = function(projectBundle){
 	   that.insertQueryObjectToProject(userNameEntered,
 			   						   projectNameEntered,
 			   						   projectDescriptionEntered,
@@ -229,7 +237,7 @@ angular.module('aws.project')
 			   						   queryObjectJsons,
 			   						   null)
 	   .then(function(){
-		   that.data.listOfProjectsFromDatabase = [];//clear
+		   that.cache.listOfProjectsFromDatabase = [];//clear
 		   that.getListOfProjects();//fetch new list
 	   });
 
