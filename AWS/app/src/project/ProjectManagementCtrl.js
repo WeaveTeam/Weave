@@ -1,8 +1,9 @@
 angular.module('aws.project', [])
 .controller("ProjectManagementCtrl", function($scope, $filter, queryService,projectService, QueryHandlerService){
 	$scope.projectService = projectService;
-	projectService.getListOfProjects();
 	
+	//retrives project list
+	projectService.getListOfProjects();
 	//select2-sortable handlers
 	$scope.getItemId = function(item) {
 		return item;
@@ -17,6 +18,13 @@ angular.module('aws.project', [])
 		var values = $scope.projectService.cache.listOfProjectsFromDatabase;
 		done($filter('filter')(values,term));
 	};
+	
+	$scope.$watch('projectService.cache.dataTable', function(){
+		if($scope.projectService.cache.dataTable){
+			console.log("project Selected", $scope.projectService.cache.dataTable);
+			$scope.projectService.getListOfQueryObjects($scope.projectService.cache.dataTable);
+		}
+	});
 	
 	
 	$scope.insertQueryObjectStatus = 0;//count changes when single queryObject or multiple are added to the database
@@ -42,10 +50,6 @@ angular.module('aws.project', [])
 		}
 	};
 	
-	$scope.getListOfQueryObjects = function(){
-		if(!(angular.isUndefined(projectService.data.projectSelectorUI)))
-			projectService.getListOfQueryObjects(projectService.data.projectSelectorUI);
-	};
 
      //Watch for when record is inserted in db
      $scope.$watch(function(){
@@ -94,16 +98,17 @@ angular.module('aws.project', [])
 	
 	//deletes a single queryObject within the currently selected Project
 	$scope.deleteSpecificQueryObject = function(item){
+		console.log("item", item);
 		nameOfQueryObjectToDelete = item.queryObjectName; 
-		$scope.deleteQueryConfirmation(projectService.data.projectSelectorUI, nameOfQueryObjectToDelete);
+		$scope.deleteQueryConfirmation($scope.projectService.cache.dataTable, nameOfQueryObjectToDelete);
 	};
 	
 	$scope.runQueryInAnalysisBuilder = function(item){
-		queryService.queryObject = item;//setting the queryObject to be handled by the QueryHandlerService
-		QueryHandlerService.run(false);
-		//queryHandler = new aws.QueryHandler(queryService.queryObject);//TO DO
-		//queryHandler.runQuery();
-		console.log("running query");
+		//queryService.queryObject = item;//setting the queryObject to be handled by the QueryHandlerService
+		//TODO validate the query before running
+		
+		QueryHandlerService.run(item);
+		console.log("Running query");
 	};
 	
 	$scope.returnSessionState = function(queryObject){

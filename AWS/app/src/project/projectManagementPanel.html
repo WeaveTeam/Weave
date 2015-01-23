@@ -17,35 +17,33 @@
 					<h2>Manage Query Object and Projects</h2>
 				</div>
 				<div class="widget-selectors">
+<!-- Project List -->				
 						<input type="hidden" popover="Select Project" ui-select2-sortable popover-trigger="mouseenter"
-							style="width: 100%" ng-model="queryService.queryObject.dataTable"
+							style="width: 100%" ng-model="projectService.cache.dataTable"
 							simple-query="getProjectsList"
 							data-placeholder="Select Project"
 							allow-clear="true"
 							to-id="getItemId" to-text="getItemText">
 						</input> 
 
-<!-- 						<select ui-select  ng-model = "projectService.data.projectSelectorUI" style="width:200px;" ng-options = "pjt as pjt for pjt in projectService.data.listOfProjectsFromDatabase"  -->
-<!-- 						 ng-change = "getListOfQueryObjects()"> -->
-<!-- 						</select> -->
 
-					<div style="display: inline-block; margin-left: 90px;">
-<!-- 						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="src/queryObjectEditor/queryObjectEditPanel.html" -->
-<!-- 						data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')"> -->
-<!-- 							New Query Object -->
-<!-- 						</button> -->
-
-						<button ng-controller = 'projectAdditionController' id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" ng-click = "openAdditionPanel()">
-							Create a project
-						</button>
-						<button  ng-click = "deleteEntireProject()"  class="btn btn-sm new-project-button" data-trigger="hover" data-title="Delete this project">
-							Delete selected project
-						</button>
-<!-- 						<button type = "button" class="btn btn-sm new-project-button" data-template="src/queryObjectEditor/queryObjectEditPanel.html" -->
-<!--  						data-placement="right" data-animation="am-slide-right" bs-modal="modal" data-container="body"  ng-click = "loadConstructedQueryObject()"> -->
-<!--  							Current Query Object -->
-<!--  						</button> -->
-					</div>
+						<div style="display: inline-block; margin-left: 90px;">
+	<!-- 						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="src/queryObjectEditor/queryObjectEditPanel.html" -->
+	<!-- 						data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')"> -->
+	<!-- 							New Query Object -->
+	<!-- 						</button> -->
+	
+							<button ng-controller = 'projectAdditionController' id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" ng-click = "openAdditionPanel()">
+								Create a project
+							</button>
+							<button  ng-click = "deleteEntireProject()"  class="btn btn-sm new-project-button" data-trigger="hover" data-title="Delete this project">
+								Delete selected project
+							</button>
+	<!-- 						<button type = "button" class="btn btn-sm new-project-button" data-template="src/queryObjectEditor/queryObjectEditPanel.html" -->
+	<!--  						data-placement="right" data-animation="am-slide-right" bs-modal="modal" data-container="body"  ng-click = "loadConstructedQueryObject()"> -->
+	<!--  							Current Query Object -->
+	<!--  						</button> -->
+						</div>
 
 				</div>
 				<div style="width: 100%; height: 40px;">
@@ -55,7 +53,7 @@
 
 				<div class="dd" id="nestable3">
 					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
-							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.data.returnedQueryObjects">
+							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.cache.returnedQueryObjects">
 							<div class="dd-handle dd3-handle">
 								<!--Drag-->
 							</div>
