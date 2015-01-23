@@ -1,7 +1,23 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope,queryService,projectService, QueryHandlerService){
+.controller("ProjectManagementCtrl", function($scope, $filter, queryService,projectService, QueryHandlerService){
 	$scope.projectService = projectService;
 	projectService.getListOfProjects();
+	
+	//select2-sortable handlers
+	$scope.getItemId = function(item) {
+		return item;
+	};
+	
+	$scope.getItemText = function(item) {
+		return item;
+	};
+	
+	//projectlist
+	$scope.getProjectsList = function(term, done) {
+		var values = $scope.projectService.cache.listOfProjectsFromDatabase;
+		done($filter('filter')(values,term));
+	};
+	
 	
 	$scope.insertQueryObjectStatus = 0;//count changes when single queryObject or multiple are added to the database
 	var nameOfQueryObjectToDelete = "";
