@@ -31,7 +31,7 @@
 				<!-- RUN button -->		
 						<button class="btn" 
 							style="width: 10%; float:right; margin-top: 10px; margin-right : 5px"
-							ng-click="QueryHandlerService.run()" 
+							ng-click="QueryHandlerService.run(queryService.queryObject)" 
 							popover="{{queryService.queryObject.properties.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 							ng-controller="QueryHandlerCtrl"
 							ng-class="{'validateB' : queryService.queryObject.properties.isQueryValid, 'invalidateB' : !queryService.queryObject.properties.isQueryValid}">
