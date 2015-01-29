@@ -11,7 +11,7 @@ AnalysisModule.controller("BarChartCtrl", function($scope,  AnalysisService, que
 		title : "",
 		showAllLabels : false,
 		sort : "",
-		label : "",
+		label : ""
 	};
 	
 	$scope.$watch('toolName', function(newVal, oldVal) {
