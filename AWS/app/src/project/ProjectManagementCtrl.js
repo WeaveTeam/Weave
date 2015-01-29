@@ -1,5 +1,5 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope, $filter, queryService,projectService, QueryHandlerService){
+.controller("ProjectManagementCtrl", function($scope, $filter, queryService,projectService, QueryHandlerService, WeaveService){
 	$scope.projectService = projectService;
 	
 	//retrives project list
@@ -112,8 +112,32 @@ angular.module('aws.project', [])
 	};
 	
 	$scope.returnSessionState = function(queryObject){
-		projectService.returnSessionState(queryObject);
+		projectService.returnSessionState(queryObject).then(function(weaveSessionState){
+			var newWeave;
+			if(!(angular.isUndefined(weaveSessionState))){
+				
+		   		 if (!newWeave || newWeave.closed) {
+						newWeave = window
+								.open("/weave.html?",
+										"abc",
+										"toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+					}
+		   		 
+			   		WeaveService.setWeaveWindow(newWeave);
+			   		
+			   		$scope.$watch(function(){
+			   			return WeaveService.weave;
+			   		},function(){
+			   			if(WeaveService.weave && WeaveService.weave.WeavePath) 
+		   					WeaveService.setSessionHistory(weaveSessionState);
+			   		});
+		   		}
+			else{
+				console.log("Session state was not returned");
+			}
+		});
 	};
+	
 	
 	$scope.loadInAnalysis = function(queryObject){
 		console.log("setting queryObject");

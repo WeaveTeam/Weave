@@ -284,6 +284,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
+	//*************************watch for Weave in different Weave windows*********************************************
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function() {

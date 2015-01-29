@@ -1,4 +1,5 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
+//TODO figure out whici module this service belongs to
 AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.weave;
