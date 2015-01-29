@@ -19,6 +19,7 @@ angular.module('aws.project', [])
 		done($filter('filter')(values,term));
 	};
 	
+	//when a datatable is selected or changed
 	$scope.$watch('projectService.cache.dataTable', function(){
 		if($scope.projectService.cache.dataTable){
 			console.log("project Selected", $scope.projectService.cache.dataTable);

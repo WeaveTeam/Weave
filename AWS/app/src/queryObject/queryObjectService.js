@@ -281,7 +281,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	var userName;
     	var queryObjectTitles;
     	var projectDescription;
-    	//params.queryObjectJsons = angular.toJson(this.queryObject);
     	
     	if(angular.isDefined(params.projectEntered))
     		{
@@ -585,15 +584,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
             });
             return deferred.promise;
         };
-        
-//        this.authenticate = function(user, password) {
-//
-//        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
-//                this.authenticated = result;
-//                scope.$apply();
-//            }.bind(this));
-//        };
-        
         
          // Source: http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
          // This will parse a delimited string into an array of
