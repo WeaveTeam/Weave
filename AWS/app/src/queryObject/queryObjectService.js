@@ -278,7 +278,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
    
     this.writeSessionState = function(base64String, params){
     	var projectName;
-    	var userName = "Awesome User";
+    	var userName;
     	var queryObjectTitles;
     	var projectDescription;
     	//params.queryObjectJsons = angular.toJson(this.queryObject);
@@ -299,7 +299,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	}
     	else
     		 queryObjectTitles = this.queryObject.title;
-    	
+    	if(angular.isDefined(params.userName)){
+    		userName = params.userName;
+    		this.queryObject.author = userName;
+    	}
+    	else
+    		userName = "Awesome User";
     	
     	var qo =this.queryObject;
     	   	for(var key in qo.scriptOptions) {

@@ -5,7 +5,7 @@
 			<div class="project-username">
 				<span class="user-label">Username: </span>
 <!-- UserName -->
-				<input class="user-input" ng-model = "projectService.cache.userName" type = "text" placeholder = "Enter a username for the project" />
+<!-- 				<input class="user-input" ng-model = "projectService.cache.userName" type = "text" placeholder = "Enter a username for the project" /> -->
 
 			</div>
 
@@ -52,7 +52,7 @@
 				</div>
 
 				<div class="dd" id="nestable3">
-					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
+					<ol ui-sortable class="dd-list" ng-model="projectService.cache.returnedQueryObjects" id="queryObjectChoicesUI">
 							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.cache.returnedQueryObjects">
 							<div class="dd-handle dd3-handle">
 								<!--Drag-->
