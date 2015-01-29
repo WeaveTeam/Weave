@@ -45,7 +45,7 @@ errorLogModule.service('errorLogService',['$modal',function($modal){
 	 *@param the string you want to log to the error log
 	 */
 	this.logInErrorLog = function(error){
-		this.logs += error + "\n" + this.logs +  new Date().toLocaleTimeString();
+		this.logs += "\n "+ error  + new Date().toLocaleTimeString();
 	};
 	
 }]);
