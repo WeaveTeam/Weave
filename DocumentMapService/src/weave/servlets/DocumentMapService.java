@@ -16,8 +16,8 @@ public class DocumentMapService extends WeaveServlet
 {
 	private static final String UPLOAD_PATH = "uploads";
 	private static final String MALLET_MODEL_PATH = "mallet";
-	private static final String DOCUMENT_PATH = "documents";
-
+	private static final String DOCUMENT_PATH = "documents"
+;
 	ServletConfig config;
 
 
@@ -91,16 +91,15 @@ public class DocumentMapService extends WeaveServlet
 			ServletContext application = config.getServletContext();
 				Path collectionsPath = Paths.get(application.getInitParameter("collectionsPath"));
 				ArrayList<String> collectionList = new ArrayList<String>();
-				try (DirectoryStream<Path> stream = Files.newDirectoryStream(collectionsPath, "*.{c,h,cpp,hpp,java}")) {
+				try (DirectoryStream<Path> stream = Files.newDirectoryStream(collectionsPath)) {
 					for (Path entry: stream) {
-						entry.getFilename()
 						collectionList.add(entry.getFileName().toString());
 					}
 				} catch (DirectoryIteratorException ex) {
 					// I/O error encounted during the iteration, the cause is an IOException
 					throw ex.getCause();
 				}
-				return collectionList.toArray(new String[1]);
+				return collectionList.toArray(new String[0]);
 		}
 		catch (Exception e)
 		{
@@ -111,8 +110,7 @@ public class DocumentMapService extends WeaveServlet
 
 	public boolean addDocuments(String collectionName, String fileName, InputStream fileStream) throws RemoteException
 	{
-		/* TODO: Reject names with filesystem special characters */
-
+		
 		return true;
 	}
 
@@ -130,6 +128,21 @@ public class DocumentMapService extends WeaveServlet
 	public boolean runTopicLayout(String collectionName) throws RemoteException
 	{
 		return true;
+	}
+
+	public List<Map<String,String>> getTopics(String collectionName)
+	{
+		return null;
+	}
+
+	public List<Map<String,Number>> getTopicLayout(String collectionName)
+	{
+		return null;
+	}
+
+	public List<Map<String,Number>> getDocumentTopics(String collectionName)
+	{
+		return null;
 	}
 
 	private static final String[] ILLEGAL_CHARACTERS = { "/", "\n", "\r", "\t", "\0", "\f", "`", "?", "*", "\\", "<", ">", "|", "\"", ":" };
