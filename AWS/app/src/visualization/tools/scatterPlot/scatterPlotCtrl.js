@@ -1,9 +1,8 @@
-AnalysisModule.controller("ScatterPlotCtrl", function($scope,  AnalysisService, queryService, WeaveService) {
+AnalysisModule.controller("ScatterPlotCtrl", function($scope, queryService, WeaveService) {
 
 
 	$scope.service = queryService;
 	$scope.WeaveService = WeaveService;
-	$scope.AnalysisService = AnalysisService;
 	
 	$scope.toolName = "";
 	
@@ -11,7 +10,7 @@ AnalysisModule.controller("ScatterPlotCtrl", function($scope,  AnalysisService, 
 		enabled : false,
 		title : false,
 		X : "",
-		Y : "",
+		Y : ""
 	};
 	
 	$scope.$watch('toolName', function(newVal, oldVal) {

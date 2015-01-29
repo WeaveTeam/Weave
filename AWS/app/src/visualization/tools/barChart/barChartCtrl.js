@@ -1,8 +1,7 @@
-AnalysisModule.controller("BarChartCtrl", function($scope,  AnalysisService, queryService, WeaveService){
+AnalysisModule.controller("BarChartCtrl", function($scope, queryService, WeaveService){
 
-	$scope.service = queryService;
+	$scope.queryService = queryService;
 	$scope.WeaveService = WeaveService;
-	$scope.AnalysisService = AnalysisService;
 	
 	$scope.toolName = "";
 	
@@ -12,6 +11,9 @@ AnalysisModule.controller("BarChartCtrl", function($scope,  AnalysisService, que
 		showAllLabels : false,
 		sort : "",
 		label : "",
+		negErr : "",
+		posErr :"",
+		heights: ""
 	};
 	
 	$scope.$watch('toolName', function(newVal, oldVal) {

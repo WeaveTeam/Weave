@@ -10,13 +10,6 @@ AnalysisModule.controller("toolsCtrl", function($scope, queryService, WeaveServi
 		queryService.queryObject.weaveToolsList.splice(index, 1);
 	};
 
-//	$scope.getItemId = function(item) {
-//		return item.id;
-//	};
-//	
-//	$scope.getItemText = function(item) {
-//		return item.title;
-//	};
 	
 	//datatable
 	$scope.resultColumns = function(term, done) {

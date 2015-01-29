@@ -1,8 +1,7 @@
-AnalysisModule.controller("MapCtrl", function($scope, AnalysisService, queryService, WeaveService){
+AnalysisModule.controller("MapCtrl", function($scope, queryService, WeaveService){
 	
 	$scope.service = queryService;
 	$scope.WeaveService = WeaveService;
-	$scope.AnalysisService = AnalysisService;
 	
 	queryService.getGeometryDataColumnsEntities(true);
 	$scope.toolName = "";
