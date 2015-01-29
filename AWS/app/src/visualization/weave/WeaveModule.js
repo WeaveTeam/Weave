@@ -77,31 +77,32 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.BarChartTool =  function (state, aToolName) {
 		var toolName = aToolName || ws.generateUniqueName("BarChartTool");
 		
+		if(state == null)
+			return toolName;
+		
 		if(ws.weave && ws.weave.path && state) {
 			
 			try{
-				if(!state.enabled)
+				if(state.enabled)
 				{
+					ws.weave.path(toolName)
+					.request('CompoundBarChartTool')
+					.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+					.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
+					.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
+					.forEach(
+							{ heightColumns : state.heights, positiveErrorColumns : state.posErr, negativeErrorColumns : state.negErr}, 
+							function(heights, name) {
+								var child = this.push(name);
+								child.getNames().forEach(function(n, i){
+									if (!heights || i >= heights.length) child.remove(n);
+								});
+								child.forEach(heights, setCSVColumn);
+							}
+					);
+				} else {
 					ws.weave.path(toolName).remove();
-					return "";
 				}
-				
-				ws.weave.path(toolName)
-				.request('CompoundBarChartTool')
-				.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
-				.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-				.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
-				.forEach(
-						{ heightColumns : state.heights, positiveErrorColumns : state.posErr, negativeErrorColumns : state.negErr}, 
-						function(heights, name) {
-							var child = this.push(name);
-							child.getNames().forEach(function(n, i){
-								if (!heights || i >= heights.length) child.remove(n);
-							});
-							child.forEach(heights, setCSVColumn);
-						}
-				);
-				;
 			} catch(e)
 			{
 				console.log(e);

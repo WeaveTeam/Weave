@@ -21,7 +21,6 @@ var tryParseJSON = function(jsonString){
 
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
-
 //analysis service
 AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'queryService',
                                            function(geoFilter_tool, timeFilter_tool, queryService ) {
@@ -31,7 +30,7 @@ AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', '
 	};
 	//getting the list of datatables
 	queryService.getDataTableList(true);
-//	queryService.queryObject.weaveToolsList = [MapTool,
+//	queryService.queryObject.visualizations = [MapTool,
 //	                              BarChartTool,
 //	                              DataTableTool,
 //	                              ScatterPlotTool,
@@ -463,36 +462,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	}, true);
 	/************** watches for query validation******************/
-	$scope.tool_options = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTable"];
 	
-	$scope.addTool = function(name) {
-		switch(name) {
-			case "MapTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Map Tool',
-					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
-				});
-				break;
-			case "BarChartTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Bar Chart Tool',
-					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
-				});
-				break;
-			case "ScatterPlotTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Scatter Plot Tool',
-					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
-				});
-				break;
-			case "DataTable":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Data Table Tool',
-					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
-				});
-				break;
-		}
-	};
 });
 
 

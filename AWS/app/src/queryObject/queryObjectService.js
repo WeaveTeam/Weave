@@ -189,18 +189,36 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			TimePeriodFilter : {},
 			ByVariableFilters : [],
 			ByVariableColumns : [],
-			ColorColumn : {column : "",  showColorLegend : false},
-			keyColumn : {name : ""},
 			properties : {
 				validationStatus : "test",
 				isQueryValid : false
 			},
-			weaveToolsList : [MapTool,
-			                  BarChartTool,
-			                  DataTableTool,
-			                  ScatterPlotTool,
-			                  color_Column,
-			                  key_Column],
+			visualizations : {
+				MapTool : {
+					title : 'Map Tool',
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+				},
+				BarChartTool : {
+					title : 'Bar Chart Tool',
+					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
+				},
+				DataTableTool : {
+					title : 'Data Table Tool',
+					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
+				},
+				ScatterPlotTool : {
+					title : 'Scatter Plot Tool',
+					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
+				},
+				color_Column : {
+					title : "Key Column",
+					template_url : 'src/visualization/tools/color/color_Column.tpl.html'
+				},
+				key_Column : {
+					title : "Color Column",
+					template_url : 'src/visualization/tools/color/key_Column.tpl.html'
+				}
+			},
 			resultSet : {}
 	};    		
     
