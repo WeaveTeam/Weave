@@ -1,5 +1,5 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
-AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
+weave_mod.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.weave;
 	var ws = this;
