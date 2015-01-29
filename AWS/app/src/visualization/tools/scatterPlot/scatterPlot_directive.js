@@ -1,7 +1,7 @@
 /**
  * directive for addition of a Scatter plot visualization widget which communicates with the Scatter Plot tool in Weave 
  */
-
+var blah;
 weave_mod.directive('scatter-Plot', ['queryService', 'WeaveService', function(queryService, WeaveService){
 	
 	var directiveDefnObject = {
