@@ -1,3 +1,22 @@
-<!-- DATAGRID -->
-<p>Edit getStatistics.json and getStatistics.R to add more summary statistics</p>
-	<div style = "width: 60%; height: 50%" class="gridStyle" ng-grid="statsGrid"></div>
+<!-- this div contains all the elements in the summary statistics tab 
+ctrl = dataStatsCtrl -->
+<div style = "width: 100%; height: 100%; margin-left:10px">
+		
+		<p style = "float:left; width: 61%">Edit getStatistics.json and getStatistics.R to add more summary statistics</p>
+		
+			
+		<!-- DATAGRID -->
+		<div id = "datagridDiv"  style = "width: 60%; height: 50%;float:left; oveflow:auto" class="gridStyle" ng-grid="statsGrid"></div>
+		
+		<!-- SPARKLINES -->
+		<div style = "width :8%; height:50%; float:left;">
+			<p style = "padding-left: 1px">Sparklines</p>
+			<div  style = "width: 100%; height:100%" id= "sparklineDiv" 
+			 spark-Lines = "" data = "statisticsService.cache.sparklineData">
+			
+			</div>
+		</div>
+		
+		
+</div>
+	

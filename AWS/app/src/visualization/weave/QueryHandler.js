@@ -2,8 +2,6 @@
  * This Service is designed to receive a query object and interpret its content.
  * 
  **/
-//var computationServiceURL = '/WeaveAnalystServices/ComputationalServlet';
-
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 
 qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService','computationServiceURL', '$window', '$modal',
@@ -13,10 +11,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
-	
-	//boolean used for displaying the Visualization widget tool menu
-	//only when results are returned and Weave pops up, should this menu be enabled
-	this.displayVizMenu = false;
 	
 	//var queryObject = queryService.queryObject;
 	var nestedFilterRequest = {and : []};
@@ -105,17 +99,17 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     };
     
 	/**
-	 * this function processes the queryObject and makes the async call for running the script
+	 * this function processes the received queryObject and makes the async call for running the script
 	 */
-	this.run = function() {
-		if(queryService.queryObject.properties.isQueryValid) {
+	this.run = function(incoming_queryObject) {
+		if(incoming_queryObject.properties.isQueryValid) {
 			var time1;
 			var time2;
 			var startTimer;
 			var endTimer;
 			
 			//setting the query Object to be used for executing the query
-			var queryObject = queryService.queryObject;
+			var queryObject = incoming_queryObject;
 			var scriptInputObjects = [];//final collection of script input objects
 			
 			//handling script inputs
@@ -123,127 +117,10 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 
 			//TODO handle filters before handling script options
 				
-			//FILTERS
-	//			if(queryObject.GeographyFilter) {
-	//				var geoQuery = {};
-	//				var stateId = "";
-	//				var countyId = "";
-	//				
-	//				if(queryObject.GeographyFilter.stateColumn.id) {
-	//					stateId = queryObject.GeographyFilter.stateColumn.id;
-	//				}
-	//				if(queryObject.GeographyFilter.countyColumn.id) {
-	//					countyId = queryObject.GeographyFilter.countyColumn.id;
-	//				}
-	//
-	//				geoQuery.or = [];
-	//				
-	//				if(queryObject.GeographyFilter.hasOwnProperty("filters")) {
-	//					if(Object.keys(queryObject.GeographyFilter.filters).length !== 0) {
-	//						for(var key in queryObject.GeographyFilter.filters) {
-	//							var index = geoQuery.or.push({ and : [
-	//							                                      {cond : { 
-	//							                                    	  f : stateId, 
-	//							                                    	  v : [key] 
-	//							                                      }
-	//							                                      },
-	//							                                      {cond: {
-	//							                                    	  f : countyId, 
-	//							                                    	  v : []
-	//							                                      }
-	//							                                      }
-	//							                                      ]
-	//							});
-	//							for(var i in queryObject.GeographyFilter.filters[key].counties) {
-	//								var countyFilterValue = "";
-	//								for(var key2 in queryObject.GeographyFilter.filters[key].counties[i]) {
-	//									countyFilterValue = key2;
-	//								}
-	//								geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
-	//							}
-	//						}
-	//						if(geoQuery.or.length) {
-	//							nestedFilterRequest.and.push(geoQuery);
-	//						}
-	//					}
-	//				}
-	//			}
-	//			
-	//			if(queryObject.hasOwnProperty("TimePeriodFilter")) {
-	//				var timePeriodQuery = {};
-	//				var yearId = queryObject.TimePeriodFilter.yearColumn.id;
-	//				var monthId = queryObject.TimePeriodFilter.monthColumn.id;
-	//				
-	//				timePeriodQuery.or = [];
-	//				
-	//				for(var key in queryObject.TimePeriodFilter.filters) {
-	//					var index = timePeriodQuery.or.push({ and : [
-	//					                                             {cond : { 
-	//					                                            	 f : yearId, 
-	//					                                            	 v : [key] 
-	//					                                             }
-	//					                                             },
-	//					                                             {cond: {
-	//					                                            	 f : monthId, 
-	//					                                            	 v : []
-	//					                                             }
-	//					                                             }
-	//					                                             ]
-	//					});
-	//					for(var i in queryObject.TimePeriodFilter.filters[key].months) {
-	//						var monthFilterValue = "";
-	//						for(var key2 in queryObject.TimePeriodFilter.filters[key].months[i]) {
-	//							monthFilterValue = key2;
-	//						}
-	//						timePeriodQuery.or[index-1].and[1].cond.v.push(monthFilterValue);
-	//					}
-	//				}
-	//				
-	//				if(timePeriodQuery.or.length) {
-	//					nestedFilterRequest.and.push(timePeriodQuery);
-	//				}
-	//			}
-	//			
-	//			if(queryObject.hasOwnProperty("ByVariableFilter")) {
-	//				var byVarQuery = {and : []};
-	//
-	//				for(var i in queryObject.ByVariableFilter) {
-	//					
-	//					if(queryObject.ByVariableFilter[i].hasOwnProperty("column")) {
-	//						var cond = {f : queryObject.ByVariableFilter[i].column.id };
-	//						
-	//						if(queryObject.ByVariableFilter[i].hasOwnProperty("filters")) {
-	//							cond.v = [];
-	//							for (var j in queryObject.ByVariableFilter[i].filters) {
-	//								cond.v.push(queryObject.ByVariableFilter[i].filters[j].value);
-	//							}
-	//							byVarQuery.and.push({cond : cond});
-	//						} else if (queryObject.ByVariableFilter[i].hasOwnProperty("ranges")) {
-	//							cond.r = [];
-	//							for (var j in queryObject.ByVariableFilter[i].filters) {
-	//								cond.r.push(queryObject.ByVariableFilter[i].filters[j]);
-	//							}
-	//							byVarQuery.and.push({cond : cond});
-	//						} 
-	//					}
-	//				}
-	//
-	//				if(byVarQuery.and.length) {
-	//					nestedFilterRequest.and.push(byVarQuery);
-	//				}
-	//			}
-	//			
-	//			
-	//			if(nestedFilterRequest.and.length) {
-	//				filters = nestedFilterRequest;
-	//			} else {
-	//				filters = null;
-	//			}
-	//			
 				scriptName = queryObject.scriptSelected;
-				// var stringifiedQO = JSON.stringify(queryObject);
-				// console.log("query", stringifiedQO);
-				// console.log(JSON.parse(stringifiedQO));
+				 var stringifiedQO = JSON.stringify(queryObject);
+				 console.log("query", stringifiedQO);
+				 console.log(JSON.parse(stringifiedQO));
 				queryService.queryObject.properties.queryDone = false;
 				queryService.queryObject.properties.queryStatus = "Loading data from database...";
 				startTimer = new Date().getTime();
@@ -291,6 +168,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService) {
 	
 	$scope.service = queryService;
-	$scope.runService = QueryHandlerService;
+	$scope.QueryHandlerService = QueryHandlerService;
 	
 });

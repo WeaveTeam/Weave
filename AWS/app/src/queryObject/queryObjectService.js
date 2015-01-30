@@ -179,9 +179,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				or : []
 			},
 			GeographyFilter : {
-				stateColumn:"{\"id\":2695,\"title\":\"X_STATE\",\"columnType\":\"geography\",\"description\":\"\"}",
-				countyColumn:"{\"id\":2696,\"title\":\"X_CTYCODE\",\"columnType\":\"geography\",\"description\":\"\"}",
-				metadataTable:"{\"id\":2834,\"title\":\"US FIPS Codes\",\"numChildren\":4}"
+				stateColumn:{},
+				countyColumn:{},
+				metadataTable:{}
 			},
 			openInNewWindow : false,
 			scriptOptions : {},
@@ -189,17 +189,40 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			TimePeriodFilter : {},
 			ByVariableFilters : [],
 			ByVariableColumns : [],
-			ColorColumn : {column : "",  showColorLegend : false},
-			keyColumn : {name : ""},
 			properties : {
-				validationStatus : "test"
+				validationStatus : "test",
+				isQueryValid : false
 			},
-			weaveToolsList : [MapTool,
-			                  BarChartTool,
-			                  DataTableTool,
-			                  ScatterPlotTool,
-			                  color_Column,
-			                  key_Column],
+			visualizations : {
+				MapTool : {
+					title : 'Map Tool',
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html',
+					enabled : false
+				},
+				BarChartTool : {
+					title : 'Bar Chart Tool',
+					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html',
+					enabled : false
+				},
+				DataTableTool : {
+					title : 'Data Table Tool',
+					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
+					enabled : false
+				},
+				ScatterPlotTool : {
+					title : 'Scatter Plot Tool',
+					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+					enabled : false
+				},
+				color_Column : {
+					title : "Color Column",
+					template_url : 'src/visualization/tools/color/color_Column.tpl.html',
+				},
+				key_Column : {
+					title : "Key Column",
+					template_url : 'src/visualization/tools/color/key_Column.tpl.html'
+				}
+			},
 			resultSet : {}
 	};    		
     
@@ -230,6 +253,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         return deferred.promise;
     };
     
+    
+    /**
+     * this function pulls data before running a script
+     * @param inputs the ids of the columns to pull the data
+     * @param reMaps remapObjects to overwrite data values temporarily
+     */
     this.getDataFromServer = function(inputs, reMaps) {
     	
     	var deferred = $q.defer();
@@ -258,77 +287,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	}
     };
 
-//    /**
-//     * This function wraps the async aws getListOfProjects function into an angular defer/promise
-//     * So that the UI asynchronously wait for the data to be available...
-//     */
-//    this.getListOfProjectsfromDatabase = function() {
-//		var deferred = $q.defer();
-//
-//		runQueryService.queryRequest(projectManagementURL, 'getProjectListFromDatabase', null, function(result){
-//    	that.cache.listOfProjectsFromDatabase = result;
-//    	
-//    	scope.$safeApply(function() {
-//            deferred.resolve(result);
-//        });
-//    	
-//    });
-//        
-//        return deferred.promise;
-//        
-//    };
-//    
-    
-//    this.insertQueryObjectToProject = function(userName, projectName,projectDescription, queryObjectTitle, queryObjectContent) {
-//      	
-//    	var deferred = $q.defer();
-//    	var params = {};
-//    	params.userName = userName;
-//    	params.projectName = projectName;
-//    	params.projectDescription = projectDescription;
-//    	params.queryObjectTitle = queryObjectTitle;
-//    	params.queryObjectContent = queryObjectContent;
-//
-//    	runQueryService.queryRequest(projectManagementURL, 'insertMultipleQueryObjectInProjectFromDatabase', [params], function(result){
-//        	console.log("insertQueryObjectStatus", result);
-//        	that.cache.insertQueryObjectStatus = result;//returns an integer telling us the number of row(s) added
-//        	scope.$safeApply(function() {
-//                deferred.resolve(result);
-//            });
-//        	
-//        });
-//        
-//        return deferred.promise;
-//        
-//    };
-//    
-//    /**
-//     * This function wraps the async aws deleteproject function into an angular defer/promise
-//     * So that the UI asynchronously wait for the data to be available...
-//     */
-//    this.deleteProject = function(projectName) {
-//          	
-//    	var deferred = $q.defer();
-//    	var params = {};
-//    	params.projectName = projectName;
-//
-//    	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [params], function(result){
-//        	console.log("deleteProjectStatus", result);
-//            
-//        	that.cache.deleteProjectStatus = result;//returns an integer telling us the number of row(s) deleted
-//        	scope.$safeApply(function() {
-//                deferred.resolve(result);
-//            });
-//        	
-//        });
-//        
-//        return deferred.promise;
-//        
-//    };
-//    
-    
+    /**
+     * returns the base64 encoded session state of the visualizations generated by a query object
+     */
     this.getSessionState = function(params){
-    	if(!(weaveWindow.closed)){
+    	if(!(WeaveService.weaveWindow.closed)){
     		var base64SessionState = WeaveService.getSessionState();
     		this.writeSessionState(base64SessionState, params);
     	}
@@ -336,10 +299,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
    
     this.writeSessionState = function(base64String, params){
     	var projectName;
-    	var userName = "Awesome User";
+    	var userName;
     	var queryObjectTitles;
     	var projectDescription;
-    	//params.queryObjectJsons = angular.toJson(this.queryObject);
     	
     	if(angular.isDefined(params.projectEntered))
     		{
@@ -357,7 +319,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	}
     	else
     		 queryObjectTitles = this.queryObject.title;
-    	
+    	if(angular.isDefined(params.userName)){
+    		userName = params.userName;
+    		this.queryObject.author = userName;
+    	}
+    	else
+    		userName = "Awesome User";
     	
     	var qo =this.queryObject;
     	   	for(var key in qo.scriptOptions) {
@@ -459,13 +426,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 											that.cache.numericalColumns.push(columnObject);
 										}
 									return columnObject;
-//									return {
-//										id : entity.id,
-//										title : entity.publicMetadata.title,
-//										columnType : metadata.columnType,
-//										varType : metadata.varType,
-//										description : metadata.description || ""
-//									};
+
 								}
 								else//handling an empty aws-metadata object 
 									{
@@ -477,12 +438,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 										columnObject.description =  "";
 										
 										return columnObject;
-//										return{
-//											id : entity.id,
-//											title : entity.publicMetadata.title,
-//											columnType : "",
-//											description : ""
-//										};
 									}
 								
 							}
@@ -495,12 +450,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 									columnObject.description =  "";
 									
 									return columnObject;
-//									return {
-//										id : entity.id,
-//										title : entity.publicMetadata.title,
-//										columnType : "",
-//										description : ""
-//									};
 								
 							}
 						});
@@ -561,7 +510,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						keyType : entity.publicMetadata.keyType
 					};
 				});
-				
 				scope.$safeApply(function() {
 					deferred.resolve(that.cache.geometryColumns);
 				});
@@ -656,15 +604,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
             });
             return deferred.promise;
         };
-        
-//        this.authenticate = function(user, password) {
-//
-//        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
-//                this.authenticated = result;
-//                scope.$apply();
-//            }.bind(this));
-//        };
-        
         
          // Source: http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
          // This will parse a delimited string into an array of

@@ -1,12 +1,22 @@
-<div style = "height: 100%" ng-controller = "dataStatsCtrl">
+<div style = "height: 100%">
 	
-	Datatable selected : {{datatableSelected}} 
-
+	<div style="padding-top:2px;padding-bottom: 5px; width: 30%">
+		<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%" ng-model="queryService.queryObject.dataTable"
+								simple-query="getDataTable"
+								data-placeholder="Select Datatable"
+								allow-clear="true"
+								to-id="getItemId" to-text="getItemText"
+							>
+		</input> 
+	</div>
+<!-- TODO rethink nested tabs? some other nested structure? -->
 	<nav class="navbar navbar-inverse" role="navigation">
     	
 	    <ul class="nev">
 	        <li ng-class="{nestactive: state.current.data.activetab == 'summary_stats'}"><a ui-sref=".summary_stats">Summary Statistics</a></li>
 	        <li ng-class="{nestactive: state.current.data.activetab == 'correlations'}"><a ui-sref=".correlations">Correlation</a></li>
+	        <li ng-class="{nestactive :state.current.data.activetab == 'regression'}"><a ui-sref=".regression">Regression</a>
 	    </ul>
 	</nav>
 	
@@ -18,11 +28,4 @@
 				    <div style = "width:100%; height: 100%" ui-view></div>
 
 			</div>
-	
-	
-	<!-- DATAGRID -->
-<!-- 	<div style = "width: 60%; height: 50%" class="gridStyle" ng-grid="statsGrid"></div> -->
-	
-	<!-- CORRELATION Matrix -->
-<!-- 	<correlation-Matrix data = "queryService.cache.numericalColumns" ></correlation-Matrix>TODO include categorical columns as well -->
 </div>

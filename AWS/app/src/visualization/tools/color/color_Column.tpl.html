@@ -1,12 +1,12 @@
 <div style="width: 100%" class="master-select2-container" ng-controller="ColorCtrl">
 					<select style = "width : 100%" 
 							ui-select2="{allowClear : true}" 
-							ng-model="queryService.queryObject.ColorColumn.column" 
+							ng-model="tool.column" 
 							data-placeholder="Choose Column">
 					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 				</select>
 						<div style = "padding : 5px"></div>
-						<input type="checkbox" ng-model="service.queryObject.ColorColumn.showColorLegend"/> Show Color Legend
+						<input type="checkbox" ng-model="tool.showColorLegend"/> Show Color Legend
 </div>

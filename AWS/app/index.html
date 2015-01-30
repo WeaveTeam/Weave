@@ -37,7 +37,7 @@
 				<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
 					<div class="collapse navbar-collapse navbar-ex1-collapse">
 
-						<a class="navbar-brand" ui-sref="index.html#"> <i class="glyphicon glyphicon glyphicon-tasks img-responsive"></i> <span class = "logo">Weave Analyst </span> </a>
+						<a class="navbar-brand" ui-sref="index"> <i class="glyphicon glyphicon glyphicon-tasks"></i> <span class = "logo">Weave Analyst </span> </a>
 
 						<button type="button" class="navbar-toggle btn-danger" data-toggle="collapse" data-target="#navbar-to-collapse">
 							<span class="sr-only">Toggle right menu</span>
@@ -139,7 +139,7 @@
 		<script src="lib/file-reader/jquery.FileReader.js" type="text/javascript"></script>
 
 		<!--        Third Party Libraries-->
-		<script src="lib/jsoneditor/jsoneditor.js"></script>
+<!-- 		<script src="lib/jsoneditor/jsoneditor.js"></script> -->
 		<script src='lib/swfobject.js'></script>
 		<script src="lib/FileSaver.min.js" type="text/javascript"></script>
 		<script src="lib/bootstrap/bootstrap.min.js"></script>
@@ -151,8 +151,8 @@
 		<script src="lib/angular/1.2/angular.min.js"></script>
 		<script src="lib/ui.bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
 		<!--Unsure if we use this-->
-		<script src='lib/angular/1.2/angular-resource.min.js'></script>
-		<script src="lib/angular/1.2/angular-route.min.js" type="text/javascript"></script>
+<!-- 		<script src='lib/angular/1.2/angular-resource.min.js'></script> -->
+<!-- 		<script src="lib/angular/1.2/angular-route.min.js" type="text/javascript"></script> -->
 		<script src="lib/angular/1.2/angular-sanitize.min.js" type="text/javascript"></script>
 		<script src="lib/angular/1.2/angular-animate.min.js" type="text/javascript"></script>
 		
@@ -191,7 +191,9 @@
 		<script src='src/configure/script/ScriptManagerCtrl.js'></script>
 		<script src='src/configure/script/scriptManagerService.js'></script>
 		<script src='src/dataStatistics/dataStatistics.js'></script>
+		<script src='src/dataStatistics/d3Service.js'></script>
 		<script src='src/dataStatistics/correlationMatrix-directive.js'></script>
+		<script src='src/dataStatistics/sparklines-directive.js'></script>
 		<script src='src/queryObjectEditor/QueryObjectEditorCtrl.js'></script>
 		<script src='src/queryObjectEditor/query-Object-Editor-directive.js'></script>
 		<script src='src/queryObject/QueryImportExportCtrl.js'></script>

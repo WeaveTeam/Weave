@@ -1,13 +1,10 @@
 AnalysisModule.controller("ColorCtrl", function($scope, queryService, WeaveService){
 
-	$scope.service = queryService;
 	$scope.WeaveService = WeaveService;
-	
-	//monitors the color column
-	$scope.$watch(function(){
-		return queryService.queryObject.ColorColumn;
-	}, function(){
-		WeaveService.ColorColumn(queryService.queryObject.ColorColumn);
+
+	$scope.$watch('tool', function() {
+		if($scope.toolId) // this gets triggered twice, the second time toolId with a undefined value.
+			WeaveService.ColorColumn($scope.tool);
 	}, true);
 	
 	//monitors the key column

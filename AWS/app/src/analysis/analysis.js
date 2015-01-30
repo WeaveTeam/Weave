@@ -21,7 +21,6 @@ var tryParseJSON = function(jsonString){
 
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
-
 //analysis service
 AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'queryService',
                                            function(geoFilter_tool, timeFilter_tool, queryService ) {
@@ -29,8 +28,9 @@ AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', '
 	var AnalysisService = {
 			
 	};
-	
-//	queryService.queryObject.weaveToolsList = [MapTool,
+	//getting the list of datatables
+	queryService.getDataTableList(true);
+//	queryService.queryObject.visualizations = [MapTool,
 //	                              BarChartTool,
 //	                              DataTableTool,
 //	                              ScatterPlotTool,
@@ -64,9 +64,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			$scope.showToolMenu = true;
 		}
 	});
-	
-	//getting the list of datatables
-	queryService.getDataTableList(true);
 	
 	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
@@ -291,6 +288,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
+	//*************************watch for Weave in different Weave windows*********************************************
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function() {
@@ -470,36 +468,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	}, true);
 	/************** watches for query validation******************/
-	$scope.tool_options = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTable"];
 	
-	$scope.addTool = function(name) {
-		switch(name) {
-			case "MapTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Map Tool',
-					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
-				});
-				break;
-			case "BarChartTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Bar Chart Tool',
-					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
-				});
-				break;
-			case "ScatterPlotTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Scatter Plot Tool',
-					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
-				});
-				break;
-			case "DataTable":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Data Table Tool',
-					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
-				});
-				break;
-		}
-	};
 });
 
 
@@ -703,4 +672,49 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		}
 	};
 	
+});
+
+AnalysisModule.controller('DialogController', function ($scope, $modal, queryService, WeaveService) {
+	$scope.opts = {
+		 backdrop: false,
+          backdropClick: true,
+          dialogFade: true,
+          keyboard: true,
+          templateUrl: 'src/analysis/savingOutputsModal.html',
+          controller: 'DialogInstanceCtrl',
+          resolve:
+          {
+                      projectEntered: function() {return $scope.projectEntered;},
+                      queryTitleEntered : function(){return $scope.queryTitleEntered;},
+                      userName : function(){return $scope.userName;}
+          }
+	};
+
+    $scope.saveVisualizations = function (projectEntered, queryTitleEntered, userName) {
+    	
+    	var saveQueryObjectInstance = $modal.open($scope.opts);
+    	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
+    	//console.log("params", params);
+    		queryService.getSessionState(params);
+    		
+    	});
+    };
+    
+  //clears the session state
+	$scope.clearSessionState = function(){
+		WeaveService.clearSessionState();
+	};
+	
+    
+  });
+
+AnalysisModule.controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered, userName) {
+	  $scope.close = function (projectEntered, queryTitleEntered, userName) {
+		  var params = {
+				  projectEntered : projectEntered,
+				  queryTitleEntered : queryTitleEntered,
+				  userName :userName
+		  };
+		  $modalInstance.close(params);
+  };
 });
