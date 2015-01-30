@@ -283,6 +283,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
+	//*************************watch for Weave in different Weave windows*********************************************
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function() {
@@ -651,7 +652,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 });
 
 AnalysisModule.controller('DialogController', function ($scope, $modal, queryService, WeaveService) {
-	$scope.projectEntered2 = "Hello";
 	$scope.opts = {
 		 backdrop: false,
           backdropClick: true,
@@ -662,11 +662,12 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
           resolve:
           {
                       projectEntered: function() {return $scope.projectEntered;},
-                      queryTitleEntered : function(){return $scope.queryTitleEntered;}
+                      queryTitleEntered : function(){return $scope.queryTitleEntered;},
+                      userName : function(){return $scope.userName;}
           }
 	};
 
-    $scope.saveVisualizations = function (projectEntered, queryTitleEntered) {
+    $scope.saveVisualizations = function (projectEntered, queryTitleEntered, userName) {
     	
     	var saveQueryObjectInstance = $modal.open($scope.opts);
     	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
@@ -684,11 +685,12 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
     
   });
 
-AnalysisModule.controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered) {
-	  $scope.close = function (projectEntered, queryTitleEntered) {
+AnalysisModule.controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered, userName) {
+	  $scope.close = function (projectEntered, queryTitleEntered, userName) {
 		  var params = {
 				  projectEntered : projectEntered,
-				  queryTitleEntered : queryTitleEntered
+				  queryTitleEntered : queryTitleEntered,
+				  userName :userName
 		  };
 		  $modalInstance.close(params);
   };

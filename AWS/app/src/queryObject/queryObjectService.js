@@ -196,26 +196,30 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			visualizations : {
 				MapTool : {
 					title : 'Map Tool',
-					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html',
+					enabled : false
 				},
 				BarChartTool : {
 					title : 'Bar Chart Tool',
-					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
+					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html',
+					enabled : false
 				},
 				DataTableTool : {
 					title : 'Data Table Tool',
-					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
+					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
+					enabled : false
 				},
 				ScatterPlotTool : {
 					title : 'Scatter Plot Tool',
-					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
+					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+					enabled : false
 				},
 				color_Column : {
-					title : "Key Column",
-					template_url : 'src/visualization/tools/color/color_Column.tpl.html'
+					title : "Color Column",
+					template_url : 'src/visualization/tools/color/color_Column.tpl.html',
 				},
 				key_Column : {
-					title : "Color Column",
+					title : "Key Column",
 					template_url : 'src/visualization/tools/color/key_Column.tpl.html'
 				}
 			},
@@ -296,10 +300,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
    
     this.writeSessionState = function(base64String, params){
     	var projectName;
-    	var userName = "Awesome User";
+    	var userName;
     	var queryObjectTitles;
     	var projectDescription;
-    	//params.queryObjectJsons = angular.toJson(this.queryObject);
     	
     	if(angular.isDefined(params.projectEntered))
     		{
@@ -317,7 +320,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	}
     	else
     		 queryObjectTitles = this.queryObject.title;
-    	
+    	if(angular.isDefined(params.userName)){
+    		userName = params.userName;
+    		this.queryObject.author = userName;
+    	}
+    	else
+    		userName = "Awesome User";
     	
     	var qo =this.queryObject;
     	   	for(var key in qo.scriptOptions) {
@@ -503,7 +511,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						keyType : entity.publicMetadata.keyType
 					};
 				});
-				
 				scope.$safeApply(function() {
 					deferred.resolve(that.cache.geometryColumns);
 				});
@@ -598,15 +605,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
             });
             return deferred.promise;
         };
-        
-//        this.authenticate = function(user, password) {
-//
-//        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
-//                this.authenticated = result;
-//                scope.$apply();
-//            }.bind(this));
-//        };
-        
         
          // Source: http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
          // This will parse a delimited string into an array of

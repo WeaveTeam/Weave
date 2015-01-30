@@ -1,4 +1,5 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
+//TODO figure out whici module this service belongs to
 AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.weave;
@@ -254,7 +255,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.keyColumn = function(akeyColumn) {
 		var keyColumn = angular.fromJson(akeyColumn);
-		if(ws.weave && ws.weave.path && state) {
+		if(ws.weave && ws.weave.path && keyColumn) {
 			if(keyColumn.name) {
 				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : keyColumn.name});
 			}
