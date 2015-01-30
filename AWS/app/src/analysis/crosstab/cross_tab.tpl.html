@@ -2,15 +2,49 @@
 		
 	<div style="padding:20px">
 		<br>
-		<input style="width:50%" type="hidden" ui-select2-sortable
+		<input style="width:20%" type="hidden" ui-select2-sortable
 			ng-model="queryService.queryObject.dataTable"
 			simple-query="getDataTable"
 			data-placeholder="Select Data Table"
 			allow-clear="true"
 			to-id="getItemId" to-text="getItemText"
 		>
+		
+		
+		<input style="width:10%" type="hidden" ui-select2-sortable
+			ng-model="queryService.crossTabQuery.filters[0].column"
+			simple-query="getColumns"
+			data-placeholder="Filter By"
+			allow-clear="true"
+			to-id="getItemId" to-text="getItemText"
+		>
+		<input style="width:10%" type="hidden" ui-select2-sortable
+			ng-model="queryService.crossTabQuery.filters[0].option"
+			simple-query="getFirstFilterOptions"
+			data-placeholder="Value"
+			allow-clear="true"
+			to-id="getFilterId" to-text="getFilterText"
+		>
+		<input style="width:10%" type="hidden" ui-select2-sortable
+			ng-model="queryService.crossTabQuery.filters[1].column"
+			simple-query="getColumns"
+			data-placeholder="Filter By"
+			allow-clear="true"
+			to-id="getItemId" to-text="getItemText"
+		>
+		<input style="width:10%" type="hidden" ui-select2-sortable
+			ng-model="queryService.crossTabQuery.filters[1].option"
+			simple-query="getSecondFilterOptions"
+			data-placeholder="Value"
+			allow-clear="true"
+			to-id="getFilterId" to-text="getFilterText"
+		>
+		
+		
+		
+		
 		<div class="row" style="clear: both">
-			<div class="databox" style="width: 80%; height:50%">
+			<div class="databox" style="width: 100%; padding:20px; height:50%">
 				<!-- <div class="databox" style="width: 200px;"> -->
 				<div class=" header panel-heading">
 					<h2>Select Row:</h2>
@@ -46,7 +80,7 @@
 		</div>
 		<br>
 		<div class="row" style="clear: both">
-			<div class="databox" style="width: 80%; height:50%">
+			<div class="databox" style="width: 100%; padding:20px; height:50%">
 				<!-- <div class="databox" style="width: 200px;"> -->
 				<div class=" header panel-heading">
 					<h2>Select Column (Optional)</h2>
@@ -83,7 +117,7 @@
 		</div>
 		<br>
 		<div class="row" style="clear: both">
-			<div class="databox" style="width: 80%; height:50%">
+			<div class="databox" style="width: 100%; padding:20px; height:50%">
 				<!-- <div class="databox" style="width: 200px;"> -->
 				<div class=" header panel-heading">
 					<h2>Select Controls (Optional)</h2>
@@ -129,7 +163,7 @@
 		</div>
 
 		<div class="row" style="clear: both">
-			<div class="databox" style="width: 80%; height: 40%;">
+			<div class="databox" style="width: 100%; padding:20px; height:50%">
 				<div class=" header panel-heading">
 					<h2>Select Statistics: </h2>
 				</div>
@@ -182,7 +216,7 @@
 		
 
 		<div class="row" style="clear: both">
-			<div class="databox" style="width: 80%; height:10%">
+			<div class="databox" style="width: 100%; padding:20px; height:50%">
 				<div class=" header panel-heading">
 					<h2>Crosstabulation Options:</h2>
 				</div>
@@ -192,7 +226,7 @@
 			</div>
 		</div>
 	</div>	
-	<div style="width:80%; padding:10px">
+	<div style="width: 100%; padding:20px; height:50%">
 	  	 <button class= 'btn btn-primary btn-sm' ng-click="runReport()">Run Report</button><!-- button controls for editing metadata of a single column -->
 	     <button class = 'btn btn-primary btn-sm' ng-click="reset()">Reset</button>
 	     <button class = 'btn btn-primary btn-sm' ng-click="showInWeave()" style="float:right">Visualize in Weave</button>
@@ -201,7 +235,7 @@
 	<br><br>
 	
 	<div class="row" style="height: 50%; clear:both; padding-left: 20%; padding-right:10%">
-				<table cellspacing="1" cellpadding="7"  border="1">  <!-- border="border: 1px solid #0000FF"> -->
+				<table cellspacing="1" cellpadding="7"  border="3" >  <!-- border="border: 1px solid #0000FF"> -->
 						<tr ng-repeat="row in queryService.crossTabQuery.result">
 							<td width= "10%" style="padding-left: 5px; padding-right: 5px" ng-repeat="col in row track by $index">
 								{{col}}
