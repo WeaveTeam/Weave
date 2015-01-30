@@ -205,6 +205,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 $("#queryObjectPanel" ).draggable().resizable();
 	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
 	
+	 $scope.$watch('queryService.queryObject.resultSet', function() {
+		 console.log($scope.queryService.queryObject.resultSet);
+	 });
 	//**********************************************************REMAPPING**************************************
 	 queryService.cache.shouldRemap = [];
 	 $scope.newValue= "";
@@ -264,6 +267,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	};
 	
 	$scope.getItemText = function(item) {
+		if(queryService.queryObject.properties.displayAsQuestions)
+			return item.description || item.title;
 		return item.title;
 	};
 	
@@ -526,6 +531,15 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		done($filter('filter')(values,{columnType : 'time',title:term},'title'));
 	};
 	
+	var options = [];
+	$scope.test = function(index) {
+		options = queryService.cache.scriptMetadata.inputs[index].options;
+	};
+	
+	$scope.getOptInputOptions = function(term, done) {
+		done($filter('filter')(options, term));
+	};
+	
 	$scope.getGeographyInputOptions = function(term, done){
 		var values = queryService.cache.columns;
 		done($filter('filter')(values,{columnType : 'geography',title:term},'title'));
@@ -547,6 +561,8 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	};
 	
 	$scope.getItemText = function(item) {
+		if(queryService.queryObject.properties.displayAsQuestions)
+				return item.description || item.title;
 		return item.title;
 	};
 	//**************************************select2 sortable options handlers END*******************************
@@ -586,25 +602,29 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	$scope.$watch(function() {
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
-		if(newValue != oldValue) {
-			var scriptOptions = newValue;
-			for(var key in scriptOptions) { 
-				var option = scriptOptions[key];
-				if(option) {
-					if(option.hasOwnProperty("columnType")) {
-						if(option.columnType.toLowerCase() == "indicator") {
-							queryService.queryObject.Indicator = option;
+		// run this only if the user chooses to link the indicator
+		if($scope.service.queryObject.properties.linkedIndicator) {
+			if(newValue != oldValue) {
+				var scriptOptions = newValue;
+				for(var key in scriptOptions) { 
+					var option = scriptOptions[key];
+					if(option) {
+						if(option.hasOwnProperty("columnType")) {
+							if(option.columnType.toLowerCase() == "indicator") {
+								queryService.queryObject.Indicator = option;
+							}
 						}
 					}
 				}
+				
 			}
-			
 		}
 	}, true);
 
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected, queryService.cache.scriptMetadata];
 	}, function(newVal, oldVal) {
+		console.log(queryService.cache.scriptMetadata);
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
 			var scriptSelected = newVal[1];
@@ -620,16 +640,19 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			$scope.$watch(function() {
 				return queryService.cache.scriptMetadata;
 			}, function(newValue, oldValue) {
-				if(newValue) {
-					scriptMetadata = newValue;
-					if(indicator && scriptMetadata) {
-						for(var i in queryService.cache.scriptMetadata.inputs) {
-							var metadata = queryService.cache.scriptMetadata.inputs[i];
-							if(metadata.hasOwnProperty('type')) {
-								if(metadata.type == 'column') {
-									if(metadata.hasOwnProperty('columnType')) {
-										if(metadata.columnType.toLowerCase() == "indicator") {
-											queryService.queryObject.scriptOptions[metadata.param] = indicator;
+				// run this only if the user chooses to link the indicator
+				if($scope.service.queryObject.properties.linkedIndicator) {
+					if(newValue) {
+						scriptMetadata = newValue;
+						if(indicator && scriptMetadata) {
+							for(var i in queryService.cache.scriptMetadata.inputs) {
+								var metadata = queryService.cache.scriptMetadata.inputs[i];
+								if(metadata.hasOwnProperty('type')) {
+									if(metadata.type == 'column') {
+										if(metadata.hasOwnProperty('columnType')) {
+											if(metadata.columnType.toLowerCase() == "indicator") {
+												queryService.queryObject.scriptOptions[metadata.param] = indicator;
+											}
 										}
 									}
 								}

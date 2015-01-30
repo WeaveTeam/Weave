@@ -41,7 +41,7 @@ public class ComputationalServlet extends WeaveServlet
 	
 	public static String filteredRows = "FILTEREDROWS";
 	public static String dataMatrix = "DATACOLUMNMATRIX";
-	
+
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
@@ -76,38 +76,37 @@ public class ComputationalServlet extends WeaveServlet
 			//get its type
 			//process its value accordingly
 			String type = inputObjects[i].type;
-			
-			rows = (RowsObject)cast(inputObjects[i].value, RowsObject.class);
-			
-			data = DataService.getFilteredRows(rows.columnIds, rows.filters, null);
-			//TODO handling filters still has to be done
-			
-			//REMAPPING
-			if(remapValues != null)//only if remapping needs to be done
+			if(type.equalsIgnoreCase(filteredRows) || type.equalsIgnoreCase(dataMatrix))
 			{
-				data = remappingScriptInputData(remapValues, rows, data);//this function call will return the remapped data
-			}
-			
-			//transposition
-			columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
-			
-			// if individual columns --> assign each columns to proper column name
-			if (type.equalsIgnoreCase(filteredRows))
-			{
-				for(int x =  0; x < rows.namesToAssign.length;  x++) {
-					scriptInputs.put(rows.namesToAssign[x], columnData[x]);
-				}
-			}
-			//if single datamatrix to be used ascribe only one name 'columndata'
-			else if(type.equalsIgnoreCase(dataMatrix)){
+				rows = (RowsObject)cast(inputObjects[i].value, RowsObject.class);
+				data = DataService.getFilteredRows(rows.columnIds, rows.filters, null);
+				//TODO handling filters still has to be done
 				
-				scriptInputs.put("columndata", columnData);
+				//REMAPPING
+				if(remapValues != null)//only if remapping needs to be done
+				{
+					data = remappingScriptInputData(remapValues, rows, data);//this function call will return the remapped data
+				}
+				
+				//transposition
+				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
+				
+				// if individual columns --> assign each columns to proper column name
+				if (type.equalsIgnoreCase(filteredRows))
+				{
+					for(int x =  0; x < rows.namesToAssign.length;  x++) {
+						scriptInputs.put(rows.namesToAssign[x], columnData[x]);
+					}
+				}
+				//if single datamatrix to be used ascribe only one name 'columndata'
+				else if(type.equalsIgnoreCase(dataMatrix)){
+					
+					scriptInputs.put("columndata", columnData);
+				}
+			} //TODO handle remaining types of input objects
+			else {
+				scriptInputs.put(inputObjects[i].name, inputObjects[i].value);
 			}
-			//TODO handle remaining types of input objects
-			else 
-			{
-			}
-			
 		}
  		
 		return true;

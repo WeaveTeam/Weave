@@ -10,7 +10,7 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService){
 				addSecond : false,
 				filter1 : {},
 				filter2 : {},
-				template_url : "aws/analysis/data_filters/generic_filter.html"
+				template_url : "src/analysis/data_filters/generic_filter.html"
 			});
 			queryService.queryObject.filters.or.push(
 				{ 
