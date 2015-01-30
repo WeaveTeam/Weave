@@ -1,12 +1,16 @@
 //main analysis controller
-AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService, AnalysisService, WeaveService, QueryHandlerService, $window,statisticsService ) {
+AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService, AnalysisService, WeaveService, QueryHandlerService, $window) {
 	
 	queryService.getDataTableList(true);
 	
-	queryService.crossTabQuery = {};
-	
-	$scope.queryService = queryService;
+	queryService.crossTabQuery = {
+			filters : [{},{}]
+	};
 
+	$scope.queryService = queryService;
+	var firstFilterMetadata = {};
+	var secondFilterMetadata = {};
+	
 	$scope.rowInfo = "Select a row variable. Some analysts refer to the row as the dependent variable.";
 	$scope.columnInfo = "Select a column variable. Some analysts refer to the column as the independent variable.";
 	$scope.controlInfo = "Select additional control variables.";
@@ -17,6 +21,10 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 	$scope.weightedSizeInfo = "Weighted Sample Size of each subpopulation";
 	$scope.totalPercentage = "Total percentage of the subpopulation within each control";
 
+	$scope.$watch('queryService.queryObject.dataTable', function() {
+		// check if dataTable has been cleared
+		
+	});
 	$scope.$watch('queryService.crossTabQuery.row', function() {
 		
 		if(queryService.crossTabQuery.row) {
@@ -61,12 +69,66 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 			$scope.cVarValues = [];
 		}
 	});
+	
+	
+	$scope.$watch('queryService.crossTabQuery.filters[0].column', function() {
+		
+		if(queryService.crossTabQuery.filters[0].column && queryService.crossTabQuery.filters[0].column.id) {
+			queryService.getEntitiesById([queryService.crossTabQuery.filters[0].column.id], true).then(function (result) {
+				if(result.length) {
+					var resultMetadata = result[0];
+					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
+						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
+						if(metadata.hasOwnProperty("varValues")) {
+							queryService.getDataMapping(metadata.varValues).then(function(result) {
+								firstFilterMetadata = result;
+							});
+						}
+					}
+				}
+			});
+		} else {
+			// delete metadata if filter column is cleared
+			firstFilterMetadata = [];
+		}
+	});
+	
+	$scope.$watch('queryService.crossTabQuery.filters[1].column', function() {
+		
+		if(queryService.crossTabQuery.filters[1].column && queryService.crossTabQuery.filters[1].column.id) {
+			queryService.getEntitiesById([queryService.crossTabQuery.filters[1].column.id], true).then(function (result) {
+				if(result.length) {
+					var resultMetadata = result[0];
+					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
+						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
+						if(metadata.hasOwnProperty("varValues")) {
+							queryService.getDataMapping(metadata.varValues).then(function(result) {
+								secondFilterMetadata = result;
+							});
+						}
+					}
+				}
+			});
+		} else {
+			// delete metadata if filter column is cleared
+			secondFilterMetadata = [];
+		}
+	});
+	
 	$scope.getItemId = function(item) {
 		return item.id;
 	};
 	
 	$scope.getItemText = function(item) {
-		return item.description || item.title;;
+		return item.description || item.title;
+	};
+	
+	$scope.getFilterId = function(item) {
+		return item.value;
+	};
+	
+	$scope.getFilterText = function(item) {
+		return item.label;
 	};
 	
 	//datatable
@@ -75,9 +137,24 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 		done($filter('filter')(values, {title:term}, 'title'));
 	};
 	
+	$scope.getColumns = function(term, done) {
+		var values = queryService.cache.columns;
+		done($filter('filter')(values, {title:term}, 'title'));
+	};
 	
-	$scope.$watch("queryService.queryObject.dataTable.id", function() {
-		queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
+	$scope.getFirstFilterOptions = function(term, done) {
+		done($filter('filter')(firstFilterMetadata, {label:term}, 'label'));
+	};
+	
+	$scope.getSecondFilterOptions = function(term, done) {
+		done($filter('filter')(secondFilterMetadata, {label:term}, 'label'));
+	};
+	
+	$scope.$watch("queryService.queryObject.dataTable", function() {
+		if(!queryService.queryObject.dataTable || !queryService.queryObject.dataTable.hasOwnProperty("id")) {
+		} else {
+			queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
+		}
 	});
 	
 	//Indicator
@@ -93,12 +170,31 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 				filters : null
 		};
 		var scriptInput = [];
+		var filters = {and : []};
+
+		
+		if(queryService.crossTabQuery.filters[0])
+			filters.and.push({
+				cond : {
+					f : queryService.crossTabQuery.filters[0].column.id,
+					v : [queryService.crossTabQuery.filters[0].option.value]
+				}
+			});
+		
+		if(queryService.crossTabQuery.filters[1])
+			filters.and.push({
+				cond : {
+					f : queryService.crossTabQuery.filters[1].column.id,
+					v : [queryService.crossTabQuery.filters[1].option.value]
+				}
+			});
+		
 		if(!queryService.crossTabQuery.row && !queryService.crossTabQuery.row.hasOwnProperty("id"))
 		{
 			$scope.crossTabStatus = "Row variable required.";
 		} else
 		{
-			$scope.crossTabStatus = "Getting data from Database...";
+			$scope.crossTabStatus = "Loading data from database...";
 			dataRequest.columnIds.push(queryService.crossTabQuery.row.id);
 			dataRequest.namesToAssign.push("rw");
 
@@ -114,6 +210,10 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 					value : null
 				});
 			}
+			
+			if(filters.and.length)
+				dataRequest.filters = filters;
+			
 			
 			if(queryService.crossTabQuery.control1 && queryService.crossTabQuery.control1.hasOwnProperty("id"))
 			{
@@ -175,7 +275,9 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 					value : !!queryService.crossTabQuery.weightedSize
 				});
 		
-		queryService.getDataFromServer(scriptInput, null).then(function(result) {
+		queryService.getDataFromServer(scriptInput).then(function(result) {
+			$scope.crossTabStatus = "Running script...";
+
 			queryService.runScript("Cross Tabulation.R").then(function(result)
 			{
 				var formattedResult = WeaveService.createCSVDataFormat(result.resultData, result.columnNames);
