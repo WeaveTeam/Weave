@@ -216,7 +216,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				},
 				color_Column : {
 					title : "Color Column",
-					template_url : 'src/visualization/tools/color/color_Column.tpl.html',
+					template_url : 'src/visualization/tools/color/color_Column.tpl.html'
 				},
 				key_Column : {
 					title : "Key Column",
