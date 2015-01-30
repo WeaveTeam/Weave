@@ -274,7 +274,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	};
 	
 	$scope.$watch("queryService.queryObject.dataTable.id", function() {
-		queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
+		if($scope.queryService.queryObject.dataTable)
+			queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
 	});
 	
 	//Indicator

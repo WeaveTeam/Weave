@@ -602,6 +602,17 @@ background-color: #4C4F53;
 	border-color: #357ebd;
 }
 
+.unvalidatedUI{
+	border-radius: 10px;
+	border-color : #d43f3a;
+	background-color: #d9534f;	
+}
+
+.validatedUI{
+	border-radius: 8px;
+	background-color : #5bb75b
+}
+
 
 .panel-heading > h2 {
 	padding: 8px 0px 2px 5px;
