@@ -183,9 +183,12 @@ weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(we
  */
 weave.WeavePath.prototype._initProperty = function(manifest, callback_pass, property_descriptor)
 {
-    var name = property_descriptor["name"] || this._failMessage('initProperty', 'A "name" is required');
+    var name = property_descriptor["name"]
+    	|| this._failMessage('initProperty', 'A "name" is required');
     var label = property_descriptor["label"];
-    var children = Array.isArray(property_descriptor["children"]) ? property_descriptor["children"] : undefined;
+    var children = Array.isArray(property_descriptor["children"])
+    	? Array.prototype.slice.call(property_descriptor["children"])
+    	: undefined;
     var type = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
     
     var new_prop = this.push(name);
@@ -452,7 +455,7 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
 
     if (Array.isArray(pathMapping)) // array of child names
     {
-        var names = pathMapping;
+        var names = Array.prototype.slice.call(pathMapping);
         pathMapping = {};
         names.forEach(function(name){ pathMapping[name] = this.push(name); }, this);
     }
