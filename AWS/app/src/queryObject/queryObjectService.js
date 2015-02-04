@@ -88,7 +88,7 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 	 * @param {string|number=}queryId
 	 * @see aws.addBusyListener
 	 */
-	this.queryRequest = function(url, method, params, resultHandler, queryId)
+	this.queryRequest = function(url, method, params, resultHandler, errorHandler, queryId)
 	{
 	    var request = {
 	        jsonrpc: "2.0",
@@ -111,6 +111,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 	        	errorLogService.logInErrorLog(response.error.message);
 	        	//open the error log
 	        	$modal.open(errorLogService.errorLogModalOptions);
+	        	if(errorHandler)
+	        		return errorHandler(response.error, queryId);
 	        }
 	        else if (resultHandler){
 	            return resultHandler(response.result, queryId);
@@ -244,11 +246,20 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         
     	var deferred = $q.defer();
 
-    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName], function(result){	
-    		scope.$safeApply(function() {
-				deferred.resolve(result);
-			});
-		});
+    	runQueryService.queryRequest(computationServiceURL, 
+    								 'runScript', 
+    								 [scriptName], 
+    								 function(result){	
+							    		scope.$safeApply(function() {
+											deferred.resolve(result);
+										});
+    								 },
+    								 function(error){
+    									scope.$safeApply(function() {
+    										deferred.reject(error);
+    									});
+    								 }
+    	);
     	
         return deferred.promise;
     };
@@ -263,11 +274,19 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	
     	var deferred = $q.defer();
 
-    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, reMaps], function(result){	
-    		scope.$safeApply(function() {
-				deferred.resolve(result);
-			});
-		});
+    	runQueryService.queryRequest(computationServiceURL, 
+    								'getDataFromServer', 
+    								[inputs, reMaps],
+    								function(result){	
+							    		scope.$safeApply(function() {
+											deferred.resolve(result);
+										});
+									 },
+									 function(error){
+										scope.$safeApply(function() {
+											deferred.reject(error);
+										});
+									 });
     	
         return deferred.promise;
     };
@@ -375,12 +394,20 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     		return this.cache.scriptMetadata;
     	}
     	if(scriptName) {
-    		runQueryService.queryRequest(scriptManagementURL, 'getScriptMetadata', [scriptName], function(result){
-    			that.cache.scriptMetadata = result;
-    			scope.$safeApply(function() {
-    				deferred.resolve(that.cache.scriptMetadata);
-    			});
-    		});
+    		runQueryService.queryRequest(scriptManagementURL, 
+    									'getScriptMetadata', 
+    									[scriptName], 
+    									function(result){
+							    			that.cache.scriptMetadata = result;
+							    			scope.$safeApply(function() {
+							    				deferred.resolve(that.cache.scriptMetadata);
+							    			});
+    									},
+    									function(error){
+    										scope.$safeApply(function(error) {
+    											deferred.reject(error);
+    										});
+    									});
     	}
         return deferred.promise;
     };
@@ -456,6 +483,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						scope.$safeApply(function() {
 							deferred.resolve(that.cache.columns);
 						});
+					},
+					function(error) {
+						scope.$safeApply(function() {
+							deffered.reject(error);
+						});
 					});
 				});
 				
@@ -478,6 +510,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 					
 					scope.$safeApply(function() {
 						deferred.resolve(that.cache.dataColumnEntities);
+					});
+				},
+				function(error) {
+					scope.$safeApply(function() {
+						deferred.reject(error);
 					});
 				});
 			}
@@ -513,6 +550,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				scope.$safeApply(function() {
 					deferred.resolve(that.cache.geometryColumns);
 				});
+			}, function(error) {
+				scope.$safeApply(function() {
+					deferred.reject(error);
+				});
 			});
 		});
 
@@ -534,6 +575,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     			scope.$safeApply(function() {
     				deferred.resolve(that.cache.dataTableList);
     			});
+    		 }, function(error){
+    			 scope.$safeApply(function() {
+    				 deferred.reject(error);
+    			 });
     		 });
     	}
         return deferred.promise;
@@ -565,6 +610,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
          			for (var i in columnData.keys) 
          				result[i] = {"value": columnData.keys[i], "label": columnData.data[i]};
          			callback(result);
+     			},
+     			function(error) {
+     				scope.$safeApply(function() {
+     					deferred.reject(error);
+     				});
      			}
      		);
 	        return deferred.promise;
@@ -585,6 +635,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         				scope.$safeApply(function() {
             				deferred.resolve(that.cache.geographyMetadata);
             			});
+        			}, function(error){
+        				scope.$safeApply(function() {
+        					deferred.reject(error);
+        				});
         			});
         		});
         	}
@@ -601,6 +655,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
             	scope.$safeApply(function(){
                     deferred.resolve();
                 });
+            }, function(error) {
+            	scope.$safeApply(function() {
+            		deferred.reject(error);
+            	});
             });
             return deferred.promise;
         };

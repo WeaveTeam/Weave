@@ -150,15 +150,15 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									WeaveService.addCSVData(formattedResult, queryService.queryObject.Indicator.title, queryService.queryObject);
 									console.log(queryService.queryObject.resultSet);
 								}
-							} else {
-								queryService.queryObject.properties.queryDone = false;
-								queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
 							}
+						}, function(error) {
+							queryService.queryObject.properties.queryDone = false;
+							queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
 						});
-					} else {
-						queryService.queryObject.properties.queryDone = false;
-						queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
 					}
+				}, function(error) {
+					queryService.queryObject.properties.queryDone = false;
+					queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
 				});
 				
 			}//validation check
