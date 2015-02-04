@@ -34,7 +34,7 @@
 							ng-click="QueryHandlerService.run(queryService.queryObject)" 
 							popover="{{queryService.queryObject.properties.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 							ng-controller="QueryHandlerCtrl"
-							ng-Disabled = "!queryService.queryObject.properties.isQueryValid">
+							ng-Disabled = "!service.queryObject.properties.isQueryValid">
 							 <span style="vertical-align: right">Run</span>
 						 </button>
 		</div>
@@ -243,10 +243,11 @@
 						
 						
 <!-- Validation -->	
-						<!-- Tell us the validation status of a query object -->
-						<div style = "display :table" ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
+						<!-- Tell us status of the execution of query object --><!-- Different from validation status -->
+						<div style = "display :table" ng-model = "runService.isValidated">
 							 <div style = "display : table-cell" 
-							 ng-class="{'validate' : service.queryObject.properties.queryDone, 'invalidate' : !service.queryObject.properties.queryDone}">
+							 ng-class="{'validate' : service.queryObject.properties.queryDone, 'invalidate' : !service.queryObject.properties.queryDone}"
+							 title= "A green signal indiactes the query has been executed successfully">
 							 </div>
 							 <div style= "display : table-cell; padding-left : 5px">{{service.queryObject.properties.queryStatus}}</div>
 						 </div> 
