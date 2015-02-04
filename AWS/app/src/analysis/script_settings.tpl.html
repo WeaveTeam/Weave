@@ -1,44 +1,44 @@
-<div>
+<!-- <div> -->
 
-	<table>
-		<tr ng-repeat="input in service.cache.scriptMetadata.inputs">
-			<td>
-				<div class="label-p">{{input.param}}:</div>
-			</td>
+<!-- 	<table> -->
+<!-- 		<tr ng-repeat="input in service.cache.scriptMetadata.inputs"> -->
+<!-- 			<td> -->
+<!-- 				<div class="label-p">{{input.param}}:</div> -->
+<!-- 			</td> -->
 			
-			<td style="padding-left: 10px;">
+<!-- 			<td style="padding-left: 10px;"> -->
 							
-				<div class="btn-group btn-toggle" ng-if="input.type == 'options' && input.options.length == 2" ng-click="toggleButton(input)"">
-						<button ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[0]}" class="btn btn-default">
-											{{input.options[0]}}
-						</button>
-						<button ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[1]}" class="btn btn-default">
-								{{input.options[1]}}
-						</button>
-				</div>
+<!-- 				<div class="btn-group btn-toggle" ng-if="input.type == 'options' && input.options.length == 2" ng-click="toggleButton(input)""> -->
+<!-- 						<button ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[0]}" class="btn btn-default"> -->
+<!-- 											{{input.options[0]}} -->
+<!-- 						</button> -->
+<!-- 						<button ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[1]}" class="btn btn-default"> -->
+<!-- 								{{input.options[1]}} -->
+<!-- 						</button> -->
+<!-- 				</div> -->
 				
-				<input type="checkbox" class="btn-group btn-toggle" ng-if="input.type == 'boolean'" ng-model="service.queryObject.scriptOptions[input.param]"/>
+<!-- 				<input type="checkbox" class="btn-group btn-toggle" ng-if="input.type == 'boolean'" ng-model="service.queryObject.scriptOptions[input.param]"/> -->
 				
-				<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'column'" ui-select2-"{allowClear : true}" ng-model="service.queryObject.scriptOptions[input.param]">
-					<option></option>
-					<option value="{{col}}" ng-repeat="col in service.cache.columns | filter:input.columnType"> {{col.title}}</option>
-				</select>
+<!-- 				<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'column'" ui-select2-"{allowClear : true}" ng-model="service.queryObject.scriptOptions[input.param]"> -->
+<!-- 					<option></option> -->
+<!-- 					<option value="{{col}}" ng-repeat="col in service.cache.columns | filter:input.columnType"> {{col.title}}</option> -->
+<!-- 				</select> -->
 		
-				<input style="width: 100%" ng-if="input.type == 'value'" ng-model="service.queryObject.scriptOptions[input.param]">
+<!-- 				<input style="width: 100%" ng-if="input.type == 'value'" ng-model="service.queryObject.scriptOptions[input.param]"> -->
 		
-				<select style="width: 100%" ng-if="input.type == 'multiColumns'" ui-select2-"{allowClear : true}" multiple ng-model="service.queryObject.scriptOptions[input.param]">
-					<option></option>
-					<option value="{{ col }}" ng-repeat="col in service.cache.columns | filter:input.columnType"> {{col.title}}</option>
-				</select>
+<!-- 				<select style="width: 100%" ng-if="input.type == 'multiColumns'" ui-select2-"{allowClear : true}" multiple ng-model="service.queryObject.scriptOptions[input.param]"> -->
+<!-- 					<option></option> -->
+<!-- 					<option value="{{ col }}" ng-repeat="col in service.cache.columns | filter:input.columnType"> {{col.title}}</option> -->
+<!-- 				</select> -->
 				
-				<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'options'"
-						ui-select2-"{allowClear : true}" 
-						ng-model="service.queryObject.scriptOptions[input.param]">
-						<option></option>
-						<option value="{{opt}}" ng-repeat="opt in input.options">{{opt}}</option>
-				</select>
-				<br>
-			</td>
-		</tr>
-	</table>
-</div>
+<!-- 				<select style="width: 100%" class="select-2-drop" ng-if="input.type == 'options'" -->
+<!-- 						ui-select2-"{allowClear : true}"  -->
+<!-- 						ng-model="service.queryObject.scriptOptions[input.param]"> -->
+<!-- 						<option></option> -->
+<!-- 						<option value="{{opt}}" ng-repeat="opt in input.options">{{opt}}</option> -->
+<!-- 				</select> -->
+<!-- 				<br> -->
+<!-- 			</td> -->
+<!-- 		</tr> -->
+<!-- 	</table> -->
+<!-- </div> -->
