@@ -29,12 +29,15 @@ projectModule.controller("projectAdditionController", function($scope, $modal, p
 			 console.log("titles", additionParams.uploadedObjects.queryObjectTitles);
 			 console.log("userName", additionParams.userNameEntered);
 			 
+			 
+			 
 		});
 	};
 });
 
 //Modal instance controller
-projectModule.controller('pjtAddtionInstanceCtrl', function($rootScope,$scope, $modalInstance, projectNameEntered,projectDescriptionEntered, userNameEntered ) {
+projectModule.controller('pjtAddtionInstanceCtrl', function($scope, $modalInstance,projectService, projectNameEntered,projectDescriptionEntered, userNameEntered ) {
+	$scope.projectService = projectService;
 	$scope.uploadStatus = "";
 	
 	//object representation of a SINGLE file uploaded, changed everytime a file is uploaded
@@ -86,6 +89,15 @@ projectModule.controller('pjtAddtionInstanceCtrl', function($rootScope,$scope, $
 				projectDescriptionEntered : projectDescriptionEntered,
 				uploadedObjects : $scope.uploadedObjects
 		};
+		
+		console.log("being called");
+		
+		$scope.projectService.createNewProject(additionParams.userNameEntered,
+											   additionParams.projectNameEntered,
+											   additionParams.projectDescriptionEntered,
+											   additionParams.uploadedObjects.queryObjectTitles,
+											   additionParams.uploadedObjects.queryObjectJsons,
+											null);
 		
 		 $modalInstance.close(additionParams);
 	 };

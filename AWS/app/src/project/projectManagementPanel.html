@@ -2,14 +2,11 @@
 	<div >
 		<div class="prj-contents" style="width: 100%; padding-left: 40px;">
 
-			<div class="project-username">
-				<span class="user-label">Username: </span>
-<!-- UserName -->
+<!-- 			<div class="project-username"> -->
+<!-- 				<span class="user-label">Username: </span> -->
 <!-- 				<input class="user-input" ng-model = "projectService.cache.userName" type = "text" placeholder = "Enter a username for the project" /> -->
 
-			</div>
-
-			<br>
+<!-- 			</div> -->
 
 			<div style="width: 90%;  height: 100%;" class="panel panel-default">
 
@@ -22,7 +19,6 @@
 							style="width: 100%" ng-model="projectService.cache.dataTable"
 							simple-query="getProjectsList"
 							data-placeholder="Select Project"
-							allow-clear="true"
 							to-id="getItemId" to-text="getItemText">
 						</input> 
 
@@ -88,7 +84,7 @@
  <!-- Contains the picture -->		<!-- div style="display : table-cell" ng-repeat = "pic in thumbnailsToDisplay"-->
 										<div style="display : table-cell">
 											<img width = "150" height = "100" 
-												 ng-src= "{{item.thumbnail || '/css/img/ImageUnavailable.png'}}" 
+												 ng-src= "{{item.thumbnail || 'css/img/ImageUnavailable.png'}}" 
 												 style="border: 1px solid #000000;"
 												 ng-click = "returnSessionState(item.queryObject)">
 											 </img>
