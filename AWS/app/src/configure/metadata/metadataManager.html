@@ -20,10 +20,11 @@
 	      <button  class = "file-nput-btn" style="float:left; width:49%" ng-click = "refresh()">Refresh</button>
 	      <label class='file-nput-btn' style="float:left; width:49%">Upload<input fileread="metadataUploaded.file" class='file-upload' type='file'/></label>
 <!-- 	      <file-upload label="Upload"></file-upload> -->
- 		
-	 	 <div ng-show = "inProgress" >
-		  Progress
-		      <progressbar value="progressValue" dynamic-max = "{{maxTasks}}" animate="true">
+
+
+	 	 <div style = "width :100% ; border : 2px;" >
+		  Progress while uploading metadata for a given table
+		      <progressbar  ng-show = "inProgress" value="progressValue" dynamic-max = "{{maxTasks}}" animate="true">
 		      <span style="color:white; white-space:nowrap;"/>{{progressValue}}/ {{maxTasks}}</progressbar><!-- progress bar -->
 		      
 		      
