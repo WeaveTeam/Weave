@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.core.DynamicState;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -40,6 +41,7 @@ package weave.visualization.plotters
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableVariable;
 	import weave.core.LinkableWatcher;
@@ -57,6 +59,8 @@ package weave.visualization.plotters
 	{
 		public const movedDataPoints:LinkableVariable = registerSpatialProperty(new LinkableVariable(Dictionary, null, new Dictionary()));		
 		private var tempDictionary:Dictionary;
+		private var _columns:Array = [];
+		private var _stats:Dictionary = new Dictionary(true);
 		
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, DraggableScatterPlotPlotter, "Draggable Scatterplot");
 		
@@ -66,21 +70,40 @@ package weave.visualization.plotters
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 			
+			topicColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+		}
+		
+		private function handleColumnsListChange():void
+		{
+			// When a new column is created, register the stats to trigger callbacks and affect busy status.
+			// This will be cleaned up automatically when the column is disposed.
+			var newColumn:IAttributeColumn = topicColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newColumn)
+			{
+				_stats[newColumn] = WeaveAPI.StatisticsCache.getColumnStatistics(newColumn);
+				registerLinkableChild(spatialCallbacks, _stats[newColumn]);
+			}
+			
+			_columns = topicColumns.getObjects();
+			
+			setColumnKeySources([dataX].concat(_columns));
 		}
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y", "Color", "Size"];
+			return ["X", "Y", "Color", "Size", "Topics"];
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [dataX, dataY, fill.color, sizeBy];
+			return [dataX, dataY, fill.color, sizeBy, topicColumns];
 		}
 		
+		public const topicColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
+		public const thresholdNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.25, isFinite));
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
@@ -294,6 +317,16 @@ package weave.visualization.plotters
 		public function resetMovedDataPoints():void
 		{
 			movedDataPoints.setSessionState(new Dictionary());
+		}
+		
+		private var tempObject:Object;
+		public function getMovedPointList():Object
+		{
+			tempObject = new Object();
+			tempDictionary = movedDataPoints.getSessionState() as Dictionary;
+			for( var key:String in tempDictionary )
+				tempObject[key] = tempDictionary[key];
+			return tempObject;
 		}
 		
 		// backwards compatibility
