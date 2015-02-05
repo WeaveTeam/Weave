@@ -96,26 +96,31 @@
 								</div>
 								<div class="query-btn-holder">
 								
-										<div class= "btn-group" dropdown is-open= "status.isopen">
-											<button  id = "openQueryObjectButton" type="button" class="btn btn-sm dropdown-toggle">
-												Open <span class="caret"></span>
-											</button>
+										
+								
+<!-- 										<div class= "btn-group" dropdown is-open= "status.isopen"> -->
+<!-- 											<button  id = "openQueryObjectButton" type="button" class="btn btn-sm dropdown-toggle"> -->
+<!-- 												Open <span class="caret"></span> -->
+<!-- 											</button> -->
 											
-											<ul class="dropdown-menu" role="menu">
-										        <li style= "padding-left : 5px"> <button>in analysis builder</button>  </li>
-										        <li class="divider"></li>
-										        <li style= "padding-left : 5px"> <button>in editor</button></li>
-										      </ul>
-										</div>
+<!-- 											<ul class="dropdown-menu" role="menu"> -->
+<!-- 										        <li style= "padding-left : 5px"> <button ng-click="openInAnalysis(item.queryObject)" style="width:100%">in analysis builder</button>  </li> -->
+<!-- 										        <li class="divider"></li> -->
+<!-- 										        <li style= "padding-left : 5px"> <button>in editor</button></li> -->
+<!-- 										      </ul> -->
+<!-- 										</div> -->
 									
 										<button ng-click = "runQueryInAnalysisBuilder(item.queryObject)" class ="btn btn-sm query-button">
 											Run Query
 										</button>
 										
 										<button ng-click = "deleteSpecificQueryObject(item)" class="btn btn-sm query-button">
-											Delete the query
+											Delete
 										</button>
 									
+										<button ng-click = "openInAnalysis(item.queryObject)" class ="btn btn-sm query-button">
+											Open
+										</button>
 									
 <!-- 									<button  id = "openInAnalysis" ng-click = "loadInAnalysis(item.queryObject)" type="button" class="btn btn-sm query-button"> -->
 <!-- 										Open in Analysis Builder -->

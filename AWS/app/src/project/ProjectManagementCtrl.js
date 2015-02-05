@@ -1,5 +1,5 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope, $filter, queryService,projectService, QueryHandlerService, WeaveService){
+.controller("ProjectManagementCtrl", function($scope, $filter, queryService, projectService, QueryHandlerService, WeaveService, $location){
 	$scope.projectService = projectService;
 	
 	//retrives project list
@@ -105,11 +105,15 @@ angular.module('aws.project', [])
 	};
 	
 	$scope.runQueryInAnalysisBuilder = function(item){
-		//queryService.queryObject = item;//setting the queryObject to be handled by the QueryHandlerService
 		//TODO validate the query before running
 		
 		QueryHandlerService.run(item);
 		console.log("Running query");
+	};
+	
+	$scope.openInAnalysis = function(queryObject) {
+		queryService.queryObject = queryObject;
+		$location.path('/analysis'); 
 	};
 	
 	$scope.returnSessionState = function(queryObject){
